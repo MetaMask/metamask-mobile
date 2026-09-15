@@ -103,4 +103,69 @@ describe('CustomAmount', () => {
 
     expect(queryByTestId('custom-amount-cursor')).toBeNull();
   });
+
+  describe('cents truncation', () => {
+    it('truncates full-precision amounts to two decimals', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="500.123456" />,
+      );
+
+      expect(getByText('500.12')).toBeOnTheScreen();
+    });
+
+    it('truncates rather than rounding up', () => {
+      // The rendered value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="10.379" />,
+      );
+
+      expect(getByText('10.37')).toBeOnTheScreen();
+    });
+
+    it('never carries into the whole part', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="1.999" />,
+      );
+
+      expect(getByText('1.99')).toBeOnTheScreen();
+    });
+
+    it('truncates before applying locale separators', () => {
+      renderWithProvider(<CustomAmount amountFiat="1234.987654" />);
+
+      expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
+        '1234.98',
+      );
+    });
+
+    it('normalises a comma decimal separator to a period', () => {
+      // formatAmountWithLocaleSeparators splits on `.` and applies the locale
+      // separator itself, so handing it a comma would drop the decimals.
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="500,987654" />,
+      );
+
+      expect(getByText('500.98')).toBeOnTheScreen();
+    });
+
+    it('renders malformed input unchanged rather than NaN', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="1.2.3456" />,
+      );
+
+      expect(getByText('1.2.3456')).toBeOnTheScreen();
+    });
+
+    it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
+      'leaves keypad input %s exactly as typed',
+      (amountFiat) => {
+        const { getByText } = renderWithProvider(
+          <CustomAmount amountFiat={amountFiat} />,
+        );
+
+        expect(getByText(amountFiat)).toBeOnTheScreen();
+      },
+    );
+  });
 });

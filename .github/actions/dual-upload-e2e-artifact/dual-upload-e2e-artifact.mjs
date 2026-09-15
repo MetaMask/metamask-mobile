@@ -25,8 +25,15 @@ const isNamespaceRunnerProvider = () =>
   getEnv('RUNNER_PROVIDER').includes('namespace');
 
 const getRequiredStoreConfigs = () => {
+  const skipGithub = getEnv('SKIP_GITHUB').toLowerCase() === 'true';
+
   if (!isNamespaceRunnerProvider()) {
+    // Non-Namespace runners only have the GitHub store; skip-github cannot apply.
     return STORE_CONFIGS.filter(({ outcomePrefix }) => outcomePrefix === 'GH');
+  }
+
+  if (skipGithub) {
+    return STORE_CONFIGS.filter(({ outcomePrefix }) => outcomePrefix === 'NS');
   }
 
   return STORE_CONFIGS;
@@ -78,7 +85,7 @@ const runRequireBothStores = () => {
     .map(({ storeName, ok }) => `${storeName}=${ok}`)
     .join(' ');
   console.error(
-    `::error::Dual artifact upload failed (${summary}). Both stores must succeed.`,
+    `::error::Dual artifact upload failed (${summary}). Required stores must succeed.`,
   );
   process.exitCode = 1;
 };

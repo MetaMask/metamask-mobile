@@ -3,13 +3,18 @@ import { render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../../UI/Earn/constants/earnModuleEvents';
 
 const mockNavigate = jest.fn();
 const mockEarnSection = jest.fn((_props: Record<string, unknown>) => null);
@@ -35,8 +40,8 @@ jest.mock('../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
 }));
 
-jest.mock('../../../UI/Earn/selectors/featureFlags', () => ({
-  selectExploreEarnSectionEnabledFlag: jest.fn(),
+jest.mock('../../../UI/Earn/selectors/visibility', () => ({
+  selectIsExploreEarnSectionVisible: jest.fn(),
 }));
 
 jest.mock('../../../UI/Earn/components/EarnSection', () => ({
@@ -101,10 +106,10 @@ const defaultTabProps = {
 
 const arrangeMocks = ({
   perpsEnabled = false,
-  earnSectionEnabled = false,
+  earnSectionVisible = false,
 }: {
   perpsEnabled?: boolean;
-  earnSectionEnabled?: boolean;
+  earnSectionVisible?: boolean;
 } = {}) => {
   jest.clearAllMocks();
   mockUseIsFocused.mockReturnValue(true);
@@ -115,8 +120,8 @@ const arrangeMocks = ({
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
-    if (selector === selectExploreEarnSectionEnabledFlag) {
-      return earnSectionEnabled;
+    if (selector === selectIsExploreEarnSectionVisible) {
+      return earnSectionVisible;
     }
     return undefined;
   });
@@ -159,8 +164,8 @@ const getSectionOrder = (tree: ReturnType<typeof render>['root']): string[] => {
 };
 
 describe('CryptoTab — Earn section', () => {
-  it('renders Earn when the feature flag is enabled', () => {
-    arrangeMocks({ earnSectionEnabled: true });
+  it('renders Earn when the section is visible', () => {
+    arrangeMocks({ earnSectionVisible: true });
 
     render(<CryptoTab {...defaultTabProps} />);
 
@@ -169,10 +174,15 @@ describe('CryptoTab — Earn section', () => {
       enabled: false,
       refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 
-  it('does not render Earn when the feature flag is disabled', () => {
+  it('does not render Earn when the section is not visible', () => {
     arrangeMocks();
 
     render(<CryptoTab {...defaultTabProps} />);
@@ -182,7 +192,7 @@ describe('CryptoTab — Earn section', () => {
   });
 
   it('forwards the Explore refresh trigger to Earn', () => {
-    arrangeMocks({ earnSectionEnabled: true });
+    arrangeMocks({ earnSectionVisible: true });
 
     render(
       <CryptoTab
@@ -195,11 +205,16 @@ describe('CryptoTab — Earn section', () => {
       enabled: false,
       refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 
   it('enables Earn when Crypto is the active Explore tab', () => {
-    arrangeMocks({ earnSectionEnabled: true });
+    arrangeMocks({ earnSectionVisible: true });
 
     render(
       <ExploreActiveTabProvider activeTab="Crypto">
@@ -213,7 +228,7 @@ describe('CryptoTab — Earn section', () => {
   });
 
   it('disables Earn when Explore screen is unfocused', () => {
-    arrangeMocks({ earnSectionEnabled: true });
+    arrangeMocks({ earnSectionVisible: true });
     mockUseIsFocused.mockReturnValue(false);
 
     render(
@@ -229,8 +244,8 @@ describe('CryptoTab — Earn section', () => {
 });
 
 describe('CryptoTab — section ordering', () => {
-  it('renders Earn immediately after Perps when both sections are enabled', () => {
-    arrangeMocks({ perpsEnabled: true, earnSectionEnabled: true });
+  it('renders Earn immediately after Perps when both sections are visible', () => {
+    arrangeMocks({ perpsEnabled: true, earnSectionVisible: true });
 
     const { root } = render(<CryptoTab {...defaultTabProps} />);
 

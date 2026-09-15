@@ -15,7 +15,7 @@ flowchart TD
     L2 -->|ignorable-only changes| NoBlock[🟢 Merge allowed]
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
-    GR -->|Scheduled or Push to main and release/*| Full[🧪 Run all E2E for Android and iOS] 
+    GR -->|Scheduled or Push to main and release/*| Full[🧪 Run all E2E for Android and iOS]
 
     GR -->|PR with non-ignorable changes| PRToValidate["Path-filtered platforms (Android, iOS, or both)"]
     PRToValidate -->|Android tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
@@ -31,28 +31,25 @@ flowchart TD
 
 ```
 
-## iOS builds on PRs into `main` are on request only
+## iOS E2E is request-only on PRs targeting `main` or `release/*`
 
 After the global checks, path filters determine whether a non-ignorable PR
 requires Android, iOS, or both. An ignorable-only PR stops before this stage;
 labels cannot revive it.
 
-| Request | Effect |
-| --- | --- |
-| `run-appium-ios-tests` label | Includes iOS in the final platforms and runs Appium iOS, even when path filters selected Android only. |
+| Request                          | Effect                                                                                                                                   |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `run-appium-ios-tests` label     | Includes iOS in the final platforms and runs Appium iOS, even when path filters selected Android only.                                   |
 | `skip-smart-e2e-selection` label | Bypasses Smart E2E and runs the full `ALL` tag set on **both Android and iOS**, once path filters establish that the PR is E2E-eligible. |
 
-The same platform and label policy applies to PRs targeting `main` and
-`release/*`.
+The same path-filter and label policy applies to PRs targeting `main` and
+`release/*`; Additional requirements just for PRs targeting `main` branch:
 
-Consequences:
+- shared smoke/Appium test infra paths ensure both Android and iOS platforms are selected to run.
 
-- A non-ignorable PR with Android selected and no iOS request runs Android only.
-- A non-ignorable PR with only iOS selected and no iOS request runs no E2E.
-- If at least one platform is selected, `skip-smart-e2e-selection` runs both
-  Android and iOS.
-- Pushes to `main` and `release/*`, plus the overnight schedule, run all E2E on
-  both platforms.
+Pushes to `main` and `release/*` use the same path classification as PRs:
+ignorable-only changes skip E2E, while other changes run the full `ALL` tag set
+on the required platforms. Smart E2E Selection remains PR-only.
 
 ## E2E tests skipped by default on new PRs during peak hours
 
@@ -71,10 +68,9 @@ Runs only when all of the following are true:
 - No hard E2E skip signal (label `skip-e2e`)
 - No `skip-smart-e2e-selection` label
 
-For eligible PRs targeting `main` or `release/*`, Smart E2E selects test tags for the platforms selected by path filters and platform requests.
+For eligible PRs targeting `main` or `release/*`, Smart E2E selects test tags for the platforms selected by the final platform policy.
 
-When `skip-smart-e2e-selection` is present, Smart E2E is bypassed and the full `ALL` tag set runs on **both Android and iOS**. This happens after path filters establish that the PR is E2E-eligible, so an ignorable-only PR still cannot be
-revived by this label.
+When `skip-smart-e2e-selection` is present, Smart E2E is bypassed and the full `ALL` tag set runs on **both Android and iOS**. This applies after the global eligibility checks, so an ignorable-only PR still cannot be revived by this label.
 
 When an E2E-relevant workflow changes, Smart E2E Selection applies a hard rule before calling AI: it returns the `ALL` tag set with 100% confidence. This protects workflow and runner changes that can affect every E2E suite.
 
@@ -83,9 +79,10 @@ When an E2E-relevant workflow changes, Smart E2E Selection applies a hard rule b
 - Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of e.g. infra issues.
 - Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
 
-## E2E flakiness detection in PRs
+## E2E flakiness detection in PRs targeting `main`
 
-Flakiness detection is applied to modified E2E test files in PRs:
+Flakiness detection is applied to modified E2E test files in PRs targeting
+`main`:
 
 - Modified E2E test files run twice
 - It applies to existing test files as well as new test files added in the PR
@@ -95,9 +92,9 @@ Flakiness detection is applied to modified E2E test files in PRs:
 
 `release/*` branches are release candidates cut from main.
 
-- Pull requests targeting `main` and `release/*` follow the same path-filter,
-  platform-request, and Smart E2E policy.
-- Every push to `release/*` runs Android and iOS Appium E2E with `ALL` tags.
-- Pull requests from `release/*` to `stable` are synchronization PRs and run no
-  E2E.
+- Pull requests targeting `main` and `release/*` follow the same
+  platform-selection, platform-request, and Smart E2E policy.
+- Pushes to `main` and `release/*` use path filtering and run `ALL` tags on the
+  required platforms; ignorable-only pushes skip E2E.
+- Pull requests from `release/*` to `stable` are synchronization PRs and run no E2E.
 - The final release decision is based on the latest tested `release/*` SHA.

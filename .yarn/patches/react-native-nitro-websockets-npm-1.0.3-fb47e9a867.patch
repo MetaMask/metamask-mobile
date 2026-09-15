@@ -1,0 +1,60 @@
+diff --git a/android/src/main/cpp/WebSocketConnection.cpp b/android/src/main/cpp/WebSocketConnection.cpp
+index f5742d83444202bf359a914c57ebdcc6cd915c84..93141ea9cd5baafba2a8a17c88459441026b0881 100644
+--- a/android/src/main/cpp/WebSocketConnection.cpp
++++ b/android/src/main/cpp/WebSocketConnection.cpp
+@@ -196,13 +196,29 @@ void WebSocketConnection::connect(
+ 
+ 
+ void WebSocketConnection::close(int code, const std::string& reason) {
+-  if (_state == State::CLOSED || _state == State::CLOSING) return;
+-  _state = State::CLOSING;
++  // Claim the transition atomically and keep the state we moved away from.
++  // _state is written from both the JS and libwebsockets threads, so a plain
++  // read-then-write races a handshake completing in the same lws_service tick.
++  State prev = _state.load();
++  do {
++    if (prev == State::CLOSING || prev == State::CLOSED) return;
++  } while (!_state.compare_exchange_weak(prev, State::CLOSING));
++
++  int closeCode = (code >= 1000 && code <= 4999) ? code : LWS_CLOSE_STATUS_NORMAL;
+ 
+   auto self = std::static_pointer_cast<WebSocketConnection>(shared_from_this());
+-  LwsContext::instance().schedule([self, code, reason]() {
++  LwsContext::instance().schedule([self, prev, closeCode, reason]() {
+     if (!self->_wsi) return;
+-    int closeCode = (code >= 1000 && code <= 4999) ? code : LWS_CLOSE_STATUS_NORMAL;
++
++    if (prev == State::CONNECTING) {
++      // Mid-handshake: the connection still holds the HTTP role, and
++      // lws_close_reason() asserts lwsi_role_ws(wsi) — see
++      // warmcat/libwebsockets#1335. Drop the socket instead; there is no ws
++      // close handshake to perform on one that never became a websocket.
++      lws_set_timeout(self->_wsi, PENDING_TIMEOUT_USER_OK, LWS_TO_KILL_ASYNC);
++      return;
++    }
++
+     lws_close_reason(self->_wsi,
+                      static_cast<lws_close_status>(closeCode),
+                      reinterpret_cast<unsigned char*>(const_cast<char*>(reason.c_str())),
+diff --git a/android/src/main/cpp/WebSocketConnection.hpp b/android/src/main/cpp/WebSocketConnection.hpp
+index 4bd60ab6914df380bd586d9f16f9f0edfb9f05f4..75719283830583b73c8c4acc7213a37fe48d39fb 100644
+--- a/android/src/main/cpp/WebSocketConnection.hpp
++++ b/android/src/main/cpp/WebSocketConnection.hpp
+@@ -33,7 +33,7 @@ public:
+   void send(const std::string& data) override;
+   void sendBinary(const uint8_t* data, size_t len) override;
+ 
+-  State state() const override { return _state; }
++  State state() const override { return _state.load(); }
+   std::string url() const override { return _url; }
+   std::string protocol() const override { return _negotiatedProtocol; }
+   std::string extensions() const override { return _extensions; }
+@@ -62,7 +62,7 @@ private:
+   std::string _url;
+   std::string _negotiatedProtocol;
+   std::string _extensions;
+-  State       _state = State::CONNECTING;
++  std::atomic<State> _state{State::CONNECTING};
+ 
+   OnOpen    _onOpen;
+   OnMessage _onMessage;

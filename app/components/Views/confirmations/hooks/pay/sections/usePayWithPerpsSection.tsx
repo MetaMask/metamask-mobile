@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
@@ -45,8 +45,10 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const perpsAccount = useSelector(selectPerpsAccountState);
   const { onPaymentTokenChange } = usePerpsPaymentToken();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
-  const { depositWithConfirmation } = usePerpsTrading();
+  const { depositWithConfirmation, depositWithOrder } = usePerpsTrading();
   const { onReject } = useApprovalRequest();
+  const hasLeftForDeposit = useRef(false);
+  const isRestoringOrder = useRef(false);
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
@@ -68,18 +70,47 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     navigation.goBack();
   }, [clearPaymentOverride, navigation, onPaymentTokenChange]);
 
+  const restoreOrder = useCallback(() => {
+    if (isRestoringOrder.current) {
+      return;
+    }
+
+    isRestoringOrder.current = true;
+
+    depositWithOrder()
+      .then(() => {
+        hasLeftForDeposit.current = false;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        isRestoringOrder.current = false;
+      });
+  }, [depositWithOrder]);
+
   const handleAdd = useCallback(async () => {
     onReject();
     try {
       await depositWithConfirmation();
+      hasLeftForDeposit.current = true;
       navigation.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         { showPerpsHeader: true },
       );
     } catch {
-      // Deposit flow handles errors (e.g. user rejection or missing network).
+      hasLeftForDeposit.current = true;
+      restoreOrder();
     }
-  }, [depositWithConfirmation, navigation, onReject]);
+  }, [depositWithConfirmation, navigation, onReject, restoreOrder]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasLeftForDeposit.current || transactionMeta) {
+        return;
+      }
+
+      restoreOrder();
+    }, [restoreOrder, transactionMeta]),
+  );
 
   return useMemo(() => {
     if (!isPerpsDepositAndOrder) {

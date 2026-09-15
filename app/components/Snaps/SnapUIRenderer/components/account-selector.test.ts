@@ -77,6 +77,9 @@ describe('SnapUIAccountSelector', () => {
     CurrencyRateController: {
       currentCurrency: 'usd',
     },
+    AssetsController: {
+      selectedCurrency: 'usd',
+    },
     MultichainAssetsRatesController: {
       conversionRates: {},
     },

@@ -8,6 +8,7 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { usePerpsProvider } from './usePerpsProvider';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -19,6 +20,14 @@ jest.mock('../../../../core/Engine', () => ({
       getOrderCapabilities: jest.fn(),
       switchProvider: jest.fn(),
     },
+  },
+}));
+
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    runWithContextChangePreparation: jest.fn(
+      (transition: () => Promise<unknown>) => transition(),
+    ),
   },
 }));
 
@@ -65,7 +74,7 @@ beforeEach(() => {
     providerId: 'hyperliquid',
     supportedStrategies: [],
   });
-  // Default: Hyperliquid active on mainnet, MYX flag off.
+  // Default: Hyperliquid active on mainnet.
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectPerpsProvider) {
       return 'hyperliquid';
@@ -82,69 +91,65 @@ beforeEach(() => {
 
 describe('usePerpsProvider', () => {
   describe('availableProviders', () => {
-    it('includes only hyperliquid when MYX flag is disabled', () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid') // activeProvider
-        .mockReturnValueOnce(false); // isMYXProviderEnabled
-
+    it('includes only Hyperliquid', () => {
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.availableProviders).toEqual(['hyperliquid']);
-    });
-
-    it('includes myx and aggregated when MYX flag is enabled', () => {
-      mockUseSelector
-        .mockReturnValueOnce('myx') // activeProvider
-        .mockReturnValueOnce(true); // isMYXProviderEnabled
-
-      const { result } = renderHook(() => usePerpsProvider());
-
-      expect(result.current.availableProviders).toEqual([
-        'hyperliquid',
-        'myx',
-        'aggregated',
-      ]);
     });
   });
 
   describe('activeProvider', () => {
     it('returns current active provider from selector', () => {
-      mockUseSelector.mockReturnValueOnce('myx').mockReturnValueOnce(true);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsProvider) return 'lighter';
+        if (selector === selectPerpsNetwork) return 'mainnet';
+        if (selector === selectPerpsInitializationState) {
+          return InitializationState.Initialized;
+        }
+        return false;
+      });
 
       const { result } = renderHook(() => usePerpsProvider());
 
-      expect(result.current.activeProvider).toBe('myx');
+      expect(result.current.activeProvider).toBe('lighter');
     });
   });
 
   describe('switchProvider', () => {
+    it('uses context preparation before switching provider', async () => {
+      (
+        Engine.context.PerpsController.switchProvider as jest.Mock
+      ).mockResolvedValue({ success: true });
+      const { result } = renderHook(() => usePerpsProvider());
+
+      await result.current.switchProvider('hyperliquid');
+
+      expect(
+        PerpsConnectionManager.runWithContextChangePreparation,
+      ).toHaveBeenCalledTimes(1);
+    });
+
     it('calls PerpsController.switchProvider with the given providerId', async () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
       (
         Engine.context.PerpsController.switchProvider as jest.Mock
       ).mockResolvedValue({ success: true });
 
       const { result } = renderHook(() => usePerpsProvider());
-      await result.current.switchProvider('myx');
+      await result.current.switchProvider('lighter');
 
       expect(
         Engine.context.PerpsController.switchProvider,
-      ).toHaveBeenCalledWith('myx');
+      ).toHaveBeenCalledWith('lighter');
     });
 
     it('returns the result from PerpsController.switchProvider', async () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
       const mockResult = { success: false, error: 'Not supported' };
       (
         Engine.context.PerpsController.switchProvider as jest.Mock
       ).mockResolvedValue(mockResult);
 
       const { result } = renderHook(() => usePerpsProvider());
-      const response = await result.current.switchProvider('myx');
+      const response = await result.current.switchProvider('lighter');
 
       expect(response).toEqual(mockResult);
     });
@@ -152,54 +157,27 @@ describe('usePerpsProvider', () => {
 
   describe('isProviderAvailable', () => {
     it('returns true for available provider', () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
-
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isProviderAvailable('hyperliquid')).toBe(true);
     });
 
-    it('returns false for unavailable provider when flag is off', () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
-
+    it('returns false for an unavailable provider', () => {
       const { result } = renderHook(() => usePerpsProvider());
 
-      expect(result.current.isProviderAvailable('myx')).toBe(false);
+      expect(result.current.isProviderAvailable('lighter')).toBe(false);
     });
   });
 
   describe('provider helpers', () => {
-    it('isMYXProvider is true when activeProvider is myx', () => {
-      mockUseSelector.mockReturnValueOnce('myx').mockReturnValueOnce(true);
-
-      const { result } = renderHook(() => usePerpsProvider());
-
-      expect(result.current.isMYXProvider).toBe(true);
-      expect(result.current.isHyperLiquidProvider).toBe(false);
-      expect(result.current.supportsTwapOrders).toBe(false);
-    });
-
     it('isHyperLiquidProvider is true when activeProvider is hyperliquid', () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
-
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isHyperLiquidProvider).toBe(true);
-      expect(result.current.isMYXProvider).toBe(false);
       expect(result.current.supportsTwapOrders).toBe(false);
     });
 
     it('does not query capabilities without a market route', () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
-
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.supportsTwapOrders).toBe(false);
@@ -261,11 +239,63 @@ describe('usePerpsProvider', () => {
       });
     });
 
-    it('keeps Scale unsupported when capabilities resolve to MYX', async () => {
+    it('loads Chase support once per route with concrete provider identity', async () => {
       mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'ready',
-        providerId: 'myx',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['chase'],
+      });
+      const { result, rerender } = renderHook(
+        ({ symbol }) => usePerpsProvider({ symbol, providerId: 'hyperliquid' }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+      await waitFor(() => {
+        expect(result.current.supportsChaseOrders).toBe(true);
+      });
+
+      rerender({ symbol: 'BTC' });
+      expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(1);
+
+      rerender({ symbol: 'ETH' });
+      await waitFor(() => {
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+        expect(result.current.orderCapabilities?.providerId).toBe(
+          'hyperliquid',
+        );
+      });
+    });
+
+    it('reports Chase capability independently of rollout state', async () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsProvider) return 'hyperliquid';
+        if (selector === selectPerpsNetwork) return 'mainnet';
+        if (selector === selectPerpsInitializationState) {
+          return InitializationState.Initialized;
+        }
+        return false;
+      });
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['chase'],
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      await waitFor(() => {
+        expect(result.current.isLoadingOrderCapabilities).toBe(false);
+      });
+
+      expect(result.current.supportsChaseOrders).toBe(true);
+    });
+
+    it('keeps Scale unsupported when capabilities resolve to Lighter', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
         supportedStrategies: ['scale'],
       });
 
@@ -278,7 +308,10 @@ describe('usePerpsProvider', () => {
 
       let isSupported = true;
       await act(async () => {
-        isSupported = await result.current.checkOrderCapability('scale', 'myx');
+        isSupported = await result.current.checkOrderCapability(
+          'scale',
+          'lighter',
+        );
       });
 
       expect(isSupported).toBe(false);
@@ -385,6 +418,41 @@ describe('usePerpsProvider', () => {
       }
     });
 
+    it('retries transient provider unavailability before restoring Chase support', async () => {
+      jest.useFakeTimers();
+      try {
+        mockAggregatedProviderSelectors();
+        mockGetOrderCapabilities
+          .mockResolvedValueOnce({
+            status: 'unavailable',
+            providerId: 'hyperliquid',
+            reason: 'provider_unavailable',
+          })
+          .mockResolvedValueOnce({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: ['chase'],
+          });
+        const { result } = renderHook(() =>
+          usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+        );
+        await act(async () => {
+          await Promise.resolve();
+        });
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          jest.runOnlyPendingTimers();
+          await Promise.resolve();
+        });
+
+        expect(mockGetOrderCapabilities).toHaveBeenCalledTimes(2);
+        expect(result.current.supportsChaseOrders).toBe(true);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('refetches capabilities when the same provider returns to initialized', async () => {
       let initializationState = InitializationState.Initialized;
       const refreshedCapabilities = createDeferredCapabilities();
@@ -468,7 +536,7 @@ describe('usePerpsProvider', () => {
       expect(result.current.supportsTwapOrders).toBe(false);
     });
 
-    it('ignores a stale capability response after the market route changes', async () => {
+    it('ignores stale Chase capability after the market route changes', async () => {
       let resolveFirst = (_value: Capabilities): void => undefined;
       const firstResponse = new Promise<Capabilities>((resolve) => {
         resolveFirst = resolve;
@@ -494,12 +562,12 @@ describe('usePerpsProvider', () => {
         resolveFirst({
           status: 'ready',
           providerId: 'hyperliquid',
-          supportedStrategies: ['twap'],
+          supportedStrategies: ['chase'],
         });
         await firstResponse;
       });
 
-      expect(result.current.supportsTwapOrders).toBe(false);
+      expect(result.current.supportsChaseOrders).toBe(false);
     });
 
     it.each([
@@ -594,21 +662,9 @@ describe('usePerpsProvider', () => {
     );
 
     it('isMultiProviderEnabled is false when only one provider available', () => {
-      mockUseSelector
-        .mockReturnValueOnce('hyperliquid')
-        .mockReturnValueOnce(false);
-
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isMultiProviderEnabled).toBe(false);
-    });
-
-    it('isMultiProviderEnabled is true when multiple providers available', () => {
-      mockUseSelector.mockReturnValueOnce('myx').mockReturnValueOnce(true);
-
-      const { result } = renderHook(() => usePerpsProvider());
-
-      expect(result.current.isMultiProviderEnabled).toBe(true);
     });
   });
 });

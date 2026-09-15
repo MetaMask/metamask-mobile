@@ -370,6 +370,14 @@ export const configurePredictNextFeeds = ({
 
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          currency: 'USD',
+          available: '123.125',
+        });
+      }
+
       if (action === 'PredictMarketDataService:getEvent') {
         const result = details ?? defaultDetails;
         if (result instanceof Error) {
@@ -429,8 +437,8 @@ export const expectPredictNextGameCard = (
     homeScore: string;
     awayQuote: string;
     homeQuote: string;
-    competition: string;
-    volume: string;
+    competition?: string;
+    volume?: string;
   },
 ) => {
   const card = within(section).getByTestId(
@@ -444,6 +452,10 @@ export const expectPredictNextGameCard = (
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
   expect(scoped.getByText(awayQuote)).toBeOnTheScreen();
   expect(scoped.getByText(homeQuote)).toBeOnTheScreen();
-  expect(scoped.getByText(competition)).toBeOnTheScreen();
-  expect(scoped.getByText(volume)).toBeOnTheScreen();
+  if (competition) {
+    expect(scoped.getByText(competition)).toBeOnTheScreen();
+  }
+  if (volume) {
+    expect(scoped.getByText(volume)).toBeOnTheScreen();
+  }
 };

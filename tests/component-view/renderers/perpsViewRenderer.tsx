@@ -48,6 +48,7 @@ import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
 import PerpsProMarketView from '../../../app/components/UI/Perps/Views/PerpsProMarketView/PerpsProMarketView';
+import { usePerpsChaseOrders } from '../../../app/components/UI/Perps/hooks/usePerpsChaseOrders';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
@@ -135,6 +136,11 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   },
 };
 
+const PerpsChaseDiscoveryConsumer = () => {
+  usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true });
+  return null;
+};
+
 const PerpsTestProviders = ({
   children,
   connectionValue = testConnectionValue,
@@ -151,6 +157,7 @@ const PerpsTestProviders = ({
       <AccessRestrictedProvider>
         <PerpsConnectionContext.Provider value={connectionValue}>
           <PerpsStreamProvider testStreamManager={streamManager}>
+            <PerpsChaseDiscoveryConsumer />
             {children}
           </PerpsStreamProvider>
         </PerpsConnectionContext.Provider>
@@ -431,6 +438,8 @@ interface RenderPerpsViewOptions {
   extraRoutes?: PerpsExtraRoute[];
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
+  /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
+  connectionValue?: PerpsConnectionContextValue;
 }
 
 const DefaultRouteProbe =
@@ -449,8 +458,14 @@ export function renderPerpsView(
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams, streamOverrides, extraRoutes, mode } =
-    options;
+  const {
+    overrides,
+    initialParams,
+    streamOverrides,
+    extraRoutes,
+    mode,
+    connectionValue,
+  } = options;
   const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
   if (overrides) {
     builder.withOverrides(overrides);
@@ -465,6 +480,7 @@ export function renderPerpsView(
     <PerpsTestProviders
       queryClient={queryClient}
       streamManager={testStreamManager}
+      connectionValue={connectionValue}
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -568,13 +584,17 @@ const defaultSelectModifyActionPosition: Position = {
   stopLossCount: 0,
 };
 
+export const ROUTE_ORDER_CONFIRMATION_TEST_ID = 'route-order-confirmation';
+
 const selectModifyActionExtraRoutes = [
   { name: Routes.PERPS.CLOSE_POSITION },
   { name: Routes.PERPS.ADJUST_MARGIN },
   { name: Routes.PERPS.TUTORIAL },
   {
     name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    Component: () => <Text testID="route-order-confirmation">Order</Text>,
+    Component: () => (
+      <Text testID={ROUTE_ORDER_CONFIRMATION_TEST_ID}>Order</Text>
+    ),
   },
 ];
 
@@ -652,6 +672,8 @@ export function renderPerpsMarketDetailsView(
 
 const defaultProMarket = {
   ...defaultMarketDetailsMarket,
+  providerId: 'hyperliquid' as const,
+  szDecimals: 2,
 };
 
 const defaultProPrices: Record<string, PriceUpdate> = {
@@ -796,7 +818,8 @@ const defaultOrderBookMarket = {
  */
 export function renderPerpsOrderBookView(options: RenderPerpsViewOptions = {}) {
   const initialParams = {
-    market: defaultOrderBookMarket,
+    symbol: defaultOrderBookMarket.symbol,
+    marketData: defaultOrderBookMarket,
     ...options.initialParams,
   };
   return renderPerpsView(
@@ -889,7 +912,7 @@ export function renderPerpsTPSLView(
 }
 
 /** Minimal order for PerpsOrderDetailsView. */
-const defaultOrderDetailsOrder = {
+export const defaultOrderDetailsOrder = {
   orderId: 'order_1',
   symbol: 'ETH',
   side: 'buy' as const,

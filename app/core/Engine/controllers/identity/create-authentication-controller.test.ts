@@ -45,8 +45,7 @@ describe('Authentication Controller', () => {
       actions: [
         // Keyring Controller Requests
         'KeyringController:getState',
-        // Snap Controller Requests
-        'SnapController:handleRequest',
+        'KeyringController:withKeyringV2Unsafe',
       ],
       events: [
         // Keyring Controller Events

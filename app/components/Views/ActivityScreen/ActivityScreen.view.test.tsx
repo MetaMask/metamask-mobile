@@ -203,11 +203,20 @@ const emptyActivityStateFunded = () =>
   initialStateActivityWithAccountsApi().withOverrides({
     engine: {
       backgroundState: {
-        TokenBalancesController: {
-          tokenBalances: {
-            [ACTIVITY_CV_ACCOUNT]: {
-              '0x1': {
-                [USDC_MAINNET]: '0x5f5e100', // 100 USDC
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            [`eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`]: {
+              type: 'erc20' as const,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+          },
+          assetsBalance: {
+            'acc-1': {
+              [`eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`]: {
+                amount: '100',
               },
             },
           },
@@ -517,14 +526,24 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { findByTestId, findByText } = renderActivityScreenViewWithRoutes({
-      state: emptyActivityStateFunded().build(),
-      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
+      renderActivityScreenViewWithRoutes({
+        state: emptyActivityStateFunded().build(),
+        extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
     });
 
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        queryByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+      ).toBeOnTheScreen();
+    });
     expect(await findByText(fundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(swapTokensLabel));
@@ -1565,7 +1584,10 @@ describeForPlatforms('ActivityScreen — perps orders', () => {
       { timeout: 10000 },
     );
     expect(title).toHaveTextContent(
-      strings('transactions.activity_limit_close_short'),
+      strings('transactions.activity_trigger_order_close', {
+        orderType: strings('perps.order.type.take_profit_limit.title'),
+        direction: strings('perps.market.close_short').toLowerCase(),
+      }),
     );
     expect(
       await findByTestId(activityListRowPrimaryAmountTestId(orderHash)),

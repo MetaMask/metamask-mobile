@@ -67,6 +67,7 @@ export async function submitSwapUnifiedUI(
   // Set custom slippage if provided
   if (options?.slippage) {
     await SlippageModal.setCustomSlippage(options.slippage);
+    await QuoteView.waitForQuoteReady({ timeout: 60000 });
     // Verify the slippage has been updated in the quote view
     await QuoteView.verifySlippageDisplayed(options.slippage);
   } else {
@@ -87,4 +88,9 @@ export async function checkSwapActivity(
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
+}
+
+export async function returnToWalletFromSwapActivity(): Promise<void> {
+  await ActivitiesView.tapBackButton();
+  await QuoteView.tapOnBackButton();
 }

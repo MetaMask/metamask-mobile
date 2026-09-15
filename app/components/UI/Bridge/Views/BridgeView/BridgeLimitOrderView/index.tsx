@@ -1,22 +1,31 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, type LayoutChangeEvent } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   selectBridgeBalanceRefreshKey,
+  selectSlippage,
   selectSourceToken,
+  setSlippage,
 } from '../../../../../../core/redux/slices/bridge';
-import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs from '../../../components/OrdersTabs';
 import {
-  HardwareWalletUnsupportedBanner,
-  InsufficientNativeReserveBanner,
-  MissingQuoteAndAssetsPriceDataBanner,
-  QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
+  MissingAssetsPriceDataBanner,
+  HardwareWalletUnsupportedBanner,
 } from '../../../components/SwapsBanners';
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
@@ -28,15 +37,36 @@ import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
 import { LIMIT_MOCK_OPEN_ORDERS_TAB } from './BridgeLimitOrderView.mockOpenOrders';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
+import LimitOrderDetails from '../../../components/LimitOrderDetails';
 import { LimitOrderPriceAdjustCard } from '../../../components/LimitOrderPriceAdjustCard';
 import type {
   ButtonPricePresetsSectionRef,
   InputSectionRef,
 } from '../../../components/LimitOrderPriceAdjustCard/types';
-import { LIMIT_ORDER_BUTTON_PRICE_PRESETS } from '../../../constants/limitOrders';
+import {
+  LIMIT_ORDER_BUTTON_PRICE_PRESETS,
+  LIMIT_ORDER_DEFAULT_SLIPPAGE,
+  SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+  getSwapsLimitOrderExpirationLabel,
+  type SwapsLimitOrderExpirationMinutes,
+} from '../../../constants/limitOrders';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
-import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import {
+  formatMinimumReceived,
+  getCurrencySymbol,
+} from '../../../utils/currencyUtils';
+import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
+import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/getSwapsLimitOrderDestTokenAmount';
+import { strings } from '../../../../../../../locales/i18n';
+import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
+import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+
+const formatTokenAmountValue = (
+  amount: string | undefined,
+  symbol: string | undefined,
+) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
 interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -46,27 +76,30 @@ const BridgeLimitOrderViewContent = ({
   latestSourceBalance,
 }: BridgeLimitOrderViewContentProps) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+  const slippage = useSelector(selectSlippage);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
   const {
     destToken,
-    destTokenAmount,
     enabledChainIds,
     handleDestTokenPress,
     handleFlipTokensPress,
     handleSourceMaxPress,
     handleSourcePresetAmountSelect,
     handleSourceTokenPress,
-    isDestAmountLoading,
     isFlipDisabled,
-    isQuoteSponsored,
     sourceAmountInput,
     sourceToken,
     sourceAmount,
+    isSourceNetworkGasSponsored,
   } = useLimitOrderSwapInputs({ latestSourceBalance });
   const {
     commitCustomPercent,
+    counterFiatRate,
     counterToken,
     customValue,
     handleCustomPress,
@@ -76,17 +109,18 @@ const BridgeLimitOrderViewContent = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isTriggerPriceNearMarket,
     executionType,
     limitPrice,
     marketComparison,
     onAmountTypeTogglePress,
     onQuoteUnitPress,
     quotedSymbol,
+    quotedToken,
     secondaryValue,
     value,
   } = useSwapsLimitOrderPriceAdjust({
     destToken,
-    destTokenAmount,
     sourceToken,
   });
   const {
@@ -113,8 +147,52 @@ const BridgeLimitOrderViewContent = ({
     sourceAmountInput,
   });
 
+  // Limit orders are not quoted, so the destination amount is derived from the
+  // amount being paid and the price the order would trigger at.
+  const destTokenAmount = useMemo(
+    () =>
+      getSwapsLimitOrderDestTokenAmount({
+        counterFiatRate,
+        destTokenDecimals: destToken?.decimals,
+        executionType,
+        isLimitFiatMode,
+        limitPrice,
+        sourceAmount,
+      }),
+    [
+      counterFiatRate,
+      destToken?.decimals,
+      executionType,
+      isLimitFiatMode,
+      limitPrice,
+      sourceAmount,
+    ],
+  );
+
+  const handleFlipPress = useCallback(() => {
+    // A zero estimate is nothing to carry over, so the source input is cleared
+    // rather than seeded with it.
+    handleFlipTokensPress(
+      destTokenAmount && Number(destTokenAmount) > 0
+        ? destTokenAmount
+        : undefined,
+    );
+  }, [destTokenAmount, handleFlipTokensPress]);
+
+  const isHardwareWallet = useIsHardwareWalletForBridge();
+
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
-  const isMissingPrice = useHasMissingQuoteAndAssetsPriceData();
+  const isMissingPrice = useHasMissingAssetsPriceData();
+  const [expirationMinutes, setExpirationMinutes] =
+    useState<SwapsLimitOrderExpirationMinutes>(
+      SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+    );
+
+  useEffect(() => {
+    if (slippage === undefined) {
+      dispatch(setSlippage(LIMIT_ORDER_DEFAULT_SLIPPAGE));
+    }
+  }, [dispatch, slippage]);
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -175,6 +253,74 @@ const BridgeLimitOrderViewContent = ({
     );
   }, []);
 
+  const handleSlippagePress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
+
+  const handleExpirationConfirm = useCallback(
+    (minutes: SwapsLimitOrderExpirationMinutes) => {
+      setExpirationMinutes(minutes);
+    },
+    [],
+  );
+
+  const handleExpirationPress = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL,
+      params: {
+        selectedMinutes: expirationMinutes,
+        onConfirm: handleExpirationConfirm,
+      },
+    });
+  }, [
+    dismissInputAndKeypad,
+    expirationMinutes,
+    handleExpirationConfirm,
+    navigation,
+  ]);
+
+  const expiration = getSwapsLimitOrderExpirationLabel(expirationMinutes);
+  const slippageLabel = `${slippage ?? LIMIT_ORDER_DEFAULT_SLIPPAGE}%`;
+  const triggerPrice = `${
+    isLimitFiatMode ? getCurrencySymbol(currentCurrency || 'usd') : ''
+  }${formatAmountWithLocaleSeparators(value)}`;
+
+  const handleCreateOrderPress = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+      params: {
+        sourceToken,
+        destToken,
+        payingAmount: formatTokenAmountValue(sourceAmount, sourceToken?.symbol),
+        triggerPrice,
+        triggerComparison: marketComparison,
+        triggerToken: quotedToken,
+        expiry: expiration,
+        networkFee: '0',
+        feeToken: sourceToken,
+        feeDisclaimer: '',
+      },
+    });
+  }, [
+    destToken,
+    dismissInputAndKeypad,
+    expiration,
+    marketComparison,
+    navigation,
+    quotedToken,
+    sourceAmount,
+    sourceToken,
+    triggerPrice,
+  ]);
+
   return (
     <Box twClassName="flex-1 bg-default">
       <Box
@@ -196,18 +342,17 @@ const BridgeLimitOrderViewContent = ({
           >
             <SwapsInputs
               inputRef={inputRef}
-              enabledChainIds={enabledChainIds}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
               latestSourceBalance={latestSourceBalance}
               destToken={destToken}
               destTokenAmount={destTokenAmount}
-              isDestAmountLoading={isDestAmountLoading}
+              isDestAmountLoading={false}
               isFlipDisabled={isFlipDisabled}
               onSourceInputPress={onSourceInputPress}
               onSourceTokenPress={handleSourceTokenPress}
               onSourceMaxPress={handleSourceMaxPress}
-              onFlipPress={handleFlipTokensPress}
+              onFlipPress={handleFlipPress}
               onDestInputPress={closeKeypad}
               onDestTokenPress={handleDestTokenPress}
               sourceTokenAreaTestID={
@@ -225,6 +370,9 @@ const BridgeLimitOrderViewContent = ({
               orderSide={executionType}
               quoteTokenSymbol={quotedSymbol}
               isLimitFiatMode={isLimitFiatMode}
+              priceUnitSymbol={
+                isLimitFiatMode ? undefined : counterToken?.symbol
+              }
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}
@@ -233,6 +381,7 @@ const BridgeLimitOrderViewContent = ({
               secondaryLimitPrice={secondaryValue}
               onAmountTypeTogglePress={onAmountTypeTogglePress}
               marketComparison={marketComparison}
+              isTriggerPriceNearMarket={isTriggerPriceNearMarket}
               pricePresets={LIMIT_ORDER_BUTTON_PRICE_PRESETS}
               isCustomPercentActive={isCustomActive}
               customPercent={customValue}
@@ -258,12 +407,20 @@ const BridgeLimitOrderViewContent = ({
                   onAdjustSourceAmount={handleSourcePresetAmountSelect}
                 >
                   <HardwareWalletUnsupportedBanner />
-                  <QuoteErrorBanner />
                   <TokenWarningBanner />
-                  <InsufficientNativeReserveBanner />
-                  <MissingQuoteAndAssetsPriceDataBanner />
+                  <DestAssetRequireActivateBanner />
+                  <MissingAssetsPriceDataBanner />
                 </SwapsBanners>
               </Box>
+            </Box>
+
+            <Box twClassName="flex-grow-0" onTouchEnd={dismissInputAndKeypad}>
+              <LimitOrderDetails
+                expiration={expiration}
+                onExpirationPress={handleExpirationPress}
+                slippage={slippageLabel}
+                onPricePress={handleSlippagePress}
+              />
             </Box>
 
             <Box onTouchEnd={dismissInputAndKeypad}>
@@ -276,7 +433,12 @@ const BridgeLimitOrderViewContent = ({
           </Box>
         </ScrollView>
 
-        <BridgeLimitOrderFooterView />
+        <BridgeLimitOrderFooterView
+          ctaDisabled={isMissingPrice || isHardwareWallet}
+          onCTAPress={handleCreateOrderPress}
+          ctaLabel={strings('bridge.limit.create_order')}
+          latestSourceBalance={latestSourceBalance}
+        />
 
         <SwapsKeypad
           ref={keypadRef}
@@ -285,17 +447,18 @@ const BridgeLimitOrderViewContent = ({
         >
           {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
             <SwapsLimitOrderConfirmButton
-              onPress={() => 'test'}
-              label="test"
+              onPress={handleCreateOrderPress}
+              label={strings('bridge.limit.create_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-              disabled={isMissingPrice}
+              disabled={isMissingPrice || isHardwareWallet}
+              latestSourceBalance={latestSourceBalance}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}
-              isQuoteSponsored={isQuoteSponsored}
+              isQuoteSponsored={isSourceNetworkGasSponsored}
               onAmountSelect={handleSourcePresetAmountSelect}
             />
           ) : null}
@@ -317,11 +480,7 @@ const BridgeLimitOrderView = () => {
   });
 
   return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeLimitOrderViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
+    <BridgeLimitOrderViewContent latestSourceBalance={latestSourceBalance} />
   );
 };
 

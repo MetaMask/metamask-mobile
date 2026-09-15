@@ -4,6 +4,13 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 // Mock FilesystemStorage
 jest.mock('redux-persist-filesystem-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
@@ -114,8 +121,13 @@ jest.mock('../../../util/test/utils', () => ({
 }));
 
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
+const mockUseOnboardingLoadingStallTracker =
+  useOnboardingLoadingStallTracker as jest.MockedFunction<
+    typeof useOnboardingLoadingStallTracker
+  >;
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
@@ -963,6 +975,114 @@ describe('Onboarding', () => {
       jest.clearAllMocks();
       mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
+    });
+
+    it('passes wallet_setup_type new to the stall tracker when social create starts', async () => {
+      let resolveLogin: (value: unknown) => void = () => undefined;
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      let loginPromise: Promise<unknown> | undefined;
+      await act(async () => {
+        loginPromise = navCall[1].params.onPressContinueWithGoogle(true);
+      });
+
+      await waitFor(() => {
+        expect(mockUseOnboardingLoadingStallTracker).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isLoading: true,
+            properties: { wallet_setup_type: 'new' },
+          }),
+        );
+      });
+
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+        await loginPromise;
+      });
+    });
+
+    it('passes wallet_setup_type import to the stall tracker when social import starts', async () => {
+      let resolveLogin: (value: unknown) => void = () => undefined;
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      let loginPromise: Promise<unknown> | undefined;
+      await act(async () => {
+        loginPromise = navCall[1].params.onPressContinueWithApple(false);
+      });
+
+      await waitFor(() => {
+        expect(mockUseOnboardingLoadingStallTracker).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isLoading: true,
+            properties: { wallet_setup_type: 'import' },
+          }),
+        );
+      });
+
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: true,
+          accountName: 'test@icloud.com',
+        });
+        await loginPromise;
+      });
     });
 
     it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
@@ -3685,7 +3805,7 @@ describe('Onboarding', () => {
       });
     });
 
-    it('does not start a CTA navigation span while OAuth is still in the browser', async () => {
+    it('does not start a social CTA navigation span while OAuth is still in the browser', async () => {
       mockOAuthService.handleOAuthLogin.mockReturnValue(
         new Promise(() => {
           // Never settles: the user is still on the provider's login page.
@@ -3693,6 +3813,10 @@ describe('Onboarding', () => {
       );
 
       const { googleLogin } = await openSheetAndGetGoogleLogin();
+      // Opening Create wallet already starts a sheet CTA span; this case is
+      // about the social CTA that must wait until OAuth resolves.
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
 
       await act(async () => {
         void googleLogin(true);
@@ -3714,6 +3838,8 @@ describe('Onboarding', () => {
       });
 
       const { googleLogin } = await openSheetAndGetGoogleLogin();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
 
       await act(async () => {
         await googleLogin(false);
@@ -3729,10 +3855,15 @@ describe('Onboarding', () => {
           }),
         );
       });
-      // The destination screen ends it, so it is still open here.
+      // Sheet create_wallet CTA is superseded when the social CTA starts; the
+      // social span stays open until the destination ends it.
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingCtaNavigation,
+          data: expect.objectContaining({
+            success: true,
+            cta_id: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+          }),
         }),
       );
     });

@@ -122,12 +122,16 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     [showToast, PerpsToastOptions],
   );
 
+  // A caller-supplied list is the exact set the sheet counted for the user, and
+  // it may hold orders the provider-side `cancelAll` refuses to touch (TP/SL
+  // triggers). Scope by orderId whenever we were given one, so confirming
+  // cancels what was listed instead of silently matching nothing.
   const { isCanceling, handleCancelAll, handleKeepOrders } =
     usePerpsCancelAllOrders(orders, {
       onSuccess: handleSuccess,
       onError: handleError,
       navigateBackOnSuccess: !externalSheetRef,
-      isFiltered,
+      isFiltered: isFiltered || Boolean(propOrders),
     });
 
   const handleClose = useCallback(() => {

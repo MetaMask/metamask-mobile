@@ -42,6 +42,7 @@ const Routes = {
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     GET_PIX_KEY: 'RampGetPixKey',
     VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
+    VBA_KYC_EMAIL: 'RampVbaKycEmail',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -197,8 +198,6 @@ const Routes = {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
-    FIRST_PREDICT_ON_US_SPLASH: 'FirstPredictOnUsSplash',
-    FIRST_PREDICT_ON_US_ORDER_SHEET: 'FirstPredictOnUsOrderSheet',
     DEFAULT_SETTINGS: 'DefaultSettings',
     GENERAL_SETTINGS: 'GeneralSettings',
     ASSETS_SETTINGS: 'AssetsSettings',
@@ -256,6 +255,7 @@ const Routes = {
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
+    BASIC_FUNCTIONALITY_MIGRATION: 'BasicFunctionalityMigration',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     FEATURE_NOTIFICATIONS_GATE: 'FeatureNotificationsGate',
     SDK_LOADING: 'SDKLoading',
@@ -347,6 +347,7 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -373,6 +374,13 @@ const Routes = {
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
+      SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
+      RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
+      RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
+      RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
+      RECURRING_CONFIRM_ORDER_MODAL: 'RecurringConfirmOrderModal',
+      RECURRING_DELEGATION_FEE_INFO_MODAL: 'RecurringDelegationFeeInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -417,12 +425,14 @@ const Routes = {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
   },
-  SOCIAL_LEADERBOARD: {
-    ROOT: 'SocialLeaderboard',
-    VIEW: 'TopTradersView',
+  SOCIAL: {
+    ROOT: 'Social',
+    TAB: 'SocialLeaderboardTab',
+    V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
+    V1: 'SocialV1View',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
@@ -468,7 +478,6 @@ const Routes = {
   EARN: {
     ROOT: 'EarnScreens',
     SEARCH_LIST: 'EarnSearchList',
-    STRATEGY_SELECTION: 'EarnStrategySelection',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
@@ -478,6 +487,7 @@ const Routes = {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
+      STRATEGY_SELECTION: 'EarnStrategySelectionModal',
     },
   },
   MONEY: {

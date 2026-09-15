@@ -7,6 +7,9 @@ export const createMoneyAccountSweepstakesLocalizedText = (
   eligibleBalanceTitle: 'Qualifying deposits',
   eligibleBalanceDescription:
     "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count.",
+  eligibleBalancePendingTitle: 'Updating',
+  eligibleBalancePendingDescription:
+    'Your latest Money Account transaction is still being processed, so qualifying deposits and entries may not be up to date yet. This usually takes a few minutes.',
   entriesTitle: 'Entries',
   entriesDescription:
     'One entry for each UTC day your qualifying deposits stayed at $100 or above. Max 7 per week.',

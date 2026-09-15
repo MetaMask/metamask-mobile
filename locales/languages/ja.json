@@ -26,8 +26,12 @@
     "description_line2": "これが誤りであると思われる場合は、サポートに連絡して再調査を依頼してください。",
     "contact_support": "サポートへのお問い合わせ"
   },
+  "arc_usage_notice": {
+    "title": "お知らせ",
+    "description": "Arcへようこそ！当社はArcチェーンのご利用を促進、確認するために、Arcチームと情報を共有する場合があります。"
+  },
   "storage": {
-    "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
+    "device_full_alert": "デバイスの空き容量が少なくなっています。MetaMaskがウォレットのデータを保存できるように、空き容量を増やしてください。"
   },
   "alert_system": {
     "alert_modal": {
@@ -43,15 +47,8 @@
       "checkbox_label": "アラートを確認したうえで続行します",
       "review_alerts": "すべてのアラートを確認",
       "message": "この要求を拒否することをお勧めします。続行すると、資産がリスクにさらされる可能性があります。",
-      "title_blockaid": "資産がリスクにさらされている可能性があります",
-      "blockaid": {
-        "message": "この要求を確定すると、資産を失う可能性があります。この要求はキャンセルすることをお勧めします。",
-        "message1": "この要求を確定すると、詐欺師に資産の引き出しや使用を許可することになります。失った資産は取り戻すことができません。",
-        "message2": "資産を詐欺師に送金しようとしています。続行すると、これらの資産は失われます。",
-        "message3": "続行すると、OpenSeaに出品している資産がすべてリスクにさらされる可能性があります。",
-        "message4": "続行すると、Blurに出品している資産がすべてリスクにさらされる可能性があります。",
-        "message5": "悪意のあるサイトとやり取りしています。続行すると、資産が失われます。"
-      }
+      "blockaid_message": "セキュリティパートナーが、この{{requestType}}に含まれる高リスクのシグナルを発見しました。続行した場合、資金を取り戻すことはできなくなります。",
+      "blockaid_message_with_amount": "セキュリティパートナーが、この{{requestType}}に含まれる高リスクのシグナルを発見しました。続行した場合、{{amount}}を取り戻すことはできなくなります。"
     },
     "inline_alert_label": "アラート",
     "review_alerts": "アラートを確認",
@@ -132,7 +129,7 @@
     },
     "headless_buy_error": {
       "title": "法定通貨の購入に失敗しました",
-      "message": "法定通貨の購入で問題が発生しました。もう一度お試しください。"
+      "message": "Something went wrong with your fiat purchase. Try again."
     },
     "mmpay_hardware_account": {
       "title": "未対応のウォレットです",
@@ -171,12 +168,12 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "この要求を確定すると、詐欺師に資産を盗まれる可能性が高いです。",
-        "title": "悪質なアドレス"
+        "message": "このアドレスは、セキュリティパートナーによって悪意のある活動であると判断されました。",
+        "title": "アドレスが高リスクと判断されました"
       },
       "warning": {
-        "message": "このアドレスを検証できません。新しいアドレスか、未検証のアドレスである可能性があります。出所を信頼できる場合のみ続行してください。",
-        "title": "アドレスの確認が必要です"
+        "message": "セキュリティパートナーは、このアドレスを検証するための信頼できる履歴を十分に保持していません。",
+        "title": "アドレスのシグナルが限定的です"
       }
     },
     "url_trust_signal": {
@@ -191,21 +188,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",
-    "blur_farming_description": "このリクエストを承認すると、Blurに登録されている資産を誰かに盗まれる可能性があります。",
-    "deceptive_request_title": "これは虚偽のリクエストです",
-    "failed_title": "リクエストが安全でない可能性があります",
-    "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
-    "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
-    "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "seaport_farming_description": "このリクエストを承認すると、OpenSeaに登録されている資産を誰かに盗まれる可能性があります。",
+    "high_risk_approval_title": "リスクの高い承認",
+    "high_risk_transfer_title": "リスクの高い送金",
+    "high_risk_signature_title": "リスクの高い署名",
+    "site_flagged_unsafe_title": "サイトが危険だと判断されました",
+    "risk_signals_detected_title": "リスクシグナルが検知されました",
+    "failed_title": "セキュリティチェックが利用できません",
+    "approval_farming_description": "セキュリティパートナーがフラグ付けしたアドレスに対して、資産の移動を許可しようとしています。",
+    "marketplace_farming_description": "セキュリティパートナーがフラグ付けしたアドレスに対して、{{marketplace}}上にある資産の移動を許可しようとしています。",
+    "transfer_farming_description": "セキュリティパートナーがフラグ付けしたアドレスに資産を送ろうとしています。これが詐欺の場合、資金を取り戻すことはできなくなります。",
+    "transfer_farming_description_with_amount": "セキュリティパートナーがフラグ付けしたアドレスに資産を送ろうとしています。これが詐欺の場合、{{amount}}を取り戻すことはできなくなります。",
+    "malicious_domain_description": "このサイトは、セキュリティパートナーによって悪質であると判断されました。これが詐欺の場合、資金を取り戻すことはできなくなります。",
+    "malicious_domain_description_with_amount": "このサイトは、セキュリティパートナーによって悪質であると判断されました。これが詐欺の場合、{{amount}}を取り戻すことはできなくなります。",
+    "high_risk_signature_description": "この署名は、セキュリティパートナーによって高リスクだと判断されました。署名した場合、資産に対するアクションが許可なく承認される可能性があります。",
+    "other_description": "セキュリティパートナーが、このリクエストに含まれるリスクシグナルを発見しました。続行する前に確認してください。",
+    "failed_description": "この安全性チェックを完了できませんでした。このサイトと関連アドレスを信頼できる場合のみ続行してください。",
+    "request_type": {
+      "approval": "承認",
+      "transfer": "送金",
+      "signature": "署名",
+      "request": "リクエスト"
+    },
     "see_details": "詳細を表示",
     "does_not_look_right": "おかしな点がありますか？",
     "report_an_issue": "問題を報告する",
-    "suspicious_request_title": "これは不審なリクエストです",
-    "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
     "before_you_proceed": "続ける前に",
     "enable_blockaid_alerts": "この機能を有効にするには、セキュリティアラートの設定が必要です。設定の間、このページは開いたままにしておく必要があります。この作業は1分未満で完了します。",
     "enable_blockaid_alerts_description": "セキュリティアラートの設定中、このページを開いたままにする必要があります。このプロセスには1分もかかりません。",
@@ -213,7 +219,7 @@
     "setting_up_alerts_description": "セキュリティアラートの設定を早急に行っています。あと少しだけお待ちください。",
     "setup_complete": "設定完了",
     "setup_failed": "セキュリティアラートの設定を完了できませんでした。インターネット接続を確認してもう一度お試しください。",
-    "setup_multiple_failures": "現在インターネット接続が安定していないため、セキュリティアラートを設定できませんでした。接続が回復してからもう一度お試しください。",
+    "setup_multiple_failures": "Your internet connection isn't stable right now, so we couldn't set up security alerts. Try again when your connection is restored.",
     "setup_complete_description": "セキュリティアラートの準備ができました。このページを閉じてウォレットの使用を開始できます",
     "continue": "続行",
     "cancel": "キャンセル",
@@ -308,7 +314,7 @@
     "new_to_metamask": "MetaMaskを初めてご利用ですか？",
     "already_have_wallet": "すでにウォレットをお持ちですか？",
     "optin_back_title": "ご注意！",
-    "optin_back_desc": "データ分析の使用に同意または拒否してください。このオプションは設定で更新することもできます。",
+    "optin_back_desc": "Agree or disagree to the usage of data analytics. You can also update this option in settings.",
     "warning_title": "警告",
     "warning_text_1": "続行した場合、",
     "warning_text_2": "現在のウォレットとアカウントは",
@@ -510,7 +516,7 @@
     "wrong_password_error": "エラー: 解読に失敗しました",
     "wrong_password_error_android": "エラー: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "エラー: 以前のボールトなしにロックを解除できません。",
-    "clean_vault_error": "ストレージの制限に達したためMetaMaskでエラーが発生しました。ローカルデータが破損しています。MetaMaskを再インストールして、秘密のリカバリーフレーズで復元してください。",
+    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "お客様のパスワードは最近変更されました。",
     "seedless_password_outdated_modal_title": "パスワードが変更されました",
     "seedless_password_outdated_modal_content": "パスワードが最近変更されたため、MetaMaskでログイン状態を維持するには新しいパスワードを入力する必要があります。",
@@ -521,8 +527,8 @@
     "seedless_controller_error_prompt_primary_button_label": "ログイン",
     "security_alert_title": "セキュリティアラート",
     "security_alert_desc": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります",
-    "too_many_attempts": "試行回数が多すぎます。{{remainingTime}}後にもう一度お試しください。",
-    "biometric_too_many_attempts": "試行回数の上限に達しました。パスワードを入力してください。",
+    "too_many_attempts": "Too many attempts. Try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts. Enter your password.",
     "apple_button": "Appleでサインイン",
     "google_button": "Googleでサインイン",
     "other_methods": "別のログイン方法を使用",
@@ -542,10 +548,10 @@
     "reset_wallet_desc_srp": "ウォレットを復元するには、シークレットリカバリーフレーズがあることを確認してください。MetaMaskはこの情報を保持していません。",
     "biometric_authentication_cancelled": "生体認証がキャンセルされました",
     "biometric_authentication_cancelled_title": "生体認証の設定に失敗しました",
-    "biometric_authentication_cancelled_description": "設定で生体認証を設定しなおしてください。",
+    "biometric_authentication_cancelled_description": "Set up biometric authentication again from the settings.",
     "biometric_authentication_cancelled_button": "確定",
     "biometric_changed": "生体情報が変更されました",
-    "biometric_changed_alert_desc": "生体情報が変更されました。設定から生体認証を再度有効にしてください。",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Re-enable biometric from settings.",
     "biometric_changed_alert_confirm": "確定"
   },
   "connect_hardware": {
@@ -555,7 +561,7 @@
   },
   "enter_password": {
     "title": "パスワードを入力してください",
-    "desc": "先に進むにはパスワードを入力してください",
+    "desc": "Enter your password to continue",
     "password": "パスワード",
     "confirm_button": "確認",
     "error": "エラー"
@@ -646,7 +652,7 @@
     "changing_password_subtitle": "少しだけお待ちください",
     "checkbox_forgot_password": "このパスワードを忘れると、ウォレットに永久にアクセスできなくなります。MetaMask側ではウォレットをリセットできません。",
     "seedless_change_password_error_modal_title": "パスワードの変更に失敗しました",
-    "seedless_change_password_error_modal_content": "パスワードを変更できませんでした。もう一度お試しください。",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Try again.",
     "seedless_change_password_error_modal_confirm": "再試行してください"
   },
   "import_from_seed": {
@@ -742,7 +748,7 @@
     "units": "単位",
     "next": "次へ",
     "title": "送信",
-    "deeplink_failure": "問題が発生しました。もう一度お試しください",
+    "deeplink_failure": "Something went wrong. Try again",
     "warn_network_change": "ネットワークが次に変更されました:",
     "send_to": "送信先",
     "amount": "金額",
@@ -763,7 +769,7 @@
     "no_tokens_available": "使用可能なトークンがありません",
     "sign": "署名",
     "network_not_found_title": "ネットワークが見つかりません",
-    "network_not_found_description": "ウォレットにチェーンID {{chain_id}} のネットワークが見つかりません。まずはネットワークを追加してください。",
+    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Add the network first.",
     "network_missing_id": "チェーンIDがありません。",
     "search_tokens": "トークンを検索",
     "search_tokens_and_nfts": "トークンとNFTを検索",
@@ -806,7 +812,7 @@
       "kycFormsFetchError": "KYCフォームを取得できませんでした。",
       "title": "購入",
       "limitExceeded": "このデポジットは{{period}}の上限を超えています。デポジットは手数料を含めて{{remaining}}以下でなければなりません。",
-      "limitError": "デポジット上限の確認に失敗しました。後程もう一度お試しください。"
+      "limitError": "Failed to check your deposit limits. Try again later."
     },
     "token_modal": {
       "select_a_token": "トークンの選択",
@@ -815,7 +821,7 @@
       "no_tokens_found": "「{{searchString}}」に一致するトークンがありません",
       "unsupported_token_title": "利用できません",
       "unsupported_token_description": "このトークンはお住まいの地域では利用できないか、現地の決済サービス業者が対応していない可能性があります。",
-      "error_loading_tokens": "トークンを読み込めません。後でもう一度お試しください。"
+      "error_loading_tokens": "Unable to load tokens. Try again later."
     },
     "networks_filter_bar": {
       "all_networks": "すべてのネットワーク"
@@ -907,7 +913,7 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "メールを送信",
       "loading": "メールを送信しています…",
-      "validation_error": "有効なメールアドレスを入力してください",
+      "validation_error": "Enter a valid email address",
       "error": "メール送信中にエラーが発生しました"
     },
     "otp_code": {
@@ -917,7 +923,7 @@
       "submit_button": "送信",
       "loading": "コードを確認しています...",
       "invalid_code_error": "無効なコード",
-      "validation_error": "有効なコードを入力してください",
+      "validation_error": "Enter a valid code",
       "need_help": "お手伝いが必要ですか？",
       "resend_code_description": "コードが届きませんか？",
       "resend_code_error": "コードの再送信でエラーが発生しました。",
@@ -962,13 +968,13 @@
       "enter_phone_number": "電話番号を入力してください",
       "select_region": "地域を選択してください",
       "first_name_required": "名は必須項目です",
-      "first_name_invalid": "有効な名を入力してください",
+      "first_name_invalid": "Enter a valid first name",
       "last_name_required": "姓は必須項目です",
-      "last_name_invalid": "有効な姓を入力してください",
+      "last_name_invalid": "Enter a valid last name",
       "mobile_number_required": "電話番号は必須項目です",
-      "mobile_number_invalid": "有効な電話番号を入力してください",
+      "mobile_number_invalid": "Enter a valid phone number",
       "dob_required": "生年月日は必須項目です",
-      "dob_invalid": "有効な生年月日を入力してください",
+      "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "社会保障番号は必須項目です",
       "unexpected_error": "予期せぬエラーが発生しました。もう一度お試しください。",
       "phone_already_registered": "この電話番号はすでに{{email}}により使用されています。続行するには、このメールを使用してログインしてください。",
@@ -987,14 +993,14 @@
       "country": "国",
       "select_state": "州を選択",
       "address_line_1_required": "住所1は必須項目です",
-      "address_line_1_invalid": "有効な住所を入力してください",
-      "address_line_2_invalid": "有効な住所を入力してください",
+      "address_line_1_invalid": "Enter a valid address",
+      "address_line_2_invalid": "Enter a valid address",
       "city_required": "市は必須項目です",
-      "city_invalid": "有効な市を入力してください",
+      "city_invalid": "Enter a valid city",
       "state_required": "州/地域は必須項目です",
-      "state_invalid": "有効な州を入力してください",
+      "state_invalid": "Enter a valid state",
       "postal_code_required": "郵便番号は必須項目です",
-      "postal_code_invalid": "有効な郵便番号を入力してください",
+      "postal_code_invalid": "Enter a valid postal code",
       "unexpected_error": "予期しないエラーが発生しました。"
     },
     "privacy_section": {
@@ -1025,7 +1031,7 @@
       "description": "カードでの購入には通常数分かかります",
       "bank_transfer_description": "銀行送金は通常数営業日かかります",
       "success_title": "デポジット完了",
-      "success_description": "{{amount}}{{currency}}のデポジットが完了しました。",
+      "success_description": "{{amount}}{{currency}}の入金が完了しました",
       "error_title": "デポジット失敗",
       "error_description": "デポジットを完了できませんでした",
       "cancel_order_description": "入金のキャンセルをリクエストしました。",
@@ -1078,7 +1084,7 @@
       "deposit_failed_description": "支払方法とカードの対応状況を確認してください",
       "deposit_cancelled_title": "デポジットがキャンセルされました",
       "deposit_cancelled_description": "入金のキャンセルをリクエストしました。",
-      "deposit_completed_title": "{{amount}}{{currency}}のデポジットが完了しました",
+      "deposit_completed_title": "{{amount}}{{currency}}の入金が完了しました",
       "deposit_completed_description": "{{currency}}がウォレット内で利用可能になりました",
       "deposit_pending_title": "{{currency}}のデポジット処理を行っています",
       "deposit_pending_description": "数分で完了します..."
@@ -1096,6 +1102,42 @@
       "try_again": "再試行してください",
       "error_details_title": "エラーの詳細",
       "see_more": "もっと見る"
+    }
+  },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "銀行口座",
+      "title": "Pixキーを入手しよう",
+      "description": "銀行口座から自分のMoney Accountに直接送金できます。",
+      "benefit_deposit_pix": "入金方法",
+      "benefit_payments": "国内送金も国際送金も思いのまま",
+      "agreements_disclosures_title": "同意事項および開示事項",
+      "disclaimers_error": "諸条件を読み込めませんでした。",
+      "disclaimers_retry": "もう一度お試しください",
+      "agreement_text": "続行した場合、上記の諸条件に同意したものとみなされます。",
+      "powered_by_moonpay": "MoonPayを利用して実現されています。",
+      "button": "同意して続行"
+    },
+    "verify_identity": {
+      "title": "本人確認を行う",
+      "description": "本人確認は短時間で完了し、一度行えばその後は不要です。確認を行うには、以下の作業が必要です。",
+      "step_upload_id": "身分証明書をアップロードする",
+      "step_take_selfie": "自撮り写真を撮影する",
+      "step_confirm_details": "個人情報を確認する",
+      "data_and_privacy_title": "データとプライバシー",
+      "what_we_collect_title": "収集される情報",
+      "what_we_collect_description": "当社は本人確認の一環として、氏名や住所などの個人情報を収集します。",
+      "how_we_store_data_title": "当社によるデータの保存について",
+      "how_we_store_data_description": "本人確認情報は、MetaMaskが管理するサーバーに安全に保存されます。情報はシークレットリカバリーフレーズのエントロピーを使って暗号化され、当社はデータにアクセスできません。今後別のプロバイダーで使用する場合は、お客様の同意が必要となります。",
+      "how_to_delete_title": "削除方法",
+      "how_to_delete_description": "データは「設定」>「データの管理」からいつでも削除できます。",
+      "metamask_privacy_policy": "MetaMaskプライバシーポリシー",
+      "metamask_terms": "MetaMask利用規約",
+      "idos_privacy_policy": "idOSプライバシーポリシー",
+      "idos_terms": "idOS利用規約",
+      "sumsub_privacy_policy": "Sumsubプライバシーポリシー",
+      "sumsub_terms": "Sumsub利用規約",
+      "button": "続行"
     }
   },
   "social_leaderboard": {
@@ -1132,15 +1174,19 @@
       "following": "フォロー中",
       "all": "すべて",
       "trade": "取引",
+      "just_now": "たった今",
       "action": {
-        "bought": "購入しました",
-        "sold": "売却しました",
-        "opened": "オープンしました",
-        "closed": "クローズ済み"
+        "perps_opened": "オープンしました",
+        "perps_added": "追加されました",
+        "perps_reduced": "ポジションを縮小",
+        "perps_closed": "クローズ済み",
+        "spot_bought": "購入しました",
+        "spot_sold": "売却しました",
+        "traded": "取引を実行"
       },
       "new_position": {
-        "bought": "保有中",
-        "opened": "未約定"
+        "spot": "保有中",
+        "perps": "未約定"
       },
       "empty_following": {
         "title": "まだアクティビティがありません",
@@ -1243,8 +1289,15 @@
       "buy": "購入",
       "trade": "取引",
       "unsupported_market": "サポートされていない市場",
-      "bought": "購入しました",
-      "sold": "売却しました",
+      "action": {
+        "perps_opened": "オープンしました",
+        "perps_added": "追加されました",
+        "perps_reduced": "ポジションを縮小",
+        "perps_closed": "クローズ済み",
+        "spot_bought": "購入しました",
+        "spot_sold": "売却しました",
+        "traded": "取引を実行"
+      },
       "no_trades": "まだ取引はありません",
       "closed_position": "ポジションをクローズ",
       "fallback_title": "ポジションが利用できません",
@@ -1253,9 +1306,7 @@
       "fallback_back_to_leaderboard": "リーダーボードに戻る",
       "sell": "売却",
       "long": "ロング",
-      "short": "ショート",
-      "opened": "オープンしました",
-      "closed_action": "クローズ済み"
+      "short": "ショート"
     },
     "quick_buy": {
       "title": "{{symbol}}を購入",
@@ -1313,8 +1364,9 @@
       "lite": "ライト",
       "pro": "プロ",
       "selection_title": "取引方法の選択",
+      "selection_subtitle": "これは右上のメニューからいつでも変更できます。",
       "lite_description": "ワンタップでロングやショートが可能な、シンプルなデザイン。",
-      "pro_description": "オーダーブック、高度な注文タイプ、レバレッジ。",
+      "pro_description": "高度な管理機能を備えたプロ仕様のワークステーション",
       "lite_transition_title": "ライトモード",
       "pro_transition_title": "プロモード",
       "active_pill_accessibility_label": "現在{{mode}}モードです",
@@ -1408,7 +1460,7 @@
       "processing": {
         "title": "入金処理中"
       },
-      "deposit_completed": "入金が完了しました！",
+      "deposit_completed": "入金が正常に完了しました",
       "deposit_failed": "デポジット失敗",
       "retry_deposit": "入金を再試行",
       "go_back": "戻る",
@@ -1438,7 +1490,7 @@
       "bridge_quote_timeout": "ブリッジ用のクォートを取得できませんでした。もう一度試すか、別のトークンを選択してください。",
       "no_quotes_available": "このスワップに使用できるルートがありません。別のトークンまたは金額をお試しください。",
       "success": {
-        "title": "入金が完了しました！",
+        "title": "入金が完了しました",
         "description": "HyperLiquid取引アカウントへのUSDCの入金が完了しました",
         "amount": "金額",
         "processing_time": "処理時間",
@@ -1539,17 +1591,65 @@
       "available_balance": "{{amount}}件利用可能",
       "available_balance_unavailable": "-- 使用可能",
       "est_liquidation": "推定清算価格",
+      "before_after": "{{before}} → {{after}}",
       "tpsl": "TP / SL",
       "place_order": "注文を出す",
-      "close_keyboard": "キーボードを閉じる"
+      "keyboard_previous": "前の項目",
+      "keyboard_next": "次の項目",
+      "keyboard_done": "完了",
+      "price_unavailable": "市場価格を取得できません。注文を出す前に、価格データをお待ちください。",
+      "scale": {
+        "start_price": "開始 (USD)",
+        "end_price": "終了 (USD)",
+        "total_orders": "注文数",
+        "size_skew": "数量の配分",
+        "size_skew_hint": "重みは指定範囲内で1からこの比率まで線形に変化します",
+        "start": "開始",
+        "end": "終了",
+        "margin": "証拠金",
+        "orders_submitted": "分割注文が送信されました",
+        "orders_placed": "分割注文が配置されました",
+        "orders_partially_placed": "分割注文が部分的に配置されました",
+        "submission_summary": "{{totalCount}}個の注文を配置しています · {{size}} {{assetSymbol}}",
+        "placement_summary": "{{submittedCount}}個の注文が配置されました · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "{{totalCount}}個中{{submittedCount}}個の注文が配置されました · {{size}} {{assetSymbol}}",
+        "validation": {
+          "prices_required": "分割注文の価格範囲の上限と下限を入力してください",
+          "size_required": "分割注文の数量を入力してください",
+          "invalid_range": "開始価格は終了価格よりも低くする必要があります",
+          "invalid_order_count": "注文数は{{minOrderCount}}～{{maxOrderCount}}の間で設定する必要があります",
+          "invalid_skew": "数量の配分は0よりも大きな数値である必要があります",
+          "minimum_lot": "最小の注文は${{minOrderValue}}以上でなければなりません",
+          "unavailable": "分割注文が一時的に利用できません。別の注文種別を選択してください。"
+        }
+      },
+      "twap": {
+        "running_time": "実行時間",
+        "runtime_label": "実行時間 ({{minDurationMinutes}}分～{{maxDurationHours}}時間)",
+        "valid_range": "{{minDurationMinutes}}分～{{maxDurationHours}}時間",
+        "days_short": "日",
+        "hours_short": "時間",
+        "minutes_short": "分",
+        "randomize": "ランダム化",
+        "randomize_description": "サブ注文のサイズが最大で±{{randomizeVariancePercent}}%変化します。",
+        "minimum_size": "TWAPの合計サイズは{{minNotionalUsd}}ドル以上でなければなりません。",
+        "duration_range": "実行時間は{{minDurationMinutes}}分～{{maxDurationHours}}時間の間でなければなりません。"
+      }
     },
     "pro_positions_panel": {
       "order_history": "注文履歴",
       "close_count": "クローズ ({{count}})",
+      "cancel_all": "すべてキャンセル",
+      "open_orders": {
+        "one": "{{count}}件の注文",
+        "other": "{{count}}件の注文"
+      },
       "positions": "ポジション",
       "positions_with_count": "ポジション ({{count}})",
       "orders": "注文",
       "orders_with_count": "注文 ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}}のみ",
       "view_market_accessibility": "{{symbol}}市場に切り替える",
       "positions_empty": "保有中のポジションがここに表示されます。",
@@ -1560,6 +1660,20 @@
       "orders_empty_filtered": "オープンの{{ticker}}注文はありません。",
       "orders_empty_long": "ロングの注文はありません。",
       "orders_empty_short": "ショートの注文はありません。",
+      "twap_empty": "有効なTWAPがここに表示されます。",
+      "twap_empty_filtered": "有効な{{ticker}}のTWAPはありません。",
+      "twap_empty_long": "ロングのTWAPはありません。",
+      "twap_empty_short": "ショートのTWAPはありません。",
+      "twap_history_empty": "完了したTWAPがここに表示されます。",
+      "twap_history_empty_filtered": "{{ticker}}のTWAPの履歴はありません。",
+      "twap_history_empty_long": "ロングのTWAPの履歴はありません。",
+      "twap_history_empty_short": "ショートのTWAPの履歴はありません。",
+      "twap_fill_history_empty": "TWAPの約定結果がここに表示されます。",
+      "twap_fill_history_empty_filtered": "{{ticker}}のTWAPの約定結果はありません。",
+      "twap_fill_history_empty_long": "ロングのTWAPの約定結果はありません。",
+      "twap_fill_history_empty_short": "ショートのTWAPの約定結果はありません。",
+      "twap_load_error": "TWAPの最新のスケジュールを読み込めませんでした。",
+      "twap_retry": "もう一度お試しください",
       "side_filter": {
         "all_sides": "すべての方向",
         "long": "ロング",
@@ -1600,6 +1714,36 @@
         "edit": "編集",
         "edit_price": "リミット価格を編集",
         "edit_size": "サイズを編集"
+      },
+      "twap_views": {
+        "active": "アクティブ",
+        "history": "履歴",
+        "fill_history": "約定履歴",
+        "previous": "以前",
+        "next": "次へ",
+        "page_count": "ページ {{page}} / {{total}}"
+      },
+      "twap_card": {
+        "total_size": "合計数量",
+        "filled_size": "約定済",
+        "average_price": "平均約定価格",
+        "progress": "進捗状況",
+        "elapsed": "経過時間",
+        "reduce_only": "リデュースオンリー",
+        "randomize": "ランダム化",
+        "terminate": "終了",
+        "status_active": "アクティブ",
+        "status_completed": "完了",
+        "status_completed_underfilled": "約定せずに終了",
+        "status_canceled": "終了",
+        "status_failed": "失敗"
+      },
+      "twap_terminate": {
+        "title": "{{symbol}}のTWAPを終了しますか？",
+        "description": "残りの数量は執行されません。約定分はポジションとして保持されます。",
+        "description_reduce_only": "残りの数量は執行されません。約定分によって既存のポジションは縮小しています。",
+        "confirm": "終了",
+        "cancel": "キャンセル"
       }
     },
     "order": {
@@ -1648,10 +1792,30 @@
         "limit_price_must_be_set_before_configuring_tpsl": "リミット価格の設定はTP/SLの設定前に行う必要があります",
         "only_hyperliquid_usdc": "現在、HyperliquidのUSDCだけが支払いに使用できます",
         "limit_price_far_warning": "リミット価格が現在の市場価格から離れすぎています",
+        "limit_price_far_from_market_bid": "最良の売値から{{percent}}%から離れたリミット価格を使用しています。",
+        "limit_price_far_from_market_ask": "最良の買値から{{percent}}%から乖離したリミット価格を使用しています。",
+        "limit_price_above_warning": "リミット価格が現在の価格を上回っています。注文が成行注文として実行される可能性があります。",
+        "limit_price_below_warning": "リミット価格が現在の価格を下回っています。注文が成行注文として実行される可能性があります。",
+        "scale_price_above_warning": "指定された価格範囲は現在の価格を上回っており、テイカー注文として即座に約定し、テイカー手数料がかかる可能性があります。",
+        "scale_price_below_warning": "指定された価格範囲は現在の価格を下回っており、テイカー注文として即座に約定し、テイカー手数料がかかる可能性があります。",
+        "scale_price_above_partial_warning": "指定された価格範囲の一部が現在の価格を上回っており、テイカー注文として即座に約定し、テイカー手数料がかかる可能性があります。",
+        "scale_price_below_partial_warning": "指定された価格範囲の一部が現在の価格を下回っており、テイカー注文として即座に約定し、テイカー手数料がかかる可能性があります。",
+        "trigger_must_be_above_mid": "トリガー価格は中値よりも高くする必要があります",
+        "trigger_must_be_below_mid": "トリガー価格は中値よりも低くする必要があります",
+        "trigger_orders_unavailable": "トリガー注文が一時的に利用できません。成行注文を選択してください。",
+        "please_set_a_trigger_price": "トリガー価格を設定してください",
         "oi_cap_reached": "未決済建玉の上限に達しました。現在、新規のポジションをオープンすることはできません。",
+        "chase_limit": "一度に実行できる有効な追跡指値注文は{{count}}個までです。",
+        "chase_max_distance_usd": "最大追跡距離は$0よりは大きく、現在の価格よりは小さくなければなりません。",
+        "chase_max_distance_percent": "最大追跡距離は0%よりは大きく、100%よりは小さくなければなりません。",
+        "chase_account_changed": "アカウントが変更されました。確認して、もう一度追跡指値注文を出してください。",
+        "chase_details_changed": "注文の詳細が変更されました。確認して、もう一度追跡指値注文を出してください。",
+        "chase_route_changed": "市場のルーティング経路が変更されました。確認して、もう一度追跡指値注文を出してください。",
+        "chase_unavailable": "このプロバイダーでは追跡指値注文は利用できません。",
         "reduce_only_no_position": "リデュースオンリー注文を行うには、この市場でポジションを保有している必要があります",
         "reduce_only_wrong_side": "リデュースオンリー注文は、既存のポジションのみ削減できます。反対側に切り替えてください。",
-        "reduce_only_too_large": "リデュースオンリー注文が保有中のポジションを超えています"
+        "reduce_only_too_large": "リデュースオンリー注文が保有中のポジションを超えています",
+        "twap_unavailable": "このプロバイダーではTWAP注文は利用できません。"
       },
       "error": {
         "placement_failed": "注文に失敗しました",
@@ -1722,6 +1886,7 @@
         "title": "注文タイプ",
         "basic": "基本",
         "triggered": "トリガー済み",
+        "advanced": "高度な設定",
         "market": {
           "title": "マーケット",
           "description": "利用可能な最も有利な価格で瞬時に実行します"
@@ -1730,21 +1895,77 @@
           "title": "リミット",
           "description": "指値またはそれより有利な価格で執行します"
         },
+        "scale": {
+          "title": "分割",
+          "description": "指定された価格範囲で複数のリミット注文を出します"
+        },
+        "chase": {
+          "title": "追跡指値",
+          "description": "最良の売値または買値を追従するPost-onlyのリミット注文を出します"
+        },
         "stop_limit": {
           "title": "ストップリミット",
-          "description": "Place a limit order if trigger price hits"
+          "description": "リミット注文がトリガー価格で実行されます"
         },
         "stop_market": {
           "title": "ストップマーケット",
-          "description": "Place a market order if trigger price hits"
+          "description": "マーケット注文がトリガー価格で実行されます"
         },
         "take_profit_limit": {
           "title": "テイクリミット",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "トリガー価格でリミット利益確定が実行されます"
         },
         "take_profit_market": {
           "title": "テイクマーケット",
-          "description": "Place a market order if trigger price is reached"
+          "description": "トリガー価格でマーケット利益確定が実行されます"
+        },
+        "twap": {
+          "title": "TWAP",
+          "description": "注文を分割して一定間隔で実行します。"
+        }
+      },
+      "chase": {
+        "max_distance": "最大距離",
+        "switch_max_distance_unit": "最大距離の単位を{{unit}}に切り替える",
+        "reference_price_accessibility_value": "{{orderType}}、参照価格 {{price}}",
+        "foreground_notice": "追跡指値注文の実行中は、アプリを開いたままにしてください。",
+        "backgrounding_title": "追跡指値注文を保護しています",
+        "backgrounding_notification": "MetaMaskは接続が切断される前に、追跡指値注文の価格の自動訂正を停止しています。",
+        "backgrounded_title": "追跡指値注文がリミット注文になりました",
+        "backgrounded_notification": "追跡指値注文は、最後の追従価格でリミット注文として板に並びました。",
+        "backgrounded_notification_multiple": "{{count}}個の追跡指値注文が、最後の追従価格でリミット注文として板に並びました。",
+        "max_distance_reached_title": "追跡指値注文の最大距離に達しました",
+        "max_distance_reached_notification": "{{symbol}}の追跡指値注文が最大距離に達し、リミット注文として板に並びました。",
+        "tab": "追跡指値",
+        "tab_with_count": "追跡指値 ({{count}})",
+        "active": "アクティブ",
+        "history": "履歴",
+        "filled_only": "約定済みの注文のみ",
+        "visible_count": "{{count}}件表示",
+        "running": "実行中",
+        "running_with_progress": "実行中 · {{progress}}",
+        "cancel": "キャンセル",
+        "empty": "追跡指値注文がここに表示されます。",
+        "empty_history": "追跡指値注文の履歴がここに表示されます。",
+        "empty_filtered": "{{ticker}}に一致する追跡指値注文はありません。",
+        "empty_long": "ロングの追跡指値注文はありません。",
+        "empty_short": "ショートの追跡指値注文はありません。",
+        "card": {
+          "size": "サイズ",
+          "filled_size": "約定数量",
+          "max_distance": "最大距離",
+          "distance_chased": "追跡距離",
+          "distance_chased_with_max": "{{distance}} / 最大{{max}}"
+        },
+        "status": {
+          "termination_pending": "終了待ち",
+          "canceled": "取消済",
+          "backgrounded": "アプリのバックグラウンド移動後に指値待機中",
+          "max_distance_reached": "最大距離に到達 · 指値待機中",
+          "duration_reached": "期間満了 · 指値待機中",
+          "repricing_limit_reached": "自動訂正の上限に到達 · 指値待機中",
+          "filled": "約定済",
+          "failed": "追跡停止"
         }
       },
       "payment_token": "決済トークン",
@@ -1783,7 +2004,17 @@
       "submitting_your_trade": "取引を送信中",
       "order_filled": "注文が約定しました",
       "order_placed": "注文が発注されました",
+      "chase_submitted": "追跡指値注文が送信されました",
+      "chase_started": "追跡開始",
+      "twap_started": "TWAPが開始されました",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "twap_placement_subtitle": "{{amount}} {{assetSymbol}}を{{duration}}かけて{{direction}}",
+      "twap_duration_day": "{{count}}日",
+      "twap_duration_days": "{{count}}日",
+      "twap_duration_hour": "{{count}}時間",
+      "twap_duration_hours": "{{count}}時間",
+      "twap_duration_minute": "{{count}}分",
+      "twap_duration_minutes": "{{count}}分",
       "order_failed": "注文に失敗しました",
       "your_funds_have_been_returned_to_you": "資金が返金されました",
       "order_cancelled_success": "{{detailedOrderType}}の注文が取り消されました",
@@ -1804,6 +2035,7 @@
       "use_custom_title": "カスタムスリッページの使用",
       "row_format": "予想: {{est}}% / 最大: {{value}}%",
       "row_format_pending": "予想: -- / 最大: {{value}}%",
+      "row_format_max": "最大: {{value}}%",
       "input_label": "最大スリッページ割合",
       "decrement_label": "スリッページを減らす",
       "increment_label": "スリッページを増やす",
@@ -1866,6 +2098,8 @@
       "success_title": "ポジションがクローズされました",
       "position_closed": "ポジションがクローズされました",
       "funds_are_available_to_trade": "資金を取引に利用できます",
+      "already_closed": "ポジションをクローズ済み",
+      "already_closed_subtitle": "このポジションは約定したか、クローズ済みです",
       "failed_to_close_position": "ポジションをクローズできませんでした",
       "failed_to_partially_close_position": "ポジションを部分的にクローズできませんでした",
       "failed_to_place_close_order": "クローズ注文に失敗しました",
@@ -1935,6 +2169,7 @@
       "loss_roe_placeholder": "損失率",
       "usd_label": "$",
       "take_profit_invalid_price": "利益確定は{{priceType}}価格よりも{{direction}}に設定する必要があります",
+      "trigger_price_must_be_positive": "トリガー価格はゼロより大きくなければなりません",
       "stop_loss_invalid_price": "ストップロスは{{priceType}}価格よりも{{direction}}に設定する必要があります",
       "stop_loss_beyond_liquidation_error": "ストップロスは清算価格よりも{{direction}}に設定する必要があります",
       "stop_loss_order_view_warning": "ストップロスが清算価格よりも{{direction}}に設定されています",
@@ -2009,25 +2244,26 @@
         "timeInForceNotSupported": "有効期間はリミット注文にしか設定できません",
         "editTriggerUnsupported": "ストップおよび利益確定注文は編集できません。注文をキャンセルして新たに発注してください。",
         "editOrderUnverifiable": "この注文は現在見つかりません。注文を更新してもう一度お試しください。",
-        "strategyParamsNotSupported": "These order settings aren't supported for this order type",
-        "strategyFieldUnsupported": "This field can't be used with a TWAP, scale, or chase order",
-        "strategyMarketUnsupported": "TWAP, scale, and chase orders aren't available on this market",
-        "strategyHandleUnknown": "This strategy order can no longer be found. Refresh your orders and try again.",
-        "strategyCancelIncomplete": "Some parts of this strategy order couldn't be cancelled. Try again.",
-        "strategyEditUnsupported": "TWAP, scale, and chase orders can't be edited. Cancel the order and place a new one.",
-        "twapDurationRequired": "A duration is required for TWAP orders",
-        "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
-        "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
-        "scaleRangeRequired": "Scale orders need a minimum and maximum price",
-        "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
-        "scaleCountInvalid": "Scale order count is invalid",
-        "scaleSizeTooSmall": "Each scale order is below the minimum size",
-        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
-        "chaseIntervalInvalid": "Chase interval is invalid",
-        "chaseDurationInvalid": "Chase duration is invalid",
-        "chaseLimitReached": "Too many chase orders are already running",
-        "chaseAbandoned": "Chase order was cancelled because the connection dropped",
-        "chaseTouchUnavailable": "No market price is available to place this chase order"
+        "strategyParamsNotSupported": "この注文種別ではこれらの注文設定に対応していません",
+        "strategyFieldUnsupported": "この欄はTWAP注文、分割注文、追跡指値注文では使用できません",
+        "strategyMarketUnsupported": "TWAP注文、分割注文、追跡指値注文はこの市場では利用できません",
+        "strategyHandleUnknown": "このストラテジー注文は現在見つかりません。注文を更新してもう一度お試しください。",
+        "strategyCancelIncomplete": "このストラテジー注文の一部をキャンセルできませんでした。もう一度お試しください。",
+        "strategyEditUnsupported": "TWAP注文、分割注文、追跡指値注文は編集できません。注文をキャンセルして新たに発注してください。",
+        "twapDurationRequired": "TWAP注文では期間が必要です",
+        "twapDurationInvalid": "TWAPの期間は5～1440分の間で設定してください",
+        "twapNotionalTooSmall": "TWAP注文の値が取引所の最低値を下回っています",
+        "scaleRangeRequired": "分割注文には最低価格と最高価格が必要です",
+        "scaleRangeInvalid": "分割注文の最高価格は最低価格よりも高くする必要があります",
+        "scaleCountInvalid": "分割注文の回数が無効です",
+        "scaleSizeTooSmall": "各分割注文が最低サイズを下回っています",
+        "scaleNotionalTooSmall": "各分割注文が取引所の最低値を下回っています",
+        "chaseIntervalInvalid": "追跡間隔が無効です",
+        "chaseDurationInvalid": "追跡期間が無効です",
+        "chaseLimitReached": "すでに追跡指値注文が上限数まで実行されています",
+        "chaseAbandoned": "接続が切れたため追跡指値注文がキャンセルされました",
+        "chaseTouchUnavailable": "市場価格が取得できないため、この追跡指値注文を実行できません",
+        "chaseMaxDistanceInvalid": "最大追跡距離が許容範囲を超えています"
       },
       "networkToggleFailed": "ネットワークを切り替えられませんでした: {{error}}",
       "accountBalanceFailed": "アカウント残高を取得できませんでした: {{error}}",
@@ -2233,6 +2469,10 @@
         "total": "合計手数料",
         "discount_message": "VIPユーザーは手数料が{{percentage}}%お得になります。"
       },
+      "size_skew": {
+        "title": "数量の配分",
+        "content": "数量の配分は、指定範囲内で注文数量をどのように配分するかを決定します。1より大きい値の場合は、終了価格付近の数量が大きくなり、1より小さい値の場合は、開始価格付近が大きくなります。値が1.00の場合は、数量が均等に分割されます。"
+      },
       "closing_fees": {
         "title": "クロージング手数料",
         "metamask_fee": "MetaMaskの手数料",
@@ -2411,13 +2651,17 @@
     },
     "close_all_modal": {
       "title": "すべてのポジションをクローズ",
-      "description": "すべての未決済のポジションを現在の市場価格でクローズします。",
+      "title_filtered": "ポジションをクローズ",
+      "description": {
+        "one": "未決済のポジションを現在の市場価格でクローズします。",
+        "other": "未決済の{{count}}個のポジションを現在の市場価格でクローズします。"
+      },
       "margin": "証拠金",
       "includes_pnl": "{{pnlAmount}}を含む",
       "fees": "手数料",
       "you_will_receive": "受取額",
       "keep_positions": "ポジションをキープ",
-      "close_all": "すべてクローズ",
+      "close_count": "クローズ ({{count}})",
       "closing": "クローズしています...",
       "success_title": "ポジションがクローズされました",
       "success_message": "{{count}}個のポジションがクローズされました",
@@ -2426,10 +2670,13 @@
       "error_message": "{{count}}個のポジションのクローズに失敗しました"
     },
     "cancel_all_modal": {
-      "title": "すべての注文のキャンセル",
-      "description": "未決済の注文をすべてキャンセルします。",
+      "title": "注文の取消",
+      "description": {
+        "one": "保留中の注文を{{count}}件取り消します。未約定の注文は直ちに削除されます。",
+        "other": "保留中の注文を{{count}}件取り消します。未約定の注文は直ちに削除されます。"
+      },
       "keep_orders": "注文をキープ",
-      "confirm": "選択すると、",
+      "confirm": "すべてキャンセル",
       "canceling": "キャンセルしています...",
       "success_title": "注文がキャンセルされました",
       "success_message": "{{count}}件の注文がキャンセルされました",
@@ -2470,7 +2717,8 @@
       "past_24_hours": "過去24時間",
       "time": "時間",
       "apply": "適用",
-      "clear": "消去"
+      "clear": "消去",
+      "reset": "リセット"
     },
     "provider_selector": {
       "title": "プロバイダーの選択"
@@ -2495,6 +2743,7 @@
       "added": "ウォッチリストに{{symbol}}を追加しました",
       "removed": "ウォッチリストから{{symbol}}を削除しました",
       "add_error": "ウォッチリストへの市場の追加に失敗しました",
+      "remove_error": "ウォッチリストから市場を削除できませんでした",
       "limit_reached": "ウォッチリストの上限に達しました（最大{{limit}}市場）",
       "filter_badge_label": "ウォッチリスト",
       "suggested": "おすすめ"
@@ -2605,6 +2854,9 @@
       "listed_by": "表示単位",
       "value_type": "値の種類",
       "group_by": "グループ化",
+      "layout": "オーダーブックのレイアウト",
+      "layout_left": "左",
+      "layout_right": "右",
       "apply": "適用",
       "save": "保存",
       "collapse": "オーダーブックを非表示",
@@ -2725,6 +2977,15 @@
   },
   "predict": {
     "title": "MetaMask 予測",
+    "game_status": {
+      "live": "ライブ",
+      "scheduled": "スケジュール済み",
+      "delayed": "遅延中",
+      "suspended": "中止",
+      "postponed": "延期",
+      "final": "確定",
+      "canceled": "キャンセル"
+    },
     "send_to_predictions": "予測アカウントに送金",
     "select_predict_account": "予測アカウントの選択",
     "search_account": "アカウントの検索",
@@ -2757,6 +3018,46 @@
     },
     "prediction_markets": "予測市場",
     "market_list": "市場リスト",
+    "market": {
+      "volume": "{{value}}の出来高",
+      "draw": "引き分け",
+      "footer_price_unavailable": "価格が利用できません"
+    },
+    "market_groups": {
+      "total_points": "合計ポイント",
+      "spread": "スプレッド",
+      "market_option": "市場オプション",
+      "line_unavailable": "ラインが利用できません",
+      "price_unavailable": "価格が利用できません",
+      "option_accessibility_label": "{{team}}についてラインが{{line}}、価格が{{price}}の市場オプション",
+      "outcome_accessibility_label": "{{team}}についてラインが{{line}}、価格が{{price}}"
+    },
+    "rules": {
+      "event_accessibility_label": "イベントのルールを表示",
+      "market_accessibility_label": "市場のルールを表示",
+      "close_accessibility_label": "ルールを閉じる",
+      "event_title": "イベントのルール",
+      "market_title": "市場のルール",
+      "title": "ルール",
+      "settlement_sources": {
+        "prefix": "結果の検証元：",
+        "separator": ", ",
+        "last_separator": "と",
+        "suffix": ".",
+        "open_hint": "ソースをブラウザで開きます。"
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "イベントを読み込み中",
+      "unable_to_load": "このイベントを読み込めません。"
+    },
+    "history": {
+      "loading_accessibility_label": "市場の履歴を読み込み中",
+      "unable_to_load": "市場の履歴を読み込めませんでした。",
+      "unavailable_for_range": "この期間の市場の履歴は利用できません。",
+      "chart_accessibility_label": "市場の予測確率履歴。{{values}}",
+      "chart_scrub_accessibility_label": "{{time}}時点の市場の予測確率履歴。{{values}}"
+    },
     "loading": "読み込み中...",
     "buttons": {
       "back": "戻る",
@@ -3351,6 +3652,7 @@
   "wallet": {
     "title": "ウォレット",
     "search_accessibility_label": "Search",
+    "rewards_accessibility_label": "報酬",
     "tokens": "トークン",
     "view_all_nfts": "すべてのNFTを表示",
     "view_all_tokens": "すべてのトークンを表示",
@@ -3363,7 +3665,7 @@
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
     "add_tokens": "トークンをインポート",
-    "are_you_sure_exit": "Are you sure you want to exit?",
+    "are_you_sure_exit": "終了してよろしいですか？",
     "import_token": "Would you like to import this token?",
     "import_tokens": "これらのトークンをインポートしますか？",
     "tokens_detected_in_account": "このアカウントに{{tokenCount}}件の新しい{{tokensLabel}}が見つかりました",
@@ -3926,12 +4228,18 @@
     "resources": "リソース",
     "permissions": "アクセス許可",
     "card_title": "MetaMaskカード",
+    "card_update_badge": "更新",
     "settings": "設定",
     "networks": "ネットワーク",
     "log_out": "ログアウト",
     "notifications": "通知",
     "buy": "購入",
     "scan": "スキャン"
+  },
+  "account_hub": {
+    "info": "情報",
+    "scan": "スキャン",
+    "activity": "アクティビティ"
   },
   "app_settings": {
     "enabling_notifications": "通知を有効にしています...",
@@ -4023,7 +4331,7 @@
     "notifications_title": "通知",
     "notifications_desc": "通知の管理",
     "allow_notifications": "通知を許可する",
-    "enable_push_notifications": "プッシュ通知を有効にする",
+    "enable_push_notifications": "プッシュ通知をオンにする",
     "allow_notifications_desc": "通知の内容と受取方法を選択できます。",
     "notifications_opts": {
       "preferences_title": "設定",
@@ -4035,13 +4343,14 @@
       "select_all": "すべて選択",
       "deselect_all": "すべて選択解除",
       "select_accounts_title": "アカウント",
-      "select_accounts_desc": "どのアカウントの通知を受け取るか選択できます。",
+      "select_accounts_desc": "どのアカウントの通知を受け取るか選択できます",
+      "accounts_load_error": "アカウントの通知設定を読み込めませんでした。後でもう一度お試しください。",
       "wallet_activity_title": "ウォレットアクティビティ",
       "wallet_activity_desc": "購入、売却、送金、スワップ",
       "perps_title": "取引アクティビティ",
       "perps_desc": "パーペチュアルポジションの変更、清算、入金レート、証拠金の最新情報",
-      "agentic_cli_title": "Agent wallet",
-      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agent wallet",
+      "agentic_cli_title": "Agent Wallet",
+      "agentic_cli_desc": "Agent Walletを対象としたCLIによる接続要求、承認、セッション更新情報",
       "social_ai_title": "取引シグナル",
       "social_ai_desc": "フォローしているトレーダーと資産の最新情報、キュレートされたマーケットニュース",
       "marketing_title": "最新情報とリワード",
@@ -4802,7 +5111,7 @@
     "bridge_description": "ネットワーク間でトークンを転送します",
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
-    "earn_description": "トークンに対してリワードを獲得します",
+    "earn_description": "暗合資産を運用しよう",
     "perps_description": "パーペチュアル契約を取引",
     "predict_description": "現実世界の出来事を対象に取引できます",
     "chart_time_period": {
@@ -4849,19 +5158,19 @@
     "malicious": "悪意のある",
     "risky": "リスクのある",
     "malicious_token_title": "悪質なトークン",
-    "malicious_token_description": "{{symbol}}は悪意のあるトークンです。やり取りや取引は避けてください。",
-    "malicious_token_description_no_symbol": "これは悪意のあるトークンです。やり取りや取引は避けてください。",
-    "malicious_token_banner_description": "{{symbol}}は悪意があるとフラグされています。やり取りした相手から資金を盗む可能性が高いです。",
-    "malicious_token_banner_description_no_symbol": "このトークンは悪意があるとフラグされています。やり取りした相手から資金を盗む可能性があります。",
-    "suspicious_token_description": "{{symbol}}は不審なトークンです。",
-    "suspicious_token_description_no_symbol": "これは不審なトークンです。",
+    "malicious_token_description": "セキュリティパートナーが{{symbol}}を高リスクだと判断しました。",
+    "malicious_token_description_no_symbol": "セキュリティパートナーがこのトークンを高リスクだと判断しました。",
+    "malicious_token_banner_description": "セキュリティパートナーが{{symbol}}を高リスクだと判断しました。",
+    "malicious_token_banner_description_no_symbol": "セキュリティパートナーがこのトークンを高リスクだと判断しました。",
+    "suspicious_token_description": "セキュリティパートナーが、{{symbol}}のコントラクトまたは取引アクティビティでリスクシグナルを発見しました。",
+    "suspicious_token_description_no_symbol": "セキュリティパートナーが、このトークンのコントラクトまたは取引アクティビティでリスクシグナルを発見しました。",
     "verified_token_title": "確認済みのトークン",
     "verified_token_description": "{{symbol}}はアクティブに取引され、広く認識されています。検証はMetaMaskによる承認ではありません。",
     "risky_token_title": "不審なトークン",
-    "risky_token_description": "{{symbol}}は不審であるとフラグされています。続ける前にリスクを確認してください。",
-    "risky_token_description_no_symbol": "このトークンは不審であるとフラグされています。続ける前にリスクを確認してください。",
-    "malicious_token_sheet_description": "{{symbol}}で深刻なリスクシグナルが検出されました。このトークンは取引しないことをお勧めします。",
-    "malicious_token_sheet_description_no_symbol": "このトークンで深刻なリスクシグナルが検出されました。このトークンは取引しないことをお勧めします。",
+    "risky_token_description": "セキュリティパートナーが、{{symbol}}のコントラクトまたは取引アクティビティでリスクシグナルを発見しました。",
+    "risky_token_description_no_symbol": "セキュリティパートナーが、このトークンのコントラクトまたは取引アクティビティでリスクシグナルを発見しました。",
+    "malicious_token_sheet_description": "セキュリティパートナーが{{symbol}}を高リスクだと判断しました。",
+    "malicious_token_sheet_description_no_symbol": "セキュリティパートナーがこのトークンを高リスクだと判断しました。",
     "got_it": "了解",
     "proceed": "先に進む",
     "continue_anyway": "それでも続行",
@@ -4869,8 +5178,8 @@
     "data_unavailable": "セキュリティデータが利用できません",
     "subtitle_known": "リスクシグナルは検出されませんでした。どの資産でも取引前に必ず調査してください。",
     "subtitle_no_issues": "リスクシグナルは検出されませんでした。どの資産でも取引前に必ず調査してください。",
-    "subtitle_suspicious": "警告のシグナルが検出されました。この資産を取引する前に、フラグの付いた問題を慎重に確認してください。",
-    "subtitle_malicious": "深刻なリスクシグナルが検出されました。この資産は避けることをお勧めします。",
+    "subtitle_suspicious": "セキュリティパートナーが、このトークンのコントラクトまたは取引アクティビティでリスクシグナルを発見しました。",
+    "subtitle_malicious": "セキュリティパートナーがこのトークンを高リスクだと判断しました。",
     "subtitle_unavailable": "このトークンのセキュリティ分析情報を読み込めませんでした。",
     "token_distribution": "トークンの流通",
     "total_supply": "合計供給量",
@@ -5048,7 +5357,7 @@
     "sign_with_keystone": "ハードウェアウォレットで署名",
     "sign_with_ledger": "Ledgerで署名",
     "from": "送信元",
-    "gas_fee": "ガス代",
+    "gas_fee": "ネットワーク手数料",
     "gas_fee_fast": "高速",
     "gas_fee_average": "平均",
     "gas_fee_slow": "低速",
@@ -5083,7 +5392,7 @@
     "invalid_amount": "無効な金額",
     "invalid_gas": "無効なガス代",
     "invalid_gas_price": "無効なガス価格",
-    "high_gas_price": "ガス代が必要以上に高く設定されている可能性があります ({{currentGasPrice}})。減額を検討してください。",
+    "high_gas_price": "ネットワーク手数料が必要以上に高く設定されている可能性があります ({{currentGasPrice}})。減額を検討してください。",
     "low_gas_price": "ガス価格が非常に低く設定されています",
     "invalid_collectible_ownership": "このコレクティブルを所有していません",
     "known_asset_contract": "既知のアセットコントラクトアドレス",
@@ -5109,15 +5418,15 @@
     "cancel_speedup_cancel_title": "トランザクションをキャンセル",
     "cancel_speedup_speedup_message": "このネットワーク手数料は元の手数料に置き換えられます。",
     "cancel_speedup_cancel_message": "このトランザクションはキャンセルされ、このネットワーク手数料は元の手数料に置き換えられます。",
-    "edit_network_fee": "ガス代を編集",
+    "edit_network_fee": "ネットワーク手数料を編集",
     "edit_priority": "優先度を編集",
     "gas_cancel_fee": "キャンセルのガス代",
     "gas_speedup_fee": "スピードアップのガス代",
     "use_max": "最大額を使用",
     "set_gas": "設定",
     "cancel_gas": "キャンセル",
-    "transaction_fee_estimated": "ガス代の見積もり",
-    "transaction_fee": "ガス代",
+    "transaction_fee_estimated": "推定ネットワーク手数料",
+    "transaction_fee": "ネットワーク手数料",
     "transaction_fee_less": "手数料なし",
     "total_amount": "合計額",
     "view_data": "データを表示",
@@ -5155,8 +5464,8 @@
     "confusable_msg": "ENS名に紛らわしい文字が検出されました。詐欺防止のため、ENS名を確認してください。",
     "similar_to": "類似するもの:",
     "contains_zero_width": "ゼロ幅文字が含まれています",
-    "dapp_suggested_gas": "このガス代は{{origin}}により推奨されています。旧式のガス見積もり方法を使用しているため、精度に欠ける可能性がありますが、このガス代を変更するとトランザクションに問題が発生する場合があります。ご質問がございましたら、{{origin}} にお問い合わせください。",
-    "dapp_suggested_eip1559_gas": "このガス代は{{origin}}により推奨されています。これを上書きすると、トランザクションに問題が発生する可能性があります。ご質問がございましたら、{{origin}} にお問い合わせください。",
+    "dapp_suggested_gas": "このネットワーク手数料は{{origin}}により推奨されています。旧式のガス見積もり方法を使用しているため、精度に欠ける可能性がありますが、このネットワーク手数料を変更するとトランザクションに問題が発生する場合があります。ご質問がございましたら、{{origin}}にお問い合わせください。",
+    "dapp_suggested_eip1559_gas": "このネットワーク手数料は{{origin}}により推奨されています。これを上書きすると、トランザクションに問題が発生する可能性があります。ご質問がございましたら、{{origin}}にお問い合わせください。",
     "address_invalid": "受取人のアドレスが無効です。",
     "ens_not_found": "この名前にはアドレスが設定されていません。",
     "unknown_qr_code": "無効なQRコードです。再度お試しください。",
@@ -5365,6 +5674,8 @@
     "activity_market_close_long": "成行 — ロングをクローズ",
     "activity_limit_long": "リミットロング",
     "activity_limit_close_long": "リミット — ロングをクローズ",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "約定済",
     "activity_order_status_canceled": "取消済",
     "activity_order_status_rejected": "拒否されました",
@@ -5414,7 +5725,7 @@
     "mint": "ミント",
     "tx_details_free": "無料",
     "tx_details_not_available": "利用できません",
-    "smart_contract_interaction": "スマートコントラクトのインタラクション",
+    "smart_contract_interaction": "コントラクトのインタラクション",
     "money_account_deposit": "Money Accountに入金",
     "money_account_withdraw": "Money Accountから送金",
     "swaps_transaction": "スワップトランザクション",
@@ -5509,9 +5820,9 @@
     "status_submitting_description": "完了までの推定時間: {{timeLeft}}",
     "status_success_header": "トランザクションが完了しました",
     "status_submitting_past_estimated_deadline_header": "お待たせして申し訳ございません",
-    "status_submitting_past_estimated_deadline_description": "{{timeLeft}}以内にトランザクションが完了しない場合はキャンセルされ、ガス代は請求されません。",
+    "status_submitting_past_estimated_deadline_description": "{{timeLeft}}以内にトランザクションが完了しない場合はキャンセルされ、ネットワーク手数料は請求されません。",
     "status_cancelled_header": "トランザクションがキャンセルされました",
-    "status_cancelled_description": "トランザクションを完了できなかったため、不要なガス代の支払いを避けるためにキャンセルされました。",
+    "status_cancelled_description": "トランザクションを完了できなかったため、不要なネットワーク手数料の支払いを避けるためにキャンセルされました。",
     "status_failed_header": "トランザクションに失敗しました",
     "status_failed_description": "突然の市場の変化により失敗する場合があります。問題が解決されない場合は、MetaMaskカスタマーサポートにお問い合わせください。",
     "view_transaction": "トランザクションを表示",
@@ -5896,13 +6207,13 @@
     "confirm": "確定"
   },
   "account_backup_step_5": {
-    "error_title": "-",
-    "error_message": "単語の順序が正しくありません。正しく書き留めたことを確認してください。必要であれば前の画面に戻ってください。",
+    "error_title": "単語の順番が間違っています",
+    "error_message": "正しく書き留めたことを確認し、必要であれば前の画面にお戻りください。",
     "back": "戻る",
     "title": "秘密のリカバリーフレーズの確認",
     "info_text": "各単語を、前の画面に表示された順序通りに入力してください。",
     "cta_text": "フレーズを確認",
-    "modal_title": "秘密のリカバリーフレーズが確認されました！",
+    "modal_title": "シークレットリカバリーフレーズが確認されました",
     "modal_text": "これはこのセキュリティ対策に従っていることを確認するためのものです",
     "modal_button": "次へ"
   },
@@ -6068,11 +6379,11 @@
     "pending_deposit_title": "デポジット処理中",
     "pending_withdrawal_title": "出金が進行中です",
     "cancelled_title": "トランザクションがキャンセルされました",
-    "success_title": "トランザクション#{{nonce}}が完了しました。",
+    "success_title": "トランザクション#{{nonce}}が完了しました",
     "speedup_title": "#{{nonce}}を高速化しています",
-    "success_deposit_title": "デポジット完了！",
-    "success_withdrawal_title": "出金完了！",
-    "error_title": "問題が発生しました  :/",
+    "success_deposit_title": "デポジット完了",
+    "success_withdrawal_title": "出金完了",
+    "error_title": "問題が発生しました",
     "received_title": "{{amount}}{{assetType}}受け取りました",
     "erc20_sent_title": "送金されました",
     "erc20_received_title": "資金を受け取りました",
@@ -6091,6 +6402,15 @@
         "preview": {
           "title": "ETHは今日4.2%値上がりしています",
           "message": "現在$2,668.51 — 価格アラートの金額を超えています",
+          "timestamp": "現在"
+        }
+      },
+      "social_ai": {
+        "title": "取引シグナルを見逃さない",
+        "description": "フォロー中のトレーダーに動きがあった際にアラートを受信できるよう、通知をオンにしましょう。",
+        "preview": {
+          "title": "フォロー中のトレーダーの新規取引",
+          "message": "ETHのロング · $10,000",
           "timestamp": "現在"
         }
       },
@@ -6124,7 +6444,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "出金がリクエストされました",
     "prompt_title": "プッシュ通知の受取",
     "notifications_enabled_error_title": "問題が発生しました",
-    "notifications_enabled_error_desc": "通知を有効にできませんでした。後ほどもう一度お試しください。",
+    "notifications_enabled_error_desc": "通知をオンにできませんでした。後ほどもう一度お試しください。",
     "prompt_desc": "ウォレットのアクティビティなどに関する重要なアラートを取得するには、設定で通知をオンにします。",
     "prompt_ok": "オンにする",
     "prompt_cancel": "後で",
@@ -6172,7 +6492,7 @@
       "new_user": {
         "title": "価格変動を見逃さない",
         "body": "価格変動、取引の確認、ポートフォリオの動向、およびMetaMaskの利用状況に応じた報酬に関するリアルタイムの通知を受け取ることができます。",
-        "button_yes": "通知を有効にする",
+        "button_yes": "通知をオンにする",
         "button_not_now": "後で",
         "preview_card_1": {
           "time": "現在",
@@ -6214,7 +6534,7 @@
         }
       },
       "toast_enabled": "通知が有効になりました",
-      "toast_settings_hint": "設定 > 通知でいつでも通知を有効にできます"
+      "toast_settings_hint": "設定 > 通知でいつでも通知をオンにできます"
     }
   },
   "protect_your_wallet_modal": {
@@ -6494,7 +6814,7 @@
       "what_to_expect": "今後の流れ",
       "quotes": "当社の仮想通貨購入機能は提携ベンダーからクォートを集め、それらのソースからのクォートを提供し、待ち時間なしで直接ウォレットに仮想通貨を入金します。",
       "quotes_sell": "MetaMaskで直接キャッシュアウトできるようになりました！画面上の詳しい案内に従って、信頼できるプロバイダーから最新のクォートを入手できます。",
-      "benefits": "ガス代が安く、数々のネットワーク、トークン、支払方法がサポートされています",
+      "benefits": "ネットワーク手数料が安く、数々のネットワーク、トークン、支払方法がサポートされています",
       "benefits_sell": "仮想通貨から現地通貨へのオフランプが今まで以上に簡単になりました。",
       "get_started": "開始"
     },
@@ -6536,6 +6856,7 @@
     "most_reliable": "信頼性が最も高い",
     "quotes_timeout": "クォートのタイムアウト",
     "request_new_quotes": "最も有利な最新のレートを入手できるよう、新しいクォートをリクエストしてください。",
+    "wallet_pay_terms": "続行することで、Crossmintの次の規約に同意したものとみなされます:",
     "terms_of_service": "サービス規約",
     "amount_to_buy": "購入",
     "amount_to_sell": "売却",
@@ -6565,10 +6886,10 @@
     "minimum": "最低入金額は",
     "maximum": "最高入金額は",
     "insufficient_balance": "この金額は残高を超えています",
-    "insufficient_native_balance": "ガス代の支払いに十分な{{currency}}がありません。",
+    "insufficient_native_balance": "ネットワーク手数料の支払いに十分な{{currency}}がありません。",
     "enter_larger_amount": "続行するにはより大きな金額を入力してください",
     "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
-    "enter_lower_gas_fees": "ガス代の金額をより少なめに入力してください",
+    "enter_lower_gas_fees": "ネットワーク手数料の金額をより少なめに入力してください",
     "max": "最大額",
     "try_again": "再試行してください",
     "error": "エラー",
@@ -6777,7 +7098,7 @@
     "manually_pasting": "アドレスを貼り付けて手動で追加してください。",
     "token_address_can_be_found": "トークンコントラクトアドレスは次の場所で確認できます:",
     "gathering_token_details": "トークンの詳細を収集しています...",
-    "error_gathering_token_details": "トークンの詳細収集中にエラーが発生しました。",
+    "error_gathering_token_details": "トークン情報の収集中にエラーが発生しました。",
     "Import": "インポート",
     "invalid_token_contract_address": "無効なトークンコントラクトアドレス",
     "please_verify_on_explorer": "次の方法で検証してください:",
@@ -6821,10 +7142,10 @@
     "saving": "保存中",
     "n_quotes": "{{numberOfQuotes}}件のクォート",
     "view_details": "詳細を表示",
-    "estimated_gas_fee": "ガス代の見積もり",
-    "gas_fee": "ガス代",
+    "estimated_gas_fee": "推定ネットワーク手数料",
+    "gas_fee": "ネットワーク手数料",
     "included": "込み",
-    "max_gas_fee": "最大ガス代",
+    "max_gas_fee": "ネットワーク手数料の上限",
     "edit": "編集",
     "quotes_include_fee": "クォートには{{fee}}%のMetaMask手数料が含まれています",
     "quotes_include_gas_and_metamask_fee": "クォートにはガス代と、{{fee}}%のMetaMask手数料が含まれています",
@@ -6852,7 +7173,7 @@
     "rate": "レート",
     "quote_details_max_slippage": "最大スリッページ",
     "source": "ソース",
-    "estimated_network_fees": "ガス代の見積もり",
+    "estimated_network_fees": "推定ネットワーク手数料",
     "guaranteed_amount": "保証額",
     "quote_source_dex": {
       "1": "このクォートは直接",
@@ -6896,9 +7217,9 @@
     "medium_selected_warning": "スワップは時間が重要になります。「中」はお勧めしません。",
     "high_recommendation": "通常、スワップは時間が重要です。「高」にすると、市場状況の変化による問題を回避しやすくなります。",
     "recommended": "推奨",
-    "recommended_gas": "推奨ガス代",
-    "gas_included_tooltip_explanation": "このクォートにはガス代が含まれており、それに応じてトークンの送金または受取額が調整されています。アクティビティリストの別のトランザクションでETHを受け取る可能性があります。",
-    "gas_included_tooltip_explanation_link_text": "ガス代に関する詳細",
+    "recommended_gas": "ネットワーク手数料の推奨額",
+    "gas_included_tooltip_explanation": "このクォートにはネットワーク手数料が含まれており、それに応じてトークンの送金または受取額が調整されています。アクティビティリストの別のトランザクションでETHを受け取る可能性があります。",
+    "gas_included_tooltip_explanation_link_text": "ネットワーク手数料に関する詳細",
     "gas_education_title": "ガス代の見積もり",
     "gas_education_1": "ガス代は、",
     "gas_education_2_ethereum": "イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。",
@@ -6921,7 +7242,11 @@
   },
   "deeplink": {
     "invalid": "無効なディープリンク",
-    "not_supported": "ディープリンクがサポートされていません"
+    "not_supported": "ディープリンクがサポートされていません",
+    "solana_pay_transaction_request_not_supported": "This Solana Pay QR uses a transaction request, which is not supported yet.",
+    "solana_pay_reference_not_supported": "This Solana Pay QR includes a payment reference, which is not supported yet.",
+    "solana_pay_memo_not_supported": "This Solana Pay QR includes a memo, which is not supported yet.",
+    "solana_pay_token_not_supported": "This Solana Pay QR uses a token that could not be recognized. The payment was not started."
   },
   "error_screen": {
     "title": "エラーが発生しました",
@@ -7026,7 +7351,7 @@
     "max_priority_fee": "最大優先手数料",
     "max_fee": "最大手数料",
     "estimate": "見積もり",
-    "recommended_gas_fee": "推奨ガス代",
+    "recommended_gas_fee": "ネットワーク手数料の推奨額",
     "swaps_warning": "スワップは非常に時間が重要です。「高」にすると、市場状況の変化による損失を回避しやすくなります。",
     "priority_fee_at_least_0_error": "優先手数料は1gwei以上である必要があります",
     "learn_more": {
@@ -7053,8 +7378,8 @@
     "learn_more_gas_limit": "ガスリミットは、使用しても構わないガスの最大単位数です。ガスの単位数は、「最大優先手数料」および「最大手数料」の乗数になります。",
     "learn_more_max_priority_fee": "最大優先手数料 (別名「マイナーチップ」) は、マイナーに直接支払われ、トランザクションを優先するインセンティブとなります。通常最大設定値が支払われます。",
     "learn_more_max_fee": "最大手数料は、支払う最高額です (基本料金 + 優先手数料)。",
-    "learn_more_new_gas_fee": "現在のネットワークの状況に基づきガス代が更新された結果、10%以上 (ネットワークによる必要条件) 増額されました。",
-    "learn_more_cancel_gas_fee": "現在のネットワークの状況に基づきガス代が更新された結果、50%以上 (ネットワークによる必要条件) 増額されました。",
+    "learn_more_new_gas_fee": "現在のネットワークの状況に基づきネットワーク手数料が更新された結果、10%以上 (ネットワークによる必要条件) 増額されました。",
+    "learn_more_cancel_gas_fee": "現在のネットワークの状況に基づきネットワーク手数料が更新された結果、50%以上 (ネットワークによる必要条件) 増額されました。",
     "low": "低",
     "medium": "中",
     "high": "高",
@@ -7064,8 +7389,8 @@
     "edit_priority": "優先度を編集",
     "speed_up_transaction": "トランザクションをスピードアップ",
     "cancel_transaction": "トランザクションをキャンセル",
-    "new_gas_fee": "新しいガス代",
-    "edit_suggested_gas_fee": "推奨ガス代を編集",
+    "new_gas_fee": "新しいネットワーク手数料",
+    "edit_suggested_gas_fee": "推奨ネットワーク手数料を編集",
     "gas_price": "ガス価格",
     "learn_more_gas_limit_legacy": "ガスリミットは、使用しても構わないガスの最大単位数です。ガスの単位数は、「ガス価格」の乗数になります。",
     "learn_more_gas_price": "このネットワークは、トランザクションの送信時に「ガス価格」フィールドが必要です。ガス価格は、ガス1単位あたりに支払っても構わない最高額です。",
@@ -7073,19 +7398,19 @@
     "gas_price_high": "ガス価格が必要以上に高くなっています"
   },
   "transaction_review_eip1559": {
-    "estimated_gas_fee": "ガス代の見積もり",
+    "estimated_gas_fee": "推定ネットワーク手数料",
     "network_fee": "ネットワーク手数料",
     "max_fee": "最大手数料",
     "total": "合計",
     "max_amount": "最高額",
-    "estimated_gas_fee_tooltip": "ガス代とは",
+    "estimated_gas_fee_tooltip": "ネットワーク手数料とは？",
     "estimated_gas_fee_tooltip_text_1": "ガス代は",
     "estimated_gas_fee_tooltip_text_2": " イーサリアム",
     "estimated_gas_fee_tooltip_text_3": "ネットワークでトランザクションを処理するクリプトマイナーに支払われます。",
     "estimated_gas_fee_tooltip_text_4": "MetaMaskはガス代で利益を得ることはありません。",
     "estimated_gas_fee_tooltip_text_5": "ガス代はネットワークにより設定され、ネットワークトラフィックとトランザクションの複雑さに応じて変動します。",
-    "learn_more": "ガス代の詳細をご覧ください",
-    "legacy_gas_suggestion_tooltip": "このガス代の提案には旧式のガス代の見積もりが使用されているため、不正確な可能性があります。"
+    "learn_more": "ネットワーク手数料に関する詳細",
+    "legacy_gas_suggestion_tooltip": "このネットワーク手数料の提案には旧式のガス見積もり方法が使用されているため、精度に欠ける可能性があります。"
   },
   "times_eip1559": {
     "unknown": "処理時間不明",
@@ -7095,8 +7420,8 @@
     "very_likely": "かなりの確率で <",
     "at_least": "最低",
     "less_than": "<",
-    "warning_very_likely": "このガス代は、他に利用可能なオプションよりもはるかに高いです。",
-    "warning_very_likely_title": "ガス代が高すぎます",
+    "warning_very_likely": "このネットワーク手数料は、他に利用可能なオプションよりもはるかに高額です。",
+    "warning_very_likely_title": "ネットワーク手数料が高すぎます",
     "warning_unknown": "最大手数料または最大優先手数料が、現在の市場の状況に対して低い可能性があります。いつトランザクションが処理されるか (または処理されるかどうか) わかりません。",
     "warning_low": "これにより最大手数料は低くなりますが、ネットワークトラフィックが増加した場合、トランザクションが遅れたり失敗したりする可能性があります。",
     "warning_low_title": "低優先度",
@@ -7129,17 +7454,17 @@
   "network_information": {
     "things_to_keep_in_mind": "留意点",
     "testnet_network": "{{type}}テストネット",
-    "first_description": "このネットワーク上のネイティブトークンは{{ticker}}です。これは、ガス代に使用されるトークンです。",
+    "first_description": "このネットワークのネイティブトークンは{{ticker}}です。このトークンがネットワーク手数料に使用されます。",
     "second_description": "あるネットワークから別のネットワークに直接アセットを送信しようとすると、アセットが永久に失われるおそれがあります。必ずブリッジを使用してください。",
     "third_description": "トークンはウォレットに自動的に表示されない可能性があります。",
-    "private_network": "これは不明なネットワークであり、ガス代に特殊なトークンを使用する可能性があります。",
+    "private_network": "これは不明なネットワークであり、ネットワーク手数料に特殊なトークンを使用する可能性があります。",
     "unknown_network": "不明なネットワーク",
     "switched_network": "次のネットワークに切替済み",
     "learn_more": "詳細",
     "add_token": "ここをクリックしてトークンを手動で追加",
     "add_token_manually": "手動で追加してください。",
     "got_it": "了解",
-    "error_title": "問題が発生しました。",
+    "error_title": "問題が発生しました",
     "error_message": "ネットワーク情報の読み込み中にエラーが発生しました。後でもう一度お試しください。",
     "private_network_third_description": "識別しやすいように、このネットワークの名前を入力してください。",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -7341,7 +7666,7 @@
     "open_eth_app": "イーサリアムアプリを開いてください",
     "open_eth_app_message_one": "イーサリアムアプリがインストールされているものの、開かれていないことが判明しました。",
     "open_eth_app_message_two": "続行するには、デバイスの2つのボタンを押して、イーサリアムアプリを開く指示に同意してください。",
-    "toast_bluetooth_connection_error_title": "問題が発生しました  :/",
+    "toast_bluetooth_connection_error_title": "問題が発生しました",
     "toast_bluetooth_connection_error_subtitle": "Ledgerが接続されていません",
     "try_again": "再試行してください",
     "device_not_found": "デバイスが見つかりません",
@@ -7434,7 +7759,7 @@
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS ゲートウェイ",
-    "ipfs_gateway_banner_content1": "これはIPFS Webサイトです。このサイトを表示するには、",
+    "ipfs_gateway_banner_content1": "これはIPFSのWebサイトです。このサイトを表示するには、",
     "ipfs_gateway_banner_content2": "IPFSゲートウェイ",
     "ipfs_gateway_banner_content3": "場所",
     "ipfs_gateway_banner_content4": "設定."
@@ -7459,6 +7784,45 @@
     "error_description": "{{snap}}のインストールに失敗しました。"
   },
   "earn": {
+    "strategy_selection": {
+      "title": "運用方法の選択",
+      "tags": {
+        "recommended": "推奨",
+        "low_risk": "低リスク",
+        "medium_risk": "中リスク",
+        "high_risk": "高リスク"
+      },
+      "up_to": "最大",
+      "toasts": {
+        "deposit_navigation": {
+          "failed": "選択した資産に応じたデポジット画面に移動できませんでした"
+        }
+      },
+      "strategies": {
+        "rate_unavailable_subtitle": "残高を収益化しよう",
+        "money": {
+          "title": "Money Account",
+          "info_rows": {
+            "row_1": "残高に対して最大約{{percentage}}%のAPYが得られます",
+            "row_2": "ロックアップなしで、いつでも取引や引き出しが可能です",
+            "row_3": "ドルと1対1で裏付けられたMetaMaskのステーブルコイン、mUSDで保持されます"
+          }
+        },
+        "stablecoin_lending": {
+          "title": "{{asset}}を貸出",
+          "subtitle": "毎日報酬を獲得でき、いつでも引き出せます。"
+        },
+        "pooled_staking": {
+          "title": "ETHをステーキング",
+          "subtitle": "毎日報酬を獲得でき、いつでもステーキングを解除できます。"
+        },
+        "trx_staking": {
+          "title": "TRXをステーキング",
+          "subtitle": "毎日報酬を獲得でき、いつでもステーキングを解除できます。"
+        }
+      },
+      "get_started": "開始"
+    },
     "claimable_bonus_tooltip": "mUSDを保有することで獲得した年換算ボーナスです。ボーナスはLineaで毎日請求できます。",
     "earn_a_percentage_bonus": "{{percentage}}%のボーナスを獲得",
     "percentage_bonus": "{{percentage}}%のボーナス",
@@ -7628,9 +7992,27 @@
     },
     "your_stablecoins": "保有中のステーブルコイン"
   },
+  "earn_module": {
+    "new_tag": "新登場",
+    "money_account": "Money Account",
+    "get_started": "開始",
+    "rate_apy": "年換算利率 (APY) {{percentage}}%",
+    "rate_apr": "{{percentage}}%のAPR",
+    "get_rate_apy": "{{percentage}}%のAPYを獲得",
+    "get_rate_apr": "{{percentage}}%のAPRを獲得",
+    "rate_unavailable": "利率を取得できません",
+    "balance_unavailable": "残高が利用できません",
+    "asset_unavailable": "資産を取得できません",
+    "assets_unavailable": "一部の収益機会を読み込めませんでした。",
+    "retry": "再試行",
+    "stake_or_lend_description": "暗合資産のステーキングやレンディングで収益を上げましょう。利回りは資産や運用方法によって変わります。",
+    "money_fallback_description": "Money Accountに資産を追加して、収益化を始めましょう",
+    "more_ways_to_earn": "その他の収益化方法",
+    "empty_state_description": "現在、利用可能な収益化の手段がありません。",
+    "view_more": "さらに表示"
+  },
   "money": {
     "title": "マネー",
-    "get_pro": "Get Pro",
     "your_balance": "残高",
     "apy_label": "年換算利率 (APY) {{percentage}}%",
     "apy_currency_suffix": " • mUSD",
@@ -7729,7 +8111,7 @@
       "title": "仮想通貨を収益化",
       "description": "仮想通貨をmUSDに換えることで、時間の経過とともにお金がどのように増えるかをご覧ください。",
       "description_with_amounts_prefix": "資産としてお持ちの",
-      "description_with_amounts_middle": "を変換すると、以下の収益が得られます：",
+      "description_with_amounts_middle": "をMoney Accountに追加すれば、最大で次の金額の収益が得られます: ",
       "description_with_amounts_suffix": "の報酬を得られる可能性があります。",
       "add": "追加",
       "convert_cta": "仮想通貨を変換",
@@ -7754,7 +8136,6 @@
       "link_pending_title": "カードのリンク",
       "link_success_title": "カードの使用準備ができました",
       "link_error": "カードのリンク中に問題が発生しました",
-      "link_error_different_card": "このウォレットはすでに別のMetaMask Cardとリンクされています",
       "unlink_pending_title": "カードのリンクを解除",
       "unlink_success_title": "カードのリンクが解除されました",
       "unlink_error": "カードのリンク解除中に問題が発生しました",
@@ -7795,7 +8176,8 @@
       "bank_account": "銀行口座",
       "add_musd": "mUSDを追加",
       "receive_external": "外部アドレス",
-      "coming_soon": "近日追加予定"
+      "coming_soon": "近日追加予定",
+      "new_badge": "新登場"
     },
     "more_sheet": {
       "title": "さらに表示",
@@ -8125,7 +8507,7 @@
     "max_modal": {
       "title": "最大",
       "eth": {
-        "description": "最大額は、保有するETHの合計額から、ステーキングに必要なガス代を差し引いた額です。今後のトランザクションのために、ウォレットに予備のETHを残しておくことをお勧めします。"
+        "description": "最大額は、保有するETHの合計額から、ステーキングに必要なネットワーク手数料を差し引いた額です。今後のトランザクションのために、ウォレットに予備のETHを残しておくことをお勧めします。"
       }
     },
     "use_max": "最大額を使用",
@@ -8225,10 +8607,10 @@
       "tooltip": "ステークの価値の年間予想増加額です。この1週間の報酬率に基づいています。"
     },
     "estimated_gas_fee": {
-      "title": "ガス代の見積もり",
+      "title": "推定ネットワーク手数料",
       "gas_recipient": "ガス代は、イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。MetaMaskはガス代から利益を得ません。",
       "gas_fluctuation": "ガス代は、ネットワークトラフィックとトランザクションの複雑さに基づき見積もられ、変動します。",
-      "gas_learn_more": "ガス代に関する詳細"
+      "gas_learn_more": "ネットワーク手数料に関する詳細"
     },
     "reward_frequency": {
       "title": "報酬の頻度",
@@ -8481,6 +8863,133 @@
       "limit": "リミット",
       "recurring": "定期"
     },
+    "orders": {
+      "tabs": {
+        "open_orders": "未決済の注文",
+        "history": "履歴"
+      },
+      "empty": {
+        "open_orders": "未決済の注文がここに表示されます",
+        "history": "注文履歴がここに表示されます"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "有効期限: {{timeLeft}}",
+      "limit_price": "{{symbol}}のリミット価格",
+      "not_enough_gas": "ガスが不足しています",
+      "filled": "約定済",
+      "filled_at": "{{date}}に約定",
+      "expired": "期限切れ",
+      "expired_after": "{{duration}}後に失効",
+      "buy_when": "買いのタイミング:",
+      "sell_when": "売りのタイミング:",
+      "is_at_or_below": "が次の価格以下になったとき",
+      "is_at_or_above": "が次の価格以上になったとき",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(現在の市場価格から-{{percent}}%)",
+      "from_market_above": "(現在の市場価格から+{{percent}}%)",
+      "market": "マーケット",
+      "custom": "カスタム",
+      "expires": "有効期限",
+      "expiration": "有効期限",
+      "expiration_option": {
+        "minutes": "{{count}}分",
+        "hour": "{{count}}時間",
+        "day": "{{count}}日",
+        "days": "{{count}}日",
+        "week": "{{count}}週間",
+        "month": "{{count}}か月"
+      },
+      "est_network_fee": "推定ネットワーク手数料",
+      "create_order": "注文を作成",
+      "paying": "支払額",
+      "receiving": "受信中",
+      "trigger_condition": "トリガー条件",
+      "expiry_label": "有効期限",
+      "confirm_order": "注文を確定",
+      "edit_slippage": "スリッページの編集"
+    },
+    "recurring": {
+      "you_get": "受け取る額",
+      "every": "間隔:",
+      "repeat": "繰り返し",
+      "times": "回",
+      "confirm": "確定",
+      "preview_order": "注文のプレビュー",
+      "confirm_title": "繰り返し注文の確認",
+      "paying_all_orders": "支払額 (すべての注文)",
+      "paying_per_order": "支払額 (注文ごと)",
+      "receiving": "受信中",
+      "est_receiving_per_order": "推定受取額 (注文ごと)",
+      "est_receiving_all_orders": "推定受取額 (すべての注文)",
+      "expires_after": "有効期限",
+      "slippage_all_orders": "スリッページ (すべての注文)",
+      "est_network_fee_per_order": "推定ネットワーク手数料 (注文ごと)",
+      "repeat_info_title": "繰り返し注文",
+      "repeat_info_body": "注文のタイミングとサイズをランダム化して、スワップが予測可能なパターンで実行されないようにします。",
+      "max_is": "最大は{{max}}です",
+      "price_range": {
+        "label": "価格レンジ",
+        "not_set": "未設定",
+        "token": "トークン",
+        "price": "価格",
+        "exchange_rate": "為替レート",
+        "min_token_price": "{{symbol}}の最低価格",
+        "max_token_price": "{{symbol}}の最高価格",
+        "min_placeholder": "市場価格",
+        "max_placeholder": "市場価格",
+        "clear": "消去",
+        "token_price": "1 {{symbol}} = {{price}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
+      "unit": {
+        "minute": "分",
+        "hour": "時間",
+        "day": "日",
+        "week": "週",
+        "month": "か月"
+      },
+      "unit_plural": {
+        "minute": "分",
+        "hour": "時間",
+        "day": "日",
+        "week": "週間",
+        "month": "か月"
+      },
+      "unit_option": {
+        "minute": "分",
+        "hour": "時間",
+        "day": "日",
+        "week": "週",
+        "month": "月"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} × {{count}} orders",
+      "spend_summary": "{{amount}} {{symbol}}を{{everyValue}} {{unit}}ごとに{{repeatCount}}回にわたり支出します",
+      "percent_filled": "{{percent}}%約定",
+      "completed": "完了",
+      "you_sent": "送金額",
+      "you_receive": "受け取る",
+      "filled_progress": "{{percent}}%",
+      "interval": "Interval",
+      "size_per_order": "Size per order",
+      "total_received": "受取額合計",
+      "average_execution_price": "Avg. execution price",
+      "start_date": "Start date",
+      "end_date": "終了日時",
+      "history": "履歴",
+      "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
+      "not_enough_gas": "ガスが不足しています",
+      "out_of_price_range": "Out of price range",
+      "failed": "失敗",
+      "filled": "約定済",
+      "order_not_found": "注文が見つかりません",
+      "cancel_order": "注文取消",
+      "duplicate_order": "Duplicate order",
+      "cancel_confirmation_body": "Do you really want to cancel your order?"
+    },
     "continue": "続行",
     "confirm_bridge": "ブリッジ",
     "confirm_swap": "スワップ",
@@ -8522,6 +9031,8 @@
     "robinhood_banner_subtitle": "人気のトークンをご覧ください",
     "no_tokens_found": "トークンが見つかりませんでした",
     "no_tokens_found_description": "この名前のトークンが見つかりませんでした。別の検索をお試しください。",
+    "no_watchlist_tokens_found": "No assets in watchlist",
+    "no_watchlist_tokens_found_description": "Tap the star icon on any asset to add it to your watchlist.",
     "select_network": "ネットワークを選択",
     "all_networks": "すべてのネットワーク",
     "num_networks": "{{numNetworks}}個のネットワーク",
@@ -8649,6 +9160,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "完了"
     },
+    "off_hours_trading": {
+      "title": "時間外取引",
+      "description": "市場が取引時間外です: 価格は発行者により計算されたもので、市場のライブデータではありません。次の取引時間に市場が再開した際の価格は異なる可能性があります。"
+    },
     "post_trade_modal": {
       "swap_in_progress": "スワップ中",
       "swap_success": "スワップ完了",
@@ -8681,6 +9196,10 @@
     "insufficient_native_reserve_cta": "最大許容額を使用する",
     "insufficient_native_reserve_message": "このネットワークでは、アカウントの残高を{{minimumReserve}} {{ticker}}以上に維持する必要があります。使用可能な金額は最大{{maxSwappable}} {{ticker}}です。",
     "insufficient_native_reserve_title": "{{ticker}}の最低準備残高が必要です",
+    "dest_asset_require_activate_warning_cta": "{{token}}を有効化",
+    "dest_asset_require_activate_warning_message": "このスワップは失敗する可能性があります。{{network}}では、ウォレット内でトークンが有効化されるまで、アカウントが{{token}}を受け取れません。",
+    "dest_asset_require_activate_warning_message_different_account": "このスワップは失敗する可能性があります。{{network}}では、{{account}}に切り替えてトークンを有効化するまで、アカウントが{{token}}を受け取れません。",
+    "dest_asset_require_activate_warning_title": "まず{{network}}で{{token}}を有効化してください",
     "token_warning_suspicious_banner": "{{token}}は不審なトークンです。",
     "token_warning_malicious_banner": "{{token}}は悪意のあるトークンです。このトークンをやり取りする際は注意してください。",
     "token_warning_modal_suspicious_title": "不審なトークン",
@@ -8706,7 +9225,7 @@
     "status": "ステータス",
     "date": "日付",
     "network": "ネットワーク",
-    "total_gas_fee": "ガス代合計",
+    "total_gas_fee": "ネットワーク手数料合計",
     "estimated_completion": "予想完了日時",
     "bridge_step_action_bridge_complete": "{{destChainName}}で{{destSymbol}}を受け取りました",
     "bridge_step_action_bridge_pending": "{{destChainName}}で{{destSymbol}}を受取中",
@@ -8891,7 +9410,9 @@
       "set_up": "設定",
       "secret_recovery_phrase": "シークレットリカバリーフレーズ",
       "back_up": "バックアップ",
-      "remove_account": "アカウントを削除"
+      "remove_account": "アカウントを削除",
+      "hide_account": "アカウントを非表示",
+      "unhide_account": "アカウントを表示"
     },
     "address_list": {
       "addresses": "アドレス",
@@ -8985,6 +9506,12 @@
       "search_placeholder": "ネットワークを検索",
       "no_networks_found": "ネットワークが見つかりません",
       "no_networks_available": "使用可能なネットワークがありません"
+    },
+    "manage_accounts": {
+      "title": "アカウントの管理",
+      "locked": "ロックされています",
+      "remove": "削除",
+      "remove_wallet": "ウォレットを削除"
     }
   },
   "deep_link_modal": {
@@ -9106,6 +9633,29 @@
       "learn_more": "詳細",
       "got_it": "了解"
     },
+    "uk_migration_bottom_sheet": {
+      "title": "MetaMask Cardの更新について",
+      "description": "新しいカード発行会社に移行しました。カードを継続してご利用いただけるよう、{{deadline}}までに以下の手順を完了してください。",
+      "description_no_deadline": "新しいカード発行会社に移行しました。カードを継続してご利用いただけるよう、以下の手順を完了してください。",
+      "steps": {
+        "reverify_identity": "本人確認を再度行う",
+        "get_new_card_number": "新しいカード番号を取得する",
+        "convert_funds_usdc_base": "資金をBaseでUSDCに交換する"
+      },
+      "get_started": "開始",
+      "remind_me_later": "後で通知する"
+    },
+    "uk_migration_soft": {
+      "title": "MetaMask Cardの更新について",
+      "description": "継続してご利用いただけるよう、{{deadline}}までに設定を行ってください。",
+      "description_no_deadline": "継続してご利用いただけるよう、カードの設定を行ってください。",
+      "confirm_button_label": "カードを設定"
+    },
+    "uk_migration_required": {
+      "title": "継続利用のために更新が必要です",
+      "description": "カードを継続してご利用いただけるよう、MetaMask Cardの更新を完了してください。",
+      "confirm_button_label": "今すぐ更新"
+    },
     "daimo_pay_modal": {
       "load_error": "支払いページを読み込めませんでした。もう一度お試しください。",
       "timeout_error": "支払いの認証がタイムアウトしました。トランザクションのステータスを確認してください。",
@@ -9142,6 +9692,7 @@
         "clickwrap_prefix": "「次へ」を押すことで、Immersveの次の規約に同意したものとみなされます: ",
         "clickwrap_and": "と",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": "。設定が完了するまで、カードが一時的に利用できなくなります。",
         "legal_docs_error": "法的文書を読み込めません。"
       },
       "confirm_email": {
@@ -9464,6 +10015,12 @@
       }
     },
     "transactions": {
+      "title": "トランザクション",
+      "empty": "まだトランザクションはありません",
+      "load_error": "トランザクションを読み込めません",
+      "load_error_more": "これ以上読み込めませんでした",
+      "retry": "もう一度お試しください",
+      "end_of_list": "トランザクションは以上です",
       "pending": "保留中",
       "completed": "完了",
       "reversed": "取り消し済み",
@@ -9488,7 +10045,21 @@
         "misc": "その他"
       },
       "view_on_explorer": "ブロックエクスプローラーで表示",
-      "report_cta": "トランザクションを報告"
+      "report_cta": "問題を報告する",
+      "report_title": "加盟店に連絡を取りましたか？",
+      "report_body_merchant": "トランザクションに関する問題のほとんどが、加盟店に直接連絡を取ることでより早期に解決されています。",
+      "report_body_continue": "すでに連絡を取って解決しなかったのであれば、当社がお手伝いいたします。",
+      "report_file": "問題を報告する",
+      "report_open_error": "メールアプリを開けませんでした",
+      "report_link_error": "報告フォームを開けませんでした",
+      "report_email_subject": "カードトランザクションに関する報告 — {{transactionId}}",
+      "report_email_body": "トランザクションID: {{transactionId}}",
+      "report_back": "キャンセル",
+      "you_withdrew": "引き出し額",
+      "you_deposited": "入金額",
+      "you_received": "受取額",
+      "manage_entry_title": "トランザクション履歴",
+      "manage_entry_description": "カードでの購入および利用状況"
     },
     "card_spending_limit": {
       "title_change_token": "トークンとネットワークの変更",
@@ -9642,8 +10213,7 @@
         "timeout_error": "タイムアウトしました。接続を確認して再試行してください。",
         "server_error": "サーバーエラーが発生しました。後ほど再試行してください。",
         "configuration_error": "現在サービスをご利用いただけません。後ほど再試行してください。",
-        "forbidden_error": "この操作はお客様のアカウントでは利用できません。",
-        "money_account_linked_to_different_card": "このウォレットはすでに別のMetaMask Cardにリンクされています。このカードとリンクするには、現在のカードとのリンクを解除してください。"
+        "forbidden_error": "この操作はお客様のアカウントでは利用できません。"
       }
     },
     "card_forgot_password": {
@@ -9724,12 +10294,12 @@
     },
     "notifications_nudge": {
       "title": "お見逃しなく",
-      "description": "キャンペーン情報を逃さないように通知を有効にします。",
+      "description": "キャンペーン情報を逃さないように通知をオンにします。",
       "turn_on_button": "オンにする",
-      "loading": "通知を有効にしています...",
+      "loading": "通知をオンにしています...",
       "loading_description": "これには少し時間がかかる可能性があります。",
-      "enable_error": "通知を有効にできませんでした",
-      "success": "通知が有効になりました"
+      "enable_error": "通知をオンにできませんでした",
+      "success": "通知がオンになりました"
     },
     "version_guard": {
       "title": "アップデートが必要です",
@@ -9799,7 +10369,7 @@
       "description": "MetaMaskメタルカードは対象者限定であり、一部の地域ではご利用いただけません。対象外の場合は、代わりに限定プレミアムグッズ特典をお受け取りいただけます。",
       "contact_info": "連絡先情報を共有すると、Telegramで@MidwitMilhouseから、または christian.montoya@consensys.netから2週間以内にご連絡いたします。",
       "email_label": "メールアドレス",
-      "email_validation_error": "有効なメールアドレスを入力してください",
+      "email_validation_error": "Enter a valid email address",
       "telegram_label": "Telegramのハンドルネーム",
       "telegram_placeholder": "オプション"
     },
@@ -10138,10 +10708,12 @@
       "geo_locked_cta": "資格を確認",
       "geo_loading": "地域を確認中…",
       "remind_me_success_toast": "このキャンペーンが始まる際にお知らせします。",
-      "remind_me_save_error": "リマインダーを保存できませんでした。もう一度お試しください。"
+      "remind_me_save_error": "リマインダーを保存できませんでした。もう一度お試しください。",
+      "view_details": "詳細を表示",
+      "view_details_accessibility": "{{campaignName}}の詳細を表示"
     },
     "campaign_mechanics": {
-      "title": "仕組み"
+      "title": "ルールと参加資格"
     },
     "campaign_details": {
       "start_date": "開始: {{date}}",
@@ -10158,6 +10730,12 @@
       "swap_ondo_assets": "Ondo資産のスワップ",
       "open_position": "今すぐ取引",
       "how_it_works": "報酬獲得の仕組み",
+      "error_title": "このキャンペーンを読み込めません",
+      "error_description": "このキャンペーンを読み込めませんでした。もう一度お試しください。",
+      "stats_error_title": "統計を読み込めません",
+      "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
+      "retry": "再試行",
+      "last_checked_at": "前回の確認日時",
       "ondo": {
         "entries_closed_title": "エントリーは終了しました",
         "entries_closed_description": "オプトイン期間が終了しました。今後のキャンペーンの情報がないかまたご確認ください。"
@@ -10446,8 +11024,8 @@
       "you_received": "受取額",
       "token_received": "トークンを受け取りました",
       "money_account": "Money Account",
-      "perps_account": "パーペチュアルアカウント1",
-      "predictions_account": "予測市場アカウント1",
+      "perps_account": "アカウント1のパーペチュアル取引",
+      "predictions_account": "アカウント1の予測",
       "steps_completed": "手順（{{count}}件完了）",
       "summary": "サマリー"
     },
@@ -10485,7 +11063,7 @@
     "bandwidth_fee": "帯域幅",
     "energy_fee": "エネルギー",
     "bridge_fee": "ブリッジ手数料",
-    "gas_token_fee": "ガス代",
+    "gas_token_fee": "ネットワーク手数料",
     "transaction_fee": "トランザクション手数料",
     "unknown_token": "不明",
     "total_amount": "合計額",
@@ -10521,13 +11099,13 @@
       "description": "アプリに戻って続行します。"
     },
     "show_cli_link_success": {
-      "title": "Agent wallet successfully linked",
+      "title": "Agent Walletがリンクされました",
       "description": "CLIに戻って続行します。"
     },
     "push_nudge": {
       "title": "二度とトランザクションを見逃さないために",
       "description": "リアルタイムのアラートを受け取り、CLIセッションからトランザクションの確認と承認を行います。",
-      "turn_on_button": "通知を有効にする",
+      "turn_on_button": "通知をオンにする",
       "preview_title": "トランザクション要求",
       "preview_message": "エージェントが新しい上限の承認を求めています。",
       "preview_timestamp": "現在"
@@ -10535,8 +11113,8 @@
     "show_otp": {
       "title": "このコードを入力してください",
       "description": "{{dappName}}に{{otp}}と入力して接続を完了します。このコードは{{seconds}}秒で期限切れとなります。",
-      "modal_title": "Link MetaMask Agent wallet",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
+      "modal_title": "MetaMask Agent Walletをリンク",
+      "modal_description": "MetaMask MobileをMetaMask Agent Walletとペアリングします。",
       "code_label": "ターミナルにコードを入力してください",
       "expires_in": "{{time}}で期限切れとなります",
       "expired": "コードが期限切れです",
@@ -10625,7 +11203,7 @@
     "view_all": "すべて表示",
     "view_more": "さらに表示",
     "view_x_more": "他{{count}}件を表示",
-    "enable_basic_functionality": "基本機能を有効にする",
+    "enable_basic_functionality": "基本機能をオンにする",
     "basic_functionality_disabled_title": "閲覧を利用できません",
     "basic_functionality_disabled_description": "基本機能が無効になっていると、必要なメタデータを取得できません。",
     "empty_error_trending_state": {
@@ -10649,6 +11227,7 @@
       "all": "すべて",
       "crypto": "仮想通貨",
       "perps": "パーペチュアル",
+      "earn": "獲得",
       "stocks": "株式",
       "predictions": "予測",
       "sites": "サイト"
@@ -10812,6 +11391,7 @@
       "import_nfts": "NFTをインポート",
       "import_nfts_description": "コレクティブルを簡単に追加できます",
       "view_more": "さらに表示",
+      "earn": "獲得",
       "more": {
         "title": "さらに表示",
         "import_token": "トークンをインポート",
@@ -10833,7 +11413,6 @@
   "whats_happening": {
     "title": "現在起きていること",
     "ai": "AI",
-    "ai_generated": "AIによって生成されています",
     "outdated": "終了しました",
     "impact": {
       "bullish": "強気",
@@ -10879,86 +11458,192 @@
     "deactivate_error": "このトラストラインの削除中に問題が発生しました。もう一度お試しください。",
     "deactivate_error_non_zero_balance_stellar": "このウォレットには、まだ{{balance}} {{symbol}}が残っています。Stellarでこの資産を無効化する前に、全額を送金するかスワップする必要があります。"
   },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "manage": "サブスクリプションの管理",
+    "manage_membership": "Manage membership",
+    "also_included": {
+      "title": "Also included",
+      "transaction_protection": {
+        "title": "Transaction protection",
+        "badge": "Extension",
+        "subtitle": "Up to $10,000 in on-chain protection"
+      },
+      "priority_support": {
+        "title": "Priority support",
+        "subtitle": "24時間いつでも当社スタッフがサポート"
+      },
+      "disclaimer": "Allowances reset monthly. APY is variable and not guaranteed. Benefits and card availability vary by region."
+    },
+    "membership_brand": "MetaMask",
+    "membership_label": "プロ",
+    "lifetime_earnings": "累積報酬額",
+    "money_balance": "マネー残高",
+    "musd_back": "3% mUSD back",
+    "member_pricing": {
+      "title": "メンバー向けの取引手数料を適用",
+      "allowance_currency": "${{amount}}",
+      "allowance_count_one": "{{count}}件の取引",
+      "allowance_count_other": "{{count}}件の取引",
+      "swaps": {
+        "label": "スワップ",
+        "footnote": "許容額は毎月リセットされます。$500を超えると手数料が適用されます。"
+      },
+      "perps": {
+        "label": "パーペチュアル",
+        "footnote": "許容額は毎月リセットされます。$1,000を超えると手数料が適用されます。"
+      },
+      "predict": {
+        "label": "予測",
+        "footnote": "毎月1回の予測取引が可能です。取引がなかった場合、翌月に持ち越されることはありません。"
+      }
+    },
+    "physical_card": {
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
+    },
+    "earned": {
+      "total_label": "Proに参加してからの収益額",
+      "interest_title": "利率",
+      "interest_subtitle": "Money残高に対するAPYが最大7%",
+      "card_cashback_title": "カード利用時のキャッシュバック",
+      "card_cashback_subtitle": "{{amount}}のご利用に対して3%分のmUSDを還元",
+      "paid_for_itself_title": "Proプランの元が取れました",
+      "paid_for_itself_description": "参加以来、{{fee}}の会費の{{multiplier}}倍を還元により獲得しました。",
+      "grow_title": "残高を増やしましょう",
+      "grow_description": "Money Accountの残高$1,000ごとに、最大7%のAPYで年間約$70の収益が得られます。",
+      "add_money": "お金を追加"
+    },
+    "membership": {
+      "title": "メンバーシップ",
+      "plan": "メンバーシップ",
+      "earned_this_month": "今月の収益",
+      "payment_details": "支払いの詳細",
+      "total": "合計",
+      "paying_with": "支払方法",
+      "renews_on": "更新日",
+      "manage": "管理",
+      "invoices": "Invoices",
+      "contact_support": "サポートへのお問い合わせ",
+      "cancel_membership": "メンバーシップの解約",
+      "earned_info": {
+        "title": "今月の収益",
+        "description": "ProメンバーとしてAPYおよびmUSDの還元で得られた金額。"
+      },
+      "saved_info": {
+        "title": "今月の節約額",
+        "description": "Proメンバーとして、今月スワップ、パーペチュアル、予測のMetaMask手数料のほか、ATM手数料およびFX手数料で節約できた金額。"
+      }
+    },
+    "cancel_membership": {
+      "title": "解約理由を教えていただけませんか？",
+      "subtitle": "アンケートへの回答は任意です。",
+      "earned_as_member": "メンバーとしての収益",
+      "membership_cost": "メンバーシップの費用",
+      "reason_issue": "メンバーシップに関して問題を抱えている",
+      "reason_no_value": "十分な価値が得られない",
+      "reason_no_benefits": "特典を必要としていない",
+      "reason_support": "カスタマーサポートに対して不満がある",
+      "reason_other": "その他",
+      "keep_membership": "メンバーシップを維持",
+      "cancel": "キャンセル",
+      "success": {
+        "title": "プランが解約されました",
+        "description_prefix": "Proプランの解約が完了しました。更新は停止されますが、",
+        "description_suffix": "まではすべての特典をご利用いただけます。",
+        "done": "完了"
+      }
+    }
+  },
   "pro_subscription": {
-    "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
-    "join_pro": "Join Pro",
+    "title": "Proプランで収益をさらに増やそう",
+    "description": "月額$4.99 (年間メンバーシップは$49.99)",
+    "join_pro": "Proに参加",
     "benefits": {
       "apy": {
-        "title": "Up to 7% APY on Money account",
-        "subtitle": "Paid in mUSD, no lockups"
+        "title": "Money AccountのAPYが最大7%",
+        "subtitle": "mUSDで支払い、ロックアップなし"
       },
       "cashback": {
-        "title": "3% mUSD back on card purchases",
-        "subtitle": "Up to $1,000/mo, worldwide"
+        "title": "カードでの購入に対して3%分のmUSDを還元",
+        "subtitle": "1年あたり最大$12,000、全世界対象",
+        "subtitle_monthly": "1月あたり最大$1,000、全世界対象"
       },
       "member_pricing": {
-        "title": "Member pricing on trades",
-        "subtitle": "Including swaps, perps, and predictions"
+        "title": "メンバー向けの取引手数料を適用",
+        "subtitle": "スワップ、パーペチュアル、予測も対象"
       },
       "atm_fees": {
-        "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included"
+        "title": "追加のATM手数料やFX手数料は不要",
+        "subtitle": "実物カード込み",
+        "subtitle_monthly": "実物カードは別途ご利用いただけます"
       },
       "protection": {
-        "title": "Up to $10,000 in protection",
-        "subtitle": "On eligible extension transactions"
+        "title": "最大$10,000まで保護",
+        "subtitle": "拡張機能上での対象取引を守ります"
       },
       "support": {
-        "title": "Real human support, around the clock",
-        "subtitle": "Response in minutes"
+        "title": "24時間いつでも当社スタッフがサポート",
+        "subtitle": "数分以内に対応いたします"
       }
     },
     "plans": {
       "annual": {
         "label": "1年間",
         "price": "$49.99",
-        "sub_price": "($4.15/mo)",
-        "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "sub_price": "(月額$4.15)",
+        "badge": "2か月無料",
+        "cta": "月額$4.15でProに参加"
       },
       "monthly": {
         "label": "月次",
-        "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
+        "price": "月額$4.99",
+        "cta": "月額$4.99でProに参加"
       }
     },
     "benefits_description": {
       "apy": {
-        "description": "Money account gives you up to ~4% APY on your balance. Members earn up to ~7% APY—accrued daily, paid in mUSD. APY is variable and not guaranteed."
+        "description": "Proメンバーの場合、Money Accountで最大約7%のAPYが得られ、mUSDで支払われます。メンバー以外の方は、APYが最大約4%となります。",
+        "description2": "APYは変動制で、保証されたものではありません。"
       },
       "cashback": {
-        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning the member rate immediately.",
+        "description": "カードで支払えば、mUSDで最大3%の還元を受けられます。還元額はMoney残高に直接支払われ、最大約7%のAPYで収益化を開始することができます。",
         "points": [
-          "Monthly members: 3% back on up to $1,000 in purchases every month",
-          "Annual members: 3% back on up to $12,000 in purchases every year"
+          "月間メンバー: 毎月、購入額が$1,000に達するまで3%を還元",
+          "年間メンバー: 毎年、購入額が$12,000に達するまで3%を還元"
         ]
       },
       "member_pricing": {
-        "description": "Members pay no MetaMask fees on:",
+        "description": "以下のMetaMask手数料が無料になります。",
         "points": [
-          "$500/mo in swaps",
-          "$1,000/mo in perps",
-          "Up to 1 prediction/mo"
+          "スワップは月額$500まで",
+          "パーペチュアルは月額$1,000まで",
+          "予測は1か月あたり1回まで"
         ]
       },
       "atm_fees": {
-        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+        "description": "年間メンバーのMetaMask Card発送手数料。世界中のMastercard加盟店で利用でき、その数は1億5000万店舗を超えます。MetaMaskがATM手数料や為替手数料を請求することはありません。",
+        "description_monthly": "月間メンバーの場合は、プランとは別にMetaMask Cardをご利用いただけます。世界中のMastercard加盟店で利用でき、その数は1億5000万店舗を超えます。MetaMaskがATM手数料や為替手数料を請求することはありません。"
       },
       "protection": {
-        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",
-        "sub_description": "Transaction protection offers asset coverage for extension across a range of supported interactions on popular blockchain networks. Members receive clear in-app alerts when a transaction is covered.",
+        "description": "MetaMask Extension上での取引が1か月あたり100回まで、最大$10,000保護されます。取引が対象となる場合、メンバーにはアプリ内で明確なアラートが表示されます。",
+        "sub_description": "保護の対象となるもの",
+        "points": [
+          "DeFiスワップ",
+          "NFTのミント",
+          "エアドロップの受け取り"
+        ],
         "learn_more": "詳細",
-        "notes": "Note: Transaction protection does not protect against losses that occur before or after a transaction."
+        "notes": "注意: 取引保護は、取引の前後で発生した損失を補償するものではありません。"
       },
       "support": {
-        "description": "When something goes wrong, a real person responds in minutes—anytime, any day."
+        "description": "専任スタッフによるカスタマーサポートを、曜日を問わずいつでも優先的に受けられます。"
       }
     },
     "success": {
-      "title": "You just leveled up, {{name}}",
-      "description": "Time to start earning.",
-      "cta": "Continue"
+      "title": "{{name}}さん、レベルアップが完了しました",
+      "description": "さっそく収益化を始めましょう。",
+      "cta": "続行"
     }
   }
 }

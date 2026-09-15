@@ -56,11 +56,28 @@ let mockPerpsEnabled = true;
 let mockPerpsGTMModalEnabled = false;
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
+  selectPerpsMobileChaseEnabledFlag: jest.fn(() => false),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
   selectPerpsProModeEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus',
+  () => ({
+    useFeatureNotificationsStatus: () => ({ isPushEnabled: true }),
+  }),
+);
+
+jest.mock('../../UI/Perps/hooks/usePerpsChaseOrders', () => ({
+  usePerpsChaseOrders: () => ({
+    chaseOrders: [],
+    hasLiveChaseOrders: false,
+    isChaseOrderDiscoveryResolved: true,
+    suspendChaseOrders: jest.fn().mockResolvedValue([]),
+  }),
 }));
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
@@ -1968,7 +1985,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('moves the account name above the balance in treatment', () => {
-    mockHeaderNavBarVariantName = 'treatmentA';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = render(Wallet);
 
@@ -1978,7 +1995,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('renders the account name when the balance breakdown treatment is also active', () => {
-    mockHeaderNavBarVariantName = 'treatmentA';
+    mockHeaderNavBarVariantName = 'searchFocused';
     mockBalanceBreakdownVariantName = 'icons';
 
     const { getByTestId } = render(Wallet);
@@ -1989,7 +2006,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('renders only the avatar and rewards entry points in treatment', () => {
-    mockHeaderNavBarVariantName = 'treatmentA';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId, queryByTestId } = render(Wallet);
 
@@ -2029,7 +2046,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   };
 
   it('opens the account hub from the treatment avatar', () => {
-    mockHeaderNavBarVariantName = 'treatmentA';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = renderWithNavigationProp();
     fireEvent.press(
@@ -2040,12 +2057,23 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('opens rewards from the treatment gift icon', () => {
-    mockHeaderNavBarVariantName = 'treatmentA';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = renderWithNavigationProp();
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
+  it('opens the account hub from the account name above the balance', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 });
 

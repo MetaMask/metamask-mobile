@@ -88,7 +88,7 @@ export type CardScreensStackParamList = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardOnboardingStackParamList = {
-  CardOnboardingSignUp: undefined;
+  CardOnboardingSignUp: { fromMigration?: boolean } | undefined;
   CardOnboardingConfirmEmail:
     | {
         email: string;

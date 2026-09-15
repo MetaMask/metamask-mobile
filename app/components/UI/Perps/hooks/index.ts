@@ -24,6 +24,7 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsVisibleCandleCount } from './usePerpsVisibleCandleCount';
 export { usePerpsProOrderBookExpanded } from './usePerpsProOrderBookExpanded';
 export { usePerpsProOrderBookPosition } from './usePerpsProOrderBookPosition';
 export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
@@ -46,6 +47,7 @@ export { usePerpsPrices } from './usePerpsPrices';
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
+export { usePerpsPositionModifyPreview } from './usePerpsPositionModifyPreview';
 export {
   usePerpsMarketData,
   type UsePerpsMarketDataParams,
@@ -96,6 +98,9 @@ export {
   default as usePerpsToasts,
   getPerpsToastLabels,
 } from './usePerpsToasts';
+
+// A/B tests
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

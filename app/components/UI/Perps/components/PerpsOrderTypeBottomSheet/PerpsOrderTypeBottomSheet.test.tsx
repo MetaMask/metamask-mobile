@@ -75,6 +75,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.limit.title': 'Limit Order',
       'perps.order.type.limit.description':
         'Execute at your specified price or better',
+      'perps.order.type.chase.title': 'Chase',
+      'perps.order.type.chase.description':
+        'Auto adjust limit order to the best price',
       'perps.order.type.scale.title': 'Scale',
       'perps.order.type.scale.description':
         'Multiple limit orders spread across a price range',
@@ -82,16 +85,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
       'perps.order.type.stop_limit.title': 'Stop limit',
-      'perps.order.type.stop_limit.description': 'Limit fills at trigger price',
+      'perps.order.type.stop_limit.description':
+        'Place a limit order if trigger price hits',
       'perps.order.type.stop_market.title': 'Stop market',
       'perps.order.type.stop_market.description':
-        'Market fills at trigger price',
+        'Place a market order if trigger price hits',
       'perps.order.type.take_profit_limit.title': 'Take limit',
       'perps.order.type.take_profit_limit.description':
-        'Limit take-profit at trigger price',
+        'Place a limit order if trigger price is reached',
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
-        'Market take-profit at trigger price',
+        'Place a market order if trigger price is reached',
       'perps.order.type.twap.title': 'TWAP',
       'perps.order.type.twap.description':
         'Split orders to execute at regular time interval',
@@ -141,6 +145,11 @@ describe('PerpsOrderTypeBottomSheet', () => {
     ...proOrderTypes,
     'scale',
   ];
+  const proOrderTypesWithStrategies: readonly OrderType[] = [
+    ...proOrderTypes,
+    'scale',
+    'chase',
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -177,6 +186,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
+    it('keeps the exact shared Chase description', () => {
+      expect(strings('perps.order.type.chase.description')).toBe(
+        'Auto adjust limit order to the best price',
+      );
+    });
+
     it('renders triggered order type descriptions when enabled', () => {
       render(
         <PerpsOrderTypeBottomSheet
@@ -189,16 +204,16 @@ describe('PerpsOrderTypeBottomSheet', () => {
       );
 
       expect(
-        screen.getByText('Limit fills at trigger price'),
+        screen.getByText('Place a limit order if trigger price hits'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Market fills at trigger price'),
+        screen.getByText('Place a market order if trigger price hits'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Limit take-profit at trigger price'),
+        screen.getByText('Place a limit order if trigger price is reached'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Market take-profit at trigger price'),
+        screen.getByText('Place a market order if trigger price is reached'),
       ).toBeOnTheScreen();
     });
 
@@ -571,6 +586,26 @@ describe('PerpsOrderTypeBottomSheet', () => {
       },
     );
 
+    it.each([AppThemeKey.dark, AppThemeKey.light])(
+      'renders the Chase strategy icon in the %s theme',
+      (appTheme) => {
+        render(
+          <PerpsOrderTypeBottomSheet
+            {...defaultProps}
+            availableOrderTypes={[...proOrderTypes, 'chase']}
+            currentOrderType="chase"
+          />,
+          appTheme,
+        );
+
+        expect(
+          screen.getByLabelText(
+            `${PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION}-icon-${appTheme}`,
+          ),
+        ).toBeOnTheScreen();
+      },
+    );
+
     it('forwards the Pro title without a selected-row end accessory', () => {
       render(
         <PerpsOrderTypeBottomSheet
@@ -687,7 +722,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
             currentOrderType="market"
             onSelect={onSelect}
             onClose={onClose}
-            availableOrderTypes={proOrderTypes}
+            availableOrderTypes={proOrderTypesWithStrategies}
           />,
         );
         fireEvent.press(
@@ -708,7 +743,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           currentOrderType="stop_limit"
-          availableOrderTypes={proOrderTypes}
+          availableOrderTypes={proOrderTypesWithStrategies}
         />,
       );
 
@@ -794,6 +829,18 @@ describe('PerpsOrderTypeBottomSheet', () => {
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_MARKET,
       },
+      {
+        type: 'scale',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+        eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.SCALE,
+      },
+      {
+        type: 'chase',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+        eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+      },
     ] as const;
 
     it.each(analyticsCases)(
@@ -803,7 +850,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
           <PerpsOrderTypeBottomSheet
             {...defaultProps}
             currentOrderType={undefined}
-            availableOrderTypes={proOrderTypes}
+            availableOrderTypes={proOrderTypesWithStrategies}
           />,
         );
         fireEvent.press(screen.getByTestId(tabTestID));
@@ -841,6 +888,30 @@ describe('PerpsOrderTypeBottomSheet', () => {
           [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.TWAP,
         }),
       );
+    });
+
+    it('selects Chase and closes the sheet', () => {
+      const onSelect = jest.fn();
+      const onClose = jest.fn();
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          currentOrderType={undefined}
+          availableOrderTypes={proOrderTypesWithStrategies}
+          onSelect={onSelect}
+          onClose={onClose}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION),
+      );
+
+      expect(onSelect).toHaveBeenCalledWith('chase');
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 

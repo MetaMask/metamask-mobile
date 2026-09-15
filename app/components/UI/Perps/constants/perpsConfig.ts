@@ -9,12 +9,17 @@
  * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
-import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
+import {
+  CHASE_ORDER_STATUS,
+  HYPERLIQUID_TWAP_LIMITS,
+  type ChaseOrder,
+} from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
+import { DAY } from '../../../../constants/time';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
@@ -104,10 +109,19 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
+const SECONDS_PER_MINUTE = 60;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
+const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
+const TWAP_DISCOVERY_INTERVAL_MS = 30_000;
+const TWAP_HISTORY_PAGE_SIZE = 20;
+const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+// Hyperliquid submits one TWAP suborder every 30 seconds, so the suborder count
+// is the runtime divided by this interval:
+// https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
+const TWAP_SUBORDER_INTERVAL_SECONDS = 30;
 
 /**
  * Mobile-only TWAP input and copy configuration derived from the controller's
@@ -118,6 +132,8 @@ const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
+  SecondsPerMinute: SECONDS_PER_MINUTE,
+  SuborderIntervalSeconds: TWAP_SUBORDER_INTERVAL_SECONDS,
   MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
   MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
   MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
@@ -139,7 +155,38 @@ export const PERPS_TWAP_UI_CONFIG = {
   RandomizeI18nValues: {
     randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
   },
+  /** REST fill reconciliation while the venue schedule stream is active. */
+  LiveUpdateIntervalMs: TWAP_LIVE_UPDATE_INTERVAL_MS,
+  /** Low-cadence discovery while rollout is off and the TWAP tab is hidden. */
+  DiscoveryIntervalMs: TWAP_DISCOVERY_INTERVAL_MS,
+  /** Maximum schedule cards mounted on one History page. */
+  HistoryPageSize: TWAP_HISTORY_PAGE_SIZE,
+  /** Maximum fill rows mounted on one Fill History page. */
+  FillHistoryPageSize: TWAP_FILL_HISTORY_PAGE_SIZE,
 } as const;
+
+export const CHASE_ORDER_UI_CONFIG = {
+  RefreshIntervalMs: 1000,
+  DiscoveryRetryMaxAttempts: 4,
+  DiscoveryRetryMaxDelayMs: 8000,
+  BackgroundSuspensionTimeoutMs: 3000,
+  TerminalHistoryLimit: 50,
+  AggregatedOmissionGraceReads: 1,
+} as const;
+
+export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
+  new Set([
+    CHASE_ORDER_STATUS.Backgrounded,
+    CHASE_ORDER_STATUS.Canceled,
+    CHASE_ORDER_STATUS.DurationReached,
+    CHASE_ORDER_STATUS.Failed,
+    CHASE_ORDER_STATUS.Filled,
+    CHASE_ORDER_STATUS.MaxDistanceReached,
+    CHASE_ORDER_STATUS.RepricingLimitReached,
+  ]);
+
+export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
+  new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
 /**
  * Decimal places used when displaying how far a position's current price sits
@@ -162,6 +209,10 @@ export const TP_SL_VIEW_CONFIG = {
   // WebSocket price update throttle delay (milliseconds)
   // Reduces re-renders by batching price updates in the TP/SL screen
   PriceThrottleMs: 1000,
+
+  // WebSocket position update throttle delay (milliseconds)
+  // The screen only reads position existence, so it does not need every tick
+  PositionThrottleMs: 1000,
 
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
@@ -198,9 +249,23 @@ export const LIMIT_PRICE_CONFIG = {
   // at least (1 - 0.95) = 5% of the larger one. We block submission up front
   // instead of letting the order fail at the exchange.
   MaxDeviationFromMarket: 0.95,
+
+  // Warn when a limit/scale price is more than 5% from the near-touch
+  // (best bid long, best ask short). Equal to 5% does not warn.
+  FarFromMarketThreshold: 0.05,
 } as const;
 
+// Local warning-type literal. PERPS_EVENT_VALUE.WARNING_TYPE has no
+// far-from-market member.
+export const FAR_FROM_MARKET_WARNING_INTERACTION =
+  'far_from_market_warning_shown';
+export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
+
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
+
+export const PAGE_WINDOW_MS = 30 * DAY;
+
+export const MAX_LOOKBACK_MS = 365 * DAY;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
@@ -336,16 +401,12 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 /**
  * Provider configuration
  * Controls which perpetual DEX providers are available
- *
- * Note: MYX provider enablement is now controlled via LaunchDarkly feature flag
- * (perpsMyxProviderEnabled) and MM_PERPS_MYX_PROVIDER_ENABLED environment variable.
- * See selectPerpsMYXProviderEnabledFlag selector for details.
  */
 export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
-  /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: false,
+  /** Controller mode that aggregates reads across active providers. */
+  AggregatedProvider: 'aggregated' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */
@@ -355,7 +416,7 @@ export type PerpsNetwork = 'mainnet' | 'testnet';
  * Chain IDs for each perps provider by network.
  * Identifies the provider's native chain (where "Perps balance" lives) so callers
  * can exclude it from pay-with-any-token allowlist or filter tokens.
- * Add entries when integrating new providers (e.g. MYX).
+ * Add entries when integrating new providers.
  */
 export const PERPS_PROVIDER_CHAIN_IDS: Record<
   string,
@@ -365,7 +426,6 @@ export const PERPS_PROVIDER_CHAIN_IDS: Record<
     mainnet: HYPERLIQUID_MAINNET_CHAIN_ID,
     testnet: HYPERLIQUID_TESTNET_CHAIN_ID,
   },
-  // myx: add mainnet/testnet chain IDs when MYX integration provides them
 };
 
 /**

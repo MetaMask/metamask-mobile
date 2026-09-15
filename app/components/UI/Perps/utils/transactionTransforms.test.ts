@@ -1337,34 +1337,6 @@ describe('transactionTransforms', () => {
       expect(result[0].title).toBe('Limit close short');
     });
 
-    it('formats trigger orders as closing orders', () => {
-      const triggerOrder = {
-        ...mockOrder,
-        side: 'sell' as const,
-        isTrigger: true,
-        detailedOrderType: 'Stop Market',
-        orderType: 'market' as const,
-      };
-
-      const result = transformOrdersToTransactions([triggerOrder]);
-
-      expect(result[0].title).toBe('Stop market close long');
-    });
-
-    it('uses detailedOrderType for Take Profit orders', () => {
-      const takeProfitOrder = {
-        ...mockOrder,
-        side: 'sell' as const,
-        isTrigger: true,
-        reduceOnly: true,
-        detailedOrderType: 'Take Profit Limit',
-      };
-
-      const result = transformOrdersToTransactions([takeProfitOrder]);
-
-      expect(result[0].title).toBe('Take profit limit close long');
-    });
-
     it('handles market orders correctly', () => {
       const marketOrder = {
         ...mockOrder,

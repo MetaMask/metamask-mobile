@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { initialState as mockRootState } from '../../../../components/UI/Bridge/_mocks_/initialState';
+import {
+  bridgeTestState,
+  initialState as mockRootState,
+} from '../../../../components/UI/Bridge/_mocks_/initialState';
 import reducer, {
   initialState,
   setSourceAmount,
@@ -26,6 +29,8 @@ import reducer, {
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
   selectIsRwaSwap,
+  selectIsStockMarketClosed,
+  selectIsInOffHoursTrading,
   setBatchSellSourceTokens,
   selectBatchSellSourceTokens,
   setBatchSellSourceTokenAmount,
@@ -666,7 +671,7 @@ describe('bridge slice', () => {
     });
 
     it('should return sourceAsset and destAsset for solana namespace', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
       mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
@@ -696,7 +701,7 @@ describe('bridge slice', () => {
     });
 
     it('should return sourceAsset and destAsset for bip122 namespace', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
       mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
@@ -725,7 +730,7 @@ describe('bridge slice', () => {
     });
 
     it('should return undefined when bip44DefaultPairs is undefined', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         undefined as unknown as any;
 
@@ -735,7 +740,7 @@ describe('bridge slice', () => {
     });
 
     it('should return undefined when namespace does not exist in bip44DefaultPairs', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
       mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
@@ -768,7 +773,7 @@ describe('bridge slice', () => {
           // missing standard property
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -783,7 +788,7 @@ describe('bridge slice', () => {
           standard: {},
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -801,7 +806,7 @@ describe('bridge slice', () => {
           },
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -818,7 +823,7 @@ describe('bridge slice', () => {
           },
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -841,7 +846,7 @@ describe('bridge slice', () => {
     });
 
     it('returns false when bridge is not enabled as source for the chain', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       // Remove chain from chainRanking to disable it (chainRanking presence = enabled)
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking.filter(
@@ -890,7 +895,7 @@ describe('bridge slice', () => {
     });
 
     it('filters out unsupported EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
           ...mockState.engine.backgroundState.RemoteFeatureFlagController
@@ -909,7 +914,7 @@ describe('bridge slice', () => {
     });
 
     it('filters out unsupported non-EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
           ...mockState.engine.backgroundState.RemoteFeatureFlagController
@@ -933,7 +938,7 @@ describe('bridge slice', () => {
     });
 
     it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
           { chainId: 'eip155:1', name: 'Ethereum' },
@@ -977,7 +982,7 @@ describe('bridge slice', () => {
 
   describe('selectBatchSellDestStablecoins', () => {
     it('returns configured stablecoins with local metadata', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       const ethUsdc =
         'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
       const unknownStablecoin =
@@ -1010,7 +1015,7 @@ describe('bridge slice', () => {
     });
 
     it('returns configured stablecoins by chain with local metadata', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       const ethUsdc =
         'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
       const baseUsdc =
@@ -1131,7 +1136,7 @@ describe('bridge slice', () => {
 
   describe('selectBatchSellQuotes', () => {
     it('uses the BridgeController quote request count', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.BridgeController.quoteRequest = [
         { srcTokenAddress: '0x1111111111111111111111111111111111111111' },
         { srcTokenAddress: '0x2222222222222222222222222222222222222222' },
@@ -1152,7 +1157,7 @@ describe('bridge slice', () => {
     });
 
     it('updates controller fields when analytics opt-in changes', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      const mockState = cloneDeep(bridgeTestState) as unknown as RootState;
       mockState.engine.backgroundState.AnalyticsController = {
         ...mockState.engine.backgroundState.AnalyticsController,
         optedIn: false,
@@ -1178,7 +1183,7 @@ describe('bridge slice', () => {
     });
 
     it('does not recompute when unrelated bridge UI state changes', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      const mockState = cloneDeep(bridgeTestState) as unknown as RootState;
 
       selectBridgeQuotes(mockState);
       selectBatchSellQuotes(mockState);
@@ -1221,7 +1226,7 @@ describe('bridge slice', () => {
 
   describe('selectTokenSelectorNetworkFilter', () => {
     it('should return undefined when no filter is set', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState };
 
       const result = selectTokenSelectorNetworkFilter(
@@ -1232,7 +1237,7 @@ describe('bridge slice', () => {
     });
 
     it('should return the set chain ID', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         tokenSelectorNetworkFilter: 'eip155:10',
@@ -1248,7 +1253,7 @@ describe('bridge slice', () => {
 
   describe('selectOrdersNetworkFilter', () => {
     it('returns undefined when no filter is set', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState };
 
       const result = selectOrdersNetworkFilter(
@@ -1259,7 +1264,7 @@ describe('bridge slice', () => {
     });
 
     it('returns the set chain ID', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         ordersNetworkFilter: 'eip155:10',
@@ -1296,7 +1301,7 @@ describe('bridge slice', () => {
 
   describe('selectVisiblePillChainIds', () => {
     it('returns undefined when no pills are set', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState };
 
       const result = selectVisiblePillChainIds(
@@ -1307,7 +1312,7 @@ describe('bridge slice', () => {
     });
 
     it('returns the set chain IDs', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         visiblePillChainIds: ['eip155:1', 'eip155:10'],
@@ -1450,7 +1455,7 @@ describe('bridge slice', () => {
       destToken: BridgeToken | undefined,
       rwaEnabled: boolean,
     ) => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         sourceToken,
@@ -1508,9 +1513,198 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('selectIsStockMarketClosed', () => {
+    // Market: open 09:00–17:00 UTC on 2024-01-01
+    const MARKET_OPEN_MS = new Date('2024-01-01T09:00:00Z').getTime();
+    const MARKET_CLOSE_MS = new Date('2024-01-01T17:00:00Z').getTime();
+    // Off-hours: open 17:30–20:00 UTC on 2024-01-01
+    const OFF_OPEN_MS = new Date('2024-01-01T17:30:00Z').getTime();
+    const OFF_CLOSE_MS = new Date('2024-01-01T20:00:00Z').getTime();
+
+    const stockToken = (withOffhours = false): BridgeToken => ({
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      chainId: '0x1' as Hex,
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date(MARKET_OPEN_MS).toISOString(),
+          nextClose: new Date(MARKET_CLOSE_MS).toISOString(),
+        },
+        ...(withOffhours && {
+          offhours: {
+            nextOpen: new Date(OFF_OPEN_MS).toISOString(),
+            nextClose: new Date(OFF_CLOSE_MS).toISOString(),
+          },
+        }),
+      } as BridgeToken['rwaData'],
+    });
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1' as Hex,
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled = true,
+    ) => {
+      const mockState = cloneDeep(bridgeTestState);
+      (mockState as any).bridge = { ...initialState, sourceToken, destToken };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    it('returns false when neither token is a stock RWA', () => {
+      const state = buildState(nonRwaToken, nonRwaToken);
+      expect(selectIsStockMarketClosed(state, MARKET_OPEN_MS + 3600_000)).toBe(
+        false,
+      );
+    });
+
+    it('returns false when RWA flag is disabled', () => {
+      const state = buildState(stockToken(), nonRwaToken, false);
+      // 15:00 — inside market hours, but flag off → treated as non-RWA → not closed
+      expect(selectIsStockMarketClosed(state, MARKET_OPEN_MS + 3600_000)).toBe(
+        false,
+      );
+    });
+
+    it('returns false when stock token is in regular market hours', () => {
+      const state = buildState(stockToken(), nonRwaToken);
+      const insideMarket = MARKET_OPEN_MS + 3600_000; // 10:00
+      expect(selectIsStockMarketClosed(state, insideMarket)).toBe(false);
+    });
+
+    it('returns true when stock token is outside both regular and off-hours windows', () => {
+      const state = buildState(stockToken(), nonRwaToken);
+      const afterClose = MARKET_CLOSE_MS + 3600_000; // 18:00 — after regular, no off-hours
+      expect(selectIsStockMarketClosed(state, afterClose)).toBe(true);
+    });
+
+    it('returns false when stock token is in off-hours window', () => {
+      const state = buildState(stockToken(true), nonRwaToken);
+      const insideOffHours = OFF_OPEN_MS + 1800_000; // 17:30+30min = 18:00
+      expect(selectIsStockMarketClosed(state, insideOffHours)).toBe(false);
+    });
+
+    it('returns true even when dest has off-hours but source is fully closed', () => {
+      // Source has no offhours and market is closed; dest has offhours and is open
+      const closedStock = stockToken(false);
+      const offHoursStock = stockToken(true);
+      const state = buildState(closedStock, offHoursStock);
+      const insideOffHours = OFF_OPEN_MS + 1800_000;
+      // Source is closed (no offhours) → at least one leg closed → returns true
+      expect(selectIsStockMarketClosed(state, insideOffHours)).toBe(true);
+    });
+  });
+
+  describe('selectIsInOffHoursTrading', () => {
+    const MARKET_OPEN_MS = new Date('2024-01-02T09:00:00Z').getTime();
+    const MARKET_CLOSE_MS = new Date('2024-01-02T17:00:00Z').getTime();
+    const OFF_OPEN_MS = new Date('2024-01-01T17:30:00Z').getTime();
+    const OFF_CLOSE_MS = new Date('2024-01-01T20:00:00Z').getTime();
+
+    const stockTokenWithOffhours = (): BridgeToken => ({
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      chainId: '0x1' as Hex,
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date(MARKET_OPEN_MS).toISOString(),
+          nextClose: new Date(MARKET_CLOSE_MS).toISOString(),
+        },
+        offhours: {
+          nextOpen: new Date(OFF_OPEN_MS).toISOString(),
+          nextClose: new Date(OFF_CLOSE_MS).toISOString(),
+        },
+      } as BridgeToken['rwaData'],
+    });
+
+    const fullyClosedStock = (): BridgeToken => ({
+      address: '0xclosed',
+      symbol: 'CLOSED',
+      decimals: 18,
+      chainId: '0x1' as Hex,
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date(MARKET_OPEN_MS).toISOString(),
+          nextClose: new Date(MARKET_CLOSE_MS).toISOString(),
+        },
+        // no offhours
+      } as BridgeToken['rwaData'],
+    });
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1' as Hex,
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled = true,
+    ) => {
+      const mockState = cloneDeep(bridgeTestState);
+      (mockState as any).bridge = { ...initialState, sourceToken, destToken };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    const insideOffHours = OFF_OPEN_MS + 1800_000; // 18:00
+
+    it('returns false when no token is a stock RWA', () => {
+      const state = buildState(nonRwaToken, nonRwaToken);
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(false);
+    });
+
+    it('returns false when any stock leg is fully closed (off-hours and closed are mutually exclusive)', () => {
+      const state = buildState(fullyClosedStock(), stockTokenWithOffhours());
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(false);
+    });
+
+    it('returns true when source token is in off-hours and no leg is fully closed', () => {
+      const state = buildState(stockTokenWithOffhours(), nonRwaToken);
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(true);
+    });
+
+    it('returns true when dest token is in off-hours and no leg is fully closed', () => {
+      const state = buildState(nonRwaToken, stockTokenWithOffhours());
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(true);
+    });
+
+    it('returns false outside off-hours window', () => {
+      const outsideOffHours = OFF_CLOSE_MS + 3600_000; // after off-hours end, before next market open
+      const state = buildState(stockTokenWithOffhours(), nonRwaToken);
+      expect(selectIsInOffHoursTrading(state, outsideOffHours)).toBe(false);
+    });
+
+    it('returns false when RWA flag is disabled', () => {
+      const state = buildState(stockTokenWithOffhours(), nonRwaToken, false);
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(false);
+    });
+  });
+
   describe('selectIsBridgeEnabledSource - ALLOWED_BRIDGE_CHAIN_IDS filtering', () => {
     it('returns false for a chain in chainRanking but not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       // Add an unsupported chain to chainRanking
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
@@ -1530,7 +1724,7 @@ describe('bridge slice', () => {
 
   describe('selectIsNonEvmSourced', () => {
     const buildState = (sourceToken: BridgeToken | undefined) => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         sourceToken,

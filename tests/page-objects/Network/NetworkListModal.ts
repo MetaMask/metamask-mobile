@@ -8,7 +8,7 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import { type AppiumElement } from '../../framework';
+import { type AppiumElement, getDriver } from '../../framework';
 
 class NetworkListModal {
   get networkScroll(): Promise<AppiumElement> {
@@ -123,6 +123,18 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
+    // Android: a title swipe scrolls the list instead of closing ReusableModal,
+    // and the open sheet hides the wallet chrome Android readiness looks for.
+    // System back closes it — verify before callers wait for wallet home.
+    if (PlatformDetector.isAndroid()) {
+      await getDriver().back();
+      await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+        timeout: 15000,
+        description: 'Network selector dismissed',
+      });
+      return;
+    }
+
     await Gestures.swipe(this.selectNetwork, 'down', {
       speed: 'slow',
       percentage: 0.9,

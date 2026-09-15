@@ -66,6 +66,14 @@ export function isValidPriceRange(min: string, max: string): boolean {
   const parsedMin = parsePriceInput(min);
   const parsedMax = parsePriceInput(max);
 
+  if (min === '') {
+    return parsedMax !== undefined;
+  }
+
+  if (max === '') {
+    return parsedMin !== undefined;
+  }
+
   return (
     parsedMin !== undefined && parsedMax !== undefined && parsedMin < parsedMax
   );
@@ -101,7 +109,28 @@ export function formatPriceRangeLabel(
   max: string,
   currency: string,
 ): string {
-  return `${formatCurrency(min, currency)} - ${formatCurrency(max, currency)}`;
+  const { minLabel, maxLabel } = formatPriceRangeBounds(min, max, currency);
+
+  return [minLabel, maxLabel].filter(Boolean).join(' - ');
+}
+
+export function formatPriceRangeBounds(
+  min: string,
+  max: string,
+  currency: string,
+): { minLabel?: string; maxLabel?: string } {
+  if (min && !max) {
+    return { minLabel: `≥ ${formatCurrency(min, currency)}` };
+  }
+
+  if (max && !min) {
+    return { maxLabel: `≤ ${formatCurrency(max, currency)}` };
+  }
+
+  return {
+    minLabel: min ? formatCurrency(min, currency) : undefined,
+    maxLabel: max ? formatCurrency(max, currency) : undefined,
+  };
 }
 
 export function formatTokenPrice(

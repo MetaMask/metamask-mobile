@@ -21,11 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
-  type Position,
-} from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -35,14 +31,12 @@ import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
-  formatPercentage,
   formatPerpsFiat,
-  formatPnl,
-  formatPositionSize,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
+import { getPerpsPositionHeaderDisplay } from '../../../utils/positionDisplay';
 
 interface PerpsProPositionCardProps {
   position: Position;
@@ -173,18 +167,16 @@ const PerpsProPositionCard = ({
   isEditMarginDisabled = false,
 }: PerpsProPositionCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const displaySymbol = getPerpsDisplaySymbol(position.symbol);
-  const sizeNum = parseFloat(position.size);
-  const isLong = sizeNum >= 0;
-  const absoluteSize = Math.abs(sizeNum);
-
-  const pnlNum = parseFloat(position.unrealizedPnl);
-  const roe = (parseFloat(position.returnOnEquity) || 0) * 100;
-
-  const directionLabel = isLong
-    ? strings('perps.market.long')
-    : strings('perps.market.short');
-  const directionSeverity = isLong ? TagSeverity.Success : TagSeverity.Danger;
+  const {
+    displaySymbol,
+    absoluteSize,
+    directionLabel,
+    directionSeverity,
+    description,
+    pnlText,
+    roeText,
+    pnlColor,
+  } = getPerpsPositionHeaderDisplay(position);
 
   const marginTypeLabel =
     position.leverage.type === 'isolated'
@@ -261,10 +253,6 @@ const PerpsProPositionCard = ({
         { ranges: PRICE_RANGES_MINIMAL_VIEW },
       )}`;
 
-  const positionValueDisplay = formatPerpsFiat(position.positionValue, {
-    ranges: PRICE_RANGES_MINIMAL_VIEW,
-  });
-
   const handlePress = onPress ? () => onPress(position) : undefined;
 
   return (
@@ -317,9 +305,7 @@ const PerpsProPositionCard = ({
                   >
                     {displaySymbol}
                   </Text>
-                  <Tag
-                    severity={directionSeverity}
-                  >{`${position.leverage.value}x ${directionLabel}`}</Tag>
+                  <Tag severity={directionSeverity}>{directionLabel}</Tag>
                 </Box>
                 <SensitiveText
                   variant={TextVariant.BodySm}
@@ -328,9 +314,7 @@ const PerpsProPositionCard = ({
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {`${formatPositionSize(
-                    absoluteSize.toString(),
-                  )} ${displaySymbol} • ${positionValueDisplay}`}
+                  {description}
                 </SensitiveText>
               </Box>
             </Box>
@@ -338,32 +322,20 @@ const PerpsProPositionCard = ({
               <SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={
-                  privacyMode
-                    ? TextColor.TextDefault
-                    : pnlNum >= 0
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
-                }
+                color={privacyMode ? TextColor.TextDefault : pnlColor}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
                 testID={PerpsProMarketViewSelectorsIDs.POSITION_PNL_TEXT}
               >
-                {formatPnl(pnlNum)}
+                {pnlText}
               </SensitiveText>
               <SensitiveText
                 variant={TextVariant.BodySm}
-                color={
-                  privacyMode
-                    ? TextColor.TextDefault
-                    : pnlNum >= 0
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
-                }
+                color={privacyMode ? TextColor.TextDefault : pnlColor}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPercentage(roe, 1)}
+                {roeText}
               </SensitiveText>
             </Box>
           </Box>
