@@ -1,0 +1,21 @@
+import { useInfiniteQuery } from '@metamask/react-data-query';
+import {
+  portfolioQueries,
+  type GetActivityResult,
+  type PortfolioPageParams,
+} from '../queries/portfolioQueries';
+import type { PredictVenueId } from '../types';
+
+/** Reads a paginated Activity list (Fills and Settlements) for a Venue. */
+export const useActivity = (
+  venueId: PredictVenueId,
+  params: PortfolioPageParams,
+) => {
+  const descriptor = portfolioQueries.getActivity(venueId, params);
+
+  return useInfiniteQuery<GetActivityResult>({
+    queryKey: descriptor.queryKey,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+  });
+};
