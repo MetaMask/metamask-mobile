@@ -11,7 +11,9 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { TraceName } from '../../../../../util/trace';
 import { useBalance } from '../../hooks/useBalance';
+import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type {
   PredictNextStackParamList,
@@ -37,6 +39,16 @@ export const PredictPortfolioScreen = () => {
   useEffect(() => {
     setActiveTab(route.params.initialTab ?? 'positions');
   }, [route.params.initialTab]);
+
+  usePredictNextMeasurement({
+    traceName: TraceName.PredictNextPortfolioView,
+    conditions: [!balanceQuery.isLoading],
+    debugContext: {
+      hasBalance: Boolean(balanceQuery.data),
+      error: balanceQuery.isError,
+      tab: activeTab,
+    },
+  });
 
   const browseMarkets = useCallback(() => {
     if (navigation.canGoBack()) {
