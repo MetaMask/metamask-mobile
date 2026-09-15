@@ -7,7 +7,6 @@ import { usePerpsConnection } from '../../../../../UI/Perps/hooks/usePerpsConnec
 import { selectPerpsEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
 import {
   selectPerpsBalances,
-  selectPerpsEligibility,
   selectPerpsProvider,
 } from '../../../../../UI/Perps/selectors/perpsController';
 import type { BalanceSlice, FiatConverter } from '../../types';
@@ -15,19 +14,17 @@ import { PERPS_HOMEPAGE_THROTTLE_MS } from '../../constants';
 
 export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPerpsEnabledFlag);
-  const isEligible = useSelector(selectPerpsEligibility);
   const perpsBalances = useSelector(selectPerpsBalances);
   const activeProvider = useSelector(selectPerpsProvider) as
     | PerpsActiveProviderMode
     | undefined;
+  // Keep portfolio reads available for geo-blocked users; eligibility only
+  // restricts Perps actions, matching PerpsHomeView.
   const { account, isInitialLoading } = usePerpsLiveAccount({
-    enabled: isEnabled && isEligible,
+    enabled: isEnabled,
     throttleMs: PERPS_HOMEPAGE_THROTTLE_MS,
   });
   const { error: connectionError } = usePerpsConnection();
-
-  // Perps is ineligible when the feature flag is off
-  const isIneligible = !isEnabled || !isEligible;
 
   const totalBalanceUsd = parseFloat(account?.totalBalance ?? '0') || 0;
   const convertedValue = toUserCurrency(totalBalanceUsd);
@@ -46,19 +43,13 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   }, [activeProvider, perpsBalances, toUserCurrency]);
 
   const status = useMemo(() => {
-    if (isIneligible) return 'ineligible' as const;
+    if (!isEnabled) return 'ineligible' as const;
     if (!account && connectionError) return 'error' as const;
     if (isInitialLoading) return 'loading' as const;
     if (!account) return 'loading' as const;
     if (convertedValue === undefined) return 'error' as const;
     return 'ready' as const;
-  }, [
-    account,
-    connectionError,
-    convertedValue,
-    isIneligible,
-    isInitialLoading,
-  ]);
+  }, [account, connectionError, convertedValue, isEnabled, isInitialLoading]);
 
   return useMemo<BalanceSlice>(
     () => ({

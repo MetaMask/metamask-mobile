@@ -25,7 +25,6 @@ describe('usePerpsSlice', () => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
-      if (selector === selectPerpsEligibility) return true;
       if (selector === selectPerpsProvider) return 'hyperliquid';
       if (selector === selectPerpsBalances) {
         return {
@@ -56,7 +55,6 @@ describe('usePerpsSlice', () => {
   it('is ineligible when the feature is unavailable', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return false;
-      if (selector === selectPerpsEligibility) return true;
       if (selector === selectPerpsBalances) return {};
       return undefined;
     });
@@ -70,6 +68,21 @@ describe('usePerpsSlice', () => {
     expect(result.current.status).toBe('ineligible');
     expect(result.current.isVisible).toBe(false);
     expect(result.current.valueFiat).toBe(0);
+  });
+
+  it('loads and displays the balance when the user is geo-blocked', () => {
+    const { result } = renderHook(() => usePerpsSlice((amount) => amount * 2));
+
+    expect(mockUsePerpsLiveAccount).toHaveBeenCalledWith({
+      enabled: true,
+      throttleMs: 1000,
+    });
+    expect(mockUseSelector).not.toHaveBeenCalledWith(selectPerpsEligibility);
+    expect(result.current).toMatchObject({
+      isVisible: true,
+      status: 'ready',
+      valueFiat: 200,
+    });
   });
 
   it('reports a connection error when no account data is available', () => {
