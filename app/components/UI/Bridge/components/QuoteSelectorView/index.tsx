@@ -141,7 +141,7 @@ export const QuoteSelectorView = () => {
         includesTopInset
       />
       <ScreenView safeAreaEdges={[]}>
-        <Box padding={4}>
+        <Box padding={4} paddingTop={0}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('bridge.select_quote_info')}
           </Text>
