@@ -12,9 +12,16 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import { useRankChangeAnimation } from './useRankChangeAnimation';
+import {
+  RANK_CHANGE_DURATION,
+  useRankChangeAnimation,
+} from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import {
@@ -43,6 +50,15 @@ const ELITE_WIN_RATE_PERCENT = 90;
 export const SOCIAL_V1_TRADER_ROW_HEIGHT = 72;
 
 /**
+ * Traders entering or leaving the ranked page fade rather than pop. A reveal
+ * spanning a long gap changes the *set* of traders, not just their order, so
+ * without these the rows that appeared or dropped out would blink in and out
+ * mid-slide.
+ */
+const rowEntering = FadeIn.duration(RANK_CHANGE_DURATION);
+const rowExiting = FadeOut.duration(RANK_CHANGE_DURATION);
+
+/**
  * SocialV1TraderRow -- a single row in the Social Bundle V1 leaderboard.
  *
  * Metrics-first counterpart to the legacy `TraderRow`: instead of leading with
@@ -65,6 +81,7 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
   const showMedal = isTopRank(trader.rank);
   const isEliteWinRate = (trader.winRatePercent ?? 0) >= ELITE_WIN_RATE_PERCENT;
   const rankChangeStyle = useRankChangeAnimation(trader.rank);
+  const prefersReducedMotion = useReducedMotion();
 
   const winRateLabel = strings('social_leaderboard.win_rate_tag', {
     winRate: formatPercent(trader.winRatePercent, {
@@ -81,7 +98,11 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
   const roi = formatPercent(trader.percentageChange, { decimals: 1 });
 
   return (
-    <Animated.View style={rankChangeStyle}>
+    <Animated.View
+      style={rankChangeStyle}
+      entering={prefersReducedMotion ? undefined : rowEntering}
+      exiting={prefersReducedMotion ? undefined : rowExiting}
+    >
       <TouchableOpacity
         activeOpacity={onTraderPress ? 0.7 : 1}
         onPress={
