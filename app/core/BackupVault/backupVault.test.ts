@@ -7,6 +7,8 @@ import {
   backupVault,
   getVaultFromBackup,
   clearAllVaultBackups,
+  scheduleVaultBackup,
+  resetVaultBackupDedupState,
 } from './backupVault';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import {
@@ -53,21 +55,13 @@ jest.mock('react-native-keychain', () => ({
   }),
 }));
 
-//TODO Mock the react-native-keychain module test the other functions inside backupVault
-/*
- These tests are extremely limited since we are unable to mock the react-native-keychain module
- Despite the fact that they are mocked in the jest setup file, they do not appear to be working.
- Therefore the best we can do for now is to test the error case that does not hit the keychain.
-
- Documentation for the testing react-native-keychain can be found here: https://github.com/oblador/react-native-keychain#unit-testing-with-jest
- More information on the issue can be found here: https://github.com/oblador/react-native-keychain/issues/460
-*/
 describe('backupVault file', () => {
   const dummyPassword = 'dummy-password';
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockKeychainState = {};
+    resetVaultBackupDedupState();
   });
 
   describe('clearAllVaultBackups', () => {
@@ -184,6 +178,55 @@ describe('backupVault file', () => {
       expect(response).toEqual(mockedSuccessResponse);
     });
 
+    it('skips keychain rewrite when existing backup already matches vault', async () => {
+      const vault = 'already-backed-up-vault';
+
+      await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
+
+      (setInternetCredentials as jest.Mock).mockClear();
+      (resetInternetCredentials as jest.Mock).mockClear();
+
+      const response = await backupVault({
+        vault,
+        keyrings: [],
+        isUnlocked: true,
+      });
+
+      expect(response).toEqual({
+        success: true,
+        vault,
+        skipped: true,
+        skipReason: 'identical_keychain',
+      });
+      expect(setInternetCredentials).not.toHaveBeenCalled();
+      expect(resetInternetCredentials).not.toHaveBeenCalled();
+    });
+
+    it('skips keychain I/O when vault was already confirmed in-process', async () => {
+      const vault = 'confirmed-vault';
+
+      await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
+      await backupVault({ vault, keyrings: [], isUnlocked: true });
+
+      (getInternetCredentials as jest.Mock).mockClear();
+      (setInternetCredentials as jest.Mock).mockClear();
+
+      const response = await backupVault({
+        vault,
+        keyrings: [],
+        isUnlocked: true,
+      });
+
+      expect(response).toEqual({
+        success: true,
+        vault,
+        skipped: true,
+        skipReason: 'unchanged_since_last_confirm',
+      });
+      expect(getInternetCredentials).not.toHaveBeenCalled();
+      expect(setInternetCredentials).not.toHaveBeenCalled();
+    });
+
     it('should still succeed if reading the existing backup throws (e.g. Android Keystore key invalidation)', async () => {
       const newVault = 'new-vault';
 
@@ -239,6 +282,34 @@ describe('backupVault file', () => {
       expect(resetInternetCredentials).toHaveBeenCalledTimes(3);
 
       expect(response).toEqual(mockedSuccessResponse);
+    });
+  });
+
+  describe('scheduleVaultBackup', () => {
+    it('does not start a second backup when vault is unchanged', async () => {
+      const vault = 'same-vault';
+      await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
+      (setInternetCredentials as jest.Mock).mockClear();
+      (getInternetCredentials as jest.Mock).mockClear();
+
+      scheduleVaultBackup({
+        vault,
+        keyrings: [],
+        isUnlocked: false,
+      });
+      scheduleVaultBackup({
+        vault,
+        keyrings: [],
+        isUnlocked: true,
+      });
+
+      // Flush the serialized backup chain
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      // One getPrimary for the first schedule; second schedule skipped entirely
+      expect(getInternetCredentials).toHaveBeenCalledTimes(1);
+      expect(setInternetCredentials).not.toHaveBeenCalled();
     });
   });
 
