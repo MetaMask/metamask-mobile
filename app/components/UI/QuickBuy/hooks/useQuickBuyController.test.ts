@@ -6,6 +6,7 @@ import {
   type QuickBuyAnalyticsContext,
   type QuickBuyTarget,
 } from '../types';
+import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -245,8 +246,13 @@ if (!defaultTarget) {
   throw new Error('useQuickBuyController.test: default target is not mapped');
 }
 
+const mockUseQuickBuyQuotes = jest.mocked(useQuickBuyQuotes);
 runQuickBuyControllerCases({
   name: 'useQuickBuyController',
+  setupQuoteSourceMock: (mockResult: ReturnType<typeof useQuickBuyQuotes>) => {
+    mockUseQuickBuyQuotes.mockReturnValue(mockResult);
+  },
+  mockQuoteSource: mockUseQuickBuyQuotes,
   renderHook: (
     target?: QuickBuyTarget,
     onClose?: () => void,

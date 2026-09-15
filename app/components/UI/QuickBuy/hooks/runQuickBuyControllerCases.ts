@@ -41,12 +41,9 @@ import { isSameAsset, selectDefaultSourceToken } from '../tokenSelection';
 import { useDestTokenExchangeRate } from './useDestTokenExchangeRate';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
+import { type UseQuickBuyControllerResult } from './useQuickBuyController';
 import {
-  useQuickBuyController,
-  type UseQuickBuyControllerResult,
-} from './useQuickBuyController';
-import {
-  useQuickBuyQuotes,
+  type useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
 } from './useQuickBuyQuotes';
@@ -73,9 +70,6 @@ const mockUseQuickBuyAnalytics = useQuickBuyAnalytics as jest.MockedFunction<
 >;
 const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
->;
-const mockUseQuickBuyQuotes = useQuickBuyQuotes as jest.MockedFunction<
-  typeof useQuickBuyQuotes
 >;
 const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
   typeof useLatestBalance
@@ -269,23 +263,6 @@ const setupDefaultMocks = () => {
     isLoading: false,
   });
 
-  mockUseQuickBuyQuotes.mockReturnValue({
-    activeQuote: undefined,
-    sortedQuotes: [],
-    destTokenAmount: undefined,
-    isQuoteLoading: false,
-    isNoQuotesAvailable: false,
-    quoteFetchError: null,
-    isActiveQuoteForCurrentTokenPair: true,
-    isQuoteRequestStale: false,
-    quoteCount: 0,
-    quotesLastFetchedAt: null,
-    refreshCount: 0,
-    quoteRefreshRateMs: 30000,
-    maxRefreshCount: 5,
-    refetchQuotes: jest.fn(),
-  });
-
   mockUseLatestBalance.mockReturnValue({
     atomicBalance: undefined,
     displayBalance: undefined,
@@ -311,6 +288,8 @@ const setupDefaultMocks = () => {
 export const runQuickBuyControllerCases = ({
   renderHook,
   name,
+  setupQuoteSourceMock,
+  mockQuoteSource,
 }: {
   renderHook: (
     target?: QuickBuyTarget,
@@ -325,11 +304,31 @@ export const runQuickBuyControllerCases = ({
     unmount: () => void;
   };
   name: string;
+  setupQuoteSourceMock: (
+    mockResult: ReturnType<typeof useQuickBuyQuotes>,
+  ) => void;
+  mockQuoteSource: jest.MockedFunction<typeof useQuickBuyQuotes>;
 }) => {
   describe(name, () => {
     beforeEach(() => {
       jest.clearAllMocks();
       setupDefaultMocks();
+      setupQuoteSourceMock({
+        activeQuote: undefined,
+        sortedQuotes: [],
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
     });
 
     afterEach(() => {
@@ -698,7 +697,7 @@ export const runQuickBuyControllerCases = ({
 
         // The amount handed to the quotes hook is suppressed (undefined), so no
         // bridge request runs while the CTA routes to Ramp.
-        const calls = (useQuickBuyQuotes as jest.Mock).mock.calls;
+        const calls = mockQuoteSource.mock.calls;
         expect(calls[calls.length - 1][0].sourceTokenAmount).toBeUndefined();
         // Existing add-funds behaviour is preserved: actionable, labelled "Add funds".
         expect(result.current.getButtonLabel()).toBe(
@@ -720,7 +719,7 @@ export const runQuickBuyControllerCases = ({
         });
         // Force a mid-flight fetch: even if a prior valid-amount request is still
         // reporting loading, the add-funds CTA must not spin.
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: undefined,
           sortedQuotes: [],
           destTokenAmount: undefined,
@@ -768,7 +767,7 @@ export const runQuickBuyControllerCases = ({
         });
 
         // 50 / 200 = 0.25 ETH is passed through untouched — quotes still fetch.
-        const calls = (useQuickBuyQuotes as jest.Mock).mock.calls;
+        const calls = mockQuoteSource.mock.calls;
         expect(calls[calls.length - 1][0].sourceTokenAmount).toBe('0.25');
         expect(result.current.isPresetAddFundsMode).toBe(false);
         expect(result.current.getButtonLabel()).toBe(
@@ -1173,7 +1172,7 @@ export const runQuickBuyControllerCases = ({
           },
         });
 
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote,
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -1219,7 +1218,7 @@ export const runQuickBuyControllerCases = ({
 
       it('passes the active quote to useIsInsufficientBalance when one is available', () => {
         const activeQuote = createActiveQuote();
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote,
           destTokenAmount: '5',
           isQuoteLoading: false,
@@ -1274,7 +1273,7 @@ export const runQuickBuyControllerCases = ({
           options: [],
           isLoading: false,
         });
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: undefined,
           isQuoteLoading: false,
@@ -1371,7 +1370,7 @@ export const runQuickBuyControllerCases = ({
 
       it('is disabled when a destination address is required but missing', () => {
         (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(true);
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: undefined,
           isQuoteLoading: false,
@@ -1416,7 +1415,7 @@ export const runQuickBuyControllerCases = ({
           refetchQuotes: jest.fn(),
         };
 
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1462,7 +1461,7 @@ export const runQuickBuyControllerCases = ({
           refetchQuotes: jest.fn(),
         };
 
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1516,7 +1515,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1558,7 +1557,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1609,7 +1608,7 @@ export const runQuickBuyControllerCases = ({
           refetchQuotes: jest.fn(),
         };
 
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1659,7 +1658,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1736,7 +1735,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1793,7 +1792,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1843,7 +1842,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -1884,7 +1883,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -2454,7 +2453,7 @@ export const runQuickBuyControllerCases = ({
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
         };
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -3215,23 +3214,23 @@ export const runQuickBuyControllerCases = ({
         });
 
       it('clears manual selection when requestId is not in the current quote batch', () => {
-        let sortedQuotes = [quoteWithRequestId('quote-a')];
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
-          activeQuote: sortedQuotes[0],
-          sortedQuotes,
+        const quoteState: UseQuickBuyQuotesResult = {
+          activeQuote: quoteWithRequestId('quote-a'),
+          sortedQuotes: [quoteWithRequestId('quote-a')],
           destTokenAmount: '1',
           isQuoteLoading: false,
           isNoQuotesAvailable: false,
           quoteFetchError: null,
           isActiveQuoteForCurrentTokenPair: true,
           isQuoteRequestStale: false,
-          quoteCount: sortedQuotes.length,
+          quoteCount: 1,
           quotesLastFetchedAt: Date.now(),
           refreshCount: 1,
           quoteRefreshRateMs: 30000,
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
-        }));
+        };
+        setupQuoteSourceMock(quoteState);
 
         const props = {
           target: createTarget(),
@@ -3249,7 +3248,7 @@ export const runQuickBuyControllerCases = ({
         });
         expect(result.current.selectedQuoteRequestId).toBe('quote-a');
 
-        sortedQuotes = [quoteWithRequestId('quote-b')];
+        quoteState.sortedQuotes = [quoteWithRequestId('quote-b')];
         rerender(props);
 
         expect(result.current.selectedQuoteRequestId).toBeUndefined();
@@ -3260,7 +3259,7 @@ export const runQuickBuyControllerCases = ({
           quoteWithRequestId('quote-a'),
           quoteWithRequestId('quote-b'),
         ];
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: sortedQuotes[0],
           sortedQuotes,
           destTokenAmount: '1',
@@ -3288,26 +3287,26 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('drops a manual selection when the next refresh returns a new quote batch', () => {
-        let sortedQuotes = [
-          quoteWithRequestId('quote-a'),
-          quoteWithRequestId('quote-b'),
-        ];
-        (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
-          activeQuote: sortedQuotes[0],
-          sortedQuotes,
+        const quoteState: UseQuickBuyQuotesResult = {
+          activeQuote: quoteWithRequestId('quote-a'),
+          sortedQuotes: [
+            quoteWithRequestId('quote-a'),
+            quoteWithRequestId('quote-b'),
+          ],
           destTokenAmount: '1',
           isQuoteLoading: false,
           isNoQuotesAvailable: false,
           quoteFetchError: null,
           isActiveQuoteForCurrentTokenPair: true,
           isQuoteRequestStale: false,
-          quoteCount: sortedQuotes.length,
+          quoteCount: 2,
           quotesLastFetchedAt: Date.now(),
           refreshCount: 1,
           quoteRefreshRateMs: 30000,
           maxRefreshCount: 5,
           refetchQuotes: jest.fn(),
-        }));
+        };
+        setupQuoteSourceMock(quoteState);
 
         const props = { target: createTarget(), onClose: jest.fn() };
         const { result, rerender } = renderHook(
@@ -3325,7 +3324,7 @@ export const runQuickBuyControllerCases = ({
 
         // Auto-refresh is never paused, so the next batch (new requestIds) drops
         // the selection and the active quote falls back to the recommended.
-        sortedQuotes = [
+        quoteState.sortedQuotes = [
           quoteWithRequestId('quote-c'),
           quoteWithRequestId('quote-d'),
         ];
@@ -3335,7 +3334,7 @@ export const runQuickBuyControllerCases = ({
 
       it('never asks the quotes hook to pause auto-refresh', () => {
         const sortedQuotes = [quoteWithRequestId('quote-a')];
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: sortedQuotes[0],
           sortedQuotes,
           destTokenAmount: '1',
@@ -3360,9 +3359,7 @@ export const runQuickBuyControllerCases = ({
 
         // Selecting a quote must not pass a `pauseAutoRefresh` flag — refresh
         // always runs (streams terminate on their own via the server `complete`).
-        const lastCall = (useQuickBuyQuotes as jest.Mock).mock.calls.at(
-          -1,
-        )?.[0];
+        const lastCall = mockQuoteSource.mock.calls.at(-1)?.[0];
         expect(lastCall).not.toHaveProperty('pauseAutoRefresh');
       });
     });
@@ -3474,7 +3471,7 @@ export const runQuickBuyControllerCases = ({
           approval: null,
         } as unknown as ReturnType<typeof createActiveQuote>;
 
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote,
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -3519,7 +3516,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('does not call submitTx when there is no active quote', async () => {
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: undefined,
           destTokenAmount: undefined,
           isQuoteLoading: false,
@@ -3553,7 +3550,7 @@ export const runQuickBuyControllerCases = ({
           Engine.context.BridgeStatusController.submitTx as jest.Mock
         ).mockRejectedValue(submitError);
 
-        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -3594,7 +3591,7 @@ export const runQuickBuyControllerCases = ({
 
       describe('trade-level analytics', () => {
         const mockSuccessfulSubmit = () => {
-          (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          setupQuoteSourceMock({
             activeQuote: createActiveQuote(),
             destTokenAmount: '1',
             isQuoteLoading: false,
@@ -3734,7 +3731,7 @@ export const runQuickBuyControllerCases = ({
         });
 
         it('includes amount_token on trade completed when dest amount is numeric', async () => {
-          (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          setupQuoteSourceMock({
             activeQuote: createActiveQuote({
               quote: { dest: { normalizedAmount: '1.5' } },
             }),
@@ -3768,7 +3765,7 @@ export const runQuickBuyControllerCases = ({
         });
 
         it('omits amount_token from trade completed when dest amount is not numeric', async () => {
-          (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          setupQuoteSourceMock({
             activeQuote: createActiveQuote({
               quote: { dest: { normalizedAmount: 'abc' } },
             }),
@@ -3860,7 +3857,7 @@ export const runQuickBuyControllerCases = ({
 
       describe('stay-on-screen swap toasts', () => {
         const mockUsableQuote = () => {
-          (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          setupQuoteSourceMock({
             activeQuote: createActiveQuote(),
             destTokenAmount: '1',
             isQuoteLoading: false,
@@ -4346,7 +4343,7 @@ export const runQuickBuyControllerCases = ({
           displayBalance: '1',
           atomicBalance: undefined,
         });
-        mockUseQuickBuyQuotes.mockReturnValue(quotedDisplayState());
+        setupQuoteSourceMock(quotedDisplayState());
 
         const { result } = renderHook(createTarget(), jest.fn());
 
@@ -4354,7 +4351,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('formats price impact as a percent', () => {
-        mockUseQuickBuyQuotes.mockReturnValue(quotedDisplayState());
+        setupQuoteSourceMock(quotedDisplayState());
 
         const { result } = renderHook(createTarget(), jest.fn());
 
@@ -4362,7 +4359,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('formats a rate at or below 1 with significant digits', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           destTokenAmount: '0.005',
         });
@@ -4373,7 +4370,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('formats the exchange rate from the quote source and dest amounts', () => {
-        mockUseQuickBuyQuotes.mockReturnValue(quotedDisplayState());
+        setupQuoteSourceMock(quotedDisplayState());
 
         const { result } = renderHook(createTarget(), jest.fn());
 
@@ -4381,7 +4378,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('adds a non-gasless network fee to totalAmountFiat', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           activeQuote: createActiveQuote({
             quote: {
@@ -4403,7 +4400,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('adds the gasless network fee to totalAmountFiat', () => {
-        mockUseQuickBuyQuotes.mockReturnValue(quotedDisplayState());
+        setupQuoteSourceMock(quotedDisplayState());
 
         const { result } = renderHook(createTarget(), jest.fn());
 
@@ -4415,7 +4412,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('omits the gasless network fee from totalAmountFiat when the fee is not numeric', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           activeQuote: createActiveQuote({
             quote: {
@@ -4437,7 +4434,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('returns no formatted rate when the quote source amount is zero', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           activeQuote: createActiveQuote({
             quote: {
@@ -4453,7 +4450,7 @@ export const runQuickBuyControllerCases = ({
 
       it('shows Auto slippage when slippage is unset', () => {
         (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           destTokenAmount: undefined,
         });
@@ -4464,7 +4461,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('shows a dash price impact when priceData is missing', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           activeQuote: createActiveQuote({
             quote: { priceData: undefined },
@@ -4477,7 +4474,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('shows a dash minimum received when dest min amount is missing', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           ...quotedDisplayState(),
           destTokenAmount: undefined,
           activeQuote: createActiveQuote({
@@ -5128,7 +5125,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('sets buttonError to no_quotes when the quotes hook reports none', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: undefined,
           destTokenAmount: undefined,
           isQuoteLoading: false,
@@ -5169,7 +5166,7 @@ export const runQuickBuyControllerCases = ({
           ],
           isLoading: false,
         });
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote({
             quote: {
               src: { amount: '', normalizedAmount: '0' },
@@ -5200,7 +5197,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('does not track quote_selected when the request id is not in the batch', () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: undefined,
           destTokenAmount: undefined,
           isQuoteLoading: false,
@@ -5230,7 +5227,7 @@ export const runQuickBuyControllerCases = ({
         (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
           undefined,
         );
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -5260,7 +5257,7 @@ export const runQuickBuyControllerCases = ({
 
       it('omits trade submitted analytics when caip19 cannot be resolved', async () => {
         mockToAssetId.mockReturnValue(undefined);
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -5291,7 +5288,7 @@ export const runQuickBuyControllerCases = ({
 
       it('omits trade completed analytics when submit throws and caip19 cannot be resolved', async () => {
         mockToAssetId.mockReturnValue(undefined);
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -5336,7 +5333,7 @@ export const runQuickBuyControllerCases = ({
           isLoading: false,
           isUnsupportedChain: false,
         });
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: '1',
           isQuoteLoading: false,
@@ -5375,7 +5372,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('logs a string submit failure as an Error', async () => {
-        mockUseQuickBuyQuotes.mockReturnValue({
+        setupQuoteSourceMock({
           activeQuote: createActiveQuote(),
           destTokenAmount: '1',
           isQuoteLoading: false,
