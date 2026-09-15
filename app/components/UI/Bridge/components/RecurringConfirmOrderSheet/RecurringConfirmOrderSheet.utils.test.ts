@@ -50,8 +50,8 @@ describe('showRecurringOrderCanceledToast', () => {
 
     expect(ToastService.showToast).toHaveBeenCalledWith({
       variant: ToastVariants.Icon,
-      iconName: IconName.Confirmation,
-      iconColor: IconColor.SuccessDefault,
+      iconName: IconName.Error,
+      iconColor: IconColor.ErrorDefault,
       hasNoTimeout: false,
       labelOptions: [
         {

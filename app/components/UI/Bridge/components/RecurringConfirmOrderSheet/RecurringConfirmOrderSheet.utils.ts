@@ -31,8 +31,8 @@ export function showRecurringOrderCreatedToast(): void {
 export function showRecurringOrderCanceledToast(): void {
   ToastService.showToast({
     variant: ToastVariants.Icon,
-    iconName: IconName.Confirmation,
-    iconColor: IconColor.SuccessDefault,
+    iconName: IconName.Error,
+    iconColor: IconColor.ErrorDefault,
     hasNoTimeout: false,
     labelOptions: [
       {
