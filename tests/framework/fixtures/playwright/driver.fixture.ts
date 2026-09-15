@@ -13,6 +13,7 @@ import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
   requestSharedSessionRecreate,
+  setSharedSessionRecreateHandler,
 } from '../../services/appium/sessionRecovery.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import type { ServiceProvider } from '../../services';
@@ -165,7 +166,39 @@ export const driverFixture = {
         recordingBackend = await startFailureRecording(drv, testInfo, platform);
       }
 
-      await use(drv);
+      // Allow soft-reload / fixture helpers to recreate the session in-process
+      // when UiAutomator2 dies mid-attempt (avoids a Playwright-retry flake).
+      setSharedSessionRecreateHandler(async () => {
+        logger.warn(
+          `In-process WebDriver session recreate for "${testInfo.title}"`,
+        );
+        try {
+          if (drv) {
+            await deviceProvider.cleanupSession?.(drv);
+          }
+        } catch (error) {
+          logger.error(
+            'Failed to cleanup session before in-process recreate:',
+            error,
+          );
+        }
+        sharedSession.drv = undefined;
+        const newDrv = await createSession(deviceProvider, sharedSession);
+        await configureImplicitWait(newDrv, implicitMs);
+        globalThis.driver = newDrv;
+        drv = newDrv;
+        sessionRecreated = true;
+        logger.info(
+          `In-process WebDriver session ready: sessionId=${deviceProvider.sessionId ?? newDrv.sessionId ?? 'unknown'}`,
+        );
+        return newDrv;
+      });
+
+      try {
+        await use(drv);
+      } finally {
+        setSharedSessionRecreateHandler(undefined);
+      }
     } finally {
       const testStatus = testInfo.status;
       const testError = testInfo.error?.message;

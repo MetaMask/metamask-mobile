@@ -1,8 +1,10 @@
 import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
+  recreateSharedSessionNow,
   requestSharedSessionRecreate,
   resetSharedSessionRecreateState,
+  setSharedSessionRecreateHandler,
 } from './sessionRecovery.ts';
 
 describe('isDeviceHealthError', () => {
@@ -80,5 +82,22 @@ describe('shared session recreate requests', () => {
 
     expect(consumeSharedSessionRecreate()).toBe(true);
     expect(consumeSharedSessionRecreate()).toBe(false);
+  });
+
+  it('recreateSharedSessionNow invokes the handler and clears the recreate flag', async () => {
+    const newDrv = { sessionId: 'recreated' } as WebdriverIO.Browser;
+    const handler = jest.fn().mockResolvedValue(newDrv);
+    setSharedSessionRecreateHandler(handler);
+    requestSharedSessionRecreate();
+
+    await expect(recreateSharedSessionNow()).resolves.toBe(newDrv);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(consumeSharedSessionRecreate()).toBe(false);
+  });
+
+  it('recreateSharedSessionNow returns undefined without a handler', async () => {
+    requestSharedSessionRecreate();
+    await expect(recreateSharedSessionNow()).resolves.toBeUndefined();
+    expect(consumeSharedSessionRecreate()).toBe(true);
   });
 });

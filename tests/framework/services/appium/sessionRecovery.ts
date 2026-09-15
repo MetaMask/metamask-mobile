@@ -18,6 +18,15 @@ const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
 
 let recreateRequested = false;
 
+/**
+ * In-process recreate hook installed by the Playwright driver fixture while a
+ * test is running. Soft-reload can call this to recover from UiAutomator2 death
+ * without waiting for the next Playwright retry.
+ */
+export type SharedSessionRecreateHandler = () => Promise<WebdriverIO.Browser>;
+
+let sharedSessionRecreateHandler: SharedSessionRecreateHandler | undefined;
+
 /** True when the error looks like emulator/session health failure, not a product assert. */
 export function isDeviceHealthError(error: unknown): boolean {
   if (isUiAutomator2SessionDeadError(error)) {
@@ -47,7 +56,35 @@ export function consumeSharedSessionRecreate(): boolean {
   return requested;
 }
 
+/**
+ * Register (or clear) the in-process session recreate handler.
+ * The driver fixture owns the lifecycle — set before `use(drv)`, clear in finally.
+ */
+export function setSharedSessionRecreateHandler(
+  handler: SharedSessionRecreateHandler | undefined,
+): void {
+  sharedSessionRecreateHandler = handler;
+}
+
+/**
+ * Recreate the shared WebDriver session now (same Playwright attempt).
+ * Returns undefined when no handler is registered (e.g. unit tests without the fixture).
+ * Clears the pending recreate flag so the next fixture setup does not double-recreate.
+ */
+export async function recreateSharedSessionNow(): Promise<
+  WebdriverIO.Browser | undefined
+> {
+  const handler = sharedSessionRecreateHandler;
+  if (!handler) {
+    return undefined;
+  }
+  // In-process recreate consumes the flag; the new session is already healthy.
+  recreateRequested = false;
+  return handler();
+}
+
 /** Test-only reset. */
 export function resetSharedSessionRecreateState(): void {
   recreateRequested = false;
+  sharedSessionRecreateHandler = undefined;
 }
