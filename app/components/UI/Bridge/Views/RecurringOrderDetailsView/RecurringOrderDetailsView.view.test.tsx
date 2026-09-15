@@ -2,16 +2,16 @@ import '../../../../../../tests/component-view/mocks';
 import { userEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  renderBridgeViewWithRecurringJobDetails,
-  renderRecurringJobDetailsView,
+  renderBridgeViewWithRecurringOrderDetails,
+  renderRecurringOrderDetailsView,
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from '../BridgeView/BridgeView.testIds';
-import { MOCK_RECURRING_OPEN_JOB } from './RecurringJobDetailsView.mock';
-import { RecurringJobDetailsViewSelectorsIDs } from './RecurringJobDetailsView.testIds';
+import { MOCK_RECURRING_OPEN_ORDER } from './RecurringOrderDetailsView.mock';
+import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
-async function openInProgressJobDetails(
-  renderResult: ReturnType<typeof renderBridgeViewWithRecurringJobDetails>,
+async function openInProgressOrderDetails(
+  renderResult: ReturnType<typeof renderBridgeViewWithRecurringOrderDetails>,
 ) {
   await userEvent.press(
     renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
@@ -24,37 +24,37 @@ async function openInProgressJobDetails(
 
   await userEvent.press(
     renderResult.getByTestId(
-      RecurringJobDetailsViewSelectorsIDs.OPEN_JOB_ROW(
-        MOCK_RECURRING_OPEN_JOB.jobId,
+      RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+        MOCK_RECURRING_OPEN_ORDER.orderId,
       ),
     ),
   );
   await waitFor(() => {
     expect(
-      renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.SCREEN),
+      renderResult.getByTestId(RecurringOrderDetailsViewSelectorsIDs.SCREEN),
     ).toBeOnTheScreen();
   });
 }
 
-describeForPlatforms('RecurringJobDetailsView', () => {
-  it('dismisses cancel confirmation without changing the in-progress Job', async () => {
-    const renderResult = renderBridgeViewWithRecurringJobDetails();
-    await openInProgressJobDetails(renderResult);
+describeForPlatforms('RecurringOrderDetailsView', () => {
+  it('dismisses cancel confirmation without changing the in-progress order', async () => {
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
 
     expect(
       renderResult.queryByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
       ),
     ).not.toBeOnTheScreen();
 
     await userEvent.press(
       renderResult.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
       ),
     );
 
     const cancelSheet = await renderResult.findByTestId(
-      RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET,
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
     );
     const cancelSheetScope = within(cancelSheet);
     expect(
@@ -67,102 +67,104 @@ describeForPlatforms('RecurringJobDetailsView', () => {
     ).toBeOnTheScreen();
     expect(
       cancelSheetScope.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
       ),
     ).toBeOnTheScreen();
     expect(
       cancelSheetScope.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
       ),
     ).toBeOnTheScreen();
 
     await userEvent.press(
       cancelSheetScope.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
       ),
     );
 
     await waitFor(() => {
       expect(
         renderResult.queryByTestId(
-          RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET,
+          RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
         ),
       ).not.toBeOnTheScreen();
     });
 
     await userEvent.press(
       renderResult.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
       ),
     );
     await userEvent.press(
       await renderResult.findByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
       ),
     );
 
     await waitFor(() => {
       expect(
         renderResult.queryByTestId(
-          RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET,
+          RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
         ),
       ).not.toBeOnTheScreen();
     });
     expect(
       renderResult.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
       ),
     ).toBeOnTheScreen();
     expect(
       renderResult.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.FILLED_VALUE,
+        RecurringOrderDetailsViewSelectorsIDs.FILLED_VALUE,
       ),
     ).toHaveTextContent(
-      `${MOCK_RECURRING_OPEN_JOB.filledAmount} / ${MOCK_RECURRING_OPEN_JOB.totalSourceAmount} (40%)`,
+      `${MOCK_RECURRING_OPEN_ORDER.filledAmount} / ${MOCK_RECURRING_OPEN_ORDER.totalSourceAmount} (40%)`,
     );
-    for (const order of MOCK_RECURRING_OPEN_JOB.orders) {
+    for (const swap of MOCK_RECURRING_OPEN_ORDER.swaps) {
       expect(
         renderResult.getByTestId(
-          RecurringJobDetailsViewSelectorsIDs.HISTORY_ROW(order.orderId),
+          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId),
         ),
       ).toBeOnTheScreen();
     }
   });
 
-  it('returns from a missing Job fallback without showing actions', async () => {
-    const renderResult = renderRecurringJobDetailsView({
-      jobId: 'unknown-recurring-job',
+  it('returns from a missing order fallback without showing actions', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      orderId: 'unknown-recurring-order',
     });
 
     await userEvent.press(
       renderResult.getByTestId(
-        RecurringJobDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
       ),
     );
 
     expect(
       await renderResult.findByTestId(
-        RecurringJobDetailsViewSelectorsIDs.NOT_FOUND,
+        RecurringOrderDetailsViewSelectorsIDs.NOT_FOUND,
       ),
     ).toHaveTextContent(strings('bridge.recurring.order_not_found'));
     expect(
       renderResult.queryByTestId(
-        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
       ),
     ).not.toBeOnTheScreen();
     expect(
       renderResult.queryByTestId(
-        RecurringJobDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
     ).not.toBeOnTheScreen();
 
     await userEvent.press(
-      renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.BACK_BUTTON),
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.BACK_BUTTON,
+      ),
     );
 
     expect(
       await renderResult.findByTestId(
-        RecurringJobDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
       ),
     ).toBeOnTheScreen();
   });
