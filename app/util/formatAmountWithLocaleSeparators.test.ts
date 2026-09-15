@@ -1,7 +1,7 @@
 import { formatAmountWithLocaleSeparators } from './formatAmountWithLocaleSeparators';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { getIntlNumberFormatter } from './intl';
 
-jest.mock('../../../../util/intl', () => ({
+jest.mock('./intl', () => ({
   getIntlNumberFormatter: jest.fn(),
 }));
 

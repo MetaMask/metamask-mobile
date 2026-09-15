@@ -1,15 +1,12 @@
 import {
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
-  IconName,
+  Box,
+  HelpTextSeverity,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import InputStepper from '../../../../../component-library/components-temp/InputStepper';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -19,7 +16,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
   PERPS_SLIPPAGE_MAX_BPS,
@@ -29,7 +25,6 @@ import {
   percentToBps,
 } from '../../constants/slippageConfig';
 import { PerpsCustomSlippageBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import { createStyles } from './PerpsCustomSlippageBottomSheet.styles';
 
 interface PerpsCustomSlippageBottomSheetProps {
   isVisible: boolean;
@@ -56,10 +51,7 @@ function clampToRange(pct: number): number {
 const PerpsCustomSlippageBottomSheet: React.FC<
   PerpsCustomSlippageBottomSheetProps
 > = ({ isVisible, currentValueBps, onClose, onSave }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const cursorOpacity = useRef(new Animated.Value(1)).current;
 
   const [draftValue, setDraftValue] = useState<string>(
     bpsToPercent(currentValueBps).toString(),
@@ -69,30 +61,8 @@ const PerpsCustomSlippageBottomSheet: React.FC<
     if (isVisible) {
       setDraftValue(bpsToPercent(currentValueBps).toString());
       bottomSheetRef.current?.onOpenBottomSheet();
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(cursorOpacity, {
-            toValue: 0,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(cursorOpacity, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    } else {
-      cursorOpacity.stopAnimation();
-      cursorOpacity.setValue(1);
     }
-    // Stop the cursor animation when the component unmounts so the loop does
-    // not keep running on an orphaned Animated.Value.
-    return () => {
-      cursorOpacity.stopAnimation();
-    };
-  }, [isVisible, currentValueBps, cursorOpacity]);
+  }, [isVisible, currentValueBps]);
 
   const parsedDraft = Number.parseFloat(draftValue);
   const draftIsEmpty = draftValue.trim() === '' || draftValue === '.';
@@ -158,54 +128,38 @@ const PerpsCustomSlippageBottomSheet: React.FC<
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.container}>
-        <View
-          style={styles.displayRow}
+      <Box paddingHorizontal={4} paddingTop={6} paddingBottom={4}>
+        <InputStepper
+          value={draftValue}
+          onDecrease={handleDecrement}
+          onIncrease={handleIncrement}
+          minAmount={MIN_PCT}
+          maxAmount={MAX_PCT}
+          postValue="%"
           testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DISPLAY}
-        >
-          <ButtonIcon
-            iconName={IconName.Minus}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            onPress={handleDecrement}
-            isDisabled={draftIsFiniteNumber && parsedDraft <= MIN_PCT + 1e-9}
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DECREMENT}
-            accessibilityLabel={strings('perps.slippage.decrement_label')}
-          />
-          <View style={styles.displayCenter}>
-            <Text style={styles.displayValue}>{draftValue || '0'}</Text>
-            <Animated.View
-              style={[styles.cursor, { opacity: cursorOpacity }]}
-            />
-            <Text style={styles.displaySuffix}>%</Text>
-          </View>
-          <ButtonIcon
-            iconName={IconName.Add}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            onPress={handleIncrement}
-            isDisabled={draftIsFiniteNumber && parsedDraft >= MAX_PCT - 1e-9}
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.INCREMENT}
-            accessibilityLabel={strings('perps.slippage.increment_label')}
-          />
-        </View>
-
-        {showError && (
-          <Text
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR}
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={styles.errorText}
-          >
-            {strings('perps.slippage.out_of_range', {
-              min: `${MIN_PCT}`,
-              max: `${MAX_PCT}`,
-            })}
-          </Text>
-        )}
-
-        <View
-          style={styles.keypadContainer}
+          decreaseButtonProps={{
+            testID: PerpsCustomSlippageBottomSheetSelectorsIDs.DECREMENT,
+            accessibilityLabel: strings('perps.slippage.decrement_label'),
+          }}
+          increaseButtonProps={{
+            testID: PerpsCustomSlippageBottomSheetSelectorsIDs.INCREMENT,
+            accessibilityLabel: strings('perps.slippage.increment_label'),
+          }}
+          description={
+            showError
+              ? {
+                  message: strings('perps.slippage.out_of_range', {
+                    min: `${MIN_PCT}`,
+                    max: `${MAX_PCT}`,
+                  }),
+                  severity: HelpTextSeverity.Danger,
+                  testID: PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR,
+                }
+              : undefined
+          }
+        />
+        <Box
+          marginTop={8}
           testID={PerpsCustomSlippageBottomSheetSelectorsIDs.KEYPAD}
         >
           <Keypad
@@ -214,8 +168,8 @@ const PerpsCustomSlippageBottomSheet: React.FC<
             currency="USD_PERPS"
             decimals={1}
           />
-        </View>
-      </View>
+        </Box>
+      </Box>
 
       <BottomSheetFooter buttonPropsArray={footerButtonProps} />
     </BottomSheet>
