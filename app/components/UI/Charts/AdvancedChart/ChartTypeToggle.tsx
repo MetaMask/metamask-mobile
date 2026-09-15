@@ -1,6 +1,4 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
@@ -8,6 +6,10 @@ import {
   Icon,
   IconName,
   IconSize,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
 } from '@metamask/design-system-react-native';
 import { ChartType } from './AdvancedChart.types';
 
@@ -26,8 +28,6 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
   onChartTypeSelect,
   containerTwClassName = DEFAULT_CONTAINER_CLASS,
 }) => {
-  const tw = useTailwind();
-
   if (!onChartTypeSelect) return null;
 
   return (
@@ -36,52 +36,19 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
       alignItems={BoxAlignItems.Center}
       twClassName={containerTwClassName}
     >
-      <Pressable
-        style={({ pressed }) =>
-          tw.style(
-            'items-center justify-center rounded-full px-2 py-1',
-            chartType === ChartType.Line && 'bg-background-hover',
-            pressed && 'opacity-70',
-          )
-        }
-        onPress={() => onChartTypeSelect(ChartType.Line)}
-        accessibilityRole="button"
-        accessibilityLabel="Line chart"
-        accessibilityState={{ selected: chartType === ChartType.Line }}
+      <FilterButtonGroup
+        value={chartType}
+        onChange={(value) => onChartTypeSelect(value as ChartType)}
+        variant={FilterButtonVariant.Primary}
+        twClassName="rounded-lg"
       >
-        <Icon
-          name={IconName.Diagram}
-          size={IconSize.Sm}
-          twClassName={
-            chartType === ChartType.Line
-              ? 'text-icon-default'
-              : 'text-icon-alternative'
-          }
-        />
-      </Pressable>
-      <Pressable
-        style={({ pressed }) =>
-          tw.style(
-            'items-center justify-center rounded-full px-2 py-1',
-            chartType === ChartType.Candles && 'bg-background-hover',
-            pressed && 'opacity-70',
-          )
-        }
-        onPress={() => onChartTypeSelect(ChartType.Candles)}
-        accessibilityRole="button"
-        accessibilityLabel="Candlestick chart"
-        accessibilityState={{ selected: chartType === ChartType.Candles }}
-      >
-        <Icon
-          name={IconName.Candlestick}
-          size={IconSize.Sm}
-          twClassName={
-            chartType === ChartType.Candles
-              ? 'text-icon-default'
-              : 'text-icon-alternative'
-          }
-        />
-      </Pressable>
+        <FilterButton value={ChartType.Line} size={FilterButtonSize.Sm}>
+          <Icon name={IconName.Diagram} size={IconSize.Sm} />
+        </FilterButton>
+        <FilterButton value={ChartType.Candles} size={FilterButtonSize.Sm}>
+          <Icon name={IconName.Candlestick} size={IconSize.Sm} />
+        </FilterButton>
+      </FilterButtonGroup>
     </Box>
   );
 };
