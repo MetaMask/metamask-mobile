@@ -2,6 +2,17 @@ import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import type { CardTransactionAmount } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
+export function formatNetworkFeeLabel(
+  feeAmount?: CardTransactionAmount,
+): string | undefined {
+  if (!feeAmount) {
+    return undefined;
+  }
+  const num = parseFloat(feeAmount.value);
+  const formatted = Number.isFinite(num) ? num.toFixed(2) : feeAmount.value;
+  return `${formatted} ${feeAmount.currency}`;
+}
+
 export function formatCardAmount(
   amount: CardTransactionAmount,
   isDebit?: boolean,

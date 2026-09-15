@@ -46,6 +46,7 @@ import {
   formatCardTransactionStatus,
 } from '../../../Card/utils/cardTransactionDisplayInfo';
 import { getCardDeclineReasonLabel } from '../../../Card/utils/moneyAccountCardTransaction';
+import { formatNetworkFeeLabel } from '../../../Card/utils/cardTransactionAmount';
 import CardTransactionDetailsContent from '../../../Card/components/CardTransactionDetailsContent/CardTransactionDetailsContent';
 import {
   CardTransactionStatus,
@@ -244,17 +245,6 @@ function MoneyCardDetailsContent({
       onViewOnExplorer={onViewOnExplorer}
     />
   );
-}
-
-function formatNetworkFeeLabel(
-  feeAmount?: CardTransaction['feeAmount'],
-): string | undefined {
-  if (!feeAmount) {
-    return undefined;
-  }
-  const num = parseFloat(feeAmount.value);
-  const formatted = Number.isFinite(num) ? num.toFixed(2) : feeAmount.value;
-  return `${formatted} ${feeAmount.currency}`;
 }
 
 function MoneyDeclinedCardDetailsContent({

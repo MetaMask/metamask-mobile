@@ -31,7 +31,10 @@ import {
   getCardTransactionHeroCopy,
   getCardTransactionStatusColor,
 } from '../../utils/cardTransactionDisplayInfo';
-import { formatCardAmount } from '../../utils/cardTransactionAmount';
+import {
+  formatCardAmount,
+  formatNetworkFeeLabel,
+} from '../../utils/cardTransactionAmount';
 import { getMerchantCategoryLabel } from '../../utils/merchantCategoryLabel';
 import { getCardTransactionHeroToken } from '../../utils/getCardTransactionHeroToken';
 import { getCardDeclineReasonLabel } from '../../utils/moneyAccountCardTransaction';
@@ -172,15 +175,10 @@ const CardTransactionDetails = () => {
     [transaction, fundingToken, primaryToken],
   );
 
-  const networkFeeLabel = useMemo(() => {
-    const fee = transaction?.feeAmount;
-    if (!fee) {
-      return undefined;
-    }
-    const num = parseFloat(fee.value);
-    const formatted = Number.isFinite(num) ? num.toFixed(2) : fee.value;
-    return `${formatted} ${fee.currency}`;
-  }, [transaction?.feeAmount]);
+  const networkFeeLabel = useMemo(
+    () => formatNetworkFeeLabel(transaction?.feeAmount),
+    [transaction?.feeAmount],
+  );
 
   const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
   const displayTransactionId = transaction?.reference ?? transaction?.id;
