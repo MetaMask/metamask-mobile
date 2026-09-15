@@ -24,19 +24,35 @@ export type EarnExperienceType = EARN_EXPERIENCES | 'MONEY_ACCOUNT_DEPOSIT';
 
 export type EarnAssetRole = 'funding' | 'underlying' | 'output';
 
+export type EarnExperienceDepositNotReadyReason =
+  | 'output_asset'
+  // The asset is not tracked by the selected account.
+  | 'asset_not_tracked'
+  // The asset is tracked, but its balance or fiat valuation is unavailable.
+  | 'balance_unavailable'
+  // The balance is known, but is below the minimum required deposit amount.
+  | 'insufficient_balance';
+
+export type EarnExperienceDepositReadiness =
+  | {
+      status: 'ready';
+    }
+  | {
+      status: 'not_ready';
+      reason: EarnExperienceDepositNotReadyReason;
+    };
+
 export interface EarnExperience {
   id: string;
   type: EarnExperienceType;
   role: EarnAssetRole;
+  depositReadiness: EarnExperienceDepositReadiness;
   rate: EarnRate;
   isFeeSubsidized: boolean;
   market?: LendingMarket;
 }
 
-/**
- * Metadata for an Earn opportunity that is not present in the selected
- * account's AssetsController state.
- */
+/** Normalized metadata for an Earn opportunity. */
 export interface EarnAssetMetadata {
   address: string;
   chainId: string;
@@ -51,19 +67,18 @@ export interface EarnAssetMetadata {
   isStaked?: boolean;
 }
 
-interface EarnAssetBase {
-  assetId: EarnAssetId;
-  experiences: readonly EarnExperience[];
-}
+export type EarnAssetWalletState =
+  | {
+      readonly status: 'tracked';
+      readonly asset: Asset;
+    }
+  | {
+      readonly status: 'untracked';
+    };
 
-export interface HeldEarnAsset extends EarnAssetBase {
-  kind: 'held';
-  asset: Asset;
+export interface EarnAsset {
+  readonly assetId: EarnAssetId;
+  readonly metadata: EarnAssetMetadata;
+  readonly wallet: EarnAssetWalletState;
+  readonly experiences: readonly EarnExperience[];
 }
-
-export interface DiscoveryEarnAsset extends EarnAssetBase {
-  kind: 'discovery';
-  metadata: EarnAssetMetadata;
-}
-
-export type EarnAsset = HeldEarnAsset | DiscoveryEarnAsset;

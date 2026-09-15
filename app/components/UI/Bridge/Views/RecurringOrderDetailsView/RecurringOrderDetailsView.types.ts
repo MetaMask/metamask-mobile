@@ -1,28 +1,28 @@
 import type { BridgeToken } from '../../types';
 
-export enum RecurringJobStatus {
+export enum RecurringOrderStatus {
   InProgress = 'inProgress',
   Completed = 'completed',
   Cancelled = 'cancelled',
 }
 
-export enum RecurringOrderStatus {
+export enum RecurringSwapStatus {
   Warning = 'warning',
   Failed = 'failed',
   Filled = 'filled',
 }
 
-export interface RecurringOrder {
-  orderId: string;
-  status: RecurringOrderStatus;
+export interface RecurringSwap {
+  swapId: string;
+  status: RecurringSwapStatus;
   statusLabel: string;
   receivedAmount: string;
   spentAmount: string;
 }
 
-export interface RecurringJob {
-  jobId: string;
-  status: RecurringJobStatus;
+export interface RecurringOrder {
+  orderId: string;
+  status: RecurringOrderStatus;
   sourceToken: BridgeToken;
   destinationToken: BridgeToken;
   filledAmount: string;
@@ -34,11 +34,11 @@ export interface RecurringJob {
   averageExecutionPrice: string;
   startDate: string;
   endDate: string;
-  orders: RecurringOrder[];
+  swaps: RecurringSwap[];
 }
 
-export interface RecurringJobDetailsRouteParams {
-  jobId: string;
+export interface RecurringOrderDetailsRouteParams {
+  orderId: string;
 }
 
-export type OnRecurringJobPress = (jobId: string) => void;
+export type OnRecurringOrderPress = (orderId: string) => void;
