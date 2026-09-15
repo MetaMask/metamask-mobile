@@ -371,14 +371,28 @@ describe('captureSentryFeedback', () => {
       collectibles: { favorites: {}, isNftFetchingProgress: false },
       engine: {
         backgroundState: {
-          AccountTrackerController: {
-            accountsByChainId: {
-              '0x1': {
-                '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
-                  balance: '0x0',
-                },
+          // `AccountTrackerController`/`CurrencyRateController` no longer exist
+          // in `EngineState`; `AssetsController` is now the sole source of
+          // asset/balance/price data and `sentryStateMask` masks it entirely
+          // (see `AssetsController: { [AllProperties]: false }` above).
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
               },
             },
+            assetsBalance: {
+              '1be55f5b-eba9-41a7-a9ed-a6a8274aca27': {
+                'eip155:1/slip44:60': { amount: '0' },
+              },
+            },
+            assetsPrice: {},
+            customAssets: {},
+            assetPreferences: {},
           },
           AccountsController: {
             internalAccounts: {
@@ -432,16 +446,6 @@ describe('captureSentryFeedback', () => {
             approvalFlows: [],
             pendingApprovalCount: 0,
             pendingApprovals: {},
-          },
-          CurrencyRateController: {
-            currencyRates: {
-              ETH: {
-                conversionDate: 1720196397083,
-                conversionRate: 298514,
-                usdConversionRate: 298514,
-              },
-            },
-            currentCurrency: 'usd',
           },
           GasFeeController: {
             estimatedGasFeeTimeBounds: {},

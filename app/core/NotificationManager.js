@@ -22,6 +22,7 @@ import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 import TransactionTypes from './TransactionTypes';
 import { getNotificationSkipPredicates } from './notificationSkipPredicates';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -284,39 +285,38 @@ class NotificationManager {
             assetType: originalTransaction.assetType,
           },
         });
-        const {
-          TokenBalancesController,
-          TokenDetectionController,
-          AccountTrackerController,
-          NetworkController,
-        } = Engine.context;
+        const { AssetsController, AccountsController } = Engine.context;
 
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          transactionMeta.chainId,
+        // Force-refresh balances and detected tokens for the affected chain
+        // right after a transaction was confirmed. AssetsController is the
+        // sole source of truth for asset balances and detection.
+        const senderAccount = AccountsController.getAccountByAddress(
+          transactionMeta.txParams.from,
         );
-        // account balances for ETH txs
-        // Detect assets and tokens for ERC20 txs
-        // Detect assets for ERC721 txs
-        // right after a transaction was confirmed
-        const pollPromises = [
-          AccountTrackerController.refresh([networkClientId]),
-          TokenBalancesController.updateBalances({
-            chainIds: [transactionMeta.chainId],
-          }),
-        ];
-        switch (originalTransaction.assetType) {
-          case 'ERC20': {
-            pollPromises.push(
-              ...[
-                TokenDetectionController.detectTokens({
-                  chainIds: [transactionMeta.chainId],
-                }),
-              ],
+        if (senderAccount) {
+          try {
+            const caipChainId = toEvmCaipChainId(transactionMeta.chainId);
+            AssetsController.getAssets([senderAccount], {
+              forceUpdate: true,
+              chainIds: [caipChainId],
+            }).catch((error) => {
+              Logger.error(
+                error,
+                'Failed to refresh assets after transaction',
+              );
+            });
+          } catch (error) {
+            // transactionMeta.chainId can be missing/malformed on legacy or
+            // partially-hydrated transaction metadata; toEvmCaipChainId
+            // throws synchronously in that case, and this callback also
+            // runs endTrace/ReviewManager/listener cleanup below, so a
+            // throw here must never be allowed to skip them.
+            Logger.error(
+              error,
+              'Failed to build CAIP chain ID for post-transaction asset refresh',
             );
-            break;
           }
         }
-        Promise.all(pollPromises);
         endTrace({
           name: TraceName.TransactionConfirmed,
           data: {
