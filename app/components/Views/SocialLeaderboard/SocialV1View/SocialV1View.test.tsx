@@ -73,6 +73,16 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: () => mockPlaySelection(),
 }));
 
+jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'top-traders-view' }),
+  };
+});
+
 jest.mock(
   '../../../../util/notifications/services/NotificationService',
   () => ({
@@ -151,7 +161,7 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
   });
 
-  it('renders each tab subnav over an empty scroll surface', () => {
+  it('renders every tab subnav', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
@@ -166,6 +176,18 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(getSubnavPillTestId('topTraders')),
     ).toBeOnTheScreen();
+  });
+
+  it('mounts the leaderboard list once the Leaderboard tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
 
   it('renders the three mocked position cards on Feed', () => {
