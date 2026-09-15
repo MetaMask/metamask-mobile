@@ -28,6 +28,21 @@ export function showRecurringOrderCreatedToast(): void {
   });
 }
 
+export function showRecurringOrderCanceledToast(): void {
+  ToastService.showToast({
+    variant: ToastVariants.Icon,
+    iconName: IconName.Confirmation,
+    iconColor: IconColor.SuccessDefault,
+    hasNoTimeout: false,
+    labelOptions: [
+      {
+        label: strings('bridge.recurring.order_canceled_toast_title'),
+        isBold: true,
+      },
+    ],
+  });
+}
+
 export function showRecurringAutoUpgradeError(error: unknown): void {
   log('Recurring account upgrade error placeholder', error);
 }
