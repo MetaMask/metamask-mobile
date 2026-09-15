@@ -337,16 +337,7 @@ function TradeWalletActions() {
     <>
       {shouldRenderBatchSell && (
         <ActionListItem
-          label={
-            <View style={tw.style('flex-row items-center gap-2')}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.batch_sell')}
-              </Text>
-              <Tag severity={TagSeverity.Info}>
-                {strings('asset_overview.batch_sell_new_label')}
-              </Tag>
-            </View>
-          }
+          label={strings('asset_overview.batch_sell')}
           description={strings('asset_overview.batch_sell_description')}
           iconName={IconName.Merge}
           iconProps={{
