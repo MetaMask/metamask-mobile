@@ -3,8 +3,7 @@ import { strings } from '../../../../../locales/i18n';
 import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import {
-  label_address_from,
-  label_address_to,
+  getSentReceivedModalFields,
   NotificationState,
 } from '../types/NotificationState';
 import {
@@ -64,20 +63,7 @@ const state: NotificationState<ERC20Notification> = {
       title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
-        {
-          type: ModalFieldType.ADDRESS,
-          label: label_address_from(notification),
-          address: notification.payload.data.from,
-        },
-        {
-          type: ModalFieldType.ADDRESS,
-          label: label_address_to(notification),
-          address: notification.payload.data.to,
-        },
-        {
-          type: ModalFieldType.TRANSACTION,
-          txHash: notification.payload.tx_hash,
-        },
+        ...getSentReceivedModalFields(notification),
         {
           type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_asset'),

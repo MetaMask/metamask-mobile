@@ -2,11 +2,11 @@ import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notifi
 import { strings } from '../../../../../locales/i18n';
 import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
 import {
-  getNetworkImageByChainId,
-  getNotificationBadge,
-} from '../../methods/common';
+  createTemplateMenuItem,
+  NotificationState,
+} from '../types/NotificationState';
+import { getNetworkImageByChainId } from '../../methods/common';
 import { getTokenAmount } from '../token-amounts';
 
 type LidoWithdrawalRequestedNotification =
@@ -21,21 +21,11 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
     isLidoWithdrawalRequestedNotification,
     (notification) => !!notification.payload.chain_id,
   ],
-  createMenuItem: (notification) => ({
-    title: notification.template?.title ?? '',
-
-    description: {
-      start: notification.template?.body ?? '',
-    },
-
-    image: {
-      url: notification.payload.data.stake_in.image,
-    },
-
-    badgeIcon: getNotificationBadge(notification.type),
-
-    createdAt: notification.createdAt.toString(),
-  }),
+  createMenuItem: (notification) =>
+    createTemplateMenuItem(
+      notification,
+      notification.payload.data.stake_in.image,
+    ),
   createModalDetails: (notification) => {
     const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 

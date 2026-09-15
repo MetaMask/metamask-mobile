@@ -2,12 +2,11 @@ import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notifi
 import { strings } from '../../../../../locales/i18n';
 import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
 import {
-  formatAmount,
-  getNetworkImageByChainId,
-  getNotificationBadge,
-} from '../../methods/common';
+  createTemplateMenuItem,
+  NotificationState,
+} from '../types/NotificationState';
+import { formatAmount, getNetworkImageByChainId } from '../../methods/common';
 
 type LidoReadyWithDrawnNotification =
   ExtractedNotification<TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN>;
@@ -21,21 +20,11 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
     isLidoReadyWithDrawnNotification,
     (notification) => !!notification.payload.chain_id,
   ],
-  createMenuItem: (notification) => ({
-    title: notification.template?.title ?? '',
-
-    description: {
-      start: notification.template?.body ?? '',
-    },
-
-    image: {
-      url: notification.payload.data.staked_eth.image,
-    },
-
-    badgeIcon: getNotificationBadge(notification.type),
-
-    createdAt: notification.createdAt.toString(),
-  }),
+  createMenuItem: (notification) =>
+    createTemplateMenuItem(
+      notification,
+      notification.payload.data.staked_eth.image,
+    ),
   createModalDetails: (notification) => {
     const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 
