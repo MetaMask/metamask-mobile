@@ -54,13 +54,17 @@ jest.mock('react-native-mmkv', () => {
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
 
-// Mock unstable_batchedUpdates more reliably
-const mockBatchedUpdates = jest.fn((fn) => {
+// Mock unstable_batchedUpdates more reliably.
+// Plain function, NOT jest.fn(): RN 0.86 made `unstable_batchedUpdates`
+// writable so this shim is actually installed, and a jest.fn implementation
+// would be stripped by `jest.resetAllMocks()` in test files, turning every
+// batched callback into a silent no-op.
+const mockBatchedUpdates = (fn) => {
   if (typeof fn === 'function') {
     return fn();
   }
   return fn;
-});
+};
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');

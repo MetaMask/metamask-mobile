@@ -198,13 +198,18 @@ jest.mock('react-native-quick-base64', () => {
   };
 });
 
-// Create a persistent mock function that survives Jest teardown
-const mockBatchedUpdates = jest.fn((fn) => {
+// Create a persistent mock function that survives Jest teardown.
+// Deliberately a plain function, NOT jest.fn(): RN 0.86 made
+// `unstable_batchedUpdates` writable so this shim is now actually installed,
+// and a jest.fn implementation would be stripped by `jest.resetAllMocks()`
+// in test files (e.g. EngineService.test.ts), turning every batched
+// dispatch into a silent no-op.
+const mockBatchedUpdates = (fn) => {
   if (typeof fn === 'function') {
     return fn();
   }
   return fn;
-});
+};
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
