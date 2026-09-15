@@ -29,12 +29,12 @@ export const getFontSizeForInputLength = (contentLength: number) => {
 export const styleSheet = (params: {
   theme: Theme;
   vars: {
-    contentLength: number;
+    inputFontSize: number;
   };
 }) => {
   const {
     theme,
-    vars: { contentLength },
+    vars: { inputFontSize },
   } = params;
   return StyleSheet.create({
     balanceText: {
@@ -62,7 +62,7 @@ export const styleSheet = (params: {
       width: '100%',
     },
     inputText: {
-      fontSize: getFontSizeForInputLength(contentLength),
+      fontSize: inputFontSize,
       lineHeight: 75,
       fontFamily: 'Inter-Medium',
     },
