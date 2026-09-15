@@ -761,6 +761,18 @@ function formatMs(value) {
   return `${Number(value || 0).toFixed(1)} ms`;
 }
 
+/**
+ * Describes which attempt was kept for a scenario that ran several times.
+ * The first attempt carries no retry suffix on disk, so it is named by
+ * position instead of as `retry 0`.
+ */
+function attemptDescription(scenario) {
+  const total = scenario.attempts.length;
+  return scenario.selectedAttempt > 0
+    ? `worst of ${total} attempts: retry ${scenario.selectedAttempt}`
+    : `worst of ${total} attempts: first attempt`;
+}
+
 function topSkillFrame(profile) {
   const audit = profile.skillAudit;
   if (!audit || audit.jsWorkMs <= 0) {
@@ -878,33 +890,44 @@ function buildMarkdown(report) {
     `Run \`${report.meta.runId || 'local'}\`${report.meta.runUrl ? ` — ${report.meta.runUrl}` : ''}`,
     `Scenarios: ${report.scenarios.length}`,
     `Hermes profiles: ${report.meta.profileCount}`,
-    `Symbolicated profiles: ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
+    `Profiles with a matching sourcemap: ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
     `Optional agent context: ${report.meta.ai ? 'included' : 'not included'}`,
     '',
   ];
   lines.push('## Per-scenario skill analysis', '');
   for (const scenario of report.scenarios) {
+    const hasRetries = scenario.attempts.length > 1;
     lines.push(`### ${displayName(scenario.scenario)}`);
+    lines.push('| Metric | Value |', '|---|---:|');
+    if (hasRetries) {
+      lines.push(
+        `| Selected attempt | ${attemptDescription(scenario)} |`,
+        `| Profiles (selected / total) | ${scenario.profileCount} / ${scenario.totalProfileCount} |`,
+      );
+    } else {
+      lines.push(`| Profiles | ${scenario.profileCount} |`);
+    }
     lines.push(
-      '| Metric | Value |',
-      '|---|---:|',
-      `| Selected attempt | retry ${scenario.selectedAttempt} (worst of ${scenario.attempts.length}) |`,
-      `| Profiles (selected / total) | ${scenario.profileCount} / ${scenario.totalProfileCount} |`,
       `| Logical segments | ${scenario.segmentCount} |`,
       `| Capture length | ${formatMs(scenario.captureLengthMs)} |`,
       `| JS work sampled | ${formatMs(scenario.jsWorkMs)} |`,
       `| Runtime / idle / GC | ${formatMs(scenario.runtimeAndIdleMs)} |`,
       `| JS duty cycle | ${scenario.jsDutyPct}% |`,
-      `| Symbolicated (selected retry) | ${scenario.symbolicatedProfiles}/${scenario.profileCount} |`,
+      `| Profiles with a matching sourcemap | ${scenario.symbolicatedProfiles}/${scenario.profileCount} |`,
       '',
-      '| Attempt | Segment | JS work | Runtime / idle / GC | JS duty | Top contributor |',
-      '|---:|---:|---:|---:|---:|---|',
+      hasRetries
+        ? '| Attempt | Segment | JS work | Runtime / idle / GC | JS duty | Top contributor |'
+        : '| Segment | JS work | Runtime / idle / GC | JS duty | Top contributor |',
+      hasRetries
+        ? '|---:|---:|---:|---:|---:|---|'
+        : '|---:|---:|---:|---:|---|',
     );
+    const attemptCell = (profile) => (hasRetries ? `${profile.retry} | ` : '');
     for (const profile of scenario.profiles) {
       const audit = profile.skillAudit;
       if (!audit) {
         lines.push(
-          `| ${profile.retry} | ${profile.segment} | — | — | — | ${profile.reason || 'Unreadable'} |`,
+          `| ${attemptCell(profile)}${profile.segment} | — | — | — | ${profile.reason || 'Unreadable'} |`,
         );
         continue;
       }
@@ -916,7 +939,7 @@ function buildMarkdown(report) {
         ? `\`${top.name}\` (${formatMs(top.selfMs)})`
         : 'None';
       lines.push(
-        `| ${profile.retry} | ${profile.segment} | ${formatMs(audit.jsWorkMs)} | ${formatMs(audit.runtimeAndIdleMs)} | ${duty}% | ${contributor} |`,
+        `| ${attemptCell(profile)}${profile.segment} | ${formatMs(audit.jsWorkMs)} | ${formatMs(audit.runtimeAndIdleMs)} | ${duty}% | ${contributor} |`,
       );
     }
     const highestSignalProfile = scenario.profiles
@@ -961,7 +984,7 @@ function buildSlack(report) {
     '',
     `_Run:_ \`${report.meta.runId || 'local'}\``,
     `_Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount}`,
-    `_Symbolicated:_ ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
+    `_Profiles with a matching sourcemap:_ ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
     '',
     '*Highest-signal scenarios (skill timing)*',
   ];
@@ -980,8 +1003,10 @@ function buildSlack(report) {
           (right.skillAudit?.jsWorkMs || 0) -
           (left.skillAudit?.jsWorkMs || 0),
       )[0];
+    const attemptLabel =
+      scenario.attempts.length > 1 ? `${attemptDescription(scenario)}, ` : '';
     lines.push(
-      `• *${displayName(scenario.scenario)}* — retry ${scenario.selectedAttempt}, avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%, maps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
+      `• *${displayName(scenario.scenario)}* — ${attemptLabel}avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%, sourcemaps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
       `  ${highestSignalProfile ? profileOutcome(highestSignalProfile) : 'No readable skill timing data.'}`,
     );
   }

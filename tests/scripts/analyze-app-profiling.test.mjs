@@ -408,6 +408,76 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
   assert.doesNotMatch(buildSlack(report), /Top sampled frames by scenario/);
 });
 
+test('reports mention a retry only when the scenario had several attempts', () => {
+  const singleAttempt = {
+    meta: { profileCount: 1, symbolicatedProfileCount: 0, ai: false },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile'),
+    ]),
+    aiAnalysis: null,
+  };
+  assert.doesNotMatch(buildSlack(singleAttempt), /retry/);
+  assert.doesNotMatch(buildMarkdown(singleAttempt), /retry/);
+  assert.match(buildSlack(singleAttempt), /sourcemaps 0\/1/);
+
+  const withRetries = {
+    meta: { profileCount: 2, symbolicatedProfileCount: 0, ai: false },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Warm_Start.cpuprofile', {
+        skillAudit: {
+          jsWorkMs: 10,
+          runtimeAndIdleMs: 10,
+          topSwapsFrames: [],
+          topNonSwapsFrames: [],
+        },
+      }),
+      profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+        skillAudit: {
+          jsWorkMs: 30,
+          runtimeAndIdleMs: 10,
+          topSwapsFrames: [],
+          topNonSwapsFrames: [],
+        },
+      }),
+    ]),
+    aiAnalysis: null,
+  };
+  assert.match(buildSlack(withRetries), /worst of 2 attempts: retry 1/);
+  assert.match(
+    buildMarkdown(withRetries),
+    /Selected attempt \| worst of 2 attempts: retry 1/,
+  );
+});
+
+test('a worst first attempt is never labelled retry 0', () => {
+  const report = {
+    meta: { profileCount: 2, symbolicatedProfileCount: 0, ai: false },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Warm_Start.cpuprofile', {
+        skillAudit: {
+          jsWorkMs: 40,
+          runtimeAndIdleMs: 10,
+          topSwapsFrames: [],
+          topNonSwapsFrames: [],
+        },
+      }),
+      profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+        skillAudit: {
+          jsWorkMs: 5,
+          runtimeAndIdleMs: 10,
+          topSwapsFrames: [],
+          topNonSwapsFrames: [],
+        },
+      }),
+    ]),
+    aiAnalysis: null,
+  };
+  assert.equal(report.scenarios[0].selectedAttempt, 0);
+  assert.doesNotMatch(buildSlack(report), /retry 0/);
+  assert.doesNotMatch(buildMarkdown(report), /retry 0/);
+  assert.match(buildSlack(report), /worst of 2 attempts: first attempt/);
+});
+
 test('Slack suppresses frames below five percent of JS work', () => {
   const report = {
     meta: {
