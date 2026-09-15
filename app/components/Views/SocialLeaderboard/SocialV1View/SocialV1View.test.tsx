@@ -219,10 +219,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.PAUSED_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.LIVE_BUTTON),
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
   });
 

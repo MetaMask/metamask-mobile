@@ -5,10 +5,11 @@ import {
   ButtonIcon,
   ButtonIconSize,
   FilterButton,
-  FilterButtonGroup,
   FilterButtonSize,
   FilterButtonVariant,
   IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
@@ -60,8 +61,15 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
     [],
   );
 
-  const handleStreamChange = useCallback((next: string) => {
-    setStreamState(next as LiveStreamState);
+  const isLive = streamState === 'live';
+  const streamLabel = strings(
+    isLive
+      ? 'social_leaderboard.feed.live_stream.live'
+      : 'social_leaderboard.feed.live_stream.paused',
+  );
+
+  const handleStreamToggle = useCallback(() => {
+    setStreamState((prev) => (prev === 'live' ? 'paused' : 'live'));
   }, []);
 
   return (
@@ -74,27 +82,24 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         alignItems={BoxAlignItems.Center}
       >
         <Box twClassName="flex-1 px-4 py-3">
-          <FilterButtonGroup
-            value={streamState}
-            onChange={handleStreamChange}
+          <FilterButton
+            isSelected
             variant={FilterButtonVariant.Primary}
-            twClassName="gap-2"
+            size={FilterButtonSize.Md}
+            onPress={handleStreamToggle}
+            testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
+            accessibilityLabel={streamLabel}
+            startAccessory={
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-icon-default"
+              >
+                {isLive ? '\u25B6' : '\u23F8'}
+              </Text>
+            }
           >
-            <FilterButton
-              value="paused"
-              size={FilterButtonSize.Md}
-              testID={LiveTradesViewSelectorsIDs.PAUSED_BUTTON}
-            >
-              {strings('social_leaderboard.feed.live_stream.paused')}
-            </FilterButton>
-            <FilterButton
-              value="live"
-              size={FilterButtonSize.Md}
-              testID={LiveTradesViewSelectorsIDs.LIVE_BUTTON}
-            >
-              {strings('social_leaderboard.feed.live_stream.live')}
-            </FilterButton>
-          </FilterButtonGroup>
+            {streamLabel}
+          </FilterButton>
         </Box>
         <Box twClassName="pr-4">
           <ButtonIcon

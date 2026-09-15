@@ -1,5 +1,4 @@
 import React from 'react';
-import { FilterButtonGroup } from '@metamask/design-system-react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import LiveTradesView from './LiveTradesView';
@@ -10,40 +9,40 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('LiveTradesView', () => {
-  it('renders Paused and Live controls above an empty scroll surface', () => {
+  it('renders a single Live stream toggle above an empty scroll surface', () => {
     renderWithProvider(<LiveTradesView />);
 
     expect(
       screen.getByTestId(LiveTradesViewSelectorsIDs.SCROLL_VIEW),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.PAUSED_BUTTON),
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.LIVE_BUTTON),
+      screen.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByText('social_leaderboard.feed.live_stream.paused'),
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
   });
 
-  it('defaults the stream control to Live', () => {
-    const { UNSAFE_getByType } = renderWithProvider(<LiveTradesView />);
-
-    expect(UNSAFE_getByType(FilterButtonGroup).props.value).toBe('live');
-  });
-
-  it('selects Paused without calling onOpenFilters', () => {
+  it('toggles from Live to Paused without calling onOpenFilters', () => {
     const onOpenFilters = jest.fn();
-    const { UNSAFE_getByType } = renderWithProvider(
-      <LiveTradesView onOpenFilters={onOpenFilters} />,
-    );
+    renderWithProvider(<LiveTradesView onOpenFilters={onOpenFilters} />);
 
     fireEvent.press(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.PAUSED_BUTTON),
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     );
 
-    expect(UNSAFE_getByType(FilterButtonGroup).props.value).toBe('paused');
+    expect(
+      screen.getByText('social_leaderboard.feed.live_stream.paused'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText('social_leaderboard.feed.live_stream.live'),
+    ).not.toBeOnTheScreen();
     expect(onOpenFilters).not.toHaveBeenCalled();
   });
 
