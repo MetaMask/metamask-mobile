@@ -1,9 +1,10 @@
 # Ad-hoc per-scenario app profiling analysis
 #
 # Downloads Hermes CPU profiles from a scheduled performance E2E run, groups
-# every segment and retry by scenario, then asks Claude to review the sampled
-# JavaScript stacks. BrowserStack app-profiling metrics are intentionally not
-# used.
+# every segment and retry by scenario, symbolicates with verified same-run
+# Android sourcemaps when available, then emits deterministic skill timing.
+# Claude adds optional short context only. BrowserStack app-profiling metrics
+# are intentionally not used.
 #
 # Ad-hoc only for now. Does not replace the 6-hour performance suite or the
 # weekly rollup automation.
@@ -26,6 +27,7 @@ on:
       - labeled
     paths:
       - '.github/workflows/analyze-app-profiling.yml'
+      - '.github/workflows/build-android-upload-to-browserstack.yml'
       - 'tests/scripts/analyze-app-profiling.mjs'
       - 'tests/scripts/analyze-app-profiling.test.mjs'
   workflow_dispatch:

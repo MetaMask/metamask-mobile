@@ -7,6 +7,10 @@ import {
   parseArgs,
   resolveLatestRun,
   findHermesProfiles,
+  findAndroidSourcemaps,
+  sourcemapVariant,
+  profileSourcemapVariant,
+  selectSourcemap,
   findSkillAnalyzer,
   runSkillAnalyzer,
   parseProfileFileName,
@@ -124,12 +128,72 @@ test('runSkillAnalyzer compacts canonical skill timing output', () => {
       topContext: []
     }));`,
   );
-  const audit = runSkillAnalyzer('/tmp/profile.cpuprofile', analyzer);
+  const audit = runSkillAnalyzer('/tmp/profile.cpuprofile', analyzer, {
+    symbolicated: true,
+  });
   assert.equal(audit.analyzer, 'mms-swaps-cpu-profile-audit');
   assert.equal(audit.jsWorkMs, 600);
   assert.equal(audit.runtimeAndIdleMs, 400);
   assert.equal(audit.topSwapsFrames[0].selfMs, 100);
   assert.equal(audit.caveat, null);
+});
+
+test('findAndroidSourcemaps finds only Android map files', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sourcemap-find-'));
+  fs.mkdirSync(path.join(root, 'android-sourcemaps-main-e2e-bs-with-srp'), {
+    recursive: true,
+  });
+  fs.mkdirSync(path.join(root, 'ios-sourcemaps'), { recursive: true });
+  const androidMap = path.join(
+    root,
+    'android-sourcemaps-main-e2e-bs-with-srp',
+    'index.android.bundle.map',
+  );
+  fs.writeFileSync(androidMap, '{}');
+  fs.writeFileSync(path.join(root, 'ios-sourcemaps', 'index.js.map'), '{}');
+  assert.deepEqual(findAndroidSourcemaps(root), [androidMap]);
+});
+
+test('selectSourcemap keeps onboarding and imported-wallet variants separate', () => {
+  const maps = [
+    '/maps/index.android.bundle.with-srp.map',
+    '/maps/index.android.bundle.without-srp.map',
+  ];
+  assert.equal(sourcemapVariant(maps[0]), 'with-srp');
+  assert.equal(sourcemapVariant(maps[1]), 'without-srp');
+  assert.equal(
+    profileSourcemapVariant(
+      '/profiles/browserstack-android-Warm_Start.cpuprofile',
+    ),
+    'with-srp',
+  );
+  assert.equal(
+    selectSourcemap(
+      '/profiles/android-onboarding-Cold_Start.cpuprofile',
+      maps,
+    ),
+    maps[1],
+  );
+  assert.equal(
+    selectSourcemap(
+      '/profiles/browserstack-android-Warm_Start.cpuprofile',
+      maps,
+    ),
+    maps[0],
+  );
+});
+
+test('selectSourcemap rejects ambiguous matching maps', () => {
+  assert.equal(
+    selectSourcemap(
+      '/profiles/browserstack-android-Warm_Start.cpuprofile',
+      [
+        '/maps/one/index.android.bundle.with-srp.map',
+        '/maps/two/index.android.bundle.with-srp.map',
+      ],
+    ),
+    null,
+  );
 });
 
 test('parseProfileFileName treats plain file as logical segment 1', () => {
@@ -267,6 +331,7 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
       runId: '1',
       runUrl: 'https://example.com/run',
       profileCount: 1,
+      symbolicatedProfileCount: 0,
       ai: false,
     },
     scenarios: groupProfiles([
@@ -287,5 +352,8 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
     /HARD RULE: every profile lacks matching sourcemaps/,
   );
   assert.match(buildMarkdown(report), /BrowserStack app-profiling metrics are excluded/);
+  assert.match(buildMarkdown(report), /Per-scenario skill analysis/);
+  assert.match(buildMarkdown(report), /JS duty cycle/);
   assert.match(buildSlack(report), /Hermes CPU sampling only/);
+  assert.doesNotMatch(buildSlack(report), /Top sampled frames by scenario/);
 });

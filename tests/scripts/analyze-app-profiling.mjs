@@ -211,6 +211,92 @@ function downloadArtifactPattern(runId, pattern, destination, repo) {
   }
 }
 
+function findAndroidSourcemaps(directory, output = []) {
+  if (!directory || !fs.existsSync(directory)) {
+    return output;
+  }
+  for (const entry of fs.readdirSync(directory)) {
+    const fullPath = path.join(directory, entry);
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      findAndroidSourcemaps(fullPath, output);
+    } else if (
+      entry.endsWith('.map') &&
+      fullPath.toLowerCase().includes('android')
+    ) {
+      output.push(fullPath);
+    }
+  }
+  return output.sort();
+}
+
+function sourcemapVariant(filePath) {
+  const normalized = filePath.toLowerCase();
+  if (normalized.includes('without-srp')) {
+    return 'without-srp';
+  }
+  if (normalized.includes('with-srp')) {
+    return 'with-srp';
+  }
+  return null;
+}
+
+function profileSourcemapVariant(profilePath) {
+  const { project } = parseProfileFileName(profilePath);
+  if (project.startsWith('android-onboarding')) {
+    return 'without-srp';
+  }
+  if (project === 'browserstack-android') {
+    return 'with-srp';
+  }
+  return null;
+}
+
+function selectSourcemap(profilePath, sourcemaps) {
+  const requiredVariant = profileSourcemapVariant(profilePath);
+  if (!requiredVariant) {
+    return null;
+  }
+  const matches = sourcemaps.filter(
+    (filePath) => sourcemapVariant(filePath) === requiredVariant,
+  );
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function convertProfile(profilePath, sourcemapPath, outputDirectory) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  const result = spawnSync(
+    'yarn',
+    [
+      'react-native-release-profiler',
+      '--local',
+      path.resolve(profilePath),
+      '--sourcemap-path',
+      path.resolve(sourcemapPath),
+    ],
+    {
+      cwd: outputDirectory,
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      (result.stderr ||
+        result.stdout ||
+        `profile conversion failed for ${profilePath}`).trim(),
+    );
+  }
+  const convertedPath = path.join(
+    outputDirectory,
+    `${path.basename(profilePath, '.cpuprofile')}-converted.json`,
+  );
+  if (!fs.existsSync(convertedPath)) {
+    throw new Error(`profile converter did not create ${convertedPath}`);
+  }
+  return convertedPath;
+}
+
 function findSkillAnalyzer(repoRoot = process.cwd()) {
   for (const candidate of SKILL_ANALYZER_CANDIDATES) {
     const fullPath = path.join(repoRoot, candidate);
@@ -247,7 +333,7 @@ function compactSkillFrame(frame) {
  * Its timing model (sample deltas, runtime/idle exclusion, self vs inclusive)
  * is the canonical evidence used by the AI reasoning pass.
  */
-function runSkillAnalyzer(profilePath, analyzerPath) {
+function runSkillAnalyzer(profilePath, analyzerPath, { symbolicated = false } = {}) {
   const result = spawnSync(
     process.execPath,
     [analyzerPath, '--profile', profilePath, '--json', '--top', '20'],
@@ -299,10 +385,9 @@ function runSkillAnalyzer(profilePath, analyzerPath) {
     topNonSwapsFrames: (audit.topContext || [])
       .slice(0, 15)
       .map(compactSkillFrame),
-    caveat:
-      (audit.topInScope || []).length === 0
-        ? 'No matching source map was available; ownership and file/line attribution are unreliable.'
-        : null,
+    caveat: symbolicated
+      ? null
+      : 'No verified matching source map was available; ownership and file/line attribution are unreliable.',
   };
 }
 
@@ -466,7 +551,11 @@ function summarizeHermesProfile(profile) {
   };
 }
 
-function loadProfile(filePath, skillAnalyzerPath) {
+function loadProfile(
+  filePath,
+  skillAnalyzerPath,
+  { analysisPath = filePath, sourcemapPath = null } = {},
+) {
   const stat = fs.statSync(filePath);
   const metadata = parseProfileFileName(filePath);
   if (stat.size > MAX_PROFILE_BYTES) {
@@ -480,7 +569,12 @@ function loadProfile(filePath, skillAnalyzerPath) {
     return {
       ...metadata,
       skipped: false,
-      skillAudit: runSkillAnalyzer(filePath, skillAnalyzerPath),
+      analysisPath,
+      sourcemapPath,
+      symbolicated: Boolean(sourcemapPath),
+      skillAudit: runSkillAnalyzer(analysisPath, skillAnalyzerPath, {
+        symbolicated: Boolean(sourcemapPath),
+      }),
       ...summarizeHermesProfile(JSON.parse(fs.readFileSync(filePath, 'utf8'))),
     };
   } catch (error) {
@@ -555,6 +649,21 @@ function groupProfiles(profiles, scenarioFilter = null) {
           left.fileName.localeCompare(right.fileName),
       );
       const usable = group.profiles.filter((profile) => !profile.skipped);
+      const captureLengthMs = usable.reduce(
+        (total, profile) =>
+          total + (profile.skillAudit?.captureLengthMs || 0),
+        0,
+      );
+      const jsWorkMs = usable.reduce(
+        (total, profile) => total + (profile.skillAudit?.jsWorkMs || 0),
+        0,
+      );
+      const runtimeAndIdleMs = usable.reduce(
+        (total, profile) =>
+          total + (profile.skillAudit?.runtimeAndIdleMs || 0),
+        0,
+      );
+      const sampledMs = jsWorkMs + runtimeAndIdleMs;
       return {
         projectName: group.projectName,
         scenario: group.scenario,
@@ -593,6 +702,16 @@ function groupProfiles(profiles, scenarioFilter = null) {
             .reduce((total, profile) => total + (profile.durationMs || 0), 0)
             .toFixed(2),
         ),
+        captureLengthMs: Number(captureLengthMs.toFixed(2)),
+        jsWorkMs: Number(jsWorkMs.toFixed(2)),
+        runtimeAndIdleMs: Number(runtimeAndIdleMs.toFixed(2)),
+        jsDutyPct:
+          sampledMs > 0
+            ? Number(((jsWorkMs / sampledMs) * 100).toFixed(1))
+            : 0,
+        symbolicatedProfiles: usable.filter(
+          (profile) => profile.symbolicated,
+        ).length,
         topSelfFrames: mergeFrameLists(usable, 'topSelfFrames'),
         topInclusiveFrames: mergeFrameLists(usable, 'topInclusiveFrames'),
         profiles: group.profiles,
@@ -603,6 +722,41 @@ function groupProfiles(profiles, scenarioFilter = null) {
 
 function displayName(scenario) {
   return scenario.replace(/__/g, ': ').replace(/_/g, ' ');
+}
+
+function formatMs(value) {
+  return `${Number(value || 0).toFixed(1)} ms`;
+}
+
+function topSkillFrame(profile) {
+  const audit = profile.skillAudit;
+  if (!audit || audit.jsWorkMs <= 0) {
+    return null;
+  }
+  return [...audit.topSwapsFrames, ...audit.topNonSwapsFrames]
+    .filter((frame) => frame.selfMs > 0)
+    .sort((left, right) => right.selfMs - left.selfMs)[0] || null;
+}
+
+function profileOutcome(profile) {
+  const audit = profile.skillAudit;
+  if (!audit) {
+    return 'No skill timing data.';
+  }
+  const top = topSkillFrame(profile);
+  if (!top) {
+    return `No attributable hot frame; JS duty cycle ${(
+      (audit.jsWorkMs /
+        Math.max(audit.jsWorkMs + audit.runtimeAndIdleMs, 1)) *
+      100
+    ).toFixed(1)}%.`;
+  }
+  const share = (top.selfMs / Math.max(audit.jsWorkMs, 1)) * 100;
+  const location =
+    profile.symbolicated && top.url
+      ? ` (${top.url}${top.line ? `:${top.line}` : ''})`
+      : '';
+  return `Top JS contributor: \`${top.name}\` ${formatMs(top.selfMs)} (${share.toFixed(1)}% of JS work)${location}.`;
 }
 
 function buildAiBriefing(report) {
@@ -623,11 +777,10 @@ function buildAiBriefing(report) {
         profile.skillAudit != null && profile.skillAudit.caveat == null,
     ),
   );
-  return `# Hermes CPU-profile analysis
+  return `# Optional Hermes CPU-profile context
 
-Follow the installed \`mms-swaps-cpu-profile-audit\` skill's reasoning and
-reporting standard. The JSON below was produced by that skill's bundled
-\`analyze-cpuprofile.cjs\` parser. Analyze it **per scenario**.
+The deterministic report is already generated from the installed
+\`mms-swaps-cpu-profile-audit\` parser. Add optional context only.
 
 Rules:
 - Use the skill-generated timing evidence only. Do not discuss BrowserStack
@@ -653,17 +806,13 @@ ${
 }
 - Without resolved paths, never say that no swaps-owned work ran. Say swaps
   ownership is indeterminate because the trace is unsymbolicated.
-- Mark causal interpretations as UNVALIDATED.
-- Only add a probable-cause/fix row for meaningful work (roughly >=5% of
-  attributable JS work) that can be explained in plain language.
-- Lead each scenario with a compact Metric | Value table, then one factual
-  outcome line. Keep prose minimal, as required by the skill.
+- Do not provide causes, fixes, ownership conclusions, or implementation
+  suggestions. The input contains timing evidence, not source-code review.
 
 Output:
-1. Executive summary (maximum 5 bullets)
-2. One subsection per scenario with timing table and outcome
-3. Probable-cause/fix table only when resolved file/line evidence supports one
-4. One caveat line when source maps are missing
+Maximum 3 bullets. Mention only timing outliers or repeated contributors that
+are directly supported by the JSON. Omit a bullet if there is no useful
+cross-scenario observation.
 
 Metric definitions (do not rename or derive a second overlapping metric):
 - \`captureLengthMs\`: wall-clock capture length.
@@ -687,35 +836,75 @@ function buildMarkdown(report) {
     `Run \`${report.meta.runId || 'local'}\`${report.meta.runUrl ? ` — ${report.meta.runUrl}` : ''}`,
     `Scenarios: ${report.scenarios.length}`,
     `Hermes profiles: ${report.meta.profileCount}`,
-    `Agent: ${report.meta.ai ? 'Claude' : 'summary only'}`,
+    `Symbolicated profiles: ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
+    `Optional agent context: ${report.meta.ai ? 'included' : 'not included'}`,
     '',
   ];
-  if (report.aiAnalysis) {
-    lines.push('## Agent analysis', '', report.aiAnalysis.trim(), '');
-  }
-  lines.push('## Per-scenario Hermes summary', '');
+  lines.push('## Per-scenario skill analysis', '');
   for (const scenario of report.scenarios) {
     lines.push(`### ${displayName(scenario.scenario)}`);
     lines.push(
-      `Profiles: ${scenario.profileCount} · Logical segments/attempts: ${scenario.segmentCount} · Samples: ${scenario.sampleCount} · Root/idle samples: ${scenario.rootSharePct}% · Duration: ${scenario.durationMs} ms`,
+      '| Metric | Value |',
+      '|---|---:|',
+      `| Profiles | ${scenario.profileCount} |`,
+      `| Attempts | ${scenario.attempts.length} |`,
+      `| Logical segments | ${scenario.segmentCount} |`,
+      `| Capture length | ${formatMs(scenario.captureLengthMs)} |`,
+      `| JS work sampled | ${formatMs(scenario.jsWorkMs)} |`,
+      `| Runtime / idle / GC | ${formatMs(scenario.runtimeAndIdleMs)} |`,
+      `| JS duty cycle | ${scenario.jsDutyPct}% |`,
+      `| Symbolicated | ${scenario.symbolicatedProfiles}/${scenario.profileCount} |`,
+      '',
+      '| Attempt | Segment | JS work | Runtime / idle / GC | JS duty | Top contributor |',
+      '|---:|---:|---:|---:|---:|---|',
     );
-    if (scenario.topSelfFrames.length === 0) {
-      lines.push('- No readable Hermes samples.');
-    } else {
-      lines.push('- Top self frames:');
-      for (const frame of scenario.topSelfFrames.slice(0, 5)) {
-        const locations = frame.locations
-          .map(
-            (location) =>
-              `retry ${location.retry}, segment ${location.segment}`,
-          )
-          .join('; ');
+    for (const profile of scenario.profiles) {
+      const audit = profile.skillAudit;
+      if (!audit) {
         lines.push(
-          `  - \`${frame.name}\`: ${frame.sharePct}% (${locations})`,
+          `| ${profile.retry} | ${profile.segment} | — | — | — | ${profile.reason || 'Unreadable'} |`,
         );
+        continue;
       }
+      const sampled = audit.jsWorkMs + audit.runtimeAndIdleMs;
+      const duty =
+        sampled > 0 ? ((audit.jsWorkMs / sampled) * 100).toFixed(1) : '0.0';
+      const top = topSkillFrame(profile);
+      const contributor = top
+        ? `\`${top.name}\` (${formatMs(top.selfMs)})`
+        : 'None';
+      lines.push(
+        `| ${profile.retry} | ${profile.segment} | ${formatMs(audit.jsWorkMs)} | ${formatMs(audit.runtimeAndIdleMs)} | ${duty}% | ${contributor} |`,
+      );
+    }
+    const highestSignalProfile = scenario.profiles
+      .filter((profile) => profile.skillAudit)
+      .sort(
+        (left, right) =>
+          (right.skillAudit?.jsWorkMs || 0) -
+          (left.skillAudit?.jsWorkMs || 0),
+      )[0];
+    lines.push(
+      '',
+      highestSignalProfile
+        ? `**Outcome:** ${profileOutcome(highestSignalProfile)}`
+        : '**Outcome:** No readable skill timing data.',
+    );
+    if (scenario.symbolicatedProfiles < scenario.profileCount) {
+      lines.push(
+        '',
+        '_Caveat: no verified matching sourcemap was available for one or more profiles; file/line attribution and ownership are indeterminate._',
+      );
     }
     lines.push('');
+  }
+  if (report.aiAnalysis) {
+    lines.push(
+      '## Optional agent context',
+      '',
+      report.aiAnalysis.trim(),
+      '',
+    );
   }
   lines.push(
     '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
@@ -730,20 +919,37 @@ function buildSlack(report) {
     '',
     `_Run:_ \`${report.meta.runId || 'local'}\``,
     `_Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount}`,
+    `_Symbolicated:_ ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
     '',
+    '*Highest-signal scenarios (skill timing)*',
   ];
+  const scenarios = [...report.scenarios]
+    .sort(
+      (left, right) =>
+        right.jsWorkMs * (right.jsDutyPct / 100) -
+        left.jsWorkMs * (left.jsDutyPct / 100),
+    )
+    .slice(0, 12);
+  for (const scenario of scenarios) {
+    const highestSignalProfile = scenario.profiles
+      .filter((profile) => profile.skillAudit)
+      .sort(
+        (left, right) =>
+          (right.skillAudit?.jsWorkMs || 0) -
+          (left.skillAudit?.jsWorkMs || 0),
+      )[0];
+    lines.push(
+      `• *${displayName(scenario.scenario)}* — JS ${formatMs(scenario.jsWorkMs)}, duty ${scenario.jsDutyPct}%, maps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
+      `  ${highestSignalProfile ? profileOutcome(highestSignalProfile) : 'No readable skill timing data.'}`,
+    );
+  }
+  if (report.scenarios.length > scenarios.length) {
+    lines.push(
+      `_+${report.scenarios.length - scenarios.length} lower-signal scenarios in the workflow artifact._`,
+    );
+  }
   if (report.aiAnalysis) {
-    lines.push(report.aiAnalysis.trim().slice(0, 35_000));
-  } else {
-    lines.push('*Top sampled frames by scenario*');
-    for (const scenario of report.scenarios.slice(0, 12)) {
-      const top = scenario.topSelfFrames[0];
-      lines.push(
-        `- *${displayName(scenario.scenario)}*: ${
-          top ? `\`${top.name}\` ${top.sharePct}%` : 'no readable samples'
-        } (${scenario.profileCount} profile${scenario.profileCount === 1 ? '' : 's'})`,
-      );
-    }
+    lines.push('', '*Optional context*', report.aiAnalysis.trim().slice(0, 2_000));
   }
   lines.push(
     '',
@@ -767,7 +973,7 @@ async function callClaude(briefing) {
     },
     body: JSON.stringify({
       model: process.env.APP_PROFILING_ANALYSIS_MODEL || DEFAULT_MODEL,
-      max_tokens: 8000,
+      max_tokens: 800,
       system:
         'You are a MetaMask Mobile performance engineer analyzing Hermes CPU sampling profiles.',
       messages: [{ role: 'user', content: briefing }],
@@ -820,6 +1026,7 @@ async function main() {
     args.outDir ||
     fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-profile-analysis-'));
   let sourceDirectory = args.currentDir;
+  let sourcemapDirectory = args.currentDir;
   let run = null;
 
   if (!sourceDirectory && args.skipDownload) {
@@ -842,6 +1049,7 @@ async function main() {
       args.run = String(run.databaseId);
     }
     sourceDirectory = path.join(outputDirectory, 'source-profiles');
+    sourcemapDirectory = path.join(outputDirectory, 'source-sourcemaps');
 
     // New runs expose small dedicated artifacts. Existing 6-hour runs keep
     // the same named profiles inside their raw test-result artifacts.
@@ -860,6 +1068,28 @@ async function main() {
         args.repo,
       );
     }
+
+    // Sourcemaps are accepted only from the same workflow run. Repacked APKs
+    // publish the two variants together; fresh builds publish one artifact per
+    // build profile. Missing or ambiguous variants remain unsymbolicated.
+    downloadArtifactPattern(
+      args.run,
+      'performance-android-sourcemaps',
+      sourcemapDirectory,
+      args.repo,
+    );
+    downloadArtifactPattern(
+      args.run,
+      'android-sourcemaps-main-*-with-srp',
+      path.join(sourcemapDirectory, 'with-srp'),
+      args.repo,
+    );
+    downloadArtifactPattern(
+      args.run,
+      'android-sourcemaps-main-*-without-srp',
+      path.join(sourcemapDirectory, 'without-srp'),
+      args.repo,
+    );
   }
 
   const files = [...new Set(findHermesProfiles(sourceDirectory))];
@@ -867,14 +1097,44 @@ async function main() {
     fail('No named Hermes profiles found under hermes-cpuprofiles/');
   }
   console.log(`🧠 Hermes CPU profiles: ${files.length}`);
+  const sourcemaps = findAndroidSourcemaps(sourcemapDirectory);
+  console.log(`🗺️ Verified same-run Android sourcemaps: ${sourcemaps.length}`);
 
   const skillAnalyzerPath = findSkillAnalyzer();
   console.log(
     `🧭 Reasoning parser: ${path.relative(process.cwd(), skillAnalyzerPath)}`,
   );
-  const profiles = files.map((filePath) =>
-    loadProfile(filePath, skillAnalyzerPath),
-  );
+  const convertedDirectory = path.join(outputDirectory, 'symbolicated');
+  const profiles = files.map((filePath, index) => {
+    const sourcemapPath = selectSourcemap(filePath, sourcemaps);
+    if (!sourcemapPath) {
+      return loadProfile(filePath, skillAnalyzerPath);
+    }
+    try {
+      const profileOutputDirectory = path.join(
+        convertedDirectory,
+        `${String(index + 1).padStart(3, '0')}-${sanitize(
+          path.basename(filePath, '.cpuprofile'),
+        )}`,
+      );
+      const analysisPath = convertProfile(
+        filePath,
+        sourcemapPath,
+        profileOutputDirectory,
+      );
+      return loadProfile(filePath, skillAnalyzerPath, {
+        analysisPath,
+        sourcemapPath,
+      });
+    } catch (error) {
+      console.warn(
+        `⚠️ Symbolication failed for ${path.basename(filePath)}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return loadProfile(filePath, skillAnalyzerPath);
+    }
+  });
   const scenarios = groupProfiles(profiles, args.scenario);
   if (scenarios.length === 0) {
     fail(
@@ -898,6 +1158,9 @@ async function main() {
       reasoningSkill: 'mms-swaps-cpu-profile-audit',
       reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
       profileCount: profiles.length,
+      symbolicatedProfileCount: profiles.filter(
+        (profile) => profile.symbolicated,
+      ).length,
       ai: false,
     },
     scenarios,
@@ -924,6 +1187,11 @@ export {
   parseArgs,
   resolveLatestRun,
   findHermesProfiles,
+  findAndroidSourcemaps,
+  sourcemapVariant,
+  profileSourcemapVariant,
+  selectSourcemap,
+  convertProfile,
   findSkillAnalyzer,
   runSkillAnalyzer,
   parseProfileFileName,
