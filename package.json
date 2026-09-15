@@ -261,7 +261,8 @@
     "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0",
     "@metamask/eth-sig-util": "^9.0.0",
     "@metamask/profile-sync-controller": "^32.1.1",
-    "@metamask/account-tree-controller": "^9.0.0"
+    "@metamask/account-tree-controller": "^9.0.0",
+    "@metamask/stellar-wallet-snap": "npm:@metamask-previews/stellar-wallet-snap@1.0.0-preview-b657139d"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
