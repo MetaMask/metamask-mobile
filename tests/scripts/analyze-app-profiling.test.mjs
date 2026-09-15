@@ -6,383 +6,200 @@ import test from 'node:test';
 import {
   parseArgs,
   resolveLatestRun,
-  extractMetrics,
-  extractDetectedIssues,
-  summarizeApiCalls,
-  detectHeuristicIssues,
-  summarizeCpuProfile,
-  parseHermesProfileFileName,
-  cpuProfileBelongsToScenario,
-  matchCpuProfilesToScenario,
-  mergeCpuProfileSummaries,
-  compareMetrics,
-  buildScenarioSnapshot,
-  buildMarkdownReport,
-  buildSlackMarkdown,
-  loadAppProfilingArtifacts,
+  findHermesProfiles,
+  parseProfileFileName,
+  summarizeHermesProfile,
+  groupProfiles,
+  buildAiBriefing,
+  buildMarkdown,
+  buildSlack,
 } from './analyze-app-profiling.mjs';
 
-test('parseArgs reads run, scenario, skip-ai, and current-dir', () => {
+function profile(fileName, overrides = {}) {
+  const parsed = parseProfileFileName(fileName);
+  return {
+    ...parsed,
+    skipped: false,
+    sampleCount: 10,
+    totalWeight: 10,
+    durationMs: 100,
+    topSelfFrames: [
+      {
+        name: 'renderAssets',
+        category: 'JavaScript',
+        samples: 6,
+        sharePct: 60,
+      },
+    ],
+    topInclusiveFrames: [],
+    ...overrides,
+  };
+}
+
+test('parseArgs supports local Hermes-only analysis', () => {
   const args = parseArgs([
     '--run',
-    '99',
+    '123',
     '--scenario',
-    'Cold Start Login',
+    'Cold Start',
     '--current-dir',
-    './aggregated-reports',
+    '/tmp/profiles',
     '--skip-ai',
-    '--any-run',
   ]);
-  assert.equal(args.run, '99');
-  assert.equal(args.scenario, 'Cold Start Login');
-  assert.equal(args.currentDir, './aggregated-reports');
+  assert.equal(args.run, '123');
+  assert.equal(args.scenario, 'Cold Start');
+  assert.equal(args.currentDir, '/tmp/profiles');
   assert.equal(args.skipAi, true);
-  assert.equal(args.scheduledOnly, false);
 });
 
-test('resolveLatestRun prefers a successful scheduled run', () => {
-  const latest = resolveLatestRun(
-    [
-      {
-        databaseId: 1,
-        event: 'workflow_dispatch',
-        conclusion: 'success',
-        status: 'completed',
-      },
-      {
-        databaseId: 2,
-        event: 'schedule',
-        conclusion: 'success',
-        status: 'completed',
-      },
-    ],
-    { scheduledOnly: true },
-  );
-  assert.equal(latest.databaseId, 2);
-});
-
-test('extractMetrics and detected issues from an app-profiling artifact', () => {
-  const metrics = extractMetrics({
-    cpu: { avg: 12.345, max: 88.1 },
-    memory: { avg: 512.2, max: 940.9 },
-    uiRendering: { slowFrames: 31.2, frozenFrames: 1.5, anrs: 1 },
-    issues: 2,
-    criticalIssues: 1,
-    appSizeMb: 320.44,
-  });
-  assert.equal(metrics.cpuAvg, 12.35);
-  assert.equal(metrics.memMaxMb, 940.9);
-  assert.equal(metrics.slowFramesPct, 31.2);
-  assert.equal(metrics.anrs, 1);
-
-  const detected = extractDetectedIssues({
-    data: {
-      'io.metamask': {
-        detected_issues: [
-          {
-            type: 'cpu',
-            title: 'High CPU',
-            subtitle: 'Average above recommended',
-            current: 42,
-            unit: '%',
-          },
-        ],
-      },
-    },
-  });
-  assert.equal(detected.length, 1);
-  assert.equal(detected[0].title, 'High CPU');
-});
-
-test('detectHeuristicIssues flags jank, memory, ANRs, and BrowserStack issues', () => {
-  const findings = detectHeuristicIssues(
+test('resolveLatestRun prefers successful scheduled runs', () => {
+  const selected = resolveLatestRun([
     {
-      slowFramesPct: 31,
-      memMaxMb: 950,
-      cpuAvg: 12,
-      cpuMax: 40,
-      anrs: 1,
-      frozenFramesPct: 2,
-      criticalIssues: 1,
-      issues: 2,
-      error: null,
+      databaseId: 1,
+      event: 'workflow_dispatch',
+      status: 'completed',
+      conclusion: 'success',
     },
-    [],
-  );
-  const themes = findings.map((finding) => finding.theme);
-  assert.ok(themes.includes('ui-jank'));
-  assert.ok(themes.includes('memory'));
-  assert.ok(themes.includes('anr'));
-  assert.ok(themes.includes('frozen-frames'));
-  assert.ok(themes.includes('browserstack-critical'));
-  assert.equal(findings.find((finding) => finding.theme === 'ui-jank').severity, 'high');
+    {
+      databaseId: 2,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'success',
+    },
+  ]);
+  assert.equal(selected.databaseId, 2);
 });
 
-test('summarizeCpuProfile ranks hot frames by hitCount', () => {
-  const summary = summarizeCpuProfile({
-    startTime: 0,
-    endTime: 2_000_000,
-    samples: [1, 2, 2],
-    nodes: [
-      {
-        id: 1,
-        hitCount: 10,
-        callFrame: { functionName: 'idle', url: 'native', lineNumber: 0 },
-      },
-      {
-        id: 2,
-        hitCount: 90,
-        callFrame: {
-          functionName: 'selectAccounts',
-          url: 'app/selectors/accounts.ts',
-          lineNumber: 40,
-        },
-      },
-    ],
-  });
-  assert.equal(summary.totalHits, 100);
-  assert.equal(summary.topFunctions[0].name, 'selectAccounts');
-  assert.equal(summary.topFunctions[0].sharePct, 90);
-  assert.equal(summary.durationMs, 2000);
+test('findHermesProfiles excludes hashed Playwright attachment copies', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-find-'));
+  const named = path.join(root, 'reports', 'hermes-cpuprofiles');
+  const hashed = path.join(root, 'playwright-report', 'data');
+  fs.mkdirSync(named, { recursive: true });
+  fs.mkdirSync(hashed, { recursive: true });
+  fs.writeFileSync(path.join(named, 'scenario.cpuprofile'), '{}');
+  fs.writeFileSync(path.join(hashed, 'abc123.cpuprofile'), '{}');
+  assert.deepEqual(findHermesProfiles(root), [
+    path.join(named, 'scenario.cpuprofile'),
+  ]);
 });
 
-test('parseHermesProfileFileName reads segment and retry suffixes', () => {
+test('parseProfileFileName treats plain file as logical segment 1', () => {
   assert.deepEqual(
-    parseHermesProfileFileName(
-      'browserstack-android-Cold_Start_Login.cpuprofile',
+    parseProfileFileName(
+      'browserstack-android-Cold_Start__Login.cpuprofile',
     ),
     {
-      fileName: 'browserstack-android-Cold_Start_Login.cpuprofile',
-      stem: 'browserstack-android-Cold_Start_Login',
+      fileName: 'browserstack-android-Cold_Start__Login.cpuprofile',
+      project: 'browserstack-android',
+      scenario: 'Cold_Start__Login',
       retry: 0,
       segment: 1,
       copyIndex: null,
     },
   );
-  assert.equal(
-    parseHermesProfileFileName(
-      'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
-    ).segment,
-    2,
-  );
-  assert.equal(
-    parseHermesProfileFileName(
-      'browserstack-android-Cold_Start_Login.retry-1.segment-3.cpuprofile',
-    ).retry,
-    1,
-  );
-  assert.equal(
-    parseHermesProfileFileName(
-      'browserstack-android-Cold_Start_Login.segment-2-2.cpuprofile',
-    ).copyIndex,
-    2,
-  );
 });
 
-test('cpuProfileBelongsToScenario groups segment files and ignores other titles', () => {
-  const project = 'browserstack-android';
-  const title = 'Cold Start Login';
-  assert.equal(
-    cpuProfileBelongsToScenario(
-      'browserstack-android-Cold_Start_Login.cpuprofile',
-      title,
-      project,
-    ),
-    true,
+test('parseProfileFileName reads retry and segment numbers', () => {
+  const parsed = parseProfileFileName(
+    'browserstack-android-Warm_Start.retry-2.segment-3.cpuprofile',
   );
-  assert.equal(
-    cpuProfileBelongsToScenario(
-      'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
-      title,
-      project,
-    ),
-    true,
-  );
-  assert.equal(
-    cpuProfileBelongsToScenario(
-      'browserstack-android-Cold_Start_Login.segment-3.cpuprofile',
-      title,
-      project,
-    ),
-    true,
-  );
-  assert.equal(
-    cpuProfileBelongsToScenario(
-      'browserstack-android-Cold_Start_Login.retry-1.segment-2.cpuprofile',
-      title,
-      project,
-    ),
-    true,
-  );
-  assert.equal(
-    cpuProfileBelongsToScenario(
-      'browserstack-android-Warm_Start.segment-2.cpuprofile',
-      title,
-      project,
-    ),
-    false,
-  );
-  assert.equal(
-    cpuProfileBelongsToScenario(
-      'browserstack-android-Cold_Start.segment-2.cpuprofile',
-      title,
-      project,
-    ),
-    false,
-  );
+  assert.equal(parsed.retry, 2);
+  assert.equal(parsed.segment, 3);
+  assert.equal(parsed.scenario, 'Warm_Start');
 });
 
-test('matchCpuProfilesToScenario collects every segment and sorts them', () => {
-  const matches = matchCpuProfilesToScenario(
-    'Cold Start Login',
-    'browserstack-android',
-    [
-      { fileName: 'browserstack-android-Cold_Start_Login.segment-3.cpuprofile' },
-      { fileName: 'browserstack-android-Warm_Start.segment-2.cpuprofile' },
-      { fileName: 'browserstack-android-Cold_Start_Login.cpuprofile' },
-      { fileName: 'browserstack-android-Cold_Start_Login.segment-2.cpuprofile' },
+test('summarizeHermesProfile reads samples and stackFrames', () => {
+  const summary = summarizeHermesProfile({
+    samples: [
+      { sf: 3, weight: '1', ts: '1000' },
+      { sf: 3, weight: '1', ts: '2000' },
+      { sf: 2, weight: '1', ts: '3000' },
     ],
-  );
+    stackFrames: {
+      1: { name: '[root]', category: 'root' },
+      2: {
+        name: 'global',
+        category: 'JavaScript',
+        parent: 1,
+        funcVirtAddr: '1',
+      },
+      3: {
+        name: 'renderAssets',
+        category: 'JavaScript',
+        parent: 2,
+        funcVirtAddr: '2',
+      },
+    },
+  });
+  assert.equal(summary.format, 'hermes-sampling-profile');
+  assert.equal(summary.sampleCount, 3);
+  assert.equal(summary.stackFrameCount, 3);
+  assert.equal(summary.durationMs, 2);
+  assert.equal(summary.rootSharePct, 0);
+  assert.equal(summary.topSelfFrames[0].name, 'renderAssets');
+  assert.equal(summary.topSelfFrames[0].sharePct, 66.67);
+  assert.equal(summary.topInclusiveFrames[0].name, 'global');
+  assert.equal(summary.topInclusiveFrames[0].sharePct, 100);
+});
+
+test('groupProfiles combines logical segment 1 through N into one scenario', () => {
+  const grouped = groupProfiles([
+    profile('browserstack-android-Cold_Start.cpuprofile'),
+    profile('browserstack-android-Cold_Start.segment-2.cpuprofile'),
+    profile('browserstack-android-Cold_Start.segment-3.cpuprofile'),
+  ]);
+  assert.equal(grouped.length, 1);
+  assert.equal(grouped[0].profileCount, 3);
+  assert.equal(grouped[0].segmentCount, 3);
   assert.deepEqual(
-    matches.map((profile) => profile.segment),
+    grouped[0].profiles.map((item) => item.segment),
     [1, 2, 3],
   );
+  assert.equal(grouped[0].sampleCount, 30);
+});
+
+test('groupProfiles keeps retries in the same scenario with locations', () => {
+  const grouped = groupProfiles([
+    profile('browserstack-android-Warm_Start.cpuprofile'),
+    profile('browserstack-android-Warm_Start.retry-1.cpuprofile'),
+    profile('browserstack-android-Warm_Start.retry-1.segment-2.cpuprofile'),
+  ]);
+  assert.deepEqual(grouped[0].attempts, [0, 1]);
+  assert.equal(grouped[0].segmentCount, 3);
   assert.deepEqual(
-    matches.map((profile) => profile.fileName),
+    grouped[0].topSelfFrames[0].locations.map(
+      ({ retry, segment }) => `${retry}:${segment}`,
+    ),
+    ['0:1', '1:1', '1:2'],
+  );
+});
+
+test('scenario filter matches sanitized Hermes name', () => {
+  const grouped = groupProfiles(
     [
-      'browserstack-android-Cold_Start_Login.cpuprofile',
-      'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
-      'browserstack-android-Cold_Start_Login.segment-3.cpuprofile',
+      profile('browserstack-android-Cold_Start.cpuprofile'),
+      profile('browserstack-android-Warm_Start.cpuprofile'),
     ],
+    'Cold Start',
   );
+  assert.equal(grouped.length, 1);
+  assert.equal(grouped[0].scenario, 'Cold_Start');
 });
 
-test('mergeCpuProfileSummaries combines hot frames across segments', () => {
-  const merged = mergeCpuProfileSummaries([
-    {
-      skipped: false,
-      segment: 1,
-      totalHits: 40,
-      durationMs: 1000,
-      topFunctions: [
-        { name: 'selectAccounts', url: 'app/a.ts', line: 1, hitCount: 20 },
-      ],
+test('reports explicitly state that BrowserStack metrics are excluded', () => {
+  const report = {
+    meta: {
+      runId: '1',
+      runUrl: 'https://example.com/run',
+      profileCount: 1,
+      ai: false,
     },
-    {
-      skipped: false,
-      segment: 2,
-      totalHits: 60,
-      durationMs: 1500,
-      topFunctions: [
-        { name: 'selectAccounts', url: 'app/a.ts', line: 1, hitCount: 30 },
-        { name: 'idle', url: 'native', line: 0, hitCount: 10 },
-      ],
-    },
-  ]);
-  assert.equal(merged.segmentCount, 2);
-  assert.equal(merged.totalHits, 100);
-  assert.equal(merged.durationMs, 2500);
-  assert.equal(merged.topFunctions[0].name, 'selectAccounts');
-  assert.equal(merged.topFunctions[0].hitCount, 50);
-  assert.equal(merged.topFunctions[0].sharePct, 50);
-  assert.deepEqual(merged.topFunctions[0].segments, [1, 2]);
-});
-
-test('compareMetrics reports deltas against a baseline', () => {
-  const delta = compareMetrics(
-    { cpuAvg: 20, memMaxMb: 900, slowFramesPct: 30 },
-    { cpuAvg: 10, memMaxMb: 800, slowFramesPct: 12 },
-  );
-  assert.equal(delta.cpuAvg.delta, 10);
-  assert.equal(delta.slowFramesPct.delta, 18);
-});
-
-test('summarizeApiCalls keeps the slowest calls', () => {
-  const summary = summarizeApiCalls([
-    { method: 'GET', url: '/fast', status: 200, time: 20 },
-    { method: 'GET', url: '/slow', status: 200, time: 900 },
-    { method: 'POST', url: '/fail', status: 500, time: 100 },
-  ]);
-  assert.equal(summary.count, 3);
-  assert.equal(summary.slowest[0].url, '/slow');
-  assert.equal(summary.errorStatus[0].status, 500);
-});
-
-test('loadAppProfilingArtifacts and buildScenarioSnapshot produce findings', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'app-profiling-'));
-  const profilingDir = path.join(dir, 'app-profiling');
-  fs.mkdirSync(profilingDir);
-  fs.writeFileSync(
-    path.join(profilingDir, 'app-profiling-Cold_Start_Login-Pixel-14.json'),
-    JSON.stringify({
-      testName: 'Cold Start Login',
-      projectName: 'browserstack-android',
-      sessionId: 'abc',
-      videoURL: 'https://example.com/video',
-      device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
-      timestamp: '2026-09-15T00:00:00.000Z',
-      profilingSummary: {
-        cpu: { avg: 41, max: 90 },
-        memory: { avg: 600, max: 910 },
-        uiRendering: { slowFrames: 28, frozenFrames: 0, anrs: 0 },
-        issues: 1,
-        criticalIssues: 0,
-      },
-      profilingData: { data: { 'io.metamask': { detected_issues: [] } } },
-      apiCalls: [],
-    }),
-  );
-
-  const artifacts = loadAppProfilingArtifacts(dir, null);
-  assert.equal(artifacts.length, 1);
-  const snapshot = buildScenarioSnapshot({
-    artifact: artifacts[0],
-    cpuSummaries: [
-      {
-        fileName: 'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
-        skipped: false,
-        totalHits: 20,
-        topFunctions: [
-          { name: 'hotFn', hitCount: 16, sharePct: 80, url: 'app/foo.ts' },
-        ],
-      },
-      {
-        fileName: 'browserstack-android-Cold_Start_Login.cpuprofile',
-        skipped: false,
-        totalHits: 20,
-        topFunctions: [
-          { name: 'hotFn', hitCount: 16, sharePct: 80, url: 'app/foo.ts' },
-        ],
-      },
-    ],
-    baselineMetrics: { cpuAvg: 10, memMaxMb: 700, slowFramesPct: 8 },
-  });
-  assert.equal(snapshot.testName, 'Cold Start Login');
-  assert.ok(snapshot.heuristicFindings.some((finding) => finding.theme === 'cpu'));
-  assert.ok(snapshot.heuristicFindings.some((finding) => finding.theme === 'hot-frame'));
-  assert.equal(snapshot.cpuProfiles.length, 2);
-  assert.deepEqual(
-    snapshot.cpuProfiles.map((profile) => profile.segment),
-    [1, 2],
-  );
-  assert.equal(snapshot.combinedCpuProfile.segmentCount, 2);
-  assert.ok(
-    snapshot.heuristicFindings.some((finding) => finding.theme === 'cpu-segments'),
-  );
-  assert.equal(snapshot.baselineDelta.cpuAvg.delta, 31);
-
-  const markdown = buildMarkdownReport({
-    meta: { runId: '1', runUrl: 'https://example.com/run', ai: false },
-    scenarios: [snapshot],
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile'),
+    ]),
     aiAnalysis: null,
-  });
-  assert.match(markdown, /Cold Start Login/);
-  assert.match(markdown, /Heuristic highlights/);
-
-  const slack = buildSlackMarkdown({
-    meta: { runId: '1' },
-    scenarios: [snapshot],
-    aiAnalysis: null,
-  });
-  assert.match(slack, /Ad-hoc app profiling analysis/);
+  };
+  assert.match(buildAiBriefing(report), /Use only this Hermes CPU-profile data/);
+  assert.match(buildMarkdown(report), /BrowserStack app-profiling metrics are excluded/);
+  assert.match(buildSlack(report), /Hermes CPU sampling only/);
 });

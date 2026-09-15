@@ -1,8 +1,9 @@
 # Ad-hoc per-scenario app profiling analysis
 #
-# Downloads BrowserStack app-profiling JSON (and Hermes CPU profiles when
-# present) from a scheduled performance E2E run, flags heuristic issues, then
-# asks Claude to review each scenario.
+# Downloads Hermes CPU profiles from a scheduled performance E2E run, groups
+# every segment and retry by scenario, then asks Claude to review the sampled
+# JavaScript stacks. BrowserStack app-profiling metrics are intentionally not
+# used.
 #
 # Ad-hoc only for now. Does not replace the 6-hour performance suite or the
 # weekly rollup automation.
@@ -39,13 +40,8 @@ on:
         required: false
         type: string
         default: ''
-      baseline_run_id:
-        description: 'Optional prior run id to compare metrics against'
-        required: false
-        type: string
-        default: ''
       skip_ai:
-        description: 'Skip Claude analysis (heuristics only)'
+        description: 'Skip Claude analysis (Hermes summaries only)'
         required: false
         type: boolean
         default: false
@@ -88,7 +84,6 @@ jobs:
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
           RUN_ID: ${{ inputs.run_id }}
           SCENARIO: ${{ inputs.scenario }}
-          BASELINE_RUN_ID: ${{ inputs.baseline_run_id }}
           SKIP_AI: ${{ inputs.skip_ai }}
         run: |
           set -euo pipefail
@@ -103,9 +98,6 @@ jobs:
           fi
           if [ -n "${SCENARIO}" ]; then
             ARGS+=(--scenario "${SCENARIO}")
-          fi
-          if [ -n "${BASELINE_RUN_ID}" ]; then
-            ARGS+=(--baseline-run "${BASELINE_RUN_ID}")
           fi
           if [ "${SKIP_AI}" = "true" ]; then
             ARGS+=(--skip-ai)

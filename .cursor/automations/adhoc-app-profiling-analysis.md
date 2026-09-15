@@ -1,9 +1,11 @@
 # Ad-hoc App Profiling Analysis (Cursor Automation)
 
-Manual / ad-hoc prompt for MetaMask Mobile. Pulls the per-scenario
-BrowserStack app-profiling files (and Hermes `.cpuprofile` summaries when
-present) from a scheduled 6-hour performance run, then has the agent review
-**each scenario** and call out issues.
+Manual / ad-hoc prompt for MetaMask Mobile. Pulls only the per-scenario Hermes
+`.cpuprofile` files from a scheduled 6-hour performance run, then has the agent
+review **each scenario** and call out sampled JavaScript hot frames.
+
+BrowserStack app-profiling JSON and its CPU, memory, frame, and issue metrics
+are explicitly out of scope.
 
 This is complementary to:
 
@@ -30,13 +32,12 @@ PR.
 ## Prompt (copy into Cursor Automation)
 
 ````text
-You are analyzing MetaMask Mobile app-profiling artifacts from a performance
-E2E run (scheduled every 6 hours on main).
+You are analyzing MetaMask Mobile Hermes CPU profiles from a performance E2E
+run (scheduled every 6 hours on main).
 
 ## Goal
-For **each scenario** in the run, review BrowserStack app-profiling metrics
-and Hermes CPU-profile hot frames, then report any issues that the data
-supports.
+For **each scenario** in the run, review only Hermes CPU-profile sampled
+stacks, then report any issues that the data supports.
 
 After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
 `slack_send_message`. Do not post to a public channel.
@@ -65,8 +66,7 @@ After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
 
 3. Write findings **per scenario**:
    - Status: issue | watch | healthy
-   - Metrics that support the status (CPU, memory, slow/frozen frames, ANRs,
-     BrowserStack issues, hottest JS frames, slow API calls)
+   - Sample counts and hottest self/inclusive JavaScript frames
    - One recommended next step
    - Append a BrowserStack recording link when `videoURL` is present
 
@@ -81,7 +81,11 @@ After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
 
 ## Rules
 
-- Multiple Hermes files named `<scenario>.segment-2.cpuprofile` (and `.segment-3`, …) belong to the **same scenario**. Analyze them together as one journey and cite the segment when a hot frame is isolated.
+- The plain `<scenario>.cpuprofile` is logical segment 1. Files named
+  `<scenario>.segment-2.cpuprofile` (and `.segment-3`, …) belong to the **same
+  scenario**. Analyze them together and cite retry/segment locations.
+- Do not use BrowserStack app-profiling JSON, CPU %, memory, slow/frozen
+  frames, ANRs, detected issues, API calls, or quality gates.
 - Do not mention quality gates, test errors, or flake unless they appear in
   those files.
 - Do not invent regressions. Mark code hypotheses as UNVALIDATED.
