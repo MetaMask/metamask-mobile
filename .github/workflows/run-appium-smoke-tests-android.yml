@@ -1,7 +1,8 @@
 # Appium Smoke Tests — Android
 #
-# Fans out one reusable job per Appium smoke tag. Add a matching job below.
-# Invoked from ci.yml when build-android-apks succeeds (PR + main).
+# A compute-matrix job filters the full suite list by selected_tags, then
+# appium-android-smoke fans out one runner per shard via dynamic matrix.
+# To add a suite: add one entry per shard in the SUITES JSON in compute-matrix.
 
 name: Appium Smoke Tests (Android)
 
@@ -89,6 +90,56 @@ permissions:
   pull-requests: read
 
 jobs:
+  compute-matrix:
+    name: Compute shard matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+      has_suites: ${{ steps.filter.outputs.has_suites }}
+    steps:
+      - name: Filter suites by selected_tags
+        id: filter
+        shell: bash
+        run: |
+          # Full suite list — one entry per shard: {tag, slug, split, total_splits}.
+          # Suites with N shards appear N times with split: 1..N.
+          SUITES='[
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":1},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":2},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":2},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":1},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":1},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":3},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":2,"total_splits":3},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":3,"total_splits":3},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":1,"total_splits":1},
+            {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":1,"total_splits":1},
+            {"tag":"SmokeSwap",               "slug":"swap",                "split":1,"total_splits":1},
+            {"tag":"SmokeStake",              "slug":"stake",               "split":1,"total_splits":1},
+            {"tag":"SmokeMoney",              "slug":"money",               "split":1,"total_splits":1},
+            {"tag":"SmokeBrowser",            "slug":"browser",             "split":1,"total_splits":1},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":2},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":1,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":2,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":1}
+          ]'
+          SELECTED='${{ inputs.selected_tags }}'
+          if echo "$SELECTED" | jq -e 'contains(["ALL"])' > /dev/null; then
+            INCLUDE="$SUITES"
+          else
+            INCLUDE=$(echo "$SUITES" | jq --argjson sel "$SELECTED" \
+              '[.[] | select(.tag as $t | $sel | contains([$t]))]')
+          fi
+          COUNT=$(echo "$INCLUDE" | jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
+            echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+            echo "has_suites=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_suites=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # Boots/stabilizes/saves the golden emulator snapshot once per system image
   # onto the shared cache volume, so shards quick-boot instead of paying a
   # wiped cold boot per shard. Shards tolerate this job failing: their
@@ -99,443 +150,20 @@ jobs:
     with:
       runner_provider: ${{ inputs.runner_provider }}
 
-  appium-accounts-android-smoke:
-    needs: prime-android-emulator-snapshot
+  appium-android-smoke:
+    needs: [compute-matrix, prime-android-emulator-snapshot]
     # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
-      }}
+    if: ${{ always() && !cancelled() && needs.compute-matrix.result == 'success' && needs.compute-matrix.outputs.has_suites == 'true' }}
     strategy:
-      matrix:
-        split: [1]
       fail-fast: false
+      matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-accounts-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-${{ matrix.slug }}-android-smoke-${{ matrix.split }}
       platform: android
-      test_suite_tag: SmokeAccounts
+      test_suite_tag: ${{ matrix.tag }}
       split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-perps-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokePerps'))
-      }}
-    strategy:
-      # N=3 emulator pool: 13 files pack onto 2 shards under an 8m Playwright budget.
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-perps-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokePerps
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-predictions-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokePredictions'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-predictions-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokePredictions
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-seedless-onboarding-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-seedless-onboarding-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeSeedlessOnboarding
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-snaps-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeSnaps'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2, 3]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-snaps-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeSnaps
-      split_number: ${{ matrix.split }}
-      total_splits: 3
-      # Session reuse + soft reload: denser shards; drop toward 25 after one green main.
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-network-abstractions-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-network-abstractions-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeNetworkAbstractions
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-wallet-platform-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-wallet-platform-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeWalletPlatform
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-swap-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeSwap'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-swap-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeSwap
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-stake-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeStake'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-stake-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeStake
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  # appium-mmconnect-android-smoke:
-  #   if: >-
-  #     ${{
-  #       !cancelled() &&
-  #       (contains(fromJson(inputs.selected_tags), 'ALL') ||
-  #        contains(fromJson(inputs.selected_tags), 'SmokeMMConnect'))
-  #     }}
-  #   strategy:
-  #     matrix:
-  #       split: [1]
-  #     fail-fast: false
-  #   uses: ./.github/workflows/run-appium-e2e-workflow.yml
-  #   with:
-  #     test-suite-name: appium-mmconnect-android-smoke-${{ matrix.split }}
-  #     platform: android
-  #     test_suite_tag: SmokeMMConnect
-  #     split_number: ${{ matrix.split }}
-  #     total_splits: 1
-  #     test-timeout-minutes: 25
-  #     android-tag: google_apis
-  #     build_type: ${{ inputs.build_type }}
-  #     metamask_environment: ${{ inputs.metamask_environment }}
-  #     runner_provider: ${{ inputs.runner_provider }}
-  #   secrets: inherit
-
-  appium-money-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeMoney'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-money-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeMoney
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-browser-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeBrowser'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-browser-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeBrowser
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-confirmations-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeConfirmations'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-confirmations-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeConfirmations
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-multichain-api-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-multichain-api-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeMultiChainAPI
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
-
-  appium-network-expansion-android-smoke:
-    needs: prime-android-emulator-snapshot
-    # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeNetworkExpansion'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-network-expansion-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeNetworkExpansion
-      split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: ${{ matrix.total_splits }}
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}

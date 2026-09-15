@@ -14,8 +14,6 @@
 name: Nightly System Tests
 
 on:
-  schedule:
-    - cron: '0 5 * * *' # 5 AM UTC daily
   workflow_dispatch:
     inputs:
       browserstack_app_url_android:

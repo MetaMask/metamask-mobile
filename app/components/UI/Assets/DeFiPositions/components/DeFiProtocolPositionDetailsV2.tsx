@@ -16,12 +16,13 @@ import {
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionDetails.styles';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { formatWithThreshold } from '../../../../../util/assets';
-import I18n from '../../../../../../locales/i18n';
 import DeFiAvatarWithBadge from '../../../DeFiPositions/DeFiAvatarWithBadge';
 import Summary from '../../../../Base/Summary';
+import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
 import { useStyles } from '../../../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import DeFiProtocolPositionGroupsV2 from './DeFiProtocolPositionGroupsV2';
@@ -45,6 +46,7 @@ const DeFiProtocolPositionDetailsV2: React.FC = () => {
   const { protocolPositionGroup, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsV2Params>();
   const privacyMode = useSelector(selectPrivacyMode);
+  const currency = useSelector(getSelectedCurrency);
 
   const handleBack = useCallback(() => {
     navigation.pop();
@@ -80,10 +82,15 @@ const DeFiProtocolPositionDetailsV2: React.FC = () => {
               length={SensitiveTextLength.Medium}
               testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
             >
-              {formatWithThreshold(marketValue ?? 0, 0.01, I18n.locale, {
-                style: 'currency',
-                currency: 'USD',
-              })}
+              {formatWithThreshold(
+                marketValue ?? 0,
+                0.01,
+                getLocaleLanguageCode(),
+                {
+                  style: 'currency',
+                  currency,
+                },
+              )}
             </SensitiveText>
           </View>
 
