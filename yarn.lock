@@ -11680,17 +11680,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@22.0.0-preview-95a403d7b":
-  version: 22.0.0-preview-95a403d7b
-  resolution: "@metamask-previews/ramps-controller@npm:22.0.0-preview-95a403d7b"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@22.0.0-preview-b7ffa92bf":
+  version: 22.0.0-preview-b7ffa92bf
+  resolution: "@metamask-previews/ramps-controller@npm:22.0.0-preview-b7ffa92bf"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^32.1.1"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/f678e55ac6cfab68299fadc10ea40cb5ec59b9606a52d2adde51d580a247da5663d135bc2707e27ac9061ce47acb63424ed04b857c1707e3ffd40398645d4e81
+  checksum: 10/ed882d973f15b8f60c032460925a60fa65e3e729c79761ac6d1860916c7ab0818f2ae9e09c3495768e638239f1b7558797654f7c45d0dd06ef50b94d52a2b53b
   languageName: node
   linkType: hard
 
@@ -12489,9 +12490,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@28.0.2-preview-95a403d7b":
-  version: 28.0.2-preview-95a403d7b
-  resolution: "@metamask-previews/transaction-pay-controller@npm:28.0.2-preview-95a403d7b"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@28.0.2-preview-b7ffa92bf":
+  version: 28.0.2-preview-b7ffa92bf
+  resolution: "@metamask-previews/transaction-pay-controller@npm:28.0.2-preview-b7ffa92bf"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -12514,7 +12515,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash-es: "npm:^4.17.21"
-  checksum: 10/737d689f37da7938150f240dc0b75ff0a5a4f3ab17dac0c290a72c4cc250f29ff9b7f3b0ea326f281b14024c5683440f5f8c04db5d97097ed6f9e7883aa4794c
+  checksum: 10/6bf009042dbda327c14832d0f992692dd77295ad3d74e66561965f096572b93a621ed03c782daa53f068d7931efc3688a2acb6d23e249bf4e13461dd7b2c5c63
   languageName: node
   linkType: hard
 

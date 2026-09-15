@@ -59,34 +59,32 @@ describe('getTransactionPayControllerMessenger', () => {
 
     getTransactionPayControllerMessenger(rootMessenger);
 
-    // transakGetBuyQuote is required so the fiat estimate can read the native
-    // Transak fee; without it the estimate silently falls back to the
-    // aggregator fee.
+    // getQuoteWithFees is required so the fiat estimate gets fees already
+    // reconciled to the resolved provider (including the native Transak fee);
+    // without it the estimate cannot be produced.
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
           'RampsController:getOrder',
-          'RampsController:getQuotes',
-          'RampsController:transakGetBuyQuote',
+          'RampsController:getQuoteWithFees',
         ]),
       }),
     );
   });
 
-  it('delegates the stateless TransakService:getBuyQuote fee probe', () => {
+  it('does not delegate the native Transak lookup that RampsController now owns', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
     getTransactionPayControllerMessenger(rootMessenger);
 
-    // The fiat estimate reads the native Transak fee via the stateless
-    // TransakService:getBuyQuote action so it does not write the shared
-    // RampsController quote state owned by Unified Buy.
-    expect(delegateSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        actions: expect.arrayContaining(['TransakService:getBuyQuote']),
-      }),
-    );
+    // The native fee lookup moved into RampsController:getQuoteWithFees, so the
+    // TransactionPayController messenger no longer needs the stateless
+    // TransakService:getBuyQuote probe (or the aggregator getQuotes action).
+    const delegatedActions = delegateSpy.mock.calls[0][0].actions;
+    expect(delegatedActions).not.toContain('TransakService:getBuyQuote');
+    expect(delegatedActions).not.toContain('RampsController:getQuotes');
+    expect(delegatedActions).not.toContain('RampsController:transakGetBuyQuote');
   });
 });
 
