@@ -45,6 +45,16 @@ export function isHip3Filter(
 }
 
 /**
+ * Non-HIP-3 market tagged `memecoin`. Overlaps Crypto by design.
+ * Local because Core `matchesCategory` also matches HIP-3 crypto.
+ */
+export function isMemecoinMarket(
+  market: Pick<PerpsMarketData, 'isHip3' | 'tags'>,
+): boolean {
+  return !market.isHip3 && !!market.tags?.includes(MarketCategory.Memecoin);
+}
+
+/**
  * Normalise a MarketTypeFilter value for use in translation keys and
  * analytics properties by replacing hyphens with underscores
  * (e.g. `"pre-ipo"` → `"pre_ipo"`).
@@ -77,10 +87,8 @@ export function filterMarketsByCategory<
     return markets.filter((market) => !market.isHip3);
   }
 
-  if (filter === 'memecoin') {
-    return markets.filter(
-      (market) => !market.isHip3 && !!market.tags?.includes('memecoin'),
-    );
+  if (filter === MarketCategory.Memecoin) {
+    return markets.filter(isMemecoinMarket);
   }
 
   if (filter === 'new') {

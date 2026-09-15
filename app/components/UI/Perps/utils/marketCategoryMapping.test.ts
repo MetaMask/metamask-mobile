@@ -4,6 +4,7 @@ import {
   HIP3_FILTER_KEYS,
   filterMarketsByCategory,
   isHip3Filter,
+  isMemecoinMarket,
   normalizeFilterKey,
 } from './marketCategoryMapping';
 
@@ -56,6 +57,30 @@ describe('marketCategoryMapping', () => {
         expect(isHip3Filter(key)).toBe(false);
       },
     );
+  });
+
+  describe('isMemecoinMarket', () => {
+    it('returns true for a non-HIP-3 market tagged memecoin', () => {
+      expect(
+        isMemecoinMarket(buildMarket({ isHip3: false, tags: ['memecoin'] })),
+      ).toBe(true);
+    });
+
+    it('returns false for a non-HIP-3 market without the tag', () => {
+      expect(isMemecoinMarket(buildMarket({ isHip3: false }))).toBe(false);
+    });
+
+    it('returns false for a HIP-3 market tagged memecoin', () => {
+      expect(
+        isMemecoinMarket(
+          buildMarket({
+            isHip3: true,
+            marketType: 'stock',
+            tags: ['memecoin'],
+          }),
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('normalizeFilterKey', () => {

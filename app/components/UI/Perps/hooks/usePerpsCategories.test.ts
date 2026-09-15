@@ -23,6 +23,10 @@ function mockMarkets(markets: MockMarket[]) {
 }
 
 describe('usePerpsCategories', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns empty array when no markets exist', () => {
     mockMarkets([]);
 

@@ -15,6 +15,7 @@ import {
 } from '@metamask/perps-controller';
 import {
   isHip3Filter,
+  isMemecoinMarket,
   filterMarketsByCategory,
 } from '../utils/marketCategoryMapping';
 import { isRecentlyListed } from '../utils/time';
@@ -486,7 +487,7 @@ export const usePerpsMarketListView = ({
         counts.crypto++;
         // Memecoin overlaps with crypto — count independently so its pill
         // is not hidden when memecoin-tagged markets are present.
-        if (market.tags?.includes('memecoin')) {
+        if (isMemecoinMarket(market)) {
           counts.memecoin++;
         }
       } else if (market.marketType) {

@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
-import { type MarketTypeFilter } from '@metamask/perps-controller';
+import {
+  MarketCategory,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   CATEGORY_DISPLAY_ORDER,
   isHip3Filter,
+  isMemecoinMarket,
   normalizeFilterKey,
 } from '../utils/marketCategoryMapping';
 
@@ -59,11 +63,10 @@ export const usePerpsCategories = (): PerpsCategory[] => {
 
       if (id) pushCategory(id);
 
-      // Memecoin is a derived category: a non-HIP-3 (main-DEX) market that
-      // carries the 'memecoin' tag. Surface the pill in addition to the
-      // 'crypto' one so users can drill into it independently.
-      if (!market.isHip3 && market.tags?.includes('memecoin')) {
-        pushCategory('memecoin');
+      // Memecoin is a derived category. Surface the pill in addition to
+      // 'crypto' so users can drill into it independently.
+      if (isMemecoinMarket(market)) {
+        pushCategory(MarketCategory.Memecoin);
       }
     }
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import Svg, { Path } from 'react-native-svg';
 import { mockTheme } from '../../../../../util/theme';
 import PerpsSentimentSatisfiedIcon, {
   PERPS_SENTIMENT_ICON_SIZE_MD,
@@ -26,15 +27,22 @@ describe('PerpsSentimentSatisfiedIcon', () => {
     expect(getByTestId('custom-icon')).toBeTruthy();
   });
 
-  it('accepts a custom size and colour without erroring', () => {
-    const { getByTestId } = render(
+  it('applies custom size and colour to the SVG', () => {
+    const color = mockTheme.colors.error.default;
+
+    const { UNSAFE_getByType } = render(
       <PerpsSentimentSatisfiedIcon
         size={PERPS_SENTIMENT_ICON_SIZE_SM}
-        color={mockTheme.colors.error.default}
+        color={color}
       />,
     );
 
-    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+    const svg = UNSAFE_getByType(Svg);
+    const path = UNSAFE_getByType(Path);
+
+    expect(svg.props.width).toBe(PERPS_SENTIMENT_ICON_SIZE_SM);
+    expect(svg.props.height).toBe(PERPS_SENTIMENT_ICON_SIZE_SM);
+    expect(path.props.fill).toBe(color);
   });
 
   it('exposes sizes matching the MMDS Sm and Md icon sizes', () => {
