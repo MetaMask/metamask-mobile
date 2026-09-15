@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getSubnavPillTestId } from '../shell/SubnavPills';
+import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
@@ -210,10 +211,17 @@ describe('SocialV1View', () => {
     );
   });
 
-  it('renders placeholder header actions that do not navigate', () => {
+  it('opens My Profile from the avatar', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+  });
+
+  it('keeps the remaining placeholder header actions inactive', () => {
+    renderWithProvider(<SocialV1View />);
+
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.HEART_BUTTON));
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 

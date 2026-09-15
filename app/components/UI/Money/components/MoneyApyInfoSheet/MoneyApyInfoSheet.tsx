@@ -6,6 +6,7 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -47,21 +48,21 @@ const MoneyApyInfoSheet = () => {
 
   const body =
     variant === 'deposit' ? (
-      <Text variant={TextVariant.BodyMd}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('money.apy_tooltip.deposit_body')}
       </Text>
     ) : (
       <>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_1', { percentage: apy })}
         </Text>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_2')}
         </Text>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_3')}
         </Text>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_4')}
         </Text>
       </>

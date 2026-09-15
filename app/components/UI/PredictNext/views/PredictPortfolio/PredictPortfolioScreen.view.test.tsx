@@ -10,6 +10,8 @@ import {
   messengerCall,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { KALSHI_VENUE_ID } from '../../types';
+// eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
+import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
@@ -26,6 +28,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('loads and rounds the available Balance', async () => {
+    const endTraceSpy = jest.spyOn(Trace, 'endTrace');
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     expect(
@@ -35,6 +38,12 @@ describe('PredictPortfolioScreen', () => {
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictPortfolioService:getBalance',
       KALSHI_VENUE_ID,
+    );
+    expect(endTraceSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: Trace.TraceName.PredictNextPortfolioView,
+        data: { success: true },
+      }),
     );
   });
 
@@ -121,6 +130,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('keeps loading while the first Balance read is offline', async () => {
+    const endTraceSpy = jest.spyOn(Trace, 'endTrace');
     onlineManager.setOnline(false);
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
@@ -129,6 +139,12 @@ describe('PredictPortfolioScreen', () => {
       expect(
         view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_LOADING),
       ).toBeOnTheScreen(),
+    );
+    expect(endTraceSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: Trace.TraceName.PredictNextPortfolioView,
+        data: { success: true },
+      }),
     );
   });
 

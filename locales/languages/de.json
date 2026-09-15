@@ -1876,10 +1876,6 @@
         "current_price": "Aktueller Preis",
         "liquidation_price": "Liquidationspreis",
         "liquidation_distance": "Liquidationsdistanz",
-        "liquidation_warning": "Sie werden liquidiert, wenn der Preis {{direction}} um {{percentage}}",
-        "drops": "fällt",
-        "rises": "steigt",
-        "set_leverage": "{{leverage}}x festlegen",
         "price_unavailable": "Preisinformation nicht verfügbar"
       },
       "type": {
