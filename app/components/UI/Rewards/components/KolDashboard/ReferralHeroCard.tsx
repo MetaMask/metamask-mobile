@@ -4,12 +4,14 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
+  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -23,26 +25,48 @@ import {
   KOL_REFERRAL_CODE_FALLBACK,
 } from './rewardsUiFixtures';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
+import RewardsMetricCard from './RewardsMetricCard';
 import ShareCodeSheet from './ShareCodeSheet';
 
-const ReferralHeroCard: React.FC = () => {
+const MetricAvatar: React.FC<{ iconName: IconName }> = ({ iconName }) => (
+  <AvatarIcon
+    iconName={iconName}
+    size={AvatarIconSize.Md}
+    severity={AvatarIconSeverity.Neutral}
+    iconProps={{ color: IconColor.IconDefault }}
+  />
+);
+
+interface ReferralHeroCardProps {
+  /** Opens the Earnings tab, where these two totals are broken down. */
+  onViewEarnings: () => void;
+}
+
+const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
+  onViewEarnings,
+}) => {
   const storedCode = useSelector(selectReferralCode);
   const referralCode = storedCode || KOL_REFERRAL_CODE_FALLBACK;
   const [isShareOpen, setIsShareOpen] = useState(false);
 
   return (
     <Box
-      twClassName="gap-3 px-4 pt-4"
+      twClassName="mt-3 gap-3 px-4 pt-4"
       testID={KOL_DASHBOARD_SELECTORS.REFERRAL_HERO}
     >
-      <Box twClassName="rounded-2xl bg-muted p-4">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {strings('rewards.kol.earn_eligible_fees')}
-        </Text>
+      {/* Vertical padding only: the divider below is full-bleed, so the rows
+          carry their own horizontal padding. */}
+      <Box twClassName="rounded-2xl bg-muted py-4">
+        <Box twClassName="px-4 pb-4">
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+            {strings('rewards.kol.earn_eligible_fees')}
+          </Text>
+        </Box>
+        <Box twClassName="h-px bg-border-muted" />
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="mt-4"
+          twClassName="mt-4 px-4"
         >
           <Box twClassName="flex-1">
             <Text
@@ -58,55 +82,35 @@ const ReferralHeroCard: React.FC = () => {
               {referralCode}
             </Text>
           </Box>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Md}
-            onPress={() => setIsShareOpen(true)}
-            testID={KOL_DASHBOARD_SELECTORS.SHARE_BUTTON}
-          >
-            {strings('rewards.kol.share')}
-          </Button>
+          {/* Button applies `self-start` unless it is full width, which would
+              override the row's centering, so it is wrapped to stay centered. */}
+          <Box>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Md}
+              onPress={() => setIsShareOpen(true)}
+              testID={KOL_DASHBOARD_SELECTORS.SHARE_BUTTON}
+            >
+              {strings('rewards.kol.share')}
+            </Button>
+          </Box>
         </Box>
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-        <Box
-          twClassName="flex-1 rounded-2xl bg-muted p-4"
+        <RewardsMetricCard
+          avatar={<MetricAvatar iconName={IconName.UserCircleAdd} />}
+          label={strings('rewards.kol.referrals')}
+          amount={formatUsd(KOL_EARNINGS_FIXTURE.referralsRecorded)}
+          onPress={onViewEarnings}
           testID={KOL_DASHBOARD_SELECTORS.REFERRALS_METRIC}
-        >
-          <Icon name={IconName.UserCircleAdd} size={IconSize.Md} />
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mt-3"
-          >
-            {strings('rewards.kol.referrals')}
-          </Text>
-          <Text variant={TextVariant.HeadingMd}>
-            {formatUsd(KOL_EARNINGS_FIXTURE.referralsRecorded)}
-          </Text>
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {strings('rewards.kol.recorded_earnings')}
-          </Text>
-        </Box>
-        <Box
-          twClassName="flex-1 rounded-2xl bg-muted p-4"
+        />
+        <RewardsMetricCard
+          avatar={<MetricAvatar iconName={IconName.SwapVertical} />}
+          label={strings('rewards.kol.trade_commissions')}
+          amount={formatUsd(KOL_EARNINGS_FIXTURE.tradeCommissionsRecorded)}
+          onPress={onViewEarnings}
           testID={KOL_DASHBOARD_SELECTORS.TRADE_COMMISSIONS_METRIC}
-        >
-          <Icon name={IconName.SwapVertical} size={IconSize.Md} />
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mt-3"
-          >
-            {strings('rewards.kol.trade_commissions')}
-          </Text>
-          <Text variant={TextVariant.HeadingMd}>
-            {formatUsd(KOL_EARNINGS_FIXTURE.tradeCommissionsRecorded)}
-          </Text>
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {strings('rewards.kol.recorded_earnings')}
-          </Text>
-        </Box>
+        />
       </Box>
       <ShareCodeSheet
         isVisible={isShareOpen}

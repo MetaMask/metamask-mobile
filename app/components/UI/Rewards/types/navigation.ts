@@ -170,6 +170,14 @@ export interface RewardOptInAccountGroupModalParams {
   }[];
 }
 
+export interface RewardsEarningsHistoryParams {
+  hideReferrals?: boolean;
+}
+
+export interface RewardsPerformanceParams {
+  hideReferrals?: boolean;
+}
+
 /**
  * Param list for screens registered in `RewardsNavigator`.
  */
@@ -178,7 +186,10 @@ export interface RewardOptInAccountGroupModalParams {
 export type RewardsStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
-  RewardsPerformanceView: undefined;
+  RewardsPerformanceView: RewardsPerformanceParams | undefined;
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: RewardsEarningsHistoryParams | undefined;
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;
   RewardsVipTiersView: undefined;

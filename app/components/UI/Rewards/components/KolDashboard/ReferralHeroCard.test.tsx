@@ -37,10 +37,26 @@ describe('ReferralHeroCard', () => {
   });
 
   it('opens the share sheet when Share is pressed', () => {
-    const { getByTestId } = render(<ReferralHeroCard />);
+    const { getByTestId } = render(
+      <ReferralHeroCard onViewEarnings={jest.fn()} />,
+    );
 
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.SHARE_BUTTON));
 
     expect(getByTestId('share-code-sheet-open')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['referrals', KOL_DASHBOARD_SELECTORS.REFERRALS_METRIC],
+    ['trade commissions', KOL_DASHBOARD_SELECTORS.TRADE_COMMISSIONS_METRIC],
+  ])('opens earnings when the %s card is pressed', (_name, testId) => {
+    const onViewEarnings = jest.fn();
+    const { getByTestId } = render(
+      <ReferralHeroCard onViewEarnings={onViewEarnings} />,
+    );
+
+    fireEvent.press(getByTestId(testId));
+
+    expect(onViewEarnings).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,12 +1,7 @@
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  SectionDivider,
+  SectionHeader,
   Skeleton,
   Tag,
   TagSeverity,
@@ -15,7 +10,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';
@@ -58,40 +52,14 @@ const BenefitsPreview = () => {
     ) : null;
 
   const displayHeader = hasBenefits ? (
-    <Pressable onPress={handleNavigateToBenefitsFullView}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.benefits.title')}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
-        {benefitsCountBadge}
-      </Box>
-    </Pressable>
+    <SectionHeader
+      title={strings('rewards.benefits.title')}
+      titleAccessory={benefitsCountBadge}
+      isInteractive
+      onPress={handleNavigateToBenefitsFullView}
+    />
   ) : (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
-    >
-      <Text variant={TextVariant.HeadingMd}>
-        {strings('rewards.benefits.title')}
-      </Text>
-    </Box>
+    <SectionHeader title={strings('rewards.benefits.title')} />
   );
 
   const displayContent = hasBenefits ? (
@@ -108,16 +76,20 @@ const BenefitsPreview = () => {
   );
 
   return (
-    <Box
-      twClassName="gap-3 px-4 pb-6"
-      testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION}
-    >
+    <Box testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION}>
+      {/* SectionHeader adds pt-3 below the rule, so the top margin carries the
+          matching 12px to keep both sides at 32px. */}
+      <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
       {displayHeader}
-      {isLoading ? (
-        <Skeleton height={154} twClassName="rounded-lg" />
-      ) : (
-        displayContent
-      )}
+      {/* paddingTop matches the Home tab, where sections pair SectionHeader
+          with a pt-3 content box. */}
+      <Box paddingTop={3} twClassName="gap-3 px-4 pb-6">
+        {isLoading ? (
+          <Skeleton height={154} twClassName="rounded-lg" />
+        ) : (
+          displayContent
+        )}
+      </Box>
     </Box>
   );
 };

@@ -610,7 +610,10 @@ export type RootStackParamList = {
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
-  RewardsPerformanceView: undefined;
+  RewardsPerformanceView: RewardsNavigationParamList['RewardsPerformanceView'];
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: RewardsNavigationParamList['RewardsEarningsHistoryView'];
   RewardsDashboard: undefined;
   TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
   TrendingFeed: TrendingViewStackParamList['TrendingFeed'];

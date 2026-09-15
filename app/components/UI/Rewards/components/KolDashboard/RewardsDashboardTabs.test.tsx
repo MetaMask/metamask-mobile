@@ -24,6 +24,20 @@ describe('RewardsDashboardTabs', () => {
     expect(onChangeTab).toHaveBeenCalledWith('earnings');
   });
 
+  it('marks the earnings tab with a dot while funds are claimable', () => {
+    const { getByTestId } = render(
+      <RewardsDashboardTabs
+        activeTab="waysToEarn"
+        showEarningsDot
+        onChangeTab={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAB_EARNINGS_DOT),
+    ).toBeOnTheScreen();
+  });
+
   it('hides the earnings dot after claimable funds are gone', () => {
     const { queryByTestId } = render(
       <RewardsDashboardTabs

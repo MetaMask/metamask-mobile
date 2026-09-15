@@ -1,14 +1,9 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+  TabsBar,
+  type TabItem,
+} from '../../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../../locales/i18n';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import type { RewardsDashboardTab } from './RewardsDashboardTabs.types';
@@ -19,82 +14,48 @@ interface RewardsDashboardTabsProps {
   onChangeTab: (tab: RewardsDashboardTab) => void;
 }
 
+const TAB_ORDER: RewardsDashboardTab[] = ['waysToEarn', 'earnings'];
+
 const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
   activeTab,
   showEarningsDot,
   onChangeTab,
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    twClassName="px-4 pt-1"
-    testID={KOL_DASHBOARD_SELECTORS.TABS}
-  >
-    <Box twClassName="flex-1">
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{ selected: activeTab === 'waysToEarn' }}
-        onPress={() => onChangeTab('waysToEarn')}
-        testID={KOL_DASHBOARD_SELECTORS.TAB_WAYS_TO_EARN}
-      >
-        <Box alignItems={BoxAlignItems.Center} twClassName="pb-2">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={
-              activeTab === 'waysToEarn' ? FontWeight.Bold : FontWeight.Regular
-            }
-            twClassName={
-              activeTab === 'waysToEarn' ? 'text-default' : 'text-alternative'
-            }
-          >
-            {strings('rewards.kol.ways_to_earn')}
-          </Text>
-        </Box>
-        <Box
-          twClassName={
-            activeTab === 'waysToEarn' ? 'h-[2px] bg-default' : 'h-[2px]'
-          }
-        />
-      </Pressable>
+}) => {
+  // `content` is unused: the dashboard renders each tab's sections inside its
+  // own scroll view, so TabsBar renders the bar only.
+  const tabs = useMemo<TabItem[]>(
+    () => [
+      {
+        key: 'waysToEarn',
+        label: strings('rewards.kol.ways_to_earn'),
+        content: null,
+        testID: KOL_DASHBOARD_SELECTORS.TAB_WAYS_TO_EARN,
+      },
+      {
+        key: 'earnings',
+        label: strings('rewards.kol.earnings_tab'),
+        content: null,
+        testID: KOL_DASHBOARD_SELECTORS.TAB_EARNINGS,
+        showsIndicatorDot: showEarningsDot,
+      },
+    ],
+    [showEarningsDot],
+  );
+
+  return (
+    <Box
+      twClassName="border-b border-muted"
+      testID={KOL_DASHBOARD_SELECTORS.TABS}
+    >
+      <TabsBar
+        tabs={tabs}
+        isFullWidth
+        activeIndex={TAB_ORDER.indexOf(activeTab)}
+        onTabPress={(index) => onChangeTab(TAB_ORDER[index])}
+        testID={KOL_DASHBOARD_SELECTORS.TABS_BAR}
+      />
     </Box>
-    <Box twClassName="flex-1">
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityState={{ selected: activeTab === 'earnings' }}
-        onPress={() => onChangeTab('earnings')}
-        testID={KOL_DASHBOARD_SELECTORS.TAB_EARNINGS}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1 pb-2"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={
-              activeTab === 'earnings' ? FontWeight.Bold : FontWeight.Regular
-            }
-            twClassName={
-              activeTab === 'earnings' ? 'text-default' : 'text-alternative'
-            }
-          >
-            {strings('rewards.kol.earnings_tab')}
-          </Text>
-          {showEarningsDot ? (
-            <Box
-              testID={KOL_DASHBOARD_SELECTORS.TAB_EARNINGS_DOT}
-              twClassName="h-1.5 w-1.5 rounded-full bg-success-default"
-            />
-          ) : null}
-        </Box>
-        <Box
-          twClassName={
-            activeTab === 'earnings' ? 'h-[2px] bg-default' : 'h-[2px]'
-          }
-        />
-      </Pressable>
-    </Box>
-  </Box>
-);
+  );
+};
 
 export default RewardsDashboardTabs;
