@@ -216,7 +216,7 @@ describe('EarnTokenList', () => {
     // Token List
     // Ethereum
     expect(getAllByText('Ethereum').length).toBe(1);
-    expect(getAllByText('2.29% APR').length).toBe(1);
+    expect(getAllByText('2.3% APR').length).toBe(1);
 
     // USDC
     expect(getByText('USDC')).toBeOnTheScreen();
