@@ -378,6 +378,20 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).toContain('Skipping E2E (merge queue)');
     });
 
+    it('builds iOS only for scheduled runs', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'schedule',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
+      expect(stdout).toContain('E2E for iOS only (scheduled)');
+    });
+
     it('builds both platforms for a shared app push', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',

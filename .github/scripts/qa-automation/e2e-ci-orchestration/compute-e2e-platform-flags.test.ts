@@ -285,7 +285,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('keeps scheduled runs on both platforms', () => {
+  it('selects iOS only for scheduled runs', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'schedule',
@@ -295,9 +295,10 @@ describe('computeE2EPlatformFlags', () => {
     });
 
     expect(result).toMatchObject({
-      android: true,
+      android: false,
       ios: true,
       e2eNeeded: true,
+      message: 'E2E for iOS only (scheduled)',
     });
   });
 
