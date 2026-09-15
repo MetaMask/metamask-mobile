@@ -40,13 +40,37 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
         value={chartType}
         onChange={(value) => onChartTypeSelect(value as ChartType)}
         variant={FilterButtonVariant.Primary}
-        twClassName="rounded-lg"
+        twClassName="w-full rounded-lg"
       >
-        <FilterButton value={ChartType.Line} size={FilterButtonSize.Sm}>
-          <Icon name={IconName.Diagram} size={IconSize.Sm} />
+        <FilterButton
+          value={ChartType.Line}
+          size={FilterButtonSize.Sm}
+          twClassName="flex-1"
+        >
+          <Icon
+            name={IconName.Diagram}
+            size={IconSize.Sm}
+            twClassName={
+              chartType === ChartType.Line
+                ? 'text-icon-default'
+                : 'text-icon-alternative'
+            }
+          />
         </FilterButton>
-        <FilterButton value={ChartType.Candles} size={FilterButtonSize.Sm}>
-          <Icon name={IconName.Candlestick} size={IconSize.Sm} />
+        <FilterButton
+          value={ChartType.Candles}
+          size={FilterButtonSize.Sm}
+          twClassName="flex-1"
+        >
+          <Icon
+            name={IconName.Candlestick}
+            size={IconSize.Sm}
+            twClassName={
+              chartType === ChartType.Candles
+                ? 'text-icon-default'
+                : 'text-icon-alternative'
+            }
+          />
         </FilterButton>
       </FilterButtonGroup>
     </Box>
