@@ -21,7 +21,7 @@ const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
 }) => (
   <TouchableOpacity onPress={onPress}>
     <Box
-      twClassName={`min-h-8 flex-1 items-center justify-center px-2 py-1 rounded-full border border-border-muted ${
+      twClassName={`min-h-8 flex-1 items-center justify-center px-2 py-1 rounded-full ${
         isActive ? 'bg-muted' : ''
       }`}
     >

@@ -42,9 +42,9 @@ export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
-/** Padding 4px 16px with fully rounded pill corners and border. */
+/** Padding 4px 16px with fully rounded pill cornersr. */
 const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full border border-border-muted px-4 py-1';
+  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
 
 /** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
 const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
