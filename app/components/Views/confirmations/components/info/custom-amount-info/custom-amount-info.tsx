@@ -57,6 +57,9 @@ import { ToastContext } from '../../../../../../component-library/components/Toa
 import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
+import { usePrepareSolanaPayQuote } from '../../../hooks/pay/usePrepareSolanaPayQuote';
+import { useTransactionPaySource } from '../../../hooks/pay/useTransactionPaySource';
+import { useSolanaPayPresentation } from '../../../hooks/pay/useSolanaPayPresentation';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
@@ -78,6 +81,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -148,6 +152,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useFiatFunnelMetricsAdapter();
 
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
+    const { isSolana, paySource } = useTransactionPaySource();
+    const solanaPay = useSolanaPayPresentation();
+    const { prepareSolanaPayQuote } = usePrepareSolanaPayQuote();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
 
@@ -233,6 +240,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
       try {
         await updateTokenAmount();
+        await prepareSolanaPayQuote();
 
         if (selectedFiatPaymentMethodId && transactionId) {
           Engine.context.TransactionPayController.updateFiatPayment({
@@ -284,6 +292,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       trackAmountCommitted,
       transactionId,
       updateTokenAmount,
+      prepareSolanaPayQuote,
     ]);
 
     const wasPrefillPending = useRef(isPrefillPending);
@@ -365,7 +374,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       !hideBuyForNoFunds &&
       !isDepositPrefillEnabled;
 
+    const solanaPayAlert =
+      solanaPay && !solanaPay.affordability.isAffordable
+        ? solanaPay.affordability.nativeShortfallRaw !== '0'
+          ? strings('confirm.solana_pay.insufficient_sol')
+          : strings('confirm.solana_pay.insufficient_source', {
+              symbol: solanaPay.sourceSymbol,
+            })
+        : undefined;
     const alertMessage =
+      solanaPayAlert ??
       alertMessageBase ??
       headlessBuyError ??
       (showBuyButton ? getBuyMessage(transactionMeta) : undefined);
@@ -478,7 +496,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 hasInput={hasInput}
                 hasMax={
                   (hasMax || isMoneyDepositNoFee) &&
-                  (isWithdraw || !isNativePayToken)
+                  (isWithdraw ||
+                    (isSolana
+                      ? !(
+                          paySource &&
+                          'isNative' in paySource &&
+                          paySource.isNative === true
+                        )
+                      : !isNativePayToken))
                 }
               />
             )}

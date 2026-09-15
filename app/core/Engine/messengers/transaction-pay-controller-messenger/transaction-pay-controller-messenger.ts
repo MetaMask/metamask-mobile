@@ -43,6 +43,8 @@ export function getTransactionPayControllerMessenger(
       'TokensController:getState',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:confirmTransaction',
+      'TransactionController:failTransaction',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',

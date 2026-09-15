@@ -85,6 +85,10 @@ function isValidatedFiatDeposit(data: TransactionData | undefined): boolean {
 export function isPayTokenSubmitReady(
   data: TransactionData | undefined,
 ): boolean {
+  if (data?.solanaPayQuote) {
+    return data.solanaPayQuote.preflight.affordability.isAffordable;
+  }
+
   const executableQuotes = (data?.quotes ?? []).filter(
     (quote) => !isNoOpQuote(quote),
   );
@@ -144,6 +148,18 @@ export const selectTransactionPaymentTokenByTransactionId = createSelector(
   (transactionData) => transactionData?.paymentToken,
 );
 
+export const selectTransactionPayIntentByTransactionId = createSelector(
+  selectTransactionPayControllerState,
+  (_state: RootState, transactionId: string) => transactionId,
+  (transactionPayControllerState, transactionId) =>
+    transactionPayControllerState.payIntents?.[transactionId],
+);
+
+export const selectSolanaPayQuoteByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.solanaPayQuote,
+);
+
 export const selectTransactionPaySourceAmountsByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.sourceAmounts,
@@ -188,5 +204,12 @@ export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
 
 export const selectIsTransactionPaySubmitReadyByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) => isPayTokenSubmitReady(transactionData),
+  selectTransactionPayIntentByTransactionId,
+  (transactionData, intent) =>
+    intent?.sourceChainId.startsWith('solana:')
+      ? transactionData?.solanaPayQuote?.preflight.affordability
+          .isAffordable === true &&
+        (intent.atomicProductActionRequired !== true ||
+          transactionData.solanaPayQuote.route.atomicProductActionIncluded)
+      : isPayTokenSubmitReady(transactionData),
 );

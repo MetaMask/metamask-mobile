@@ -73,6 +73,46 @@ describe('local activity call-site mapping', () => {
     });
   });
 
+  it('projects a refunded Solana Pay outcome onto activity', () => {
+    const item = mapLocalActivity(
+      buildGroup({
+        metamaskPay: {
+          intent: {
+            outcome: { type: 'refunded' },
+            sourceAccountId: 'solana:mainnet:account',
+            sourceAmountRaw: '1',
+            sourceAssetId: 'solana:mainnet/slip44:501',
+            sourceChainId: 'solana:mainnet',
+            sourceWalletAccountId: 'wallet-account-id',
+            version: 2,
+          },
+        },
+      } as never),
+    );
+
+    expect(item.payOutcome).toBe('refunded');
+  });
+
+  it('projects an unknown Solana Pay outcome onto activity', () => {
+    const item = mapLocalActivity(
+      buildGroup({
+        metamaskPay: {
+          intent: {
+            outcome: { phase: 'source', type: 'unknown' },
+            sourceAccountId: 'solana:mainnet:account',
+            sourceAmountRaw: '1',
+            sourceAssetId: 'solana:mainnet/slip44:501',
+            sourceChainId: 'solana:mainnet',
+            sourceWalletAccountId: 'wallet-account-id',
+            version: 2,
+          },
+        },
+      } as never),
+    );
+
+    expect(item.payOutcome).toBe('unknown');
+  });
+
   it('keeps incomplete swaps as swap when the destination token is missing', () => {
     const item = mapLocalActivity(
       buildGroup(

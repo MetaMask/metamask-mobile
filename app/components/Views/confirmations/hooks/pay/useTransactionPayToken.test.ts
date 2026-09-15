@@ -76,6 +76,7 @@ function runHook({
   const mockState = cloneDeep(STATE_MOCK);
 
   mockState.engine.backgroundState.TransactionPayController = {
+    payIntents: {},
     transactionData: {
       [TRANSACTION_ID_MOCK]: {
         isLoading: false,

@@ -108,7 +108,10 @@ const PRIMARY_MONEY_ACCOUNT_ADDRESS =
 describe('money-account-override', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    Engine.context.TransactionPayController.state = { transactionData: {} };
+    Engine.context.TransactionPayController.state = {
+      payIntents: {},
+      transactionData: {},
+    };
     Engine.context.NetworkController.state = {
       networkConfigurationsByChainId: { '0x1': {}, '0x89': {} },
     } as never;

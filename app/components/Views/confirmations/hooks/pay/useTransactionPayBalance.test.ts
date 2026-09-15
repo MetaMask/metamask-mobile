@@ -12,10 +12,12 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 import { useTransactionPayBalance } from './useTransactionPayBalance';
+import { useTransactionPaySource } from './useTransactionPaySource';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
 jest.mock('./usePayTokenAccountBalance');
+jest.mock('./useTransactionPaySource');
 
 const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
 const MONEY_ACCOUNT_KEYRING_ID_MOCK = 'mock-money-keyring-id';
@@ -67,6 +69,7 @@ describe('useTransactionPayBalance', () => {
   );
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
   const usePayTokenAccountBalanceMock = jest.mocked(usePayTokenAccountBalance);
+  const useTransactionPaySourceMock = jest.mocked(useTransactionPaySource);
 
   function mockTransaction(overrides: Partial<TransactionMeta> = {}) {
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -90,6 +93,13 @@ describe('useTransactionPayBalance', () => {
       balanceUsd: '25',
       balanceRaw: '12500000',
     });
+    useTransactionPaySourceMock.mockReturnValue({
+      isSolana: false,
+      paySource: undefined,
+      setPaySource: jest.fn(),
+      solanaAsset: undefined,
+      solanaIntent: undefined,
+    });
   });
 
   it('returns the pay token balance by default', () => {
@@ -98,6 +108,27 @@ describe('useTransactionPayBalance', () => {
     expect(result.current).toStrictEqual({
       balanceRaw: '12500000',
       balanceUsd: 25,
+    });
+  });
+
+  it('returns the selected Solana account asset balance', () => {
+    useTransactionPaySourceMock.mockReturnValue({
+      isSolana: true,
+      paySource: undefined,
+      setPaySource: jest.fn(),
+      solanaAsset: {
+        balance: '12.5',
+        decimals: 6,
+        fiat: { balance: 12.5 },
+      },
+      solanaIntent: undefined,
+    } as never);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual({
+      balanceRaw: '12500000',
+      balanceUsd: 12.5,
     });
   });
 
