@@ -297,7 +297,7 @@ const PerpsMarketHeader = ({
       {onBackPress ? (
         <ButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Sm}
+          size={ButtonIconSize.Md}
           onPress={handleBackPress}
           accessibilityLabel={strings('perps.market_details.back')}
           testID={testIDs.backButton}
