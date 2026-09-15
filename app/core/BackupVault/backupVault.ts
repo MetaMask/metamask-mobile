@@ -19,10 +19,29 @@ const options: SetOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
+/** Vault string currently claimed by an in-flight/queued backup attempt. */
+let pendingVault: string | undefined;
+/**
+ * Serializes all keychain access for this module (backups and resets) so
+ * overlapping calls can't race on keychain I/O, and so a reset always runs
+ * after any backup that was already queued ahead of it.
+ */
+let backupQueue: Promise<void> = Promise.resolve();
+
 interface KeyringBackupResponse {
   success: boolean;
   vault?: string;
   error?: string;
+  skipped?: boolean;
+  skipReason?: 'identical_keychain';
+}
+
+/**
+ * Clears in-memory dedupe so the next backup must re-read keychain.
+ * Called from {@link clearAllVaultBackups}.
+ */
+export function resetVaultBackupDedupState(): void {
+  pendingVault = undefined;
 }
 
 /**
@@ -42,11 +61,24 @@ const _resetTemporaryVaultBackup = async (): Promise<void> => {
 };
 
 /**
- * Clears all vault backups from react-native-keychain
+ * Clears all vault backups from react-native-keychain.
+ *
+ * Runs through the same {@link backupQueue} as {@link scheduleVaultBackup} so
+ * it always executes after any backup already queued ahead of it — otherwise
+ * a stale queued write could land after the reset and resurrect a vault this
+ * call was meant to erase.
  */
 export async function clearAllVaultBackups() {
-  await _resetVaultBackup();
-  await _resetTemporaryVaultBackup();
+  resetVaultBackupDedupState();
+  const reset = backupQueue.then(async () => {
+    await _resetVaultBackup();
+    await _resetTemporaryVaultBackup();
+  });
+  // Keep the queue alive for future backups even if this reset throws.
+  backupQueue = reset.catch((error) => {
+    Logger.error(error as Error, 'clearAllVaultBackups failed');
+  });
+  await reset;
 }
 
 /**
@@ -78,6 +110,20 @@ export async function backupVault(
         readError,
         'backupVault: failed to read existing backup, proceeding with fresh backup',
       );
+    }
+
+    // Keychain already holds this exact vault — nothing changed, skip the rewrite.
+    if (
+      keyringVault &&
+      existingBackup &&
+      existingBackup.password === keyringVault
+    ) {
+      return {
+        success: true,
+        vault: keyringVault,
+        skipped: true,
+        skipReason: 'identical_keychain',
+      };
     }
 
     // An existing backup exists, backup it to the temp key
@@ -131,6 +177,44 @@ export async function backupVault(
       error: error instanceof Error ? error.message : VAULT_BACKUP_FAILED,
     };
   }
+}
+
+/**
+ * Deduped + serialized entry point for KeyringController:stateChange.
+ *
+ * KeyringController emits multiple stateChange events carrying the same
+ * vault around unlock; this coalesces those into a single backupVault() call.
+ */
+export function scheduleVaultBackup(state: KeyringControllerState): void {
+  const vault = state.vault;
+  if (!vault || vault === pendingVault) {
+    return;
+  }
+
+  pendingVault = vault;
+
+  backupQueue = backupQueue
+    .then(() => backupVault(state))
+    .then((result) => {
+      if (pendingVault === vault) {
+        pendingVault = undefined;
+      }
+      if (!result.success) {
+        throw new Error(result.error ?? VAULT_BACKUP_FAILED);
+      }
+      Logger.log(
+        'Engine',
+        result.skipped
+          ? `Vault back up skipped (${result.skipReason})`
+          : 'Vault back up successful',
+      );
+    })
+    .catch((error) => {
+      if (pendingVault === vault) {
+        pendingVault = undefined;
+      }
+      Logger.error(error as Error, 'Engine Vault backup failed');
+    });
 }
 
 /**
