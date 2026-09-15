@@ -9,16 +9,24 @@
 #
 # NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
 # on the default branch, so this cannot be launched from a PR branch. The
-# `pull_request: [labeled]` trigger exists to exercise it before it lands:
-# add the `run-app-profiling-analysis` label to the PR and the PR branch's own
-# version of this workflow runs with the latest scheduled performance run.
+# `pull_request` trigger exists to exercise it before it lands: a PR that
+# touches the analysis workflow or its script runs the PR branch's own version
+# against the latest scheduled performance run. The `run-app-profiling-analysis`
+# label re-runs it on demand without a new commit.
 
 name: Analyze App Profiling
 
 on:
   pull_request:
     types:
+      - opened
+      - synchronize
+      - reopened
       - labeled
+    paths:
+      - '.github/workflows/analyze-app-profiling.yml'
+      - 'tests/scripts/analyze-app-profiling.mjs'
+      - 'tests/scripts/analyze-app-profiling.test.mjs'
   workflow_dispatch:
     inputs:
       run_id:
@@ -54,12 +62,14 @@ permissions:
 jobs:
   analyze:
     name: Analyze per-scenario profiling
-    # Label runs are a pre-merge smoke test of this workflow, so they are
-    # restricted to same-repo PRs where the secrets are available.
+    # PR runs are a pre-merge smoke test of this workflow, so they are
+    # restricted to same-repo PRs where the secrets are available. Unrelated
+    # labels must not re-trigger it, hence the label name check.
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.label.name == 'run-app-profiling-analysis' &&
-       !github.event.pull_request.head.repo.fork)
+      (!github.event.pull_request.head.repo.fork &&
+       (github.event.action != 'labeled' ||
+        github.event.label.name == 'run-app-profiling-analysis'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
