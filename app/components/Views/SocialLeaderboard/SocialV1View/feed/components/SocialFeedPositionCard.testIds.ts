@@ -4,9 +4,6 @@ export const getSocialFeedPositionCardTestId = (id: string) =>
 export const getSocialFeedPositionCardCommentTestId = (id: string) =>
   `social-v1-feed-card-comment-${id}`;
 
-export const getSocialFeedPositionCardChartTestId = (id: string) =>
-  `social-v1-feed-card-chart-${id}`;
-
 export const getSocialFeedPositionCardCopyTradeTestId = (id: string) =>
   `social-v1-feed-card-copy-trade-${id}`;
 

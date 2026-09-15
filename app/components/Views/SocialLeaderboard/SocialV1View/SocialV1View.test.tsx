@@ -2,13 +2,13 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getSubnavPillTestId } from '../shell/SubnavPills';
 import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
 import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
+import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
@@ -35,14 +35,6 @@ jest.mock('../analytics', () => {
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
   };
 });
-
-jest.mock(
-  '../../Homepage/Sections/Perpetuals/components/SparklineChart',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
 
 jest.mock('../components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -148,35 +140,27 @@ describe('SocialV1View', () => {
     mockRouteParams = {};
   });
 
-  it('renders Feed, Live trades, and Leaderboard tabs', () => {
+  it('renders For you, Following, Leaderboard, and Live trades tabs', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0-label`),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
+    ).toHaveTextContent('social_leaderboard.feed.tabs.for_you');
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1-label`),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.live_trades');
+    ).toHaveTextContent('social_leaderboard.feed.tabs.following');
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
+    ).toHaveTextContent('social_leaderboard.feed.tabs.live_trades');
   });
 
-  it('renders every tab subnav', () => {
+  it('omits tab sub-navigation pills', () => {
     renderWithProvider(<SocialV1View />);
 
-    expect(
-      screen.getByTestId(getSubnavPillTestId('trending')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(getSubnavPillTestId('following')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(getSubnavPillTestId('topGainers')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(getSubnavPillTestId('topTraders')),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-shell-subnav')).toBeNull();
   });
 
   it('mounts the leaderboard list once the Leaderboard tab is opened', () => {
@@ -191,7 +175,7 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
 
-  it('renders the three mocked position cards on Feed', () => {
+  it('renders the three mocked position cards on For you', () => {
     renderWithProvider(<SocialV1View />);
 
     MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
@@ -228,18 +212,26 @@ describe('SocialV1View', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('renders a filter icon button on the tabs row', () => {
+  it('renders the Live trades filter icon on the Live trades page', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON),
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.LIVE_BUTTON),
     ).toBeOnTheScreen();
   });
 
-  it('opens the filters bottom sheet when the filter button is pressed', () => {
+  it('opens the filters bottom sheet from the Live trades filter button', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    );
 
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
@@ -247,7 +239,9 @@ describe('SocialV1View', () => {
   it('closes the filters bottom sheet when Show results is pressed', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    );
     fireEvent.press(
       screen.getByTestId('social-filters-bottom-sheet-show-results'),
     );
@@ -258,7 +252,9 @@ describe('SocialV1View', () => {
   it('closes the filters bottom sheet when the backdrop is pressed', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    );
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
@@ -274,7 +270,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(

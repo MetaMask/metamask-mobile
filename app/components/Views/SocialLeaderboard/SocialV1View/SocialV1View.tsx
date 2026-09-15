@@ -24,7 +24,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, LayoutChangeEvent, Pressable, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -66,6 +66,7 @@ import {
   SocialFiltersBottomSheet,
   useSocialShellFilters,
 } from '../shell/filters';
+import LiveTradesView from '../LiveTradesView';
 import superheroAvatar from '../../../../images/socialV1/superhero.png';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMyProfile } from '../MyProfileView/hooks';
@@ -80,10 +81,15 @@ const PAGE_TEST_IDS: Record<
     scroll: string;
   }
 > = {
-  feed: {
-    page: SocialV1ViewSelectorsIDs.FEED_PAGE,
-    container: `${SocialV1ViewSelectorsIDs.FEED_PAGE}-content`,
-    scroll: `${SocialV1ViewSelectorsIDs.FEED_PAGE}-scroll`,
+  forYou: {
+    page: SocialV1ViewSelectorsIDs.FOR_YOU_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.FOR_YOU_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.FOR_YOU_PAGE}-scroll`,
+  },
+  following: {
+    page: SocialV1ViewSelectorsIDs.FOLLOWING_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`,
   },
   liveTrades: {
     page: SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE,
@@ -104,8 +110,10 @@ const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
 const getTabAnalyticsValue = (tab: SocialShellTab) => {
   switch (tab) {
-    case 'feed':
-      return SocialLeaderboardEventValues.TAB.FEED;
+    case 'forYou':
+      return SocialLeaderboardEventValues.TAB.FOR_YOU;
+    case 'following':
+      return SocialLeaderboardEventValues.TAB.FOLLOWING;
     case 'liveTrades':
       return SocialLeaderboardEventValues.TAB.LIVE_TRADES;
     case 'leaderboard':
@@ -116,8 +124,8 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
 };
 
 /**
- * Social Bundle V1 Follow Trading home: Feed | Live trades | Leaderboard
- * under a collapsing header. Opened only for TSA-1122 treatment.
+ * Social Bundle V1 Follow Trading home: For you | Following | Leaderboard |
+ * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
  */
 const SocialV1View: React.FC = () => {
   const tw = useTailwind();
@@ -130,7 +138,8 @@ const SocialV1View: React.FC = () => {
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
-  const feedIndex = tabOrder.indexOf('feed');
+  const forYouIndex = tabOrder.indexOf('forYou');
+  const followingIndex = tabOrder.indexOf('following');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
   // The landing tab is the first one, so the surface always opens on index 0.
@@ -147,30 +156,34 @@ const SocialV1View: React.FC = () => {
     updateDraft,
     applyFilters,
   } = useSocialShellFilters();
-  const activeTab = tabOrder[activeIndex];
-  const isFilterActive = hasActiveFilters(activeTab);
 
-  const handleFilterPress = useCallback(() => {
-    openSheet(activeTab);
-  }, [activeTab, openSheet]);
+  const handleOpenLiveTradesFilters = useCallback(() => {
+    openSheet('liveTrades');
+  }, [openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
   // derived value expose whichever one is currently visible. Sharing a single
   // offset would leave the header collapsed after swiping to an unscrolled page.
   // On tab change the incoming page is scrolled into agreement with the outgoing
   // one (see `syncIncomingPageScroll`) so the header never flips.
+  const forYouScrollY = useSharedValue(0);
+  const followingScrollY = useSharedValue(0);
   const leaderboardScrollY = useSharedValue(0);
-  const feedScrollY = useSharedValue(0);
   const liveTradesScrollY = useSharedValue(0);
+  const forYouPageRef = useRef<SocialTabPageHandle>(null);
+  const followingPageRef = useRef<SocialTabPageHandle>(null);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
-  const feedPageRef = useRef<SocialTabPageHandle>(null);
   const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(LANDING_INDEX);
-  const feedIndexSv = useSharedValue(feedIndex);
+  const forYouIndexSv = useSharedValue(forYouIndex);
+  const followingIndexSv = useSharedValue(followingIndex);
   const liveTradesIndexSv = useSharedValue(liveTradesIndex);
   const scrollY = useDerivedValue(() => {
-    if (activeIndexSv.value === feedIndexSv.value) {
-      return feedScrollY.value;
+    if (activeIndexSv.value === forYouIndexSv.value) {
+      return forYouScrollY.value;
+    }
+    if (activeIndexSv.value === followingIndexSv.value) {
+      return followingScrollY.value;
     }
     if (activeIndexSv.value === liveTradesIndexSv.value) {
       return liveTradesScrollY.value;
@@ -178,14 +191,19 @@ const SocialV1View: React.FC = () => {
     return leaderboardScrollY.value;
   });
 
+  const forYouScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      forYouScrollY.value = event.contentOffset.y;
+    },
+  });
+  const followingScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      followingScrollY.value = event.contentOffset.y;
+    },
+  });
   const leaderboardScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       leaderboardScrollY.value = event.contentOffset.y;
-    },
-  });
-  const feedScrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      feedScrollY.value = event.contentOffset.y;
     },
   });
   const liveTradesScrollHandler = useAnimatedScrollHandler({
@@ -197,7 +215,8 @@ const SocialV1View: React.FC = () => {
     SocialShellTab,
     ReturnType<typeof useAnimatedScrollHandler>
   > = {
-    feed: feedScrollHandler,
+    forYou: forYouScrollHandler,
+    following: followingScrollHandler,
     liveTrades: liveTradesScrollHandler,
     leaderboard: leaderboardScrollHandler,
   };
@@ -206,16 +225,7 @@ const SocialV1View: React.FC = () => {
   // the title slides fully behind the header once scrolled past this distance.
   // The tabs bar stops there so it stays pinned under the header.
   const titleHeightSv = useSharedValue(0);
-  const [titleHeight, setTitleHeight] = useState(0);
-
-  const handleTitleLayout = useCallback(
-    (e: LayoutChangeEvent) => {
-      const height = e.nativeEvent.layout.height;
-      titleHeightSv.value = height;
-      setTitleHeight(height);
-    },
-    [titleHeightSv],
-  );
+  const titleHeight = 0;
 
   /**
    * Brings the incoming page's scroll offset into agreement with the outgoing
@@ -235,8 +245,11 @@ const SocialV1View: React.FC = () => {
       }
 
       const getOffset = (index: number) => {
-        if (index === feedIndex) {
-          return feedScrollY.value;
+        if (index === forYouIndex) {
+          return forYouScrollY.value;
+        }
+        if (index === followingIndex) {
+          return followingScrollY.value;
         }
         if (index === liveTradesIndex) {
           return liveTradesScrollY.value;
@@ -259,8 +272,10 @@ const SocialV1View: React.FC = () => {
       // the moment `activeIndexSv` flips, and the native scroll only reports back
       // a frame later — without this the header would collapse/expand for that
       // frame before settling.
-      if (nextIndex === feedIndex) {
-        feedScrollY.value = target;
+      if (nextIndex === forYouIndex) {
+        forYouScrollY.value = target;
+      } else if (nextIndex === followingIndex) {
+        followingScrollY.value = target;
       } else if (nextIndex === liveTradesIndex) {
         liveTradesScrollY.value = target;
       } else {
@@ -268,17 +283,21 @@ const SocialV1View: React.FC = () => {
       }
 
       const incomingPage =
-        nextIndex === feedIndex
-          ? feedPageRef
-          : nextIndex === liveTradesIndex
-            ? liveTradesPageRef
-            : leaderboardPageRef;
+        nextIndex === forYouIndex
+          ? forYouPageRef
+          : nextIndex === followingIndex
+            ? followingPageRef
+            : nextIndex === liveTradesIndex
+              ? liveTradesPageRef
+              : leaderboardPageRef;
       incomingPage.current?.scrollToOffset(target);
     },
     [
       activeIndex,
-      feedIndex,
-      feedScrollY,
+      followingIndex,
+      followingScrollY,
+      forYouIndex,
+      forYouScrollY,
       leaderboardScrollY,
       liveTradesIndex,
       liveTradesScrollY,
@@ -493,31 +512,13 @@ const SocialV1View: React.FC = () => {
             collapsingBlockStyle,
           ]}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="bg-default mt-4"
-          >
-            <Box twClassName="flex-1">
-              <TabsBar
-                tabs={tabs}
-                activeIndex={activeIndex}
-                onTabPress={handleTabPress}
-                testID={SocialV1ViewSelectorsIDs.TABS}
-              />
-            </Box>
-            <Box twClassName="pr-4">
-              <ButtonIcon
-                iconName={IconName.Filter}
-                size={ButtonIconSize.Md}
-                onPress={handleFilterPress}
-                testID={SocialV1ViewSelectorsIDs.FILTER_BUTTON}
-                accessibilityLabel={strings(
-                  'social_leaderboard.shell.filters.title',
-                )}
-                twClassName={isFilterActive ? 'bg-background-muted' : undefined}
-              />
-            </Box>
+          <Box twClassName="bg-default mt-4">
+            <TabsBar
+              tabs={tabs}
+              activeIndex={activeIndex}
+              onTabPress={handleTabPress}
+              testID={SocialV1ViewSelectorsIDs.TABS}
+            />
           </Box>
 
           {/* Pages are rendered in `tabOrder` so the pager positions stay
@@ -532,11 +533,13 @@ const SocialV1View: React.FC = () => {
             {tabOrder.map((tab) => {
               const testIds = PAGE_TEST_IDS[tab];
               const pageRef =
-                tab === 'feed'
-                  ? feedPageRef
-                  : tab === 'liveTrades'
-                    ? liveTradesPageRef
-                    : leaderboardPageRef;
+                tab === 'forYou'
+                  ? forYouPageRef
+                  : tab === 'following'
+                    ? followingPageRef
+                    : tab === 'liveTrades'
+                      ? liveTradesPageRef
+                      : leaderboardPageRef;
               return (
                 <View
                   key={tab}
@@ -551,9 +554,21 @@ const SocialV1View: React.FC = () => {
                       pageRef={pageRef}
                       containerTestID={testIds.container}
                     />
+                  ) : tab === 'liveTrades' ? (
+                    <LiveTradesView
+                      onScroll={scrollHandlers[tab]}
+                      pageRef={pageRef}
+                      onOpenFilters={handleOpenLiveTradesFilters}
+                      isFilterActive={hasActiveFilters('liveTrades')}
+                    />
                   ) : (
                     <EmptyShellTabPage
                       tab={tab}
+                      isActive={
+                        tab === 'forYou'
+                          ? activeIndex === forYouIndex
+                          : activeIndex === followingIndex
+                      }
                       onScroll={scrollHandlers[tab]}
                       pageRef={pageRef}
                       containerTestID={testIds.container}

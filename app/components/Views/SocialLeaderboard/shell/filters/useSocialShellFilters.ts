@@ -58,7 +58,8 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   const [applied, setApplied] = useState<
     Record<SocialShellTab, SocialShellFilters>
   >(() => ({
-    feed: cloneFilters(DEFAULT_TAB_FILTER_STATE.feed),
+    forYou: cloneFilters(DEFAULT_TAB_FILTER_STATE.forYou),
+    following: cloneFilters(DEFAULT_TAB_FILTER_STATE.following),
     liveTrades: cloneFilters(DEFAULT_TAB_FILTER_STATE.liveTrades),
     leaderboard: cloneFilters(DEFAULT_TAB_FILTER_STATE.leaderboard),
   }));
