@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Metro",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/Users/alexandraforrest/Documents/metamask-mobile/.yarn/releases/yarn-4.14.1.cjs", "watch:clean"],
+      "port": 8081
+    }
+  ]
+}
