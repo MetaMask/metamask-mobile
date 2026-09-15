@@ -1,5 +1,6 @@
 import React, { Fragment, useMemo } from 'react';
 import { FlatList, ImageSourcePropType, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import {
   Text,
@@ -7,6 +8,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionGroups.styles';
 import DeFiProtocolPositionGroupTokens from '../../../DeFiPositions/DeFiProtocolPositionGroupTokens';
 import Summary from '../../../../Base/Summary';
@@ -23,6 +25,7 @@ const DeFiProtocolPositionGroupsV2: React.FC<
   DeFiProtocolPositionGroupsV2Props
 > = ({ protocolPositionGroup, networkIconAvatar, privacyMode }) => {
   const { styles } = useStyles(styleSheet, undefined);
+  const currency = useSelector(getSelectedCurrency);
 
   const sections = useMemo(
     () =>
@@ -54,6 +57,7 @@ const DeFiProtocolPositionGroupsV2: React.FC<
                 tokens={section.tokens}
                 networkIconAvatar={networkIconAvatar}
                 privacyMode={privacyMode}
+                currency={currency}
               />
               {!isLast && <Summary.Separator />}
             </Fragment>
