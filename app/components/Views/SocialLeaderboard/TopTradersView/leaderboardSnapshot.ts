@@ -23,11 +23,12 @@ export const SNAPSHOT_MAX_ROWS = 25;
  * Fields that are *derived* rather than fetched, so they are deliberately not
  * persisted:
  *
- * - `isFollowing` comes from the follow controller's live state. A persisted
- *   value would render yesterday's follow state on a row the user has since
- *   changed.
- * - `rank` is reassigned client-side by `rankTradersByMetric`, so it is
- *   recomputed from the snapshot's array order on read.
+ * `isFollowing` comes from the follow controller's live state, so a persisted
+ * value would render yesterday's follow state on a row the user has since
+ * changed.
+ *
+ * `rank` is reassigned client-side by `rankTradersByMetric`, so it is
+ * recomputed from the snapshot's array order on read.
  */
 type PersistedTrader = Omit<TopTrader, 'isFollowing' | 'rank'>;
 
