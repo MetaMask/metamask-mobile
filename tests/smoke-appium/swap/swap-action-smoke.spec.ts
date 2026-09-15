@@ -18,7 +18,9 @@ import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.js';
 import { swapActionExpectations } from '../../helpers/analytics/expectations/swap-action.analytics.js';
 
 appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
-  appiumTest.describe.configure({ timeout: 180000 });
+  // Two full swap legs + Activity round-trips; TabBar enable waits alone can
+  // burn 10–15s each on Android, so 180s leaves no headroom after #36190.
+  appiumTest.describe.configure({ timeout: 300000 });
 
   appiumTest(
     'swaps ETH->USDC with custom slippage and USDC->ETH',

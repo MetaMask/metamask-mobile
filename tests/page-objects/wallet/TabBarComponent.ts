@@ -94,6 +94,17 @@ class TabBarComponent {
   }
 
   async tapWallet(): Promise<void> {
+    // Callers that already dismissed a full-screen flow (e.g. Swap Activity →
+    // Quote back) often land on wallet home. Skip the enable/retry budget when
+    // wallet is already visible — Android TabBar enable waits of 8–12s each
+    // were starving the two-leg swap-action smoke under a 180s test timeout.
+    const walletAlreadyVisible = await (await WalletView.container)
+      .isVisible()
+      .catch(() => false);
+    if (walletAlreadyVisible) {
+      return;
+    }
+
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarWalletButton, {
