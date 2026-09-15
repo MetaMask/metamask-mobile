@@ -69,7 +69,7 @@ const EarnMoneyAccountRow = ({
       <Text
         color={TextColor.SuccessDefault}
         variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Regular}
+        fontWeight={FontWeight.Medium}
         numberOfLines={1}
       >
         {rateText}

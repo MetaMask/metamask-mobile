@@ -1112,7 +1112,7 @@ const PerpsHomeView = () => {
             accessible={false}
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={1}
+            gap={2}
           >
             <ButtonIcon
               iconName={IconName.Search}
