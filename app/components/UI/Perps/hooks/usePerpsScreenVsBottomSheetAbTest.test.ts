@@ -12,12 +12,6 @@ jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
-// Keeps assignment coverage meaningful while the temporary local force is on.
-jest.mock('../abTestConfig', () => ({
-  ...jest.requireActual('../abTestConfig'),
-  FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT: false,
-}));
-
 const mockUseABTest = jest.mocked(useABTest);
 
 describe('usePerpsScreenVsBottomSheetAbTest', () => {
