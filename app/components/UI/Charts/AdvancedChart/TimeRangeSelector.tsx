@@ -9,9 +9,9 @@ import {
   IconName,
   IconSize,
   FilterButton,
-  FilterButtonGroup,
   FilterButtonSize,
-  FilterButtonVariant,
+  SegmentedControl,
+  SegmentedControlSize,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
@@ -118,23 +118,24 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="w-full flex-1 rounded-full"
         >
-          <FilterButtonGroup
+          <SegmentedControl
             value={selected}
             onChange={(value) => onSelect(value as TimeRange)}
-            variant={FilterButtonVariant.Primary}
-            twClassName="flex-1 rounded-full"
+            size={SegmentedControlSize.Sm}
+            isFullWidth
+            twClassName="flex-1"
           >
             {ranges.map((range) => (
               <FilterButton
                 key={range}
                 value={range}
                 size={FilterButtonSize.Sm}
-                twClassName="flex-1 rounded-full"
+                twClassName="flex-1"
               >
                 {range}
               </FilterButton>
             ))}
-          </FilterButtonGroup>
+          </SegmentedControl>
           {onChartTypeToggle ? (
             <Pressable
               style={({ pressed }) =>
