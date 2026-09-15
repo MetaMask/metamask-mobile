@@ -1020,6 +1020,7 @@ export const getPerpsSlippageConfigSelector = {
 // ========================================
 
 export const PerpsCustomSlippageBottomSheetSelectorsIDs = {
+  CLOSE: 'perps-custom-slippage-close',
   DISPLAY: 'perps-custom-slippage-display',
   DECREMENT: 'perps-custom-slippage-decrement',
   INCREMENT: 'perps-custom-slippage-increment',
