@@ -20,6 +20,8 @@ import {
   IconName,
   IconSize,
   IconColor,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
@@ -71,6 +73,8 @@ if (
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
+  isGaslessSwapRedesignTreatment = false,
+  gaslessFeeAsset,
 }) => {
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const tw = useTailwind();
@@ -272,6 +276,57 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 >
                   {strings('bridge.gas_fees_sponsored')}
                 </TagColored>
+              ),
+            }}
+          />
+        ) : isGasless && isGaslessSwapRedesignTreatment ? (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.network_fee')),
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_gasless'),
+                iconName: IconNameLegacy.Info,
+              },
+            }}
+            value={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {formattedQuoteData?.networkFee}
+                  </Text>
+                  {gaslessFeeAsset ? (
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      twClassName="rounded-md bg-muted px-1.5"
+                    >
+                      <AvatarToken
+                        name={gaslessFeeAsset.symbol}
+                        src={gaslessFeeAsset.iconUrl ?? undefined}
+                        size={AvatarTokenSize.Xs}
+                      />
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                      >
+                        {gaslessFeeAsset.symbol}
+                      </Text>
+                    </Box>
+                  ) : null}
+                </Box>
               ),
             }}
           />
