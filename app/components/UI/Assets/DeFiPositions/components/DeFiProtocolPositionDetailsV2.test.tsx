@@ -45,7 +45,7 @@ const eurState = {
       ...backgroundState,
       AssetsController: {
         ...backgroundState.AssetsController,
-        selectedCurrency: 'eur',
+        selectedCurrency: 'eur' as const,
       },
     },
   },
