@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   CandlePeriod,
   TimeDuration,
@@ -10,6 +10,8 @@ export interface UsePerpsSyncedChartPriceParams {
   symbol: string;
   interval: CandlePeriod;
   isAdvancedChartEnabled: boolean;
+  marketContextKey?: string;
+  isMarketContextReady?: boolean;
 }
 
 export interface UsePerpsSyncedChartPriceResult {
@@ -24,6 +26,8 @@ export interface UsePerpsSyncedChartPriceResult {
    */
   syncedChartCurrentPrice: number;
   setAdvancedChartCurrentPrice: (price: number | undefined) => void;
+  /** Deliveries accepted by the selected candle subscription. */
+  priceDeliveryRevision: number;
 }
 
 /**
@@ -37,35 +41,66 @@ export function usePerpsSyncedChartPrice({
   symbol,
   interval,
   isAdvancedChartEnabled,
+  marketContextKey = '',
+  isMarketContextReady = true,
 }: UsePerpsSyncedChartPriceParams): UsePerpsSyncedChartPriceResult {
-  const { candleData, isLoading, hasHistoricalData, fetchMoreHistory } =
-    usePerpsLiveCandles({
-      symbol,
-      interval,
-      duration: TimeDuration.YearToDate,
-      throttleMs: 1000,
-    });
+  const {
+    candleData,
+    isLoading,
+    hasHistoricalData,
+    fetchMoreHistory,
+    deliveryRevision: priceDeliveryRevision = 0,
+  } = usePerpsLiveCandles({
+    symbol,
+    interval,
+    duration: TimeDuration.YearToDate,
+    throttleMs: 1000,
+    resetKey: marketContextKey,
+    enabled: isMarketContextReady,
+  });
 
   const chartCurrentPrice = useMemo(() => {
-    if (!candleData?.candles?.length) {
+    if (
+      !isMarketContextReady ||
+      candleData?.symbol !== symbol ||
+      !candleData.candles.length
+    ) {
       return 0;
     }
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData]);
+  }, [candleData, isMarketContextReady, symbol]);
 
-  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
-    number | undefined
-  >(undefined);
+  const [advancedChartPriceState, setAdvancedChartPriceState] = useState<{
+    symbol: string;
+    interval: CandlePeriod;
+    marketContextKey: string;
+    price: number;
+  }>();
+
+  const setAdvancedChartCurrentPrice = useCallback(
+    (price: number | undefined) => {
+      setAdvancedChartPriceState(
+        price === undefined
+          ? undefined
+          : { symbol, interval, marketContextKey, price },
+      );
+    },
+    [interval, marketContextKey, symbol],
+  );
+
+  const advancedChartCurrentPrice =
+    advancedChartPriceState?.symbol === symbol &&
+    advancedChartPriceState.interval === interval &&
+    advancedChartPriceState.marketContextKey === marketContextKey &&
+    isMarketContextReady
+      ? advancedChartPriceState.price
+      : undefined;
 
   const syncedChartCurrentPrice =
     isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
       ? advancedChartCurrentPrice
       : chartCurrentPrice;
-
-  useEffect(() => {
-    setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, symbol, interval]);
 
   return {
     candleData,
@@ -74,5 +109,6 @@ export function usePerpsSyncedChartPrice({
     fetchMoreHistory,
     syncedChartCurrentPrice,
     setAdvancedChartCurrentPrice,
+    priceDeliveryRevision,
   };
 }

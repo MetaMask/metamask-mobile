@@ -178,7 +178,31 @@ import {
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
-import { fetchWithTimeout } from './fetchWithTimeout';
+import {
+  fetchWithTimeout,
+  isExpectedPolymarketRequestAbort,
+} from './fetchWithTimeout';
+
+/**
+ * Narrows the geoblock payload to the fields the app relies on. Returns `null`
+ * unless `blocked` is a boolean and `country` is a non-empty string, so an
+ * incomplete response is never mistaken for a definitive result.
+ */
+const parseGeoBlockPayload = (
+  data: unknown,
+): { blocked: boolean; country: string } | null => {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+  const { blocked, country } = data as { blocked?: unknown; country?: unknown };
+  if (typeof blocked !== 'boolean') {
+    return null;
+  }
+  if (typeof country !== 'string' || country.trim() === '') {
+    return null;
+  }
+  return { blocked, country };
+};
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -208,77 +232,6 @@ interface OptimisticPositionUpdate {
 const ERC20_TRANSFER_INTERFACE = new Interface([
   'function transfer(address to, uint256 value)',
 ]);
-
-type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
-
-/**
- * The Polymarket Chainlink-candles endpoint accepts a hard allowlist of
- * `limit` values — exactly 15, 30, or 60. Sending any other value returns a
- * 400 with `{"error":"limit must be one of 15, 30, or 60"}`. The variant
- * configs below MUST stick to this allowlist or the sparkline goes blank.
- */
-type ChainlinkCandleLimit = 15 | 30 | 60;
-
-interface ChainlinkCandle {
-  time?: number;
-  close?: number;
-}
-
-interface ChainlinkCandlesResponse {
-  candles?: ChainlinkCandle[];
-}
-
-const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
-  interval: ChainlinkCandleInterval;
-  limit: ChainlinkCandleLimit;
-} = {
-  interval: '1m',
-  limit: 60,
-};
-
-const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
-  string,
-  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
-> = {
-  fiveminute: { interval: '1m', limit: 15 },
-  fifteen: { interval: '1m', limit: 30 },
-  hourly: { interval: '1m', limit: 60 },
-  fourhour: { interval: '5m', limit: 60 },
-  daily: { interval: '1h', limit: 30 },
-};
-
-const toUnixSeconds = (timestamp?: string): number | undefined => {
-  const trimmedTimestamp = timestamp?.trim();
-  if (!trimmedTimestamp) {
-    return undefined;
-  }
-
-  const numericTimestamp = Number(trimmedTimestamp);
-  if (Number.isFinite(numericTimestamp)) {
-    return numericTimestamp > 9999999999
-      ? Math.floor(numericTimestamp / 1000)
-      : Math.floor(numericTimestamp);
-  }
-
-  const timeMs = new Date(trimmedTimestamp).getTime();
-  if (!Number.isFinite(timeMs)) {
-    return undefined;
-  }
-
-  return Math.floor(timeMs / 1000);
-};
-
-const isWithinWindow = ({
-  timestamp,
-  startSeconds,
-  endSeconds,
-}: {
-  timestamp: number;
-  startSeconds?: number;
-  endSeconds?: number;
-}) =>
-  (startSeconds === undefined || timestamp >= startSeconds) &&
-  (endSeconds === undefined || timestamp <= endSeconds);
 
 /**
  * Whether an error from the crypto price history fetch is an expected,
@@ -1074,13 +1027,22 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('getMarkets', {
-          category: params?.category,
-          hasAfterCursor: Boolean(params?.afterCursor),
-        }),
-      );
+      const errorContext = this.getErrorContext('getMarkets', {
+        category: params?.category,
+        hasAfterCursor: Boolean(params?.afterCursor),
+      });
+      if (isExpectedPolymarketRequestAbort(error)) {
+        Logger.log(
+          'Predict markets request ended by expected timeout/cancellation:',
+          error instanceof Error ? error.message : String(error),
+          errorContext,
+        );
+      } else {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          errorContext,
+        );
+      }
 
       throw error;
     }
@@ -1375,7 +1337,8 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoPriceHistory(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]> {
-    const { symbol, eventStartTime, variant, endDate } = params;
+    const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
+      params;
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1383,76 +1346,47 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('symbol parameter is required');
       }
 
-      const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
-      const { interval, limit } =
-        CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
-        DEFAULT_CHAINLINK_CANDLE_CONFIG;
-      const startSeconds = toUnixSeconds(eventStartTime);
-      const endSeconds = toUnixSeconds(endDate);
+      const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
       const searchParams = new URLSearchParams({
         symbol: normalizedSymbol,
-        interval,
-        limit: String(limit),
+        eventStartTime,
+        variant,
       });
+      if (endDate) {
+        searchParams.set('endDate', endDate);
+      }
+      if (twapWindowSeconds !== undefined) {
+        searchParams.set('twapEnabled', 'true');
+        searchParams.set('twapLookbackSeconds', twapWindowSeconds.toString());
+      }
 
       const response = await fetchWithTimeout(
-        `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
+        `${CRYPTO_PRICE_HISTORY_ENDPOINT}?${searchParams.toString()}`,
         { method: 'GET' },
       );
-
       if (!response.ok) {
         throw new Error('Failed to get crypto price history');
       }
 
-      const data = (await response.json()) as ChainlinkCandlesResponse;
-
-      if (!Array.isArray(data?.candles)) {
+      const data: unknown = await response.json();
+      if (!Array.isArray(data)) {
         return [];
       }
 
-      const validCandles = data.candles.filter(
-        (entry): entry is { time: number; close: number } =>
-          typeof entry?.time === 'number' &&
-          Number.isFinite(entry.time) &&
-          typeof entry?.close === 'number' &&
-          Number.isFinite(entry.close),
+      return data.filter(
+        (entry): entry is CryptoPriceHistoryPoint =>
+          typeof entry === 'object' &&
+          entry !== null &&
+          'timestamp' in entry &&
+          typeof entry.timestamp === 'number' &&
+          Number.isFinite(entry.timestamp) &&
+          'value' in entry &&
+          typeof entry.value === 'number' &&
+          Number.isFinite(entry.value),
       );
-
-      const candlesInWindow = validCandles.filter((entry) =>
-        isWithinWindow({
-          timestamp: entry.time,
-          startSeconds,
-          endSeconds,
-        }),
-      );
-
-      if (
-        validCandles.length > 0 &&
-        candlesInWindow.length === 0 &&
-        (typeof startSeconds === 'number' || typeof endSeconds === 'number')
-      ) {
-        DevLogger.log(
-          'Predict crypto up/down: Chainlink candles response returned data but every candle was filtered out by the requested window. The window is likely older than limit * interval.',
-          {
-            symbol: normalizedSymbol,
-            variant,
-            interval,
-            limit,
-            startSeconds,
-            endSeconds,
-            firstCandleSeconds: validCandles[0]?.time,
-            lastCandleSeconds: validCandles[validCandles.length - 1]?.time,
-          },
-        );
-      }
-
-      return candlesInWindow.map((entry) => ({
-        timestamp: entry.time,
-        value: entry.close,
-      }));
     } catch (error) {
       DevLogger.log(
-        'Error getting crypto price history via Polymarket Chainlink candles API:',
+        'Error getting crypto price history via Polymarket price history API:',
         error,
       );
 
@@ -1463,6 +1397,7 @@ export class PolymarketProvider implements PredictProvider {
         eventStartTime,
         variant,
         endDate,
+        twapWindowSeconds,
       } as Record<string, unknown>);
 
       // Transient network/availability failures are expected while polling and
@@ -2428,27 +2363,30 @@ export class PolymarketProvider implements PredictProvider {
       ownerAddress: signer.address,
     });
 
-    if (accountState.walletType !== 'deposit-wallet') {
-      return undefined;
+    if (accountState.walletType === 'deposit-wallet') {
+      DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
+        operation: 'deposit_wallet_claim_before_sign',
+        walletType: 'deposit-wallet',
+        signerAddress: signer.address,
+        depositWalletAddress: accountState.address,
+        transactionId: transactionMeta.id,
+        positionCount: positions.length,
+      });
+
+      return {
+        updateTransaction: (transaction: TransactionMeta) => {
+          transaction.isExternalSign = true;
+          transaction.selectedGasFeeToken = undefined;
+          transaction.isGasFeeTokenIgnoredIfBalance = false;
+          delete transaction.txParams.nonce;
+        },
+      };
     }
 
-    DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
-      operation: 'deposit_wallet_claim_before_sign',
-      walletType: 'deposit-wallet',
-      signerAddress: signer.address,
-      depositWalletAddress: accountState.address,
-      transactionId: transactionMeta.id,
-      positionCount: positions.length,
-    });
-
-    return {
-      updateTransaction: (transaction: TransactionMeta) => {
-        transaction.isExternalSign = true;
-        transaction.selectedGasFeeToken = undefined;
-        transaction.isGasFeeTokenIgnoredIfBalance = false;
-        delete transaction.txParams.nonce;
-      },
-    };
+    // Safe claims keep `isGasFeeTokenIgnoredIfBalance`, so native POL can pay
+    // when Sentinel returns an empty or mismatched `gasFeeTokens` list.
+    // Transaction-controller preflight rejects only when native is also short.
+    return undefined;
   }
 
   public async publishClaim({
@@ -2612,39 +2550,40 @@ export class PolymarketProvider implements PredictProvider {
     });
   }
 
+  /**
+   * Checks the Polymarket geoblock endpoint.
+   *
+   * Only a complete payload (`blocked` boolean plus a non-empty `country`)
+   * produces a result. Anything else throws so the controller can record the
+   * check as unavailable instead of treating a connectivity failure as a
+   * geo-restriction. Error classification and reporting are owned by the
+   * controller, so nothing is logged here.
+   */
   public async isEligible(): Promise<GeoBlockResponse> {
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
-    const result: GeoBlockResponse = { isEligible: false };
 
-    try {
-      const res = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
-      const data = (await res.json()) as {
-        blocked?: boolean;
-        country?: string;
-      };
-
-      if (data.blocked !== undefined) {
-        result.isEligible = data.blocked === false;
-        result.country = data.country;
-      }
-    } catch (error) {
-      DevLogger.log('PolymarketProvider: Error checking geoblock status', {
-        error:
-          error instanceof Error
-            ? error.message
-            : `Error checking geoblock status: ${error}`,
-        timestamp: new Date().toISOString(),
-      });
-
-      // Log to Sentry - this error is swallowed (returns false) so controller won't see it
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('isEligible', {
-          operation: 'geoblock_check',
-        }),
+    const response = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
+    if (!response.ok) {
+      throw new Error(
+        `Polymarket geoblock check failed with status ${response.status}`,
       );
     }
-    return result;
+
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Polymarket geoblock check returned malformed JSON');
+    }
+
+    const payload = parseGeoBlockPayload(data);
+    if (!payload) {
+      throw new Error(
+        'Polymarket geoblock check returned an incomplete response',
+      );
+    }
+
+    return { isEligible: payload.blocked === false, country: payload.country };
   }
 
   /**

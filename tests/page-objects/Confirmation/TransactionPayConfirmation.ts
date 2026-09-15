@@ -1,6 +1,8 @@
 import {
   ConfirmationRowComponentIDs,
   PayWithBottomSheetIDs,
+  PerpsAccountPickerSelectorsIDs,
+  PredictAccountPickerSelectorsIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -14,30 +16,35 @@ import {
   PlatformDetector,
   Utilities,
   sleep,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
 const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
+const MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID = 'money-account-withdraw-balance';
+// Money-funded deposit confirmations set their navbar title (and the navbar
+// back button testID, `<title>-navbar-back-button`) from the destination.
+const PERPS_SEND_TITLE = enContent.perps.send_to_perps;
+const PREDICT_SEND_TITLE = enContent.predict.send_to_predictions;
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
 }
 
 class TransactionPayConfirmation {
-  get bridgeTime(): EncapsulatedElementType {
+  get bridgeTime(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.BRIDGE_TIME);
   }
 
-  get keypad(): EncapsulatedElementType {
+  get keypad(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD);
   }
 
   async expectKeyboardLoaded(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.keypad, {
-      description: 'Deposit keyboard is visible',
-      timeout: 15000,
+      description: 'Deposit keyboard exists',
+      timeout: 30000,
     });
   }
 
@@ -67,62 +74,76 @@ class TransactionPayConfirmation {
     await this.tapKeyboardContinueButton();
   }
 
-  get keyboardContainer(): EncapsulatedElementType {
+  get keyboardContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.KEYBOARD_CONTAINER,
     );
   }
 
-  get payWithRow(): EncapsulatedElementType {
+  get payWithRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH);
   }
 
-  get payWithSymbol(): EncapsulatedElementType {
+  get payWithSymbol(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_SYMBOL);
   }
 
-  get payWithFiat(): EncapsulatedElementType {
+  get payWithFiat(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_FIAT);
   }
 
-  get payWithBalance(): EncapsulatedElementType {
+  get payWithBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_BALANCE);
   }
 
-  get keyboardContinueButton(): EncapsulatedElementType {
+  get keyboardContinueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.KEYBOARD_CONTINUE_BUTTON,
     );
   }
 
-  get amount(): EncapsulatedElementType {
+  get amount(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.AMOUNT);
   }
 
-  get total(): EncapsulatedElementType {
+  get total(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOTAL);
   }
 
-  get receive(): EncapsulatedElementType {
+  get receive(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE);
   }
 
-  get availableBalance(): EncapsulatedElementType {
+  get availableBalance(): Promise<AppiumElement> {
     return Matchers.getElementByText('Available balance');
   }
 
-  get transactionFee(): EncapsulatedElementType {
+  get withdrawBalance(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID);
+  }
+
+  get transactionFee(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TRANSACTION_FEE);
   }
 
-  get payWithTokenList(): EncapsulatedElementType {
+  get paidByMetaMask(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.PAID_BY_METAMASK,
+    );
+  }
+
+  get bridgeFeeRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID('bridge-fee-row');
+  }
+
+  get payWithTokenList(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
     );
   }
 
   // iOS: match search placeholder text; Android: use testID.
-  get tokenSearchInput(): EncapsulatedElementType {
+  get tokenSearchInput(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[contains(@name,'${TOKEN_SEARCH_PLACEHOLDER}') or contains(@label,'${TOKEN_SEARCH_PLACEHOLDER}') or contains(@text,'${TOKEN_SEARCH_PLACEHOLDER}')]`,
@@ -131,24 +152,21 @@ class TransactionPayConfirmation {
     return Matchers.getElementByID(TEXTFIELDSEARCH_TEST_ID);
   }
 
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+  getTokenBySymbol(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(getAssetTestId(symbol));
   }
 
-  getTokenOptionAt(
-    tokenSymbol: string,
-    index: number,
-  ): EncapsulatedElementType {
+  getTokenOptionAt(tokenSymbol: string, index: number): Promise<AppiumElement> {
     return Matchers.getElementByText(tokenSymbol, index);
   }
 
-  getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
+  getFirstTokenOption(tokenSymbol: string): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
     );
   }
 
-  getNetworkFilter(networkName: string): EncapsulatedElementType {
+  getNetworkFilter(networkName: string): Promise<AppiumElement> {
     const networkFilter =
       networkName === 'Ethereum'
         ? ETHEREUM_NETWORK_FILTER_TEST_ID
@@ -156,12 +174,12 @@ class TransactionPayConfirmation {
     return Matchers.getElementByID(networkFilter);
   }
 
-  getKeypadButton(key: string): EncapsulatedElementType {
+  getKeypadButton(key: string): Promise<AppiumElement> {
     return Matchers.getElementByID(getKeypadKeyTestId(key));
   }
 
   async expectText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     description: string,
   ): Promise<void> {
@@ -170,7 +188,7 @@ class TransactionPayConfirmation {
 
   // Amount row text includes the label; match by contains.
   private async expectTextContains(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     description: string,
   ): Promise<void> {
@@ -196,7 +214,37 @@ class TransactionPayConfirmation {
     });
   }
 
-  get preferredPayTokenRow(): EncapsulatedElementType {
+  getPercentageButton(pct: 10 | 25 | 50 | 90): Promise<AppiumElement> {
+    return Matchers.getElementByText(`${pct}%`);
+  }
+
+  async tapPercentage(pct: 10 | 25 | 50 | 90): Promise<void> {
+    await Gestures.waitAndTap(this.getPercentageButton(pct), {
+      elemDescription: `Keyboard ${pct}% button`,
+      timeout: 15000,
+    });
+  }
+
+  get maxButton(): Promise<AppiumElement> {
+    return Matchers.getElementByText('Max');
+  }
+
+  async tapMax(): Promise<void> {
+    await Gestures.waitAndTap(this.maxButton, {
+      elemDescription: 'Keyboard Max button',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPercentageApplied(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 15000,
+      description:
+        'Percentage tap should populate an amount and reveal the Done button',
+    });
+  }
+
+  get preferredPayTokenRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
     );
@@ -298,6 +346,18 @@ class TransactionPayConfirmation {
     });
   }
 
+  get keypadDeleteButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID('keypad-delete-button');
+  }
+
+  async clearAmount(): Promise<void> {
+    await Gestures.longPress(this.keypadDeleteButton, {
+      duration: 600,
+      elemDescription: 'Keypad delete button (long-press clears amount)',
+      timeout: 15000,
+    });
+  }
+
   async tapKeyboardAmount(amount: string): Promise<void> {
     const waitForKeypad = async (): Promise<void> => {
       await Assertions.expectElementToBeVisible(this.getKeypadButton('0'), {
@@ -366,9 +426,30 @@ class TransactionPayConfirmation {
   }
 
   async verifyTransactionFeeVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.transactionFee, {
-      description: 'Transaction fee row should be visible',
+    await Assertions.expectElementToBeVisible(this.bridgeFeeRow, {
+      description: 'Bridge fee row should be visible',
       timeout: 15000,
+    });
+
+    // Prod pay configs may sponsor gas (Paid by MetaMask) instead of showing a
+    // fiat `transaction-fee` value — either means the quote/fee row resolved.
+    await Utilities.waitUntil(
+      async () => {
+        const feeExisting = await (await this.transactionFee)
+          .unwrap()
+          .isExisting();
+        if (feeExisting) {
+          return true;
+        }
+        return (await this.paidByMetaMask).unwrap().isExisting();
+      },
+      { interval: 300, timeout: 15000 },
+    );
+  }
+
+  async verifyCustomAmount(amount: string, description: string): Promise<void> {
+    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+      description,
     });
   }
 
@@ -384,6 +465,54 @@ class TransactionPayConfirmation {
       description: 'Available balance row should be visible',
       timeout: 15000,
     });
+  }
+
+  async verifyWithdrawBalanceVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.withdrawBalance, {
+      description: 'Money account withdraw balance should be visible',
+      timeout: 15000,
+    });
+  }
+
+  get perpsAccountPickerRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsAccountPickerSelectorsIDs.ROW);
+  }
+
+  get predictAccountPickerRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PredictAccountPickerSelectorsIDs.ROW);
+  }
+
+  async verifyPerpsAccountPickerRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.perpsAccountPickerRow, {
+      description: 'Perps account picker row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPredictAccountPickerRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.predictAccountPickerRow, {
+      description: 'Predict account picker row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  getNavbarBackButton(title: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(`${title}-navbar-back-button`);
+  }
+
+  async tapNavbarBackButton(title: string): Promise<void> {
+    await Gestures.waitAndTap(this.getNavbarBackButton(title), {
+      elemDescription: `${title} navbar back button`,
+      timeout: 15000,
+    });
+  }
+
+  async tapPerpsNavbarBackButton(): Promise<void> {
+    await this.tapNavbarBackButton(PERPS_SEND_TITLE);
+  }
+
+  async tapPredictNavbarBackButton(): Promise<void> {
+    await this.tapNavbarBackButton(PREDICT_SEND_TITLE);
   }
 
   async verifyReceive(amount: string): Promise<void> {

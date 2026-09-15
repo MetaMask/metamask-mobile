@@ -1,14 +1,14 @@
 import { OnboardingSuccessSelectorIDs } from '../../../app/components/Views/OnboardingSuccess/OnboardingSuccess.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class OnboardingSuccessView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
   }
 
-  get doneButton(): EncapsulatedElementType {
+  get doneButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(OnboardingSuccessSelectorIDs.DONE_BUTTON);
   }
 

@@ -43,6 +43,7 @@ import type { RootState } from '../../../../reducers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { createStyles } from './AdvancedSettings.styles';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 interface SettingsState {
   showHexData: boolean;
@@ -63,6 +64,7 @@ interface StateProps {
   dismissSmartAccountSuggestionEnabled: ReturnType<
     typeof selectDismissSmartAccountSuggestionEnabled
   >;
+  isBasicFunctionalityConsolidationEnabled: boolean;
 }
 
 interface DispatchProps {
@@ -94,6 +96,7 @@ const AdvancedSettings = ({
   route,
   smartTransactionsOptInStatus,
   dismissSmartAccountSuggestionEnabled,
+  isBasicFunctionalityConsolidationEnabled,
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -242,7 +245,9 @@ const AdvancedSettings = ({
             onValueChange={setShowHexData}
           />
 
-          <AutoDetectTokensSettings />
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <AutoDetectTokensSettings />
+          )}
 
           <SettingsToggleRow
             title={strings('app_settings.show_fiat_on_testnets')}
@@ -295,6 +300,8 @@ const mapStateToProps = (state: SettingsRootState): StateProps => ({
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
+  isBasicFunctionalityConsolidationEnabled:
+    selectIsBasicFunctionalityConsolidationEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({

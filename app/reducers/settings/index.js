@@ -8,6 +8,9 @@ const initialState = {
   avatarAccountType: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
+  isBasicFunctionalityConsolidatedEnabled: false,
+  basicFunctionalityMigrationNotification: null,
+  basicFunctionalityMigrationNotificationDismissed: false,
   deepLinkModalDisabled: false,
   hapticsEnabled: true,
   // Whether this account is shown on the Top Traders leaderboard. Local mirror
@@ -16,6 +19,11 @@ const initialState = {
   // Perps chart preferences
   perpsChartPreferences: {
     preferredCandlePeriod: '15m', // Default to 15 minutes
+  },
+  // Perps market list category / watchlist filter (TAT-3706 / TAT-3736)
+  perpsMarketListPreferences: {
+    marketTypeFilter: 'all',
+    showFavoritesOnly: false,
   },
 };
 
@@ -61,6 +69,24 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         basicFunctionalityEnabled: action.basicFunctionalityEnabled,
       };
+    case 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED':
+      return {
+        ...state,
+        isBasicFunctionalityConsolidatedEnabled:
+          action.isBasicFunctionalityConsolidatedEnabled,
+      };
+    case 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION':
+      return {
+        ...state,
+        basicFunctionalityMigrationNotification:
+          action.basicFunctionalityMigrationNotification,
+      };
+    case 'DISMISS_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION':
+      return {
+        ...state,
+        basicFunctionalityMigrationNotification: null,
+        basicFunctionalityMigrationNotificationDismissed: true,
+      };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {
         ...state,
@@ -89,6 +115,22 @@ const settingsReducer = (state = initialState, action) => {
           preferredCandlePeriod: action.preferredCandlePeriod,
         },
       };
+    case 'SET_PERPS_MARKET_LIST_PREFERENCES': {
+      const next = action.preferences ?? {};
+      return {
+        ...state,
+        perpsMarketListPreferences: {
+          marketTypeFilter:
+            typeof next.marketTypeFilter === 'string'
+              ? next.marketTypeFilter
+              : (state.perpsMarketListPreferences?.marketTypeFilter ?? 'all'),
+          showFavoritesOnly:
+            typeof next.showFavoritesOnly === 'boolean'
+              ? next.showFavoritesOnly
+              : (state.perpsMarketListPreferences?.showFavoritesOnly ?? false),
+        },
+      };
+    }
     default:
       return state;
   }

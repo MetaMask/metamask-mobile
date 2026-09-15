@@ -1,24 +1,24 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import { PerpsTutorialSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 class PerpsOnboarding {
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsTutorialSelectorsIDs.CONTINUE_BUTTON);
   }
 
-  get skipButton(): EncapsulatedElementType {
+  get skipButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsTutorialSelectorsIDs.SKIP_BUTTON);
   }
 
   /** Add funds button - wdio uses getElementByCatchAll('Add funds') */
-  get addFundsButton(): EncapsulatedElementType {
+  get addFundsButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Add funds');
   }
 
   /** Tutorial title for isContainerDisplayed - wdio uses getElementByCatchAll('What are perps?') */
-  get tutorialTitle(): EncapsulatedElementType {
+  get tutorialTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('What are perps?');
   }
 

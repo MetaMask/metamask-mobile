@@ -1,11 +1,13 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
   isLimitExecutionOrderType,
+  isStrategyOrderType,
   isTriggerOrderType,
   type InputMethod,
   type Order,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
@@ -98,15 +100,20 @@ export interface BuildPerpsOrderParamsInput {
   effectivePrice: number;
   leverage: number;
   usdAmount?: string;
-  /** Effective max slippage (bps); limit-execution orders override to the fixed default. */
+  /** Effective max slippage (bps); limit orders use the fixed default. */
   maxSlippageBps: number;
   limitPrice?: string;
+  chaseMaxDistanceBps?: number;
   /** Trigger price for stop/take placements; omitted for market and limit. */
   triggerPrice?: string;
   takeProfitPrice?: string;
   stopLossPrice?: string;
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
+  twapDuration?: number;
+  twapRandomize?: boolean;
+  /** Provider route required for strategy placement. */
+  providerId?: PerpsProviderType;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -120,7 +127,7 @@ export interface BuildPerpsOrderParamsInput {
  * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit-execution
  * orders use the fixed default slippage; TP/SL, limit price, trigger price, and
  * `reduceOnly` are only included when present. TP/SL are never attached to
- * reduce-only or trigger orders.
+ * reduce-only, trigger, or strategy orders.
  *
  * @param input - Order params inputs.
  * @returns The controller `OrderParams`.
@@ -135,14 +142,20 @@ export const buildPerpsOrderParams = ({
   usdAmount,
   maxSlippageBps,
   limitPrice,
+  chaseMaxDistanceBps,
+  providerId,
   triggerPrice,
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
+  twapDuration,
+  twapRandomize,
   isFullClose,
   trackingData,
 }: BuildPerpsOrderParamsInput): OrderParams => {
-  const canAttachTpSl = !reduceOnly && !isTriggerOrderType(orderType);
+  const isStrategyOrder = isStrategyOrderType(orderType);
+  const canAttachTpSl =
+    !reduceOnly && !isTriggerOrderType(orderType) && !isStrategyOrder;
 
   return {
     symbol: asset,
@@ -153,17 +166,31 @@ export const buildPerpsOrderParams = ({
     leverage,
     ...(usdAmount !== undefined ? { usdAmount } : {}),
     priceAtCalculation: effectivePrice,
-    maxSlippageBps: isLimitExecutionOrderType(orderType)
-      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : maxSlippageBps,
+    ...(!isStrategyOrder
+      ? {
+          maxSlippageBps: isLimitExecutionOrderType(orderType)
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+            : maxSlippageBps,
+        }
+      : {}),
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
     ...(isFullClose !== undefined ? { isFullClose } : {}),
+    ...(orderType === 'chase' && chaseMaxDistanceBps !== undefined
+      ? { chaseMaxDistanceBps }
+      : {}),
     ...(isLimitExecutionOrderType(orderType) && limitPrice
       ? { price: limitPrice }
       : {}),
     ...(isTriggerOrderType(orderType) && triggerPrice?.trim()
       ? { triggerPrice }
       : {}),
+    ...(orderType === 'twap' && twapDuration !== undefined
+      ? { twapDuration }
+      : {}),
+    ...(orderType === 'twap' && twapRandomize !== undefined
+      ? { twapRandomize }
+      : {}),
+    ...(providerId !== undefined ? { providerId } : {}),
     ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
     ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
     trackingData,

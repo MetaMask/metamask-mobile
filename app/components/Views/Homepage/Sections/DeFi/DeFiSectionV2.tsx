@@ -125,7 +125,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
           />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
+              section: title,
             })}
             onRetry={refresh}
           />

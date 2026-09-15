@@ -1,19 +1,22 @@
 import React from 'react';
 import type { PredictEvent } from '../../types';
-import { EventCardGame } from './EventCardGame';
+import { getEventGame } from '../game';
+import { EventCardGame, type EventCardGameVariant } from './EventCardGame';
 import { EventCardStandard } from './EventCardStandard';
 
 export interface PredictEventCardProps {
   event: PredictEvent;
+  variant?: EventCardGameVariant;
   onPress: () => void;
 }
 
-const isAmericanFootballGameEvent = (event: PredictEvent): boolean =>
-  event.sports?.sport.id === 'american-football' && Boolean(event.sports.game);
-
-export const PredictEventCard = ({ event, onPress }: PredictEventCardProps) =>
-  isAmericanFootballGameEvent(event) ? (
-    <EventCardGame event={event} onPress={onPress} />
+export const PredictEventCard = ({
+  event,
+  variant,
+  onPress,
+}: PredictEventCardProps) =>
+  getEventGame(event) ? (
+    <EventCardGame event={event} variant={variant} onPress={onPress} />
   ) : (
     <EventCardStandard event={event} onPress={onPress} />
   );

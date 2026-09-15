@@ -18,6 +18,7 @@ import { ImpactMoment, useHaptics } from '../../../../util/haptics';
 import { useComplianceGate } from '../../Compliance';
 import PerpsBottomSheetTooltip from '../components/PerpsBottomSheetTooltip';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet';
+import { PerpsProMarketViewSelectorsIDs } from '../Perps.testIds';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
@@ -26,6 +27,7 @@ import {
   getValidTriggerPrice,
   isSyntheticOrderCancelable,
 } from '../utils/orderUtils';
+import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -56,10 +58,14 @@ export interface UsePerpsProPositionsPanelActionsReturn {
   handleEditPositionTpSl: (position: Position) => void;
   handleEditPositionMargin: (position: Position) => void;
   isPositionMarginEditable: (position: Position) => boolean;
-  handleCancelOrder: (order: Order) => Promise<void>;
+  handleCancelOrder: (
+    order: Order,
+    onOrderCanceled?: (order: Order) => void | Promise<void>,
+  ) => Promise<void>;
   handleEditOrderPrice: (order: Order) => void;
   handleEditOrderSize: (order: Order) => void;
   handleCloseAllPress: () => void;
+  handleCancelAllPress: () => void;
   cancelingOrderId: string | null;
   editingOrderId: string | null;
   isOrderCancelable: (order: Order) => boolean;
@@ -68,6 +74,8 @@ export interface UsePerpsProPositionsPanelActionsReturn {
   renderActionSheets: (
     filteredPositions?: Position[],
     isFiltered?: boolean,
+    filteredOrders?: Order[],
+    areOrdersFiltered?: boolean,
   ) => React.ReactNode;
 }
 
@@ -88,6 +96,7 @@ export const usePerpsProPositionsPanelActions =
     const { playImpact } = useHaptics();
 
     const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
+    const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
     const [reversePosition, setReversePosition] = useState<Position | null>(
       null,
     );
@@ -99,6 +108,7 @@ export const usePerpsProPositionsPanelActions =
     );
 
     const closeAllSheetRef = useRef<BottomSheetRef>(null);
+    const cancelAllSheetRef = useRef<BottomSheetRef>(null);
     const reversePositionSheetRef = useRef<BottomSheetRef>(null);
     const adjustMarginSheetRef = useRef<BottomSheetRef>(null);
 
@@ -148,6 +158,10 @@ export const usePerpsProPositionsPanelActions =
       setShowCloseAllSheet(false);
     }, []);
 
+    const handleCancelAllSheetClose = useCallback(() => {
+      setShowCancelAllSheet(false);
+    }, []);
+
     const handleReverseSheetClose = useCallback(() => {
       setReversePosition(null);
     }, []);
@@ -161,6 +175,12 @@ export const usePerpsProPositionsPanelActions =
         closeAllSheetRef.current?.onOpenBottomSheet();
       }
     }, [showCloseAllSheet]);
+
+    useEffect(() => {
+      if (showCancelAllSheet) {
+        cancelAllSheetRef.current?.onOpenBottomSheet();
+      }
+    }, [showCancelAllSheet]);
 
     useEffect(() => {
       if (reversePosition) {
@@ -284,7 +304,10 @@ export const usePerpsProPositionsPanelActions =
     );
 
     const handleCancelOrder = useCallback(
-      async (order: Order) => {
+      async (
+        order: Order,
+        onOrderCanceled?: (order: Order) => void | Promise<void>,
+      ) => {
         // Mirror openEditSheet: block cancel while another cancel or edit is in flight.
         if (!isOrderCancelable(order) || cancelingOrderId || editingOrderId) {
           return;
@@ -330,6 +353,7 @@ export const usePerpsProPositionsPanelActions =
                 order.symbol,
               ),
             );
+            await onOrderCanceled?.(order);
           } else {
             showToast(
               PerpsToastOptions.orderManagement.shared.cancellationFailed,
@@ -364,8 +388,20 @@ export const usePerpsProPositionsPanelActions =
       );
     }, [playImpact, runGatedEligibleAction]);
 
+    const handleCancelAllPress = useCallback(() => {
+      runGatedEligibleAction(
+        PERPS_EVENT_VALUE.SOURCE.CANCEL_ALL_ORDERS_BUTTON,
+        () => setShowCancelAllSheet(true),
+      );
+    }, [runGatedEligibleAction]);
+
     const renderActionSheets = useCallback(
-      (filteredPositions?: Position[], isFiltered?: boolean) => (
+      (
+        filteredPositions?: Position[],
+        isFiltered?: boolean,
+        filteredOrders?: Order[],
+        areOrdersFiltered?: boolean,
+      ) => (
         <>
           {showCloseAllSheet && (
             <PerpsProModalPortal onRequestClose={handleCloseAllSheetClose}>
@@ -375,6 +411,17 @@ export const usePerpsProPositionsPanelActions =
                 positions={filteredPositions}
                 isFiltered={isFiltered}
                 enableHaptics
+              />
+            </PerpsProModalPortal>
+          )}
+
+          {showCancelAllSheet && (
+            <PerpsProModalPortal onRequestClose={handleCancelAllSheetClose}>
+              <PerpsCancelAllOrdersView
+                sheetRef={cancelAllSheetRef}
+                onClose={handleCancelAllSheetClose}
+                orders={filteredOrders}
+                isFiltered={areOrdersFiltered}
               />
             </PerpsProModalPortal>
           )}
@@ -410,7 +457,7 @@ export const usePerpsProPositionsPanelActions =
                 isVisible
                 onClose={closeGeoBlockModal}
                 contentKey="geo_block"
-                testID="perps-pro-positions-panel-geo-block-tooltip"
+                testID={PerpsProMarketViewSelectorsIDs.GEO_BLOCK_TOOLTIP}
               />
             </PerpsProModalPortal>
           )}
@@ -420,11 +467,13 @@ export const usePerpsProPositionsPanelActions =
         adjustMarginPosition,
         closeGeoBlockModal,
         handleAdjustMarginSheetClose,
+        handleCancelAllSheetClose,
         handleCloseAllSheetClose,
         handleReverseSheetClose,
         isGeoBlockVisible,
         renderOrderEditSheets,
         reversePosition,
+        showCancelAllSheet,
         showCloseAllSheet,
       ],
     );
@@ -439,6 +488,7 @@ export const usePerpsProPositionsPanelActions =
       handleEditOrderPrice,
       handleEditOrderSize,
       handleCloseAllPress,
+      handleCancelAllPress,
       cancelingOrderId,
       editingOrderId,
       isOrderCancelable,

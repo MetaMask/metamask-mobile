@@ -43,6 +43,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -241,7 +242,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       if (liquidationPrice === 0) {
         return PERPS_CONSTANTS.FallbackDataDisplay;
       }
-      return `${distance.toFixed(0)}%`;
+      return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
     },
     [],
   );
@@ -295,9 +296,14 @@ const PerpsAdjustMarginView: React.FC = () => {
     ? strings('perps.adjust_margin.add_margin')
     : strings('perps.adjust_margin.reduce_margin');
 
+  // The route snapshot outlives the position, so once the live stream has
+  // loaded without it there is nothing left to adjust margin on.
+  const isPositionGone = !isLoading && !position;
+
   const isConfirmDisabled =
     marginAmount <= 0 ||
     isAdjusting ||
+    isPositionGone ||
     marginAmount > flooredMaxAmount ||
     Boolean(validationErrors.length);
 

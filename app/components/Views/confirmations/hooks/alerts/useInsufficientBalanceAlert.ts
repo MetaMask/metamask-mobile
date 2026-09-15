@@ -7,7 +7,7 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import {
@@ -37,7 +37,7 @@ export const useInsufficientBalanceAlert = ({
   const { goToBuy } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isTransactionValueUpdating } = useConfirmationContext();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
     useIsGaslessSupported();
   const isUsingPay = useTransactionPayHasSourceAmount();
@@ -62,6 +62,7 @@ export const useInsufficientBalanceAlert = ({
       transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
+    const { isGasFeeTokenIgnoredIfBalance } = transactionMetadata;
 
     // Check if gasless check has completed (regardless of result)
     const isGaslessCheckComplete = !isGaslessCheckPending;
@@ -83,7 +84,10 @@ export const useInsufficientBalanceAlert = ({
     const hasNoGasFeeTokenSelected =
       ignoreGasFeeToken ||
       !selectedGasFeeToken ||
-      (excludeNativeTokenForFee && isGasFeeTokensEmpty);
+      (excludeNativeTokenForFee && isGasFeeTokensEmpty) ||
+      (isGasFeeTokenIgnoredIfBalance &&
+        isGasFeeTokensEmpty &&
+        Boolean(selectedGasFeeToken));
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)

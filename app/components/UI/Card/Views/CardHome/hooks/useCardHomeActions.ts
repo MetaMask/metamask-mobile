@@ -670,6 +670,7 @@ export function useCardHomeActions({
         .addProperties(
           withCardProvider(activeProviderId, {
             action: CardActions.CASHBACK_BUTTON,
+            type: 'open_redeem',
           }),
         )
         .build(),
@@ -686,6 +687,42 @@ export function useCardHomeActions({
     createEventBuilder,
     activeProviderId,
   ]);
+
+  const redeemCreditAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CREDIT_BUTTON,
+            type: 'open_redeem',
+          }),
+        )
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.CREDIT_REDEEM);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
+
+  const transactionHistoryAction = useCallback(
+    (destination: 'card' | 'money') => {
+      if (destination === 'money') {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.ACTIVITY },
+        });
+        return;
+      }
+
+      if (isAuthenticated) {
+        navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
+      } else {
+        navigation.navigate(Routes.CARD.AUTHENTICATION, {
+          showAuthPrompt: true,
+          postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
+        });
+      }
+    },
+    [isAuthenticated, navigation],
+  );
 
   return {
     freeze,
@@ -712,6 +749,8 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
+    redeemCreditAction,
+    transactionHistoryAction,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

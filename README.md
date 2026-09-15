@@ -15,6 +15,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
+- [Animations](./docs/readme/animations.md)
 - [BigInt number migration](./docs/bigint-migration-guide.md) (deprecated `app/util/number/index.js` burndown and ESLint allowlist)
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
@@ -253,13 +254,13 @@ yarn start:android
 
 ### AI Agent Skills (`yarn skills`)
 
-AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [MetaMask/skills](https://github.com/MetaMask/skills) repo, with an optional private overlay from [Consensys/skills](https://github.com/Consensys/skills). Per [ADR #57](https://github.com/MetaMask/decisions/pull/162) this content is **not committed here** — `yarn skills` syncs it on demand into local-only paths under `.cursor/`, `.claude/`, and `.agents/`.
+AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [MetaMask/skills](https://github.com/MetaMask/skills) repo, with an optional private overlay from [Consensys/skills](https://github.com/Consensys/skills). Per [ADR #57](https://github.com/MetaMask/decisions/pull/162) this content is **not committed here** — it is synced into local-only paths under `.cursor/`, `.claude/`, and `.agents/`. `yarn install` syncs the base set; `yarn skills` syncs every domain.
 
 Zero-config setup:
 
 ```bash
-yarn install # refreshes the MetaMask/skills cache via the shared @metamask/skills CLI
-yarn skills  # syncs all default skills through metamask-skills sync
+yarn install # installs the base skill set (and refreshes the MetaMask/skills cache)
+yarn skills  # installs every domain, not just the base set
 ```
 
 Optional local configuration:
@@ -273,7 +274,9 @@ SKILLS_DOMAINS=perps,testing yarn skills      # one-off domain override
 
 Use `.skills.local` for persistent skills configuration. Shell environment variables with the same names are supported for one-off or CI overrides and take precedence.
 
-Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. To opt into best-effort regeneration during install/setup, set `SKILLS_AUTO_UPDATE=1` in your shell or `.skills.local`.
+Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. Set `SKILLS_AUTO_UPDATE=0` in your shell or `.skills.local` to opt out.
+
+Regeneration is best-effort, and quieter than it sounds. Yarn runs `postinstall` only when the dependency tree changes or the previous build failed, so a `yarn install` on an unchanged lockfile will not refresh skills — `git pull` on a branch that touched no dependencies usually leaves them as they were. Yarn also discards the output of a build it considers successful, and the hook deliberately exits 0 so a skills problem cannot fail `yarn install`, so nothing is printed either way. Run `yarn skills` when you want a refresh you can watch.
 
 ### Git Hooks (Husky)
 

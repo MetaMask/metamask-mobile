@@ -25,6 +25,7 @@ import {
   MetaMetricsSwapsEventSource,
   QuoteStreamCompleteReason,
   TokenFeatureType,
+  FeatureId,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
@@ -110,7 +111,9 @@ jest.mock('../../../../../core/Engine', () => {
   );
   return {
     controllerMessenger: {
-      call: jest.fn(),
+      // Messenger actions the tabs call are async, e.g. the limit tab's
+      // OHLCV subscribe, so this has to hand back a promise.
+      call: jest.fn().mockResolvedValue(undefined),
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
     },
@@ -202,7 +205,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   }),
 }));
 
-// Mock useSubmitBridgeTx hook (needed because SwapsConfirmButton imports it)
+// Mock useSubmitBridgeTx hook (needed because SwapsMarketOrderConfirmButton imports it)
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({
@@ -547,6 +550,7 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
@@ -568,6 +572,7 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
@@ -1754,7 +1759,7 @@ describe('BridgeView', () => {
   });
 
   describe('location forwarding', () => {
-    it('forwards route.params.location to SwapsConfirmButton via price impact modal navigation', async () => {
+    it('forwards route.params.location to SwapsMarketOrderConfirmButton via price impact modal navigation', async () => {
       mockRoute.params = {
         sourcePage: 'test',
         location: MetaMetricsSwapsEventSource.MainView,
@@ -1764,7 +1769,7 @@ describe('BridgeView', () => {
       // navigate to the PriceImpactModal — the location value is embedded in
       // the navigation params, making this the easiest observable side-effect
       // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact (raw decimal),
+      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
       // so we must override it alongside the formatted display string.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)

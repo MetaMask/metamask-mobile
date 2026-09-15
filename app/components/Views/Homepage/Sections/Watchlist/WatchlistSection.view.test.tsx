@@ -23,7 +23,6 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPriceWithSubscriptNotation } from '../../../../UI/Predict/utils/format';
-import ToastService from '../../../../../core/ToastService/ToastService';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 
@@ -114,18 +113,6 @@ describeForPlatforms('WatchlistSection', () => {
 });
 
 describeForPlatforms('Watchlist cross-journey', () => {
-  let toastSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    toastSpy = jest
-      .spyOn(ToastService, 'showToast')
-      .mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    toastSpy.mockRestore();
-  });
-
   it('navigates section → full view → row → TDP and toggles watchlist storage on the star', async () => {
     const removeScope = setupWatchlistStoragePutMock();
     const { findByTestId, getByTestId } = renderWatchlistJourneyWithRoutes({

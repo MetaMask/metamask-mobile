@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
+import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
@@ -16,8 +16,6 @@ import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
   inputRef: React.Ref<TokenInputAreaRef>;
-  /** Chains both token selectors are restricted to. */
-  enabledChainIds?: CaipChainId[];
   sourceToken: BridgeToken | undefined;
   sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -34,11 +32,12 @@ interface SwapsInputsProps {
   sourceTokenAreaTestID: string;
   destTokenAreaTestID: string;
   sourceAmountTypeToggleTestID: string;
+  hideDestAmount?: boolean;
+  destAmountReplacementLabelTestID?: string;
 }
 
 export const SwapsInputs = ({
   inputRef,
-  enabledChainIds,
   sourceToken,
   sourceAmountInput,
   latestSourceBalance,
@@ -55,6 +54,8 @@ export const SwapsInputs = ({
   sourceTokenAreaTestID,
   destTokenAreaTestID,
   sourceAmountTypeToggleTestID,
+  hideDestAmount = false,
+  destAmountReplacementLabelTestID,
 }: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
 
@@ -91,15 +92,18 @@ export const SwapsInputs = ({
                 : undefined
             }
             amountTypeToggleTestID={sourceAmountTypeToggleTestID}
-            enabledChainIds={enabledChainIds}
-            excludeRwaTokens
             hideFiatValueWhenUnpriced
           />
         </Box>
         <FLipQuoteButton onPress={onFlipPress} disabled={isFlipDisabled} />
-        <Box style={styles.tokenCard}>
+        <Box
+          style={[
+            styles.tokenCard,
+            hideDestAmount ? styles.compactDestTokenCard : undefined,
+          ]}
+        >
           <TokenInputArea
-            amount={destTokenAmount}
+            amount={hideDestAmount ? undefined : destTokenAmount}
             token={destToken}
             networkImageSource={
               destToken
@@ -110,10 +114,17 @@ export const SwapsInputs = ({
             tokenType={TokenInputAreaType.Destination}
             onInputPress={onDestInputPress}
             onTokenPress={onDestTokenPress}
-            isLoading={!destTokenAmount && isDestAmountLoading}
-            showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
-            enabledChainIds={enabledChainIds}
-            excludeRwaTokens
+            isLoading={
+              hideDestAmount ? false : !destTokenAmount && isDestAmountLoading
+            }
+            showFiatAmountAsPrimary={
+              hideDestAmount ? false : sourceAmountInput.isFiatMode
+            }
+            hideAmount={hideDestAmount}
+            amountReplacementLabel={
+              hideDestAmount ? strings('bridge.recurring.you_get') : undefined
+            }
+            amountReplacementLabelTestID={destAmountReplacementLabelTestID}
             hideFiatValueWhenUnpriced
           />
         </Box>

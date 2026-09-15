@@ -306,6 +306,12 @@ describe('QrScanner', () => {
     mockNavigate.mockImplementation(() => undefined);
   });
 
+  afterEach(() => {
+    // Restore real timers so waitFor() works in subsequent tests when a
+    // prior case enabled fake timers (J8 flaky-timer leak prevention).
+    jest.useRealTimers();
+  });
+
   it('render matches snapshot', () => {
     renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
       state: initialState,
@@ -1085,6 +1091,50 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
           });
           expect(lastCameraIsActive).toBe(false);
+        });
+      });
+
+      it('routes Solana Pay URIs through DeeplinkManager instead of unrecognized QR path', async () => {
+        const solanaPayUri =
+          'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=25.515000&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+        mockDerivePredefinedRecipientParams.mockReturnValue(undefined);
+        (SharedDeeplinkManager.parse as jest.Mock).mockImplementation(
+          async (
+            _url: string,
+            opts?: { onHandled?: () => void },
+          ): Promise<boolean> => {
+            opts?.onHandled?.();
+            return true;
+          },
+        );
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: solanaPayUri }]);
+        });
+
+        await waitFor(() => {
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            solanaPayUri,
+            expect.objectContaining({
+              origin: 'qr-code',
+            }),
+          );
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
+          expect(mockOnScanSuccess).not.toHaveBeenCalled();
         });
       });
 

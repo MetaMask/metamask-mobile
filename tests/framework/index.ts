@@ -27,7 +27,7 @@ export {
   addOverhead,
   stopOverheadTracking,
   isOverheadTrackingActive,
-} from './PlaywrightUtilities.ts';
+} from './AppiumUtilities.ts';
 
 // Mock server utilities
 export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
@@ -44,19 +44,10 @@ export { DappVariants, TestDapps } from './Constants.ts';
 // Example usage:
 // import { Assertions, Gestures, Matchers, sleep, PortManager, ResourceType } from '../framework';
 
-export { PlaywrightElement, wrapElement, $, $$ } from './PlaywrightAdapter.ts';
-export { default as PlaywrightMatchers } from './PlaywrightMatchers.ts';
-export { default as PlaywrightGestures } from './PlaywrightGestures.ts';
-export { default as PlaywrightAssertions } from './PlaywrightAssertions.ts';
-
-export {
-  EncapsulatedElement,
-  type EncapsulatedElementType,
-  LocatorStrategy,
-  type LocatorConfig,
-  type PlatformLocator,
-  asPlaywrightElement,
-} from './EncapsulatedElement.ts';
+export { AppiumElement, wrapElement, $, $$ } from './AppiumElement.ts';
+export { default as AppiumMatchers } from './AppiumMatchers.ts';
+export { default as AppiumGestures } from './AppiumGestures.ts';
+export { default as AppiumAssertions } from './AppiumAssertions.ts';
 
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
@@ -73,11 +64,3 @@ export {
   type ReinstallAppOptions,
   type UninstallAppOptions,
 } from './services/device-commands';
-export {
-  AppiumGestureStrategy,
-  type GestureStrategy,
-  type UnifiedGestureOptions,
-  type TapAtIndexElement,
-  type ScrollViewMatcher,
-  type ScrollContainer,
-} from './GestureStrategy.ts';

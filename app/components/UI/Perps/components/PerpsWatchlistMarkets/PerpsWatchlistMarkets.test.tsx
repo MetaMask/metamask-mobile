@@ -53,10 +53,12 @@ jest.mock('../PerpsMarketRowItem', () => {
     market,
     onPress,
     onAddPress,
+    displayMetric,
   }: {
     market: PerpsMarketData;
     onPress?: () => void;
     onAddPress?: (market: PerpsMarketData) => void;
+    displayMetric?: string;
   }) {
     return (
       <TouchableOpacity
@@ -65,6 +67,11 @@ jest.mock('../PerpsMarketRowItem', () => {
       >
         <Text>{market.symbol}</Text>
         <Text>{market.name}</Text>
+        {displayMetric ? (
+          <Text testID={`perps-market-row-${market.symbol}-metric`}>
+            {displayMetric}
+          </Text>
+        ) : null}
         {onAddPress && (
           <TouchableOpacity
             onPress={() => onAddPress(market)}
@@ -312,6 +319,19 @@ describe('PerpsWatchlistMarkets', () => {
       expect(
         screen.queryByTestId('perps-market-row-BTC-add-button'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('passes displayMetric to watchlist market rows', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          displayMetric="priceChange"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-row-BTC-metric'),
+      ).toHaveTextContent('priceChange');
     });
   });
 

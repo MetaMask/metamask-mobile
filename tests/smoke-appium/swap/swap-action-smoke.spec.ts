@@ -8,6 +8,7 @@ import { SmokeSwap } from '../../tags.js';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
+  returnToWalletFromSwapActivity,
 } from '../../helpers/swap/swap-unified-ui.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.js';
@@ -61,10 +62,10 @@ appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
 
           // Submit first swap: ETH->ERC20 (USDC) with custom slippage
           await submitSwapUnifiedUI('1', 'ETH', 'USDC', '0x1', {
-            // slippage: '3.5',
-            // comment out until bug #29615 is fixed
+            slippage: '3.5',
           });
           await checkSwapActivity('ETH', 'USDC');
+          await returnToWalletFromSwapActivity();
 
           await TabBarComponent.tapWallet();
           await WalletView.tapWalletSwapButton();

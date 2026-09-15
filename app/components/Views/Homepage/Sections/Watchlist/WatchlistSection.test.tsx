@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import WatchlistSection from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 let mockIsWatchlistEnabled = true;
 const mockNavigate = jest.fn();
@@ -132,6 +133,24 @@ describe('WatchlistSection', () => {
     mockIsWatchlistEnabled = true;
   });
 
+  it('keeps the shared performance hook on its legacy metadata contract', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    render(<WatchlistSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(jest.mocked(useSectionPerformance)).toHaveBeenCalledWith({
+      sectionId: 'watchlist',
+      contentReady: true,
+      isEmpty: true,
+      isLoading: false,
+      enabled: true,
+    });
+  });
+
   it('returns null when feature flag is off', () => {
     mockIsWatchlistEnabled = false;
     mockUseTokenWatchlistQuery.mockReturnValue({
@@ -173,6 +192,10 @@ describe('WatchlistSection', () => {
     expect(getByTestId('watchlist-empty-icon')).toBeDefined();
     expect(getAllByText('Watchlist').length).toBeGreaterThanOrEqual(1);
     expect(getByText('You have no watchlist items yet')).toBeDefined();
+    // Translations long enough to wrap fall back to left alignment without this.
+    expect(getByText('You have no watchlist items yet')).toHaveStyle({
+      textAlign: 'center',
+    });
   });
 
   it('renders up to 3 tokens when watchlist has items (newest first)', () => {

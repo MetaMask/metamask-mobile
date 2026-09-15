@@ -13,6 +13,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 
 interface QuickBuyRateTagProps {
   label: string | undefined;
@@ -44,7 +45,7 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      testID="quick-buy-rate-tag"
+      testID={QuickBuySheetSelectorsIDs.RATE_TAG}
     >
       <Text variant={TextVariant.BodySm} color={textColor}>
         {displayLabel}

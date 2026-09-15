@@ -40,7 +40,7 @@ import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
 import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
 import PerpsOrderBookView from '../Views/PerpsOrderBookView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
-import ActivityView from '../../../Views/ActivityView';
+import ActivityScreen from '../../../Views/ActivityScreen';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
@@ -50,6 +50,7 @@ import { PayWithModal } from '../../../Views/confirmations/components/modals/pay
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { selectPerpsLastViewedMarketSymbol } from '../selectors/perpsController';
 import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
@@ -256,6 +257,7 @@ const PerpsScreenStack = () => {
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
     : Routes.PERPS.PERPS_HOME;
@@ -333,7 +335,7 @@ const PerpsScreenStack = () => {
                 initialParams={
                   isProModeActive
                     ? {
-                        market: buildDefaultProMarket(),
+                        market: buildDefaultProMarket(lastViewedMarketSymbol),
                       }
                     : undefined
                 }
@@ -419,7 +421,7 @@ const PerpsScreenStack = () => {
               />
               <Stack.Screen
                 name={Routes.PERPS.ACTIVITY}
-                component={ActivityView}
+                component={ActivityScreen}
                 options={{
                   title: strings('activity_view.title'),
                   headerShown: false,
