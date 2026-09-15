@@ -5,6 +5,7 @@ import {
   formatMarketStats,
   getCaipChainIdFromAssetId,
   getNetworkBadgeSource,
+  getNetworkBadgeSrc,
   getPriceChangeFieldKey,
 } from './utils';
 import { TimeOption } from '../TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
@@ -511,6 +512,14 @@ describe('getNetworkBadgeSource', () => {
     expect(() =>
       getNetworkBadgeSource('solana:mainnet' as CaipChainId),
     ).not.toThrow();
+  });
+});
+
+describe('getNetworkBadgeSrc', () => {
+  it('returns the same image source as getNetworkBadgeSource', () => {
+    const chainId = 'eip155:1' as CaipChainId;
+
+    expect(getNetworkBadgeSrc(chainId)).toBe(getNetworkBadgeSource(chainId));
   });
 });
 

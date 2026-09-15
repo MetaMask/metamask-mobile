@@ -39,6 +39,11 @@ export interface WorkerLevelFixtures {
 
 export interface TestLevelFixtures {
   /**
+   * Automatically captures a Hermes `.cpuprofile` for performance specs.
+   */
+  appProfiling: void;
+
+  /**
    * Platform detector to be used for the test.
    * This detects the platform of the device being tested.
    */

@@ -11,6 +11,7 @@ const createExperience = (rate: EarnRate): EarnExperience => ({
   id: 'experience',
   type: EARN_EXPERIENCES.STABLECOIN_LENDING,
   role: 'underlying',
+  depositReadiness: { status: 'ready' },
   rate,
   isFeeSubsidized: false,
 });
@@ -31,20 +32,54 @@ describe('earnRate utilities', () => {
 
   describe('createEarnRate', () => {
     it.each([
-      [
-        'ready',
-        { percentage: 6.2 },
-        { type: 'APY', percentage: 6.2, status: 'ready' },
-      ],
-      ['loading', { isLoading: true }, { type: 'APY', status: 'loading' }],
-      ['error', { isError: true }, { type: 'APY', status: 'error' }],
-      ['unavailable', {}, { type: 'APY', status: 'unavailable' }],
-    ] as const)('creates %s rate status', (_status, options, expected) => {
+      {
+        options: { percentage: 6.2 },
+        expected: { type: 'APY', percentage: 6.2, status: 'ready' },
+      },
+      {
+        options: { isLoading: true },
+        expected: { type: 'APY', status: 'loading' },
+      },
+      {
+        options: { isError: true },
+        expected: { type: 'APY', status: 'error' },
+      },
+      {
+        options: {},
+        expected: { type: 'APY', status: 'unavailable' },
+      },
+    ] as const)('creates the expected rate status', ({ options, expected }) => {
       expect(createEarnRate({ type: 'APY', ...options })).toEqual(expected);
     });
   });
 
   describe('getHighestReadyRateEntry', () => {
+    it.each([
+      {
+        entries: [],
+      },
+      {
+        entries: [
+          createExperience({
+            type: 'APY',
+            status: 'error',
+          }),
+        ],
+      },
+      {
+        entries: [
+          createExperience({
+            type: 'APY',
+            status: 'unavailable',
+          }),
+        ],
+      },
+    ] as const)('returns undefined when no rate is ready', ({ entries }) => {
+      const result = getHighestReadyRateEntry(entries, (entry) => entry.rate);
+
+      expect(result).toBeUndefined();
+    });
+
     it('returns the highest finite ready rate and preserves its type', () => {
       const entries = [
         createExperience({

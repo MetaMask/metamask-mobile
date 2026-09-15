@@ -12,9 +12,6 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   BoxAlignItems,
   BoxFlexDirection,
@@ -52,7 +49,7 @@ import {
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
 import useEarnOpportunityNavigation, {
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useEarnAssetCatalogue from '../../hooks/useEarnAssetCatalogue';
 import EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
@@ -60,10 +57,10 @@ import EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnM
 import type { EarnAssetSearchItem } from '../../../../Views/TrendingView/feeds/earn/earnSearchTypes';
 import {
   deriveMoneyDepositAssets,
+  getNonMoneyEarnStrategyExperiences,
   hasEarnAssetSubsidizedFee,
 } from '../../utils/earnAssets';
 import { rankEarnAssets } from '../../utils/earnSection';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnScreensStackParamList } from '../../types/navigation';
 import {
@@ -85,12 +82,6 @@ import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
-
-const SUPPORTED_MORE_WAYS_EXPERIENCES = new Set<EARN_EXPERIENCES>([
-  EARN_EXPERIENCES.STABLECOIN_LENDING,
-  EARN_EXPERIENCES.POOLED_STAKING,
-  EARN_EXPERIENCES.TRX_STAKING,
-]);
 
 const EarnSectionListSkeleton = () => (
   <Box testID={EARN_SECTION_LIST_TEST_IDS.LIST_LOADING} twClassName="px-4">
@@ -205,8 +196,6 @@ const MoneyProjection = ({
   );
 };
 
-const MAX_VISIBLE_MONEY_ASSETS = 5;
-
 /**
  * Displays the Earn eligible assets and Money projections.
  */
@@ -239,7 +228,6 @@ const EarnSectionListView = () => {
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const {
-    trackButtonClicked: trackMoneyButtonClicked,
     trackSurfaceClicked: trackMoneySurfaceClicked,
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
@@ -285,9 +273,9 @@ const EarnSectionListView = () => {
     () =>
       new Map<Asset, boolean>(
         assets.flatMap((asset) =>
-          asset.kind === 'held' &&
+          asset.wallet.status === 'tracked' &&
           asset.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
-            ? [[asset.asset, hasEarnAssetSubsidizedFee(asset)]]
+            ? [[asset.wallet.asset, hasEarnAssetSubsidizedFee(asset)]]
             : [],
         ),
       ),
@@ -301,9 +289,7 @@ const EarnSectionListView = () => {
 
   const moreWaysAssets = useMemo(() => {
     const supportedAssets = rankedAssets.flatMap((asset) => {
-      const experiences = asset.experiences.filter(({ type }) =>
-        SUPPORTED_MORE_WAYS_EXPERIENCES.has(type as EARN_EXPERIENCES),
-      );
+      const experiences = getNonMoneyEarnStrategyExperiences(asset.experiences);
 
       return experiences.length > 0 ? [{ ...asset, experiences }] : [];
     });
@@ -339,7 +325,7 @@ const EarnSectionListView = () => {
           position,
           moreWaysAssets.length,
         ),
-        redirect_target: getEarnOpportunityRedirectTarget(
+        redirect_target: getEarnAssetSelectionRedirectTarget(
           item.asset,
           // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
           false,
@@ -419,7 +405,7 @@ const EarnSectionListView = () => {
         token_symbol: token.symbol,
         token_position_in_list: tokenIndex + 1,
         token_chain_id: token.chainId ?? '',
-        tokens_in_list: Math.min(moneyAssets.length, MAX_VISIBLE_MONEY_ASSETS),
+        tokens_in_list: moneyAssets.length,
         token_has_balance: new BigNumber(token.balance).gt(0),
       });
       await handleDeposit(token);
@@ -446,7 +432,7 @@ const EarnSectionListView = () => {
         token_symbol: token.symbol,
         token_position_in_list: tokenIndex + 1,
         token_chain_id: token.chainId ?? '',
-        tokens_in_list: Math.min(moneyAssets.length, MAX_VISIBLE_MONEY_ASSETS),
+        tokens_in_list: moneyAssets.length,
         token_has_balance: new BigNumber(token.balance).gt(0),
       });
       await handleDeposit(token);
@@ -458,16 +444,6 @@ const EarnSectionListView = () => {
       trackTokenButtonClicked,
     ],
   );
-
-  const handleViewAllMoney = useCallback(() => {
-    trackMoneyButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      label_key: 'money.potential_earnings.view_all',
-      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
-    });
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS);
-  }, [navigation, trackMoneyButtonClicked]);
 
   const handleRetry = useCallback(async () => {
     if (retryInFlightRef.current) {
@@ -551,9 +527,7 @@ const EarnSectionListView = () => {
       );
     }
 
-    const visibleMoneyAssets = isLoading
-      ? []
-      : moneyAssets.slice(0, MAX_VISIBLE_MONEY_ASSETS);
+    const visibleMoneyAssets = isLoading ? [] : moneyAssets;
 
     return (
       <>
@@ -588,19 +562,6 @@ const EarnSectionListView = () => {
         ))}
         {errorBanner}
 
-        {moneyAssets.length > 5 && !isLoading && (
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleViewAllMoney}
-              testID={EARN_SECTION_LIST_TEST_IDS.MONEY_VIEW_ALL}
-            >
-              {strings('money.potential_earnings.view_all')}
-            </Button>
-          </Box>
-        )}
         {!isLoading && moreWaysAssets.length > 0 && (
           <>
             <SectionDivider testID={EARN_SECTION_LIST_TEST_IDS.DIVIDER} />
@@ -626,7 +587,6 @@ const EarnSectionListView = () => {
     handleMoneyAccountPress,
     handleTokenCardPress,
     handleTokenButtonPress,
-    handleViewAllMoney,
     hasError,
     isLoading,
     isOnboardingRedirectNeeded,
