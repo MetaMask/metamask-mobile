@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -133,7 +133,17 @@ import TooltipModal from '../../Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
-import { endTrace, TraceName } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import {
+  endPostInitGap,
+  startAppStartToUnlockLaidOut,
+} from '../../../core/Performance/startupStageSpans';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
 import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
@@ -1124,7 +1134,35 @@ const ModalSwitchAccountType = () => (
   </NativeStack.Navigator>
 );
 
+// Module-scoped so a remount cannot reopen the span. This is a once-per-launch
+// measurement, not a per-mount one.
+let hasMeasuredRootNavigatorRender = false;
+
 const AppFlow = () => {
+  // A lazy `useState` initialiser rather than a ref write during render: the
+  // initialiser runs exactly once, before children evaluate, and stays
+  // compatible with React Compiler (this directory is opted in).
+  useState(() => {
+    if (hasMeasuredRootNavigatorRender) {
+      return null;
+    }
+    trace({
+      name: TraceName.RootNavigatorFirstRender,
+      op: TraceOperation.UIStartup,
+      parentContext: getUIStartupSpan(),
+    });
+    return null;
+  });
+
+  useEffect(() => {
+    if (hasMeasuredRootNavigatorRender) {
+      return;
+    }
+    hasMeasuredRootNavigatorRender = true;
+    endTrace({ name: TraceName.RootNavigatorFirstRender });
+    endPostInitGap();
+  }, []);
+
   const { colors, themeAppearance } = useTheme();
   const onboardingCanvasColor =
     themeAppearance === 'dark'
@@ -1466,6 +1504,7 @@ const App: React.FC = () => {
   const existingUser = useSelector(selectExistingUser);
   const isUnlocked = useSelector(selectIsUnlocked);
   const hasQueuedColdHomepageReadyTrace = useRef(false);
+  const hasResolvedUnlockLaidOutTrace = useRef(false);
 
   useEffect(() => {
     if (
@@ -1478,6 +1517,35 @@ const App: React.FC = () => {
 
     hasQueuedColdHomepageReadyTrace.current = true;
     queueColdHomepageReadyTrace(Performance.appLaunchTime);
+  }, [existingUser, isUnlocked]);
+
+  // The mirror of the effect above, for the locked cold start — which is the
+  // common case and the one nothing measured. `HomepageReady` only starts at
+  // unlock submit on this path, so the entire wait before the user can begin
+  // typing was untracked.
+  //
+  // This resolves **once**, on the first observation that says which path this
+  // launch took, and deliberately resolves even when it decides not to open.
+  // Only arming the guard on the open path would leave it armed after an
+  // already-unlocked start (finishing onboarding, or biometrics winning the
+  // race), so a later manual or idle re-lock would open a span anchored on
+  // `Performance.appLaunchTime` — process start, possibly hours earlier — and
+  // record a whole session as cold-start time. A re-lock is not a cold start.
+  //
+  // `!existingUser` means "not known yet" during rehydration and onboarding,
+  // so it waits rather than resolving.
+  useEffect(() => {
+    if (hasResolvedUnlockLaidOutTrace.current || !existingUser) {
+      return;
+    }
+
+    hasResolvedUnlockLaidOutTrace.current = true;
+
+    if (isUnlocked) {
+      return;
+    }
+
+    startAppStartToUnlockLaidOut();
   }, [existingUser, isUnlocked]);
 
   useEffect(() => {

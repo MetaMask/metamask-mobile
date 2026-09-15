@@ -17,6 +17,11 @@ jest.mock('react-native-performance', () => {
     default: {
       measure: jest.fn(),
       getEntriesByName: jest.fn(),
+      // `endTrace` reaches `getPerformanceTimestamp`, which reads both of
+      // these. Without them the observer callback throws before any assertion
+      // runs, and which test sees it depends on trace-buffer ordering.
+      now: jest.fn(() => 0),
+      timeOrigin: 0,
     },
     PerformanceObserver: jest.fn(),
   };
@@ -62,6 +67,7 @@ describe('Performance', () => {
       runJsBundleStart: [{ name: 'runJsBundleStart', duration: 0 }],
       nativeLaunch: [{ name: 'nativeLaunch', duration: 1500 }],
       runJsBundle: [{ name: 'runJsBundle', duration: 1000 }],
+      appStart: [{ name: 'appStart', duration: 3100 }],
     };
     mockedPerformance.getEntriesByName.mockImplementation(
       (name: string) => entriesByName[name] ?? [],
@@ -89,7 +95,44 @@ describe('Performance', () => {
     );
     expect(console.info).toHaveBeenCalledWith(
       expect.stringContaining(
-        `APP START TIME = MAX(NATIVE LAUNCH TIME, JS BUNDLE LOAD TIME) - 1500ms`,
+        `APP START TIME = nativeLaunchStart -> runJsBundleEnd - 3100ms`,
+      ),
+    );
+  });
+
+  it('spans nativeLaunchStart to runJsBundleEnd so the host-setup gap is counted', () => {
+    // Arrange: the two phases are sequential, not overlapping, and there is a
+    // further host/context-setup gap between them. `appStart` (3100ms) is
+    // therefore larger than either phase and larger than their max (1500ms) —
+    // taking the max would silently discard the gap.
+    console.info = jest.fn();
+    setupObserverWithEntries([{ name: 'runJsBundleEnd', duration: 1000 }]);
+    const entriesByName: Record<string, MockEntry[]> = {
+      runJsBundleStart: [{ name: 'runJsBundleStart', duration: 0 }],
+      nativeLaunch: [{ name: 'nativeLaunch', duration: 1500 }],
+      runJsBundle: [{ name: 'runJsBundle', duration: 1000 }],
+      appStart: [{ name: 'appStart', duration: 3100 }],
+    };
+    mockedPerformance.getEntriesByName.mockImplementation(
+      (name: string) => entriesByName[name] ?? [],
+    );
+
+    // Act
+    Performance.setupPerformanceObservers();
+
+    // Assert
+    expect(mockedPerformance.measure).toHaveBeenCalledWith(
+      'appStart',
+      'nativeLaunchStart',
+      'runJsBundleEnd',
+    );
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringContaining('APP START TIME'),
+    );
+    // The reported app start must be the full span, not the larger phase.
+    expect(console.info).not.toHaveBeenCalledWith(
+      expect.stringContaining(
+        'APP START TIME = nativeLaunchStart -> runJsBundleEnd - 1500ms',
       ),
     );
   });
