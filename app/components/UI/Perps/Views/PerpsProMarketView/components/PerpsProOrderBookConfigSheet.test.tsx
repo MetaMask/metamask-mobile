@@ -4,6 +4,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { mockTheme } from '../../../../../../util/theme';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
   ImpactMoment,
@@ -183,6 +184,32 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(selectedState('config-sheet-grouping-1')).toEqual(
       expect.objectContaining({ selected: true }),
     );
+  });
+
+  it('renders the FilterButton chips at the design size', () => {
+    const { getByTestId } = renderSheet();
+
+    const chipHeight = (id: string) =>
+      StyleSheet.flatten(getByTestId(id).props.style).height;
+
+    expect(chipHeight('config-sheet-currency-base')).toBe(40);
+    expect(chipHeight('config-sheet-metric-size')).toBe(40);
+    expect(chipHeight('config-sheet-grouping-1')).toBe(40);
+  });
+
+  it('renders unselected FilterButtons with a muted 1px outline', () => {
+    const { getByTestId } = renderSheet({ currency: 'base' });
+
+    const selectedStyle = StyleSheet.flatten(
+      getByTestId('config-sheet-currency-base').props.style,
+    );
+    const unselectedStyle = StyleSheet.flatten(
+      getByTestId('config-sheet-currency-usd').props.style,
+    );
+
+    expect(unselectedStyle.borderWidth).toBe(1);
+    expect(unselectedStyle.borderColor).toBe(mockTheme.colors.border.muted);
+    expect(selectedStyle.borderColor).not.toBe(mockTheme.colors.border.muted);
   });
 
   it('renders the order-book layout options with the current side selected', () => {
