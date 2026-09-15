@@ -1449,11 +1449,11 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced {...baseProps} currentPrice={95} useAmbientColor />,
       );
 
-      // Should render chart with negative color (#FF5C16)
+      // Should render chart with negative color (#FA4B00)
       expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
       const chart = getByTestId('mock-advanced-chart');
       // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      expect(chart.props.lineColorOverride).toBe('#FF5C16');
+      expect(chart.props.lineColorOverride).toBe('#FA4B00');
     });
 
     it('calls onPriceDirectionChange with true for positive displayDiff', () => {

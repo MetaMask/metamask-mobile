@@ -8,12 +8,14 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
@@ -54,12 +56,19 @@ import {
   SOCIAL_V1_VARIANTS,
 } from './abTestConfig';
 import EmptyShellTabPage from '../shell/EmptyShellTabPage';
+import LeaderboardShellTabPage from '../shell/LeaderboardShellTabPage';
 import {
   SOCIAL_V1_TAB_ORDER,
   SOCIAL_SHELL_TAB_CONFIG,
 } from '../shell/tabConfig';
 import type { SocialShellTab } from '../shell/types';
+import {
+  SocialFiltersBottomSheet,
+  useSocialShellFilters,
+} from '../shell/filters';
 import superheroAvatar from '../../../../images/socialV1/superhero.png';
+import Routes from '../../../../constants/navigation/Routes';
+import { useMyProfile } from '../MyProfileView/hooks';
 
 const LANDING_INDEX = 0;
 
@@ -112,7 +121,9 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
  */
 const SocialV1View: React.FC = () => {
   const tw = useTailwind();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV1View'>>();
+  const { profile: myProfile } = useMyProfile();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
@@ -121,8 +132,27 @@ const SocialV1View: React.FC = () => {
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const feedIndex = tabOrder.indexOf('feed');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
+  const leaderboardIndex = tabOrder.indexOf('leaderboard');
   // The landing tab is the first one, so the surface always opens on index 0.
   const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
+
+  // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
+  // state; the sheet is mounted only while `openTab` is non-null.
+  const {
+    openTab,
+    draft,
+    hasActiveFilters,
+    openSheet,
+    closeSheet,
+    updateDraft,
+    applyFilters,
+  } = useSocialShellFilters();
+  const activeTab = tabOrder[activeIndex];
+  const isFilterActive = hasActiveFilters(activeTab);
+
+  const handleFilterPress = useCallback(() => {
+    openSheet(activeTab);
+  }, [activeTab, openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
   // derived value expose whichever one is currently visible. Sharing a single
@@ -283,6 +313,9 @@ const SocialV1View: React.FC = () => {
   });
 
   const handlePlaceholderHeaderAction = useCallback(() => undefined, []);
+  const handleOpenMyProfile = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.MY_PROFILE);
+  }, [navigation]);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
@@ -393,12 +426,19 @@ const SocialV1View: React.FC = () => {
         }}
         startAccessory={
           <Pressable
-            onPress={handlePlaceholderHeaderAction}
+            onPress={handleOpenMyProfile}
             testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
             accessibilityRole="button"
+            accessibilityLabel={strings(
+              'social_leaderboard.my_profile.open_profile',
+            )}
           >
             <Image
-              source={superheroAvatar}
+              source={
+                myProfile?.imageUrl
+                  ? { uri: myProfile.imageUrl }
+                  : superheroAvatar
+              }
               style={tw.style('w-8 h-8 rounded-full')}
             />
           </Pressable>
@@ -410,7 +450,7 @@ const SocialV1View: React.FC = () => {
             gap={1}
           >
             <ButtonIcon
-              iconName={IconName.Star}
+              iconName={IconName.HeartStraight}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
               testID={SocialV1ViewSelectorsIDs.HEART_BUTTON}
@@ -453,13 +493,31 @@ const SocialV1View: React.FC = () => {
             collapsingBlockStyle,
           ]}
         >
-          <Box twClassName="bg-default mt-4">
-            <TabsBar
-              tabs={tabs}
-              activeIndex={activeIndex}
-              onTabPress={handleTabPress}
-              testID={SocialV1ViewSelectorsIDs.TABS}
-            />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="bg-default mt-4"
+          >
+            <Box twClassName="flex-1">
+              <TabsBar
+                tabs={tabs}
+                activeIndex={activeIndex}
+                onTabPress={handleTabPress}
+                testID={SocialV1ViewSelectorsIDs.TABS}
+              />
+            </Box>
+            <Box twClassName="pr-4">
+              <ButtonIcon
+                iconName={IconName.Filter}
+                size={ButtonIconSize.Md}
+                onPress={handleFilterPress}
+                testID={SocialV1ViewSelectorsIDs.FILTER_BUTTON}
+                accessibilityLabel={strings(
+                  'social_leaderboard.shell.filters.title',
+                )}
+                twClassName={isFilterActive ? 'bg-background-muted' : undefined}
+              />
+            </Box>
           </Box>
 
           {/* Pages are rendered in `tabOrder` so the pager positions stay
@@ -486,19 +544,38 @@ const SocialV1View: React.FC = () => {
                   collapsable={false}
                   testID={testIds.page}
                 >
-                  <EmptyShellTabPage
-                    tab={tab}
-                    onScroll={scrollHandlers[tab]}
-                    pageRef={pageRef}
-                    containerTestID={testIds.container}
-                    scrollTestID={testIds.scroll}
-                  />
+                  {tab === 'leaderboard' ? (
+                    <LeaderboardShellTabPage
+                      isActive={activeIndex === leaderboardIndex}
+                      onScroll={scrollHandlers[tab]}
+                      pageRef={pageRef}
+                      containerTestID={testIds.container}
+                    />
+                  ) : (
+                    <EmptyShellTabPage
+                      tab={tab}
+                      onScroll={scrollHandlers[tab]}
+                      pageRef={pageRef}
+                      containerTestID={testIds.container}
+                      scrollTestID={testIds.scroll}
+                    />
+                  )}
                 </View>
               );
             })}
           </PagerView>
         </Animated.View>
       </Box>
+
+      {openTab ? (
+        <SocialFiltersBottomSheet
+          tab={openTab}
+          draft={draft}
+          onChange={updateDraft}
+          onApply={applyFilters}
+          onClose={closeSheet}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };
