@@ -124,7 +124,7 @@ export function buildTaskPrompt(
   const instruction = `Analyze the changed files and the impacted codebase to:
 1. Select E2E test tags to run so the changes can be verified safely with minimal risk
 2. Determine if performance tests should run based on potential performance impact`;
-  const tagsSection = `AVAILABLE E2E TEST TAGS (these are the ONLY valid E2E tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
+  const tagsSection = `AVAILABLE E2E TEST TAGS (these are the ONLY valid E2E tags - do NOT search for tags.js or any tags file, they are already provided here):\n${tagCoverageList}`;
   const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (derived from tags.performance.js; these are the ONLY valid performance tags - select when changes could impact app performance):\n${performanceTagList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length

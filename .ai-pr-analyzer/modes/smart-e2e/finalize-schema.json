@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "properties": {
+    "selected_tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "E2E smoke tags to run. Use [\"ALL\"] to run every smoke tag, or [] to run none."
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Selection risk metadata for this PR, not a merge gate. The risk being measured is how likely this PR can break the E2E tests."
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence in the tag selection (0-100)"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Why these E2E tags were selected"
+    },
+    "performance_tests": {
+      "type": "object",
+      "properties": {
+        "selected_tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Performance tags to run. Use [\"ALL\"] to run every performance tag, or [] to run none."
+        },
+        "reasoning": {
+          "type": "string",
+          "description": "Why these performance tags were selected"
+        }
+      },
+      "required": ["selected_tags", "reasoning"]
+    }
+  },
+  "required": [
+    "selected_tags",
+    "risk_level",
+    "confidence",
+    "reasoning",
+    "performance_tests"
+  ]
+}
