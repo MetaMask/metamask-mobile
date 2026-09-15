@@ -1021,6 +1021,13 @@ export type RootStackParamList = {
       }
     | undefined;
   MyProfileView: undefined;
+  ManageProfileView: undefined;
+  ManageProfileDisplayNameView: undefined;
+  ManageProfileHandleView: undefined;
+  ManageProfileBioView: undefined;
+  ManageProfileSocialsView: undefined;
+  ManageProfileTradingActivityView: undefined;
+  ManageProfileLinkedAccountView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

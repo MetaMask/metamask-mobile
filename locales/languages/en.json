@@ -1319,6 +1319,27 @@
       "share_first_trade": "Share your first trade",
       "retry": "Try again"
     },
+    "manage_profile": {
+      "title": "Manage profile",
+      "about": "About",
+      "privacy": "Privacy",
+      "display_name": "Display name",
+      "handle": "Handle",
+      "bio": "Bio",
+      "socials": "Socials",
+      "trading_activity": "Trading activity",
+      "trading_activity_on": "On",
+      "linked_social_account": "Linked social account",
+      "save": "Save",
+      "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
+      "socials_helper": "Your X handle appears on posts and your profile.",
+      "show_trading_activity": "Show trading activity",
+      "show_trading_activity_subtitle": "Public and available to copy",
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+      "trading_activity_info": "More information about trading activity",
+      "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
+      "avatar_accessibility_label": "Your profile avatar"
+    },
     "trader_position": {
       "market_cap": "Market cap",
       "price": "Price",
