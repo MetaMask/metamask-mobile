@@ -1012,7 +1012,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-success-muted"
+          twClassName="h-10 flex-1 bg-success-muted"
           disabled={!upToken || !isMarketOpen}
         >
           <Text
@@ -1026,7 +1026,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-error-muted"
+          twClassName="h-10 flex-1 bg-error-muted"
           disabled={!downToken || !isMarketOpen}
         >
           <Text
