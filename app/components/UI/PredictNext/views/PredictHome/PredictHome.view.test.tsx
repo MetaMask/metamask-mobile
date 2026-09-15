@@ -8,7 +8,11 @@ import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
-import type { PredictFeedId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictFeedId,
+  PredictVenueId,
+} from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
   NCAA_GAMES_FEED_ID,
@@ -23,6 +27,7 @@ import {
   messengerCall,
   ncaaEvents,
   nflEvents,
+  publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 describe('PredictHome', () => {
@@ -271,6 +276,33 @@ describe('PredictHome', () => {
         PredictHomeTestIds.event('kalshi', 'nfl-1'),
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders live game updates received for a Home Event', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+    const nflSection = await view.findByTestId(
+      PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
+    );
+
+    act(() => {
+      publishPredictNextGameLiveUpdate({
+        venueId: 'kalshi' as PredictVenueId,
+        eventId: 'nfl-1' as PredictEntityId,
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 28,
+          home_points: 24,
+          quarter: 4,
+          clock: '01:12',
+        },
+      });
+    });
+
+    expect(within(nflSection).getByText('28')).toBeOnTheScreen();
+    expect(within(nflSection).getByText('24')).toBeOnTheScreen();
+    expect(within(nflSection).getByText('Q4 · 01:12')).toBeOnTheScreen();
   });
 
   it.each([
