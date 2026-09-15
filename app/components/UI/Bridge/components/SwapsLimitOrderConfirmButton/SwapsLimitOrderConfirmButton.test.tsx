@@ -1,11 +1,35 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { SwapsLimitOrderConfirmButton } from './index';
 
 const TEST_ID = BridgeViewSelectorsIDs.CONFIRM_BUTTON;
 const DEFAULT_LABEL = 'Create Order';
+
+jest.mock('../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+const createMockBridgeSession = (
+  overrides: Partial<ReturnType<typeof useBridgeSession>> = {},
+) => ({
+  selectedTab: BridgeTabKey.Limit,
+  renderedTab: BridgeTabKey.Limit,
+  setSelectedTab: jest.fn(),
+  setRenderedTab: jest.fn(),
+  latestSourceBalance: undefined,
+  quoteParams: {},
+  ...overrides,
+});
 
 function renderButton(
   props: Partial<
@@ -30,6 +54,8 @@ function renderButton(
 describe('SwapsLimitOrderConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useBridgeSession).mockReturnValue(createMockBridgeSession());
   });
 
   it('calls onPress when pressed', () => {
@@ -73,5 +99,33 @@ describe('SwapsLimitOrderConfirmButton', () => {
     const { getByTestId } = renderButton({ loading: true });
 
     expect(getByTestId(TEST_ID).props.accessibilityState?.busy).toBe(true);
+    const { onPress, getByTestId } = renderButton();
+    fireEvent.press(getByTestId(TEST_ID));
+
+    expect(getByTestId(TEST_ID).props.accessibilityState?.disabled).toBe(true);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps the caller label when the source balance is too low', () => {
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+    const { getByTestId } = renderButton();
+
+    expect(getByTestId(TEST_ID)).toHaveTextContent(DEFAULT_LABEL);
+  });
+
+  it('checks the balance against the atomic balance from the session', () => {
+    const atomicBalance = BigNumber.from('1000000000000000000');
+    jest.mocked(useBridgeSession).mockReturnValue(
+      createMockBridgeSession({
+        latestSourceBalance: { atomicBalance, displayBalance: '1.0' },
+      }),
+    );
+
+    renderButton();
+
+    expect(useIsInsufficientBalance).toHaveBeenCalledWith(
+      expect.objectContaining({ latestAtomicBalance: atomicBalance }),
+    );
   });
 });

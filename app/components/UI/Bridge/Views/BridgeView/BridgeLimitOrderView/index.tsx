@@ -344,7 +344,6 @@ const BridgeLimitOrderViewContent = () => {
               inputRef={inputRef}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
-              latestSourceBalance={latestSourceBalance}
               destToken={destToken}
               destTokenAmount={destTokenAmount}
               isDestAmountLoading={false}
@@ -404,7 +403,6 @@ const BridgeLimitOrderViewContent = () => {
             >
               <Box onLayout={handleBannersLayout}>
                 <SwapsBanners
-                  latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
                   onAdjustSourceAmount={handleSourcePresetAmountSelect}
                 >
                   <HardwareWalletUnsupportedBanner />

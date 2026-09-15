@@ -154,10 +154,7 @@ function buildActiveQuoteState(
 
 function renderFooter(state: DeepPartial<RootState>) {
   return renderWithProvider(
-    <BridgeMarketViewFooter
-      location={mockLocation}
-      latestSourceBalance={undefined}
-    />,
+    <BridgeMarketViewFooter location={mockLocation} />,
     { state },
   );
 }
