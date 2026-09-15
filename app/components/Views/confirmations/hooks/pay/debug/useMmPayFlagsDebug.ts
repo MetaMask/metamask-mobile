@@ -11,6 +11,7 @@ import {
   selectPayQuoteConfig,
   selectPrefilledAmountConfig,
   selectRelayFixedSpread,
+  selectSolanaPayEnabled,
 } from '../../../../../../selectors/featureFlagController/confirmations';
 
 export function useMmPayFlagsDebug(transactionType?: TransactionType) {
@@ -26,6 +27,7 @@ export function useMmPayFlagsDebug(transactionType?: TransactionType) {
   const prefilledAmountConfig = useSelector((state: RootState) =>
     selectPrefilledAmountConfig(state, transactionType),
   );
+  const solanaPayEnabled = useSelector(selectSolanaPayEnabled);
 
   return {
     metaMaskPayFlags,
@@ -36,5 +38,6 @@ export function useMmPayFlagsDebug(transactionType?: TransactionType) {
     relayFixedSpread,
     depositLimits,
     prefilledAmountConfig,
+    solanaPayEnabled,
   };
 }

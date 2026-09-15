@@ -11,6 +11,7 @@ import { TransactionPayControllerInit } from './transaction-pay-controller-init'
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { trackSolanaPayLifecycle } from './solana-pay-analytics';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
@@ -19,6 +20,7 @@ jest.mock('../../../../constants/network', () => ({
   ...jest.requireActual('../../../../constants/network'),
   INFURA_PROJECT_ID: 'test-infura-project-id',
 }));
+jest.mock('./solana-pay-analytics');
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -134,6 +136,22 @@ describe('Transaction Pay Controller Init', () => {
     const infuraProjectId = testConstructorOption('infuraProjectId');
 
     expect(infuraProjectId).toBe('test-infura-project-id');
+  });
+
+  it('registers Solana Pay lifecycle analytics during initialization', () => {
+    const requestMock = buildInitRequestMock();
+    const subscribeSpy = jest.spyOn(
+      requestMock.controllerMessenger,
+      'subscribe',
+    );
+
+    TransactionPayControllerInit(requestMock);
+
+    expect(subscribeSpy).toHaveBeenCalledWith(
+      'TransactionPayController:solanaPayLifecycle',
+      expect.any(Function),
+    );
+    expect(trackSolanaPayLifecycle).not.toHaveBeenCalled();
   });
 
   it('wires fiat test options through controller options', () => {
