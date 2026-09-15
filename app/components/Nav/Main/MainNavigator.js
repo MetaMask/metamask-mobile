@@ -431,21 +431,6 @@ const BrowserFlow = (props) => {
   );
 };
 
-const ExploreHome = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.TRENDING_FEED}
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
-        headerShown: false,
-      }}
-    >
-      <NativeStack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
-    </NativeStack.Navigator>
-  );
-};
-
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
@@ -846,7 +831,7 @@ const HomeTabs = () => {
                       rootScreenName,
                     ),
                 }}
-                component={ExploreHome}
+                component={ExploreFeed}
               />
               <Tab.Screen
                 name={Routes.BROWSER.HOME}
