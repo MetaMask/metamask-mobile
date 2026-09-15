@@ -1,20 +1,12 @@
 import { assetIdsMatch } from '@metamask/bridge-controller';
-import { getGaslessFeeAsset } from './getGaslessFeeAsset';
+import { getGaslessFeeAsset, type GaslessFeeAsset } from './getGaslessFeeAsset';
 
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
   assetIdsMatch: jest.fn(),
 }));
 
-interface MockAsset {
-  assetId: `${string}:${string}/${string}:${string}`;
-  symbol: string;
-  name: string;
-  decimals: number;
-  iconUrl: string;
-}
-
-const mockAsset: MockAsset = {
+const mockAsset: GaslessFeeAsset = {
   assetId: 'eip155:1/erc20:0xtoken',
   symbol: 'USDC',
   name: 'USD Coin',
@@ -24,7 +16,7 @@ const mockAsset: MockAsset = {
 
 type TxFee = NonNullable<Parameters<typeof getGaslessFeeAsset>[0]>[number];
 
-const createTxFee = (asset: MockAsset): TxFee => ({
+const createTxFee = (asset: GaslessFeeAsset): TxFee => ({
   amount: '1',
   asset,
   maxFeePerGas: '1',
@@ -47,9 +39,8 @@ describe('getGaslessFeeAsset', () => {
       getGaslessFeeAsset([
         createTxFee({
           ...mockAsset,
-          assetId: undefined,
           symbol: '',
-        } as unknown as MockAsset),
+        }),
       ]),
     ).toBeUndefined();
   });
