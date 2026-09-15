@@ -7,12 +7,14 @@ export interface BrowserParams {
   showTabsView?: boolean;
   existingTabId?: number;
   fromTrending?: boolean;
+  fromExploreSearch?: boolean;
   fromPerps?: boolean;
   fromBenefit?: boolean;
   fromCard?: boolean;
   fromWhatsHappening?: boolean;
   fromMarketInsights?: boolean;
   fromMoney?: boolean;
+  fromEarnStrategySelection?: boolean;
   linkType?: string;
   url?: string;
 }

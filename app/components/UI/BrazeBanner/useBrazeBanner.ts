@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import Braze, { Banner } from '@braze/react-native-sdk';
 import { useDispatch, useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import {
   dismissBrazeBanner,
   getBannerForPlacement,
@@ -11,6 +12,13 @@ import { setLastDismissedBrazeBanner } from '../../../reducers/banners';
 import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
 import Logger from '../../../util/Logger';
 import { isProduction } from '../../../util/environment';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+  type TraceValue,
+} from '../../../util/trace';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 import {
   getRawStringOrImageProp,
@@ -114,6 +122,18 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     null,
   );
 
+  const brazeTraceIdRef = useRef<string | null>(null);
+  const endBrazeTrace = useCallback((data: Record<string, TraceValue>) => {
+    const id = brazeTraceIdRef.current;
+    if (id === null) return;
+    brazeTraceIdRef.current = null;
+    endTrace({
+      name: TraceName.BrazeBannerTimeToContent,
+      id,
+      data,
+    });
+  }, []);
+
   const clearNoResponseTimeout = useCallback(() => {
     if (noResponseTimeoutRef.current) {
       clearTimeout(noResponseTimeoutRef.current);
@@ -160,6 +180,14 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         currentBannerTrackingIdRef.current = null;
         setBanner(null);
         setStatus('empty');
+        // Content determination is finished: no banner will be shown. Settle
+        // the span now instead of letting it run until unmount.
+        endBrazeTrace({
+          success: false,
+          reason: 'empty',
+          source,
+          placement_id: placementId,
+        });
         return;
       }
 
@@ -219,8 +247,16 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
       setBanner(candidate);
       setStatus('visible');
+
+      const candidateBannerName = getRawStringProp(candidate, PROP_BANNER_NAME);
+      endBrazeTrace({
+        success: true,
+        source,
+        placement_id: placementId,
+        ...(candidateBannerName ? { banner_name: candidateBannerName } : {}),
+      });
     },
-    [placementId, clearNoResponseTimeout],
+    [placementId, clearNoResponseTimeout, endBrazeTrace],
   );
 
   useEffect(() => {
@@ -229,6 +265,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     if (lastDismissedBrazeBannerRef.current !== null) {
       dispatch(setLastDismissedBrazeBanner(null));
     }
+
+    const traceId = uuidv4();
+    brazeTraceIdRef.current = traceId;
+    trace({
+      name: TraceName.BrazeBannerTimeToContent,
+      op: TraceOperation.BrazeBannerPerformance,
+      id: traceId,
+      tags: { placement_id: placementId },
+    });
 
     // Warm-cache probe: if the SDK already has a banner cached for this
     // placement (e.g. returning user), show it immediately without waiting for
@@ -281,6 +326,12 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       if (!dismissedRef.current) {
         initialBannerWindowOpenRef.current = false;
         setStatus((prev) => (prev === 'loading' ? 'empty' : prev));
+
+        endBrazeTrace({
+          success: false,
+          reason: 'timeout',
+          placement_id: placementId,
+        });
       }
     }, SKELETON_TIMEOUT_MS);
 
@@ -288,8 +339,20 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       subscription.remove();
       appStateSubscription.remove();
       clearNoResponseTimeout();
+
+      endBrazeTrace({
+        success: false,
+        reason: 'unmounted',
+        placement_id: placementId,
+      });
     };
-  }, [placementId, dispatch, handleBanner, clearNoResponseTimeout]);
+  }, [
+    placementId,
+    dispatch,
+    handleBanner,
+    clearNoResponseTimeout,
+    endBrazeTrace,
+  ]);
 
   const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;

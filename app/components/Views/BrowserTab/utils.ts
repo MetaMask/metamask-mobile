@@ -1,5 +1,6 @@
 import AppConstants from '../../../core/AppConstants';
 import URLParse from 'url-parse';
+import { isSameOrigin } from '../../../util/url';
 import { DocumentUrlForUrlBarPayload, SessionENSNames } from './types';
 
 const DEFAULT_HTTP_PORTS: Record<string, string> = {
@@ -61,6 +62,33 @@ export const isDocumentUrlForUrlBarPayload = (
     url.length > 0 &&
     (title === undefined || typeof title === 'string')
   );
+};
+
+/**
+ * Chooses the document URL after a back/forward address-bar sync.
+ *
+ * Prefers the document URL when it shares an origin with the WebView
+ * navigation URL, so SPA path updates still apply. Otherwise uses the
+ * navigation URL. Returns null when that result would not be allowed to load.
+ *
+ * @param nativeUrl - URL from the WebView navigation event
+ * @param pageReportedUrl - URL returned by the document-URL sync script
+ * @returns The URL to show in the address bar, or `null` when it should not
+ * be committed
+ */
+export const resolveCommittedDocumentUrl = (
+  nativeUrl: string,
+  pageReportedUrl: string,
+): string | null => {
+  const candidate = isSameOrigin(nativeUrl, pageReportedUrl)
+    ? pageReportedUrl
+    : nativeUrl;
+
+  if (isDisallowedExplicitPort(candidate)) {
+    return null;
+  }
+
+  return candidate;
 };
 
 /**

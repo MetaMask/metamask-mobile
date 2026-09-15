@@ -1,11 +1,26 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import {
+  cleanup,
+  renderHook,
+  act,
+  waitFor,
+} from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { notifyManager } from '@tanstack/query-core';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+
+notifyManager.setBatchNotifyFunction((callback: () => void) => {
+  callback();
+});
+notifyManager.setNotifyFunction(act);
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -15,11 +30,24 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      getPaymentMethods: jest.fn(),
+      getPaymentMethodsForContext: jest.fn(),
       setSelectedPaymentMethod: jest.fn(),
     },
+    TransactionPayController: { updateFiatPayment: jest.fn() },
   },
 }));
+
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+);
+jest.mock('../../../Views/confirmations/hooks/pay/useMMPayFiatConfig');
+jest.mock('../../../Views/confirmations/hooks/pay/useTransactionPayData');
+jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
+  selectFiatDepositAssetOverride: () => undefined,
+}));
+
+/** The Buy catalog binding, pinned the way every Buy surface pins itself. */
+const useBuyPaymentMethods = () => useRampsPaymentMethods({ catalog: 'buy' });
 
 const mockPaymentMethods: PaymentMethod[] = [
   {
@@ -37,6 +65,14 @@ const mockPaymentMethods: PaymentMethod[] = [
     icon: 'bank',
   },
 ];
+
+const staleMethod: PaymentMethod = {
+  id: '/payments/stale',
+  paymentType: 'stale',
+  name: 'Stale',
+  score: 0,
+  icon: 'stale',
+};
 
 const baseRampsState = {
   userRegion: {
@@ -71,8 +107,8 @@ const baseRampsState = {
     error: null,
   },
   paymentMethods: {
-    data: [],
-    selected: null,
+    data: [] as PaymentMethod[],
+    selected: null as PaymentMethod | null,
     isLoading: false,
     error: null,
   },
@@ -92,6 +128,8 @@ const createMockStore = (rampsControllerOverrides = {}) =>
     },
   });
 
+const queryClients: QueryClient[] = [];
+
 const createWrapper = (store: ReturnType<typeof createMockStore>) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -100,6 +138,7 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
       },
     },
   });
+  queryClients.push(queryClient);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
@@ -115,9 +154,77 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
   return { Wrapper, queryClient };
 };
 
+const contextResponse = (
+  methods = mockPaymentMethods,
+  selected: PaymentMethod | null = methods[0] ?? null,
+) => ({
+  methods,
+  selected,
+  providerIds: ['/providers/transak'],
+});
+
+type ContextResponse = ReturnType<typeof contextResponse>;
+
+const createDeferred = <T>() => {
+  let resolve: (value: T) => void = () => undefined;
+  const promise = new Promise<T>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+  return { promise, resolve };
+};
+
+const getPaymentMethodsForContextMock = jest.mocked(
+  Engine.context.RampsController.getPaymentMethodsForContext,
+);
+const setSelectedPaymentMethodMock = jest.mocked(
+  Engine.context.RampsController.setSelectedPaymentMethod,
+);
+const updateFiatPaymentMock = jest.mocked(
+  Engine.context.TransactionPayController.updateFiatPayment,
+);
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
+);
+const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
+const useTransactionPayFiatPaymentMock = jest.mocked(
+  useTransactionPayFiatPayment,
+);
+
+const FIAT_ENABLED_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
+
 describe('useRampsPaymentMethods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // No pending fiat deposit by default, so the Buy tests below are unaffected
+    // by the active-fiat-context branch.
+    useTransactionMetadataRequestMock.mockReturnValue(
+      undefined as unknown as ReturnType<typeof useTransactionMetadataRequest>,
+    );
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: FIAT_ENABLED_TYPES,
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+  });
+
+  afterEach(async () => {
+    // Unmount first. RNTL registers its auto-cleanup at root scope, and
+    // jest-circus runs the innermost afterEach first, so without this the
+    // clients below are torn down under a live React tree: observers re-render,
+    // rebuild the query, and (Buy runs at staleTime 0) fetch again. That fires
+    // 0-2 stray requests per suite run, absorbed today only by the
+    // `jest.clearAllMocks()` in `beforeEach` above. Keep that clear where it is.
+    cleanup();
+    await act(async () => {
+      for (const queryClient of queryClients.splice(0)) {
+        await queryClient.cancelQueries();
+        queryClient.clear();
+      }
+    });
   });
 
   it('returns idle when no provider is selected', () => {
@@ -126,7 +233,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -139,7 +246,7 @@ describe('useRampsPaymentMethods', () => {
       error: null,
     });
     expect(
-      Engine.context.RampsController.getPaymentMethods,
+      Engine.context.RampsController.getPaymentMethodsForContext,
     ).not.toHaveBeenCalled();
   });
 
@@ -148,10 +255,10 @@ describe('useRampsPaymentMethods', () => {
     const { Wrapper } = createWrapper(store);
 
     (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
+      Engine.context.RampsController.getPaymentMethodsForContext as jest.Mock
     ).mockImplementation(() => new Promise(() => undefined));
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -168,13 +275,9 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue({
-      payments: mockPaymentMethods,
-    });
+    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -185,19 +288,18 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
     expect(result.current.selectedPaymentMethod).toEqual(mockPaymentMethods[0]);
     expect(result.current.isSuccess).toBe(true);
+    expect(setSelectedPaymentMethodMock).not.toHaveBeenCalled();
   });
 
   it('returns success with an empty array when the request completes empty', async () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue({
-      payments: [],
-    });
+    getPaymentMethodsForContextMock.mockResolvedValue(
+      contextResponse([], null),
+    );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -207,17 +309,19 @@ describe('useRampsPaymentMethods', () => {
 
     expect(result.current.paymentMethods).toEqual([]);
     expect(result.current.error).toBeNull();
+    expect(result.current.selectedPaymentMethod).toBeNull();
+    expect(setSelectedPaymentMethodMock).not.toHaveBeenCalled();
   });
 
   it('returns error when the request rejects', async () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockRejectedValue(new Error('Network error'));
+    getPaymentMethodsForContextMock.mockRejectedValue(
+      new Error('Network error'),
+    );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -234,16 +338,14 @@ describe('useRampsPaymentMethods', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockRejectedValue(
+    getPaymentMethodsForContextMock.mockRejectedValue(
       Object.assign(
         new Error('Execution prevented because the circuit breaker is open'),
         { errorKey: 'CIRCUIT_BREAKER_OPEN' },
       ),
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -260,7 +362,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -279,7 +381,7 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -292,7 +394,7 @@ describe('useRampsPaymentMethods', () => {
     ).toHaveBeenCalledWith(null);
   });
 
-  it('normalizes EVM checksummed assetId case before passing to getPaymentMethods', async () => {
+  it('normalizes EVM checksummed assetId case before requesting the context', async () => {
     const checksummedAssetId =
       'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
     const store = createMockStore({
@@ -309,34 +411,27 @@ describe('useRampsPaymentMethods', () => {
         },
       },
     });
-    const { Wrapper, queryClient } = createWrapper(store);
+    const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue({ payments: mockPaymentMethods });
+    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { unmount } = renderHook(() => useRampsPaymentMethods(), {
+    renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
-    await waitFor(() => {
-      expect(
-        Engine.context.RampsController.getPaymentMethods,
-      ).toHaveBeenCalled();
-    });
-
-    const callArgs = (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mock.calls[0];
-    expect(callArgs[1].assetId).toBe(checksummedAssetId.toLowerCase());
-
-    queryClient.cancelQueries();
-    unmount();
-    queryClient.clear();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // Buy owns the shared catalog, so it requests one explicit provider and
+    // lets the controller commit the result (`updateState: true`).
+    await waitFor(() =>
+      expect(getPaymentMethodsForContextMock).toHaveBeenCalledWith({
+        region: 'us',
+        assetId: checksummedAssetId.toLowerCase(),
+        providers: ['/providers/transak'],
+        updateState: true,
+      }),
+    );
   });
 
-  it('preserves non-EVM (Solana) assetId case when passing to getPaymentMethods', async () => {
+  it('preserves non-EVM (Solana) assetId case when requesting the context', async () => {
     const solanaAssetId =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
     const store = createMockStore({
@@ -353,42 +448,30 @@ describe('useRampsPaymentMethods', () => {
         },
       },
     });
-    const { Wrapper, queryClient } = createWrapper(store);
+    const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue({ payments: mockPaymentMethods });
+    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { unmount } = renderHook(() => useRampsPaymentMethods(), {
+    renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
-    await waitFor(() => {
-      expect(
-        Engine.context.RampsController.getPaymentMethods,
-      ).toHaveBeenCalled();
-    });
-
-    const callArgs = (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mock.calls[0];
-    expect(callArgs[1].assetId).toBe(solanaAssetId);
-
-    queryClient.cancelQueries();
-    unmount();
-    queryClient.clear();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await waitFor(() =>
+      expect(getPaymentMethodsForContextMock).toHaveBeenCalledWith(
+        expect.objectContaining({ assetId: solanaAssetId }),
+      ),
+    );
   });
 
-  it('transitions from loading to success when query resolves', async () => {
+  it('finishes loading after the controller commits catalog and selection', async () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
-    let resolveQuery: (value: { payments: PaymentMethod[] }) => void = () => {
+    let resolveQuery: (value: ContextResponse) => void = () => {
       // noop, overwritten by mock
     };
     (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
+      Engine.context.RampsController.getPaymentMethodsForContext as jest.Mock
     ).mockImplementation(
       () =>
         new Promise((resolve) => {
@@ -396,7 +479,7 @@ describe('useRampsPaymentMethods', () => {
         }),
     );
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -405,18 +488,19 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.isSuccess).toBe(false);
 
     await act(async () => {
-      resolveQuery({ payments: mockPaymentMethods });
+      resolveQuery(contextResponse());
     });
 
     await waitFor(() => {
       expect(result.current.status).toBe('success');
     });
 
-    // isLoading remains true because no payment method is selected yet
-    // (auto-selection was triggered but Redux hasn't updated in this test)
-    expect(result.current.isLoading).toBe(true);
+    // The controller commits catalog and selection together, so the hook
+    // settles instead of holding `isLoading` for a manual auto-selection pass.
+    expect(result.current.isLoading).toBe(false);
     expect(result.current.isSuccess).toBe(true);
     expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
+    expect(result.current.selectedPaymentMethod).toEqual(mockPaymentMethods[0]);
   });
 
   it('returns selectedPaymentMethod from Redux state', async () => {
@@ -428,11 +512,9 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue({ payments: mockPaymentMethods });
+    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -447,11 +529,9 @@ describe('useRampsPaymentMethods', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
-    (
-      Engine.context.RampsController.getPaymentMethods as jest.Mock
-    ).mockResolvedValue({ payments: mockPaymentMethods });
+    getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-    const { result, rerender } = renderHook(() => useRampsPaymentMethods(), {
+    const { result, rerender } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
@@ -472,27 +552,25 @@ describe('useRampsPaymentMethods', () => {
     });
     const { Wrapper } = createWrapper(store);
 
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
+    const { result } = renderHook(() => useBuyPaymentMethods(), {
       wrapper: Wrapper,
     });
 
     expect(result.current.status).toBe('idle');
     expect(result.current.isLoading).toBe(false);
     expect(
-      Engine.context.RampsController.getPaymentMethods,
+      Engine.context.RampsController.getPaymentMethodsForContext,
     ).not.toHaveBeenCalled();
   });
 
-  describe('auto-selection', () => {
-    it('auto-selects first payment method when data loads and none is selected', async () => {
+  describe('controller-owned selection', () => {
+    it('uses the controller suggestion when Redux has no selection', async () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
 
-      (
-        Engine.context.RampsController.getPaymentMethods as jest.Mock
-      ).mockResolvedValue({ payments: mockPaymentMethods });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -502,7 +580,10 @@ describe('useRampsPaymentMethods', () => {
 
       expect(
         Engine.context.RampsController.setSelectedPaymentMethod,
-      ).toHaveBeenCalledWith(mockPaymentMethods[0]);
+      ).not.toHaveBeenCalled();
+      expect(result.current.selectedPaymentMethod).toEqual(
+        mockPaymentMethods[0],
+      );
     });
 
     it('preserves existing selection if it is still in the new list', async () => {
@@ -514,11 +595,9 @@ describe('useRampsPaymentMethods', () => {
       });
       const { Wrapper } = createWrapper(store);
 
-      (
-        Engine.context.RampsController.getPaymentMethods as jest.Mock
-      ).mockResolvedValue({ payments: mockPaymentMethods });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -538,11 +617,11 @@ describe('useRampsPaymentMethods', () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
 
-      (
-        Engine.context.RampsController.getPaymentMethods as jest.Mock
-      ).mockResolvedValue({ payments: [] });
+      getPaymentMethodsForContextMock.mockResolvedValue(
+        contextResponse([], null),
+      );
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -556,7 +635,7 @@ describe('useRampsPaymentMethods', () => {
       expect(result.current.selectedPaymentMethod).toBeNull();
     });
 
-    it('falls back to first method when current selection is not in the new list', async () => {
+    it('falls back to the controller suggestion when the selection is stale', async () => {
       const removedMethod: PaymentMethod = {
         id: '/payments/removed',
         paymentType: 'removed',
@@ -572,11 +651,9 @@ describe('useRampsPaymentMethods', () => {
       });
       const { Wrapper } = createWrapper(store);
 
-      (
-        Engine.context.RampsController.getPaymentMethods as jest.Mock
-      ).mockResolvedValue({ payments: mockPaymentMethods });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -586,10 +663,13 @@ describe('useRampsPaymentMethods', () => {
 
       expect(
         Engine.context.RampsController.setSelectedPaymentMethod,
-      ).toHaveBeenCalledWith(mockPaymentMethods[0]);
+      ).not.toHaveBeenCalled();
+      expect(result.current.selectedPaymentMethod).toEqual(
+        mockPaymentMethods[0],
+      );
     });
 
-    it('keeps isLoading true during stale-selection fallback to prevent UI flash', async () => {
+    it('settles loading once the controller commits the corrected selection', async () => {
       const removedMethod: PaymentMethod = {
         id: '/payments/removed',
         paymentType: 'removed',
@@ -605,11 +685,9 @@ describe('useRampsPaymentMethods', () => {
       });
       const { Wrapper } = createWrapper(store);
 
-      (
-        Engine.context.RampsController.getPaymentMethods as jest.Mock
-      ).mockResolvedValue({ payments: mockPaymentMethods });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
 
-      const { result } = renderHook(() => useRampsPaymentMethods(), {
+      const { result } = renderHook(() => useBuyPaymentMethods(), {
         wrapper: Wrapper,
       });
 
@@ -617,10 +695,158 @@ describe('useRampsPaymentMethods', () => {
         expect(result.current.status).toBe('success');
       });
 
-      // isLoading should remain true because the stale selection is not in the
-      // new list — the useEffect will correct it, but until Redux updates,
-      // isLoading must stay true to prevent the stale name from flashing.
-      expect(result.current.isLoading).toBe(true);
+      // The controller commits catalog and selection together, so there is no
+      // manual fallback window left to hold isLoading open for.
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  // The default catalog, and the only one confirmations ever asks for.
+  describe('active fiat context', () => {
+    const depositTx = (
+      type: TransactionType = TransactionType.moneyAccountDeposit,
+    ) =>
+      ({ id: 'tx-1', type }) as unknown as ReturnType<
+        typeof useTransactionMetadataRequest
+      >;
+
+    const renderDeposit = (store = createMockStore()) => {
+      const { Wrapper } = createWrapper(store);
+      return renderHook(() => useRampsPaymentMethods(), { wrapper: Wrapper });
+    };
+
+    it('stays idle when the pending approval is not a fiat deposit', () => {
+      const { result } = renderDeposit();
+
+      expect(result.current.status).toBe('idle');
+      expect(result.current.paymentMethods).toEqual([]);
+      expect(getPaymentMethodsForContextMock).not.toHaveBeenCalled();
+    });
+
+    it('requests the deposit asset read-only, ignoring the Buy token and provider', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(
+        depositTx(TransactionType.predictDeposit),
+      );
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit(
+        createMockStore({
+          tokens: {
+            ...baseRampsState.tokens,
+            selected: {
+              ...baseRampsState.tokens.selected,
+              assetId: 'eip155:1/erc20:0xdead',
+            },
+          },
+          providers: {
+            ...baseRampsState.providers,
+            selected: { id: '/providers/revolut', name: 'Revolut' },
+          },
+        }),
+      );
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(getPaymentMethodsForContextMock).toHaveBeenCalledWith({
+        region: 'us',
+        // The Predict deposit asset, not the token Buy happens to have selected.
+        assetId: 'eip155:137/slip44:966',
+        autoSelectProvider: true,
+        restrictToKnownOrNativeProviders: true,
+        updateState: false,
+      });
+      expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
+    });
+
+    it('never writes the Buy selection', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit(
+        createMockStore({
+          paymentMethods: {
+            ...baseRampsState.paymentMethods,
+            selected: staleMethod,
+          },
+        }),
+      );
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(setSelectedPaymentMethodMock).not.toHaveBeenCalled();
+      // Buy's Redux selection must not leak into the deposit result.
+      expect(result.current.selectedPaymentMethod).toBeNull();
+    });
+
+    it('resolves the selected method from the TPC fiat payment', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: mockPaymentMethods[1].id,
+      });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit();
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(result.current.selectedPaymentMethod).toEqual(
+        mockPaymentMethods[1],
+      );
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('clears a selected method the deposit asset cannot be served with', async () => {
+      // The Revolut Pay case: picked through the previously leaked Buy catalog,
+      // it is absent once methods are scoped to the deposit asset.
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/revolut-pay',
+      });
+      getPaymentMethodsForContextMock.mockResolvedValue(contextResponse());
+
+      const { result } = renderDeposit();
+
+      await waitFor(() =>
+        expect(updateFiatPaymentMock).toHaveBeenCalledTimes(1),
+      );
+
+      const { transactionId, callback } =
+        updateFiatPaymentMock.mock.calls[0][0];
+      expect(transactionId).toBe('tx-1');
+      const fiatPayment = { selectedPaymentMethodId: '/payments/revolut-pay' };
+      callback(fiatPayment);
+      expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
+      expect(result.current.selectedPaymentMethod).toBeNull();
+    });
+
+    it('does not clear the selection on a transient empty result', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: mockPaymentMethods[0].id,
+      });
+      getPaymentMethodsForContextMock.mockResolvedValue(
+        contextResponse([], null),
+      );
+
+      const { result } = renderDeposit();
+
+      await waitFor(() => expect(result.current.status).toBe('success'));
+
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('does not clear the selection while the request is still in flight', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue(depositTx());
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/revolut-pay',
+      });
+      const deferred = createDeferred<ContextResponse>();
+      getPaymentMethodsForContextMock.mockReturnValue(deferred.promise);
+
+      const { result } = renderDeposit();
+
+      await waitFor(() => expect(result.current.isFetching).toBe(true));
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
   });
 });

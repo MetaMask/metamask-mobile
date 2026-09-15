@@ -42,7 +42,9 @@ import {
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import PreventScreenshot, {
+  CAPTURE_KEYS,
+} from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
@@ -60,6 +62,8 @@ import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 import {
   useNavigation,
@@ -297,6 +301,16 @@ const Onboarding = () => {
 
   const [onboardingNotificationVisible, setOnboardingNotificationVisible] =
     useState(false);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.ONBOARDING,
+    properties: {
+      ...(state.createWallet ? { wallet_setup_type: 'new' } : {}),
+      ...(state.existingWallet ? { wallet_setup_type: 'import' } : {}),
+    },
+    saveOnboardingEvent,
+  });
 
   useScreenPerformance({
     screenId: OnboardingScreenIds.ONBOARDING_LANDING,
@@ -731,6 +745,11 @@ const Onboarding = () => {
       };
 
       if (error instanceof OAuthError) {
+        if (error.code === OAuthErrorType.LoginInProgress) {
+          // Duplicate tap while the first OAuth attempt is still in flight.
+          return;
+        }
+
         // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
         if (
           error.code === OAuthErrorType.UserCancelled ||
@@ -1079,6 +1098,11 @@ const Onboarding = () => {
           return;
         }
 
+        setState((prevState) => ({
+          ...prevState,
+          createWallet,
+          existingWallet: !createWallet,
+        }));
         setLoading();
         const loginHandlerOptions =
           provider === AuthConnection.Telegram
@@ -1106,7 +1130,8 @@ const Onboarding = () => {
               'Failed to start OAuth lifecycle tracking',
             );
           });
-          track(MetaMetricsEvents.SOCIAL_LOGIN_STARTED, {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'started',
             auth_connection: provider,
             is_rehydration: (!createWallet).toString(),
           });
@@ -1207,6 +1232,14 @@ const Onboarding = () => {
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
         dispatch(clearSeedlessOnboarding());
+        // Measure Create/Import wallet tap → sheet interactive (UI CUF).
+        // Sheet completes via useNavigationPerformance; SRP/social CTAs start a
+        // new span when the user continues from the sheet.
+        startOnboardingCtaNavigation(
+          actionType === 'create'
+            ? OnboardingCtaIds.CREATE_WALLET
+            : OnboardingCtaIds.IMPORT_WALLET,
+        );
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: {
@@ -1404,7 +1437,7 @@ const Onboarding = () => {
 
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid();
+      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1447,7 +1480,9 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(PreventScreenshot.allow);
+      InteractionManager.runAfterInteractions(() =>
+        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
+      );
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
@@ -1456,7 +1491,8 @@ const Onboarding = () => {
     detectOAuthProcessRestart()
       .then(({ detected, authConnection, analyticsProperties }) => {
         if (detected && authConnection && analyticsProperties) {
-          track(MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED, {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'abandoned',
             auth_connection: authConnection,
             ...analyticsProperties,
           });
@@ -1480,7 +1516,8 @@ const Onboarding = () => {
         const startedBackgroundPeriod = recordOAuthBackgrounded();
         const authConnection = getOAuthLifecycleAuthConnection();
         if (startedBackgroundPeriod && authConnection) {
-          track(MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED, {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'backgrounded',
             auth_connection: authConnection,
             is_rehydration: String(socialLoginIsRehydrationRef.current),
             ...getOAuthBackgroundAnalyticsProperties(),
@@ -1504,7 +1541,8 @@ const Onboarding = () => {
         recordOAuthResumed();
         const authConnection = getOAuthLifecycleAuthConnection();
         if (authConnection) {
-          track(MetaMetricsEvents.SOCIAL_LOGIN_RESUMED, {
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+            status: 'resumed',
             auth_connection: authConnection,
             is_rehydration: String(socialLoginIsRehydrationRef.current),
             ...getOAuthBackgroundAnalyticsProperties(),
@@ -1525,7 +1563,8 @@ const Onboarding = () => {
               resume_outcome: OAUTH_RESUME_OUTCOME.ABANDONED,
             };
             if (authConnectionForAbandon) {
-              track(MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED, {
+              track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
+                status: 'abandoned',
                 auth_connection: authConnectionForAbandon,
                 is_rehydration: String(socialLoginIsRehydrationRef.current),
                 ...backgroundProperties,
@@ -1566,6 +1605,11 @@ const Onboarding = () => {
 
   const { errorToThrow, startFoxAnimation } = state;
 
+  const onboardingCanvasColor =
+    themeContext.themeAppearance === 'dark'
+      ? importedColors.gettingStartedTextColor
+      : importedColors.gettingStartedPageBackgroundColorLightMode;
+
   const ThrowErrorIfNeeded = () => {
     if (errorToThrow) {
       throw errorToThrow;
@@ -1580,62 +1624,64 @@ const Onboarding = () => {
       useOnboardingErrorHandling={!!errorToThrow && !metrics.isEnabled()}
     >
       <ThrowErrorIfNeeded />
-      <SafeAreaView
-        style={tw.style('flex-1', {
-          backgroundColor:
-            themeContext.themeAppearance === 'dark'
-              ? importedColors.gettingStartedTextColor
-              : importedColors.gettingStartedPageBackgroundColorLightMode,
-        })}
+      {/*
+        Root canvas owns the background so it extends into the Android bottom
+        gesture inset. SafeAreaView only protects top content — do not put the
+        background color on a bottom-padded safe area.
+      */}
+      <View
+        style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
-        <ScrollView
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-1')}
-        >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="flex-1 py-4"
+        <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('flex-1')}
           >
-            {renderContent()}
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="flex-1 py-4"
+            >
+              {renderContent()}
 
-            {loading && (
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="absolute top-0 left-0 right-0 bottom-0"
-                style={tw.style(
-                  { zIndex: 1000 },
-                  {
-                    backgroundColor:
-                      themeContext.themeAppearance === 'dark'
-                        ? importedColors.gettingStartedTextColor
-                        : importedColors.gettingStartedPageBackgroundColorLightMode,
-                  },
-                )}
-              >
-                {renderLoader()}
-              </Box>
-            )}
-          </Box>
-        </ScrollView>
+              {loading && (
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
+                  twClassName="absolute top-0 left-0 right-0 bottom-0"
+                  style={tw.style(
+                    { zIndex: 1000 },
+                    { backgroundColor: onboardingCanvasColor },
+                  )}
+                >
+                  {renderLoader()}
+                </Box>
+              )}
+            </Box>
+          </ScrollView>
 
-        <FadeOutOverlay />
+          <FadeOutOverlay />
 
+          <FastOnboarding
+            onPressContinueWithGoogle={onPressContinueWithGoogle}
+            onPressContinueWithApple={onPressContinueWithApple}
+            onPressImport={onPressImport}
+            onPressCreate={onPressCreate}
+          />
+
+          {handleSimpleNotification()}
+        </SafeAreaView>
+
+        {/* Fox on the full-bleed root canvas */}
         {!hasTestOverrides && (
-          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
+          <FoxAnimation
+            hasFooter={false}
+            trigger={startFoxAnimation}
+            fullBleedBottom
+          />
         )}
-
-        <FastOnboarding
-          onPressContinueWithGoogle={onPressContinueWithGoogle}
-          onPressContinueWithApple={onPressContinueWithApple}
-          onPressImport={onPressImport}
-          onPressCreate={onPressCreate}
-        />
-
-        {handleSimpleNotification()}
-      </SafeAreaView>
+      </View>
     </ErrorBoundary>
   );
 };

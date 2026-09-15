@@ -3,27 +3,27 @@ import Assertions from '../../../framework/Assertions';
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
-import type { EncapsulatedElementType } from '../../../framework';
+import AppiumContextHelpers from '../../../framework/AppiumContextHelpers';
+import type { AppiumElement } from '../../../framework';
 import {
   DownloadFileWebsiteSelectorsText,
   DownloadFileWebsiteSelectorsXPath,
 } from '../../../selectors/Browser/DownloadFileWebsite.selectors';
 
 class DownloadFileWebsite {
-  get androidPageHeading(): EncapsulatedElementType {
+  get androidPageHeading(): Promise<AppiumElement> {
     return Matchers.getElementByAndroidUIAutomator(
       DownloadFileWebsiteSelectorsText.PAGE_HEADING,
     );
   }
 
-  get androidDownloadButton(): EncapsulatedElementType {
+  get androidDownloadButton(): Promise<AppiumElement> {
     return Matchers.getElementByAndroidUIAutomator(
       DownloadFileWebsiteSelectorsText.DOWNLOAD_BUTTON,
     );
   }
 
-  getWebDownloadButton(pageUrl: string): EncapsulatedElementType {
+  getWebDownloadButton(pageUrl: string): Promise<AppiumElement> {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       DownloadFileWebsiteSelectorsXPath.DOWNLOAD_BUTTON,
@@ -39,7 +39,7 @@ class DownloadFileWebsite {
     if (PlatformDetector.isAndroid()) {
       // Android Chromedriver context switch fails under LavaMoat ShadowRoot
       // scuttling — tap the button via the native accessibility tree instead.
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
 
       await Assertions.expectElementToBeVisible(this.androidPageHeading);
 
@@ -54,7 +54,7 @@ class DownloadFileWebsite {
     await Gestures.waitAndTap(this.getWebDownloadButton(pageUrl), {
       elemDescription: 'Download File website - Download button (iOS)',
     });
-    await PlaywrightContextHelpers.switchToNativeContext();
+    await AppiumContextHelpers.switchToNativeContext();
   }
 }
 

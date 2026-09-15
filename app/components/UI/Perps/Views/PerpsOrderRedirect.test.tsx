@@ -10,6 +10,7 @@ import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 jest.mock('@react-navigation/native', () => ({
@@ -166,6 +167,15 @@ describe('PerpsOrderRedirect', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
     expect(mockDepositWithOrder).toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+      tags: {
+        feature: 'perps',
+        component: 'PerpsOrderRedirect',
+        action: 'financial_deposit',
+        operation: 'financial_operations',
+      },
+      context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
+    });
   });
 
   it('calls depositWithOrder and navigates to confirmation on success', async () => {

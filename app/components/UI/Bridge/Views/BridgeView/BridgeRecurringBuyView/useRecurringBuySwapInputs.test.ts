@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import {
   selectDestToken,
@@ -36,8 +37,12 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 }));
 
 const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
+const mockUseBridgeQuoteRequest = jest.fn(
+  (_options?: unknown) => mockUpdateQuoteParams,
+);
 jest.mock('../../../hooks/useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: () => mockUpdateQuoteParams,
+  useBridgeQuoteRequest: (options?: unknown) =>
+    mockUseBridgeQuoteRequest(options),
 }));
 
 jest.mock('../../../hooks/useIsNetworkEnabled', () => ({
@@ -317,11 +322,12 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Source,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
 
-    it('opens the destination picker scoped to the enabled chains and without RWAs', () => {
+    it("opens the destination picker scoped to the source token's chain and without RWAs", () => {
       const { result } = renderRecurringBuySwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
@@ -337,8 +343,55 @@ describe('useRecurringBuySwapInputs', () => {
         Routes.BRIDGE.TOKEN_SELECTOR,
         expect.objectContaining({
           type: TokenSelectorType.Dest,
-          enabledChainIds: ENABLED_CHAIN_IDS,
+          enabledChainIds: ['eip155:1'],
           excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
+        }),
+      );
+    });
+
+    it('scopes the destination picker to the CAIP form of a hex source chain id', () => {
+      const { result } = renderRecurringBuySwapInputsHook(
+        {
+          sourceToken: createMockToken({ chainId: '0x38' }),
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: ['eip155:56'],
+          excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
+        }),
+      );
+    });
+
+    it('opens the destination picker with no enabled chains when there is no source token', () => {
+      const { result } = renderRecurringBuySwapInputsHook(
+        {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: [],
+          excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
@@ -359,5 +412,27 @@ describe('useRecurringBuySwapInputs', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setSourceToken(expect.anything()),
     );
+  });
+
+  it('requests quotes without a Recurring slippage override', () => {
+    const sourceToken = getNativeSourceToken('eip155:1');
+    const destToken = createMockToken({
+      chainId: '0x1',
+      symbol: 'USDC',
+      address: '0xdest',
+    });
+
+    renderRecurringBuySwapInputsHook(
+      {
+        sourceToken,
+        destToken,
+        sourceAmount: '1',
+      },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(mockUseBridgeQuoteRequest).toHaveBeenCalledWith({
+      latestSourceAtomicBalance: undefined,
+    });
   });
 });

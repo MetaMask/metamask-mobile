@@ -1,12 +1,19 @@
 import type {
   FetchFeedParams,
+  PredictBalance,
   PredictEntityId,
   PredictEvent,
   PredictFeed,
   PredictFeedId,
+  PredictMarketHistory,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueStatus,
 } from '../types';
+
+export interface VenuePortfolioAdapter {
+  fetchBalance(options?: PredictReadOptions): Promise<PredictBalance>;
+}
 
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
@@ -19,4 +26,9 @@ export interface VenueMarketDataAdapter {
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<PredictEvent>;
+  fetchMarketHistory(
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<PredictMarketHistory>;
 }

@@ -240,12 +240,32 @@ describe('PerpsMarketList', () => {
       expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
 
-    it('does not render FlashList when empty', () => {
+    it('does not render FlashList when empty and no list header is provided', () => {
       render(
         <PerpsMarketList markets={[]} onMarketPress={mockOnMarketPress} />,
       );
 
       expect(screen.queryByTestId('perps-market-list')).not.toBeOnTheScreen();
+    });
+
+    it('renders ListHeaderComponent and empty state when markets are empty', () => {
+      const HeaderComponent = () => (
+        <View testID="custom-header">
+          <RNText>Custom Header</RNText>
+        </View>
+      );
+
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          ListHeaderComponent={HeaderComponent}
+        />,
+      );
+
+      expect(screen.getByTestId('perps-market-list')).toBeOnTheScreen();
+      expect(screen.getByTestId('custom-header')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
   });
 
@@ -371,6 +391,70 @@ describe('PerpsMarketList', () => {
       );
 
       expect(screen.queryByTestId('custom-header')).not.toBeOnTheScreen();
+    });
+
+    it('renders stickyHeader as the first list row', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={
+            <View testID="sticky-sort-row">
+              <RNText>Sort</RNText>
+            </View>
+          }
+        />,
+      );
+
+      expect(screen.getByTestId('sticky-sort-row')).toBeOnTheScreen();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+
+    it('pins stickyHeader with stickyHeaderIndices at 0', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={
+            <View testID="sticky-sort-row">
+              <RNText>Sort</RNText>
+            </View>
+          }
+        />,
+      );
+
+      const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
+      expect(lastProps.stickyHeaderIndices).toEqual([0]);
+    });
+
+    it('does not set stickyHeaderIndices when stickyHeader is omitted', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+        />,
+      );
+
+      const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
+      expect(lastProps.stickyHeaderIndices).toBeUndefined();
+    });
+
+    it('renders stickyHeader and empty state when markets are empty', () => {
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={
+            <View testID="sticky-sort-row">
+              <RNText>Sort</RNText>
+            </View>
+          }
+        />,
+      );
+
+      expect(screen.getByTestId('perps-market-list')).toBeOnTheScreen();
+      expect(screen.getByTestId('sticky-sort-row')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
   });
 

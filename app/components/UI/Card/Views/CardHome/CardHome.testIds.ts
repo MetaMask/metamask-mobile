@@ -42,4 +42,6 @@ export const CardHomeSelectors = {
   CREDIT_BALANCE_INFO_BUTTON: 'credit-balance-info-button',
   CREDIT_BANNER: 'credit-banner',
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
+  UK_MIGRATION_REQUIRED_BANNER: 'card-home-uk-migration-required-banner',
+  UK_MIGRATION_SOFT_BANNER: 'card-home-uk-migration-soft-banner',
 };

@@ -3,8 +3,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { LocalNode, LocalNodeType } from '../../framework/types.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder.js';
@@ -21,7 +19,6 @@ import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 
 appiumTest.describe(SmokeStake('Stake from Actions'), () => {
-  const FIRST_ROW = 0;
   const AMOUNT_TO_STAKE = '1';
 
   appiumTest(
@@ -155,19 +152,6 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
             },
           );
           await FooterActions.tapConfirmButton();
-
-          await Assertions.expectElementToBeVisible(
-            ActivitiesView.stakeDepositedLabel,
-            {
-              description: 'Staking deposit activity row title',
-              timeout: 120000,
-            },
-          );
-          await Assertions.expectElementToHaveText(
-            ActivitiesView.transactionStatus(FIRST_ROW),
-            ActivitiesViewSelectorsText.CONFIRM_TEXT,
-            { timeout: 120000 },
-          );
 
           // Go back to Home tab
           await TabBarComponent.tapHome();

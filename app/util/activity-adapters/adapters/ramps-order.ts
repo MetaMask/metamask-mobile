@@ -14,7 +14,7 @@ import {
   toRampsOrderToken,
 } from './ramps-order-helpers';
 
-export interface MapRampsOrderArgs {
+interface MapRampsOrderArgs {
   order: RampsOrder;
 }
 

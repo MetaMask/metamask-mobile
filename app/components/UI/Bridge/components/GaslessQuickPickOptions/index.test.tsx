@@ -3,8 +3,14 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { GaslessQuickPickOptions } from './index';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -39,6 +45,9 @@ const actualUseAnalytics: typeof useAnalytics = jest.requireActual(
 ).useAnalytics;
 const renderWithRedux = (component: React.ReactElement) =>
   renderWithProvider(component, undefined, false);
+const mockTrackUnifiedSwapBridgeEvent = jest.mocked(
+  Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+);
 
 describe('GaslessQuickPickOptions', () => {
   const mockOnAmountSelect = jest.fn();
@@ -69,12 +78,14 @@ describe('GaslessQuickPickOptions', () => {
   describe('rendering', () => {
     it('renders QuickPickButtons when tokenBalance is provided', () => {
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -85,12 +96,14 @@ describe('GaslessQuickPickOptions', () => {
 
     it('renders QuickPickButtons even when tokenBalance is not provided', () => {
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={undefined}
-          tokenBalance={undefined}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={undefined}
+            tokenBalance={undefined}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -103,12 +116,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText, queryByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('Max')).toBeTruthy();
@@ -124,12 +139,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
       const { getByText, queryByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('90%')).toBeTruthy();
@@ -145,13 +162,15 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-          isQuoteSponsored
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+            isQuoteSponsored
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('Max')).toBeTruthy();
@@ -168,12 +187,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       const maxButton = getByText('Max');
@@ -191,12 +212,14 @@ describe('GaslessQuickPickOptions', () => {
       const zeroBalance = '0';
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={zeroBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={zeroBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -209,12 +232,14 @@ describe('GaslessQuickPickOptions', () => {
       const nonZeroBalance = '1.5';
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={nonZeroBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={nonZeroBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -229,12 +254,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText, queryByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('Max')).toBeTruthy();
@@ -250,12 +277,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
       const { getByText, queryByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('90%')).toBeTruthy();
@@ -271,13 +300,15 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-          isQuoteSponsored
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+            isQuoteSponsored
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('Max')).toBeTruthy();
@@ -293,12 +324,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={zeroBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={zeroBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -316,12 +349,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       act(() => {
@@ -353,12 +388,14 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={mockTokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       act(() => {
@@ -367,17 +404,43 @@ describe('GaslessQuickPickOptions', () => {
 
       expect(mockOnAmountSelect).toHaveBeenCalledWith('90.45');
     });
+
+    it('tracks the amount change with the feature id of the flow rendering the presets', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      const { getByText } = renderWithRedux(
+        <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_BUY}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={mockTokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
+      );
+
+      act(() => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.InputChanged,
+        expect.objectContaining({ feature_id: FeatureId.RECURRING_BUY }),
+      );
+    });
   });
 
   describe('onQuickOptionPress defensive guard', () => {
     it('does not call onAmountSelect when tokenBalance has no displayBalance', () => {
       const { getByText } = renderWithRedux(
-        <GaslessQuickPickOptions
-          onAmountSelect={mockOnAmountSelect}
-          token={mockToken}
-          tokenBalance={undefined}
-          onMaxPress={mockOnMaxPress}
-        />,
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <GaslessQuickPickOptions
+            onAmountSelect={mockOnAmountSelect}
+            token={mockToken}
+            tokenBalance={undefined}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>,
       );
 
       expect(getByText('25%')).toBeTruthy();

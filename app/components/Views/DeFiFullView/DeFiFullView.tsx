@@ -1,14 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  type RouteProp,
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import type {
-  AppNavigationProp,
-  RootStackParamList,
-} from '../../../core/NavigationService/types';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -29,7 +21,6 @@ import { DEFAULT_TOKEN_SORT_CONFIG } from '../../UI/Tokens/util/sortAssets';
 
 const DeFiFullView = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'DeFiFullView'>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 
@@ -73,7 +64,6 @@ const DeFiFullView = () => {
         <DeFiPositionsList
           tabLabel={strings('homepage.sections.defi')}
           isFullView
-          analyticsSource={route.params?.source}
         />
       </Box>
     </SafeAreaView>

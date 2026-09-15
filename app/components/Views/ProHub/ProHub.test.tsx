@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
+import { ALSO_INCLUDED_ITEMS } from './ProHub.constants';
+import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -30,6 +32,18 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 const renderProHub = () => render(<ProHub />);
 
+/**
+ * Escapes all regex special characters so a plain string can be used
+ * as a partial-match pattern inside toHaveTextContent().
+ */
+const toRegex = (s: string) =>
+  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+const TRADE_ALLOWANCE_IDS = ['swaps', 'perps', 'predict'] as const;
+
+// CV cannot cover this screen yet: it is still mock-data UI with no Redux /
+// Engine state, so focused unit tests remain the coverage layer.
+
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
 describe('ProHub', () => {
@@ -42,51 +56,132 @@ describe('ProHub', () => {
   // ── Rendering ──────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
-    it('renders the container', () => {
+    it('renders the pro hub container', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.CONTAINER)).toBeOnTheScreen();
+      const container = getByTestId(ProHubTestIds.CONTAINER);
+
+      expect(container).toBeOnTheScreen();
     });
 
     it('renders the title from i18n', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.TITLE)).toHaveTextContent(
-        strings('pro_hub.title'),
+      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
+
+      expect(header).toHaveTextContent(strings('pro_hub.title'));
+    });
+
+    it('renders the header bar', () => {
+      const { getByTestId } = renderProHub();
+
+      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
+
+      expect(header).toBeOnTheScreen();
+    });
+
+    it('renders the back button in the header', () => {
+      const { getByTestId } = renderProHub();
+
+      const backButton = getByTestId(ProHubTestIds.BACK_BUTTON);
+
+      expect(backButton).toBeOnTheScreen();
+    });
+
+    it('renders the manage plans icon button', () => {
+      const { getByTestId } = renderProHub();
+
+      const managePlansButton = getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON);
+
+      expect(managePlansButton).toBeOnTheScreen();
+    });
+
+    it('renders membership card, lifetime earnings, and stat rows', () => {
+      const { getByTestId } = renderProHub();
+
+      const membershipBanner = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
+
+      expect(membershipBanner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_brand')),
+      );
+      expect(membershipBanner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_label')),
+      );
+      expect(lifetimeEarningsSection).toHaveTextContent(
+        toRegex(strings('pro_hub.lifetime_earnings')),
+      );
+      expect(moneyBalanceRow).toHaveTextContent(
+        toRegex(strings('pro_hub.money_balance')),
+      );
+      expect(musdBackRow).toHaveTextContent(
+        toRegex(strings('pro_hub.musd_back')),
       );
     });
 
-    it('renders the subtitle from i18n', () => {
+    it('renders the physical card banner with title and description', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.SUBTITLE)).toHaveTextContent(
-        strings('pro_hub.subtitle'),
+      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
+      const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
+      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
+
+      expect(banner).toBeOnTheScreen();
+      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
+      expect(description).toHaveTextContent(
+        strings('pro_hub.physical_card.description'),
       );
     });
 
-    it('renders the header', () => {
+    it('renders the member pricing section title', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.HEADER_ROOT)).toBeOnTheScreen();
+      const section = getByTestId(MemberPricingOnTradesTestIds.SECTION);
+      const title = getByTestId(MemberPricingOnTradesTestIds.TITLE);
+
+      expect(section).toBeOnTheScreen();
+      expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
+
+      TRADE_ALLOWANCE_IDS.forEach((id) => {
+        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
+        const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
+
+        expect(row).toBeOnTheScreen();
+        expect(progress).toBeOnTheScreen();
+        expect(row).toHaveTextContent(
+          toRegex(strings(`pro_hub.member_pricing.${id}.label`)),
+        );
+      });
     });
 
-    it('renders the back button', () => {
+    it('renders next payment text and manage plan button', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.BACK_BUTTON)).toBeOnTheScreen();
-    });
+      expect(
+        getByTestId(ProHubTestIds.ALSO_INCLUDED_SECTION),
+      ).toBeOnTheScreen();
 
-    it('renders the manage plans button', () => {
-      const { getByTestId } = renderProHub();
+      ALSO_INCLUDED_ITEMS.forEach((item) => {
+        const row = getByTestId(ProHubTestIds.ALSO_INCLUDED_ROW(item.id));
 
-      expect(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON)).toBeOnTheScreen();
-    });
+        expect(row).toBeOnTheScreen();
+        expect(row).toHaveTextContent(toRegex(strings(item.titleKey)));
+        expect(row).toHaveTextContent(toRegex(strings(item.subtitleKey)));
 
-    it('renders the manage subscription button with correct label', () => {
-      const { getByTestId } = renderProHub();
+        if (item.badgeKey) {
+          expect(row).toHaveTextContent(toRegex(strings(item.badgeKey)));
+        }
+      });
 
+      expect(getByTestId(ProHubTestIds.DISCLAIMER_TEXT)).toHaveTextContent(
+        strings('pro_hub.also_included.disclaimer'),
+      );
       expect(getByTestId(ProHubTestIds.MANAGE_BUTTON)).toHaveTextContent(
-        strings('pro_hub.manage'),
+        strings('pro_hub.manage_membership'),
       );
     });
   });
@@ -102,7 +197,7 @@ describe('ProHub', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call navigation.goBack before the button is pressed', () => {
+    it('does not call navigation.goBack on initial render', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
@@ -112,7 +207,7 @@ describe('ProHub', () => {
   // ── Navigation ───────────────────────────────────────────────────────────
 
   describe('navigation', () => {
-    it('navigates to Membership when manage subscription button is pressed', () => {
+    it('navigates to Membership when manage membership is pressed', () => {
       const { getByTestId } = renderProHub();
 
       fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
@@ -128,7 +223,15 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
     });
 
-    it('does not navigate before any button is pressed', () => {
+    it('navigates to Card when physical card banner is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+
+    it('does not navigate on initial render', () => {
       renderProHub();
 
       expect(mockNavigate).not.toHaveBeenCalled();

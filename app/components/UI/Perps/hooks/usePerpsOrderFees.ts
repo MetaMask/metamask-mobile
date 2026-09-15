@@ -19,6 +19,7 @@ import {
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -82,6 +83,8 @@ interface UsePerpsOrderFeesParams {
   amount: string;
   /** Symbol for the trade (e.g., 'BTC', 'ETH') */
   symbol?: string;
+  /** Optional provider route resolved for this order. */
+  providerId?: PerpsProviderType;
   /** Whether this is opening or closing a position */
   isClosing?: boolean;
   /** User's limit price */
@@ -115,6 +118,7 @@ export function usePerpsOrderFees({
   orderType,
   amount,
   symbol = 'ETH',
+  providerId,
   isClosing = false,
   limitPrice,
   direction,
@@ -128,6 +132,9 @@ export function usePerpsOrderFees({
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   const isMaker = useMemo(() => {
+    if (orderType === 'chase') {
+      return true;
+    }
     if (!direction) {
       return false;
     }
@@ -560,6 +567,7 @@ export function usePerpsOrderFees({
           isMaker,
           amount,
           symbol,
+          ...(providerId !== undefined ? { providerId } : {}),
         });
 
         if (!isComponentMounted) return;
@@ -641,6 +649,7 @@ export function usePerpsOrderFees({
     };
   }, [
     orderType,
+    providerId,
     isMaker,
     amount,
     symbol,

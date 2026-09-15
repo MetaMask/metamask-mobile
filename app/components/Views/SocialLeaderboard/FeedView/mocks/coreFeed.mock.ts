@@ -3,20 +3,29 @@ import type {
   FeedResponse,
   Trade,
 } from '@metamask/social-controllers';
+import type { TradeAction } from '../../utils/tradeAction';
 
 /**
  * Core-shaped feed fixtures (`Position` + `actor` + `timestamp`) used only by
  * adapter and hook tests. Timestamps are Unix seconds, matching the API.
  */
 
+type TradeWithAction = Trade & { action?: TradeAction };
+
 /** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
-type CoreFeedItemOverrides = Partial<CoreFeedItem> & {
+type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades'> & {
   marginUsd?: number | null;
+  /** The API's open/closed verdict; absent on older responses. */
+  isOpen?: boolean;
+  trades?: TradeWithAction[];
 };
 
-const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({
+const buildTrade = (
+  overrides: Partial<TradeWithAction> = {},
+): TradeWithAction => ({
   direction: 'buy',
   intent: 'enter',
+  action: 'opened',
   tokenAmount: 1000,
   usdCost: 120000,
   timestamp: 1_700_000_000,
@@ -27,7 +36,7 @@ const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({
 
 /** An open spot buy on Ethereum. */
 export const mockSpotFeedItem = (
-  overrides: Partial<CoreFeedItem> = {},
+  overrides: CoreFeedItemOverrides = {},
 ): CoreFeedItem => ({
   positionId: 'pos-spot-1',
   tokenSymbol: 'PEPE',
@@ -74,6 +83,7 @@ export const mockPerpFeedItem = (
       buildTrade({
         direction: 'sell',
         intent: 'exit',
+        action: 'closed',
         tokenAmount: 5,
         usdCost: 88000,
         timestamp: 1_700_000_500,

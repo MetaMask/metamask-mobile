@@ -1,17 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextVariant,
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import NetworkMainAssetLogo from '../../../../NetworkMainAssetLogo';
 import styleSheet from './TokenValueStack.styles';
@@ -27,28 +23,29 @@ const TokenValueStack = ({
 }: TokenValueStackProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const networkName = useSelector(selectEvmNetworkName);
-
   return (
     <View style={[styles.tokenValueStackContainer, style]}>
       <BadgeWrapper
         style={styles.badgeWrapper}
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={images.ETHEREUM}
-            name={networkName}
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork
+            twClassName="h-6 w-6 rounded-md bg-default"
+            src={
+              images.ETHEREUM as React.ComponentProps<
+                typeof BadgeNetwork
+              >['src']
+            }
           />
         }
       >
         <NetworkMainAssetLogo style={styles.ethLogo} />
       </BadgeWrapper>
       <View style={styles.balancesContainer}>
-        <Text variant={TextVariant.HeadingLG}>
+        <Text variant={TextVariant.HeadingLg}>
           {renderFromWei(amountWei)} {tokenSymbol}
         </Text>
-        <Text color={TextColor.Alternative}>{amountFiat}</Text>
+        <Text color={TextColor.TextAlternative}>{amountFiat}</Text>
       </View>
     </View>
   );

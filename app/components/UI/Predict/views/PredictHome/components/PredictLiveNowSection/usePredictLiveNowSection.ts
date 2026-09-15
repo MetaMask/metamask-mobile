@@ -15,6 +15,7 @@ import type { PredictMarket, PredictMarketListParams } from '../../../../types';
 import type { PredictFeedCarouselConfig } from '../../../../types/flags';
 import { isCryptoUpDown } from '../../../../utils/cryptoUpDown';
 import { interleaveLiveNowMarkets } from './liveNowInterleave';
+import { applySeriesPriority } from './liveNowPriorityOrder';
 
 /**
  * Over-fetch live markets so client-side filtering (keep sports game markets
@@ -65,6 +66,12 @@ export interface UsePredictLiveNowSectionResult {
  * Alongside, the BTC 5m / ETH 5m / BTC 15m Up/Down crypto markets are resolved
  * from their series and interleaved (`2 live, 1 crypto, ...`) by
  * {@link interleaveLiveNowMarkets} (crypto capped at 3).
+ *
+ * `priorityOrder` then pins matching `series.id` cards to the front of the
+ * rail (use case: crypto Up/Down first). `prioritySlots` can instead insert a
+ * series at a specific 0-based index and shift the rest right (use case: one
+ * crypto card second). Slots win for the same series. Neither changes which
+ * markets are fetched.
  *
  * Crypto is only included when the Up/Down feature flag is on — `PredictMarket`
  * itself only renders the crypto card when that flag is enabled, so gating here
@@ -159,13 +166,24 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     excludedMarketIds,
   ]);
 
-  const items = useMemo(
-    () =>
-      usesLiveNowComposition
-        ? interleaveLiveNowMarkets(liveMarkets, cryptoMarkets)
-        : customMarkets,
-    [cryptoMarkets, customMarkets, liveMarkets, usesLiveNowComposition],
-  );
+  const items = useMemo(() => {
+    const composed = usesLiveNowComposition
+      ? interleaveLiveNowMarkets(liveMarkets, cryptoMarkets)
+      : customMarkets;
+
+    return applySeriesPriority(
+      composed,
+      config.priorityOrder,
+      config.prioritySlots,
+    );
+  }, [
+    config.priorityOrder,
+    config.prioritySlots,
+    cryptoMarkets,
+    customMarkets,
+    liveMarkets,
+    usesLiveNowComposition,
+  ]);
 
   const isCryptoLoading =
     btc5m.isLoading || eth5m.isLoading || btc15m.isLoading;

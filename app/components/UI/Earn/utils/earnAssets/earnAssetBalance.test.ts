@@ -5,7 +5,6 @@ import {
   getEarnAssetFiatDisplay,
   getEarnAssetFiatNumber,
   hasEarnAssetBalance,
-  isEarnAssetBalanceBelowMinDepositAmount,
 } from './earnAssetBalance';
 
 const createWalletAsset = (overrides: Partial<Asset> = {}): Asset =>
@@ -27,10 +26,36 @@ const createWalletAsset = (overrides: Partial<Asset> = {}): Asset =>
   }) as Asset;
 
 const createAsset = (overrides: Partial<Asset> = {}): EarnAsset => ({
-  kind: 'held',
   assetId:
     'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
-  asset: createWalletAsset(overrides),
+  metadata: {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    logo: 'usdc.png',
+    isETH: false,
+  },
+  wallet: { status: 'tracked', asset: createWalletAsset(overrides) },
+  experiences: [],
+});
+
+const createUntrackedAsset = (): EarnAsset => ({
+  assetId:
+    'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
+  metadata: {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    logo: 'usdc.png',
+    isETH: false,
+  },
+  wallet: { status: 'untracked' },
   experiences: [],
 });
 
@@ -55,23 +80,28 @@ describe('hasEarnAssetBalance', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false for a discovery asset', () => {
-    const asset: EarnAsset = {
-      kind: 'discovery',
-      assetId:
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
-      metadata: {
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        chainId: '0x1',
-        decimals: 6,
-        image: 'usdc.png',
-        name: 'USD Coin',
-        symbol: 'USDC',
-        logo: 'usdc.png',
-        isETH: false,
-      },
-      experiences: [],
-    };
+  it('returns false for a malformed controller raw balance', () => {
+    const asset = createAsset({
+      rawBalance: 'not-a-raw-balance' as Asset['rawBalance'],
+    });
+
+    const result = hasEarnAssetBalance(asset);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for a negative controller raw balance', () => {
+    const asset = createAsset({
+      rawBalance: '-1' as Asset['rawBalance'],
+    });
+
+    const result = hasEarnAssetBalance(asset);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for an untracked asset', () => {
+    const asset = createUntrackedAsset();
 
     const result = hasEarnAssetBalance(asset);
 
@@ -97,6 +127,25 @@ describe('getEarnAssetFiatNumber', () => {
 
     expect(result).toBeUndefined();
   });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    'returns undefined for a non-finite controller fiat balance: %s',
+    (balance) => {
+      const asset = createAsset({
+        fiat: { balance, currency: 'USD', conversionRate: 1 },
+      });
+
+      const result = getEarnAssetFiatNumber(asset);
+
+      expect(result).toBeUndefined();
+    },
+  );
+
+  it('returns undefined for an untracked asset fiat balance', () => {
+    const result = getEarnAssetFiatNumber(createUntrackedAsset());
+
+    expect(result).toBeUndefined();
+  });
 });
 
 describe('getEarnAssetFiatDisplay', () => {
@@ -117,67 +166,10 @@ describe('getEarnAssetFiatDisplay', () => {
 
     expect(result).toBeUndefined();
   });
-});
 
-describe('isEarnAssetBalanceBelowMinDepositAmount', () => {
-  it('returns true for a held asset below the minimum deposit amount', () => {
-    const asset = createAsset({
-      fiat: { balance: 0.009, currency: 'USD', conversionRate: 1 },
-    });
+  it('returns undefined for an untracked asset fiat display', () => {
+    const result = getEarnAssetFiatDisplay(createUntrackedAsset());
 
-    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false for a held asset at the minimum deposit amount', () => {
-    const asset = createAsset({
-      fiat: { balance: 0.01, currency: 'USD', conversionRate: 1 },
-    });
-
-    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false for a held asset above the minimum deposit amount', () => {
-    const asset = createAsset({
-      fiat: { balance: 0.011, currency: 'USD', conversionRate: 1 },
-    });
-
-    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true for a held asset without a fiat balance', () => {
-    const asset = createAsset({ fiat: undefined });
-
-    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns true for a discovery asset', () => {
-    const asset: EarnAsset = {
-      kind: 'discovery',
-      assetId:
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
-      metadata: {
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        chainId: '0x1',
-        decimals: 6,
-        image: 'usdc.png',
-        name: 'USD Coin',
-        symbol: 'USDC',
-        logo: 'usdc.png',
-        isETH: false,
-      },
-      experiences: [],
-    };
-
-    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
-
-    expect(result).toBe(true);
+    expect(result).toBeUndefined();
   });
 });

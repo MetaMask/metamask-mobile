@@ -28,9 +28,10 @@ export function getBridgeDestinationTxHash(
  */
 export function getBridgeExplorerSheetTx(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
+  transactionMeta?: TransactionMeta,
 ): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
-  if (item.raw?.type === 'localTransaction') {
-    return { evmTxMeta: item.raw.data.initialTransaction };
+  if (transactionMeta) {
+    return { evmTxMeta: transactionMeta };
   }
   if (item.raw?.type === 'keyringTransaction') {
     return { multiChainTx: item.raw.data };
@@ -41,12 +42,8 @@ export function getBridgeExplorerSheetTx(
 export function getBridgeHistoryItem(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
   bridgeHistory: Record<string, BridgeHistoryItem>,
+  transactionMeta?: TransactionMeta,
 ) {
-  const transactionMeta =
-    item.raw?.type === 'localTransaction'
-      ? item.raw.data.initialTransaction
-      : undefined;
-
   return findBridgeHistoryItem({
     bridgeHistory,
     transactionMetaId: transactionMeta?.id,

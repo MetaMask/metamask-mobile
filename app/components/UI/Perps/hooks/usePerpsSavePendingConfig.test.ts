@@ -56,6 +56,8 @@ describe('usePerpsSavePendingConfig', () => {
       stopLossPrice: '',
       limitPrice: '',
       orderType: 'market',
+      direction: 'long',
+      reduceOnly: undefined,
       selectedPaymentToken: null,
     });
   });
@@ -80,6 +82,8 @@ describe('usePerpsSavePendingConfig', () => {
       stopLossPrice: '',
       limitPrice: '',
       orderType: 'market',
+      direction: 'long',
+      reduceOnly: undefined,
       selectedPaymentToken: {
         description: 'USDC',
         address: '0xusdc',
@@ -96,5 +100,57 @@ describe('usePerpsSavePendingConfig', () => {
     unmount();
 
     expect(mockSavePendingTradeConfiguration).not.toHaveBeenCalled();
+  });
+
+  it('includes reduceOnly in config when provided', () => {
+    const { unmount } = renderHook(() =>
+      usePerpsSavePendingConfig(defaultOrderForm, { reduceOnly: true }),
+    );
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith('BTC', {
+      amount: '100',
+      leverage: 10,
+      takeProfitPrice: '',
+      stopLossPrice: '',
+      limitPrice: '',
+      orderType: 'market',
+      reduceOnly: true,
+      direction: 'long',
+      selectedPaymentToken: null,
+    });
+  });
+
+  it('does not save while mounted when the draft amount changes', () => {
+    const { rerender, unmount } = renderHook(
+      ({ form }: { form: OrderFormState }) => usePerpsSavePendingConfig(form),
+      { initialProps: { form: defaultOrderForm } },
+    );
+
+    rerender({ form: { ...defaultOrderForm, amount: '200' } });
+
+    expect(mockSavePendingTradeConfiguration).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledTimes(1);
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith(
+      'BTC',
+      expect.objectContaining({ amount: '200', direction: 'long' }),
+    );
+  });
+
+  it('includes a short direction in the pending configuration', () => {
+    const { unmount } = renderHook(() =>
+      usePerpsSavePendingConfig({ ...defaultOrderForm, direction: 'short' }),
+    );
+
+    unmount();
+
+    expect(mockSavePendingTradeConfiguration).toHaveBeenCalledWith(
+      'BTC',
+      expect.objectContaining({ direction: 'short' }),
+    );
   });
 });

@@ -19,6 +19,7 @@ import type {
   Order,
   OrderFill,
   UserHistoryItem,
+  OrdinaryOrderType,
 } from '@metamask/perps-controller';
 import {
   FillType,
@@ -57,6 +58,38 @@ export const activityMusdTokenRatesOverride = {
         marketData: {
           '0x1': {
             [ACTIVITY_CV_MUSD]: { price: 1 },
+          },
+        },
+      },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'mUSD',
+            name: 'MetaMask USD',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
           },
         },
       },
@@ -551,6 +584,263 @@ export const activityCvPendingCrossChainSwapBridgeHistoryEntry = {
   startTime: 1_716_367_789_500,
 };
 
+/** Monad mainnet — bridge Activity CV. */
+export const ACTIVITY_CV_MONAD_CHAIN_ID = '0x8f';
+
+/** Base mainnet — Monad bridge destination for Activity CV. */
+export const ACTIVITY_CV_BASE_CHAIN_ID = '0x2105';
+
+/** Base USDC — Monad→Base bridge destination asset. */
+export const ACTIVITY_CV_BASE_USDC =
+  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
+const ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID = 'activity-cv-bridge-mon-to-base';
+const ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH = '0xactivitycvbridgemontobase';
+const ACTIVITY_CV_MON_TO_BASE_DEST_HASH = '0xactivitycvbridgemontobasedest';
+
+/**
+ * Submitted Monad→Base bridge for ActivityScreen pending→complete CV.
+ * Source stays submitted until dest completion overrides status via history.
+ */
+export const buildPendingLocalBridgeMonToBaseTransaction =
+  (): TransactionMeta =>
+    ({
+      id: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+      hash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+      chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+      status: TransactionStatus.submitted,
+      time: 1_716_367_810_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_BASE_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x20',
+      },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed Monad→Base bridge with gas for Activity Details Fee/Total CV.
+ * Same id/hash as {@link buildPendingLocalBridgeMonToBaseTransaction}.
+ */
+export const buildConfirmedLocalBridgeMonToBaseTransaction =
+  (): TransactionMeta =>
+    ({
+      id: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+      hash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+      chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_810_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_BASE_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x20',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+const activityCvMonToBaseBridgeQuote = {
+  srcChainId: 143,
+  destChainId: 8453,
+  srcAsset: {
+    symbol: 'MON',
+    decimals: 18,
+    assetId: 'eip155:143/slip44:60',
+  },
+  destAsset: {
+    symbol: 'USDC',
+    decimals: 6,
+    assetId: `eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`,
+  },
+  srcTokenAmount: '2000000000000000000',
+  destTokenAmount: '3500000',
+};
+
+/** In-flight Monad→Base history — no dest txHash keeps Activity pending. */
+export const activityCvPendingBridgeMonToBaseHistoryEntry = {
+  txMetaId: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: activityCvMonToBaseBridgeQuote,
+  status: {
+    srcChain: {
+      chainId: 143,
+      txHash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+    },
+    destChain: {
+      chainId: 8453,
+    },
+  },
+  startTime: 1_716_367_810_000,
+  estimatedProcessingTimeInSeconds: 60,
+  slippagePercentage: 0,
+};
+
+/** Completed Monad→Base history for Bridged list + details Fee/Total. */
+export const activityCvBridgeMonToBaseHistoryEntry = {
+  txMetaId: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: activityCvMonToBaseBridgeQuote,
+  status: {
+    srcChain: {
+      chainId: 143,
+      txHash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+    },
+    destChain: {
+      chainId: 8453,
+      txHash: ACTIVITY_CV_MON_TO_BASE_DEST_HASH,
+    },
+  },
+  startTime: 1_716_367_810_000,
+  estimatedProcessingTimeInSeconds: 60,
+  slippagePercentage: 0,
+};
+
+/** NetworkController configs so Monad/Base names and native MON resolve. */
+export const activityMonadBaseNetworkOverride = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          [ACTIVITY_CV_MONAD_CHAIN_ID]: {
+            chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+            rpcEndpoints: [
+              {
+                networkClientId: 'monad-mainnet',
+                url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Monad default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://monadscan.com'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Monad',
+            nativeCurrency: 'MON',
+          },
+          [ACTIVITY_CV_BASE_CHAIN_ID]: {
+            chainId: ACTIVITY_CV_BASE_CHAIN_ID,
+            rpcEndpoints: [
+              {
+                networkClientId: 'base-mainnet',
+                url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Base default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://basescan.org'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Base',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+            [ACTIVITY_CV_MONAD_CHAIN_ID]: true,
+            [ACTIVITY_CV_BASE_CHAIN_ID]: true,
+          },
+        },
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        currencyRates: {
+          ETH: {
+            conversionRate: 2500,
+            usdConversionRate: 2500,
+          },
+          MON: {
+            conversionRate: 5,
+            usdConversionRate: 5,
+          },
+        },
+      },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          'eip155:143/slip44:268435779': {
+            type: 'native',
+            symbol: 'MON',
+            name: 'Monad',
+            decimals: 18,
+          },
+          'eip155:8453/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+          'eip155:143/slip44:268435779': {
+            assetPriceType: 'fungible',
+            price: 5,
+            usdPrice: 5,
+            lastUpdated: 1700000000000,
+          },
+          'eip155:8453/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+/** TokenRates so Monad→Base bridge Total can resolve USDC fiat. */
+export const activityMonToBaseTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          [ACTIVITY_CV_BASE_CHAIN_ID]: {
+            [ACTIVITY_CV_BASE_USDC]: { price: 1 },
+          },
+        },
+      },
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          [`eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
 /** Solana mainnet scope — Activity Details EVM→nonEVM bridge and non-EVM fiat CV. */
 export const ACTIVITY_CV_SOLANA_CHAIN_ID =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -804,6 +1094,50 @@ export const activityUsdcTokenRatesOverride = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'mUSD',
+            name: 'MetaMask USD',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
     },
   },
 } as unknown as DeepPartial<RootState>;
@@ -1010,21 +1344,21 @@ export const buildFailedLocalPredictDepositWithPayTransaction =
       txReceipt: { status: '0x0' },
     }) as unknown as TransactionMeta;
 
-/** Seeds TokensController so Pay bridge-fee rows resolve the USDC symbol. */
+/** Seeds AssetsController so Pay bridge-fee rows resolve the USDC symbol. */
 export const activityPredictPayUsdcTokenOverride = {
   engine: {
     backgroundState: {
-      TokensController: {
-        allTokens: {
-          '0x1': {
-            [ACTIVITY_CV_ACCOUNT]: [
-              {
-                address: ACTIVITY_CV_USDC,
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            ],
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
           },
+        },
+        customAssets: {
+          'acc-1': [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`],
         },
       },
     },
@@ -1172,6 +1506,26 @@ export const initialStateActivity = () =>
               },
             },
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2500,
+                usdPrice: 2500,
+                lastUpdated: 1700000000000,
+              },
+            },
+          },
           GasFeeController: {
             gasFeeEstimates: {},
           },
@@ -1263,9 +1617,7 @@ export const initialStateActivityWithLocalTransactions = (
   } as unknown as DeepPartial<RootState>);
 
 export const initialStateActivityWithRedesignEnabled = () =>
-  initialStateActivity().withRemoteFeatureFlags({
-    tmcuActivityRedesignEnabled: true,
-  });
+  initialStateActivity();
 
 /** State for ActivityList tests that load EVM history from the accounts API. */
 export const initialStateActivityWithAccountsApi = () =>
@@ -1331,23 +1683,21 @@ export const buildActivityCvRampSellEthOrder = (): FiatOrder =>
 
 /** Activity state with redesign + legacy fiatOrders for Ramp Details CV. */
 export const initialStateActivityWithRampOrders = (orders: FiatOrder[]) =>
-  initialStateActivity()
-    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-    .withOverrides({
-      fiatOrders: {
-        orders,
-      },
-      engine: {
-        backgroundState: {
-          NetworkEnablementController: {
-            enabledNetworkMap: enabledMainnetNetworkMap,
-          },
-          RampsController: {
-            orders: [],
-          },
+  initialStateActivity().withOverrides({
+    fiatOrders: {
+      orders,
+    },
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: enabledMainnetNetworkMap,
+        },
+        RampsController: {
+          orders: [],
         },
       },
-    } as unknown as DeepPartial<RootState>);
+    },
+  } as unknown as DeepPartial<RootState>);
 
 export const ACTIVITY_CV_SOLANA_ACCOUNT_ID = 'activity-cv-solana-acc';
 
@@ -1509,6 +1859,25 @@ export const activityCvSolanaSendStateOverrides = {
           [ACTIVITY_CV_SOLANA_ASSET_ID]: {
             rate: '4',
             currency: 'usd',
+          },
+        },
+      },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            type: 'native',
+            symbol: 'SOL',
+            name: 'Solana',
+            decimals: 9,
+          },
+        },
+        assetsPrice: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 4,
+            usdPrice: 4,
+            lastUpdated: 1700000000000,
           },
         },
       },
@@ -1798,7 +2167,10 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   {
     id: string;
     title: string;
-    orderType: 'market' | 'limit';
+    orderType: OrdinaryOrderType;
+    executionType: 'market' | 'limit';
+    limitPrice?: string;
+    triggerPrice?: string;
     filled: string;
     statusText: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
@@ -1811,6 +2183,8 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
     id: 'activity-cv-perps-order-market-close-short',
     title: 'Market close short',
     orderType: 'market',
+    executionType: 'market',
+    limitPrice: undefined,
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1819,7 +2193,9 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   stopMarketCloseShort: {
     id: 'activity-cv-perps-order-stop-market-close-short',
     title: 'Stop market close short',
-    orderType: 'market',
+    orderType: 'stop_market',
+    executionType: 'market',
+    triggerPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1828,8 +2204,11 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   },
   takeProfitCanceled: {
     id: 'activity-cv-perps-order-tp-canceled',
-    title: 'Take profit limit close short',
-    orderType: 'limit',
+    title: 'Take limit close short',
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+    triggerPrice: '91000',
     filled: '0%',
     statusText: PerpsOrderTransactionStatus.Canceled,
     statusType: PerpsOrderTransactionStatusType.Canceled,
@@ -1838,8 +2217,11 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   },
   takeProfitFilled: {
     id: 'activity-cv-perps-order-tp-filled',
-    title: 'Take profit limit close short',
-    orderType: 'limit',
+    title: 'Take limit close short',
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+    triggerPrice: '91000',
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1865,9 +2247,11 @@ export const buildActivityCvPerpsOrderTransaction = (
       orderId: spec.id,
       text: spec.statusText,
       statusType: spec.statusType,
-      type: spec.orderType,
+      type: spec.executionType,
+      orderType: spec.orderType,
       size: '9.2113',
-      limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+      limitPrice: spec.limitPrice,
+      triggerPrice: spec.triggerPrice,
       filled: spec.filled,
       side: 'buy',
       reduceOnly: spec.reduceOnly,
@@ -2005,17 +2389,17 @@ export const activityPerpsDetailsStateOverrides = {
           },
         },
       },
-      TokensController: {
-        allTokens: {
-          '0x1': {
-            [ACTIVITY_CV_ACCOUNT]: [
-              {
-                address: ACTIVITY_CV_USDC,
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            ],
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
           },
+        },
+        customAssets: {
+          'acc-1': [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`],
         },
       },
     },
@@ -2053,6 +2437,37 @@ export const activityCvSolanaSwapStateOverrides = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            type: 'native',
+            symbol: 'SOL',
+            name: 'Solana',
+            decimals: 9,
+          },
+          [ACTIVITY_CV_SOLANA_USDC_ASSET_ID]: {
+            type: 'spl',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 4,
+            usdPrice: 4,
+            lastUpdated: 1700000000000,
+          },
+          [ACTIVITY_CV_SOLANA_USDC_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
     },
   },
 } as unknown as DeepPartial<RootState>;
@@ -2061,7 +2476,7 @@ export const initialStateActivityWithPerpsDetails = (
   transactions: TransactionMeta[] = [],
 ) =>
   initialStateActivity()
-    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
+    .withRemoteFeatureFlags(activityPerpsTradingEnabledFlag)
     .withOverrides(activityPerpsDetailsStateOverrides)
     .withOverrides({
       engine: {

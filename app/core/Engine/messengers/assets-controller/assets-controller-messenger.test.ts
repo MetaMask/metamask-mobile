@@ -17,11 +17,15 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'PermissionController:getPermissions',
   'PhishingController:bulkScanTokens',
   'RemoteFeatureFlagController:getState',
+  'AccountTreeController:isInitialized',
+  'ClientController:getState',
+  'KeyringController:isUnlocked',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:stateChange',
+  'AccountTreeController:initialized',
+  'AccountTreeController:uninitialized',
   'NetworkEnablementController:stateChange',
   'ClientController:stateChange',
   'KeyringController:lock',
@@ -115,10 +119,67 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
-          'AccountTreeController:stateChange',
           'NetworkEnablementController:stateChange',
           'ClientController:stateChange',
         ]),
+      }),
+    );
+  });
+
+  it('does not delegate the retired AccountTreeController stateChange event (assets-controller@15.0.0)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.not.arrayContaining([
+          'AccountTreeController:stateChange',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates lifecycle actions required by assets-controller@15.0.0', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:isInitialized',
+          'ClientController:getState',
+          'KeyringController:isUnlocked',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates AccountTreeController initialized event (core#9892)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining(['AccountTreeController:initialized']),
+      }),
+    );
+  });
+
+  it('delegates AccountTreeController uninitialized event (core#9892)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining(['AccountTreeController:uninitialized']),
       }),
     );
   });

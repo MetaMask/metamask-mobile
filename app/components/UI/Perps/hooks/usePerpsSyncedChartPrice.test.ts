@@ -92,7 +92,7 @@ describe('usePerpsSyncedChartPrice', () => {
     expect(result.current.syncedChartCurrentPrice).toBe(0);
   });
 
-  it('clears the Advanced Chart price when the symbol changes', () => {
+  it('rejects candle and Advanced Chart prices from the prior symbol', () => {
     const { result, rerender } = renderHook(
       ({ symbol }: { symbol: string }) =>
         usePerpsSyncedChartPrice({
@@ -106,10 +106,45 @@ describe('usePerpsSyncedChartPrice', () => {
     act(() => {
       result.current.setAdvancedChartCurrentPrice(51000);
     });
+    const staleBtcSetter = result.current.setAdvancedChartCurrentPrice;
     expect(result.current.syncedChartCurrentPrice).toBe(51000);
 
     rerender({ symbol: 'ETH' });
 
+    expect(result.current.syncedChartCurrentPrice).toBe(0);
+
+    act(() => {
+      staleBtcSetter(52000);
+    });
+    expect(result.current.syncedChartCurrentPrice).toBe(0);
+  });
+
+  it('rejects prices until the new market context is ready', () => {
+    const { result, rerender } = renderHook(
+      ({ contextKey, isReady }) =>
+        usePerpsSyncedChartPrice({
+          symbol: 'BTC',
+          interval: CandlePeriod.FifteenMinutes,
+          isAdvancedChartEnabled: true,
+          marketContextKey: contextKey,
+          isMarketContextReady: isReady,
+        }),
+      {
+        initialProps: {
+          contextKey: 'testnet|hyperliquid|1',
+          isReady: true,
+        },
+      },
+    );
+
+    act(() => result.current.setAdvancedChartCurrentPrice(51000));
+    const staleSetter = result.current.setAdvancedChartCurrentPrice;
+
+    rerender({ contextKey: 'mainnet|hyperliquid|1', isReady: false });
+    expect(result.current.syncedChartCurrentPrice).toBe(0);
+
+    act(() => staleSetter(52000));
+    rerender({ contextKey: 'mainnet|hyperliquid|1', isReady: true });
     expect(result.current.syncedChartCurrentPrice).toBe(50500);
   });
 });

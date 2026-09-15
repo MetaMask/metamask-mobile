@@ -18,9 +18,9 @@ export enum CustomAmountStage {
  * Owns the rendering state machine for `CustomAmountInfo`.
  *
  * Stage is computed from two layers: a stateful override (`AmountInput` when
- * the keyboard is open, `Loading` while an amount update is in flight) set by
- * the component via `setStage`; and a pure derivation from reactive inputs
- * (quotes, prefill flags) used whenever the override is `null`.
+ * the keyboard is open, `Loading` while an amount update is in flight) set via
+ * `setStage`; and a pure derivation from reactive inputs (quotes, prefill flags)
+ * used whenever the override is `null`.
  * The hook reads quote state itself so the component renders purely
  * off the returned `stage`.
  *
@@ -32,7 +32,8 @@ export enum CustomAmountStage {
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
- * @returns The current stage and a setter to override it.
+ * @returns The current stage, whether the amount is updating, and a setter to
+ * override the stage.
  */
 export function useCustomAmountStage({
   amountFiat,
@@ -53,6 +54,7 @@ export function useCustomAmountStage({
   isDepositPrefillLoading: boolean;
   skipDepositPrefill: boolean;
 }): {
+  isAmountUpdating: boolean;
   stage: CustomAmountStage;
   setStage: Dispatch<SetStateAction<CustomAmountStage | null>>;
 } {
@@ -159,21 +161,25 @@ export function useCustomAmountStage({
     }
   }, [isDepositPrefillEnabled, skipDepositPrefill]);
 
-  // All hooks have run, so we can early-return. The override wins while set.
+  // The override wins while set. Otherwise derive from reactive inputs: stay
+  // in Loading while quotes fetch or a prefill preload resolves, show totals
+  // when quotes exist, or fall through to NoQuote after a settled empty fetch.
+  let stage: CustomAmountStage;
   if (stageOverride !== null) {
-    return { setStage, stage: stageOverride };
+    stage = stageOverride;
+  } else if (
+    (isQuotesLoading && !hasPrefetchedQuote) ||
+    isAwaitingPrefillResult
+  ) {
+    stage = CustomAmountStage.Loading;
+  } else if (showTotals) {
+    stage = CustomAmountStage.ShowTotals;
+  } else {
+    stage = CustomAmountStage.NoQuote;
   }
 
-  // Derive from reactive inputs. Stay in Loading while quotes fetch or a
-  // prefill preload resolves; otherwise show totals when quotes exist, or fall
-  // through to NoQuote when a settled fetch produced none.
-  if ((isQuotesLoading && !hasPrefetchedQuote) || isAwaitingPrefillResult) {
-    return { setStage, stage: CustomAmountStage.Loading };
-  }
+  const isAmountUpdating =
+    stage === CustomAmountStage.Loading && !isQuotesLoading;
 
-  if (showTotals) {
-    return { setStage, stage: CustomAmountStage.ShowTotals };
-  }
-
-  return { setStage, stage: CustomAmountStage.NoQuote };
+  return { isAmountUpdating, setStage, stage };
 }

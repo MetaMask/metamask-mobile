@@ -16,7 +16,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsModeSelectionBottomSheet from '../../components/PerpsModeSelectionBottomSheet';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMode } from '../../hooks/usePerpsMode';
-import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
+import { selectPerpsLastViewedMarketSymbol } from '../../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
 import { markPerpsModeSelectionCompleted } from '../../utils/perpsModeSelectionStorage';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
@@ -31,6 +31,7 @@ import {
   dropPerpsHomeFromStackHistory,
   resolvePerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams,
+  withHomeDroppedFromHistory,
 } from '../../utils/perpsModeSwitch';
 
 type ModeSelectionRoute = RouteProp<
@@ -61,8 +62,8 @@ const PerpsModeSelectionView: React.FC = () => {
     },
   });
   const { mode: selectedMode, setMode } = usePerpsMode();
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
 
   const hasSelectedRef = useRef(false);
   const dismissEmittedRef = useRef(false);
@@ -101,23 +102,6 @@ const PerpsModeSelectionView: React.FC = () => {
 
   const continueAfterSelection = useCallback(
     (mode: PerpsMode) => {
-      if (isFirstTimePerpsUser) {
-        navigation.navigate(
-          Routes.PERPS.TUTORIAL,
-          mode === PerpsMode.Pro
-            ? {
-                source,
-                redirectScreen: Routes.PERPS.MARKET_DETAILS,
-                redirectParams: {
-                  market: buildDefaultProMarket(),
-                  source,
-                },
-              }
-            : { source },
-        );
-        return;
-      }
-
       if (entry === 'home' && mode === PerpsMode.Pro) {
         // Modal is nested under the Perps stack when opened from home.
         // Reset that parent stack so Perps Home is discarded while Pro is
@@ -127,10 +111,10 @@ const PerpsModeSelectionView: React.FC = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
+              params: withHomeDroppedFromHistory({
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source,
-              },
+              }),
             },
           ],
         });
@@ -148,6 +132,7 @@ const PerpsModeSelectionView: React.FC = () => {
             resolvePerpsHomeNavigationTarget(
               isProModeEnabled && mode === PerpsMode.Pro,
               { source },
+              lastViewedMarketSymbol,
             ),
           ),
         );
@@ -166,7 +151,7 @@ const PerpsModeSelectionView: React.FC = () => {
 
       // `home` + Lite: dismiss only — already on Perps Home.
     },
-    [entry, isFirstTimePerpsUser, isProModeEnabled, navigation, source],
+    [entry, isProModeEnabled, lastViewedMarketSymbol, navigation, source],
   );
 
   const handleSelect = useCallback(
@@ -184,18 +169,14 @@ const PerpsModeSelectionView: React.FC = () => {
       });
 
       // Home → Pro resets the parent Perps stack (clears the modal too).
-      if (entry === 'home' && mode === PerpsMode.Pro && !isFirstTimePerpsUser) {
+      if (entry === 'home' && mode === PerpsMode.Pro) {
         continueAfterSelection(mode);
         return;
       }
 
       // Market → Pro must drop Home while the modal is still nested under the
       // Perps stack — after goBack the parent relationship is gone.
-      if (
-        entry === 'market' &&
-        mode === PerpsMode.Pro &&
-        !isFirstTimePerpsUser
-      ) {
+      if (entry === 'market' && mode === PerpsMode.Pro) {
         continueAfterSelection(mode);
         navigation.goBack();
         return;
@@ -206,15 +187,7 @@ const PerpsModeSelectionView: React.FC = () => {
         continueAfterSelection(mode);
       });
     },
-    [
-      continueAfterSelection,
-      entry,
-      isFirstTimePerpsUser,
-      navigation,
-      setMode,
-      source,
-      track,
-    ],
+    [continueAfterSelection, entry, navigation, setMode, source, track],
   );
 
   return (

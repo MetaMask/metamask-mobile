@@ -5,7 +5,6 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
-import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
@@ -650,30 +649,35 @@ const MultichainPermissionsSummary = ({
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
-              <StyledButton
-                type={'cancel'}
+              <Button
+                variant={ButtonVariant.Secondary}
                 onPress={cancel}
-                containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+                size={ButtonBaseSize.Lg}
+                twClassName="mr-4 flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
-              </StyledButton>
-              <StyledButton
-                type={isMaliciousDapp ? 'danger' : 'confirm'}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
                 onPress={confirm}
-                disabled={
+                isDanger={isMaliciousDapp && !isNetworkSwitch}
+                startIconName={
+                  isMaliciousDapp && !isNetworkSwitch
+                    ? DesignSystemIconName.Danger
+                    : undefined
+                }
+                isDisabled={
                   !isNetworkSwitch &&
                   (selectedAccountGroupIds.length === 0 ||
                     networkAvatars.length === 0)
                 }
-                containerStyle={[
-                  styles.buttonPositioning,
-                  styles.confirmButton,
-                ]}
+                size={ButtonBaseSize.Lg}
+                twClassName="flex-1"
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
-              </StyledButton>
+              </Button>
             </View>
           )}
           {isNonDappNetworkSwitch && (

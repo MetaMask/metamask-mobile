@@ -1,15 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonIcon,
   ButtonIconSize,
@@ -22,6 +19,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -49,15 +47,18 @@ import {
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { MoneyNavigationParamList } from '../../types/navigation';
 
 const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
+  const { params } =
+    useRoute<RouteProp<MoneyNavigationParamList, 'MoneyPotentialEarnings'>>();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
-    overrideToUsd: true,
+    overrideToUsd: params?.overrideToUsd ?? false,
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -190,8 +191,8 @@ const MoneyPotentialEarningsView = () => {
 
   const listHeader = useMemo(
     () => (
-      <Box twClassName="px-4 py-3 gap-3">
-        <Text variant={TextVariant.HeadingMd}>
+      <Box twClassName="px-4 pt-1 pb-3 gap-3">
+        <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>
 
@@ -274,26 +275,21 @@ const MoneyPotentialEarningsView = () => {
       style={[styles.safeArea, { paddingTop: insets.top }]}
       testID={MoneyPotentialEarningsViewTestIds.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-2"
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBackPress}
-          testID={MoneyPotentialEarningsViewTestIds.BACK_BUTTON}
-        />
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSize.Md}
-          onPress={handleInfoPress}
-          accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
-          testID={MoneyPotentialEarningsViewTestIds.INFO_BUTTON}
-        />
-      </Box>
+      <HeaderStandard
+        onBack={handleBackPress}
+        backButtonProps={{
+          testID: MoneyPotentialEarningsViewTestIds.BACK_BUTTON,
+        }}
+        endAccessory={
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Md}
+            onPress={handleInfoPress}
+            accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
+            testID={MoneyPotentialEarningsViewTestIds.INFO_BUTTON}
+          />
+        }
+      />
       <Box twClassName="flex-1">
         <FlashList
           testID={MoneyPotentialEarningsViewTestIds.SCROLL_VIEW}

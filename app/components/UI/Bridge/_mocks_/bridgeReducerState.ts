@@ -53,6 +53,9 @@ export const mockBridgeReducerState: BridgeState = {
   // Recurring
   recurring: initialRecurringState,
 
+  // Limit orders
+  limitOrderCostTolerance: undefined,
+
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,
 };
