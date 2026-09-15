@@ -1,46 +1,93 @@
 import { IconName as LocalIconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../../../locales/i18n';
 import {
-  PREDICT_FEED_REGISTRY,
-  type PredictFeedId,
-} from '../../../../constants/feedConfig';
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME,
+} from '../../../../constants/flags';
+import type { PredictFeedId } from '../../../../constants/feedConfig';
+import type {
+  PredictHomeCategoriesConfig,
+  PredictHomeCategoryConfig,
+} from '../../../../types/flags';
 
 /**
- * A static destination tile in the Predict home "Categories" section.
+ * A render-ready destination tile in the Predict home "Categories" section.
  *
  * `id` is both the stable analytics identifier and the {@link PredictFeedId}
- * used to navigate to `PredictFeedView`. `titleKey` is derived from
- * {@link PREDICT_FEED_REGISTRY} so feed identity has a single source of truth.
- * `iconName` stays local — it targets the component-library `Icon`, which
- * includes custom icons (e.g. Trophy) not yet in a DS package release.
+ * used to navigate to `PredictFeedView`. `iconName` targets the
+ * component-library `Icon`, which includes custom icons (e.g. Trophy) not yet
+ * in a DS package release.
  */
 export interface PredictHomeCategory {
   id: PredictFeedId;
-  titleKey: string;
+  title: string;
   iconName: LocalIconName;
 }
 
-const HOME_CATEGORY_FEED_IDS = [
-  'politics',
-  'sports',
-  'crypto',
-] as const satisfies readonly PredictFeedId[];
+const LOCAL_ICON_NAMES = new Set<string>(Object.values(LocalIconName));
 
-type HomeCategoryFeedId = (typeof HOME_CATEGORY_FEED_IDS)[number];
+const FALLBACK_ICON_NAME = LocalIconName[
+  PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME as keyof typeof LocalIconName
+] as LocalIconName;
 
-const CATEGORY_ICONS: Record<HomeCategoryFeedId, LocalIconName> = {
-  politics: LocalIconName.Global,
-  sports: LocalIconName.Trophy,
-  crypto: LocalIconName.MoneyBag,
+/**
+ * Maps a remote `iconName` onto the component-library icon allowlist, falling
+ * back to a default icon so an unknown/misspelled name never crashes a tile.
+ */
+export const resolvePredictHomeCategoryIcon = (
+  iconName?: string,
+): LocalIconName =>
+  iconName && LOCAL_ICON_NAMES.has(iconName)
+    ? (iconName as LocalIconName)
+    : FALLBACK_ICON_NAME;
+
+/**
+ * Tile label: the remote `label` wins (so new tiles need no i18n release);
+ * otherwise the bundled `titleKey`, and finally the raw id.
+ */
+export const resolvePredictHomeCategoryTitle = (
+  category: PredictHomeCategoryConfig,
+): string => {
+  const label = category.label?.trim();
+  if (label) {
+    return label;
+  }
+  if (category.titleKey) {
+    return strings(category.titleKey, { defaultValue: category.id });
+  }
+  return category.id;
 };
 
 /**
- * Ordered, static category tiles for the Predict home page (Figma order:
- * Politics, Sports, Crypto). No market fetch — these are fixed destination
- * buttons into the generic feed.
+ * Resolves the LaunchDarkly-driven rail into ordered, render-ready tiles:
+ * array order is display order, disabled entries are dropped, and duplicate
+ * ids keep their first occurrence. The bundled default is used when no config
+ * is supplied.
+ */
+export const resolvePredictHomeCategories = (
+  config: PredictHomeCategoriesConfig = DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+): PredictHomeCategory[] => {
+  const seen = new Set<string>();
+  const categories: PredictHomeCategory[] = [];
+
+  for (const category of config.categories) {
+    if (category.enabled === false || seen.has(category.id)) {
+      continue;
+    }
+    seen.add(category.id);
+    categories.push({
+      id: category.id,
+      title: resolvePredictHomeCategoryTitle(category),
+      iconName: resolvePredictHomeCategoryIcon(category.iconName),
+    });
+  }
+
+  return categories;
+};
+
+/**
+ * Bundled category tiles (Politics, Sports, Crypto, Esports, Culture, Finance,
+ * Tech). Rendered when the remote flag is missing or invalid.
  */
 export const PREDICT_HOME_CATEGORIES: readonly PredictHomeCategory[] =
-  HOME_CATEGORY_FEED_IDS.map((id) => ({
-    id,
-    titleKey: PREDICT_FEED_REGISTRY[id].titleKey,
-    iconName: CATEGORY_ICONS[id],
-  }));
+  resolvePredictHomeCategories();

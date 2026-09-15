@@ -14,6 +14,7 @@ import {
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictHomeCategoriesConfig,
   selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
@@ -33,6 +34,7 @@ import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag'
 import {
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -1503,6 +1505,40 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictBottomSheetEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictHomeCategoriesConfig', () => {
+    it('returns bundled categories when flag is missing', () => {
+      expect(selectPredictHomeCategoriesConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('returns remote categories when flag is valid', () => {
+      const remoteCategories = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        categories: [
+          { id: 'tech', tagSlug: 'tech', label: 'Tech', enabled: true },
+        ],
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeCategories: remoteCategories,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictHomeCategoriesConfig(state)).toEqual(
+        remoteCategories,
+      );
     });
   });
 

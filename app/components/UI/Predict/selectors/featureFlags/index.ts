@@ -155,6 +155,11 @@ export const selectPredictSportsFeedConfig = createSelector(
   (flags) => flags.predictSportsFeed,
 );
 
+export const selectPredictHomeCategoriesConfig = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictHomeCategories,
+);
+
 export const selectPredictWimbledonTabFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWimbledonTab,
