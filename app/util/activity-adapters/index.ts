@@ -20,6 +20,7 @@ export {
   enrichLocalActivity,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
+export { normalizeActivityItemTokenDecimals } from './adapters/normalize-token-decimals';
 export {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
