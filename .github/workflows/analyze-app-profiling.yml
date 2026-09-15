@@ -48,7 +48,7 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Post the analysis summary to the personal debug Slack DM (DEZ9UAP8T)'
+        description: 'Post the analysis summary to the testing Slack channel (C07KB8HRZ4J)'
         required: false
         type: boolean
         default: true
@@ -134,9 +134,10 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # Member id, not a `D...` conversation id: the bot can only write to
-          # the DM it opens itself. Personal debug target while this is ad-hoc.
-          SLACK_TARGET: UEYQL2PEV
+          # Channel id. The bot must be a member of this channel, otherwise
+          # chat.postMessage returns `not_in_channel`. The posted summary
+          # carries a testing disclaimer because this is still an experiment.
+          SLACK_TARGET: C07KB8HRZ4J
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           node tests/scripts/post-app-profiling-slack.mjs \

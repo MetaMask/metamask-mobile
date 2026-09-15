@@ -26,7 +26,7 @@ PR.
 ## Tools required
 
 - GitHub (`gh`) authenticated with `actions:read`
-- Slack MCP (`slack_send_message`) to channel `DEZ9UAP8T` (personal debug DM)
+- Slack MCP (`slack_send_message`) to channel `C07KB8HRZ4J` (testing channel)
 - Shell access to run the collector script
 
 ## Prompt (copy into Cursor Automation)
@@ -39,8 +39,9 @@ run (scheduled every 6 hours on main).
 For **each scenario** in the run, review only Hermes CPU-profile sampled
 stacks, then report any issues that the data supports.
 
-After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
-`slack_send_message`. Do not post to a public channel.
+After the write-up, send the Slack summary to channel `C07KB8HRZ4J` using
+`slack_send_message`. Lead the message with a disclaimer stating this is a
+testing experiment and not a production alert.
 
 ## Steps
 
@@ -89,7 +90,7 @@ After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
    - at most 5 executive-summary bullets
    - at most 5 priority actions
 
-6. Send the final summary to Slack channel `DEZ9UAP8T` with `slack_send_message`.
+6. Send the final summary to Slack channel `C07KB8HRZ4J` with `slack_send_message`.
    Keep it short (executive summary + high-severity findings + actions).
    Start from `/tmp/analyze-app-profiling/slack.md` and replace the agent
    section with your findings. Do not wrap the message in a code fence.

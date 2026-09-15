@@ -981,10 +981,10 @@ function buildMarkdown(report) {
 function buildSlack(report) {
   const lines = [
     '*Hermes CPU-profile analysis*',
+    ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
     '',
     `_Run:_ \`${report.meta.runId || 'local'}\``,
     `_Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount}`,
-    `_Profiles with a matching sourcemap:_ ${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`,
     '',
     '*Highest-signal scenarios (skill timing)*',
   ];
@@ -1006,7 +1006,7 @@ function buildSlack(report) {
     const attemptLabel =
       scenario.attempts.length > 1 ? `${attemptDescription(scenario)}, ` : '';
     lines.push(
-      `• *${displayName(scenario.scenario)}* — ${attemptLabel}avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%, sourcemaps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
+      `• *${displayName(scenario.scenario)}* — ${attemptLabel}avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%`,
       `  ${highestSignalProfile ? profileOutcome(highestSignalProfile) : 'No readable skill timing data.'}`,
     );
   }
@@ -1021,7 +1021,16 @@ function buildSlack(report) {
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
-    '_Disclaimer:_ Testing only — not a production alert.',
+  );
+  // Sourcemap coverage only matters here as a trust caveat: without a matching
+  // map the frame names above cannot be traced to a file, owner, or fix.
+  if (report.meta.symbolicatedProfileCount < report.meta.profileCount) {
+    lines.push(
+      `_Caveat:_ ${report.meta.profileCount - report.meta.symbolicatedProfileCount}/${report.meta.profileCount} profiles had no matching sourcemap, so frame names cannot be traced to files or owners.`,
+    );
+  }
+  lines.push(
+    '_Disclaimer:_ Testing experiment only — not a production alert.',
   );
   return lines.join('\n');
 }

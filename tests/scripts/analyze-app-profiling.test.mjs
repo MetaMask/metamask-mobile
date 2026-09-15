@@ -418,7 +418,10 @@ test('reports mention a retry only when the scenario had several attempts', () =
   };
   assert.doesNotMatch(buildSlack(singleAttempt), /retry/);
   assert.doesNotMatch(buildMarkdown(singleAttempt), /retry/);
-  assert.match(buildSlack(singleAttempt), /sourcemaps 0\/1/);
+  assert.match(
+    buildMarkdown(singleAttempt),
+    /Profiles with a matching sourcemap \| 0\/1/,
+  );
 
   const withRetries = {
     meta: { profileCount: 2, symbolicatedProfileCount: 0, ai: false },
@@ -447,6 +450,39 @@ test('reports mention a retry only when the scenario had several attempts', () =
     buildMarkdown(withRetries),
     /Selected attempt \| worst of 2 attempts: retry 1/,
   );
+});
+
+test('Slack leads with a testing disclaimer and keeps sourcemaps as a caveat', () => {
+  const report = {
+    meta: { runId: '1', profileCount: 2, symbolicatedProfileCount: 0, ai: false },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile'),
+      profile('android-onboarding-Fresh_Install.cpuprofile'),
+    ]),
+    aiAnalysis: null,
+  };
+  const slack = buildSlack(report);
+  const [, disclaimer] = slack.split('\n');
+  assert.match(disclaimer, /testing experiment, not a production alert/);
+  assert.match(
+    slack,
+    /2\/2 profiles had no matching sourcemap, so frame names cannot be traced/,
+  );
+  // Per-scenario sourcemap counters are noise in a chat digest.
+  assert.doesNotMatch(slack, /sourcemaps \d+\/\d+/);
+});
+
+test('Slack omits the sourcemap caveat once every profile is symbolicated', () => {
+  const report = {
+    meta: { runId: '1', profileCount: 1, symbolicatedProfileCount: 1, ai: false },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile', {
+        symbolicated: true,
+      }),
+    ]),
+    aiAnalysis: null,
+  };
+  assert.doesNotMatch(buildSlack(report), /no matching sourcemap/);
 });
 
 test('a worst first attempt is never labelled retry 0', () => {
