@@ -893,7 +893,7 @@ export type RootStackParamList = {
   BatchSellTokenSelect: BridgeScreensStackParamList['BatchSellTokenSelect'];
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
-  RecurringJobDetails: BridgeScreensStackParamList['RecurringJobDetails'];
+  RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -1002,6 +1002,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  MyProfileView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
