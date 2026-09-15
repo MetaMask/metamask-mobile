@@ -1,5 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { fireEvent } from '@testing-library/react-native';
 
 import AddressElement from '.';
 import { renderShortAddress } from '../../../../../../util/address';
@@ -7,6 +8,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { strings } from '../../../../../../../locales/i18n';
 import { RootState } from '../../../../../../reducers';
 import { EngineState } from '../../../../../../core/Engine';
 
@@ -66,22 +68,34 @@ const renderComponent = (
   options?: {
     displayNetworkBadge?: boolean;
     chainId?: Hex;
+    isAmbiguousAddress?: boolean;
+    name?: string;
+    onAccountLongPress?: () => void;
+    onAccountPress?: () => void;
+    onIconPress?: () => void;
   },
 ) =>
   renderWithProvider(
     <AddressElement
       address={'0xd018538C87232FF95acbCe4870629b75640a78E7'}
-      onAccountPress={() => null}
-      onAccountLongPress={() => null}
-      onIconPress={() => null}
+      name={options?.name}
+      onAccountPress={options?.onAccountPress ?? (() => null)}
+      onAccountLongPress={options?.onAccountLongPress ?? (() => null)}
+      onIconPress={options?.onIconPress ?? (() => null)}
       testID="address-element"
       chainId={options?.chainId ?? '0x1'}
       displayNetworkBadge={options?.displayNetworkBadge}
+      isAmbiguousAddress={options?.isAmbiguousAddress}
     />,
     { state },
   );
 
 describe('AddressElement', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
+
   it('should render correctly', () => {
     const { getByTestId } = renderComponent(initialState);
     expect(getByTestId('address-element')).toBeOnTheScreen();
@@ -92,6 +106,49 @@ describe('AddressElement', () => {
     const { getByText } = renderComponent(initialState);
     const addressText = getByText(renderShortAddress(address));
     expect(addressText).toBeDefined();
+  });
+
+  it('renders the name and address when a name is provided', () => {
+    const address = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+    const { getByText } = renderComponent(initialState, {
+      name: 'Primary account',
+    });
+
+    expect(getByText('Primary account')).toBeOnTheScreen();
+    expect(getByText(renderShortAddress(address))).toBeOnTheScreen();
+  });
+
+  it('calls the account callbacks when the item is pressed', () => {
+    const onAccountPress = jest.fn();
+    const onAccountLongPress = jest.fn();
+    const { getByTestId } = renderComponent(initialState, {
+      onAccountPress,
+      onAccountLongPress,
+    });
+
+    fireEvent.press(getByTestId('address-element'));
+    fireEvent(getByTestId('address-element'), 'longPress');
+
+    expect(onAccountPress).toHaveBeenCalledWith(
+      '0xd018538C87232FF95acbCe4870629b75640a78E7',
+    );
+    expect(onAccountLongPress).toHaveBeenCalledWith(
+      '0xd018538C87232FF95acbCe4870629b75640a78E7',
+    );
+  });
+
+  it('renders and handles the ambiguous address warning', () => {
+    const onIconPress = jest.fn();
+    const { getByLabelText } = renderComponent(initialState, {
+      isAmbiguousAddress: true,
+      onIconPress,
+    });
+
+    fireEvent.press(
+      getByLabelText(strings('duplicate_address.accessibility_label')),
+    );
+
+    expect(onIconPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders the network badge when displayNetworkBadge is true', () => {

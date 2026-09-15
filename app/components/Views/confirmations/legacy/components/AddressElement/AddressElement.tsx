@@ -2,35 +2,36 @@
 
 // Third-Party dependencies
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 
 // External dependencies
 import {
   renderShortAddress,
   getLabelTextByAddress,
 } from '../../../../../../util/address';
-import Identicon from '../../../../../UI/Identicon';
-import { useTheme } from '../../../../../../util/theme';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  ButtonIcon,
+  IconName,
+  ListItem,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
 // Internal dependecies
-import styleSheet from './AddressElement.styles';
 import { AddressElementProps } from './AddressElement.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
 
 const AddressElement: React.FC<AddressElementProps> = ({
@@ -45,11 +46,10 @@ const AddressElement: React.FC<AddressElementProps> = ({
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
-  const { colors } = useTheme();
-  const styles = styleSheet(colors);
 
   const allNetworks = useSelector(selectNetworkConfigurations);
   const addressElementNetwork = allNetworks[chainId];
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const shouldDisplayNetworkBadge = useMemo(
     () => displayNetworkBadge,
@@ -73,12 +73,28 @@ const AddressElement: React.FC<AddressElementProps> = ({
             ) : null
           }
         >
-          <Identicon address={address} diameter={28} />
+          <AvatarAccount
+            address={address}
+            variant={getAvatarAccountVariant(avatarAccountType)}
+            size={AvatarAccountSize.Md}
+          />
         </BadgeWrapper>
       );
     }
-    return <Identicon address={address} diameter={28} />;
-  }, [address, chainId, addressElementNetwork, shouldDisplayNetworkBadge]);
+    return (
+      <AvatarAccount
+        address={address}
+        variant={getAvatarAccountVariant(avatarAccountType)}
+        size={AvatarAccountSize.Md}
+      />
+    );
+  }, [
+    address,
+    chainId,
+    addressElementNetwork,
+    shouldDisplayNetworkBadge,
+    avatarAccountType,
+  ]);
 
   const fetchENSName = useCallback(async () => {
     if (!displayName) {
@@ -100,55 +116,36 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
-    <TouchableOpacity
+    <ListItem
+      isInteractive
       onPress={() => onAccountPress(address)}
       onLongPress={() => onAccountLongPress(address)}
       key={address}
-      style={styles.addressElementWrapper}
-      {...props}
-    >
-      <View style={styles.addressIdenticon}>{renderIdenticon()}</View>
-      <View style={styles.addressElementInformation}>
-        <View style={styles.accountNameLabel}>
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.addressTextNickname}
-            numberOfLines={1}
-          >
-            {primaryLabel}
-          </Text>
-        </View>
-        {!!secondaryLabel && (
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.addressTextAddress}
-            numberOfLines={1}
-          >
-            {secondaryLabel}
-          </Text>
-        )}
-        {accountTypeLabel && (
-          <Text
-            variant={TextVariant.BodySm}
-            style={styles.accountNameLabelText}
-          >
+      avatar={renderIdenticon()}
+      title={primaryLabel}
+      titleProps={{ numberOfLines: 1 }}
+      description={secondaryLabel}
+      descriptionProps={{ numberOfLines: 1 }}
+      descriptionEndAccessory={
+        accountTypeLabel ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {accountTypeLabel}
           </Text>
-        )}
-      </View>
-      {isAmbiguousAddress && (
-        <TouchableOpacity
-          style={styles.warningIconWrapper}
-          onPress={onIconPress}
-        >
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Lg}
-            color={styles.warningIcon.color}
+        ) : undefined
+      }
+      endAccessory={
+        isAmbiguousAddress ? (
+          <ButtonIcon
+            iconName={IconName.Danger}
+            onPress={onIconPress}
+            accessibilityLabel={strings(
+              'duplicate_address.accessibility_label',
+            )}
           />
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
+        ) : undefined
+      }
+      {...props}
+    />
   );
 };
 
