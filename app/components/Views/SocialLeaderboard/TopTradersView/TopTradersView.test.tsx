@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Text } from 'react-native';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../../util/Logger';
 import { loadingSet } from '../../../../actions/user';
@@ -9,7 +9,12 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import type {
+  TopTrader,
+  TraderRowProps,
+} from '../../Homepage/Sections/TopTraders/types';
+/* eslint-enable import-x/no-restricted-paths */
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
@@ -156,6 +161,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 963146.8,
     winRatePercent: 92,
     pnlPerChain: { base: 500000, ethereum: 463146.8 },
+    followerCount: 48707,
     isFollowing: false,
   },
   {
@@ -169,6 +175,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 474751.45,
     winRatePercent: 61,
     pnlPerChain: { base: 474751.45 },
+    followerCount: 21999,
     isFollowing: false,
   },
   {
@@ -182,6 +189,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 374735.16,
     winRatePercent: 48,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
     isFollowing: false,
   },
 ];
@@ -700,6 +708,65 @@ describe('TopTradersView', () => {
     });
   });
 
+  describe('pinned type filter', () => {
+    it('scopes the queries to the pinned type and hides the type pill', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeNull();
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('does not prefetch the other type queries', () => {
+      jest.useFakeTimers();
+      try {
+        setTabResult('all', { isFetching: false });
+        const { rerender } = renderWithProvider(
+          <TopTradersView pinnedTypeFilter="all" />,
+        );
+
+        rerender(<TopTradersView pinnedTypeFilter="all" />);
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+
+        expectLatestQueryEnabledStates({
+          all: true,
+          tokens: false,
+          perps: false,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps the pinned type enabled when the sort changes', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      selectSort('winRate');
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('reports the pinned type as the analytics chain filter', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+        expect.objectContaining({ chain_filter: 'all' }),
+      );
+    });
+  });
+
   it('uses the spot-only chains for the All tab when perps are disabled', () => {
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
     renderWithProvider(<TopTradersView />);
@@ -801,6 +868,63 @@ describe('TopTradersView', () => {
       screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+  });
+
+  describe('injected row components', () => {
+    it('renders the legacy follow-button row by default', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expect(screen.getAllByText('Follow').length).toBeGreaterThan(0);
+    });
+
+    it('renders an injected RowComponent with the trader and ranked metric', () => {
+      const InjectedRow: React.FC<TraderRowProps> = ({ trader, metric }) => (
+        <Text testID={`injected-row-${trader.id}`}>{metric?.label}</Text>
+      );
+
+      renderWithProvider(<TopTradersView RowComponent={InjectedRow} />);
+
+      expect(screen.getByTestId('injected-row-trader-1')).toBeOnTheScreen();
+      expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+      expect(screen.queryByText('Follow')).toBeNull();
+    });
+
+    it('renders an injected SkeletonComponent while loading', () => {
+      setTabResult(LANDING_TAB, { isLoading: true, traders: [] });
+      const InjectedSkeleton: React.FC = () => (
+        <Text testID="injected-skeleton">loading</Text>
+      );
+
+      renderWithProvider(
+        <TopTradersView SkeletonComponent={InjectedSkeleton} />,
+      );
+
+      expect(screen.getAllByTestId('injected-skeleton').length).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('sizes the skeleton count off the injected rowHeight', () => {
+      setTabResult(LANDING_TAB, { isLoading: true, traders: [] });
+      const InjectedSkeleton: React.FC = () => (
+        <Text testID="injected-skeleton">loading</Text>
+      );
+
+      const renderWithRowHeight = (rowHeight: number) => {
+        const { unmount } = renderWithProvider(
+          <TopTradersView
+            SkeletonComponent={InjectedSkeleton}
+            rowHeight={rowHeight}
+          />,
+        );
+        const count = screen.getAllByTestId('injected-skeleton').length;
+        unmount();
+        return count;
+      };
+
+      // Taller rows cover the viewport with fewer placeholders.
+      expect(renderWithRowHeight(200)).toBeLessThan(renderWithRowHeight(50));
+    });
   });
 
   describe('performance', () => {

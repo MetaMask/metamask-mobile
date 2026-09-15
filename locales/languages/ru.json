@@ -1876,10 +1876,6 @@
         "current_price": "Текущая цена",
         "liquidation_price": "Цена ликвидации",
         "liquidation_distance": "Расстояние ликвидации",
-        "liquidation_warning": "Ваша позиция будет ликвидирована, если цена {{direction}} на {{percentage}}",
-        "drops": "упадет",
-        "rises": "вырастет",
-        "set_leverage": "Установить {{leverage}}x",
         "price_unavailable": "Информация о цене недоступна"
       },
       "type": {

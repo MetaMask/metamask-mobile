@@ -551,12 +551,63 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --no-build-android
 
+      # Sample RSS to /tmp (survives Metro 137). Do not tee samples to the log.
+      # Retry: the process sits near the 16 GB ceiling; a later attempt often fits.
+      # Do not raise NODE_OPTIONS.
       - name: Generate iOS bundle
-        run: yarn gen-bundle:ios
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         env:
           # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
           # into gen-bundle:ios, an inline value silently shadows it.
           NODE_OPTIONS: --max-old-space-size=6144
+        with:
+          timeout_minutes: 25
+          max_attempts: 3
+          retry_wait_seconds: 30
+          shell: bash
+          command: |
+            set -euo pipefail
+            MEM_LOG=/tmp/js-bundle-rss.log
+            echo "=== attempt $(date -u +%Y-%m-%dT%H:%M:%SZ) NODE_OPTIONS=${NODE_OPTIONS:-<unset>} ===" >> "${MEM_LOG}"
+
+            monitor_resources() {
+              while true; do
+                MEM="$(free -m | awk '/^Mem:/ { printf "mem=%s/%sMB", $3, $2 } /^Swap:/ { printf " swap=%s/%sMB", $3, $2 }')"
+                TOP="$(ps -eo rss=,comm= | sort -rn | head -3 | awk '{ printf "%s=%dMB ", $2, $1 / 1024 }')"
+                CGCUR="-"
+                if [ -r /sys/fs/cgroup/memory.current ]; then
+                  CGCUR="$(( $(cat /sys/fs/cgroup/memory.current) / 1048576 ))MB"
+                fi
+                echo "[rss $(date -u +%H:%M:%S)] ${MEM} cgroup=${CGCUR} top=[${TOP}]" >> "${MEM_LOG}"
+                sleep 5
+              done
+            }
+            monitor_resources &
+            MONITOR_PID=$!
+            trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
+            yarn gen-bundle:ios
+
+      - name: Report bundle-step peak memory
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          MEM_LOG=/tmp/js-bundle-rss.log
+          if [ ! -s "${MEM_LOG}" ]; then
+            echo "No memory samples captured."
+            exit 0
+          fi
+          PEAK="$(grep '\[rss ' "${MEM_LOG}" | awk -F'mem=' '{ split($2, a, "/"); if (a[1] + 0 > max) { max = a[1] + 0; line = $0 } } END { print line }')"
+          CGPEAK=""
+          if [ -r /sys/fs/cgroup/memory.peak ]; then
+            CGPEAK=" (cgroup peak $(( $(cat /sys/fs/cgroup/memory.peak) / 1048576 ))MB)"
+          fi
+          LINE="JS bundle peak: ${PEAK}${CGPEAK}"
+          echo "${LINE}"
+          {
+            echo "### JS bundle size check: memory"
+            echo
+            echo "${LINE}"
+          } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
