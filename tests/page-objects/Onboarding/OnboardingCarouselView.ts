@@ -1,21 +1,21 @@
-import {
-  OnboardingCarouselSelectorIDs,
-  OnboardingCarouselSelectorText,
-} from '../../selectors/Onboarding/OnboardingCarousel.selectors';
+import { OnboardingCarouselSelectorText } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
+import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { type AppiumElement } from '../../framework';
 
+/**
+ * Legacy carousel PO — welcome carousel IDs were removed from the app.
+ * Container / CTA now map to OnboardingSheet; title assertions remain text-based.
+ */
 class OnboardingCarouselView {
   get container(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
-    );
+    return Matchers.getElementByID(OnboardingSheetSelectorIDs.CONTAINER_ID);
   }
 
   get getStartedButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
+      OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
     );
   }
 
@@ -23,27 +23,13 @@ class OnboardingCarouselView {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE);
   }
 
-  get imageOne(): Promise<AppiumElement> {
-    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID);
-  }
-
   get titleTwo(): Promise<AppiumElement> {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO);
-  }
-
-  get imageTwo(): Promise<AppiumElement> {
-    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID);
   }
 
   get titleThree(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       OnboardingCarouselSelectorText.TITLE_THREE,
-    );
-  }
-
-  get imageThree(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
     );
   }
 
@@ -53,7 +39,7 @@ class OnboardingCarouselView {
 
   async tapOnGetStartedButton(): Promise<void> {
     await Gestures.waitAndTap(this.getStartedButton, {
-      elemDescription: 'Onboarding Carousel Get Started Button',
+      elemDescription: 'Onboarding sheet import seed button',
     });
   }
 }

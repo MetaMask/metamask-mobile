@@ -1,24 +1,21 @@
-import { BackupAndSyncViewSelectorsIDs } from '../../selectors/Settings/BackupAndSyncView.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
+import { Matchers, Gestures, type AppiumElement } from '../../framework';
+import { BACKUP_AND_SYNC_TOGGLE_TEST_IDS } from '../../../app/components/UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle.testIds';
+import { BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS } from '../../../app/components/UI/Identity/BackupAndSyncFeaturesToggles/BackupAndSyncFeaturesToggles.testIds';
 
 class BackupAndSyncView {
   get accountSyncToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      BackupAndSyncViewSelectorsIDs.ACCOUNT_SYNC_TOGGLE,
+      BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_ACCOUNT_SYNCING,
     );
   }
 
   get backupAndSyncToggle(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      BackupAndSyncViewSelectorsIDs.BACKUP_AND_SYNC_TOGGLE,
-    );
+    return Matchers.getElementByID(BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE);
   }
 
   get contactSyncToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      BackupAndSyncViewSelectorsIDs.CONTACTS_SYNC_TOGGLE,
+      BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_CONTACT_SYNCING,
     );
   }
 
