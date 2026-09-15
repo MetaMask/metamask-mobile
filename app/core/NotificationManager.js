@@ -22,6 +22,7 @@ import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 import TransactionTypes from './TransactionTypes';
 import { getNotificationSkipPredicates } from './notificationSkipPredicates';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -293,12 +294,28 @@ class NotificationManager {
           transactionMeta.txParams.from,
         );
         if (senderAccount) {
-          AssetsController.getAssets([senderAccount], {
-            forceUpdate: true,
-            chainIds: [transactionMeta.chainId],
-          }).catch((error) => {
-            Logger.error(error, 'Failed to refresh assets after transaction');
-          });
+          try {
+            const caipChainId = toEvmCaipChainId(transactionMeta.chainId);
+            AssetsController.getAssets([senderAccount], {
+              forceUpdate: true,
+              chainIds: [caipChainId],
+            }).catch((error) => {
+              Logger.error(
+                error,
+                'Failed to refresh assets after transaction',
+              );
+            });
+          } catch (error) {
+            // transactionMeta.chainId can be missing/malformed on legacy or
+            // partially-hydrated transaction metadata; toEvmCaipChainId
+            // throws synchronously in that case, and this callback also
+            // runs endTrace/ReviewManager/listener cleanup below, so a
+            // throw here must never be allowed to skip them.
+            Logger.error(
+              error,
+              'Failed to build CAIP chain ID for post-transaction asset refresh',
+            );
+          }
         }
         endTrace({
           name: TraceName.TransactionConfirmed,

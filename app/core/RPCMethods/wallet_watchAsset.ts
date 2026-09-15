@@ -175,6 +175,7 @@ export const wallet_watchAsset = async ({
           symbol: finalTokenSymbol,
           decimals: Number(finalTokenDecimals),
           name: finalTokenSymbol,
+          iconUrl: image,
           chainId,
         },
       );

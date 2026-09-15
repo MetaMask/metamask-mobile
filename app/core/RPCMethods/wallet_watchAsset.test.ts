@@ -212,7 +212,16 @@ describe('wallet_watchAsset', () => {
 
     expect(
       MockEngine.context.AssetsController.addCustomAsset,
-    ).toHaveBeenCalled();
+    ).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      expect.objectContaining({
+        address: correctWBTC.address,
+        symbol: correctWBTC.symbol,
+        decimals: Number(correctWBTC.decimals),
+        iconUrl: correctWBTC.image,
+      }),
+    );
   });
 
   it('does not add the custom asset when the approval request is rejected', async () => {
