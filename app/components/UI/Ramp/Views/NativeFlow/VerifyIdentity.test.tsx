@@ -51,7 +51,7 @@ jest.mock('../../hooks/useRampsUserRegion', () => ({
 jest.mock('../../constants/transak', () => ({
   TRANSAK_TERMS_URL_US: 'https://transak.com/terms-us',
   TRANSAK_TERMS_URL_WORLD: 'https://transak.com/terms-world',
-  CONSENSYS_PRIVACY_POLICY_URL: 'https://consensys.io/privacy-policy',
+  CONSENSYS_PRIVACY_POLICY_URL: 'https://consensys.net/privacy-policy',
   TRANSAK_URL: 'https://transak.com',
 }));
 
@@ -125,7 +125,7 @@ describe('V2VerifyIdentity', () => {
 
     fireEvent.press(getByTestId('privacy-policy-link-1'));
 
-    expect(spy).toHaveBeenCalledWith('https://consensys.io/privacy-policy');
+    expect(spy).toHaveBeenCalledWith('https://consensys.net/privacy-policy');
   });
 
   it('opens US terms URL for US region', () => {
