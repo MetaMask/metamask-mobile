@@ -25,6 +25,7 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import {
@@ -142,6 +143,14 @@ const PerpsProTwapCard = ({
   const elapsedMinutes = Math.floor(
     twapOrder.elapsedTimeMilliseconds / MILLISECONDS_PER_MINUTE,
   );
+  if (
+    Number.parseFloat(twapOrder.executedSize) === 0 &&
+    twapOrder.fills.length > 0
+  ) {
+    DevLogger.log(
+      `[TAT-3961] BUG_MARKER: schedule ${twapOrder.orderId} renders executedSize=${twapOrder.executedSize} fillProgressBps=${twapOrder.fillProgressBps} averagePrice=${twapOrder.averagePrice} while holding ${twapOrder.fills.length} slice fill(s)`,
+    );
+  }
 
   const handlePress = onPress ? () => onPress(twapOrder) : undefined;
   const getValueTestID = (baseTestID: string) =>
