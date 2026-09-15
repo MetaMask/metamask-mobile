@@ -1,7 +1,10 @@
 import React from 'react';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { RootState } from '../../../../../reducers';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import DeFiProtocolPositionDetailsV2, {
   DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
@@ -64,7 +67,7 @@ const mockGroup: DeFiProtocolPositionGroup = {
 const renderWithGroup = (
   group: DeFiProtocolPositionGroup | undefined = mockGroup,
   networkIconAvatar: number | undefined = 42,
-  state: typeof mockInitialState = mockInitialState,
+  state: DeepPartial<RootState> = mockInitialState,
 ) => {
   mockUseParams.mockReturnValue({
     protocolPositionGroup: group,
