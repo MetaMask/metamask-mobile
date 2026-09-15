@@ -13,6 +13,7 @@ export const HomeSectionNames = {
   NFTS: 'nfts',
   TOP_TRADERS: 'top_traders',
   WATCHLIST: 'watchlist',
+  EARN: 'earn',
 } as const;
 
 export type HomeSectionName =
@@ -39,6 +40,10 @@ interface UseHomeViewedEventParams {
    * E.g. for Tokens: number of token rows. For NFTs in empty state: 0.
    */
   itemCount: number;
+  /** Optional callback invoked once when this section is recorded as viewed. */
+  onSectionViewed?: () => void;
+  /** Optional shared viewport state. When provided, skip this hook's own measurement. */
+  isVisible?: boolean;
   /**
    * When `sectionRef` is `null` and loading has finished, fire `HOME_VIEWED`
    * once (e.g. What's Happening with no items still wants an empty impression).
@@ -70,6 +75,8 @@ const useHomeViewedEvent = ({
   totalSectionsLoaded,
   isEmpty,
   itemCount,
+  onSectionViewed,
+  isVisible,
   fireImmediateWhenNoView = true,
 }: UseHomeViewedEventParams) => {
   const {
@@ -98,6 +105,7 @@ const useHomeViewedEvent = ({
     // not included in enabledSections. Don't fire the event in that case.
     if (sectionIndex < 0) return;
     hasFiredRef.current = true;
+    onSectionViewed?.();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
@@ -132,6 +140,7 @@ const useHomeViewedEvent = ({
     createEventBuilder,
     notifySectionViewed,
     sectionRef,
+    onSectionViewed,
   ]);
 
   // Reset on each homepage visit so the event re-fires.
@@ -149,6 +158,12 @@ const useHomeViewedEvent = ({
     fireEvent();
   }, [sectionRef, isLoading, fireEvent, visitId, fireImmediateWhenNoView]);
 
+  useEffect(() => {
+    if (sectionRef !== null && !isLoading && isVisible) {
+      fireEvent();
+    }
+  }, [fireEvent, isLoading, isVisible, sectionRef]);
+
   // Holds the latest checkVisibility so the onLayout callback can re-trigger
   // a check after the native layout pass completes.
   const checkVisibilityRef = useRef<() => void>(() => undefined);
@@ -157,7 +172,13 @@ const useHomeViewedEvent = ({
   // every scroll event. Uses subscribeToScroll so no React re-renders occur
   // during scrolling.
   useEffect(() => {
-    if (isLoading || !sectionRef?.current || viewportHeight === 0) return;
+    if (
+      isVisible !== undefined ||
+      isLoading ||
+      !sectionRef?.current ||
+      viewportHeight === 0
+    )
+      return;
 
     const checkVisibility = () => {
       if (hasFiredRef.current) return;
@@ -196,6 +217,7 @@ const useHomeViewedEvent = ({
     sectionRef,
     subscribeToScroll,
     fireEvent,
+    isVisible,
     isLoading,
   ]);
 

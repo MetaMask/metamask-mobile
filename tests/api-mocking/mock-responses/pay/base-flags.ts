@@ -39,17 +39,24 @@ const BASE_ASSETS_FLAGS = [
     ],
   },
   {
+    // `assetsUnifyState.useUnlockCleanup` is still read directly by the
+    // patched `@metamask/assets-controller` package (see
+    // `.yarn/patches/@metamask-assets-controller-*.patch`), independent of
+    // the app-side `assetsUnifyState` selector which has been removed.
+    // Keep this mock so `useUnlockCleanup`-gated E2E tests keep working.
     assetsUnifyState: {
       versions: {
         '8.3.0': {
           featureVersion: '1',
           minimumVersion: '8.3.0',
           enabled: true,
+          useUnlockCleanup: true,
         },
         '7.60.0': {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          useUnlockCleanup: true,
         },
       },
     },
@@ -1013,6 +1020,30 @@ const BASE_PERPS_FLAGS = [
     },
   },
   {
+    perpsMobileScale: {
+      minimumVersion: '8.10.0',
+      enabled: false,
+    },
+  },
+  {
+    perpsPositionModifyPreviewEnabled: {
+      minimumVersion: '8.11.0',
+      enabled: false,
+    },
+  },
+  {
+    perpsMobileChase: {
+      minimumVersion: '8.10.0',
+      enabled: false,
+    },
+  },
+  {
+    perpsMobileTwap: {
+      minimumVersion: '8.10.0',
+      enabled: false,
+    },
+  },
+  {
     perpsProductsEnabled: {
       enabled: true,
       minimumVersion: '7.82.0',
@@ -1228,86 +1259,6 @@ const BASE_STX_FLAGS = [
         '0x4e65fe4dba92790696d040ac24aa414708f5c0ab',
       ],
     },
-  },
-  {
-    stxMigrationBatchStatus: [
-      {
-        value: true,
-        name: 'sentinel on',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-      },
-      {
-        name: 'sentinel off',
-        scope: {
-          value: 0,
-          type: 'threshold',
-        },
-        value: false,
-      },
-    ],
-  },
-  {
-    stxMigrationCancel: [
-      {
-        name: 'sentinel on',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: true,
-      },
-      {
-        value: false,
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-      },
-    ],
-  },
-  {
-    stxMigrationGetFees: [
-      {
-        value: true,
-        name: 'sentinel on',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-      },
-      {
-        value: false,
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-      },
-    ],
-  },
-  {
-    stxMigrationSubmitTransactions: [
-      {
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: true,
-        name: 'sentinel on',
-      },
-      {
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: false,
-      },
-    ],
   },
 ];
 

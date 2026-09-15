@@ -1,7 +1,10 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useBrazeIdentity } from './useBrazeIdentity';
 import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
+import { registerBrazePush } from '../../registerPush';
+import { retryPendingBrazePushUnregistration } from '../../unregisterPush';
+import { hasPendingBrazePushUnregistrationSync } from '../../pushRegistrationState';
 import {
   selectCanonicalProfileId,
   selectIsSignedIn,
@@ -18,13 +21,35 @@ jest.mock('../..', () => ({
   refreshBrazeBanners: jest.fn(),
 }));
 
+jest.mock('../../registerPush', () => ({
+  registerBrazePush: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../unregisterPush', () => ({
+  retryPendingBrazePushUnregistration: jest.fn().mockResolvedValue(true),
+}));
+
+jest.mock('../../pushRegistrationState', () => ({
+  hasPendingBrazePushUnregistrationSync: jest.fn().mockReturnValue(false),
+}));
+
 const mockSetBrazeUser = jest.mocked(setBrazeUser);
 const mockClearBrazeUser = jest.mocked(clearBrazeUser);
 const mockRefreshBrazeBanners = jest.mocked(refreshBrazeBanners);
+const mockRegisterBrazePush = jest.mocked(registerBrazePush);
+const mockRetryPendingBrazePushUnregistration = jest.mocked(
+  retryPendingBrazePushUnregistration,
+);
+const mockHasPendingBrazePushUnregistrationSync = jest.mocked(
+  hasPendingBrazePushUnregistrationSync,
+);
 const mockUseSelector = jest.mocked(useSelector);
 
 let mockIsSignedIn = false;
 let mockCanonicalProfileId: string | undefined;
+let mockAreNotificationsEnabled = true;
+let mockIsPushEnabled = false;
+let mockFcmToken = '';
 
 const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
   ({
@@ -53,6 +78,15 @@ const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
               }
             : {}),
         },
+        NotificationServicesController: {
+          ...backgroundState.NotificationServicesController,
+          isNotificationServicesEnabled: mockAreNotificationsEnabled,
+        },
+        NotificationServicesPushController: {
+          isPushEnabled: mockIsPushEnabled,
+          fcmToken: mockFcmToken,
+          isUpdatingFCMToken: false,
+        },
       },
     },
   }) as unknown as Record<string, unknown>;
@@ -61,7 +95,13 @@ describe('useBrazeIdentity', () => {
   beforeEach(() => {
     mockIsSignedIn = false;
     mockCanonicalProfileId = undefined;
+    mockAreNotificationsEnabled = true;
+    mockIsPushEnabled = false;
+    mockFcmToken = '';
     jest.clearAllMocks();
+    mockClearBrazeUser.mockResolvedValue(true);
+    mockRetryPendingBrazePushUnregistration.mockResolvedValue(true);
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     mockUseSelector.mockImplementation((selector) => {
       const state = createState(
         mockIsSignedIn,
@@ -77,12 +117,14 @@ describe('useBrazeIdentity', () => {
     });
   });
 
-  it('calls setBrazeUser and refreshes banners when signed in with a canonical profile ID', () => {
+  it('calls setBrazeUser and refreshes banners when signed in with a canonical profile ID', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
     renderHook(() => useBrazeIdentity());
 
-    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    });
     expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
     expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
     expect(mockClearBrazeUser).not.toHaveBeenCalled();
@@ -97,6 +139,48 @@ describe('useBrazeIdentity', () => {
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 
+  it('registers push after Braze identifies the signed-in profile', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRegisterBrazePush).toHaveBeenCalledWith('fcm-token'),
+    );
+    expect(mockRetryPendingBrazePushUnregistration).not.toHaveBeenCalled();
+    expect(mockSetBrazeUser.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRegisterBrazePush.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('does not register push when NaaP push is disabled', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockFcmToken = 'fcm-token';
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
+    expect(mockRegisterBrazePush).not.toHaveBeenCalled();
+  });
+
+  it('does not register push when master notifications are disabled', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockAreNotificationsEnabled = false;
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
+    expect(mockRetryPendingBrazePushUnregistration).not.toHaveBeenCalled();
+    expect(mockRegisterBrazePush).not.toHaveBeenCalled();
+  });
+
   it('does not clear Braze on initial mount when not signed in', () => {
     renderHook(() => useBrazeIdentity());
 
@@ -104,12 +188,12 @@ describe('useBrazeIdentity', () => {
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
   });
 
-  it('clears Braze after transitioning from signed in to signed out', () => {
+  it('clears Braze after transitioning from signed in to signed out', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
     const { rerender } = renderHook(() => useBrazeIdentity());
 
-    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
     expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
     expect(mockClearBrazeUser).not.toHaveBeenCalled();
 
@@ -117,22 +201,22 @@ describe('useBrazeIdentity', () => {
     mockCanonicalProfileId = undefined;
     rerender({});
 
-    expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockClearBrazeUser).toHaveBeenCalledTimes(1));
   });
 
-  it('re-identifies and refreshes when the canonical profile ID changes', () => {
+  it('re-identifies and refreshes when the canonical profile ID changes', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
     const { rerender } = renderHook(() => useBrazeIdentity());
 
-    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
     expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
     expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
 
     mockCanonicalProfileId = 'canonical-456';
     rerender({});
 
-    expect(mockSetBrazeUser).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(2));
     expect(mockSetBrazeUser).toHaveBeenLastCalledWith('canonical-456');
     expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(2);
   });
@@ -141,5 +225,99 @@ describe('useBrazeIdentity', () => {
     renderHook(() => useBrazeIdentity());
 
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
+  });
+
+  it('identifies the user without registering while launch unregistration remains pending', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockAreNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockResolvedValue(false);
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalled(),
+    );
+    expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
+    expect(mockRegisterBrazePush).not.toHaveBeenCalled();
+  });
+
+  it('checks pending unregistration only once per app session', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockResolvedValue(false);
+    const { rerender } = renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1),
+    );
+
+    mockCanonicalProfileId = 'canonical-456';
+    rerender({});
+
+    expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(2));
+  });
+
+  it('registers after an explicit enable clears a failed launch intent', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockFcmToken = 'fcm-token';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockResolvedValue(false);
+    const { rerender } = renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1),
+    );
+
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
+    mockIsPushEnabled = true;
+    rerender({});
+
+    await waitFor(() =>
+      expect(mockRegisterBrazePush).toHaveBeenCalledWith('fcm-token'),
+    );
+    expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears deferred Braze data after a launch retry succeeds', async () => {
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockImplementation(async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
+      return true;
+    });
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() => expect(mockClearBrazeUser).toHaveBeenCalledTimes(1));
+    expect(
+      mockRetryPendingBrazePushUnregistration.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockClearBrazeUser.mock.invocationCallOrder[0]);
+  });
+
+  it('retries a persisted unregistration before registering enabled push', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockImplementation(async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
+      return true;
+    });
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRegisterBrazePush).toHaveBeenCalledWith('fcm-token'),
+    );
+    expect(
+      mockRetryPendingBrazePushUnregistration.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockRegisterBrazePush.mock.invocationCallOrder[0]);
   });
 });

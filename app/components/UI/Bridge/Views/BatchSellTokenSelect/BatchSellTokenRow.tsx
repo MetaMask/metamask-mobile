@@ -13,10 +13,6 @@ import {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { TokenSelectorItem } from '../../components/TokenSelectorItem';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  TokenSelectorBalanceLayoutVariant,
-} from '../../components/TokenSelectorItem.abTestConfig';
 import { BridgeToken } from '../../types';
 
 const styles = StyleSheet.create({
@@ -110,11 +106,6 @@ export const BatchSellTokenRow = React.memo(
         shouldIncludeChildrenInPressTarget
         pressTargetAccessibilityLabel={pressTargetAccessibilityLabel}
         secondaryRowContent={secondaryRowContent}
-        balanceLayoutConfigOverride={
-          TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-            TokenSelectorBalanceLayoutVariant.Control
-          ]
-        }
         tokenBalanceTextProps={{
           textVariant: ComponentLibraryTextVariant.BodySMMedium,
           textColor: ComponentLibraryTextColor.Alternative,

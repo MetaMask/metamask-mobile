@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -16,20 +16,13 @@ import { RecurringIntervalSheetSelectorsIDs } from './RecurringIntervalSheet.tes
 import type { RecurringIntervalSheetProps } from './RecurringIntervalSheet.types';
 
 const RecurringIntervalSheet = ({
-  isVisible,
   currentUnit,
-  onClose,
   onConfirm,
+  goBack,
 }: RecurringIntervalSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [pendingUnit, setPendingUnit] =
     useState<RecurringIntervalUnit>(currentUnit);
-
-  useEffect(() => {
-    if (isVisible) {
-      setPendingUnit(currentUnit);
-    }
-  }, [currentUnit, isVisible]);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -40,15 +33,11 @@ const RecurringIntervalSheet = ({
     closeSheet();
   }, [closeSheet, onConfirm, pendingUnit]);
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
     <BottomSheet
       ref={sheetRef}
       testID={RecurringIntervalSheetSelectorsIDs.SHEET}
-      onClose={onClose}
+      goBack={goBack}
     >
       <BottomSheetHeader
         onClose={closeSheet}

@@ -1,32 +1,32 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class OnboardingSheet {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(OnboardingSheetSelectorIDs.CONTAINER_ID);
   }
 
-  get googleLoginButton(): EncapsulatedElementType {
+  get googleLoginButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON,
     );
   }
 
-  get appleLoginButton(): EncapsulatedElementType {
+  get appleLoginButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON,
     );
   }
 
-  get telegramLoginButton(): EncapsulatedElementType {
+  get telegramLoginButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON,
     );
   }
 
-  get importSeedButton(): EncapsulatedElementType {
+  get importSeedButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
     );

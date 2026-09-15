@@ -22,6 +22,7 @@ const server = createServer({
   sessionManager,
   knowledgeStore,
   idleShutdownMs: 30 * 60 * 1000,
+  requestTimeoutMs: 180 * 1000,
   logFilePath: path.join(resolveRepoRoot(), '.mm-daemon.log'),
   contextFactory: async () =>
     createMetaMaskMobileContext({

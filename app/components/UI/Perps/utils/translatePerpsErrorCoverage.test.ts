@@ -9,9 +9,9 @@ import enTranslations from '../../../../../locales/languages/en.json';
  * read the installed controller's full code list.
  *
  * A controller upgrade that widens `PerpsErrorCode` — as v11 did with the
- * trigger-order, TP/SL linkage and exchange codes, and v12 with strategy
- * placement codes — fails here rather than shipping an untranslated code to
- * users.
+ * trigger-order, TP/SL linkage and exchange codes, v12 with strategy
+ * placement codes, and v16.2 with margin-mode codes — fails here rather than
+ * shipping an untranslated code to users.
  */
 const resolveTranslation = (i18nKey: string): string | undefined => {
   let node: unknown = enTranslations;
@@ -82,6 +82,33 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     ];
 
     const unmapped = v12Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+
+    expect(unmapped).toStrictEqual([]);
+  });
+
+  it('maps the v13 provider, strategy, chase, and TP/SL codes', () => {
+    const v13Codes = [
+      PERPS_ERROR_CODES.PROVIDER_NOT_FOUND,
+      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_ROUTE_UNAVAILABLE,
+      PERPS_ERROR_CODES.ORDER_CHASE_MAX_DISTANCE_INVALID,
+      PERPS_ERROR_CODES.TPSL_PROTECTION_LOST,
+    ];
+
+    const unmapped = v13Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+
+    expect(unmapped).toStrictEqual([]);
+  });
+
+  it('maps the v16.2 margin-mode codes', () => {
+    const v16Codes = [
+      PERPS_ERROR_CODES.ORDER_MARGIN_MODE_INVALID,
+      PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED,
+      PERPS_ERROR_CODES.ORDER_MARGIN_MODE_POSITION_OPEN,
+      PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN,
+    ];
+
+    const unmapped = v16Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
 
     expect(unmapped).toStrictEqual([]);
   });

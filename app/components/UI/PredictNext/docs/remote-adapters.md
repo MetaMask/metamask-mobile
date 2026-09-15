@@ -56,7 +56,7 @@ The installed MetaMask platform client has no supported generic request API. The
 
 Base URL and client version come from composition/configuration; environment differences do not create different Venue adapters. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
 
-Before account-scoped routes or writes, adopt an explicit required-auth, method-capable transport. Prefer a shared uncached platform request primitive when available; do not silently reuse the public-read client's unauthenticated behavior.
+Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. Public catalog reads remain unauthenticated here; PRED-1159/PRED-1175 owns migrating those routes to required authentication.
 
 ## Canonical backend contract
 
@@ -69,7 +69,9 @@ The mobile/backend API exposes product capabilities, not raw Kalshi endpoints. R
 - every response contains canonical Venue context where relevant,
 - credentials, PII, and raw KYC payloads never appear in canonical responses.
 
-Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. The implemented first read-only slice needs only Venue Status and Event list/detail; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot.
+Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. Public reads now include Venue Status, Event list/detail, and Market history; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot.
+
+Market history uses `GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}` with the supported ranges `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response contains the Venue and Market identity, range, backend observation time, and canonical timestamp/Yes-price/No-price points. The backend derives each binary Market No price as the exact fixed-point complement of the authoritative Yes trade price. `LIVE` is a REST history snapshot through the backend observation time; mobile does not poll, interpolate, or generate points.
 
 The agreed next public-read contract uses Venue-qualified Feed reads, immutable Event reads, and a Rolling Series current-Event read. All return complete canonical Events; the backend owns Feed selection/order, single Category and Series normalization, current-Event selection, Sports/Game snapshot normalization, Outcome Game Selection, Kalshi lifecycle mapping, decimal-string Volume, and approved HTTPS image URLs. No separate Game route is required initially. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Do not define a separate price, account, or write route until a slice requires it.
 

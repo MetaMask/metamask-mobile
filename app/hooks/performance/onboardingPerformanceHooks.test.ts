@@ -17,11 +17,15 @@ import { useNavigationPerformance } from './useNavigationPerformance';
 import { useRivePerformance } from './useRivePerformance';
 import { useScreenPerformance } from './useScreenPerformance';
 
+const mockPerformanceMountTs = 1_750_000_000_000;
+
 jest.mock('../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
+  getPerformanceTimestamp: jest.fn(() => mockPerformanceMountTs),
   TraceName: {
     OnboardingScreenTimeToContent: 'ttc',
+    OnboardingScreenFullyDisplayed: 'ttfd',
     OnboardingScreenDataFetch: 'fetch',
     OnboardingRiveReady: 'rive',
     OnboardingCtaNavigation: 'nav',
@@ -37,8 +41,11 @@ jest.mock('./useRenderStormMonitor', () => ({
   useRenderStormMonitor: jest.fn(),
 }));
 
-const { trace: mockTrace, endTrace: mockEndTrace } =
-  jest.requireMock('../../util/trace');
+const {
+  trace: mockTrace,
+  endTrace: mockEndTrace,
+  getPerformanceTimestamp: mockGetPerformanceTimestamp,
+} = jest.requireMock('../../util/trace');
 
 const expectEnd = (partial: Record<string, unknown>) => {
   expect(mockEndTrace).toHaveBeenCalledWith(expect.objectContaining(partial));
@@ -47,6 +54,7 @@ const expectEnd = (partial: Record<string, unknown>) => {
 describe('onboarding performance hooks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetPerformanceTimestamp.mockReturnValue(mockPerformanceMountTs);
     _resetOnboardingNavigationPerformanceForTesting();
     jest.useFakeTimers();
   });
@@ -109,6 +117,111 @@ describe('onboarding performance hooks', () => {
       );
       expectEnd({
         name: TraceName.OnboardingScreenDataFetch,
+        data: expect.objectContaining({ success: true }),
+      });
+    });
+
+    it('starts TTC and TTFD from the same mount timestamp and TTFD ends at or after TTC', () => {
+      const { rerender } = renderHook(
+        ({ contentReady, fullyDisplayed }) =>
+          useScreenPerformance({
+            screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+            contentReady,
+            isEmpty: false,
+            fullyDisplayed,
+          }),
+        { initialProps: { contentReady: false, fullyDisplayed: false } },
+      );
+
+      // Both traces should start with the same startTime
+      const ttcCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenTimeToContent,
+      );
+      const ttfdCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenFullyDisplayed,
+      );
+
+      expect(ttcCall).toBeDefined();
+      expect(ttfdCall).toBeDefined();
+      expect(ttcCall[0].startTime).toBe(mockPerformanceMountTs);
+      expect(ttfdCall[0].startTime).toBe(mockPerformanceMountTs);
+      expect(ttcCall[0].startTime).toBe(ttfdCall[0].startTime);
+
+      // End TTC first (contentReady fires before fullyDisplayed)
+      rerender({ contentReady: true, fullyDisplayed: false });
+      expectEnd({
+        name: TraceName.OnboardingScreenTimeToContent,
+        data: expect.objectContaining({ success: true }),
+      });
+
+      // TTFD should still be open
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingScreenFullyDisplayed,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
+
+      // Now fullyDisplayed fires → TTFD ends after TTC
+      rerender({ contentReady: true, fullyDisplayed: true });
+      expectEnd({
+        name: TraceName.OnboardingScreenFullyDisplayed,
+        data: expect.objectContaining({ success: true }),
+      });
+    });
+
+    it('starts TTC and TTFD from getPerformanceTimestamp, not Date.now', () => {
+      const performanceTs = 1_750_000_000_456;
+      const wallClockTs = 9_999_999_999_999;
+      mockGetPerformanceTimestamp.mockReturnValue(performanceTs);
+      jest.setSystemTime(wallClockTs);
+
+      renderHook(() =>
+        useScreenPerformance({
+          screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+          contentReady: false,
+          isEmpty: false,
+        }),
+      );
+
+      const ttcCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenTimeToContent,
+      );
+      const ttfdCall = (mockTrace as jest.Mock).mock.calls.find(
+        ([req]: [{ name: string }]) =>
+          req.name === TraceName.OnboardingScreenFullyDisplayed,
+      );
+
+      expect(ttcCall).toBeDefined();
+      expect(ttfdCall).toBeDefined();
+      expect(ttcCall[0].startTime).toBe(performanceTs);
+      expect(ttfdCall[0].startTime).toBe(performanceTs);
+      expect(ttcCall[0].startTime).not.toBe(wallClockTs);
+    });
+
+    it('defaults fullyDisplayed to contentReady when omitted', () => {
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useScreenPerformance({
+            screenId: OnboardingScreenIds.IMPORT_SRP,
+            contentReady,
+            isEmpty: false,
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      // Both TTC and TTFD should end
+      expectEnd({
+        name: TraceName.OnboardingScreenTimeToContent,
+        data: expect.objectContaining({ success: true }),
+      });
+      expectEnd({
+        name: TraceName.OnboardingScreenFullyDisplayed,
         data: expect.objectContaining({ success: true }),
       });
     });

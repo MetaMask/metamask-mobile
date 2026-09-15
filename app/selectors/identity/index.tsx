@@ -63,6 +63,22 @@ export const selectNeedsProfilePairing = createSelector(
     authenticationControllerState.needsProfilePairing ?? true,
 );
 
+/**
+ * Selector that exposes the `needsSocialPairing` flag from the
+ * `AuthenticationController` state.
+ *
+ * Used by `useAutoSignIn` to force a sign-in when a social-login wallet
+ * still needs its social identifier paired to the SRP profile.
+ *
+ * Defaults to `true` when the field is absent from state — this mirrors the
+ * controller's `defaultState` and matches `selectNeedsProfilePairing`.
+ */
+export const selectNeedsSocialPairing = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.needsSocialPairing ?? true,
+);
+
 // User Storage
 export const selectIsBackupAndSyncEnabled = createSelector(
   selectUserStorageControllerState,

@@ -4,7 +4,6 @@ import EarnWithdrawalTokenListItem from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
@@ -15,14 +14,10 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('EarnWithdrawalTokenListItem', () => {
-  const mockNetworkName = 'Ethereum Mainnet';
   const mockOnPress = jest.fn();
 
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectNetworkName) return mockNetworkName;
-      return undefined;
-    });
+    (useSelector as jest.Mock).mockImplementation(() => undefined);
     jest.clearAllMocks();
   });
 

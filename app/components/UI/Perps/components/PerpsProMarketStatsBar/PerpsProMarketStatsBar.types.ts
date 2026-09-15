@@ -1,3 +1,5 @@
+import type { PerpsMarketDetailSectionState } from '../../hooks/usePerpsMarketDetailSession';
+
 export interface PerpsProMarketStatsBarProps {
   /**
    * Raw market symbol used to subscribe to live stats (e.g. "BTC", "xyz:TSLA").
@@ -17,4 +19,8 @@ export interface PerpsProMarketStatsBarProps {
    * market view stats-bar selector so it slots into the existing scaffold.
    */
   testID?: string;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 
 // FlashList v2 mock – see app/util/test/mockFlashList.ts
@@ -35,6 +36,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
+  MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
@@ -193,6 +195,99 @@ describe('MultichainAccountSelectorList', () => {
 
     expect(getByText('Wallet 1')).toBeTruthy();
     expect(getByText('Wallet 2')).toBeTruthy();
+  });
+
+  it('renders the search field by default', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+    const { queryByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+    ).toBeOnTheScreen();
+  });
+
+  it('reports when the search field takes focus', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+    const onSearchFocus = jest.fn();
+
+    const { getByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { onSearchFocus },
+    );
+    fireEvent(
+      getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+      'focus',
+    );
+
+    expect(onSearchFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a settled query once the debounce lands, not on every keystroke', async () => {
+    jest.useFakeTimers();
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+    const onSearchSettled = jest.fn();
+
+    const { getByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { onSearchSettled },
+    );
+    const input = getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID);
+    fireEvent.changeText(input, 'Ac');
+    fireEvent.changeText(input, 'Acc ');
+    expect(onSearchSettled).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(onSearchSettled).toHaveBeenCalledTimes(1);
+    expect(onSearchSettled).toHaveBeenCalledWith('Acc');
+    jest.useRealTimers();
+  });
+
+  it('hides the search field when hideSearch is set, keeping the accounts', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+    const { queryByTestId, getByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { hideSearch: true },
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+    ).not.toBeOnTheScreen();
+    expect(getByText('Account 1')).toBeTruthy();
   });
 
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
@@ -678,6 +773,59 @@ describe('MultichainAccountSelectorList', () => {
         ['Account 2'],
         ['Account 1', 'Account 3'],
       );
+    });
+
+    it('keeps the list testID in the empty state', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByTestId } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        [account1],
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+          'NoSuchAccount',
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(
+            getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+          ).toBeOnTheScreen();
+        },
+        { timeout: SEARCH_WAIT_TIMEOUT_MS },
+      );
+
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders header and footer slots in the empty state', () => {
+      const { getByTestId, getByText } = renderComponentWithMockState(
+        [],
+        {},
+        [],
+        {
+          ListHeaderComponent: <Text>Header slot</Text>,
+          ListFooterComponent: <Text>Footer slot</Text>,
+        },
+      );
+
+      expect(getByText('Header slot')).toBeOnTheScreen();
+      expect(getByText('Footer slot')).toBeOnTheScreen();
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeOnTheScreen();
     });
 
     it('shows empty state when no accounts match search', async () => {

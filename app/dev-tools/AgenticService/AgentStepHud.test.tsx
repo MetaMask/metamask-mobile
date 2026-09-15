@@ -1,9 +1,18 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { Platform } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 import AgentStepHud, { emitStepHud } from './AgentStepHud';
+
+jest.mock('react-native-screens', () => ({
+  FullWindowOverlay: jest.fn(
+    ({ children }: React.PropsWithChildren) => children,
+  ),
+}));
 
 describe('AgentStepHud', () => {
   const originalDev = (globalThis as unknown as { __DEV__: boolean }).__DEV__;
+  const originalPlatform = Platform.OS;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -12,6 +21,7 @@ describe('AgentStepHud', () => {
 
   afterAll(() => {
     (globalThis as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
+    Platform.OS = originalPlatform;
   });
 
   it('renders nothing when no step is active', () => {
@@ -113,5 +123,27 @@ describe('AgentStepHud', () => {
     });
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('keeps the HUD in the root view on Android', () => {
+    Platform.OS = 'android';
+    render(<AgentStepHud />);
+
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'Android validation' });
+    });
+
+    expect(FullWindowOverlay).not.toHaveBeenCalled();
+  });
+
+  it('uses the native window overlay on iOS', () => {
+    Platform.OS = 'ios';
+    render(<AgentStepHud />);
+
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'iOS validation' });
+    });
+
+    expect(FullWindowOverlay).toHaveBeenCalled();
   });
 });

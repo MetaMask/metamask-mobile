@@ -2,13 +2,26 @@ import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
 import { MultichainTestDappViewSelectorsIDs } from '../../selectors/Browser/MultichainTestDapp.selectors.js';
 import MultichainUtilities from '../../helpers/multichain/MultichainUtilities.js';
 import { createLogger } from '../../framework/logger.js';
+import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
   name: 'MultichainTestDAppNetworkSelection',
 });
 
 const SELECTORS = MultichainTestDappViewSelectorsIDs;
-export const MULTICHAIN_TEST_DAPP_BASE_URL = `http://localhost:8093`;
+
+/** Device-facing Multichain test-dapp port (Android adb reverse target). */
+export const MULTICHAIN_DAPP_DEVICE_PORT = 8093;
+
+/**
+ * Browser URL for the Multichain test dapp on this worker.
+ * Resolves at call time so iOS N=2 workers hit the shifted host listen port.
+ */
+export function getMultichainTestDappBaseUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  return localDappBrowserUrl(MULTICHAIN_DAPP_DEVICE_PORT, env);
+}
 
 const CHECKBOX_SETTLE_TIMEOUT_MS = 10_000;
 const SELECTION_ATTEMPTS = 3;
@@ -45,7 +58,7 @@ export const ALL_CHAIN_IDS = [
 export async function clearSessionResult(resultIndex = 0): Promise<void> {
   const elementId = `${SELECTORS.SESSION_METHOD_RESULT}${resultIndex}`;
   await ChromeCdpHelpers.evaluateInWebView(
-    MULTICHAIN_TEST_DAPP_BASE_URL,
+    getMultichainTestDappBaseUrl(),
     `(() => { const el = document.getElementById(${JSON.stringify(elementId)}); if (el) el.textContent = ''; })()`,
   ).catch(() => undefined);
 }
@@ -116,7 +129,7 @@ export async function setCheckboxState(
     }
 
     await ChromeCdpHelpers.clickByIdInWebView(
-      MULTICHAIN_TEST_DAPP_BASE_URL,
+      getMultichainTestDappBaseUrl(),
       webId,
     );
     clicks += 1;
@@ -131,7 +144,7 @@ export async function setCheckboxState(
 
 export async function readConnectionState(): Promise<ConnectionState> {
   const state = await ChromeCdpHelpers.evaluateInWebView<string>(
-    MULTICHAIN_TEST_DAPP_BASE_URL,
+    getMultichainTestDappBaseUrl(),
     `(() => {
         const el = document.getElementById(${JSON.stringify(SELECTORS.CREATE_SESSION_BUTTON)});
         if (!el) return 'missing';
@@ -164,7 +177,7 @@ async function readCheckboxStates(
   webIds: string[],
 ): Promise<Record<string, CheckboxState>> {
   const raw = await ChromeCdpHelpers.evaluateInWebView<string>(
-    MULTICHAIN_TEST_DAPP_BASE_URL,
+    getMultichainTestDappBaseUrl(),
     `(() => {
         const states = {};
         for (const id of ${JSON.stringify(webIds)}) {

@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
+import { buildPostCancellationResetState } from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelSuccessStep from './components/CancelSuccessStep';
 
@@ -37,9 +37,12 @@ const CancelMembership = () => {
   const handleDone = useCallback(() => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    navigation.navigate(Routes.PRO_HUB.ROOT, {
-      source: 'pro_subscription_cancellation_success',
-    });
+    // Reset instead of navigate: navigate() pushes another Pro Hub on top of
+    // this success step, so Header back would return here. Reset keeps Pro Hub
+    // on top of the screen that started the flow (Money, Wallet, etc.).
+    navigation.dispatch((state) =>
+      CommonActions.reset(buildPostCancellationResetState(state)),
+    );
   }, [navigation]);
 
   // Once the membership is cancelled (success step), disable iOS swipe-back

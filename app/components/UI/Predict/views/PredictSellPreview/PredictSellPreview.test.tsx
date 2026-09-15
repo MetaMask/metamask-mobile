@@ -18,13 +18,19 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-/**
- * Mock Strategy:
- * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
- * - Do NOT mock: Internal components, design system, styling hooks, format utilities
- * - Navigation and order hooks are mocked because they have external side effects
- * and we're testing the component's orchestration and user interaction logic
- */
+
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 
 // Mock Engine for analytics tracking
 jest.mock('../../../../../core/Engine', () => ({
@@ -354,8 +360,6 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.9) = $57.30
-      // cashPnl = 57.30 - initialValue(50) = 7.30, percentPnl = 14.6%
       expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
@@ -478,11 +482,10 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should not show the current value when loading
       expect(screen.queryByText('$60')).toBeNull();
     });
 
-    it('falls back to position currentValue when preview has error', () => {
+    it('falls back to estimated net value when preview has error', () => {
       mockPreview = null;
       mockPreviewError = 'Failed to fetch preview';
       mockIsCalculating = false;
@@ -491,10 +494,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should display position's currentValue when preview errors
-      expect(screen.getByText('$60')).toBeOnTheScreen();
-      // Should still show PnL from position data
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      expect(screen.getByText('$57.60')).toBeOnTheScreen();
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
     it('displays preview error message when preview fails', () => {
@@ -511,7 +512,7 @@ describe('PredictSellPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('calculates PnL from position data when preview has error', () => {
+    it('calculates PnL from estimated net value when preview has error', () => {
       mockPreview = null;
       mockPreviewError = 'Preview unavailable';
       mockIsCalculating = false;
@@ -536,10 +537,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should show position's current value
-      expect(screen.getByText('$150')).toBeOnTheScreen();
-      // Should calculate PnL from position data
-      expect(screen.getByText('+$50 (50%)')).toBeOnTheScreen();
+      expect(screen.getByText('$144')).toBeOnTheScreen();
+      expect(screen.getByText('+$44 (44%)')).toBeOnTheScreen();
     });
   });
 
@@ -605,7 +604,6 @@ describe('PredictSellPreview', () => {
       });
 
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
-      // net proceeds = 60 - 1.8 - 0.9 = $57.30; cashPnl = 57.30 - 50 = $7.30 (14.6%)
       expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
@@ -670,7 +668,6 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // minAmountReceived(60) - metamaskFee(1.8) - providerFee(0.6) - marketFee(0.3) = $57.30
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
 

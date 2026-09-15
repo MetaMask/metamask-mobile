@@ -104,17 +104,19 @@ const BalanceEndContainer = ({
     <>
       <TouchableOpacity onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
+          {/* A settled zero renders a real "$0.00" rather than a blank: an
+              empty amount reads as "still loading" and is easily mistaken for a
+              funded account. Only an unformattable balance (no currency yet)
+              renders nothing. */}
           <SensitiveText
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Medium}
             length={SensitiveTextLength.Long}
-            isHidden={
-              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
-            }
+            isHidden={privacyMode && Boolean(displayBalance)}
             testID={AccountCellIds.BALANCE}
           >
-            {totalBalance ? displayBalance : null}
+            {displayBalance ?? null}
           </SensitiveText>
           {networkImageSource && (
             <AvatarNetwork

@@ -22,6 +22,8 @@ export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
   enabled: false,
   minimumVersion: '',
   mode: 'live',
+  priorityOrder: [],
+  prioritySlots: [],
   contentSource: {
     composition: 'query-results',
     queryParams: '',
