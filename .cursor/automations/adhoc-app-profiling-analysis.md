@@ -68,7 +68,7 @@ supports.
 
 ## Rules
 
-- Use only app-profiling / CPU-profile / API-call data from the files above.
+- Multiple Hermes files named `<scenario>.segment-2.cpuprofile` (and `.segment-3`, …) belong to the **same scenario**. Analyze them together as one journey and cite the segment when a hot frame is isolated.
 - Do not mention quality gates, test errors, or flake unless they appear in
   those files.
 - Do not invent regressions. Mark code hypotheses as UNVALIDATED.

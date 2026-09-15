@@ -181,6 +181,68 @@ function sanitizeFileSegment(value, maxLength = 80) {
     .slice(0, maxLength);
 }
 
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Hermes artifacts are named:
+ *   <project>-<title>.cpuprofile
+ *   <project>-<title>.segment-2.cpuprofile
+ *   <project>-<title>.retry-1.segment-3.cpuprofile
+ * Segment 1 omits `.segment-1`. Extra `-N` before the extension is a
+ * copy-collision suffix from aggregation, not a new scenario.
+ */
+function parseHermesProfileFileName(fileName) {
+  let stem = String(fileName || '');
+  if (stem.toLowerCase().endsWith('.cpuprofile')) {
+    stem = stem.slice(0, -'.cpuprofile'.length);
+  }
+
+  let retry = 0;
+  let segment = 1;
+  let copyIndex = null;
+
+  const segmentMatch = stem.match(/\.segment-(\d+)(?:-(\d+))?$/);
+  if (segmentMatch) {
+    segment = Number(segmentMatch[1]);
+    if (segmentMatch[2]) {
+      copyIndex = Number(segmentMatch[2]);
+    }
+    stem = stem.slice(0, -segmentMatch[0].length);
+  }
+
+  const retryMatch = stem.match(/\.retry-(\d+)$/);
+  if (retryMatch) {
+    retry = Number(retryMatch[1]);
+    stem = stem.slice(0, -retryMatch[0].length);
+  }
+
+  return {
+    fileName,
+    stem,
+    retry,
+    segment,
+    copyIndex,
+  };
+}
+
+function expectedCpuProfileStem(testName, projectName) {
+  const titleKey = sanitizeFileSegment(testName);
+  if (!projectName) {
+    return titleKey;
+  }
+  return `${sanitizeFileSegment(projectName)}-${titleKey}`;
+}
+
+function cpuProfileBelongsToScenario(fileName, testName, projectName) {
+  const expected = expectedCpuProfileStem(testName, projectName);
+  const pattern = new RegExp(
+    `^${escapeRegex(expected)}(?:-\\d+)?(?:\\.retry-\\d+)?(?:\\.segment-\\d+)?(?:-\\d+)?\\.cpuprofile$`,
+  );
+  return pattern.test(String(fileName || ''));
+}
+
 function round(value, digits = 2) {
   if (value == null || !Number.isFinite(Number(value))) return null;
   return Number(Number(value).toFixed(digits));
@@ -501,6 +563,7 @@ function loadCpuProfileSummaries(filePaths) {
         filePath,
         skipped: true,
         reason: `file too large (${round(stat.size / (1024 * 1024), 1)} MB)`,
+        ...parseHermesProfileFileName(path.basename(filePath)),
       });
       continue;
     }
@@ -510,6 +573,7 @@ function loadCpuProfileSummaries(filePaths) {
         fileName: path.basename(filePath),
         filePath,
         skipped: false,
+        ...parseHermesProfileFileName(path.basename(filePath)),
         ...summarizeCpuProfile(profile),
       });
     } catch (error) {
@@ -518,23 +582,80 @@ function loadCpuProfileSummaries(filePaths) {
         filePath,
         skipped: true,
         reason: `unreadable: ${error.message}`,
+        ...parseHermesProfileFileName(path.basename(filePath)),
       });
     }
   }
   return summaries;
 }
 
-function matchCpuProfilesToScenario(testName, projectName, cpuSummaries) {
-  const titleKey = sanitizeFileSegment(testName);
-  const projectKey = projectName ? sanitizeFileSegment(projectName) : null;
-  return cpuSummaries.filter((summary) => {
-    const name = summary.fileName || '';
-    if (!name.includes(titleKey)) return false;
-    if (projectKey && name.includes(projectKey)) return true;
-    if (!projectKey) return true;
-    // Title match is enough when the project prefix is absent.
-    return name.includes(titleKey);
+function sortCpuProfiles(profiles) {
+  return [...profiles].sort((left, right) => {
+    const retryDelta = (left.retry || 0) - (right.retry || 0);
+    if (retryDelta !== 0) return retryDelta;
+    const segmentDelta = (left.segment || 1) - (right.segment || 1);
+    if (segmentDelta !== 0) return segmentDelta;
+    return String(left.fileName).localeCompare(String(right.fileName));
   });
+}
+
+function matchCpuProfilesToScenario(testName, projectName, cpuSummaries) {
+  const matched = cpuSummaries
+    .filter((summary) =>
+      cpuProfileBelongsToScenario(summary.fileName, testName, projectName),
+    )
+    .map((summary) => ({
+      ...parseHermesProfileFileName(summary.fileName),
+      ...summary,
+    }));
+  return sortCpuProfiles(matched);
+}
+
+function mergeCpuProfileSummaries(profiles) {
+  const usable = (profiles || []).filter((profile) => !profile.skipped);
+  const byFrame = new Map();
+  let totalHits = 0;
+  let durationMs = 0;
+
+  for (const profile of usable) {
+    totalHits += profile.totalHits || 0;
+    durationMs += profile.durationMs || 0;
+    for (const frame of profile.topFunctions || []) {
+      const key = `${frame.name}|${frame.url}|${frame.line}`;
+      const current = byFrame.get(key) || {
+        name: frame.name,
+        url: frame.url,
+        line: frame.line,
+        hitCount: 0,
+        segments: [],
+      };
+      current.hitCount += frame.hitCount || 0;
+      if (profile.segment != null) {
+        current.segments.push(profile.segment);
+      }
+      byFrame.set(key, current);
+    }
+  }
+
+  const topFunctions = [...byFrame.values()]
+    .sort((left, right) => right.hitCount - left.hitCount)
+    .slice(0, TOP_CPU_FUNCTIONS)
+    .map((frame) => ({
+      name: frame.name,
+      url: frame.url,
+      line: frame.line,
+      hitCount: frame.hitCount,
+      sharePct: totalHits > 0 ? round((frame.hitCount / totalHits) * 100) : null,
+      segments: [...new Set(frame.segments)].sort((left, right) => left - right),
+    }));
+
+  return {
+    segmentCount: (profiles || []).length,
+    analyzedSegments: usable.length,
+    totalHits,
+    durationMs: round(durationMs),
+    topFunctions,
+  };
 }
 
 function compareMetrics(current, baseline) {
@@ -572,20 +693,29 @@ function buildScenarioSnapshot({ artifact, cpuSummaries, baselineMetrics }) {
     data.projectName,
     cpuSummaries,
   );
+  const combinedCpuProfile = mergeCpuProfileSummaries(cpuProfiles);
   const heuristicFindings = detectHeuristicIssues(metrics, detectedIssues);
   const baselineDelta = compareMetrics(metrics, baselineMetrics);
 
-  if (cpuProfiles.some((profile) => !profile.skipped && profile.topFunctions?.length)) {
-    const hottest = cpuProfiles
-      .flatMap((profile) => profile.topFunctions || [])
-      .sort((a, b) => b.hitCount - a.hitCount)[0];
-    if (hottest && hottest.sharePct != null && hottest.sharePct >= 15) {
-      heuristicFindings.push({
-        severity: 'medium',
-        theme: 'hot-frame',
-        summary: `Hermes hot frame ${hottest.name} (${hottest.sharePct}% of samples)${hottest.url ? ` @ ${hottest.url}` : ''}`,
-      });
-    }
+  if (cpuProfiles.length > 1) {
+    heuristicFindings.push({
+      severity: 'low',
+      theme: 'cpu-segments',
+      summary: `Hermes produced ${cpuProfiles.length} CPU-profile segments for this scenario; they are analyzed together as one journey.`,
+    });
+  }
+
+  const hottest = combinedCpuProfile.topFunctions[0];
+  if (hottest && hottest.sharePct != null && hottest.sharePct >= 15) {
+    const segmentNote =
+      hottest.segments?.length > 0
+        ? ` across segment${hottest.segments.length > 1 ? 's' : ''} ${hottest.segments.join(', ')}`
+        : '';
+    heuristicFindings.push({
+      severity: 'medium',
+      theme: 'hot-frame',
+      summary: `Hermes hot frame ${hottest.name} (${hottest.sharePct}% of samples${segmentNote})${hottest.url ? ` @ ${hottest.url}` : ''}`,
+    });
   }
 
   return {
@@ -601,6 +731,9 @@ function buildScenarioSnapshot({ artifact, cpuSummaries, baselineMetrics }) {
     apiCalls,
     cpuProfiles: cpuProfiles.map((profile) => ({
       fileName: profile.fileName,
+      stem: profile.stem ?? null,
+      retry: profile.retry ?? 0,
+      segment: profile.segment ?? 1,
       skipped: profile.skipped || false,
       reason: profile.reason || null,
       nodeCount: profile.nodeCount ?? null,
@@ -609,6 +742,7 @@ function buildScenarioSnapshot({ artifact, cpuSummaries, baselineMetrics }) {
       durationMs: profile.durationMs ?? null,
       topFunctions: profile.topFunctions || [],
     })),
+    combinedCpuProfile,
     heuristicFindings,
     baselineDelta,
   };
@@ -625,6 +759,8 @@ function buildAiBriefing(report) {
   lines.push('');
   lines.push('## Rules');
   lines.push('- Use CPU, memory, slow/frozen frames, ANRs, BrowserStack issues, hot JS frames, and slow API calls.');
+  lines.push('- Multiple Hermes files named `<scenario>.segment-2.cpuprofile`, `.segment-3`, etc. belong to the **same scenario** (app restart or background dump). Analyze them as one journey; cite the segment number when a hot frame is isolated to one dump.');
+  lines.push('- Prefer `combinedCpuProfile.topFunctions` for overall hot frames; use per-file `cpuProfiles` only to locate which segment.');
   lines.push('- Do not mention quality-gate failures, test errors, or flake unless they appear in the profiling payload.');
   lines.push('- If a scenario looks healthy, say so in one sentence. Do not invent regressions.');
   lines.push('- Cite numbers from the JSON. Mark hypotheses as UNVALIDATED when they are not measured facts.');
@@ -649,7 +785,7 @@ function buildAiBriefing(report) {
   lines.push('#### <scenario name>');
   lines.push('- Status: issue | watch | healthy');
   lines.push('- Findings: bullets with metrics');
-  lines.push('- Hottest JS frames (if present)');
+  lines.push('- Hottest JS frames from combinedCpuProfile (cite segment numbers)');
   lines.push('- Recommended next step');
   lines.push('');
   lines.push('### Priority actions');
@@ -688,6 +824,13 @@ function buildMarkdownReport(report) {
         (a, b) => severityRank(b.severity) - severityRank(a.severity),
       )) {
         lines.push(`- **${finding.severity}** (${finding.theme}): ${finding.summary}`);
+      }
+      if (scenario.cpuProfiles?.length > 1) {
+        const segments = scenario.cpuProfiles
+          .map((profile) => profile.segment)
+          .filter((value) => value != null)
+          .join(', ');
+        lines.push(`- Hermes segments: ${scenario.cpuProfiles.length} (${segments})`);
       }
       if (scenario.videoURL) {
         lines.push(`- Recording: ${scenario.videoURL}`);
@@ -1006,7 +1149,10 @@ export {
   summarizeApiCalls,
   detectHeuristicIssues,
   summarizeCpuProfile,
+  parseHermesProfileFileName,
+  cpuProfileBelongsToScenario,
   matchCpuProfilesToScenario,
+  mergeCpuProfileSummaries,
   compareMetrics,
   buildScenarioSnapshot,
   buildMarkdownReport,

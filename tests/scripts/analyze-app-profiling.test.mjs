@@ -11,7 +11,10 @@ import {
   summarizeApiCalls,
   detectHeuristicIssues,
   summarizeCpuProfile,
+  parseHermesProfileFileName,
+  cpuProfileBelongsToScenario,
   matchCpuProfilesToScenario,
+  mergeCpuProfileSummaries,
   compareMetrics,
   buildScenarioSnapshot,
   buildMarkdownReport,
@@ -143,13 +146,146 @@ test('summarizeCpuProfile ranks hot frames by hitCount', () => {
   assert.equal(summary.durationMs, 2000);
 });
 
-test('matchCpuProfilesToScenario uses sanitized title', () => {
-  const matches = matchCpuProfilesToScenario('Cold Start Login', 'browserstack-android', [
-    { fileName: 'browserstack-android-Cold_Start_Login.cpuprofile' },
-    { fileName: 'browserstack-android-Warm_Start.cpuprofile' },
+test('parseHermesProfileFileName reads segment and retry suffixes', () => {
+  assert.deepEqual(
+    parseHermesProfileFileName(
+      'browserstack-android-Cold_Start_Login.cpuprofile',
+    ),
+    {
+      fileName: 'browserstack-android-Cold_Start_Login.cpuprofile',
+      stem: 'browserstack-android-Cold_Start_Login',
+      retry: 0,
+      segment: 1,
+      copyIndex: null,
+    },
+  );
+  assert.equal(
+    parseHermesProfileFileName(
+      'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
+    ).segment,
+    2,
+  );
+  assert.equal(
+    parseHermesProfileFileName(
+      'browserstack-android-Cold_Start_Login.retry-1.segment-3.cpuprofile',
+    ).retry,
+    1,
+  );
+  assert.equal(
+    parseHermesProfileFileName(
+      'browserstack-android-Cold_Start_Login.segment-2-2.cpuprofile',
+    ).copyIndex,
+    2,
+  );
+});
+
+test('cpuProfileBelongsToScenario groups segment files and ignores other titles', () => {
+  const project = 'browserstack-android';
+  const title = 'Cold Start Login';
+  assert.equal(
+    cpuProfileBelongsToScenario(
+      'browserstack-android-Cold_Start_Login.cpuprofile',
+      title,
+      project,
+    ),
+    true,
+  );
+  assert.equal(
+    cpuProfileBelongsToScenario(
+      'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
+      title,
+      project,
+    ),
+    true,
+  );
+  assert.equal(
+    cpuProfileBelongsToScenario(
+      'browserstack-android-Cold_Start_Login.segment-3.cpuprofile',
+      title,
+      project,
+    ),
+    true,
+  );
+  assert.equal(
+    cpuProfileBelongsToScenario(
+      'browserstack-android-Cold_Start_Login.retry-1.segment-2.cpuprofile',
+      title,
+      project,
+    ),
+    true,
+  );
+  assert.equal(
+    cpuProfileBelongsToScenario(
+      'browserstack-android-Warm_Start.segment-2.cpuprofile',
+      title,
+      project,
+    ),
+    false,
+  );
+  assert.equal(
+    cpuProfileBelongsToScenario(
+      'browserstack-android-Cold_Start.segment-2.cpuprofile',
+      title,
+      project,
+    ),
+    false,
+  );
+});
+
+test('matchCpuProfilesToScenario collects every segment and sorts them', () => {
+  const matches = matchCpuProfilesToScenario(
+    'Cold Start Login',
+    'browserstack-android',
+    [
+      { fileName: 'browserstack-android-Cold_Start_Login.segment-3.cpuprofile' },
+      { fileName: 'browserstack-android-Warm_Start.segment-2.cpuprofile' },
+      { fileName: 'browserstack-android-Cold_Start_Login.cpuprofile' },
+      { fileName: 'browserstack-android-Cold_Start_Login.segment-2.cpuprofile' },
+    ],
+  );
+  assert.deepEqual(
+    matches.map((profile) => profile.segment),
+    [1, 2, 3],
+  );
+  assert.deepEqual(
+    matches.map((profile) => profile.fileName),
+    [
+      'browserstack-android-Cold_Start_Login.cpuprofile',
+      'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
+      'browserstack-android-Cold_Start_Login.segment-3.cpuprofile',
+    ],
+  );
+});
+
+test('mergeCpuProfileSummaries combines hot frames across segments', () => {
+  const merged = mergeCpuProfileSummaries([
+    {
+      skipped: false,
+      segment: 1,
+      totalHits: 40,
+      durationMs: 1000,
+      topFunctions: [
+        { name: 'selectAccounts', url: 'app/a.ts', line: 1, hitCount: 20 },
+      ],
+    },
+    {
+      skipped: false,
+      segment: 2,
+      totalHits: 60,
+      durationMs: 1500,
+      topFunctions: [
+        { name: 'selectAccounts', url: 'app/a.ts', line: 1, hitCount: 30 },
+        { name: 'idle', url: 'native', line: 0, hitCount: 10 },
+      ],
+    },
   ]);
-  assert.equal(matches.length, 1);
-  assert.match(matches[0].fileName, /Cold_Start_Login/);
+  assert.equal(merged.segmentCount, 2);
+  assert.equal(merged.totalHits, 100);
+  assert.equal(merged.durationMs, 2500);
+  assert.equal(merged.topFunctions[0].name, 'selectAccounts');
+  assert.equal(merged.topFunctions[0].hitCount, 50);
+  assert.equal(merged.topFunctions[0].sharePct, 50);
+  assert.deepEqual(merged.topFunctions[0].segments, [1, 2]);
 });
 
 test('compareMetrics reports deltas against a baseline', () => {
@@ -203,10 +339,19 @@ test('loadAppProfilingArtifacts and buildScenarioSnapshot produce findings', () 
     artifact: artifacts[0],
     cpuSummaries: [
       {
+        fileName: 'browserstack-android-Cold_Start_Login.segment-2.cpuprofile',
+        skipped: false,
+        totalHits: 20,
+        topFunctions: [
+          { name: 'hotFn', hitCount: 16, sharePct: 80, url: 'app/foo.ts' },
+        ],
+      },
+      {
         fileName: 'browserstack-android-Cold_Start_Login.cpuprofile',
         skipped: false,
+        totalHits: 20,
         topFunctions: [
-          { name: 'hotFn', hitCount: 80, sharePct: 80, url: 'app/foo.ts' },
+          { name: 'hotFn', hitCount: 16, sharePct: 80, url: 'app/foo.ts' },
         ],
       },
     ],
@@ -215,7 +360,15 @@ test('loadAppProfilingArtifacts and buildScenarioSnapshot produce findings', () 
   assert.equal(snapshot.testName, 'Cold Start Login');
   assert.ok(snapshot.heuristicFindings.some((finding) => finding.theme === 'cpu'));
   assert.ok(snapshot.heuristicFindings.some((finding) => finding.theme === 'hot-frame'));
-  assert.equal(snapshot.cpuProfiles.length, 1);
+  assert.equal(snapshot.cpuProfiles.length, 2);
+  assert.deepEqual(
+    snapshot.cpuProfiles.map((profile) => profile.segment),
+    [1, 2],
+  );
+  assert.equal(snapshot.combinedCpuProfile.segmentCount, 2);
+  assert.ok(
+    snapshot.heuristicFindings.some((finding) => finding.theme === 'cpu-segments'),
+  );
   assert.equal(snapshot.baselineDelta.cpuAvg.delta, 31);
 
   const markdown = buildMarkdownReport({
