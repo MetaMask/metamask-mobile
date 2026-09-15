@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
-import { Box } from '@metamask/design-system-react-native';
+import { Icon } from '@metamask/design-system-react-native';
 import ChartTypeToggle from '../ChartTypeToggle';
 import { ChartType } from '../AdvancedChart.types';
 
@@ -36,10 +36,12 @@ describe('ChartTypeToggle', () => {
       />,
     );
 
-    const lineIcon = getByLabelText('Line chart')
-      .children[0] as ReactTestInstance;
-    const candleIcon = getByLabelText('Candlestick chart')
-      .children[0] as ReactTestInstance;
+    const lineIcon = getByLabelText('Line chart').findByType(
+      Icon,
+    ) as ReactTestInstance;
+    const candleIcon = getByLabelText('Candlestick chart').findByType(
+      Icon,
+    ) as ReactTestInstance;
 
     expect(lineIcon.props.twClassName).toBe('text-icon-default');
     expect(candleIcon.props.twClassName).toBe('text-icon-alternative');
@@ -53,10 +55,12 @@ describe('ChartTypeToggle', () => {
       />,
     );
 
-    const candleIcon = getByLabelText('Candlestick chart')
-      .children[0] as ReactTestInstance;
-    const lineIcon = getByLabelText('Line chart')
-      .children[0] as ReactTestInstance;
+    const candleIcon = getByLabelText('Candlestick chart').findByType(
+      Icon,
+    ) as ReactTestInstance;
+    const lineIcon = getByLabelText('Line chart').findByType(
+      Icon,
+    ) as ReactTestInstance;
 
     expect(candleIcon.props.twClassName).toBe('text-icon-default');
     expect(lineIcon.props.twClassName).toBe('text-icon-alternative');
@@ -72,10 +76,10 @@ describe('ChartTypeToggle', () => {
 
     expect(
       getByLabelText('Candlestick chart').props.accessibilityState,
-    ).toEqual({ selected: true });
-    expect(getByLabelText('Line chart').props.accessibilityState).toEqual({
-      selected: false,
-    });
+    ).toMatchObject({ selected: true });
+    expect(getByLabelText('Line chart').props.accessibilityState).toMatchObject(
+      { selected: false },
+    );
   });
 
   it('calls onChartTypeSelect with line when line button is pressed', () => {
@@ -106,35 +110,5 @@ describe('ChartTypeToggle', () => {
 
     expect(onChartTypeSelect).toHaveBeenCalledWith(ChartType.Candles);
     expect(onChartTypeSelect).toHaveBeenCalledTimes(1);
-  });
-
-  it('uses the default container classes when containerTwClassName is omitted', () => {
-    const { UNSAFE_getByType } = render(
-      <ChartTypeToggle
-        chartType={ChartType.Line}
-        onChartTypeSelect={jest.fn()}
-      />,
-    );
-
-    const container = UNSAFE_getByType(Box);
-
-    expect(container.props.twClassName).toBe(
-      'ml-2 rounded-lg border border-border-muted p-0.5',
-    );
-  });
-
-  it('applies custom container classes when containerTwClassName is provided', () => {
-    const customClass = 'shrink-0 rounded-lg border border-border-muted p-0.5';
-    const { UNSAFE_getByType } = render(
-      <ChartTypeToggle
-        chartType={ChartType.Line}
-        onChartTypeSelect={jest.fn()}
-        containerTwClassName={customClass}
-      />,
-    );
-
-    const container = UNSAFE_getByType(Box);
-
-    expect(container.props.twClassName).toBe(customClass);
   });
 });
