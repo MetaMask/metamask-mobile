@@ -12,6 +12,8 @@ import AppConstants from '../../AppConstants';
 import { DappClient } from '../dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { analytics } from '../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../Analytics';
 
 jest.mock('../SDKConnect');
 jest.mock('react-native');
@@ -20,6 +22,11 @@ jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
 jest.mock('../handlers/handleCustomRpcCalls');
 jest.mock('../handlers/handleBatchRpcResponse');
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 jest.mock('../../Permissions', () => ({
   ...jest.requireActual('../../Permissions'),
   getPermittedAccounts: jest.fn().mockReturnValue([]),
@@ -592,6 +599,124 @@ describe('DeeplinkProtocolService', () => {
       service.connections.channel1 = {} as any;
       service.removeConnection('channel1');
       expect(service.connections.channel1).toBeUndefined();
+    });
+  });
+
+  describe('WAPI-1347 Part B — deeplink_protocol wallet analytics', () => {
+    const originatorWithAnon = {
+      url: 'https://dapp.example',
+      title: 'Example',
+      platform: 'ios',
+      dappId: 'dapp-id',
+      apiVersion: '2.1.0',
+      anonId: 'anon-123',
+    };
+
+    const originatorWithoutAnon = {
+      url: 'https://dapp.example',
+      title: 'Example',
+      platform: 'ios',
+      dappId: 'dapp-id',
+    };
+
+    describe('Remote Connection Request Received (handleConnection)', () => {
+      beforeEach(() => {
+        // Prevent the fire-and-forget async tail from running side effects;
+        // the connection event is emitted synchronously before it.
+        service.handleConnectionEventAsync = jest
+          .fn()
+          .mockResolvedValue(null);
+        service.sendMessage = jest.fn().mockResolvedValue(null);
+      });
+
+      const buildParams = (originatorInfo: object) => ({
+        dappPublicKey: 'key',
+        url: 'https://dapp.example',
+        scheme: 'scheme',
+        channelId: 'channelA',
+        originatorInfo: Buffer.from(
+          JSON.stringify({ originatorInfo }),
+        ).toString('base64'),
+      });
+
+      it('tracks the event over deeplink_protocol when anonId is present', async () => {
+        await service.handleConnection(buildParams(originatorWithAnon));
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED
+              .category,
+            properties: expect.objectContaining({
+              transport_type: 'deeplink_protocol',
+              sdk_version: '2.1.0',
+              remote_session_id: 'anon-123',
+            }),
+          }),
+        );
+      });
+
+      it('does not track when anonId is missing', async () => {
+        await service.handleConnection(buildParams(originatorWithoutAnon));
+
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('SDK Legacy RPC Request Received (processDappRpcRequest)', () => {
+      beforeEach(() => {
+        service.connections.channelA = {
+          clientId: 'channelA',
+          originatorInfo: originatorWithAnon,
+          connected: true,
+          validUntil: Date.now(),
+          scheme: 'scheme',
+        };
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        service.bridgeByClientId.channelA = { onMessage: jest.fn() } as any;
+      });
+
+      const buildRpcParams = (method: string) => ({
+        dappPublicKey: 'key',
+        url: 'https://dapp.example',
+        scheme: 'scheme',
+        channelId: 'channelA',
+        request: JSON.stringify({ id: '1', method, params: [] }),
+      });
+
+      it('tracks the event over deeplink_protocol for a tracked method', async () => {
+        await service.processDappRpcRequest(
+          buildRpcParams('eth_sendTransaction'),
+        );
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED.category,
+            properties: expect.objectContaining({
+              transport_type: 'deeplink_protocol',
+              sdk_version: '2.1.0',
+              rpc_method: 'eth_sendTransaction',
+              remote_session_id: 'anon-123',
+            }),
+          }),
+        );
+      });
+
+      it('does not track for an untracked method', async () => {
+        await service.processDappRpcRequest(buildRpcParams('eth_chainId'));
+
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
+
+      it('does not track when the channel has no stored anonId', async () => {
+        service.connections.channelA.originatorInfo = originatorWithoutAnon;
+
+        await service.processDappRpcRequest(
+          buildRpcParams('eth_sendTransaction'),
+        );
+
+        expect(analytics.trackEvent).not.toHaveBeenCalled();
+      });
     });
   });
 });
