@@ -45,6 +45,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { useSolanaPayPresentation } from '../../../hooks/pay/useSolanaPayPresentation';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -58,6 +59,17 @@ export function BridgeFeeRow() {
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const solanaPay = useSolanaPayPresentation();
+
+  if (solanaPay) {
+    return (
+      <SolanaTransactionFeeRow
+        feeUsd={solanaPay.feeUsd}
+        hasAlert={!solanaPay.affordability.isAffordable}
+        reserveSol={solanaPay.reserveSol}
+      />
+    );
+  }
 
   return (
     <TransactionFeeRow
@@ -172,6 +184,43 @@ function TransactionFeeRow({
           {feeTotalUsd}
         </Text>
       )}
+    </AlertRow>
+  );
+}
+
+function SolanaTransactionFeeRow({
+  feeUsd,
+  hasAlert,
+  reserveSol,
+}: {
+  feeUsd: BigNumber;
+  hasAlert: boolean;
+  reserveSol: BigNumber;
+}) {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+
+  return (
+    <AlertRow
+      testID="bridge-fee-row"
+      alertField={RowAlertKey.PayWithFee}
+      label={strings('confirm.label.transaction_fees')}
+      tooltip={
+        <Text>
+          {strings('confirm.solana_pay.reserve', {
+            amount: reserveSol.toFixed(6),
+          })}
+        </Text>
+      }
+      tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text
+        variant={TextVariant.BodyMd}
+        color={hasAlert ? TextColor.ErrorDefault : TextColor.TextAlternative}
+        testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+      >
+        {formatFiat(feeUsd)}
+      </Text>
     </AlertRow>
   );
 }

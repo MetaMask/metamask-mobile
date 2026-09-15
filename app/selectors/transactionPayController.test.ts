@@ -22,11 +22,13 @@ const TRANSACTION_ID_MOCK = 'tx-1';
 
 function createMockRootState(
   transactionData: Record<string, Record<string, unknown>> = {},
+  payIntents: Record<string, Record<string, unknown>> = {},
 ): RootState {
   return {
     engine: {
       backgroundState: {
         TransactionPayController: {
+          payIntents,
           transactionData,
         },
       },
@@ -408,6 +410,50 @@ describe('transactionPayController selectors', () => {
       );
 
       expect(result).toBe(true);
+    });
+
+    it('returns true for an affordable Solana preflight', () => {
+      const state = createMockRootState(
+        {
+          [TRANSACTION_ID_MOCK]: {
+            solanaPayQuote: {
+              preflight: { affordability: { isAffordable: true } },
+            },
+          },
+        },
+        {
+          [TRANSACTION_ID_MOCK]: { sourceChainId: 'solana:mainnet' },
+        },
+      );
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for a Solana preflight with a native shortfall', () => {
+      const state = createMockRootState(
+        {
+          [TRANSACTION_ID_MOCK]: {
+            solanaPayQuote: {
+              preflight: { affordability: { isAffordable: false } },
+            },
+          },
+        },
+        {
+          [TRANSACTION_ID_MOCK]: { sourceChainId: 'solana:mainnet' },
+        },
+      );
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
     });
 
     it('returns false when no pay state exists for the transaction', () => {

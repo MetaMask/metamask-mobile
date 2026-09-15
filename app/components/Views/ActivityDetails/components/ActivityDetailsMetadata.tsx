@@ -16,6 +16,8 @@ import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
+import { useActivityPayMetadata } from '../hooks/useActivityPayMetadata';
+import { getSolanaPayStatusLabel } from '../solana-pay-status';
 
 /**
  * The type-agnostic metadata block: status, date, account, network, and a
@@ -36,6 +38,11 @@ export function ActivityDetailsMetadata({
 }) {
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
+  const payMetadata = useActivityPayMetadata(item);
+  const solanaIntent = payMetadata?.intent?.sourceChainId.startsWith('solana:')
+    ? payMetadata.intent
+    : undefined;
+  const payStatusLabel = getSolanaPayStatusLabel(solanaIntent);
   const showAddressOnly = item.type === 'smartAccountUpgrade';
   const showFromTo =
     !showAddressOnly && Boolean(addressRows?.from && addressRows?.to);
@@ -47,9 +54,29 @@ export function ActivityDetailsMetadata({
     <ActivityDetailSection>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={item.status} />}
+        value={
+          <ActivityDetailsStatus status={item.status} label={payStatusLabel} />
+        }
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
+
+      {solanaIntent ? (
+        <ActivityDetailRow
+          label={strings('confirm.solana_pay.source_account')}
+          value={renderShortAddress(
+            solanaIntent.sourceAccountId.slice(
+              `${solanaIntent.sourceChainId}:`.length,
+            ),
+          )}
+        />
+      ) : null}
+
+      {solanaIntent?.sourceTransactionId ? (
+        <ActivityDetailRow
+          label={strings('confirm.solana_pay.source_transaction')}
+          value={solanaIntent.sourceTransactionId}
+        />
+      ) : null}
 
       <ActivityDetailRow
         label={strings('activity_details.date')}
