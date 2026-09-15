@@ -327,15 +327,9 @@ class QuoteView {
   }
 
   async tapOnBackButton(): Promise<void> {
-    // Deeplink / navigation races can already leave Swap before dismiss runs
-    // (failure screenshots show wallet home while looking for the back control).
-    if (!(await Utilities.isElementVisible(this.sourceTokenArea, 1500))) {
-      return;
-    }
-
-    // Prefer dedicated bridge-header-back-button (not generic ButtonIcon
-    // `button-icon`, which collides with other header icons). Android still
-    // retries tap + source-gone verify for intermittent header readiness.
+    // Prefer the dedicated `bridge-back-button` testID. On Android still retry
+    // + verify dismiss — post-trade Activity → Quote stacks can leave the
+    // Swap screen up after a missed tap, and TabBar Wallet then hangs.
     if (PlatformDetector.isAndroid()) {
       await Utilities.executeWithRetry(
         async () => {

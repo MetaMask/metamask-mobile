@@ -50,7 +50,7 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Configure Namespace cache
@@ -84,7 +84,7 @@ jobs:
       - name: Restore golden AVD cache
         id: restore-golden-avd
         if: ${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != '' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/.android/avd
           key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}
@@ -122,7 +122,7 @@ jobs:
             steps.restore-golden-avd.outputs.cache-hit != 'true'
           }}
         continue-on-error: true
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ~/.android/avd
           key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}

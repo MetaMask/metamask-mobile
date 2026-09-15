@@ -1,4 +1,3 @@
-import { BNToHex } from '@metamask/controller-utils';
 import {
   ChainId,
   LendingProvider,
@@ -310,30 +309,6 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      TokenBalancesController: {
-        tokenBalances: {
-          [MOCK_ADDRESS_2.toLowerCase()]: {
-            [CHAIN_IDS.MAINNET]: {
-              [MOCK_USDC_MAINNET_ASSET.address]: BNToHex(
-                new BigNumber('1000000'),
-              ),
-            },
-          },
-        },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-        currencyRates: {
-          ETH: { conversionRate: 2000 },
-        },
-      },
-      TokenRatesController: {
-        marketData: {
-          [CHAIN_IDS.MAINNET]: {
-            [MOCK_USDC_MAINNET_ASSET.address]: { price: 1 },
-          },
-        },
-      },
       AssetsController: {
         selectedCurrency: 'usd',
         assetsInfo: {

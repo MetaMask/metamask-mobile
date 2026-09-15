@@ -232,7 +232,7 @@ describe('TopTradersView', () => {
     });
 
     renderTopTradersViewWithRoutes([
-      { name: Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP },
+      { name: Routes.SOCIAL.TRADING_SIGNALS_SETUP },
     ]);
 
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
@@ -245,7 +245,7 @@ describe('TopTradersView', () => {
 
     // The trading signals setup sheet route should have been pushed.
     await screen.findByTestId(
-      getRouteProbeTestId(Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP),
+      getRouteProbeTestId(Routes.SOCIAL.TRADING_SIGNALS_SETUP),
     );
   });
 
@@ -298,17 +298,13 @@ describe('TopTradersView', () => {
   // -------------------------------------------------------------------------
 
   it('navigates to the trader profile screen with the correct trader id and rank when a row is tapped', async () => {
-    renderTopTradersViewWithRoutes([
-      { name: Routes.SOCIAL_LEADERBOARD.PROFILE },
-    ]);
+    renderTopTradersViewWithRoutes([{ name: Routes.SOCIAL.PROFILE }]);
 
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByText('alpha.eth'));
 
-    await screen.findByTestId(
-      getRouteProbeTestId(Routes.SOCIAL_LEADERBOARD.PROFILE),
-    );
+    await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.PROFILE));
   });
 
   // -------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /**
- * Imperative contract a tab page exposes to `SocialTradersTabsView`.
+ * Imperative contract a tab page exposes to `SocialV0View`.
  *
  * The container's collapsing title is driven by whichever page is visible, so
  * switching tabs between a scrolled page and an unscrolled one would otherwise
