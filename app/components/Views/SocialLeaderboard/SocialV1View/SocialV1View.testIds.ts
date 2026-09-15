@@ -12,4 +12,5 @@ export const SocialV1ViewSelectorsIDs = {
   AVATAR_BUTTON: 'social-v1-view-avatar-button',
   HEART_BUTTON: 'social-v1-view-heart-button',
   PLUS_BUTTON: 'social-v1-view-plus-button',
+  FILTER_BUTTON: 'social-v1-view-filter-button',
 } as const;

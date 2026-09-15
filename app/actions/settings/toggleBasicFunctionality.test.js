@@ -1,3 +1,5 @@
+import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
+
 import {
   toggleBasicFunctionality,
   consolidateBasicFunctionality,
@@ -6,16 +8,21 @@ import {
   setBasicFunctionalityConsolidatedEnabled,
   setBasicFunctionalityMigrationNotification,
 } from './index';
-import { selectIsBasicFunctionalityConsolidationEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import {
+  selectMobileUxBftcConsolidationFlagEnabled,
+  selectIsSocialLoginBasicFunctionalityLocked,
+} from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
 
 const mockSyncConsolidatedBasicFunctionalityPreferences = jest.mocked(
   syncConsolidatedBasicFunctionalityPreferences,
 );
-const mockSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
-  selectIsBasicFunctionalityConsolidationEnabled,
+const mockSelectMobileUxBftcConsolidationFlagEnabled = jest.mocked(
+  selectMobileUxBftcConsolidationFlagEnabled,
 );
-const mockSelectMobileUxBftcConsolidationFlagEnabled = jest.fn(() => true);
+const mockSelectIsSocialLoginBasicFunctionalityLocked = jest.mocked(
+  selectIsSocialLoginBasicFunctionalityLocked,
+);
 const mockGetBasicFunctionalityConsolidationPlan = jest.fn(() => ({
   landingState: true,
   notification: 'toast',
@@ -24,11 +31,17 @@ const mockIsBasicFunctionalitySocialLoginUser = jest.fn(() => false);
 
 // Mock Engine
 const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
+const mockSetIsBackupAndSyncFeatureEnabled = jest
+  .fn()
+  .mockResolvedValue(undefined);
 jest.mock('../../core/Engine', () => ({
   default: {
     context: {
       MultichainAccountService: {
         setBasicFunctionality: mockSetBasicFunctionality,
+      },
+      UserStorageController: {
+        setIsBackupAndSyncFeatureEnabled: mockSetIsBackupAndSyncFeatureEnabled,
       },
       PreferencesController: {},
     },
@@ -38,9 +51,8 @@ jest.mock('../../core/Engine', () => ({
 jest.mock(
   '../../selectors/featureFlagController/basicFunctionalityConsolidation',
   () => ({
-    selectIsBasicFunctionalityConsolidationEnabled: jest.fn(() => false),
-    selectMobileUxBftcConsolidationFlagEnabled: (...args) =>
-      mockSelectMobileUxBftcConsolidationFlagEnabled(...args),
+    selectMobileUxBftcConsolidationFlagEnabled: jest.fn(() => false),
+    selectIsSocialLoginBasicFunctionalityLocked: jest.fn(() => false),
     BFT_CHILD_PREFERENCES: [
       'useTransactionSimulations',
       'securityAlertsEnabled',
@@ -74,7 +86,9 @@ describe('toggleBasicFunctionality action', () => {
     mockGetState = jest.fn(() => ({}));
     jest.clearAllMocks();
     mockSetBasicFunctionality.mockResolvedValue(undefined);
-    mockSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+    mockSetIsBackupAndSyncFeatureEnabled.mockResolvedValue(undefined);
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectIsSocialLoginBasicFunctionalityLocked.mockReturnValue(false);
   });
 
   it('dispatches Redux state update and calls MultichainAccountService', async () => {
@@ -97,6 +111,66 @@ describe('toggleBasicFunctionality action', () => {
 
     // Verify MultichainAccountService was called with false
     expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+  });
+
+  it('ignores attempts to disable Basic Functionality for a locked social-login wallet', async () => {
+    mockSelectIsSocialLoginBasicFunctionalityLocked.mockReturnValue(true);
+    const action = toggleBasicFunctionality(false);
+
+    await action(mockDispatch, mockGetState);
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+    expect(mockSetBasicFunctionality).not.toHaveBeenCalled();
+  });
+
+  it('disables Backup & Sync before turning Basic Functionality off', async () => {
+    mockGetState.mockReturnValue({
+      engine: {
+        backgroundState: {
+          UserStorageController: {
+            isBackupAndSyncEnabled: true,
+          },
+        },
+      },
+    });
+    mockDispatch.mockImplementation(() => {
+      expect(mockSetIsBackupAndSyncFeatureEnabled).toHaveBeenCalledWith(
+        BACKUPANDSYNC_FEATURES.main,
+        false,
+      );
+    });
+    const action = toggleBasicFunctionality(false);
+
+    await action(mockDispatch, mockGetState);
+
+    expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(false));
+  });
+
+  it('still turns Basic Functionality off when Backup & Sync cannot be disabled', async () => {
+    const controllerError = new Error('User storage unavailable');
+    mockSetIsBackupAndSyncFeatureEnabled.mockRejectedValue(controllerError);
+    mockGetState.mockReturnValue({
+      engine: {
+        backgroundState: {
+          UserStorageController: {
+            isBackupAndSyncEnabled: true,
+          },
+        },
+      },
+    });
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    const action = toggleBasicFunctionality(false);
+
+    await action(mockDispatch, mockGetState);
+
+    expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(false));
+    expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+    expect(consoleSpy).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 
   it('handles MultichainAccountService errors gracefully', async () => {
@@ -128,15 +202,15 @@ describe('toggleBasicFunctionality action', () => {
     consoleSpy.mockRestore();
   });
 
-  it('syncs consolidated preferences when consolidation is enabled before toggle', async () => {
-    mockSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(true);
+  it('syncs consolidated preferences when the rollout is enabled', async () => {
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(true);
     const action = toggleBasicFunctionality(false);
     await action(mockDispatch, mockGetState);
 
     expect(mockGetState).toHaveBeenCalled();
-    expect(
-      mockSelectIsBasicFunctionalityConsolidationEnabled,
-    ).toHaveBeenCalledWith({});
+    expect(mockSelectMobileUxBftcConsolidationFlagEnabled).toHaveBeenCalledWith(
+      {},
+    );
     expect(mockDispatch).toHaveBeenCalledWith(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
@@ -145,14 +219,12 @@ describe('toggleBasicFunctionality action', () => {
     ).toHaveBeenCalledWith(false);
   });
 
-  it('evaluates consolidation eligibility before flipping BF so silent users still sync', async () => {
+  it('evaluates the rollout before flipping BF so mixed users still sync', async () => {
     const callOrder = [];
-    mockSelectIsBasicFunctionalityConsolidationEnabled.mockImplementation(
-      () => {
-        callOrder.push('select');
-        return true;
-      },
-    );
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockImplementation(() => {
+      callOrder.push('select');
+      return true;
+    });
     mockDispatch.mockImplementation((action) => {
       callOrder.push(action.type);
       return action;
@@ -239,6 +311,23 @@ describe('consolidateBasicFunctionality action', () => {
     expect(dispatch).toHaveBeenCalledWith(
       setBasicFunctionalityMigrationNotification('toast'),
     );
+  });
+
+  it('leaves the wallet unmigrated when the service rejects', async () => {
+    const dispatch = jest.fn();
+    const serviceError = new Error('Service error');
+    mockSetBasicFunctionality.mockRejectedValue(serviceError);
+
+    await expect(
+      consolidateBasicFunctionality()(dispatch, () => state),
+    ).rejects.toThrow(serviceError);
+
+    // Nothing is persisted, so the migration retries instead of stranding the
+    // service out of sync with the wallet's preferences.
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('does not migrate when the remote flag is off', async () => {

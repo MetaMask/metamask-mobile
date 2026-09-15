@@ -1,6 +1,7 @@
 import { within } from '@testing-library/react-native';
 import Engine from '../../../app/core/Engine';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import type { PredictGameLive } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
   PredictDecimal,
@@ -354,6 +355,17 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/** Delivers a live Game update to every listener the screen registered. */
+export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) => {
+  const listeners = (
+    Engine.controllerMessenger.subscribe as unknown as jest.Mock
+  ).mock.calls.filter(
+    ([eventName]) => eventName === 'PredictLiveDataService:gameLiveUpdated',
+  );
+
+  listeners.forEach(([, listener]) => listener(update));
+};
+
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
@@ -370,6 +382,14 @@ export const configurePredictNextFeeds = ({
 
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          currency: 'USD',
+          available: '123.125',
+        });
+      }
+
       if (action === 'PredictMarketDataService:getEvent') {
         const result = details ?? defaultDetails;
         if (result instanceof Error) {

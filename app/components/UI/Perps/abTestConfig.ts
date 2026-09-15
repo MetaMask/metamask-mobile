@@ -58,11 +58,11 @@ export const BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
  * Consume via `usePerpsScreenVsBottomSheetAbTest()` — do not call `useABTest`
  * with this flag from conversion tickets.
  *
- * The key is intentionally semantic and ticket-independent because this
- * experiment is reused by multiple conversion tickets.
+ * Flag key follows `{team}{TICKET}Abtest{TestName}` using TAT-3938 (the
+ * experiment-setup ticket). Later conversion tickets reuse this same key.
  */
 export const PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY =
-  'perpsAbtestScreenVsBottomSheet';
+  'perpsTAT3938AbtestScreenVsBottomSheet';
 
 export enum ScreenVsBottomSheetVariant {
   Control = 'control',
