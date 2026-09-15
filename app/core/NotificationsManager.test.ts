@@ -469,6 +469,16 @@ describe('NotificationManager', () => {
           }),
         }),
       );
+
+      // The post-confirmation refresh must use a CAIP chain ID:
+      // AssetsController.getAssets expects `chainIds: CaipChainId[]`, not the
+      // transaction's raw hex chainId.
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [{ id: 'account-id' }],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
     });
 
     it('shows a confirm notification for EIP-7702 transaction without nonce', async () => {
