@@ -76,6 +76,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
@@ -409,6 +410,8 @@ class AuthenticationService {
     // Restore vault with empty password
     await KeyringController.submitPassword('');
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       await SeedlessOnboardingController.clearState();
     }
     await this.resetPassword();
@@ -1099,6 +1102,11 @@ class AuthenticationService {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
 
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      // Must run before the temporary vault unlocks so pairing/sync cannot
+      // attach that wallet to the previous profile.
+      Engine.context.AuthenticationController.clearState();
+
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
 
@@ -1721,6 +1729,16 @@ class AuthenticationService {
   };
 
   /**
+   * Drops the auth session and unsets the Segment canonical profile trait.
+   */
+  private clearAuthSession(): void {
+    Engine.context.AuthenticationController.clearState();
+    analytics.identify({
+      [UserProfileProperty.CANONICAL_PROFILE_ID]: null,
+    });
+  }
+
+  /**
    * Resets the wallet state by creating a new wallet and clearing all related state.
    * This is used during wallet deletion/reset flows.
    * Protected method - use deleteWallet() instead for complete wallet deletion.
@@ -1742,6 +1760,9 @@ class AuthenticationService {
       // data (with the still-present old tokens) only to discard it in resetAll.
       Engine.context.CardController.setResetInProgress(true);
 
+      // Previous profile must be gone before the throwaway vault unlocks.
+      this.clearAuthSession();
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -1762,6 +1783,9 @@ class AuthenticationService {
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
+        // Throwaway vault may have signed in while unlocked. Always wipe,
+        // including when a later step throws and resetWalletState swallows it.
+        this.clearAuthSession();
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs

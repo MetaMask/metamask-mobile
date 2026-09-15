@@ -134,30 +134,46 @@ const selectIsBasicFunctionalityMigrationNotificationDismissed = (
   state: RootState,
 ) => Boolean(state.settings?.basicFunctionalityMigrationNotificationDismissed);
 
+/**
+ * A scheduled notice survives a feature-flag rollback. The migration may have
+ * already changed the user's preferences, so the flag remains a gate for
+ * starting migrations and showing consolidated settings, but not for
+ * acknowledging a completed migration.
+ */
 export const selectShouldShowBasicFunctionalityMigrationBottomSheet =
   createSelector(
-    selectMobileUxBftcConsolidationFlagEnabled,
     selectBasicFunctionalityMigrationNotification,
     selectIsBasicFunctionalityMigrationNotificationDismissed,
-    (isFlagEnabled, notification, isDismissed) =>
-      isFlagEnabled && notification === 'bottom-sheet' && !isDismissed,
+    (notification, isDismissed) =>
+      notification === 'bottom-sheet' && !isDismissed,
   );
 
 export const selectShouldShowBasicFunctionalityMigrationToast = createSelector(
-  selectMobileUxBftcConsolidationFlagEnabled,
   selectBasicFunctionalityMigrationNotification,
   selectIsBasicFunctionalityMigrationNotificationDismissed,
-  (isFlagEnabled, notification, isDismissed) =>
-    isFlagEnabled && notification === 'toast' && !isDismissed,
+  (notification, isDismissed) => notification === 'toast' && !isDismissed,
 );
 
+/**
+ * Lock social-login Basic Functionality only after it is on. If migration has
+ * not completed (or failed), keeping an OFF toggle operable gives the user and
+ * the next migration attempt a recovery path instead of trapping it OFF.
+ */
 export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectBasicFunctionalityEnabled,
   selectOnboardingAccountType,
   selectSeedlessAuthConnection,
   selectHasSeedlessVault,
-  (isFlagEnabled, accountType, authConnection, hasSeedlessVault) =>
+  (
+    isFlagEnabled,
+    isBasicFunctionalityEnabled,
+    accountType,
+    authConnection,
+    hasSeedlessVault,
+  ) =>
     isFlagEnabled &&
+    isBasicFunctionalityEnabled &&
     isBasicFunctionalitySocialLoginUser({
       accountType,
       authConnection,

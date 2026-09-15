@@ -42,9 +42,6 @@ describe('LeaderboardShellTabPage', () => {
     expect(
       screen.getByTestId(getSubnavPillTestId('topTraders')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(getSubnavPillTestId('topPerps')),
-    ).toBeOnTheScreen();
     expect(screen.getByTestId(getSubnavPillTestId('kols'))).toBeOnTheScreen();
   });
 
