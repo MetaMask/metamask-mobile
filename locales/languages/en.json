@@ -10221,6 +10221,7 @@
       "category": "Category",
       "location": "Location",
       "decline_reason": "Decline reason",
+      "network_fee": "Network fee",
       "decline_reasons": {
         "insufficient_funds": "Insufficient funds"
       },
