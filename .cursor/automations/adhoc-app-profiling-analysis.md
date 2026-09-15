@@ -26,7 +26,7 @@ PR.
 ## Tools required
 
 - GitHub (`gh`) authenticated with `actions:read`
-- Slack MCP (`slack_send_message`) to channel `C07KB8HRZ4J` (testing channel)
+- Slack MCP (`slack_send_message`) to user `UEYQL2PEV` (Javier's personal DM)
 - Shell access to run the collector script
 
 ## Prompt (copy into Cursor Automation)
@@ -39,9 +39,9 @@ run (scheduled every 6 hours on main).
 For **each scenario** in the run, review only Hermes CPU-profile sampled
 stacks, then report any issues that the data supports.
 
-After the write-up, send the Slack summary to channel `C07KB8HRZ4J` using
-`slack_send_message`. Lead the message with a disclaimer stating this is a
-testing experiment and not a production alert.
+After the write-up, send the Slack summary directly to user `UEYQL2PEV` using
+`slack_send_message`. Do not post it to a channel. Lead the message with a
+disclaimer stating this is a testing experiment and not a production alert.
 
 ## Steps
 
@@ -90,7 +90,8 @@ testing experiment and not a production alert.
    - at most 5 executive-summary bullets
    - at most 5 priority actions
 
-6. Send the final summary to Slack channel `C07KB8HRZ4J` with `slack_send_message`.
+6. Send the final summary directly to Slack user `UEYQL2PEV` with
+   `slack_send_message`. Do not post it to a channel.
    Keep it short (executive summary + high-severity findings + actions).
    Start from `/tmp/analyze-app-profiling/slack.md` and replace the agent
    section with your findings. Do not wrap the message in a code fence.
@@ -105,6 +106,8 @@ testing experiment and not a production alert.
 - Do not mention quality gates, test errors, or flake unless they appear in
   those files.
 - Do not invent regressions. Mark code hypotheses as UNVALIDATED.
+- Do not send a manual copy when the GitHub workflow is already responsible
+  for delivering the same report.
 - English, concise, QA/performance audience.
 
 ## Non-goals

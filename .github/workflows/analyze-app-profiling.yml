@@ -48,7 +48,7 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Post the analysis summary to the testing Slack channel (C07KB8HRZ4J)'
+        description: 'Send the analysis summary to the personal testing Slack DM'
         required: false
         type: boolean
         default: true
@@ -56,6 +56,12 @@ on:
 permissions:
   contents: read
   actions: read
+
+concurrency:
+  # A quick sequence of PR pushes should produce only the newest analysis and
+  # one Slack DM. Manual dispatches remain independent by using their run id.
+  group: analyze-app-profiling-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
@@ -134,10 +140,10 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # Channel id. The bot must be a member of this channel, otherwise
-          # chat.postMessage returns `not_in_channel`. The posted summary
-          # carries a testing disclaimer because this is still an experiment.
-          SLACK_TARGET: C07KB8HRZ4J
+          # Slack member id, not a public channel or a `D...` conversation id.
+          # Addressing the member sends this only to the bot's personal DM
+          # with Javier and needs `chat:write` rather than `im:write`.
+          SLACK_TARGET: UEYQL2PEV
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           node tests/scripts/post-app-profiling-slack.mjs \
