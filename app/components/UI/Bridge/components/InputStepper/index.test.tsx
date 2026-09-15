@@ -78,10 +78,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(40);
     });
 
@@ -91,10 +88,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(35);
     });
 
@@ -104,10 +98,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(30);
     });
 
@@ -117,10 +108,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(25);
     });
 
@@ -130,10 +118,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(20);
     });
 
