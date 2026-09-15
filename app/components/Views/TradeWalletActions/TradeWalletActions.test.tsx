@@ -530,7 +530,7 @@ describe('TradeWalletActions', () => {
   });
 
   it('should renderScreen correctly', () => {
-    const { getByTestId, getByText, queryByTestId } = renderScreen(
+    const { getByTestId, queryByText, queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -543,7 +543,7 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
     ).toBeDefined();
-    expect(getByText('New')).toBeOnTheScreen();
+    expect(queryByText('New')).toBeNull();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
