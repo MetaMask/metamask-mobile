@@ -37,11 +37,11 @@ After the global gates, path filters classify non-ignorable changes as Android-o
 
 For every eligible pull request, iOS is opt-in:
 
-| Request                                      | Effect                                                           |
-| -------------------------------------------- | ---------------------------------------------------------------- |
-| `run-appium-ios-tests`                       | Adds iOS while preserving the path-selected Android platform.    |
-| `skip-smart-e2e-selection`                   | Selects both Android and iOS and bypasses AI test tag selection. |
-| Shared smoke/Appium infrastructure on `main` | Selects both Android and iOS.                                    |
+| Request | Effect |
+| --- | --- |
+| `run-appium-ios-tests` | Adds iOS while preserving the path-selected Android platform. |
+| `skip-smart-e2e-selection` | Selects both Android and iOS and bypasses AI test tag selection. |
+| Shared smoke/Appium infrastructure on `main` | Selects both Android and iOS. |
 
 The smoke-e2e-infrastructure exception applies only to PRs targeting `main`.
 
