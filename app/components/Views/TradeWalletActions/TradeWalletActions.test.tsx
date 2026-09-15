@@ -1387,7 +1387,9 @@ describe('TradeWalletActions', () => {
         'hardwareBackPress',
         expect.any(Function),
       );
-      expect(backHandlerCallback()).toBe(true);
+      expect(
+        backHandlerCallback({ type: 'hardwareBackPress', timeStamp: 0 }),
+      ).toBe(true);
       expect(mockOnDismiss).toHaveBeenCalled();
     });
   });
