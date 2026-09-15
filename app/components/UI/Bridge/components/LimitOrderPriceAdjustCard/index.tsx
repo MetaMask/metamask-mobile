@@ -20,6 +20,7 @@ export const LimitOrderPriceAdjustCard = ({
   orderSide,
   quoteTokenSymbol,
   isLimitFiatMode,
+  priceUnitSymbol,
   onQuoteUnitPress,
   limitPrice,
   onLimitPriceInputPress,
@@ -29,6 +30,7 @@ export const LimitOrderPriceAdjustCard = ({
   onAmountTypeTogglePress,
   marketComparison,
   isTriggerPriceNearMarket = false,
+  priceComparisonDirection,
   pricePresets,
   isCustomPercentActive,
   customPercent,
@@ -55,6 +57,7 @@ export const LimitOrderPriceAdjustCard = ({
         executionType={orderSide}
         quotedSymbol={quoteTokenSymbol}
         isLimitFiatMode={isLimitFiatMode}
+        unitSymbol={priceUnitSymbol}
         value={limitPrice}
         selection={limitPriceSelection}
         onSelectionChange={onLimitPriceSelectionChange}
@@ -64,6 +67,7 @@ export const LimitOrderPriceAdjustCard = ({
         onQuoteUnitPress={onQuoteUnitPress}
         onDismissKeypad={onDismissKeypad}
         marketComparison={marketComparison}
+        priceComparisonDirection={priceComparisonDirection}
       />
       <ButtonPricePresetsSection
         ref={customPercentInputRef}

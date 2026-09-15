@@ -65,9 +65,12 @@ describe('Perps abTestConfig', () => {
   });
 
   describe('PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY', () => {
-    it('names the experiment by the compared experiences', () => {
+    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
       expect(PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY).toBe(
-        'perpsAbtestScreenVsBottomSheet',
+        'perpsTAT3938AbtestScreenVsBottomSheet',
+      );
+      expect(PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY).toMatch(
+        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
       );
     });
   });
