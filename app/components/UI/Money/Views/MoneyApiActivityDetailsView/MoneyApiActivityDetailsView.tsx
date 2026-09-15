@@ -51,6 +51,7 @@ import CardTransactionDetailsContent from '../../../Card/components/CardTransact
 import {
   CardTransactionStatus,
   type CardTransaction,
+  type CardTransactionFundingSource,
   type CardTransactionMerchant,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../../Card/util/vedaToken';
@@ -247,6 +248,18 @@ function MoneyCardDetailsContent({
   );
 }
 
+function networkFeeLabelFromSources(
+  fundingSources?: CardTransactionFundingSource[],
+): string | undefined {
+  const source = fundingSources?.find(
+    (fs) => fs.fees !== undefined && fs.currency,
+  );
+  if (!source?.fees || !source.currency) {
+    return undefined;
+  }
+  return formatNetworkFeeLabel({ value: source.fees, currency: source.currency });
+}
+
 function MoneyDeclinedCardDetailsContent({
   transaction,
 }: {
@@ -267,7 +280,7 @@ function MoneyDeclinedCardDetailsContent({
       merchant={transaction.merchant}
       declineSource={transaction}
       transactionId={transaction.reference ?? transaction.id}
-      networkFeeLabel={formatNetworkFeeLabel(transaction.feeAmount)}
+      networkFeeLabel={networkFeeLabelFromSources(transaction.fundingSources)}
       statusLabel={formatCardTransactionStatus(transaction.status)}
       statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
       amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
@@ -297,7 +310,7 @@ function MoneySettledCardDetailsContent({
       merchant={enrichment?.merchant}
       declineSource={enrichment}
       transactionId={enrichment?.reference}
-      networkFeeLabel={formatNetworkFeeLabel(enrichment?.feeAmount)}
+      networkFeeLabel={networkFeeLabelFromSources(enrichment?.fundingSources)}
       statusLabel={strings('money.api_activity_details.completed')}
       statusColor={TextColor.SuccessDefault}
       amountColor={

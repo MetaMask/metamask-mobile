@@ -94,6 +94,18 @@ describe('formatNetworkFeeLabel', () => {
     expect(result).toBe('1.50 USDC');
   });
 
+  it('renders <0.01 when the fee is below the minimum displayable amount', () => {
+    const result = formatNetworkFeeLabel({ value: '0.005', currency: 'USDC' });
+
+    expect(result).toBe('<0.01 USDC');
+  });
+
+  it('renders <0.01 for a zero fee', () => {
+    const result = formatNetworkFeeLabel({ value: '0', currency: 'USDC' });
+
+    expect(result).toBe('<0.01 USDC');
+  });
+
   it('falls back to the raw value string when the value is not numeric', () => {
     const result = formatNetworkFeeLabel({ value: 'n/a', currency: 'USDC' });
 

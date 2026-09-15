@@ -175,12 +175,17 @@ const CardTransactionDetails = () => {
     [transaction, fundingToken, primaryToken],
   );
 
-  const networkFeeLabel = useMemo(
-    () => formatNetworkFeeLabel(transaction?.feeAmount),
-    [transaction?.feeAmount],
-  );
-
   const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
+
+  const networkFeeLabel = useMemo(() => {
+    const feeSource = transaction?.fundingSources.find(
+      (fs) => fs.fees !== undefined && fs.currency,
+    );
+    if (!feeSource?.fees || !feeSource.currency) {
+      return undefined;
+    }
+    return formatNetworkFeeLabel({ value: feeSource.fees, currency: feeSource.currency });
+  }, [transaction?.fundingSources]);
   const displayTransactionId = transaction?.reference ?? transaction?.id;
 
   const handleBack = useCallback(() => {

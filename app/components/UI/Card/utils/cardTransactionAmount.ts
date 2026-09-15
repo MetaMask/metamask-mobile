@@ -9,8 +9,13 @@ export function formatNetworkFeeLabel(
     return undefined;
   }
   const num = parseFloat(feeAmount.value);
-  const formatted = Number.isFinite(num) ? num.toFixed(2) : feeAmount.value;
-  return `${formatted} ${feeAmount.currency}`;
+  if (!Number.isFinite(num)) {
+    return `${feeAmount.value} ${feeAmount.currency}`;
+  }
+  if (num < 0.01) {
+    return `<0.01 ${feeAmount.currency}`;
+  }
+  return `${num.toFixed(2)} ${feeAmount.currency}`;
 }
 
 export function formatCardAmount(
