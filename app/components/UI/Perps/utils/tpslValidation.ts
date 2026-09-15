@@ -432,7 +432,7 @@ export const calculatePriceForRoE = (
   // Prevent stop loss from exceeding maximum possible loss
   // Maximum theoretical loss is 100% * leverage (before liquidation)
   // But we'll cap it at 99% to avoid negative prices
-  if (!isProfit && Math.abs(roePercentage) >= leverage * 99) {
+  if (!isProfit && roePercentage <= -(leverage * 99)) {
     // Cap at 99% of max loss to prevent negative prices
     roePercentage = -(leverage * 99);
   }

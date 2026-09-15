@@ -917,6 +917,25 @@ describe('TPSL Validation Utilities', () => {
         expect(calculatePriceForRoE(-100, false, params)).toBe('90');
       });
 
+      it('should cap only loss-side stop loss RoE', () => {
+        const oneXParams = { ...params, leverage: 1 };
+
+        const gainSidePrice = calculatePriceForRoE(99, false, oneXParams);
+        const shortGainSidePrice = calculatePriceForRoE(99, false, {
+          ...oneXParams,
+          direction: 'short',
+        });
+        const cappedLossSidePrice = calculatePriceForRoE(
+          -100,
+          false,
+          oneXParams,
+        );
+
+        expect(gainSidePrice).toBe('199');
+        expect(shortGainSidePrice).toBe('1');
+        expect(cappedLossSidePrice).toBe('1');
+      });
+
       it('should handle different leverage values', () => {
         const lowLeverageParams = { ...params, leverage: 1 };
         const highLeverageParams = { ...params, leverage: 50 };

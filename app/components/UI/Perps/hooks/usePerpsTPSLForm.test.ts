@@ -1845,14 +1845,16 @@ describe('usePerpsTPSLForm', () => {
     it('accepts a stop loss at a smaller gain on a long already in profit', () => {
       const params = {
         ...defaultParams,
-        currentPrice: 60000,
+        currentPrice: 250,
+        leverage: 1,
         position: {
           ...mockPosition,
-          entryPrice: '50000',
+          entryPrice: '100',
           size: '1.5',
-          liquidationPrice: '40000',
+          liquidationPrice: '50',
+          leverage: { ...mockPosition.leverage, value: 1 },
         },
-        liquidationPrice: '40000',
+        liquidationPrice: '50',
       };
       const { result } = renderHook(() => usePerpsTPSLForm(params), {
         wrapper: createWrapper(),
@@ -1860,13 +1862,13 @@ describe('usePerpsTPSLForm', () => {
 
       act(() => {
         result.current.buttons.handleStopLossSignToggle();
-        result.current.handlers.handleStopLossPercentageChange('5');
+      });
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('99');
       });
 
       expect(result.current.formState.stopLossSign).toBe('+');
-      expect(
-        Number.parseFloat(result.current.formState.stopLossPrice),
-      ).toBeLessThan(60000);
+      expect(result.current.formState.stopLossPrice).toBe('199');
       expect(result.current.validation.stopLossError).toBe('');
       expect(result.current.validation.stopLossLiquidationError).toBe('');
       expect(result.current.validation.isValid).toBe(true);
