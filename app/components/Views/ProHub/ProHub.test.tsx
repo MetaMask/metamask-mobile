@@ -107,7 +107,7 @@ describe('ProHub', () => {
       const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
 
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_brand')),
+        toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
         toRegex(strings('pro_hub.membership_label')),

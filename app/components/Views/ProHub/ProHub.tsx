@@ -39,13 +39,13 @@ interface MembershipBannerProps {
 
 const MembershipBanner = ({ testID }: MembershipBannerProps) => (
   <Card
-    twClassName="w-full bg-background-section rounded-xl p-5 border border-border-alternative"
+    twClassName="w-full bg-background-section rounded-xl p-4 border-0"
     testID={testID}
   >
-    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-      {strings('pro_hub.membership_brand')}
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {strings('pro_hub.title')}
     </Text>
-    <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+    <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
       {strings('pro_hub.membership_label')}
     </Text>
   </Card>
@@ -64,14 +64,14 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName="py-4"
+    twClassName="py-1"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-x-3"
+      twClassName="gap-x-2"
     >
-      <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center">
+      <Box twClassName="w-8 h-8 rounded-full bg-background-section items-center justify-center">
         <Icon
           name={iconName}
           size={IconSize.Sm}
@@ -81,7 +81,7 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
+        color={TextColor.TextAlternative}
       >
         {label}
       </Text>
@@ -149,24 +149,26 @@ const ProHub = () => {
           <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
 
           <Box
-            twClassName="gap-y-1"
+            twClassName="gap-y-4"
             testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('pro_hub.lifetime_earnings')}
-            </Text>
-            <Text
-              variant={TextVariant.AmountDisplayLg}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_PRO_HUB_STATS.lifetimeEarnings}
-            </Text>
+            <Box twClassName="gap-y-1">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {strings('pro_hub.lifetime_earnings')}
+              </Text>
+              <Text
+                variant={TextVariant.DisplayLg}
+                color={TextColor.TextDefault}
+              >
+                {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+              </Text>
+            </Box>
 
-            <Box>
+            <Box twClassName="gap-y-4">
               <StatRow
                 iconName={IconName.TrendUp}
                 label={strings('pro_hub.money_balance')}
@@ -185,14 +187,14 @@ const ProHub = () => {
 
         <PhysicalCardBanner onPress={handleGetCard} />
 
-        <SectionDivider marginVertical={6} />
+        <SectionDivider marginVertical={5} />
 
         <MemberPricingOnTrades />
 
-        <SectionDivider marginVertical={6} />
+        <SectionDivider marginVertical={5} />
 
         <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
-          <Box twClassName="gap-y-1">
+          <Box twClassName="gap-y-6">
             <Text
               variant={TextVariant.HeadingMd}
               fontWeight={FontWeight.Bold}
@@ -200,13 +202,15 @@ const ProHub = () => {
             >
               {strings('pro_hub.also_included.title')}
             </Text>
-            {ALSO_INCLUDED_ITEMS.map((item) => (
-              <AlsoIncludedRow
-                key={item.id}
-                item={item}
-                testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
-              />
-            ))}
+            <Box twClassName="gap-y-3">
+              {ALSO_INCLUDED_ITEMS.map((item) => (
+                <AlsoIncludedRow
+                  key={item.id}
+                  item={item}
+                  testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
+                />
+              ))}
+            </Box>
           </Box>
           <SectionDivider twClassName="mb-8" />
           <Button
