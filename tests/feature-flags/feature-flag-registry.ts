@@ -7556,14 +7556,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  swapsSWAPS5010AbtestGaslessSwapRedesign: {
-    name: 'swapsSWAPS5010AbtestGaslessSwapRedesign',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 'control',
-    status: FeatureFlagStatus.Active,
-  },
-
   stellarAccounts: {
     name: 'stellarAccounts',
     type: FeatureFlagType.Remote,
