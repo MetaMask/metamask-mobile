@@ -129,7 +129,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                 key={range}
                 value={range}
                 size={FilterButtonSize.Sm}
-                twClassName="flex-1"
+                twClassName="flex-1 rounded-full"
               >
                 {range}
               </FilterButton>
