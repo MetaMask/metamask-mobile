@@ -9,16 +9,19 @@ import {
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
 const mockKycControllerState = {
   vendorDisclaimers: [{ id: 'tc-1' }] as { id: string }[],
   sumsub: { status: 'complete' as string },
+  userStatus: 'pending' as string | null,
 };
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -80,6 +83,7 @@ describe('useKycEmailVerification', () => {
     jest.clearAllMocks();
     mockKycControllerState.vendorDisclaimers = [{ id: 'tc-1' }];
     mockKycControllerState.sumsub.status = 'complete';
+    mockKycControllerState.userStatus = 'pending';
     mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
@@ -119,6 +123,7 @@ describe('useKycEmailVerification', () => {
       providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
     });
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycPending');
   });
 
   it('alerts without starting the session when customer creation rejects', async () => {
@@ -164,6 +169,16 @@ describe('useKycEmailVerification', () => {
 
     expect(alertSpy).not.toHaveBeenCalled();
     expect(result.current.isVerifying).toBe(false);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate to pending when user status is not pending', async () => {
+    mockKycControllerState.userStatus = 'completed';
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await enterEmailAndStart(result);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does not start verification when the email is blank', async () => {
