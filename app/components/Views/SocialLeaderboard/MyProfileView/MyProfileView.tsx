@@ -17,6 +17,7 @@ import React, { useCallback } from 'react';
 import { ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
@@ -33,7 +34,9 @@ const MyProfileView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleEditProfile = useCallback(() => undefined, []);
+  const handleEditProfile = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
+  }, [navigation]);
   const handleShareFirstTrade = useCallback(() => undefined, []);
 
   const handleShareProfile = useCallback(() => {

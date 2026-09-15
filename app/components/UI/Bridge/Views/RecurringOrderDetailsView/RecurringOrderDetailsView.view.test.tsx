@@ -8,6 +8,7 @@ import {
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from '../BridgeView/BridgeView.testIds';
 import { MOCK_RECURRING_OPEN_ORDER } from './RecurringOrderDetailsView.mock';
+import ToastService from '../../../../../core/ToastService';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
 async function openInProgressOrderDetails(
@@ -37,6 +38,22 @@ async function openInProgressOrderDetails(
 }
 
 describeForPlatforms('RecurringOrderDetailsView', () => {
+  const showToast = jest.fn();
+
+  beforeEach(() => {
+    showToast.mockClear();
+    ToastService.toastRef = {
+      current: {
+        showToast,
+        closeToast: jest.fn(),
+      },
+    };
+  });
+
+  afterEach(() => {
+    ToastService.resetForTesting();
+  });
+
   it('dismisses cancel confirmation without changing the in-progress order', async () => {
     const renderResult = renderBridgeViewWithRecurringOrderDetails();
     await openInProgressOrderDetails(renderResult);
@@ -89,6 +106,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         ),
       ).not.toBeOnTheScreen();
     });
+    expect(showToast).not.toHaveBeenCalled();
 
     await userEvent.press(
       renderResult.getByTestId(
@@ -99,6 +117,17 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
       ),
+    );
+
+    expect(showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          {
+            label: strings('bridge.recurring.order_canceled_toast_title'),
+            isBold: true,
+          },
+        ],
+      }),
     );
 
     await waitFor(() => {
