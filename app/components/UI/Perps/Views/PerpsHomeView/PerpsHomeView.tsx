@@ -80,7 +80,10 @@ import {
 } from '../../selectors/perpsController';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
-import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
+import {
+  buildDefaultProMarket,
+  withHomeDroppedFromHistory,
+} from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -190,10 +193,10 @@ const PerpsHomeView = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
+              params: withHomeDroppedFromHistory({
                 market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-              },
+              }),
             },
           ],
         });
