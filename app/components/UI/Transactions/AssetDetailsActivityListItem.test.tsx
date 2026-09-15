@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import {
   TransactionStatus,
   TransactionType,
@@ -8,18 +7,9 @@ import {
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
 import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../Bridge/utils/transaction-history';
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -50,8 +40,6 @@ jest.mock('../ActivityListItemRow/ActivityListItemRow', () => ({
   resolveActivityListItemTitle: jest.fn(() => 'Send ETH'),
 }));
 
-const mockUseSelector = jest.mocked(useSelector);
-
 const createNavigation = () =>
   ({
     navigate: jest.fn(),
@@ -76,49 +64,8 @@ const createTransaction = (
 });
 
 describe('AssetDetailsActivityListItem', () => {
-  let bridgeHistory: Record<string, unknown> = {};
-
   beforeEach(() => {
     jest.clearAllMocks();
-    bridgeHistory = {};
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectBridgeHistoryForAccount) {
-        return bridgeHistory;
-      }
-
-      if (selector === selectSelectedInternalAccount) {
-        return { metadata: { importTime: 2000 } };
-      }
-
-      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-        return { address: '0x123' };
-      }
-
-      if (selector === selectEvmNetworkConfigurationsByChainId) {
-        return {
-          '0x1': {
-            nativeCurrency: 'ETH',
-          },
-        };
-      }
-
-      if (selector === selectAllTokens) {
-        return {
-          '0x1': {
-            '0x123': [
-              {
-                address: '0x456',
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            ],
-          },
-        };
-      }
-
-      return undefined;
-    });
   });
 
   it('renders account import marker for transaction import insertion point', () => {
@@ -131,6 +78,7 @@ describe('AssetDetailsActivityListItem', () => {
         index={0}
         assetSymbol="ETH"
         chainId="0x1"
+        accountImportTime={2000}
         navigation={navigation}
         onSpeedUpAction={jest.fn()}
         onCancelAction={jest.fn()}
@@ -148,34 +96,6 @@ describe('AssetDetailsActivityListItem', () => {
   });
 
   it('does not render account import marker when import time is null', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectBridgeHistoryForAccount) {
-        return bridgeHistory;
-      }
-
-      if (selector === selectSelectedInternalAccount) {
-        return { metadata: { importTime: null } };
-      }
-
-      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-        return { address: '0x123' };
-      }
-
-      if (selector === selectEvmNetworkConfigurationsByChainId) {
-        return {
-          '0x1': {
-            nativeCurrency: 'ETH',
-          },
-        };
-      }
-
-      if (selector === selectAllTokens) {
-        return {};
-      }
-
-      return undefined;
-    });
-
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
 
@@ -197,23 +117,12 @@ describe('AssetDetailsActivityListItem', () => {
   });
 
   it('routes a bridge to the redesigned ActivityDetails screen, not the legacy sheet', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
-      if (selector === selectSelectedInternalAccount)
-        return { metadata: { importTime: 2000 } };
-      if (selector === selectSelectedAccountGroupEvmInternalAccount)
-        return { address: '0x123' };
-      if (selector === selectEvmNetworkConfigurationsByChainId)
-        return { '0x1': { nativeCurrency: 'ETH' } };
-      if (selector === selectAllTokens) return {};
-      return undefined;
-    });
     const navigation = createNavigation();
     const transaction = createTransaction({
       id: 'bridge-1',
       type: TransactionType.bridge,
     });
-    bridgeHistory = {
+    const bridgeHistory = {
       'bridge-1': {
         quote: {
           srcChainId: 8453,
@@ -230,6 +139,7 @@ describe('AssetDetailsActivityListItem', () => {
         index={0}
         assetSymbol="USDC"
         chainId="0x2105"
+        bridgeHistory={bridgeHistory as never}
         navigation={navigation}
         onSpeedUpAction={jest.fn()}
         onCancelAction={jest.fn()}
@@ -247,34 +157,6 @@ describe('AssetDetailsActivityListItem', () => {
   });
 
   it('routes to the ActivityDetails screen when the redesign is enabled', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectBridgeHistoryForAccount) {
-        return bridgeHistory;
-      }
-
-      if (selector === selectSelectedInternalAccount) {
-        return { metadata: { importTime: 2000 } };
-      }
-
-      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-        return { address: '0x123' };
-      }
-
-      if (selector === selectEvmNetworkConfigurationsByChainId) {
-        return {
-          '0x1': {
-            nativeCurrency: 'ETH',
-          },
-        };
-      }
-
-      if (selector === selectAllTokens) {
-        return {};
-      }
-
-      return undefined;
-    });
-
     const navigation = createNavigation();
     const transaction = createTransaction();
 
@@ -311,6 +193,19 @@ describe('AssetDetailsActivityListItem', () => {
           index={0}
           assetSymbol="ETH"
           chainId="0x1"
+          groupEvmAccountAddress="0x123"
+          networkConfigurations={{ '0x1': { nativeCurrency: 'ETH' } }}
+          allTokens={{
+            '0x1': {
+              '0x123': [
+                {
+                  address: '0x456',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              ],
+            },
+          }}
           navigation={navigation}
           onSpeedUpAction={jest.fn()}
           onCancelAction={jest.fn()}

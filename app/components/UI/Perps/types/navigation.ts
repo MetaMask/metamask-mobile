@@ -168,6 +168,8 @@ export type PerpsStackParamList = {
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
     source_section?: string;
+    /** Telemetry-only reason when the header picker replaces the active market. */
+    detailGenerationTrigger?: 'market_switch';
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];

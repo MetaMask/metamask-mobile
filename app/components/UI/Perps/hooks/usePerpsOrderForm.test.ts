@@ -11,7 +11,12 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
+import {
+  TRADING_DEFAULTS,
+  PerpsMode,
+  type Position,
+} from '@metamask/perps-controller';
+import Engine from '../../../../core/Engine';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
@@ -22,6 +27,14 @@ jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
 jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      setSelectedOrderType: jest.fn(),
+      saveTradeConfiguration: jest.fn(),
+    },
+  },
+}));
 
 // Create a mock stream manager for testing
 const createMockStreamManager = (): PerpsStreamManager => {
@@ -76,13 +89,14 @@ const SET_MAX_SLIPPAGE = 'test/setMaxSlippage';
 
 interface TestEngineState {
   backgroundState: {
-    PerpsController: {
-      maxSlippageBps?: number;
-    };
+    PerpsController: Record<string, unknown>;
   };
 }
 
-const createPerpsStore = (maxSlippageBps?: number) =>
+const createPerpsStore = (
+  maxSlippageBps?: number,
+  extraControllerState: Record<string, unknown> = {},
+) =>
   configureStore({
     reducer: {
       engine: (
@@ -91,8 +105,10 @@ const createPerpsStore = (maxSlippageBps?: number) =>
       ): TestEngineState => {
         const currentState = state ?? {
           backgroundState: {
-            PerpsController:
-              maxSlippageBps === undefined ? {} : { maxSlippageBps },
+            PerpsController: {
+              ...(maxSlippageBps === undefined ? {} : { maxSlippageBps }),
+              ...extraControllerState,
+            },
           },
         };
 
@@ -107,7 +123,10 @@ const createPerpsStore = (maxSlippageBps?: number) =>
           ...currentState,
           backgroundState: {
             ...currentState.backgroundState,
-            PerpsController: { maxSlippageBps: action.payload },
+            PerpsController: {
+              ...currentState.backgroundState.PerpsController,
+              maxSlippageBps: action.payload,
+            },
           },
         };
       },
@@ -127,6 +146,17 @@ const createWrapper = (mockStore = createPerpsStore()) =>
       children: streamProvider,
     });
   };
+
+const createPerpsControllerStore = (perpsController: Record<string, unknown>) =>
+  configureStore({
+    reducer: {
+      engine: (
+        state = {
+          backgroundState: { PerpsController: perpsController },
+        },
+      ) => state,
+    },
+  });
 
 // Helper to create mock positions
 const createMockPosition = (
@@ -245,56 +275,179 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('prioritizes a pending amount over an empty surface fallback', () => {
-      const mockStoreWithPendingConfig = configureStore({
-        reducer: {
-          engine: (
-            state = {
-              backgroundState: {
-                PerpsController: {
-                  isTestnet: false,
-                  tradeConfigurations: {
-                    mainnet: {
-                      BTC: {
-                        pendingConfig: {
-                          amount: '125',
-                          timestamp: Date.now(),
-                        },
-                      },
-                    },
-                    testnet: {},
-                  },
-                },
-              },
-            },
-          ) => state,
-        },
-      });
-      const WrapperWithPendingConfig = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const streamProvider = React.createElement(PerpsStreamProvider, {
-          testStreamManager: createMockStreamManager(),
-          children,
-        } as React.ComponentProps<typeof PerpsStreamProvider>);
-
-        return React.createElement(Provider, {
-          store: mockStoreWithPendingConfig,
-          children: streamProvider,
-        });
-      };
-
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({
             initialAsset: 'BTC',
             fallbackAmount: '',
           }),
-        { wrapper: WrapperWithPendingConfig },
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
       );
 
       expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('restores a pending short direction with the draft amount', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            fallbackAmount: '',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      direction: 'short',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
+      );
+
+      expect(result.current.orderForm.direction).toBe('short');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('prefers a navigation direction over a pending draft direction', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialDirection: 'long',
+            fallbackAmount: '',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      direction: 'short',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
+      );
+
+      expect(result.current.orderForm.direction).toBe('long');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('uses the persisted market-agnostic order type when no pending or navigation type exists', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({ selectedOrderType: 'limit' }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
+    });
+
+    it('prefers the persisted global order type over a stale per-market pending type', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            isTestnet: false,
+            selectedOrderType: 'limit',
+            tradeConfigurations: {
+              mainnet: {
+                BTC: {
+                  pendingConfig: {
+                    amount: '125',
+                    orderType: 'market',
+                    timestamp: Date.now(),
+                  },
+                },
+              },
+              testnet: {},
+            },
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('ignores a persisted Pro-only order type when hydrating Lite', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Lite,
+            selectedOrderType: 'twap',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('market');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('ignores a persisted stop-market type when hydrating Lite', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Lite,
+            selectedOrderType: 'stop_market',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('market');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('restores a persisted TWAP order type on Pro', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Pro,
+            selectedOrderType: 'twap',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('twap');
     });
 
     it('prioritizes existing position leverage over saved config', () => {
@@ -816,6 +969,23 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.type).toBe('limit');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).toHaveBeenCalledWith('limit');
+    });
+
+    it('persists leverage via saveTradeConfiguration', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setLeverage(15);
+      });
+
+      expect(
+        Engine.context.PerpsController.saveTradeConfiguration,
+      ).toHaveBeenCalledWith('BTC', 15);
     });
 
     it('updates multiple fields at once', () => {
@@ -1129,7 +1299,11 @@ describe('usePerpsOrderForm', () => {
             initialAsset: 'BTC',
             initialType: 'stop_market',
           }),
-        { wrapper: createWrapper() },
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({ mode: PerpsMode.Pro }),
+          ),
+        },
       );
 
       act(() => {
@@ -1146,7 +1320,7 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('recalculates trigger-market sizing after max slippage state changes', () => {
-      const store = createPerpsStore(300);
+      const store = createPerpsStore(300, { mode: PerpsMode.Pro });
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({

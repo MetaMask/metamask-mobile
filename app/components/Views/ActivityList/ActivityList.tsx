@@ -360,6 +360,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       const configuredEvmSet = new Set(
         (configuredEVMChainIds ?? []).map((id) => id.toLowerCase()),
       );
+      const configuredNonEvmSet = new Set(configuredNonEVMChainIds);
 
       // Filter local items to configured EVM chains only, also deduplicate against confirmed
       const confirmedHashes = new Set(
@@ -464,22 +465,23 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       });
 
       // Non-EVM: filter to configured chains, include bridge txns whose dest chain is configured
-      const filteredNonEvmTransactions = nonEvmTransactions
-        .filter((tx) => {
-          if (configuredNonEVMChainIds.includes(tx.chain)) return true;
-          const bridge = Object.values(bridgeHistory ?? {}).find(
-            (item) => item.status?.srcChain?.txHash === tx.id,
-          );
-          return (
-            bridge?.quote?.destChainId !== undefined &&
-            configuredEVMChainIds.includes(
-              numberToHex(bridge.quote.destChainId),
-            )
-          );
-        })
-        .filter(
-          (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
-        );
+      const seenNonEvmTransactionIds = new Set<string>();
+      const filteredNonEvmTransactions = nonEvmTransactions.filter((tx) => {
+        if (seenNonEvmTransactionIds.has(tx.id)) return false;
+
+        const bridge = getBridgeHistoryItemByHash(tx.id);
+        const shouldInclude =
+          configuredNonEvmSet.has(tx.chain) ||
+          (bridge?.quote?.destChainId !== undefined &&
+            configuredEvmSet.has(
+              numberToHex(bridge.quote.destChainId).toLowerCase(),
+            ));
+
+        if (shouldInclude) {
+          seenNonEvmTransactionIds.add(tx.id);
+        }
+        return shouldInclude;
+      });
 
       const filteredNonEvmForMalicious =
         filterMultichainTransactionsExcludingMaliciousTokenActivity(
@@ -487,13 +489,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           maliciousTokenKeys,
         );
 
+      const accountAddressById = new Map(
+        selectedAccountGroupInternalAccounts.map((account) => [
+          account.id,
+          account.address,
+        ]),
+      );
       const nonEvmItems = mapNonEvmTransactions(
         filteredNonEvmForMalicious,
         getBridgeHistoryItemByHash,
-        (transaction) =>
-          selectedAccountGroupInternalAccounts.find(
-            (account) => account.id === transaction.account,
-          )?.address,
+        (transaction) => accountAddressById.get(transaction.account),
       );
 
       // Drop confirmed copies whose local copy won above, so the winning local

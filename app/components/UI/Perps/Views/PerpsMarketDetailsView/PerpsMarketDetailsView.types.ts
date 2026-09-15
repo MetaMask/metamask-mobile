@@ -1,5 +1,10 @@
+import type { PerpsMarketDetailGenerationTrigger } from '../../hooks/usePerpsMarketDetailSession';
+
 export interface PerpsMarketDetailsViewProps {
-  // Empty for now, will receive market data from navigation params
+  generationTrigger?: Extract<
+    PerpsMarketDetailGenerationTrigger,
+    'initial' | 'market_switch' | 'mode_switch'
+  >;
 }
 
 export interface MarketStatistics {

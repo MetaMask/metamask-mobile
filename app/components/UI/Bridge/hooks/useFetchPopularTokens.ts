@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 import type { CaipChainId } from '@metamask/utils';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  FeatureId,
+  getClientHeaders,
+} from '@metamask/bridge-controller';
 
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
@@ -27,6 +31,12 @@ export interface FetchPopularTokensParams {
   chainIds: CaipChainId[];
   includeAssets?: IncludeAsset[];
   signal?: AbortSignal;
+  /**
+   * Identifies which surface triggered this request (e.g. Limit order,
+   * Recurring buy, Market order) so the backend can attribute it
+   * accordingly. Required so every caller must make an explicit choice.
+   */
+  featureId: FeatureId;
 }
 
 type PopularTokensTraceResult = 'success' | 'cancelled' | 'error';
@@ -62,6 +72,7 @@ export const useFetchPopularTokens = () => {
       chainIds,
       includeAssets = [],
       signal,
+      featureId,
     }: FetchPopularTokensParams): Promise<PopularToken[] | undefined> => {
       cleanupExpiredEntries();
 
@@ -98,7 +109,7 @@ export const useFetchPopularTokens = () => {
                 jwt: bearerToken ?? '',
               }),
             },
-            body: JSON.stringify({ chainIds, includeAssets }),
+            body: JSON.stringify({ chainIds, includeAssets, featureId }),
             signal,
           },
         );

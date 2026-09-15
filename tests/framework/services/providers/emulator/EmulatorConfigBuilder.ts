@@ -2,6 +2,18 @@ import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { getAppiumHost, getAppiumPort } from '../../appium/AppiumServer.ts';
 
+function readOptionalPort(envKey: string): number | undefined {
+  const raw = process.env[envKey]?.trim();
+  if (!raw) {
+    return undefined;
+  }
+  const port = Number(raw);
+  if (!Number.isInteger(port) || port <= 0) {
+    throw new Error(`Invalid ${envKey} "${raw}". Expected a positive integer.`);
+  }
+  return port;
+}
+
 /**
  * Builder for Emulator WebDriver configuration (local Android/iOS).
  *
@@ -67,6 +79,27 @@ export class EmulatorConfigBuilder {
         : 12 * 60 * 1000;
     const connectionRetryTimeout =
       platformName === Platform.ANDROID ? androidTimeout : iosTimeout;
+    const androidSystemPort = readOptionalPort(
+      'ANDROID_UIAUTOMATOR2_SYSTEM_PORT',
+    );
+    const androidChromedriverPort = readOptionalPort(
+      'ANDROID_CHROMEDRIVER_PORT',
+    );
+    const androidMjpegServerPort = readOptionalPort(
+      'ANDROID_MJPEG_SERVER_PORT',
+    );
+    // Pool workers each run their own adb server. Without this the single
+    // Appium process would drive every session through the default 5037
+    // server, so one server fault would kill UiAutomator2 on all emulators.
+    const androidAdbPort = readOptionalPort('ANDROID_ADB_SERVER_PORT');
+    const iosWdaLocalPort =
+      platformName === Platform.IOS
+        ? readOptionalPort('IOS_WDA_LOCAL_PORT')
+        : undefined;
+    const iosMjpegServerPort =
+      platformName === Platform.IOS
+        ? readOptionalPort('IOS_MJPEG_SERVER_PORT')
+        : undefined;
 
     return {
       hostname: getAppiumHost(),
@@ -89,9 +122,27 @@ export class EmulatorConfigBuilder {
               // ChromeDriver 111+ rejects clients without this; hang looks like a stuck context switch.
               'appium:chromedriverArgs': ['--remote-allow-origins=*'],
               'appium:recreateChromeDriverSessions': true,
+              ...(androidSystemPort === undefined
+                ? {}
+                : { 'appium:systemPort': androidSystemPort }),
+              ...(androidChromedriverPort === undefined
+                ? {}
+                : { 'appium:chromedriverPort': androidChromedriverPort }),
+              ...(androidMjpegServerPort === undefined
+                ? {}
+                : { 'appium:mjpegServerPort': androidMjpegServerPort }),
+              ...(androidAdbPort === undefined
+                ? {}
+                : { 'appium:adbPort': androidAdbPort }),
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
+              ...(iosWdaLocalPort === undefined
+                ? {}
+                : { 'appium:wdaLocalPort': iosWdaLocalPort }),
+              ...(iosMjpegServerPort === undefined
+                ? {}
+                : { 'appium:mjpegServerPort': iosMjpegServerPort }),
             }),
         platformName,
         'appium:newCommandTimeout': 300,

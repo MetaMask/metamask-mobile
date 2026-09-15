@@ -358,7 +358,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               >
                 <Icon
                   name={IconName.Refresh}
-                  size={IconSize.Md}
+                  size={IconSize.Sm}
                   color={IconColor.Alternative}
                   style={tw.style('mr-1 flex-shrink-0')}
                 />

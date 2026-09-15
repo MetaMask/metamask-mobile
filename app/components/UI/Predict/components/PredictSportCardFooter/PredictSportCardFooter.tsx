@@ -7,7 +7,6 @@ import {
   PredictMarket as PredictMarketType,
   PredictMarketStatus,
   PredictOutcomeToken,
-  PredictPositionStatus,
 } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -19,6 +18,7 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
@@ -113,10 +113,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   const hasPositions = positions.length > 0;
   const winningClaimablePositions = claimablePositions.filter(
-    (position) =>
-      (position.status === PredictPositionStatus.WON ||
-        position.status === PredictPositionStatus.REDEEMABLE) &&
-      (position.currentValue ?? 0) > 0,
+    isActionableClaimablePosition,
   );
   const hasClaimablePositions = winningClaimablePositions.length > 0;
   const claimableAmount = winningClaimablePositions.reduce(

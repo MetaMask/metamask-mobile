@@ -78,6 +78,7 @@ const baseTransactionControllerMock = {
       TransactionController: {
         transactions: [],
         transactionBatches: [],
+        batchTransactionCounts: {},
         methodData: {},
         lastFetchedBlockNumbers: {},
         submitHistory: [],

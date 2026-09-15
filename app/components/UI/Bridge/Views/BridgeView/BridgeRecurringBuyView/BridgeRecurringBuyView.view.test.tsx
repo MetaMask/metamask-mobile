@@ -1,17 +1,35 @@
 import '../../../../../../../tests/component-view/mocks';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  userEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
-import { renderBridgeView } from '../../../../../../../tests/component-view/renderers/bridge';
+import {
+  renderBridgeViewWithModals as renderBridgeView,
+  renderBridgeViewWithRecurringJobDetails,
+} from '../../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import { setRecurringPriceRange } from '../../../../../../core/redux/slices/bridge';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
+import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/RecurringRepeatInfoSheet';
 import { PriceRangeRowSelectorsIDs } from '../../../components/PriceRangeRow';
 import { PriceRangeSheetSelectorsIDs } from '../../../components/PriceRangeSheet';
 import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
+import { OpenOrderRowSelectorsIDs } from '../../../components/OpenOrderRow/OpenOrderRow.testIds';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import {
+  MOCK_RECURRING_COMPLETED_JOB,
+  MOCK_RECURRING_OPEN_JOB,
+  getRecurringJobOrderCounts,
+} from '../../RecurringJobDetailsView/RecurringJobDetailsView.mock';
+import { RecurringJobDetailsViewSelectorsIDs } from '../../RecurringJobDetailsView/RecurringJobDetailsView.testIds';
+import { type RecurringJob } from '../../RecurringJobDetailsView/RecurringJobDetailsView.types';
 import {
   applyPercentToPrice,
   formatExchangeRate,
@@ -80,11 +98,106 @@ async function openRecurringTab(
   });
 }
 
+function assertRecurringJobSummary(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  job: RecurringJob,
+) {
+  const { filledPercent, totalOrderCount } = getRecurringJobOrderCounts(job);
+  const summary = within(
+    renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.SUMMARY),
+  );
+
+  expect(
+    summary.getByText(strings('bridge.recurring.filled')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.interval')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.size_per_order')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.price_range.label')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.total_received')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.average_execution_price')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.start_date')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.end_date')),
+  ).toBeOnTheScreen();
+  expect(
+    renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.FILLED_VALUE),
+  ).toHaveTextContent(
+    `${job.filledAmount} / ${job.totalSourceAmount} (${filledPercent}%)`,
+  );
+  expect(
+    summary.getByText(
+      strings('bridge.recurring.schedule_summary', {
+        interval: job.interval,
+        count: totalOrderCount,
+      }),
+    ),
+  ).toBeOnTheScreen();
+  expect(summary.getByText(job.sizePerOrder)).toBeOnTheScreen();
+  expect(summary.getByText(job.priceRange)).toBeOnTheScreen();
+  expect(summary.getByText(job.totalReceived)).toBeOnTheScreen();
+  expect(summary.getByText(job.averageExecutionPrice)).toBeOnTheScreen();
+  expect(summary.getByText(job.startDate)).toBeOnTheScreen();
+  expect(summary.getByText(job.endDate)).toBeOnTheScreen();
+}
+
+function assertRecurringJobOrders(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  job: RecurringJob,
+) {
+  const pair = strings('bridge.recurring.pair', {
+    source: job.sourceToken.symbol,
+    dest: job.destinationToken.symbol,
+  });
+
+  for (const order of job.orders) {
+    const row = within(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.HISTORY_ROW(order.orderId),
+      ),
+    );
+
+    expect(row.getByText(pair)).toBeOnTheScreen();
+    expect(row.getByText(order.statusLabel)).toBeOnTheScreen();
+    expect(row.getByText(order.receivedAmount)).toBeOnTheScreen();
+    expect(row.getByText(order.spentAmount)).toBeOnTheScreen();
+    expect(
+      row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+    ).toBeOnTheScreen();
+  }
+}
+
 async function openEveryKeypad(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
   fireEvent(
     renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    'pressIn',
+  );
+
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+}
+
+async function openRepeatKeypad(
+  renderResult: ReturnType<typeof renderBridgeView>,
+) {
+  fireEvent(
+    renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
     'pressIn',
   );
 
@@ -258,6 +371,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
       ).toBeOnTheScreen();
     });
+    expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+    expect(renderResult.queryByText('50%')).not.toBeOnTheScreen();
+    expect(renderResult.queryByText('75%')).not.toBeOnTheScreen();
     fireEvent.press(renderResult.getByTestId('keypad-key-1'));
 
     await waitFor(() => {
@@ -320,6 +436,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps repeat at 0 and invalid after the keypad is closed', async () => {
@@ -370,6 +491,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
       ),
     ).toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps a 0 every value after leaving and returning to the recurring tab', async () => {
@@ -452,6 +578,87 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
         ),
       ).toHaveTextContent(strings('bridge.recurring.unit.day'));
+    });
+  });
+
+  it('commits month as the interval unit on confirm', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('month'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.month'));
+    });
+  });
+
+  it('opens the repeat info sheet from the info icon', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringRepeatInfoSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      renderResult.getByTestId(RecurringRepeatInfoSheetSelectorsIDs.BODY),
+    ).toHaveTextContent(strings('bridge.recurring.repeat_info_body'));
+  });
+
+  it('closes the repeat info sheet from the close button', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringRepeatInfoSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringRepeatInfoSheetSelectorsIDs.CLOSE_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(RecurringRepeatInfoSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -540,46 +747,117 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toHaveDisplayValue('1');
   });
 
-  it('marks the every value invalid when it exceeds the unit max', async () => {
+  it('shows Max is 24 when every exceeds the hour unit max', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
     await openEveryKeypad(renderResult);
-    fireEvent.press(renderResult.getByTestId('keypad-key-5'));
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
     fireEvent.press(renderResult.getByTestId('keypad-key-5'));
     await waitFor(() => {
       expect(
         renderResult.getByTestId(
           RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
         ),
-      ).toHaveDisplayValue('155');
+      ).toHaveDisplayValue('25');
     });
 
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveStyle({ color: errorColor });
     expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR),
+    ).toHaveTextContent(strings('bridge.recurring.max_is', { max: 24 }));
+    expect(
       renderResult.getByTestId(
         RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
       ),
     ).not.toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows Max is 180 on repeat when 1 day times 181 exceeds 180 days', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('day'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.day'));
+    });
+
+    await openRepeatKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-1'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-8'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-1'));
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+        ),
+      ).toHaveDisplayValue('181');
+    });
+
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).toHaveTextContent(strings('bridge.recurring.max_is', { max: 180 }));
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).not.toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('marks the repeat value invalid when it is 0', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
-    fireEvent(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-      ),
-      'pressIn',
-    );
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
-      ).toBeOnTheScreen();
-    });
+    await openRepeatKeypad(renderResult);
     fireEvent.press(
       renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
     );
@@ -602,6 +880,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).not.toHaveStyle({ color: errorColor });
+    expect(
+      renderResult.queryByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   describe('swap inputs', () => {
@@ -653,10 +936,13 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           ),
         ).toBeOnTheScreen();
       });
+      expect(
+        renderResult.getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+      ).toHaveTextContent(strings('bridge.recurring.preview_order'));
       expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
     });
 
-    it('reuses the same keypad for the every field after the amount keypad was open', async () => {
+    it('hides amount quick picks when the every field uses the shared keypad', async () => {
       const renderResult = renderBridgeView();
 
       await openRecurringTab(renderResult);
@@ -675,7 +961,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
         ).toBeOnTheScreen();
       });
-      expect(renderResult.getByText('25%')).toBeOnTheScreen();
+      expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+      expect(renderResult.queryByText('50%')).not.toBeOnTheScreen();
+      expect(renderResult.queryByText('75%')).not.toBeOnTheScreen();
 
       fireEvent.press(renderResult.getByTestId('keypad-key-2'));
 
@@ -783,50 +1071,118 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('shows a filled history row after pressing the History tab', async () => {
-    const renderResult = renderBridgeView();
+  it('opens the in-progress Job details and returns to Open orders', async () => {
+    const renderResult = renderBridgeViewWithRecurringJobDetails();
 
     await openRecurringTab(renderResult);
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.OPEN_JOB_ROW(
+          MOCK_RECURRING_OPEN_JOB.jobId,
+        ),
+      ),
+    );
 
-    const pair = strings('bridge.recurring.pair', {
-      source: 'ETH',
-      dest: 'USDC',
-    });
-    const scheduleSummary = strings('bridge.recurring.schedule_summary', {
-      interval: '1 day',
-      count: '5',
-    });
-
-    expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
-      renderResult.getByText(strings('bridge.all_networks')),
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: 2,
+          totalOrderCount: 5,
+        }),
+      ),
     ).toBeOnTheScreen();
-    expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
     expect(
-      renderResult.getByText(strings('bridge.recurring.filled')),
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.SOURCE_TOKEN_AVATAR,
+      ),
     ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.SOURCE_NETWORK_BADGE,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DESTINATION_TOKEN_AVATAR,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DESTINATION_NETWORK_BADGE,
+      ),
+    ).toBeOnTheScreen();
+    assertRecurringJobSummary(renderResult, MOCK_RECURRING_OPEN_JOB);
+    assertRecurringJobOrders(renderResult, MOCK_RECURRING_OPEN_JOB);
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+    await userEvent.press(
+      renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.BACK_BUTTON),
     );
 
     await waitFor(() => {
-      expect(renderResult.queryByText(scheduleSummary)).toBeNull();
+      expect(
+        renderResult.queryByTestId(RecurringJobDetailsViewSelectorsIDs.SCREEN),
+      ).not.toBeOnTheScreen();
     });
     expect(
-      renderResult.queryByText(strings('bridge.orders.empty.history')),
-    ).toBeNull();
-    expect(
-      renderResult.getByText(strings('bridge.all_networks')),
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      renderResult.getAllByText(strings('bridge.tabs.recurring')).length,
-    ).toBeGreaterThan(0);
-    expect(
-      renderResult.getByText(strings('bridge.recurring.filled')),
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.OPEN_JOB_ROW(
+          MOCK_RECURRING_OPEN_JOB.jobId,
+        ),
+      ),
     ).toBeOnTheScreen();
-    expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
-    expect(renderResult.getAllByText(pair)).toHaveLength(1);
+  });
+
+  it('opens the completed Job details from History', async () => {
+    const renderResult = renderBridgeViewWithRecurringJobDetails();
+
+    await openRecurringTab(renderResult);
+    await userEvent.press(
+      renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+    );
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringJobDetailsViewSelectorsIDs.COMPLETED_JOB_ROW,
+      ),
+    );
+
+    expect(
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: 5,
+          totalOrderCount: 5,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    assertRecurringJobSummary(renderResult, MOCK_RECURRING_COMPLETED_JOB);
+    assertRecurringJobOrders(renderResult, MOCK_RECURRING_COMPLETED_JOB);
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('hides the footer confirm button after opening the tab without a quote', async () => {
@@ -840,7 +1196,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
   });
 
   describe('price range', () => {
-    it('shows Not set without an avatar and opens the sheet after dismissing the keypad', async () => {
+    it('opens the unset price range sheet with market price placeholders', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -868,6 +1224,12 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           quoteRate: ETH_FIAT_RATE / MUSD_FIAT_RATE,
         }),
       );
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
+      ).toHaveProp('placeholder', 'Market price');
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveProp('placeholder', 'Market price');
     });
 
     it('discards pending min and max when the sheet is closed', async () => {
@@ -903,8 +1265,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('');
     });
 
-    it('clears pending min and max without closing the sheet', async () => {
+    it('clears min and max independently without closing the sheet', async () => {
       const renderResult = renderRecurringPriceRangeView();
+      const expectedMax = applyPercentToPrice(MUSD_FIAT_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -919,7 +1282,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         ),
       );
       fireEvent.press(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_ALL),
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
       );
 
       await waitFor(() => {
@@ -929,7 +1292,24 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       });
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveDisplayValue(expectedMax);
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
+      ).not.toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      );
+
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
       ).toHaveDisplayValue('');
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      ).not.toBeOnTheScreen();
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.SHEET),
       ).toBeOnTheScreen();
@@ -1004,6 +1384,57 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
       expect(confirmButton.props.accessibilityState.disabled).toBe(false);
     });
+
+    it.each([
+      {
+        bound: 'min' as const,
+        percent: -10,
+        min: applyPercentToPrice(MUSD_FIAT_RATE, -10),
+        max: '',
+      },
+      {
+        bound: 'max' as const,
+        percent: 10,
+        min: '',
+        max: applyPercentToPrice(MUSD_FIAT_RATE, 10),
+      },
+    ])(
+      'enables confirm and saves a $bound-only range',
+      async ({ bound, percent, min, max }) => {
+        const renderResult = renderRecurringPriceRangeView();
+
+        await openRecurringTab(renderResult);
+        await openPriceRangeSheet(renderResult);
+        fireEvent.press(
+          renderResult.getByTestId(
+            PriceRangeSheetSelectorsIDs.PERCENT(bound, percent),
+          ),
+        );
+
+        const confirmButton = renderResult.getByTestId(
+          PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
+        );
+        expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+        fireEvent.press(confirmButton);
+
+        await waitFor(() => {
+          expect(
+            renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+          ).not.toBeOnTheScreen();
+        });
+        expect(
+          renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
+        ).toHaveTextContent(formatPriceRangeLabel(min, max, 'usd'));
+        expect(
+          renderResult.store.getState().bridge.recurring.priceRange,
+        ).toEqual({
+          tokenSide: 'dest',
+          currency: 'usd',
+          min,
+          max,
+        });
+      },
+    );
 
     it('keeps confirm disabled when min is not less than max', async () => {
       const renderResult = renderRecurringPriceRangeView();
@@ -1115,7 +1546,10 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       await seedPriceRangeAfterTokens(renderResult, STORED_USD_PRICE_RANGE);
       await openPriceRangeSheet(renderResult);
       fireEvent.press(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_ALL),
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
+      );
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
       );
       fireEvent.press(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON),

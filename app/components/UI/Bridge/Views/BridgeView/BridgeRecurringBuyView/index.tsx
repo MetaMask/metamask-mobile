@@ -1,45 +1,50 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { ScrollView } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   selectBridgeBalanceRefreshKey,
   selectRecurringPriceRange,
+  selectRecurringScheduleValidation,
   selectSourceToken,
-  setRecurringPriceRange,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
-import PriceRangeSheet from '../../../components/PriceRangeSheet';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
   MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
-import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
-import { formatCurrency } from '../../../utils/currencyUtils';
 import {
+  BridgeQuoteDataProvider,
+  useBridgeQuoteDataContext,
+} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import {
+  formatPriceRangeBounds,
   isPriceRangeInCurrentCurrency,
-  type RecurringPriceRange,
 } from '../../../utils/priceRange';
+import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
-import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
-import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
+import { createRecurringMockHistoryTab } from './BridgeRecurringBuyView.mockHistory';
+import { createRecurringMockOpenOrdersTab } from './BridgeRecurringBuyView.mockOpenOrders';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 
 interface BridgeRecurringBuyViewContentProps {
@@ -50,10 +55,8 @@ const BridgeRecurringBuyViewContent = ({
   latestSourceBalance,
 }: BridgeRecurringBuyViewContentProps) => {
   const tw = useTailwind();
-  const dispatch = useDispatch();
+  const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
-  const [isPriceRangeSheetVisible, setIsPriceRangeSheetVisible] =
-    useState(false);
 
   const {
     destToken,
@@ -74,8 +77,8 @@ const BridgeRecurringBuyViewContent = ({
 
   const priceRange = useSelector(selectRecurringPriceRange);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const sourceFiatRate = useTokenFiatRate(sourceToken);
-  const destFiatRate = useTokenFiatRate(destToken);
+  const scheduleValidation = useSelector(selectRecurringScheduleValidation);
+  const { activeQuote, isLoading } = useBridgeQuoteDataContext();
 
   const {
     close: closeKeypad,
@@ -83,6 +86,7 @@ const BridgeRecurringBuyViewContent = ({
     focusEvery,
     focusRepeat,
     handleChange: handleKeypadChange,
+    isAmountFocused,
     keypadProps,
     keypadRef,
   } = useRecurringBuyKeypad({ sourceAmountInput });
@@ -92,6 +96,31 @@ const BridgeRecurringBuyViewContent = ({
     closeKeypad();
   }, [closeKeypad]);
 
+  const canPreviewOrder = Boolean(activeQuote) && scheduleValidation.isValid;
+
+  const handlePreviewOrder = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
+
+  const handleJobPress = useCallback(
+    (jobId: string) => {
+      navigation.navigate(Routes.BRIDGE.RECURRING_JOB_DETAILS, { jobId });
+    },
+    [navigation],
+  );
+
+  const openOrders = useMemo(
+    () => createRecurringMockOpenOrdersTab(handleJobPress),
+    [handleJobPress],
+  );
+  const history = useMemo(
+    () => createRecurringMockHistoryTab(handleJobPress),
+    [handleJobPress],
+  );
+
   const effectiveRange = isPriceRangeInCurrentCurrency(
     priceRange,
     currentCurrency,
@@ -100,28 +129,33 @@ const BridgeRecurringBuyViewContent = ({
     : undefined;
   const priceRangeToken =
     effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
-  const priceRangeMinLabel = effectiveRange
-    ? formatCurrency(effectiveRange.min, effectiveRange.currency)
-    : undefined;
-  const priceRangeMaxLabel = effectiveRange
-    ? formatCurrency(effectiveRange.max, effectiveRange.currency)
-    : undefined;
+  const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
+    formatPriceRangeBounds(
+      effectiveRange?.min ?? '',
+      effectiveRange?.max ?? '',
+      effectiveRange?.currency ?? currentCurrency,
+    );
 
   const handlePriceRangePress = useCallback(() => {
     dismissInputAndKeypad();
-    setIsPriceRangeSheetVisible(true);
-  }, [dismissInputAndKeypad]);
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_PRICE_RANGE_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
-  const handlePriceRangeSheetClosed = useCallback(() => {
-    setIsPriceRangeSheetVisible(false);
-  }, []);
+  const handleUnitPress = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_INTERVAL_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
-  const handlePriceRangeConfirm = useCallback(
-    (nextPriceRange?: RecurringPriceRange) => {
-      dispatch(setRecurringPriceRange(nextPriceRange));
-    },
-    [dispatch],
-  );
+  const handleRepeatInfoPress = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_REPEAT_INFO_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -138,7 +172,6 @@ const BridgeRecurringBuyViewContent = ({
         >
           <SwapsInputs
             inputRef={inputRef}
-            enabledChainIds={enabledChainIds}
             sourceToken={sourceToken}
             sourceAmountInput={sourceAmountInput}
             latestSourceBalance={latestSourceBalance}
@@ -175,6 +208,7 @@ const BridgeRecurringBuyViewContent = ({
               <HardwareWalletUnsupportedBanner />
               <QuoteErrorBanner />
               <TokenWarningBanner />
+              <DestAssetRequireActivateBanner />
               <InsufficientNativeReserveBanner />
               <MissingQuoteAndAssetsPriceDataBanner />
             </SwapsBanners>
@@ -184,6 +218,8 @@ const BridgeRecurringBuyViewContent = ({
             onEveryPress={focusEvery}
             onRepeatPress={focusRepeat}
             onDismissKeypad={dismissInputAndKeypad}
+            onUnitPress={handleUnitPress}
+            onRepeatInfoPress={handleRepeatInfoPress}
           />
 
           <PriceRangeRow
@@ -196,13 +232,16 @@ const BridgeRecurringBuyViewContent = ({
           <Box onTouchEnd={dismissInputAndKeypad}>
             <OrdersTabs
               enabledChainIds={enabledChainIds}
-              openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
-              history={RECURRING_MOCK_HISTORY_TAB}
+              openOrders={openOrders}
+              history={history}
             />
           </Box>
         </ScrollView>
 
-        <BridgeRecurringBuyFooterView />
+        <BridgeRecurringBuyFooterView
+          onPreviewOrder={handlePreviewOrder}
+          isPreviewDisabled={!scheduleValidation.isValid}
+        />
 
         <SwapsKeypad
           ref={keypadRef}
@@ -211,11 +250,13 @@ const BridgeRecurringBuyViewContent = ({
         >
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsRecurringBuyConfirmButton
-              onPress={() => 'test'}
-              label="test"
+              onPress={handlePreviewOrder}
+              label={strings('bridge.recurring.preview_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+              disabled={!canPreviewOrder}
+              loading={isLoading}
             />
-          ) : (
+          ) : isAmountFocused ? (
             <GaslessQuickPickOptions
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
@@ -223,22 +264,8 @@ const BridgeRecurringBuyViewContent = ({
               isQuoteSponsored={isQuoteSponsored}
               onAmountSelect={handleSourcePresetAmountSelect}
             />
-          )}
+          ) : null}
         </SwapsKeypad>
-
-        <PriceRangeSheet
-          isVisible={isPriceRangeSheetVisible}
-          sourceToken={sourceToken}
-          destToken={destToken}
-          sourceFiatRate={sourceFiatRate}
-          destFiatRate={destFiatRate}
-          currentCurrency={currentCurrency}
-          initialTokenSide={effectiveRange?.tokenSide}
-          initialMin={effectiveRange?.min}
-          initialMax={effectiveRange?.max}
-          onClose={handlePriceRangeSheetClosed}
-          onConfirm={handlePriceRangeConfirm}
-        />
       </Box>
     </Box>
   );

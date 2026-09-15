@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
@@ -108,6 +109,7 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading,
       withdrawableFiatRaw: isBalanceLoading ? undefined : balance,
+      withdrawableMusd: isBalanceLoading ? undefined : new BigNumber(balance),
     } as never);
   }
 
@@ -124,6 +126,7 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading: false,
       withdrawableFiatRaw: undefined,
+      withdrawableMusd: undefined,
     } as never);
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -197,6 +200,7 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading: false,
       withdrawableFiatRaw: '7.61',
+      withdrawableMusd: new BigNumber('7.61'),
     } as never);
 
     rerender(undefined);

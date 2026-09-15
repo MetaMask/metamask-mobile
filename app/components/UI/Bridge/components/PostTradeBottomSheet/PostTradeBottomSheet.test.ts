@@ -8,7 +8,6 @@ import {
 } from './PostTradeBottomSheet.testIds';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
 import { getDefaultDestToken } from '../../utils/tokenUtils';
-import { useABTest } from '../../../../../hooks';
 import {
   ImpactMoment,
   playErrorNotification,
@@ -87,13 +86,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('./usePostTradeTxStatus', () => ({
   usePostTradeTxStatus: () => mockPostTradeStatus,
 }));
-jest.mock('../../../../../hooks', () => ({
-  useABTest: jest.fn(() => ({
-    variant: { enableSwapHaptics: false },
-    variantName: 'control',
-    isActive: false,
-  })),
-}));
 jest.mock('../../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
   playImpact: jest.fn(() => Promise.resolve()),
@@ -111,18 +103,12 @@ jest.mock('../../utils/tokenUtils', () => {
   };
 });
 
-const mockUseABTest = jest.mocked(useABTest);
 const mockPlayImpact = jest.mocked(playImpact);
 const mockPlaySuccessNotification = jest.mocked(playSuccessNotification);
 const mockPlayErrorNotification = jest.mocked(playErrorNotification);
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockUseABTest.mockReturnValue({
-    variant: { enableSwapHaptics: false },
-    variantName: 'control',
-    isActive: false,
-  } as ReturnType<typeof useABTest>);
   mockPlayImpact.mockResolvedValue(undefined);
   mockPlaySuccessNotification.mockResolvedValue(undefined);
   mockPlayErrorNotification.mockResolvedValue(undefined);
@@ -165,13 +151,7 @@ const getTrackedEvent = (event: unknown) =>
   )?.[0];
 
 describe('PostTradeBottomSheet', () => {
-  it('plays status haptics when swap haptics treatment is active', () => {
-    mockUseABTest.mockReturnValue({
-      variant: { enableSwapHaptics: true },
-      variantName: 'treatment',
-      isActive: true,
-    } as ReturnType<typeof useABTest>);
-
+  it('plays status haptics', () => {
     mockPostTradeStatus = PostTradeStatus.InProgress;
     mockParams = {
       ...mockParams,

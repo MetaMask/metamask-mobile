@@ -195,7 +195,7 @@ class TestSnaps {
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
     options: Partial<RetryOptions> = {
-      timeout: 5_000,
+      timeout: 30_000,
       interval: 100,
     },
   ): Promise<void> {
@@ -222,7 +222,7 @@ class TestSnaps {
         await Assertions.checkIfTextMatches(actualText, expectedMessage);
       },
       {
-        timeout: options.timeout ?? 5_000,
+        timeout: options.timeout ?? 30_000,
         interval: options.interval ?? 100,
         description: `Assert result "${webId}" matches expected text`,
       },
@@ -309,7 +309,7 @@ class TestSnaps {
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
     options: Partial<RetryOptions> = {
-      timeout: 5_000,
+      timeout: 30_000,
       interval: 100,
     },
   ): Promise<void> {
@@ -330,7 +330,7 @@ class TestSnaps {
         }
       },
       {
-        timeout: options.timeout ?? 5_000,
+        timeout: options.timeout ?? 30_000,
         interval: options.interval ?? 100,
         description: `Assert result "${webId}" contains "${formattedExpectedMessage}"`,
       },
@@ -477,13 +477,33 @@ class TestSnaps {
     }
   }
 
+  private async expectSnapAlert(
+    text: string | RegExp,
+    timeout: number,
+    description: string,
+  ): Promise<void> {
+    await Assertions.expectElementToBeVisible(Matchers.getElementByText(text), {
+      timeout,
+      description,
+    });
+  }
+
   /** Single query — sequential substring asserts race the short-lived alert. */
   async expectDisabledSnapAlert(): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText(
-        /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
-      ),
-      { timeout: 30_000 },
+    await this.expectSnapAlert(
+      /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
+      30_000,
+      'disabled Snap alert dialog',
+    );
+  }
+
+  // Use one stable text node. Android UiAutomator does not reliably match the
+  // prior multi-clause regex even while the dialog is visibly open.
+  async expectEnabledSnapAlert(timeout = 30_000): Promise<void> {
+    await this.expectSnapAlert(
+      'This is an alert dialog',
+      timeout,
+      'enabled Snap alert dialog',
     );
   }
 

@@ -33,6 +33,11 @@ on:
           - ios
           - android
         default: all
+      build_attribution:
+        description: "Analytics build attribution (METAMASK_BUILD_ATTRIBUTION). Set to 'nightly' for OTA pushes to nightly builds, or analytics will report the update as a Runway RC"
+        required: false
+        type: string
+        default: ''
 
   workflow_call:
     inputs:
@@ -58,6 +63,14 @@ on:
         type: string
         required: false
         default: all
+      build_attribution:
+        description: >-
+          Optional analytics build attribution forwarded to eas-update-platform.yml as
+          METAMASK_BUILD_ATTRIBUTION. Set to 'nightly' for OTA pushes to nightly builds so the
+          rebuilt bundle keeps reporting `-rc-nightly` / `-exp-nightly`.
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -438,6 +451,7 @@ jobs:
       channel: ${{ inputs.channel }}
       message: ${{ inputs.message }}
       build_name: ${{ needs.prepare.outputs.build_name }}
+      build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
     secrets: inherit
@@ -469,6 +483,7 @@ jobs:
       channel: ${{ inputs.channel }}
       message: ${{ inputs.message }}
       build_name: ${{ needs.prepare.outputs.build_name }}
+      build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
     secrets: inherit

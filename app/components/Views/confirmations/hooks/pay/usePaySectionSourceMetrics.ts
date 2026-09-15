@@ -149,10 +149,17 @@ function getCryptoAccountType(
 
 function getAccountTypeFromKeyring(
   keyringType: string | undefined,
-): OnboardingCompletedAccountType | undefined {
+): PayWithSectionId | undefined {
   const normalizedKeyringType = keyringType?.toLowerCase();
   if (!normalizedKeyringType) {
     return undefined;
+  }
+
+  if (
+    normalizedKeyringType === KeyringType.Money ||
+    normalizedKeyringType === 'money keyring'
+  ) {
+    return 'money-account';
   }
 
   if (

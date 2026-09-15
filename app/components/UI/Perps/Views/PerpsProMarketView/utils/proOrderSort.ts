@@ -4,7 +4,10 @@ import {
   type ProOrdersSortDirection,
   type ProOrdersSortField,
 } from '@metamask/perps-controller';
-import { resolveOrderDisplayPriceAndLabel } from '../../../utils/orderUtils';
+import {
+  getValidOrderPrice,
+  getValidTriggerPrice,
+} from '../../../utils/orderUtils';
 import { compareProSortValues } from './proSortCompare';
 
 export type ProOrderSortField = ProOrdersSortField;
@@ -47,7 +50,7 @@ const getOrderSize = (order: Order): number =>
   Math.abs(Number.parseFloat(order.originalSize || order.size)) || 0;
 
 const getOrderPrice = (order: Order): number =>
-  resolveOrderDisplayPriceAndLabel(order).priceValue ?? 0;
+  getValidOrderPrice(order) ?? getValidTriggerPrice(order) ?? 0;
 
 const getSortValue = (order: Order, field: ProOrderSortField): number => {
   switch (field) {

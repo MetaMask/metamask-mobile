@@ -41,7 +41,6 @@ const fireNavigationEvent = (event: string) => {
 };
 
 let mockIsProModeEnabled = true;
-let mockIsFirstTimePerpsUser = true;
 let mockPerpsMode = PerpsMode.Lite;
 let mockRouteParams: { entry?: string; source?: string } = {};
 
@@ -64,10 +63,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: () => unknown) => selector(),
-}));
-
-jest.mock('../../selectors/perpsController', () => ({
-  selectIsFirstTimePerpsUser: () => mockIsFirstTimePerpsUser,
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
@@ -138,7 +133,6 @@ describe('PerpsModeSelectionView', () => {
       delete mockNavigationListeners[key];
     });
     mockIsProModeEnabled = true;
-    mockIsFirstTimePerpsUser = true;
     mockPerpsMode = PerpsMode.Lite;
     mockRouteParams = {};
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
@@ -198,7 +192,7 @@ describe('PerpsModeSelectionView', () => {
     ).toEqual({ selected: false });
   });
 
-  it('persists Lite, dismisses, and continues to the tutorial for first-time users', async () => {
+  it('persists Lite, dismisses, and continues to Perps Home for first-time users', async () => {
     render(<PerpsModeSelectionView />);
 
     fireEvent.press(
@@ -221,12 +215,17 @@ describe('PerpsModeSelectionView', () => {
       },
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-      source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION },
     });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.TUTORIAL,
+      expect.anything(),
+    );
   });
 
-  it('persists Pro and continues to the tutorial with a Pro market redirect', async () => {
+  it('persists Pro and continues to the default Pro market for first-time users', async () => {
     render(<PerpsModeSelectionView />);
 
     fireEvent.press(
@@ -238,19 +237,20 @@ describe('PerpsModeSelectionView', () => {
     expect(mockSetMode).toHaveBeenCalledWith(PerpsMode.Pro);
     expect(mockMarkPerpsModeSelectionCompleted).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-      source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
-      redirectScreen: Routes.PERPS.MARKET_DETAILS,
-      redirectParams: {
-        market: { symbol: 'BTC', name: 'Bitcoin' },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: expect.objectContaining({ symbol: 'BTC' }),
         source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
       },
     });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.TUTORIAL,
+      expect.anything(),
+    );
   });
 
   it('continues to Perps Home when a returning Trade-entry user selects Lite', async () => {
-    mockIsFirstTimePerpsUser = false;
-
     render(<PerpsModeSelectionView />);
 
     fireEvent.press(
@@ -268,7 +268,6 @@ describe('PerpsModeSelectionView', () => {
   it('continues to the default Pro market when a returning Trade-entry user selects Pro', async () => {
     // Regression: the destination must come from the selected mode, not from the
     // Pro-mode selector, which still reads Lite at this point.
-    mockIsFirstTimePerpsUser = false;
     mockPerpsMode = PerpsMode.Lite;
 
     render(<PerpsModeSelectionView />);
@@ -290,7 +289,6 @@ describe('PerpsModeSelectionView', () => {
   });
 
   it('continues to Perps Home when Pro is selected but the Pro-mode flag is off', async () => {
-    mockIsFirstTimePerpsUser = false;
     mockIsProModeEnabled = false;
 
     render(<PerpsModeSelectionView />);
@@ -308,7 +306,6 @@ describe('PerpsModeSelectionView', () => {
   });
 
   it('resets onto the default Pro market when selecting Pro from home', async () => {
-    mockIsFirstTimePerpsUser = false;
     mockRouteParams = {
       entry: 'home',
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
@@ -339,7 +336,6 @@ describe('PerpsModeSelectionView', () => {
   });
 
   it('drops Perps Home from the parent stack when selecting Pro from a market', async () => {
-    mockIsFirstTimePerpsUser = false;
     mockRouteParams = {
       entry: 'market',
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -368,7 +364,6 @@ describe('PerpsModeSelectionView', () => {
   });
 
   it('dismisses only when selecting Lite from a market header', async () => {
-    mockIsFirstTimePerpsUser = false;
     mockRouteParams = {
       entry: 'market',
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,

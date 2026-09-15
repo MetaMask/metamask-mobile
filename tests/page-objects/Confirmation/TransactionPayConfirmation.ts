@@ -115,6 +115,16 @@ class TransactionPayConfirmation {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TRANSACTION_FEE);
   }
 
+  get paidByMetaMask(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.PAID_BY_METAMASK,
+    );
+  }
+
+  get bridgeFeeRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID('bridge-fee-row');
+  }
+
   get payWithTokenList(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
@@ -405,10 +415,25 @@ class TransactionPayConfirmation {
   }
 
   async verifyTransactionFeeVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.transactionFee, {
-      description: 'Transaction fee row should be visible',
+    await Assertions.expectElementToBeVisible(this.bridgeFeeRow, {
+      description: 'Bridge fee row should be visible',
       timeout: 15000,
     });
+
+    // Prod pay configs may sponsor gas (Paid by MetaMask) instead of showing a
+    // fiat `transaction-fee` value — either means the quote/fee row resolved.
+    await Utilities.waitUntil(
+      async () => {
+        const feeExisting = await (await this.transactionFee)
+          .unwrap()
+          .isExisting();
+        if (feeExisting) {
+          return true;
+        }
+        return (await this.paidByMetaMask).unwrap().isExisting();
+      },
+      { interval: 300, timeout: 15000 },
+    );
   }
 
   async verifyCustomAmount(amount: string, description: string): Promise<void> {
