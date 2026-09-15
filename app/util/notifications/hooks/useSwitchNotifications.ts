@@ -36,7 +36,15 @@ export function useNotificationsToggle() {
   const switchNotifications = useCallback(
     async (val: boolean) => {
       assertIsFeatureEnabled();
-      val ? await enableNotifications() : await disableNotifications();
+      if (val) {
+        await enableNotifications();
+        return;
+      }
+
+      const notificationsDisabled = await disableNotifications();
+      if (!notificationsDisabled) {
+        throw new Error('Failed to disable notifications');
+      }
     },
     [disableNotifications, enableNotifications],
   );

@@ -22,7 +22,6 @@ import {
 import { initialStateActivityWithRedesignEnabled } from '../presets/activity';
 import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
 import type { ActivityListItem } from '../../../app/util/activity-adapters';
-import { stashPreloadedActivityItem } from '../../../app/components/Views/ActivityList/preloadedActivityItemStore';
 import { getActivityDetailsRoute } from '../../../app/components/Views/ActivityList/getActivityDetailsRoute';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
@@ -284,29 +283,7 @@ export function renderActivityDetailsView(
 }
 
 /**
- * Stashes a provider-backed Activity row (Perps / Predict) and opens Details
- * with the serializable `{ chainId, txIdentifier, preloadKey }` params used in
- * production.
- */
-export function renderPreloadedActivityDetailsView(
-  item: ActivityListItem,
-  options: Omit<RenderActivityDetailsViewOptions, 'params'> = {},
-): ReturnType<typeof renderScreenWithRoutes> {
-  const preloadKey = stashPreloadedActivityItem(item);
-
-  return renderActivityDetailsView({
-    ...options,
-    params: {
-      chainId: item.chainId,
-      txIdentifier: item.hash,
-      preloadKey,
-    },
-  });
-}
-
-/**
- * Builds Activity Details route params (including preload stash) the same way
- * ActivityList navigates. Use for provider-backed rows that are not in Redux.
+ * Builds Activity Details route params the same way ActivityList navigates.
  */
 export function getActivityDetailsViewParams(
   item: ActivityListItem,

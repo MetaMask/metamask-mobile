@@ -62,7 +62,22 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-export const Footer = () => {
+export function Footer() {
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { isFooterVisible } = useConfirmationContext();
+
+  if (
+    isFooterVisible === false ||
+    (isFooterVisible === undefined &&
+      hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES))
+  ) {
+    return null;
+  }
+
+  return <FooterInternal />;
+}
+
+function FooterInternal() {
   const {
     alerts,
     fieldAlerts,
@@ -93,8 +108,7 @@ export const Footer = () => {
   );
   const isPayAmountStale = useIsTransactionPayAmountStale();
   const { isGaslessLoading } = useIsGaslessLoading();
-  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
-    useConfirmationContext();
+  const { isTransactionValueUpdating } = useConfirmationContext();
 
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -205,15 +219,6 @@ export const Footer = () => {
     (isPayTokenRequiredTransaction && !isPaySubmitReady) ||
     isGaslessLoading;
 
-  const isFooterVisible =
-    isFooterVisibleFlag ??
-    (!transactionMetadata ||
-      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
-
-  if (!isFooterVisible) {
-    return null;
-  }
-
   if (
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
@@ -297,7 +302,7 @@ export const Footer = () => {
       )}
     </>
   );
-};
+}
 
 export function FooterSkeleton() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();

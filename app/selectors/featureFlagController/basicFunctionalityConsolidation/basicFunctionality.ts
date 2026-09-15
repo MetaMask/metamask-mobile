@@ -9,9 +9,20 @@ import {
   validatedVersionGatedFeatureFlag,
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
+import { selectOnboardingAccountType } from '../../onboarding';
+import {
+  BFT_CHILD_PREFERENCES,
+  isBasicFunctionalitySocialLoginUser,
+  type BftChildPreference,
+} from '../../../util/basicFunctionality/getBasicFunctionalityConsolidationPlan';
 
+/**
+ * Matches the LaunchDarkly flag key exactly. The remote key is misspelled
+ * (`BftcOnsolidation`), and renaming it remotely would orphan the rollout, so
+ * the client mirrors the remote spelling.
+ */
 export const MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME =
-  'mobileUxBftcConsolidation';
+  'mobileUxBftcOnsolidation';
 
 /**
  * Preference keys unified under consolidated Basic Functionality on mobile.
@@ -20,17 +31,11 @@ export const MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME =
  * 4byte, proposed nicknames, ENS address-bar resolution, and currency-rate
  * check — those keys do not exist on mobile's PreferencesController.
  */
-export const BFT_CHILD_PREFERENCES = [
-  'useTransactionSimulations',
-  'securityAlertsEnabled',
-  'isMultiAccountBalancesEnabled',
-  'useSafeChainsListValidation',
-  'useTokenDetection',
-  'displayNftMedia',
-  'useNftDetection',
-] as const;
-
-export type BftChildPreference = (typeof BFT_CHILD_PREFERENCES)[number];
+export { BFT_CHILD_PREFERENCES };
+export type BasicFunctionalityMigrationNotification =
+  | 'bottom-sheet'
+  | 'toast'
+  | null;
 
 type BftChildPreferenceValues = Record<BftChildPreference, boolean>;
 
@@ -53,6 +58,12 @@ const selectPreferencesControllerState = (state: RootState) =>
   state.engine?.backgroundState?.PreferencesController as
     | Partial<Record<BftChildPreference, boolean>>
     | undefined;
+
+const selectSeedlessAuthConnection = (state: RootState) =>
+  state.engine?.backgroundState?.SeedlessOnboardingController?.authConnection;
+
+const selectHasSeedlessVault = (state: RootState) =>
+  state.engine?.backgroundState?.SeedlessOnboardingController?.vault != null;
 
 /**
  * Reads BFT child prefs directly so partial test stores without
@@ -113,4 +124,59 @@ export const selectIsBasicFunctionalityConsolidationEnabled = createSelector(
   (isRemoteFlagEnabled, isPersistedConsolidatedUser, isConsistentLegacyUser) =>
     isRemoteFlagEnabled &&
     (isPersistedConsolidatedUser || isConsistentLegacyUser),
+);
+
+const selectBasicFunctionalityMigrationNotification = (state: RootState) =>
+  (state.settings?.basicFunctionalityMigrationNotification ??
+    null) as BasicFunctionalityMigrationNotification;
+
+const selectIsBasicFunctionalityMigrationNotificationDismissed = (
+  state: RootState,
+) => Boolean(state.settings?.basicFunctionalityMigrationNotificationDismissed);
+
+/**
+ * A scheduled notice survives a feature-flag rollback. The migration may have
+ * already changed the user's preferences, so the flag remains a gate for
+ * starting migrations and showing consolidated settings, but not for
+ * acknowledging a completed migration.
+ */
+export const selectShouldShowBasicFunctionalityMigrationBottomSheet =
+  createSelector(
+    selectBasicFunctionalityMigrationNotification,
+    selectIsBasicFunctionalityMigrationNotificationDismissed,
+    (notification, isDismissed) =>
+      notification === 'bottom-sheet' && !isDismissed,
+  );
+
+export const selectShouldShowBasicFunctionalityMigrationToast = createSelector(
+  selectBasicFunctionalityMigrationNotification,
+  selectIsBasicFunctionalityMigrationNotificationDismissed,
+  (notification, isDismissed) => notification === 'toast' && !isDismissed,
+);
+
+/**
+ * Lock social-login Basic Functionality only after it is on. If migration has
+ * not completed (or failed), keeping an OFF toggle operable gives the user and
+ * the next migration attempt a recovery path instead of trapping it OFF.
+ */
+export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
+  selectMobileUxBftcConsolidationFlagEnabled,
+  selectBasicFunctionalityEnabled,
+  selectOnboardingAccountType,
+  selectSeedlessAuthConnection,
+  selectHasSeedlessVault,
+  (
+    isFlagEnabled,
+    isBasicFunctionalityEnabled,
+    accountType,
+    authConnection,
+    hasSeedlessVault,
+  ) =>
+    isFlagEnabled &&
+    isBasicFunctionalityEnabled &&
+    isBasicFunctionalitySocialLoginUser({
+      accountType,
+      authConnection,
+      hasSeedlessVault,
+    }),
 );

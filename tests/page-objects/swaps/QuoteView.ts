@@ -327,8 +327,9 @@ class QuoteView {
   }
 
   async tapOnBackButton(): Promise<void> {
-    // Android: header back shares the generic `button-icon` testID with the
-    // settings gear, so a single UI tap can miss dismiss. Retry tap + verify.
+    // Prefer the dedicated `bridge-back-button` testID. On Android still retry
+    // + verify dismiss — post-trade Activity → Quote stacks can leave the
+    // Swap screen up after a missed tap, and TabBar Wallet then hangs.
     if (PlatformDetector.isAndroid()) {
       await Utilities.executeWithRetry(
         async () => {
