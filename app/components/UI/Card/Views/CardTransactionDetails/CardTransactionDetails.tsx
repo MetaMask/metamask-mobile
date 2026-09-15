@@ -172,6 +172,16 @@ const CardTransactionDetails = () => {
     [transaction, fundingToken, primaryToken],
   );
 
+  const networkFeeLabel = useMemo(() => {
+    const fee = transaction?.feeAmount;
+    if (!fee) {
+      return undefined;
+    }
+    const num = parseFloat(fee.value);
+    const formatted = Number.isFinite(num) ? num.toFixed(2) : fee.value;
+    return `${formatted} ${fee.currency}`;
+  }, [transaction?.feeAmount]);
+
   const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
   const displayTransactionId = transaction?.reference ?? transaction?.id;
 
@@ -281,6 +291,7 @@ const CardTransactionDetails = () => {
       locationLabel={locationLabel}
       declineReason={getCardDeclineReasonLabel(transaction)}
       transactionId={displayTransactionId}
+      networkFeeLabel={networkFeeLabel}
       heroToken={heroToken}
       onBack={handleBack}
       onReportPress={handleReportPress}

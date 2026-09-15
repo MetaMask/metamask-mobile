@@ -188,6 +188,7 @@ interface MoneyCardDetailsContentProps {
   merchant?: CardTransactionMerchant;
   declineSource?: CardTransaction;
   transactionId?: string;
+  networkFeeLabel?: string;
   statusLabel: string;
   statusColor: TextColor;
   amountColor: TextColor;
@@ -202,6 +203,7 @@ function MoneyCardDetailsContent({
   merchant,
   declineSource,
   transactionId,
+  networkFeeLabel,
   statusLabel,
   statusColor,
   amountColor,
@@ -235,12 +237,24 @@ function MoneyCardDetailsContent({
       locationLabel={locationLabel}
       declineReason={getCardDeclineReasonLabel(declineSource)}
       transactionId={transactionId}
+      networkFeeLabel={networkFeeLabel}
       heroToken={MONEY_ACCOUNT_HERO_TOKEN}
       heroIconTestID="money-account-hero-icon"
       onBack={handleBack}
       onViewOnExplorer={onViewOnExplorer}
     />
   );
+}
+
+function formatNetworkFeeLabel(
+  feeAmount?: CardTransaction['feeAmount'],
+): string | undefined {
+  if (!feeAmount) {
+    return undefined;
+  }
+  const num = parseFloat(feeAmount.value);
+  const formatted = Number.isFinite(num) ? num.toFixed(2) : feeAmount.value;
+  return `${formatted} ${feeAmount.currency}`;
 }
 
 function MoneyDeclinedCardDetailsContent({
@@ -263,6 +277,7 @@ function MoneyDeclinedCardDetailsContent({
       merchant={transaction.merchant}
       declineSource={transaction}
       transactionId={transaction.reference ?? transaction.id}
+      networkFeeLabel={formatNetworkFeeLabel(transaction.feeAmount)}
       statusLabel={formatCardTransactionStatus(transaction.status)}
       statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
       amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
@@ -292,6 +307,7 @@ function MoneySettledCardDetailsContent({
       merchant={enrichment?.merchant}
       declineSource={enrichment}
       transactionId={enrichment?.reference}
+      networkFeeLabel={formatNetworkFeeLabel(enrichment?.feeAmount)}
       statusLabel={strings('money.api_activity_details.completed')}
       statusColor={TextColor.SuccessDefault}
       amountColor={
