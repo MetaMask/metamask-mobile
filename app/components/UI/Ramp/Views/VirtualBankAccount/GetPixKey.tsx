@@ -60,31 +60,18 @@ const BenefitRow = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const {
-    disclaimers,
-    isLoading,
-    error,
-    retry,
-    providerDisclaimersAccepted = [],
-    idosDisclaimersAccepted = [],
-  } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const { disclaimers, isLoading, error, retry } =
+    useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading &&
-    !error &&
-    Boolean(disclaimers?.length) &&
-    providerDisclaimersAccepted.length > 0 &&
-    idosDisclaimersAccepted.length > 0;
+    !isLoading && !error && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_KYC, {
-      providerDisclaimersAccepted,
-      idosDisclaimersAccepted,
-    });
-  }, [idosDisclaimersAccepted, navigation, providerDisclaimersAccepted]);
+    navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+  }, [navigation]);
 
   return (
     <SafeAreaView

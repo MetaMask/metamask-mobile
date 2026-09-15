@@ -51,7 +51,7 @@ PredictNext test support also lives outside this directory:
 
 - `tests/component-view/renderers/predictNext.ts` owns the shared screen renderer and registered routes.
 - `tests/component-view/fixtures/predictNext.ts` owns reusable Event fixtures, Feed messenger setup, and card assertions.
-- `tests/integration/harnesses/predict-next.ts` owns the controller-to-service integration harness.
+- `tests/integration/harnesses/predict-next.ts` owns the Engine-root-to-service integration harness.
 
 Keep screen loading, error, empty, cached-data, and navigation journeys in colocated `*.view.test.tsx` files. Reuse the shared component-view fixture instead of recreating Event builders or Feed messenger setup. Keep Feed contracts, pagination, retry, and circuit-breaker behavior in the integration harness; do not add a separate rendered-Home integration harness.
 

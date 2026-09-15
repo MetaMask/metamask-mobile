@@ -4693,6 +4693,7 @@ describe('PredictController', () => {
             disableHook: true,
             disableSequential: true,
             gasFeeToken: MATIC_CONTRACTS_V2.collateral,
+            overwriteUpgrade: true,
           }),
         );
       });
@@ -5659,6 +5660,7 @@ describe('PredictController', () => {
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
+          overwriteUpgrade: true,
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
@@ -9266,6 +9268,7 @@ describe('PredictController', () => {
             networkClientId: expect.any(String),
             disableHook: true,
             disableSequential: true,
+            overwriteUpgrade: true,
             requireApproval: true,
             transactions: [mockWithdrawResponse.transaction],
           }),

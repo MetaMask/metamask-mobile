@@ -1321,6 +1321,8 @@ export type PredictThePitchCampaignDetails = CampaignDetails;
 export type MoneyAccountSweepstakesLocalizedTextDto = {
   eligibleBalanceTitle: string;
   eligibleBalanceDescription: string;
+  eligibleBalancePendingTitle: string;
+  eligibleBalancePendingDescription: string;
   entriesTitle: string;
   entriesDescription: string;
   entriesCountValue: string;
@@ -1459,45 +1461,6 @@ export interface PredictThePitchPrizePoolDto {
   breakdown: PredictThePitchPrizeBreakdownEntryDto[];
   computedAt: string | null;
 }
-
-/**
- * Minimal reference to a single Polymarket market.
- */
-export interface PredictMarketRef {
-  eventId: string;
-  conditionId?: string;
-}
-
-/**
- * Response DTO for the public first predict on us endpoint.
- */
-export interface FirstPredictOnUsDto {
-  name: string;
-  image: ThemeImage | null;
-  localizedText: Record<string, string>;
-  usdAmount: number;
-  markets: PredictMarketRef[];
-  termsUrl: string | null;
-}
-
-/**
- * Serializable version of FirstPredictOnUsDto for state storage.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FirstPredictOnUsDtoState = {
-  name: string;
-  image: ThemeImageState | null;
-  localizedText: { [key: string]: string };
-  usdAmount: number;
-  markets: { eventId: string; conditionId?: string }[];
-  termsUrl: string | null;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FirstPredictOnUsCacheState = {
-  data: FirstPredictOnUsDtoState | null;
-  lastFetched: number;
-};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
@@ -2896,8 +2859,6 @@ export type RewardsControllerState = {
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
-  /** Cached first predict on us content from the public endpoint. */
-  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

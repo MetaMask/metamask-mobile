@@ -10,7 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
@@ -49,7 +49,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../selectors/preferencesController');
 jest.mock('../useHasInsufficientBalance');
-jest.mock('../useConfirmActions');
+jest.mock('../useConfirmReject');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
@@ -67,7 +67,7 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionMetadataRequest,
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
-  const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockSelectUseTransactionSimulations = jest.mocked(
     selectUseTransactionSimulations,
   );
@@ -125,9 +125,8 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
-    mockUseConfirmActions.mockReturnValue({
+    mockUseConfirmReject.mockReturnValue({
       onReject: jest.fn(),
-      onConfirm: jest.fn(),
     });
     mockUseConfirmationContext.mockReturnValue({
       isTransactionValueUpdating: false,
@@ -227,9 +226,8 @@ describe('useInsufficientBalanceAlert', () => {
 
   it('onReject is called when callback is called', () => {
     const onRejectMock = jest.fn();
-    mockUseConfirmActions.mockReturnValue({
+    mockUseConfirmReject.mockReturnValue({
       onReject: onRejectMock,
-      onConfirm: jest.fn(),
     });
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 

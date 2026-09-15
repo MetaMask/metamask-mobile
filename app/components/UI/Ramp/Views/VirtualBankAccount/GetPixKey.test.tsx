@@ -2,7 +2,6 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
@@ -37,8 +36,6 @@ describe('GetPixKey', () => {
       isLoading: false,
       error: null,
       retry: mockRetry,
-      providerDisclaimersAccepted: [{ key: 'sumsub', version: '1' }],
-      idosDisclaimersAccepted: [{ key: 'idos', version: '1' }],
     });
   });
 
@@ -65,17 +62,14 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('routes accepted terms through the dedicated KYC page', () => {
+  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC, {
-      providerDisclaimersAccepted: [{ key: 'sumsub', version: '1' }],
-      idosDisclaimersAccepted: [{ key: 'idos', version: '1' }],
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
