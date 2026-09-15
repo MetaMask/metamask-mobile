@@ -104,7 +104,7 @@ const OptionFilterButton = ({
     size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
-    twClassName="flex-1"
+    twClassName={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
     {label}
