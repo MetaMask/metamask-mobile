@@ -47,6 +47,7 @@ export function getTransactionPayControllerMessenger(
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'TransakService:getBuyQuote',
       'KeyringController:getState',
       'KeyringController:signTypedMessage',
     ],

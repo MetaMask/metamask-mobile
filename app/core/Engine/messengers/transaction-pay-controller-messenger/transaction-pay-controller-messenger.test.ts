@@ -72,6 +72,22 @@ describe('getTransactionPayControllerMessenger', () => {
       }),
     );
   });
+
+  it('delegates the stateless TransakService:getBuyQuote fee probe', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    // The fiat estimate reads the native Transak fee via the stateless
+    // TransakService:getBuyQuote action so it does not write the shared
+    // RampsController quote state owned by Unified Buy.
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['TransakService:getBuyQuote']),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {
