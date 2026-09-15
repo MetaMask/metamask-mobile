@@ -87,7 +87,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       value={groupValue}
       onChange={handleFilterChange}
       variant={FilterButtonVariant.Primary}
-      twClassName="px-4 py-2"
+      twClassName="bg-muted px-4 py-2"
       testID={testID}
     >
       {showWatchlistBadge && (
