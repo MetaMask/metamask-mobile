@@ -401,6 +401,14 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
     buildAiBriefing(report),
     /HARD RULE: every profile lacks matching sourcemaps/,
   );
+  // The deterministic footer owns the sourcemap caveat and the counts, so the
+  // agent must not restate either and duplicate them in the same message.
+  assert.match(
+    buildAiBriefing(report),
+    /Do not add a caveat, disclaimer, or source-map note/,
+  );
+  assert.match(buildAiBriefing(report), /Do not state totals such as how many/);
+  assert.doesNotMatch(buildAiBriefing(report), /add one factual caveat line/);
   assert.match(buildMarkdown(report), /BrowserStack app-profiling metrics are excluded/);
   assert.match(buildMarkdown(report), /Per-scenario skill analysis/);
   assert.match(buildMarkdown(report), /JS duty cycle/);

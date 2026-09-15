@@ -856,17 +856,23 @@ Rules:
 ${
   hasResolvedSourcePaths
     ? '- Ownership conclusions are allowed only where a resolved source path supports them.'
-    : '- HARD RULE: every profile lacks matching sourcemaps. Omit all probable-cause/fix tables. Do not recommend memoization, batching, workers, deferral, or any code change. Report timing and hot function names only, then add one factual caveat line.'
+    : '- HARD RULE: every profile lacks matching sourcemaps. Omit all probable-cause/fix tables. Do not recommend memoization, batching, workers, deferral, or any code change. Report timing and hot function names only.'
 }
 - Without resolved paths, never say that no swaps-owned work ran. Say swaps
   ownership is indeterminate because the trace is unsymbolicated.
 - Do not provide causes, fixes, ownership conclusions, or implementation
   suggestions. The input contains timing evidence, not source-code review.
+- Do not explain what a frame does or what code path it implies. Naming a
+  frame and its timing is allowed; inferring the work behind it is not.
+- Do not add a caveat, disclaimer, or source-map note. The surrounding report
+  already states sourcemap coverage from parsed data.
+- Do not state totals such as how many scenarios or profiles exist. The
+  surrounding report already counts them.
 
 Output:
-Maximum 3 bullets. Mention only timing outliers or repeated contributors that
-are directly supported by the JSON. Omit a bullet if there is no useful
-cross-scenario observation.
+Maximum 3 bullets, at most two sentences each. Mention only timing outliers or
+repeated contributors that are directly supported by the JSON. Omit a bullet if
+there is no useful cross-scenario observation.
 
 Metric definitions (do not rename or derive a second overlapping metric):
 - \`captureLengthMs\`: wall-clock capture length.
