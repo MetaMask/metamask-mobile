@@ -27,13 +27,13 @@ function PredictQuickAmounts({
         <Button
           key={amount}
           variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
+          size={ButtonSize.Lg}
           onPress={async () => {
             playImpact(ImpactMoment.QuickAmountSelection);
             onSelectAmount(amount);
           }}
           isDisabled={disabled}
-          twClassName="h-11 flex-1"
+          twClassName="flex-1"
         >
           {`$${amount}`}
         </Button>
