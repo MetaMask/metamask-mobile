@@ -72,6 +72,41 @@ export const buildVipPrioritySupportUrl = (
   return `${baseUrl}${separator}priority=vip&address=${encodeURIComponent(account)}`;
 };
 
+// Card
+// Builds the help-center URL for the card "Contact support" entry. Support runs
+// Intercom behind the help center, so the params below land on the conversation
+// our agents pick up: `provider_user_id` and `provider_name` let an agent match
+// the cardholder against the card provider (Immersve, Baanx) when a request has
+// to be escalated, without asking the user to recite account details.
+// Params are omitted rather than sent empty when the provider identity is
+// unknown (e.g. unauthenticated), so support never sees a blank identifier.
+export const buildCardSupportUrl = (
+  {
+    providerUserId,
+    providerName,
+  }: {
+    providerUserId?: string | null;
+    providerName?: string | null;
+  },
+  baseUrl: string = METAMASK_SUPPORT_URL,
+) => {
+  const params = [
+    ...(providerUserId
+      ? [`provider_user_id=${encodeURIComponent(providerUserId)}`]
+      : []),
+    ...(providerName
+      ? [`provider_name=${encodeURIComponent(providerName)}`]
+      : []),
+  ];
+
+  if (params.length === 0) {
+    return baseUrl;
+  }
+
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}${params.join('&')}`;
+};
+
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
 export const PERPS_ADL_URL = `https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/${MOBILE_UTM}#what-is-auto-deleveraging-adl`;

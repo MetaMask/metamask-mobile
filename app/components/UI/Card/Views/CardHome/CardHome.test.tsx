@@ -92,7 +92,10 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
-import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectMetalCardCheckoutFeatureFlag,
+  selectCardIntercomSupportEnabled,
+} from '../../../../../selectors/featureFlagController/card';
 import {
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -101,6 +104,7 @@ import {
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardProviderUserId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -785,6 +789,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+// Metro strips the `///: ONLY_INCLUDE_IF(beta)` fence at build time but Jest
+// leaves it inert, so the real helper always returns the beta Intercom URL.
+// Forcing '' here keeps these tests on the production (non-beta) support path.
+jest.mock('../../../../../util/support/betaSupportUrl', () => ({
+  getBetaSupportUrl: jest.fn(() => ''),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -837,6 +848,8 @@ function setupMockSelectors(
       decimals: number;
     } | null;
     activeProviderId: string;
+    isCardIntercomSupportEnabled: boolean;
+    providerUserId: string | null;
   }>,
 ) {
   const defaults = {
@@ -859,6 +872,8 @@ function setupMockSelectors(
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
     activeProviderId: 'baanx',
+    isCardIntercomSupportEnabled: false,
+    providerUserId: 'cardholder-1',
   };
 
   const config = { ...defaults, ...overrides };
@@ -883,6 +898,11 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    // Must be explicit: the `[]` fallback below is truthy, which would read as
+    // an enabled flag and silently reroute "Contact support" off mailto.
+    if (selector === selectCardIntercomSupportEnabled)
+      return config.isCardIntercomSupportEnabled;
+    if (selector === selectCardProviderUserId) return config.providerUserId;
 
     if (selector === selectSelectedInternalAccountByScope)
       return () => config.selectedAccount;
@@ -1905,6 +1925,33 @@ describe('CardHome Component', () => {
         `mailto:${CARD_SUPPORT_EMAIL}`,
       );
     });
+  });
+
+  it('opens an Intercom support conversation instead of an email draft when the flag is on', async () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      isCardIntercomSupportEnabled: true,
+      activeProviderId: 'immersve',
+      providerUserId: 'cardholder-1',
+    });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+    mockNavigate.mockClear();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    // The consent sheet is what opens the WebView; the resulting support URL is
+    // asserted in useCardIntercomSupport's own tests.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
+        }),
+      );
+    });
+    expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
   it('uses the Immersve terms URL for the Immersve provider', () => {
