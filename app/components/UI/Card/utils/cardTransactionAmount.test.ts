@@ -1,4 +1,7 @@
-import { formatCardAmount, formatNetworkFeeLabel } from './cardTransactionAmount';
+import {
+  formatCardAmount,
+  formatNetworkFeeLabel,
+} from './cardTransactionAmount';
 
 jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en-US' },

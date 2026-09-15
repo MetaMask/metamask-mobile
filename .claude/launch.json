@@ -4,7 +4,10 @@
     {
       "name": "Metro",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["/Users/alexandraforrest/Documents/metamask-mobile/.yarn/releases/yarn-4.14.1.cjs", "watch:clean"],
+      "runtimeArgs": [
+        "/Users/alexandraforrest/Documents/metamask-mobile/.yarn/releases/yarn-4.14.1.cjs",
+        "watch:clean"
+      ],
       "port": 8081
     }
   ]
