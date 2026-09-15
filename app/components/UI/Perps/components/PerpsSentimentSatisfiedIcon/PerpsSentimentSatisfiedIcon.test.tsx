@@ -16,7 +16,7 @@ describe('PerpsSentimentSatisfiedIcon', () => {
   it('renders with the default testID', () => {
     const { getByTestId } = render(<PerpsSentimentSatisfiedIcon />);
 
-    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeOnTheScreen();
   });
 
   it('renders with a custom testID', () => {
@@ -24,7 +24,7 @@ describe('PerpsSentimentSatisfiedIcon', () => {
       <PerpsSentimentSatisfiedIcon testID="custom-icon" />,
     );
 
-    expect(getByTestId('custom-icon')).toBeTruthy();
+    expect(getByTestId('custom-icon')).toBeOnTheScreen();
   });
 
   it('applies custom size and colour to the SVG', () => {

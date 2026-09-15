@@ -58,7 +58,7 @@ describe('PerpsMarketCategoryBadges', () => {
         <PerpsMarketCategoryBadges {...defaultProps} />,
       );
 
-      expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+      expect(getByTestId('perps-sentiment-satisfied-icon')).toBeOnTheScreen();
     });
 
     it('renders the memecoin chip label alongside the local glyph', () => {
@@ -68,8 +68,8 @@ describe('PerpsMarketCategoryBadges', () => {
         <PerpsMarketCategoryBadges {...defaultProps} />,
       );
 
-      expect(getByText('Memecoins')).toBeTruthy();
-      expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+      expect(getByText('Memecoins')).toBeOnTheScreen();
+      expect(getByTestId('perps-sentiment-satisfied-icon')).toBeOnTheScreen();
     });
 
     it('does not render the local glyph when no memecoin category exists', () => {

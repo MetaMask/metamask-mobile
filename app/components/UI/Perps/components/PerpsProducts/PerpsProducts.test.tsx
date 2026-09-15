@@ -102,7 +102,7 @@ describe('PerpsProducts', () => {
 
     const { getByTestId } = render(<PerpsProducts />);
 
-    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeOnTheScreen();
   });
 
   it('does not render the local glyph when no memecoin category exists', () => {
@@ -228,7 +228,7 @@ describe('PerpsProducts', () => {
     // Excludes the outer list/row container testIDs (e.g. "perps-products-list",
     // "perps-products-list-row-0"), which also start with "perps-products-".
     const pillTestIds = getAllByTestId(/^perps-products-(?!list)/).map(
-      (element) => element.props.testID,
+      (node) => node.props.testID,
     );
 
     expect(pillTestIds).toEqual([
