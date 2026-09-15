@@ -65,6 +65,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import { isSameOrigin } from '../../../util/url';
 import {
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
@@ -592,12 +593,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       handleFirstUrl();
     }, [isTabActive, handleFirstUrl, webBrowserBridgeScript]);
 
+    const teardownBackgroundBridge = useCallback(() => {
+      backgroundBridgeRef.current?.onDisconnect();
+      backgroundBridgeRef.current = undefined;
+    }, []);
+
     // Cleanup bridges when tab is closed
     useEffect(
       () => () => {
-        backgroundBridgeRef.current?.onDisconnect();
+        teardownBackgroundBridge();
       },
-      [],
+      [teardownBackgroundBridge],
     );
 
     useEffect(() => {
@@ -693,9 +699,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
-        // First disconnect and reset bridge
-        backgroundBridgeRef.current?.onDisconnect();
-        backgroundBridgeRef.current = undefined;
+        teardownBackgroundBridge();
 
         //@ts-expect-error - We should type bacgkround bridge js file
         const newBridge = new BackgroundBridge({
@@ -724,7 +728,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         });
         backgroundBridgeRef.current = newBridge;
       },
-      [navigation, tabId],
+      [navigation, tabId, teardownBackgroundBridge],
     );
 
     const sendActiveAccount = useCallback(
@@ -1204,6 +1208,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
           if (dataParsed.name) {
+            // Ignore provider messages until the in-flight cross-origin
+            // navigation has committed and a matching bridge exists.
+            if (
+              loadingUrlRef.current &&
+              resolvedUrlRef.current &&
+              !isSameOrigin(loadingUrlRef.current, resolvedUrlRef.current)
+            ) {
+              return;
+            }
             backgroundBridgeRef.current?.onMessage(dataParsed);
             return;
           }
@@ -1225,6 +1238,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       async ({ nativeEvent }: WebViewNavigationEvent) => {
         loadingUrlRef.current = nativeEvent.url;
 
+        // Disconnect the previous-origin bridge on cross-origin navigation
+        // start. Same-origin navigations keep it. Do not initialize here —
+        // that still happens on commit.
+        if (
+          backgroundBridgeRef.current &&
+          resolvedUrlRef.current &&
+          !isSameOrigin(nativeEvent.url, resolvedUrlRef.current)
+        ) {
+          teardownBackgroundBridge();
+        }
+
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
@@ -1243,7 +1267,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // has committed, in `handleSuccessfulPageResolution`.
         iconRef.current = undefined;
       },
-      [isAllowedUrl, handleNotAllowedUrl],
+      [isAllowedUrl, handleNotAllowedUrl, teardownBackgroundBridge],
     );
 
     /**
@@ -1642,6 +1666,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
 
+          // Disconnect the previous-origin bridge before the document-URL
+          // handshake when back/forward lands on a different origin.
+          if (
+            backgroundBridgeRef.current &&
+            resolvedUrlRef.current &&
+            !isSameOrigin(url, resolvedUrlRef.current)
+          ) {
+            teardownBackgroundBridge();
+          }
+
           // Sync the URL bar from the document; navigation events are not always
           // aligned with window.location after back/forward transitions.
           const requestId = createRequestId();
@@ -1674,7 +1708,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
         }
       },
-      [favicon, handleSuccessfulPageResolution],
+      [favicon, handleSuccessfulPageResolution, teardownBackgroundBridge],
     );
 
     /*
