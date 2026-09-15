@@ -255,6 +255,37 @@ jest.mock('../components/Benefits/BenefitsPreview', () => ({
   },
 }));
 
+jest.mock('../components/KolDashboard/ReferralHeroCard', () => ({
+  __esModule: true,
+  default: function MockReferralHeroCard() {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: 'referral-hero-card',
+    });
+  },
+}));
+
+jest.mock('../components/KolDashboard/RewardsDashboardTabs', () => ({
+  __esModule: true,
+  default: function MockRewardsDashboardTabs() {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: 'rewards-dashboard-tabs',
+    });
+  },
+}));
+
+jest.mock('../components/KolDashboard/EarningsTab', () => ({
+  __esModule: true,
+  default: function MockEarningsTab() {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, { testID: 'earnings-tab' });
+  },
+}));
+
 // Mock hooks
 jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -555,7 +586,7 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
       expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
+      expect(getByTestId('referral-hero-card')).toBeTruthy();
       expect(getByTestId('benefits-preview')).toBeTruthy();
     });
 
@@ -625,7 +656,7 @@ describe('RewardsDashboard', () => {
           getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
         ).toBeOnTheScreen();
         expect(
-          getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
+          getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON),
         ).toBeOnTheScreen();
         expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
       });
@@ -666,14 +697,12 @@ describe('RewardsDashboard', () => {
       });
     });
 
-    it('navigates to referral view when referral button is pressed', () => {
-      // Act
+    it('navigates to performance view when the chart button is pressed', () => {
       const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON));
 
-      // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REFERRAL_REWARDS_VIEW,
+        screen: Routes.REWARDS_PERFORMANCE_VIEW,
         params: undefined,
       });
     });
@@ -1372,9 +1401,8 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('referral button state', () => {
-    it('always renders the referral button as enabled regardless of subscription state', () => {
-      // Arrange - no subscriptionId
+  describe('performance button', () => {
+    it('renders the performance button when the user is not opted in', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
@@ -1389,14 +1417,11 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const referralButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-      );
 
-      // Assert - referral button is never disabled
-      expect(referralButton).not.toBeDisabled();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

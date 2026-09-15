@@ -66,6 +66,18 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/RewardsPerformanceView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsPerformanceView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'rewards-performance-view' },
+      ReactActual.createElement(Text, null, 'Rewards Performance View'),
+    );
+  };
+});
+
 jest.mock('./Views/RewardsVipView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');

@@ -1,4 +1,10 @@
-import React, { useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
@@ -57,8 +63,11 @@ import { navigateToRewardsRoute } from '../utils';
 import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
 import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
-import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import RewardsDashboardTabs from '../components/KolDashboard/RewardsDashboardTabs';
+import ReferralHeroCard from '../components/KolDashboard/ReferralHeroCard';
+import EarningsTab from '../components/KolDashboard/EarningsTab';
+import type { RewardsDashboardTab } from '../components/KolDashboard/RewardsDashboardTabs.types';
 import { Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
@@ -92,6 +101,9 @@ const RewardsDashboard: React.FC = () => {
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
+  const [dashboardTab, setDashboardTab] =
+    useState<RewardsDashboardTab>('waysToEarn');
+  const [hasClaimableEarnings, setHasClaimableEarnings] = useState(true);
 
   const isMoneyCampaignDeeplink = pendingDeeplink?.campaign === 'money';
   const {
@@ -493,6 +505,10 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
+  const handlePerformancePress = useCallback(() => {
+    navigateToRewardsRoute(navigation, Routes.REWARDS_PERFORMANCE_VIEW);
+  }, [navigation]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -524,12 +540,10 @@ const RewardsDashboard: React.FC = () => {
         </Pressable>
       )}
       <ButtonIcon
-        iconName={IconName.UserCircleAdd}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
-        }
+        iconName={IconName.Chart}
+        onPress={handlePerformancePress}
         size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+        testID={REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON}
       />
       <ButtonIcon
         disabled={!subscriptionId}
@@ -606,9 +620,20 @@ const RewardsDashboard: React.FC = () => {
             </Box>
           ) : null}
           <Box twClassName="gap-3">
-            <CampaignsPreview />
-            <EarnRewardsPreview />
-            <BenefitsPreview />
+            <RewardsDashboardTabs
+              activeTab={dashboardTab}
+              showEarningsDot={hasClaimableEarnings}
+              onChangeTab={setDashboardTab}
+            />
+            {dashboardTab === 'waysToEarn' ? (
+              <>
+                <ReferralHeroCard />
+                <CampaignsPreview />
+                <BenefitsPreview />
+              </>
+            ) : (
+              <EarningsTab onClaimableChange={setHasClaimableEarnings} />
+            )}
           </Box>
         </Animated.ScrollView>
       </SafeAreaView>

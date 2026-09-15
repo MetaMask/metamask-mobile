@@ -178,6 +178,7 @@ export interface RewardOptInAccountGroupModalParams {
 export type RewardsStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
+  RewardsPerformanceView: undefined;
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;
   RewardsVipTiersView: undefined;
