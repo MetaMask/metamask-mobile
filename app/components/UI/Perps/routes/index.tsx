@@ -25,7 +25,7 @@ import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsClosePositionView from '../Views/PerpsClosePositionView';
+import PerpsClosePositionRouter from '../Views/PerpsClosePositionRouter';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
@@ -55,6 +55,8 @@ import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
+import { getPerpsConversionScreenOptions } from '../utils/perpsConversionScreenOptions';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -257,6 +259,9 @@ const PerpsScreenStack = () => {
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
+  // Shared by every screen-to-bottom-sheet conversion in this navigator.
+  const { useBottomSheet: isPerpsBottomSheet } =
+    usePerpsScreenVsBottomSheetAbTest({ trackExposure: false });
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
@@ -351,11 +356,14 @@ const PerpsScreenStack = () => {
 
               <Stack.Screen
                 name={Routes.PERPS.CLOSE_POSITION}
-                component={PerpsClosePositionView}
-                options={{
-                  title: strings('perps.close_position.title'),
-                  headerShown: false,
-                }}
+                component={PerpsClosePositionRouter}
+                options={getPerpsConversionScreenOptions(
+                  isPerpsBottomSheet,
+                  {
+                    title: strings('perps.close_position.title'),
+                    headerShown: false,
+                  },
+                )}
               />
 
               {/* Debug tools - only available in development builds */}
