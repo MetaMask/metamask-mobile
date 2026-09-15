@@ -28,6 +28,8 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { toHex } from '@metamask/controller-utils';
+import { getFailoverUrlsForChainId } from '../../../../../util/networks/network-failover';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import RpcFormFields from './RpcFormFields';
 import SelectField from './SelectField';
@@ -47,6 +49,27 @@ import type { UseNetworkValidationReturn } from '../hooks/useNetworkValidation';
 import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
 const FORM_INNER_STYLE = { position: 'absolute' as const, left: 0, right: 0 };
+
+/**
+ * Failover only applies to Infura RPC endpoints: NetworkController wires the
+ * QuickNode failover solely for Infura endpoints, so surfacing it for a custom
+ * RPC would be misleading. We source the URLs from the shared failover config
+ * keyed by chain ID rather than trusting whatever is stored on the endpoint.
+ *
+ * @param chainId - The network's chain ID (hex or decimal), if known.
+ * @returns The chain's shared-config failover URLs, or an empty array.
+ */
+function getChainFailoverUrls(chainId: string | undefined): string[] {
+  if (!chainId) {
+    return [];
+  }
+  try {
+    return getFailoverUrlsForChainId(toHex(chainId));
+  } catch {
+    // A partially typed chain ID (add mode) is not convertible yet.
+    return [];
+  }
+}
 
 interface RpcEndpointSectionProps {
   formHook: UseNetworkFormReturn;
@@ -75,7 +98,8 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
       rpcName,
       rpcUrlForm,
       rpcNameForm,
-      failoverRpcUrls,
+      rpcUrls,
+      chainId,
       addMode,
     },
     inputRpcURL,
@@ -125,8 +149,13 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
   const secondaryText =
     rpcName && rpcUrl ? formatNetworkRpcUrl(rpcUrl) : undefined;
 
-  const failoverTag =
-    isRpcFailoverEnabled && failoverRpcUrls && failoverRpcUrls.length > 0;
+  const defaultEndpoint = rpcUrls.find((endpoint) => endpoint.url === rpcUrl);
+  const defaultFailoverUrls =
+    defaultEndpoint?.type === RpcEndpointType.Infura
+      ? getChainFailoverUrls(chainId)
+      : [];
+
+  const failoverTag = isRpcFailoverEnabled && defaultFailoverUrls.length > 0;
 
   return (
     <>
@@ -160,16 +189,14 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
       </Box>
 
       {/* Failover RPC URLs (read-only) */}
-      {isRpcFailoverEnabled &&
-        failoverRpcUrls &&
-        failoverRpcUrls.length > 0 && (
-          <Box>
-            <Label>
-              {strings('app_settings.network_failover_rpc_url_label')}
-            </Label>
-            <TextField value={failoverRpcUrls[0]} isDisabled />
-          </Box>
-        )}
+      {isRpcFailoverEnabled && defaultFailoverUrls.length > 0 && (
+        <Box>
+          <Label>
+            {strings('app_settings.network_failover_rpc_url_label')}
+          </Label>
+          <TextField value={defaultFailoverUrls[0]} isDisabled />
+        </Box>
+      )}
     </>
   );
 };
@@ -182,6 +209,8 @@ interface RpcListItemProps {
   endpoint: RpcEndpoint;
   isSelected: boolean;
   isRpcFailoverEnabled: boolean;
+  /** The chain's shared-config failover URLs, applied only to Infura endpoints. */
+  chainFailoverUrls: string[];
   onSelect: (
     url: string,
     failoverUrls: string[] | undefined,
@@ -197,12 +226,15 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
     endpoint,
     isSelected,
     isRpcFailoverEnabled,
+    chainFailoverUrls,
     onSelect,
     onDelete,
     styles,
   }) => {
     const { url, failoverUrls, name, type } = endpoint;
-    const formattedName = type === 'infura' ? 'Infura' : name;
+    const formattedName = type === RpcEndpointType.Infura ? 'Infura' : name;
+    const displayFailoverUrls =
+      type === RpcEndpointType.Infura ? chainFailoverUrls : [];
 
     const handleSelect = useCallback(async () => {
       await onSelect(url, failoverUrls, name ?? '', type);
@@ -226,11 +258,9 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
                 {formattedName || formatNetworkRpcUrl(url)}
               </Text>
             </View>
-            {isRpcFailoverEnabled &&
-              failoverUrls &&
-              failoverUrls.length > 0 && (
-                <Tag label={strings('app_settings.failover')} />
-              )}
+            {isRpcFailoverEnabled && displayFailoverUrls.length > 0 && (
+              <Tag label={strings('app_settings.failover')} />
+            )}
           </View>
         }
         secondaryText={formattedName ? formatNetworkRpcUrl(url) : ''}
@@ -301,6 +331,8 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
 
   const { onContentLayout, contentWrapperStyle, toggleButtonStyle } =
     useExpandableFormAnimation(showForm);
+
+  const chainFailoverUrls = getChainFailoverUrls(chainId);
 
   useEffect(() => {
     if (showForm) {
@@ -458,6 +490,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   endpoint={endpoint}
                   isSelected={rpcUrl === endpoint.url}
                   isRpcFailoverEnabled={isRpcFailoverEnabled}
+                  chainFailoverUrls={chainFailoverUrls}
                   onSelect={onRpcUrlChangeWithNamePersisted}
                   onDelete={onRpcUrlDeletePersisted}
                   styles={styles}
