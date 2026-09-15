@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -60,14 +60,22 @@ const BenefitRow = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } =
+  const { disclaimers, isLoading, error, skipToStatus, retry } =
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading && !error && Boolean(disclaimers?.length);
+    !isLoading && !error && !skipToStatus && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
+  useEffect(() => {
+    if (!skipToStatus) {
+      return;
+    }
+
+    navigation.navigate(Routes.RAMP.VBA_KYC_STATUS);
+  }, [navigation, skipToStatus]);
 
   const handleAgreeAndContinue = useCallback(() => {
     navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);

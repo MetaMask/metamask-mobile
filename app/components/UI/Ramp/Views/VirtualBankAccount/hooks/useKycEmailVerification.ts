@@ -9,6 +9,7 @@ import type {
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   VBA_KYC_COUNTRY_CODE,
@@ -83,6 +84,19 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
       Logger.log('[VBA KYC] Sumsub SDK closed', {
         status: Engine.context.KycController.state.sumsub.status,
       });
+
+      try {
+        await Engine.context.KycController.refreshKycStatus();
+      } catch (refreshError) {
+        Logger.log('[VBA KYC] KYC status refresh failed', {
+          error:
+            refreshError instanceof Error
+              ? refreshError.message
+              : String(refreshError),
+        });
+      }
+
+      navigation.navigate(Routes.RAMP.VBA_KYC_STATUS);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -97,7 +111,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, trimmedEmail]);
+  }, [isVerifying, navigation, trimmedEmail]);
 
   return {
     email,

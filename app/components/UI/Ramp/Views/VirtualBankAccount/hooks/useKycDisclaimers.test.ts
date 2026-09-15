@@ -5,6 +5,7 @@ import { useKycDisclaimers } from './useKycDisclaimers';
 const mockInitialize = jest.fn();
 const mockLoadDisclaimers = jest.fn();
 const mockReset = jest.fn();
+const mockRefreshKycStatus = jest.fn();
 const mockKycControllerState = {
   vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
   vendorError: null as string | null,
@@ -15,6 +16,7 @@ jest.mock('../../../../../../core/Engine', () => ({
     KycController: {
       initialize: (...args: unknown[]) => mockInitialize(...args),
       loadDisclaimers: (...args: unknown[]) => mockLoadDisclaimers(...args),
+      refreshKycStatus: (...args: unknown[]) => mockRefreshKycStatus(...args),
       reset: (...args: unknown[]) => mockReset(...args),
       get state() {
         return mockKycControllerState;
@@ -23,12 +25,19 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+const notStartedStatus = {
+  status: 'not-started' as const,
+  sumsubSessionId: null,
+  errorCode: null,
+};
+
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycControllerState.vendorDisclaimers = [];
     mockKycControllerState.vendorError = null;
     mockInitialize.mockResolvedValue(undefined);
+    mockRefreshKycStatus.mockResolvedValue(notStartedStatus);
     mockLoadDisclaimers.mockImplementation(async () => {
       mockKycControllerState.vendorDisclaimers = [
         { id: '1', url: 'https://t.c', display_name: 'T&C' },
@@ -42,6 +51,7 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
     expect(mockInitialize).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
       product: VBA_KYC_PRODUCT,
@@ -51,6 +61,63 @@ describe('useKycDisclaimers', () => {
       { id: '1', url: 'https://t.c', display_name: 'T&C' },
     ]);
     expect(result.current.error).toBeNull();
+    expect(result.current.skipToStatus).toBe(false);
+  });
+
+  it.each(['pending', 'completed', 'terminal-failure'] as const)(
+    'skips initialize when refreshKycStatus returns %s',
+    async (status) => {
+      mockRefreshKycStatus.mockResolvedValue({
+        status,
+        sumsubSessionId: 'session-1',
+        errorCode: null,
+      });
+
+      const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
+      expect(mockInitialize).not.toHaveBeenCalled();
+      expect(mockLoadDisclaimers).not.toHaveBeenCalled();
+      expect(result.current.skipToStatus).toBe(true);
+      expect(result.current.disclaimers).toBeNull();
+      expect(result.current.error).toBeNull();
+    },
+  );
+
+  it('loads disclaimers when refreshKycStatus returns need-more-information', async () => {
+    mockRefreshKycStatus.mockResolvedValue({
+      status: 'need-more-information',
+      sumsubSessionId: 'session-1',
+      errorCode: null,
+    });
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockInitialize).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      product: VBA_KYC_PRODUCT,
+    });
+    expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
+    expect(result.current.skipToStatus).toBe(false);
+  });
+
+  it('loads disclaimers when refreshKycStatus rejects', async () => {
+    mockRefreshKycStatus.mockRejectedValue(new Error('status unavailable'));
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockInitialize).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      product: VBA_KYC_PRODUCT,
+    });
+    expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
+    expect(result.current.skipToStatus).toBe(false);
   });
 
   it('surfaces vendorError from KycController state when the load fails', async () => {
