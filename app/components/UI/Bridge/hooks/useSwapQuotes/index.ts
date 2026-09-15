@@ -4,17 +4,17 @@ import {
   SwapQuotesContext,
   type SwapQuotesContextValue,
 } from '../../providers/SwapQuotesProvider';
-import { SwapsFeatureIdContext } from '../../providers/SwapsFeatureIdProvider';
 import { MIGRATED_FEATURE_IDS } from '../../Views/BridgeView/BridgeView.constants';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
 /**
  * Hook for updating the bridge-controller's quoteRequest state and returning quote data
  */
 export const useSwapQuotes = (): SwapQuotesContextValue | null => {
   const context = useContext(SwapQuotesContext);
-  const featureId = useContext(SwapsFeatureIdContext);
+  const featureId = useSwapsFeatureId();
 
-  if (!featureId || !MIGRATED_FEATURE_IDS.includes(featureId)) {
+  if (!MIGRATED_FEATURE_IDS.includes(featureId)) {
     return null;
   }
 

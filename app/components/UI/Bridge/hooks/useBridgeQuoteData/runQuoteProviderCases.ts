@@ -26,6 +26,7 @@ const mockUseBridgeSession = jest.mocked(useBridgeSession);
 export const runQuoteProviderCases = ({
   name,
   missingProviderError,
+  throwsOnMissingProvider = true,
   renderProvider,
   renderWithoutProvider,
   featureId,
@@ -33,6 +34,7 @@ export const runQuoteProviderCases = ({
 }: {
   name: string;
   missingProviderError: string;
+  throwsOnMissingProvider?: boolean;
   renderProvider: (state: DeepPartial<RootState>) => void;
   renderWithoutProvider: () => void;
   featureId: FeatureId;
@@ -129,11 +131,16 @@ export const runQuoteProviderCases = ({
       });
     });
 
-    it('throws when used outside its quote provider', () => {
+    it(`${throwsOnMissingProvider ? 'throws' : 'does not throw'} when used outside its quote provider`, () => {
       jest.spyOn(console, 'error').mockImplementation();
 
       const renderOutsideProvider = () => renderWithoutProvider();
 
-      expect(renderOutsideProvider).toThrow(missingProviderError);
+      if (throwsOnMissingProvider) {
+        expect(renderOutsideProvider).toThrow(missingProviderError);
+        return;
+      }
+
+      expect(renderOutsideProvider).not.toThrow();
     });
   });

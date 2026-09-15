@@ -98,6 +98,7 @@ const Consumer = () => {
 runQuoteProviderCases({
   name: 'SwapQuotesContext',
   missingProviderError: 'useSwapQuotes must be used within SwapQuotesProvider',
+  throwsOnMissingProvider: false,
   featureId: FeatureId.LIMIT_ORDER,
   quoteParams: {
     srcAmount: '1000000000',
