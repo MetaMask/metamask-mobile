@@ -2,11 +2,12 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
-import { focusManager } from '@tanstack/react-query';
+import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
+import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import type { PredictFeedId } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
@@ -28,6 +29,163 @@ describe('PredictHome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     configurePredictNextFeeds();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    onlineManager.setOnline(true);
+  });
+
+  it('loads and rounds the available Balance without blocking Feeds', async () => {
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+    ).toHaveTextContent('$123.13');
+    expect(view.getByText('Available balance')).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Portfolio screen from the Positions action', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.BACK));
+
+    expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+  });
+
+  it('keeps funding actions disabled', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
+
+    expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeDisabled();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeDisabled();
+    expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+  });
+
+  it('masks Balance when privacy mode is enabled', async () => {
+    const view = renderPredictNext(undefined, true);
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
+    expect(view.getByText('Available balance')).toBeOnTheScreen();
+  });
+
+  it('keeps Balance failure isolated and retries it', async () => {
+    let balanceFails = true;
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string) => {
+        if (action === 'PredictPortfolioService:getBalance') {
+          return balanceFails
+            ? Promise.reject(new Error('Balance failed'))
+            : Promise.resolve({
+                venueId: 'kalshi',
+                currency: 'USD',
+                available: '5',
+              });
+        }
+        if (action === 'PredictMarketDataService:getFeed') {
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id,
+            title: 'Games',
+            events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
+          });
+        }
+        return Promise.resolve(undefined);
+      },
+    );
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_ERROR),
+    ).toBeOnTheScreen();
+    expect(view.getByText('Balance unavailable')).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+
+    balanceFails = false;
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.BALANCE_RETRY));
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+    ).toHaveTextContent('$5.00');
+  });
+
+  it('uses the 60-second Balance focus revalidation window', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    messengerCall.mockClear();
+
+    now.mockReturnValue(60_999);
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictPortfolioService:getBalance',
+      'kalshi',
+    );
+
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string) => {
+        if (action === 'PredictPortfolioService:getBalance') {
+          return Promise.reject(new Error('Balance refetch failed'));
+        }
+        if (action === 'PredictMarketDataService:getFeed') {
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id,
+            title: 'Games',
+            events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
+          });
+        }
+        return Promise.resolve(undefined);
+      },
+    );
+    now.mockReturnValue(61_001);
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictPortfolioService:getBalance',
+        'kalshi',
+      ),
+    );
+    expect(
+      view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.BALANCE_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the Balance loading state visible while the first request is offline', async () => {
+    onlineManager.setOnline(false);
+
+    const view = renderPredictNext();
+
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen(),
+    );
   });
 
   it('loads the first two backend-ordered Games for both previews', async () => {

@@ -14,6 +14,12 @@ export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
  */
 export const LIMIT_ORDER_CUSTOM_PERCENT_MAX = 99;
 
+/**
+ * Inclusive percent band around market at which the trigger-price warning is
+ * shown. The order may fill immediately when the limit sits this close.
+ */
+export const LIMIT_ORDER_NEAR_MARKET_PERCENT = 1;
+
 export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
   AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 );

@@ -116,6 +116,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -899,20 +900,6 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-const OfflineModeView = (props) => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name="OfflineMode"
-      component={OfflineMode}
-      options={OfflineMode.navigationOptions}
-      initialParams={{
-        autoDismissOnReconnect:
-          props.route.params?.autoDismissOnReconnect === true,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
@@ -1106,7 +1093,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        options={{ headerShown: false, ...slideFromLeftNativeOptions }}
       />
       <NativeStack.Screen
         name="Asset"
@@ -1145,7 +1132,11 @@ const MainNavigator = () => {
         }}
       />
       <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
-      <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <NativeStack.Screen
+        name="OfflineModeView"
+        component={OfflineMode}
+        options={OfflineMode.navigationOptions}
+      />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}

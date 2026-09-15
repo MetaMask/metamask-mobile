@@ -9,6 +9,7 @@ import AddBookmark from '../../Views/AddBookmark';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import OfflineMode from '../../Views/OfflineMode';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -1488,12 +1489,27 @@ describe('MainNavigator', () => {
         expect(getScreenComponent(root, 'AddBookmarkView')).toBe(AddBookmark);
       });
 
-      it('renders OfflineModeView navigator', () => {
+      it('points the OfflineModeView route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'OfflineModeView');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'OfflineModeView')).toBe(OfflineMode);
+      });
+
+      it('keeps the offline navbar options on the OfflineModeView route', () => {
+        // The deleted wrapper applied these per-screen; losing them in the move
+        // would draw a native header over the offline screen.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        const screen = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' &&
+            node.props?.name === 'OfflineModeView',
+        )[0];
+
+        expect(screen?.props?.options).toBe(OfflineMode.navigationOptions);
       });
 
       it('renders NotificationsModeView navigator', () => {

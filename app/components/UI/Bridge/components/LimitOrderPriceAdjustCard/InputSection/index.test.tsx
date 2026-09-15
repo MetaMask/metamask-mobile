@@ -85,6 +85,67 @@ describe('InputSection', () => {
     expect(onInputPress).toHaveBeenCalledTimes(1);
   });
 
+  it('appends the unit symbol as a non-editable suffix after the amount', () => {
+    const { getByTestId } = renderInputSection({
+      isLimitFiatMode: false,
+      value: '0.00345665',
+      unitSymbol: 'ETH',
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toHaveProp('value', '0.00345665 ETH');
+  });
+
+  it('appends the unit symbol even when the amount is zero', () => {
+    const { getByTestId } = renderInputSection({
+      isLimitFiatMode: false,
+      value: '0',
+      unitSymbol: 'ETH',
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toHaveProp('value', '0 ETH');
+  });
+
+  it('omits the unit symbol suffix when none is provided', () => {
+    const { getByTestId } = renderInputSection({
+      value: '100',
+      unitSymbol: undefined,
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toHaveProp('value', '100');
+  });
+
+  it('clamps the caret selection so it cannot move into the unit symbol suffix', () => {
+    const onSelectionChange = jest.fn();
+    const { getByTestId } = renderInputSection({
+      isLimitFiatMode: false,
+      value: '100',
+      unitSymbol: 'ETH',
+      onSelectionChange,
+    });
+
+    fireEvent(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+      'selectionChange',
+      {
+        nativeEvent: { selection: { start: 6, end: 6 } },
+      },
+    );
+
+    expect(onSelectionChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({
+          selection: { start: 3, end: 3 },
+        }),
+      }),
+    );
+  });
+
   it('renders secondary value and market comparison labels', () => {
     const { getByTestId } = renderInputSection({
       secondaryValue: '0.05 ETH',

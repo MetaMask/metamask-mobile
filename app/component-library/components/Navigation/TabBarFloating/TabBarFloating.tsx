@@ -14,6 +14,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
@@ -129,6 +130,7 @@ const TabBarFloating = ({
       const labelText = labelKey ? strings(labelKey) : '';
 
       const onPress = () => {
+        playImpact(ImpactMoment.TabChange);
         if (previousTabIndexRef.current !== index) {
           const previousRoute = state.routes[previousTabIndexRef.current];
           descriptors[previousRoute?.key]?.options?.onLeave?.();

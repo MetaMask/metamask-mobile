@@ -20,7 +20,6 @@ import {
 } from '../../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { areAddressesEqual } from '../../../../util/address';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
 import {
@@ -45,6 +44,7 @@ import resolveBuyAssetId from '../../Ramp/utils/resolveBuyAssetId';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
+import { computeBuySourceToken } from '../../Bridge/utils/computeBuySourceToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import {
   isExploreTokenDetailsSource,
@@ -58,106 +58,6 @@ export type TokenActionInput = TokenI & {
   caipAssetId?: CaipAssetType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   source?: TokenDetailsSource;
-};
-
-interface BuySourceAsset {
-  chainId: string;
-  assetId: string;
-  isNative?: boolean;
-  decimals: number;
-  symbol: string;
-  name: string;
-  image?: string;
-  fiat?: { balance?: number };
-}
-
-/**
- * Smart picker for the swap "source" token when the current token has no
- * balance: pick the user's best available asset (highest fiat) to spend.
- *
- * Pure function so it can be invoked lazily at click time (avoiding the
- * full sort/rank pass on every redux update). Mirrors the priority order
- * used by the legacy `buySourceToken` memo:
- * 1. Highest USD-value token on the same chain (excluding current token)
- * 2. Native token with highest USD value across other chains
- * 3. Fallback: highest USD-value token across any chain
- */
-export const computeBuySourceToken = (
-  userAssetsMap: Record<string, BuySourceAsset[]> | undefined,
-  tokenChainId: string | undefined,
-  tokenAddress: string,
-): BridgeToken | null => {
-  const userAssets = Object.values(userAssetsMap || {}).flat();
-
-  // Check if asset has positive fiat balance
-  const hasPositiveFiat = (a: { fiat?: { balance?: number } }) =>
-    (a.fiat?.balance ?? 0) > 0;
-
-  // Priority 1: Find highest USD value token on same chain (with positive balance)
-  // Note: assetId contains the token address for EVM assets
-  const sameChainAssets = userAssets
-    .filter(
-      (a) =>
-        a.chainId === tokenChainId &&
-        !areAddressesEqual(a.assetId, tokenAddress) &&
-        hasPositiveFiat(a),
-    )
-    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-  if (sameChainAssets.length > 0) {
-    const asset = sameChainAssets[0];
-    return {
-      address: asset.assetId,
-      chainId: asset.chainId as Hex | CaipChainId,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    };
-  }
-
-  // Eligible cross-chain assets: exclude exact same token (address + chain match)
-  // This allows cross-chain bridging of native tokens that share the zero address
-  const crossChainAssets = userAssets
-    .filter(
-      (a) =>
-        !(
-          areAddressesEqual(a.assetId, tokenAddress) &&
-          a.chainId === tokenChainId
-        ) && hasPositiveFiat(a),
-    )
-    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-  // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
-  const nativeAsset = crossChainAssets.find((a) => a.isNative);
-  if (nativeAsset) {
-    return {
-      address: nativeAsset.assetId,
-      chainId: nativeAsset.chainId as Hex | CaipChainId,
-      decimals: nativeAsset.decimals,
-      symbol: nativeAsset.symbol,
-      name: nativeAsset.name,
-      image: nativeAsset.image,
-    };
-  }
-
-  // Priority 3 – Last swapped token (needs selector/data source)
-  // Priority 4 – Most used token (needs selector/data source)
-
-  // Fallback: highest USD value token on any chain
-  if (crossChainAssets.length > 0) {
-    const asset = crossChainAssets[0];
-    return {
-      address: asset.assetId,
-      chainId: asset.chainId as Hex | CaipChainId,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    };
-  }
-  // No eligible tokens found - return null to trigger on-ramp flow
-  return null;
 };
 
 const toCurrentTokenAsBridgeToken = (token: TokenI): BridgeToken => ({
