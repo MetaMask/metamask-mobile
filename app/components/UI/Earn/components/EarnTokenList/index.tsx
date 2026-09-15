@@ -356,7 +356,7 @@ const EarnTokenList = () => {
         primaryText={strings('stake.you_could_earn_up_to')}
         secondaryText={
           isNoEarnableTokensWithBalance
-            ? `${highestAvailableApr.toString()}%`
+            ? `${formatEarnRatePercentage(highestAvailableApr)}%`
             : `${earnableTotalFiatFormatted}`
         }
         tertiaryText={strings('stake.per_year_on_your_tokens')}

@@ -157,6 +157,18 @@ describe('earnRate utilities', () => {
       expect(result).toBe(expected);
     });
 
+    it('rounds halfway values up at one decimal place', () => {
+      const result = [4.25, 4.35].map(formatEarnRatePercentage);
+
+      expect(result).toEqual(['4.3', '4.4']);
+    });
+
+    it('removes trailing zero after rounding', () => {
+      const result = formatEarnRatePercentage('4.0');
+
+      expect(result).toBe('4');
+    });
+
     it('returns NaN for a NaN input', () => {
       const result = formatEarnRatePercentage(NaN);
 
