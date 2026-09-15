@@ -53,6 +53,32 @@ describe('PredictHome', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the scroll-linked compact header title', async () => {
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.getByTestId(PredictHomeTestIds.HEADER_TITLE)).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
+    ).toBeOnTheScreen();
+    expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+  });
+
+  it('keeps the compact header title and feed mounted after scrolling past the title section', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.scroll(view.getByTestId(PredictHomeTestIds.SCROLL), {
+      nativeEvent: { contentOffset: { y: 1000 } },
+    });
+
+    expect(view.getByTestId(PredictHomeTestIds.HEADER_TITLE)).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+  });
+
   it('opens the Portfolio screen from the Positions action', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);

@@ -3079,6 +3079,7 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "home_title": "Predictions",
     "portfolio": {
       "title": "Positions",
       "positions": "Positions",
