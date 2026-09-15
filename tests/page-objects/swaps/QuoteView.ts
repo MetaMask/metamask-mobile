@@ -8,6 +8,7 @@ import {
   type AppiumElement,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -127,26 +128,38 @@ class QuoteView {
     return Matchers.getLazyElementByNativeXPath(`//*[@name='${testId}']`);
   }
 
-  async enterAmount(amount: string): Promise<void> {
+  getKeypadKey(digit: string): Promise<AppiumElement> {
+    const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     // iOS: keypad keys are not reliably found via accessibility-id / text;
     // use name XPath (same pattern as enterSourceTokenAmount).
-    const isAndroid = PlatformDetector.isAndroid();
-    for (const digit of amount.split('')) {
-      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-      const el = isAndroid
-        ? Matchers.getElementByID(keyName)
-        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
-      await Assertions.expectElementToBeVisible(el, {
-        timeout: TIMEOUT.KEYPAD_DIGIT,
-        description: `Keypad digit ${digit} should be visible`,
-      });
-      await Gestures.waitAndTap(el, {
-        checkForDisplayed: true,
-        checkEnabled: true,
-        delay: 1000,
-        elemDescription: `Tapping on keyboard digit ${digit}`,
-      });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(keyName);
     }
+    return Matchers.getElementByNativeXPath(
+      `//*[contains(@name,'${keyName}')]`,
+    );
+  }
+
+  async tapKeypadDigit(digit: string): Promise<void> {
+    await Gestures.waitAndTap(this.getKeypadKey(digit), {
+      checkEnabled: false,
+      elemDescription: `Keypad digit ${digit}`,
+    });
+  }
+
+  async enterAmount(amount: string): Promise<void> {
+    const digits = amount.split('');
+    await Assertions.expectElementToBeVisible(this.getKeypadKey(digits[0]), {
+      timeout: TIMEOUT.KEYPAD_DIGIT,
+      description: 'Swap keypad should be mounted',
+    });
+    // Sequential taps — keypad keys stay mounted, so do not re-assert
+    // displayed+enabled per digit (that costs ~15s each on a contended emulator).
+    await digits.reduce(
+      (previousTap, digit) =>
+        previousTap.then(() => this.tapKeypadDigit(digit)),
+      Promise.resolve(),
+    );
   }
 
   async tapSearchToken(): Promise<void> {
@@ -326,6 +339,17 @@ class QuoteView {
     });
   }
 
+  async tapBackAndVerifyDismiss(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      timeout: 5000,
+      elemDescription: 'Bridge header back (retry loop)',
+    });
+    await Assertions.expectElementToNotBeVisible(this.sourceTokenArea, {
+      timeout: 8000,
+      description: 'Swap screen dismissed after back',
+    });
+  }
+
   async tapOnBackButton(): Promise<void> {
     // Prefer the dedicated `bridge-back-button` testID. On Android still retry
     // + verify dismiss — post-trade Activity → Quote stacks can leave the
@@ -333,17 +357,38 @@ class QuoteView {
     if (PlatformDetector.isAndroid()) {
       await Utilities.executeWithRetry(
         async () => {
-          await Gestures.waitAndTap(this.backButton, {
-            timeout: 2000,
-            elemDescription: 'Back button on Quote View (retry loop)',
-          });
-          await Assertions.expectElementToNotBeVisible(this.sourceTokenArea, {
-            timeout: 3000,
-            description: 'Swap screen dismissed after back',
-          });
+          const swapVisible = await Utilities.isElementVisible(
+            this.sourceTokenArea,
+            1000,
+          );
+          if (swapVisible) {
+            await this.tapBackAndVerifyDismiss();
+            return;
+          }
+
+          // Source can be displayed:false while Quote is still mounting after
+          // Activity back — do not treat a short miss as dismissed. Tap if
+          // back is present; only stop when wallet chrome is actually showing.
+          const backVisible = await Utilities.isElementVisible(
+            this.backButton,
+            2000,
+          );
+          if (backVisible) {
+            await this.tapBackAndVerifyDismiss();
+            return;
+          }
+
+          const walletTab = Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+          if (await Utilities.isElementVisible(walletTab, 1000)) {
+            return;
+          }
+
+          throw new Error(
+            'Swap screen still unresolved: source and back not displayed, wallet tab not visible',
+          );
         },
         {
-          timeout: 15000,
+          timeout: 20000,
           description: 'dismiss Swap with back and verify navigation',
           elemDescription: 'Swap source token area',
         },
