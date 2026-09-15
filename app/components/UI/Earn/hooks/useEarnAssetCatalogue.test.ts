@@ -13,7 +13,10 @@ import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnContro
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
-import type { MoneyDepositAsset } from '../../Money/selectors/depositTokens';
+import {
+  type MoneyDepositBlockedTokens,
+  type MoneyDepositAsset,
+} from '../../Money/selectors/depositTokens';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
@@ -129,6 +132,15 @@ const RELAY_CONFIG_WITH_MONEY_DEPOSIT_ROUTE: RelayFixedSpreadConfig = {
 const createEarnToken = (
   address: string,
   role: 'underlying' | 'output',
+  {
+    balanceFiatNumber = 1,
+    isBalanceFiatAvailable = true,
+    experiences,
+  }: {
+    balanceFiatNumber?: number;
+    isBalanceFiatAvailable?: boolean;
+    experiences?: EarnTokenDetails['experiences'];
+  } = {},
 ): EarnTokenDetails =>
   ({
     address,
@@ -144,16 +156,16 @@ const createEarnToken = (
     isNative: false,
     balanceMinimalUnit: '1000000',
     balanceFormatted: '1 USDC',
-    balanceFiat: '$1.00',
-    balanceFiatNumber: 1,
-    isBalanceFiatAvailable: true,
+    balanceFiat: isBalanceFiatAvailable ? '$1.00' : '0',
+    balanceFiatNumber,
+    isBalanceFiatAvailable,
     tokenUsdExchangeRate: 1,
     experience: {
       type: EARN_EXPERIENCES.STABLECOIN_LENDING,
       apr: '4.2',
       market,
     },
-    experiences: [
+    experiences: experiences ?? [
       {
         type: EARN_EXPERIENCES.STABLECOIN_LENDING,
         apr: '4.2',
@@ -174,11 +186,13 @@ const earnTokenToAsset = (token: EarnTokenDetails): Asset => {
     balance: token.balance,
     rawBalance:
       `0x${BigInt(token.balanceMinimalUnit).toString(16)}` as `0x${string}`,
-    fiat: {
-      balance: token.balanceFiatNumber,
-      currency: 'USD',
-      conversionRate: token.tokenUsdExchangeRate,
-    },
+    fiat: token.isBalanceFiatAvailable
+      ? {
+          balance: token.balanceFiatNumber,
+          currency: 'USD',
+          conversionRate: token.tokenUsdExchangeRate,
+        }
+      : undefined,
     isNative: token.isNative ?? false,
   };
 
@@ -208,9 +222,10 @@ const mockSelectorValues = ({
   isTrxStakingEnabled = false,
   earnTokens = [],
   earnOutputTokens = [],
-  moneyDepositAssets = [moneyToken],
+  moneyDepositAssetsMeetingMinimumBalance = [moneyToken],
   assets,
   relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
+  blockedTokens = { chainIds: [], tokens: [] },
 }: {
   isMoneyAccountVisible?: boolean;
   isEarnEligible?: boolean;
@@ -219,9 +234,10 @@ const mockSelectorValues = ({
   isTrxStakingEnabled?: boolean;
   earnTokens?: EarnTokenDetails[];
   earnOutputTokens?: EarnTokenDetails[];
-  moneyDepositAssets?: MoneyDepositAsset[];
+  moneyDepositAssetsMeetingMinimumBalance?: MoneyDepositAsset[];
   assets?: Asset[];
   relayFixedSpread?: RelayFixedSpreadConfig;
+  blockedTokens?: MoneyDepositBlockedTokens;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectIsMoneyAccountVisible) {
@@ -233,9 +249,10 @@ const mockSelectorValues = ({
         earnTokens,
         earnOutputTokens,
         lendingMarkets: [market],
-        moneyDepositAssets,
+        moneyDepositAssetsMeetingMinimumBalance,
+        moneyDepositBlockedTokens: blockedTokens,
         assets: assets ?? [
-          ...moneyDepositAssets,
+          ...moneyDepositAssetsMeetingMinimumBalance,
           ...earnTokens.map(earnTokenToAsset),
           ...earnOutputTokens.map(earnTokenToAsset),
         ],
@@ -346,6 +363,52 @@ describe('useEarnAssetCatalogue', () => {
     expect(result.current.moneyApyPercent).toBe(6.2);
   });
 
+  it('reports Money APY loading through the catalogue and experience rate', () => {
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyDecimal: undefined,
+      apyPercent: undefined,
+      apyPercentFormatted: undefined,
+      vaultApyQuery: {
+        isLoading: true,
+        isError: false,
+        refetch: refetchMoneyApy,
+      },
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.moneyRateStatus).toBe('loading');
+    expect(usdc?.experiences[0].rate).toEqual({
+      type: 'APY',
+      status: 'loading',
+    });
+  });
+
+  it('reports Money APY errors when no cached APY exists', () => {
+    const error = new Error('Money APY unavailable');
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyDecimal: undefined,
+      apyPercent: undefined,
+      apyPercentFormatted: undefined,
+      vaultApyQuery: {
+        isLoading: false,
+        isError: true,
+        error,
+        refetch: refetchMoneyApy,
+      },
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.hasError).toBe(true);
+    expect(result.current.errors).toEqual(expect.arrayContaining([error]));
+    expect(result.current.moneyRateStatus).toBe('error');
+  });
+
   it('does not report loading while cached lending markets refresh', () => {
     mockUseEarnSectionLendingMarkets.mockReturnValue({
       markets: [market],
@@ -365,7 +428,7 @@ describe('useEarnAssetCatalogue', () => {
       expect.arrayContaining([
         expect.objectContaining({
           assetId: USDC_ASSET_ID,
-          kind: 'held',
+          wallet: expect.objectContaining({ status: 'tracked' }),
           experiences: expect.arrayContaining([
             expect.objectContaining({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -377,13 +440,17 @@ describe('useEarnAssetCatalogue', () => {
   });
 
   it('merges Money and lending experiences for the same underlying asset', () => {
+    mockSelectorValues({
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+      assets: [moneyToken],
+    });
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
     const usdc = result.current.assets.find(
       ({ assetId }) => assetId === USDC_ASSET_ID,
     );
 
-    expect(usdc).toMatchObject({ kind: 'held', asset: moneyToken });
+    expect(usdc?.wallet).toEqual({ status: 'tracked', asset: moneyToken });
     expect(usdc?.experiences.map(({ type }) => type)).toEqual([
       'MONEY_ACCOUNT_DEPOSIT',
       EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -434,7 +501,7 @@ describe('useEarnAssetCatalogue', () => {
       ({ assetId }) => assetId === USDC_ASSET_ID,
     );
 
-    expect(usdc).toMatchObject({ kind: 'held' });
+    expect(usdc).toMatchObject({ wallet: { status: 'tracked' } });
     expect(
       usdc?.experiences.some(
         ({ type }) => type === EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -458,15 +525,135 @@ describe('useEarnAssetCatalogue', () => {
     ).toBe(true);
   });
 
-  it('keeps Money funding while Earn strategies are ineligible', () => {
-    mockSelectorValues({ isEarnEligible: false });
+  it('excludes Money-only assets when Earn strategies are ineligible', () => {
+    mockSelectorValues({
+      isEarnEligible: false,
+      earnTokens: [],
+      earnOutputTokens: [],
+    });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
-    expect(result.current.assets).toHaveLength(1);
-    expect(result.current.assets[0].experiences).toEqual([
-      expect.objectContaining({ type: 'MONEY_ACCOUNT_DEPOSIT' }),
-    ]);
+    expect(result.current.assets).toEqual([]);
+  });
+
+  it('marks Money funding not ready for an untracked asset', () => {
+    mockSelectorValues({
+      earnTokens: [],
+      earnOutputTokens: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
+      assets: [],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(
+      usdc?.experiences.find(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
+        ?.depositReadiness,
+    ).toEqual({ status: 'not_ready', reason: 'asset_not_tracked' });
+  });
+
+  it('marks Money funding insufficient when a tracked asset is not eligible', () => {
+    mockSelectorValues({
+      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
+      moneyDepositAssetsMeetingMinimumBalance: [],
+      assets: [moneyToken],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(
+      usdc?.experiences.find(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
+        ?.depositReadiness,
+    ).toEqual({ status: 'not_ready', reason: 'insufficient_balance' });
+  });
+
+  it('preserves tracked wallet status for a zero-balance asset with insufficient Money funding', () => {
+    const zeroBalanceToken = {
+      ...createEarnToken(USDC_ADDRESS, 'underlying', {
+        balanceFiatNumber: 0,
+      }),
+      balance: '0',
+      balanceMinimalUnit: '0',
+      balanceFormatted: '0 USDC',
+      balanceFiat: '$0.00',
+    };
+    mockSelectorValues({
+      earnTokens: [zeroBalanceToken],
+      moneyDepositAssetsMeetingMinimumBalance: [],
+      assets: [earnTokenToAsset(zeroBalanceToken)],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(usdc).toMatchObject({
+      wallet: {
+        status: 'tracked',
+        asset: {
+          rawBalance: '0x0',
+          fiat: { balance: 0 },
+        },
+      },
+    });
+    expect(
+      usdc?.experiences.find(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
+        ?.depositReadiness,
+    ).toEqual({ status: 'not_ready', reason: 'insufficient_balance' });
+  });
+
+  it('marks Money funding unavailable when tracked fiat balance is unavailable', () => {
+    mockSelectorValues({
+      earnTokens: [
+        createEarnToken(USDC_ADDRESS, 'underlying', {
+          balanceFiatNumber: 0,
+          isBalanceFiatAvailable: false,
+        }),
+      ],
+      moneyDepositAssetsMeetingMinimumBalance: [],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(usdc?.wallet.status).toBe('tracked');
+    expect(
+      usdc?.experiences.find(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
+        ?.depositReadiness,
+    ).toEqual({ status: 'not_ready', reason: 'balance_unavailable' });
+  });
+
+  it('filters blocked tokens from Money funding experiences', () => {
+    mockSelectorValues({
+      blockedTokens: {
+        chainIds: [],
+        tokens: [{ address: USDC_ADDRESS, chainId: '0x1' }],
+      },
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(usdc).toMatchObject({
+      assetId: USDC_ASSET_ID,
+      experiences: [
+        expect.objectContaining({
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        }),
+      ],
+    });
   });
 
   it('omits Money funding when the Money account is hidden', () => {
@@ -490,7 +677,9 @@ describe('useEarnAssetCatalogue', () => {
       isNative: true,
     } as MoneyDepositAsset;
     mockFormatAddressToAssetId.mockReturnValue(undefined);
-    mockSelectorValues({ moneyDepositAssets: [unresolvedMoneyAsset] });
+    mockSelectorValues({
+      moneyDepositAssetsMeetingMinimumBalance: [unresolvedMoneyAsset],
+    });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
@@ -504,7 +693,7 @@ describe('useEarnAssetCatalogue', () => {
     );
   });
 
-  it('adds Money funding to every deposit token including native assets', () => {
+  it('adds Money funding only to catalogue candidates', () => {
     const polToken = {
       ...moneyToken,
       assetId: '0x0000000000000000000000000000000000000000',
@@ -524,7 +713,8 @@ describe('useEarnAssetCatalogue', () => {
       isNative: true,
     } as MoneyDepositAsset;
     mockSelectorValues({
-      moneyDepositAssets: [moneyToken, polToken, ethToken],
+      moneyDepositAssetsMeetingMinimumBalance: [moneyToken, polToken, ethToken],
+      assets: [],
     });
     mockFormatAddressToAssetId.mockImplementation((_address, chainId) =>
       chainId === '0x1' ? ETH_ASSET_ID : POL_ASSET_ID,
@@ -532,7 +722,7 @@ describe('useEarnAssetCatalogue', () => {
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
-    [USDC_ASSET_ID, POL_ASSET_ID, ETH_ASSET_ID].forEach((expectedAssetId) => {
+    [USDC_ASSET_ID, ETH_ASSET_ID].forEach((expectedAssetId) => {
       const asset = result.current.assets.find(
         ({ assetId }) => assetId === expectedAssetId,
       );
@@ -540,22 +730,15 @@ describe('useEarnAssetCatalogue', () => {
         asset?.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT'),
       ).toBe(true);
     });
-  });
-
-  it('omits unheld lending output tokens', () => {
-    const { result } = renderHook(() => useEarnAssetCatalogue());
-
     expect(
-      result.current.assets.some(
-        ({ assetId }) => assetId === `eip155:1/erc20:${AUSDC_ADDRESS}`,
-      ),
+      result.current.assets.some(({ assetId }) => assetId === POL_ASSET_ID),
     ).toBe(false);
   });
 
-  it('omits held output tokens without a valid earning experience', () => {
+  it('omits unheld lending output tokens', () => {
     mockSelectorValues({
-      earnTokens: [],
       earnOutputTokens: [createEarnToken(AUSDC_ADDRESS, 'output')],
+      assets: [moneyToken],
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
@@ -565,6 +748,28 @@ describe('useEarnAssetCatalogue', () => {
         ({ assetId }) => assetId === `eip155:1/erc20:${AUSDC_ADDRESS}`,
       ),
     ).toBe(false);
+  });
+
+  it('retains output tokens when Money funding provides an input experience', () => {
+    mockSelectorValues({
+      earnTokens: [],
+      earnOutputTokens: [createEarnToken(AUSDC_ADDRESS, 'output')],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    const outputAsset = result.current.assets.find(
+      ({ assetId }) => assetId === `eip155:1/erc20:${AUSDC_ADDRESS}`,
+    );
+
+    expect(outputAsset?.experiences.map(({ type }) => type)).toEqual([
+      'MONEY_ACCOUNT_DEPOSIT',
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+    ]);
+    expect(outputAsset?.experiences[1].depositReadiness).toEqual({
+      status: 'not_ready',
+      reason: 'output_asset',
+    });
   });
 
   it.each([
@@ -618,7 +823,7 @@ describe('useEarnAssetCatalogue', () => {
     mockSelectorValues({
       earnTokens: [],
       earnOutputTokens: [],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
@@ -627,19 +832,21 @@ describe('useEarnAssetCatalogue', () => {
     );
 
     expect(eth).toMatchObject({
-      kind: 'discovery',
       assetId: ETH_ASSET_ID,
+      wallet: { status: 'untracked' },
       metadata: {
         ticker: 'ETH',
       },
     });
-    expect(eth?.experiences).toEqual([
-      expect.objectContaining({
-        id: `pooled:${ETH_ASSET_ID}`,
-        role: 'underlying',
-        type: EARN_EXPERIENCES.POOLED_STAKING,
-      }),
-    ]);
+    expect(eth?.experiences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: `pooled:${ETH_ASSET_ID}`,
+          role: 'underlying',
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+        }),
+      ]),
+    );
   });
 
   it('deduplicates held and discovery pooled-staking experiences', () => {
@@ -674,22 +881,28 @@ describe('useEarnAssetCatalogue', () => {
     );
 
     expect(eth).toMatchObject({
-      kind: 'held',
-      asset: {
-        name: 'Held Ethereum',
-        balance: '2',
-        rawBalance: '0x1bc16d674ec80000',
+      wallet: {
+        status: 'tracked',
+        asset: {
+          name: 'Held Ethereum',
+          balance: '2',
+          rawBalance: '0x1bc16d674ec80000',
+        },
       },
     });
-    expect(eth?.experiences).toHaveLength(1);
-    expect(eth?.experiences[0].rate.type).toBe('APR');
+    expect(eth?.experiences).toHaveLength(2);
+    expect(
+      eth?.experiences.find(
+        ({ type }) => type === EARN_EXPERIENCES.POOLED_STAKING,
+      )?.rate.type,
+    ).toBe('APR');
   });
 
-  it('reports held Earn tokens missing from AssetsController', () => {
+  it('reports tracked Earn tokens missing from AssetsController', () => {
     const heldToken = createEarnToken(USDC_ADDRESS, 'underlying');
     mockSelectorValues({
       earnTokens: [heldToken],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
       assets: [],
     });
 
@@ -699,7 +912,27 @@ describe('useEarnAssetCatalogue', () => {
     expect(result.current.errors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          message: 'Held Earn token has no matching AssetsController asset',
+          message: 'Tracked Earn token has no matching AssetsController asset',
+        }),
+      ]),
+    );
+  });
+
+  it('reports output Earn tokens missing from AssetsController', () => {
+    mockSelectorValues({
+      earnTokens: [],
+      earnOutputTokens: [createEarnToken(AUSDC_ADDRESS, 'output')],
+      moneyDepositAssetsMeetingMinimumBalance: [],
+      assets: [],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.hasError).toBe(true);
+    expect(result.current.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: 'Tracked Earn token has no matching AssetsController asset',
         }),
       ]),
     );
@@ -756,6 +989,7 @@ describe('useEarnAssetCatalogue', () => {
         id: `trx-staking:${TRX_ASSET_ID}`,
         type: EARN_EXPERIENCES.TRX_STAKING,
         role: 'underlying',
+        depositReadiness: { status: 'ready' },
         rate: {
           type: 'APR',
           percentage: 4.5,
@@ -766,10 +1000,12 @@ describe('useEarnAssetCatalogue', () => {
       },
     ]);
     expect(trxAsset).toMatchObject({
-      kind: 'held',
-      asset: {
-        rawBalance: '0xf4240',
-        name: 'TRON',
+      wallet: {
+        status: 'tracked',
+        asset: {
+          rawBalance: '0xf4240',
+          name: 'TRON',
+        },
       },
     });
   });
@@ -780,7 +1016,7 @@ describe('useEarnAssetCatalogue', () => {
       isTrxStakingEnabled: true,
       earnTokens: [],
       earnOutputTokens: [],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
@@ -789,8 +1025,8 @@ describe('useEarnAssetCatalogue', () => {
     );
 
     expect(trx).toMatchObject({
-      kind: 'discovery',
       assetId: TRX_ASSET_ID,
+      wallet: { status: 'untracked' },
       metadata: {
         ticker: 'TRX',
       },

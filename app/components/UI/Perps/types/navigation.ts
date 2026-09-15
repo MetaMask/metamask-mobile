@@ -152,6 +152,11 @@ export type PerpsStackParamList = {
          * Defaults off so Lite entry points stay silent.
          */
         enableHaptics?: boolean;
+        /**
+         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * Extra params otherwise compile, which is how earlier resets dropped it.
+         */
+        homeDroppedFromHistory?: true;
       }
     | undefined;
 
@@ -173,6 +178,11 @@ export type PerpsStackParamList = {
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    /**
+     * Stamped when Perps Home was removed from this stack (TAT-3786).
+     * Extra params otherwise compile, which is how earlier resets dropped it.
+     */
+    homeDroppedFromHistory?: true;
   };
 
   PerpsPositions: undefined;
@@ -339,6 +349,11 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        /**
+         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
+         */
+        homeDroppedFromHistory?: true;
       }
     | undefined;
   PerpsOrderDetailsView: {
