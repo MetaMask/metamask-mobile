@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable import-x/no-nodejs-modules, no-console */
 
 /**
  * Ad-hoc per-scenario Hermes CPU-profile analysis.
@@ -704,6 +705,10 @@ function groupProfiles(profiles, scenarioFilter = null) {
         ),
         captureLengthMs: Number(captureLengthMs.toFixed(2)),
         jsWorkMs: Number(jsWorkMs.toFixed(2)),
+        averageJsWorkMs:
+          usable.length > 0
+            ? Number((jsWorkMs / usable.length).toFixed(2))
+            : 0,
         runtimeAndIdleMs: Number(runtimeAndIdleMs.toFixed(2)),
         jsDutyPct:
           sampledMs > 0
@@ -752,6 +757,13 @@ function profileOutcome(profile) {
     ).toFixed(1)}%.`;
   }
   const share = (top.selfMs / Math.max(audit.jsWorkMs, 1)) * 100;
+  if (share < 5) {
+    return `No single frame reached 5% of JS work; JS duty cycle ${(
+      (audit.jsWorkMs /
+        Math.max(audit.jsWorkMs + audit.runtimeAndIdleMs, 1)) *
+      100
+    ).toFixed(1)}%.`;
+  }
   const location =
     profile.symbolicated && top.url
       ? ` (${top.url}${top.line ? `:${top.line}` : ''})`
@@ -926,8 +938,8 @@ function buildSlack(report) {
   const scenarios = [...report.scenarios]
     .sort(
       (left, right) =>
-        right.jsWorkMs * (right.jsDutyPct / 100) -
-        left.jsWorkMs * (left.jsDutyPct / 100),
+        right.averageJsWorkMs * (right.jsDutyPct / 100) -
+        left.averageJsWorkMs * (left.jsDutyPct / 100),
     )
     .slice(0, 12);
   for (const scenario of scenarios) {
@@ -939,7 +951,7 @@ function buildSlack(report) {
           (left.skillAudit?.jsWorkMs || 0),
       )[0];
     lines.push(
-      `• *${displayName(scenario.scenario)}* — JS ${formatMs(scenario.jsWorkMs)}, duty ${scenario.jsDutyPct}%, maps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
+      `• *${displayName(scenario.scenario)}* — avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%, maps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
       `  ${highestSignalProfile ? profileOutcome(highestSignalProfile) : 'No readable skill timing data.'}`,
     );
   }

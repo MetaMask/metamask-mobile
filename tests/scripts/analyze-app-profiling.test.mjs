@@ -1,3 +1,4 @@
+/* eslint-disable import-x/no-nodejs-modules */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -313,6 +314,32 @@ test('groupProfiles keeps retries in the same scenario with locations', () => {
   );
 });
 
+test('groupProfiles averages JS work across retries and segments', () => {
+  const grouped = groupProfiles([
+    profile('browserstack-android-Warm_Start.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 100,
+        jsWorkMs: 40,
+        runtimeAndIdleMs: 60,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+    profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 100,
+        jsWorkMs: 20,
+        runtimeAndIdleMs: 80,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+  ]);
+  assert.equal(grouped[0].jsWorkMs, 60);
+  assert.equal(grouped[0].averageJsWorkMs, 30);
+  assert.equal(grouped[0].jsDutyPct, 30);
+});
+
 test('scenario filter matches sanitized Hermes name', () => {
   const grouped = groupProfiles(
     [
@@ -341,11 +368,11 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
   };
   assert.match(
     buildAiBriefing(report),
-    /mms-swaps-cpu-profile-audit.*reasoning/s,
+    /mms-swaps-cpu-profile-audit.*parser/s,
   );
   assert.match(
     buildAiBriefing(report),
-    /skill-generated timing evidence only/,
+    /deterministic report is already generated/,
   );
   assert.match(
     buildAiBriefing(report),
@@ -356,4 +383,29 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
   assert.match(buildMarkdown(report), /JS duty cycle/);
   assert.match(buildSlack(report), /Hermes CPU sampling only/);
   assert.doesNotMatch(buildSlack(report), /Top sampled frames by scenario/);
+});
+
+test('Slack suppresses frames below five percent of JS work', () => {
+  const report = {
+    meta: {
+      runId: '1',
+      profileCount: 1,
+      symbolicatedProfileCount: 0,
+      ai: false,
+    },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile', {
+        skillAudit: {
+          captureLengthMs: 100,
+          jsWorkMs: 60,
+          runtimeAndIdleMs: 40,
+          topSwapsFrames: [],
+          topNonSwapsFrames: [{ name: 'smallFrame', selfMs: 2 }],
+        },
+      }),
+    ]),
+    aiAnalysis: null,
+  };
+  assert.match(buildSlack(report), /No single frame reached 5% of JS work/);
+  assert.doesNotMatch(buildSlack(report), /Top JS contributor: `smallFrame`/);
 });
