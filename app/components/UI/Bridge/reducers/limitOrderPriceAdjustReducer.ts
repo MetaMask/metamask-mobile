@@ -26,21 +26,34 @@ export type LimitOrderPriceAdjustAction =
       type: 'toggleFiatMode';
       convertLimitPrice: (limitPrice: string | undefined) => string | undefined;
     }
-  | { type: 'flipSide' }
-  | { type: 'reset' };
+  | { type: 'flipSide'; isLimitFiatMode: boolean }
+  | {
+      type: 'reset';
+      executionType: LimitOrderExecutionType;
+      isLimitFiatMode: boolean;
+    };
 
 const PRICE_FIELDS_RESET = {
   limitPrice: undefined,
-  isLimitFiatMode: true,
   isTrackingMarket: true,
   isCustomActive: false,
   customValue: undefined,
-} as const satisfies Omit<LimitOrderPriceAdjustState, 'executionType'>;
+} as const satisfies Omit<
+  LimitOrderPriceAdjustState,
+  'executionType' | 'isLimitFiatMode'
+>;
 
-export const initialLimitOrderPriceAdjustState: LimitOrderPriceAdjustState = {
-  executionType: LimitOrderExecutionType.BUY,
+export const getInitialLimitOrderPriceAdjustState = ({
+  executionType,
+  isLimitFiatMode,
+}: {
+  executionType: LimitOrderExecutionType;
+  isLimitFiatMode: boolean;
+}): LimitOrderPriceAdjustState => ({
+  executionType,
+  isLimitFiatMode,
   ...PRICE_FIELDS_RESET,
-};
+});
 
 export const limitOrderPriceAdjustReducer = (
   state: LimitOrderPriceAdjustState,
@@ -104,6 +117,7 @@ export const limitOrderPriceAdjustReducer = (
     case 'flipSide':
       return {
         ...PRICE_FIELDS_RESET,
+        isLimitFiatMode: action.isLimitFiatMode,
         executionType:
           state.executionType === LimitOrderExecutionType.BUY
             ? LimitOrderExecutionType.SELL
@@ -113,6 +127,8 @@ export const limitOrderPriceAdjustReducer = (
       return {
         ...state,
         ...PRICE_FIELDS_RESET,
+        executionType: action.executionType,
+        isLimitFiatMode: action.isLimitFiatMode,
       };
     default: {
       const exhaustiveCheck: never = action;

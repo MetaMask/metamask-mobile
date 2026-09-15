@@ -84,6 +84,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
 import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
+import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -100,6 +101,10 @@ import {
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   HEADER_NAV_BAR_VARIANTS,
 } from '../../Views/Homepage/abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
@@ -115,6 +120,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -168,6 +174,7 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  MyProfileView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -211,6 +218,7 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -666,13 +674,6 @@ const HomeTabs = () => {
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       freezeOnBlur: false,
     },
@@ -685,11 +686,6 @@ const HomeTabs = () => {
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
-        );
-      },
       rootScreenName: Routes.REWARDS_VIEW,
       freezeOnBlur: false,
     },
@@ -701,11 +697,6 @@ const HomeTabs = () => {
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
       callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-          ).build(),
-        );
         // Re-enable AppState listener when returning to trending tab
         // (it was disabled when leaving to prevent phantom sessions)
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
@@ -725,13 +716,6 @@ const HomeTabs = () => {
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.SETTINGS_VIEW,
     },
   };
@@ -907,20 +891,6 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-const OfflineModeView = (props) => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name="OfflineMode"
-      component={OfflineMode}
-      options={OfflineMode.navigationOptions}
-      initialParams={{
-        autoDismissOnReconnect:
-          props.route.params?.autoDismissOnReconnect === true,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
@@ -1007,6 +977,13 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_ASSIGNMENT_OPTIONS,
+  );
+  const isSocialV1Enabled =
+    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -1114,7 +1091,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        options={{ headerShown: false, ...slideFromLeftNativeOptions }}
       />
       <NativeStack.Screen
         name="Asset"
@@ -1153,7 +1130,11 @@ const MainNavigator = () => {
         }}
       />
       <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
-      <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <NativeStack.Screen
+        name="OfflineModeView"
+        component={OfflineMode}
+        options={OfflineMode.navigationOptions}
+      />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
@@ -1234,6 +1215,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.VBA_VERIFY_IDENTITY}
         component={VbaVerifyIdentity}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_KYC_EMAIL}
+        component={KycEmail}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
@@ -1430,10 +1416,17 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
-      {isSocialLeaderboardEnabled && (
+      {isSocialV1Enabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL.V1}
           component={SocialV1View}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialV1Enabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.MY_PROFILE}
+          component={MyProfileView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
