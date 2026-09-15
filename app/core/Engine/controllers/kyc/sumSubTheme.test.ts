@@ -54,24 +54,35 @@ describe('buildSumSubTheme', () => {
       );
     });
 
-    it('sends the Android-only colors, which would otherwise stay SumSub blue', () => {
+    it('sends the Android-only colors, absent from the iOS interface', () => {
       const theme = buildSumSubTheme();
 
       expect(theme.android?.colors).toMatchObject({
         statusBarColor: lightTheme.colors.background.default,
-        linkButtonContent: lightTheme.colors.primary.default,
-        progressBarTint: lightTheme.colors.primary.default,
         fieldBorderFocused: lightTheme.colors.primary.default,
       });
+    });
+
+    it('keeps links and progress universal, since both SDKs support them', () => {
+      const theme = buildSumSubTheme();
+
+      expect(theme.universal.colors).toMatchObject({
+        linkButtonContent: lightTheme.colors.primary.default,
+        progressBarTint: lightTheme.colors.primary.default,
+      });
+      expect(theme.android?.colors).not.toHaveProperty('linkButtonContent');
+      expect(theme.ios?.colors).not.toHaveProperty('progressBarTint');
     });
 
     it('includes the shared metrics', () => {
       const theme = buildSumSubTheme();
 
       expect(theme.universal.metrics).toMatchObject({
-        buttonCornerRadius: 12,
+        // `rounded-full` at `h-12`, so half the height.
+        buttonCornerRadius: 24,
         buttonHeight: 48,
-        bottomSheetCornerRadius: 16,
+        fieldCornerRadius: 8,
+        bottomSheetCornerRadius: 24,
       });
     });
   });
@@ -123,6 +134,28 @@ describe('buildSumSubTheme', () => {
         lightTheme.colors.background.default,
       );
     });
+
+    it.each([
+      [AppThemeKey.light, lightTheme],
+      [AppThemeKey.dark, darkTheme],
+    ])(
+      'uses the design system button color, not the link accent, in %s',
+      (appTheme, expected) => {
+        mockAppTheme(appTheme);
+
+        const theme = buildSumSubTheme();
+
+        expect(theme.universal.colors?.primaryButtonBackground).toBe(
+          expected.colors.icon.default,
+        );
+        expect(theme.universal.colors?.primaryButtonContent).toBe(
+          expected.colors.primary.inverse,
+        );
+        expect(theme.universal.colors?.primaryButtonBackground).not.toBe(
+          expected.colors.primary.default,
+        );
+      },
+    );
 
     it('always uses the dark palette for the camera screen', () => {
       mockAppTheme(AppThemeKey.light);

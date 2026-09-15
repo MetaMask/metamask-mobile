@@ -25,29 +25,25 @@ export function buildSumSubTheme(): SumSubTheme {
   };
 }
 
-/** iOS toolbar colors. */
+/** iOS-only colors (toolbar, field button, progress shimmer). */
 function iosOnlyColors(): Record<string, string> {
   const c = resolveColors();
 
   return {
     toolbarTint: c.icon.alternative,
     toolbarBackground: c.background.default,
+
+    fieldButtonBackgroundHighlighted: c.background.pressed,
+    progressBarShimmer: c.primary.muted,
   };
 }
 
-/** Android-only colors (links, progress, focused field). */
+/** Android-only colors (status bar, field border states). */
 function androidOnlyColors(): Record<string, string> {
   const c = resolveColors();
 
   return {
     statusBarColor: c.background.default,
-
-    linkButtonContent: c.primary.default,
-    linkButtonContentDisabled: c.text.muted,
-    linkButtonBackgroundHighlighted: c.primary.muted,
-
-    progressBarTint: c.primary.default,
-    progressBarBackground: c.primary.muted,
 
     fieldBorderFocused: c.primary.default,
     fieldBorderDisabled: c.border.muted,
@@ -69,7 +65,8 @@ function buildColors(): Record<string, string> {
     backgroundNeutral: c.background.section,
     backgroundSuccess: c.success.muted,
     backgroundWarning: c.warning.muted,
-    bottomSheetBackground: c.background.default,
+    // Sheets sit on `bg-elevated1`, which differs from the page background in dark.
+    bottomSheetBackground: c.background.elevated1,
     bottomSheetHandle: c.border.muted,
 
     cameraBackground: onCamera.background.default,
@@ -88,43 +85,59 @@ function buildColors(): Record<string, string> {
     contentWarning: c.warning.default,
     contentWeak: c.text.muted,
 
-    fieldBackground: c.background.section,
+    fieldBackground: c.background.muted,
     fieldBackgroundInvalid: c.error.muted,
     fieldBorder: c.border.muted,
     fieldContent: c.text.default,
     fieldPlaceholder: c.text.muted,
     fieldTint: c.primary.default,
 
-    listSelectedItemBackground: c.background.section,
+    linkButtonContent: c.primary.default,
+    linkButtonContentDisabled: c.text.muted,
+    linkButtonBackgroundHighlighted: c.primary.muted,
+
+    listSelectedItemBackground: c.background.pressed,
     listSeparator: c.border.muted,
 
-    primaryButtonBackground: c.primary.default,
-    primaryButtonBackgroundDisabled: c.primary.muted,
-    primaryButtonBackgroundHighlighted: c.primary.defaultPressed,
+    // The design system's primary button is `bg-icon-default`, which inverts
+    // per appearance (near-black on light, white on dark). `primary.default`
+    // is the link accent and would render blue.
+    primaryButtonBackground: c.icon.default,
+    primaryButtonBackgroundDisabled: c.icon.muted,
+    primaryButtonBackgroundHighlighted: c.icon.defaultPressed,
     primaryButtonContent: c.primary.inverse,
-    primaryButtonContentDisabled: c.text.muted,
+    primaryButtonContentDisabled: c.primary.inverse,
     primaryButtonContentHighlighted: c.primary.inverse,
 
-    secondaryButtonBackground: c.background.default,
-    secondaryButtonBackgroundDisabled: c.background.default,
-    secondaryButtonBackgroundHighlighted: c.background.defaultPressed,
+    secondaryButtonBackground: c.background.muted,
+    secondaryButtonBackgroundDisabled: c.background.muted,
+    secondaryButtonBackgroundHighlighted: c.background.mutedPressed,
     secondaryButtonContent: c.text.default,
     secondaryButtonContentDisabled: c.text.muted,
     secondaryButtonContentHighlighted: c.text.default,
+
+    progressBarTint: c.primary.default,
+    progressBarBackground: c.primary.muted,
   };
 }
+
+/** Design system buttons and fields are both `h-12`. */
+const CONTROL_HEIGHT = 48;
 
 function buildMetrics(): Record<string, string | number | boolean> {
   return {
     buttonBorderWidth: 1,
-    buttonCornerRadius: 12,
-    buttonHeight: 48,
+    // Buttons are `rounded-full`; SumSub has no pill flag, so use half the height.
+    buttonCornerRadius: CONTROL_HEIGHT / 2,
+    buttonHeight: CONTROL_HEIGHT,
     cardBorderWidth: 1,
     cardCornerRadius: 12,
     fieldBorderWidth: 1,
-    fieldCornerRadius: 12,
-    fieldHeight: 48,
-    bottomSheetCornerRadius: 16,
+    // Fields are `rounded-lg`.
+    fieldCornerRadius: 8,
+    fieldHeight: CONTROL_HEIGHT,
+    // Sheets are `rounded-t-3xl`.
+    bottomSheetCornerRadius: 24,
     documentFrameCornerRadius: 14,
     screenHorizontalMargin: 16,
   };
