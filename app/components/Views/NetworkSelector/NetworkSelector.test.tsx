@@ -151,8 +151,7 @@ jest.mock('../../../core/Engine', () => ({
         '0x64': true,
       },
     },
-    CurrencyRateController: { updateExchangeRate: jest.fn() },
-    AccountTrackerController: { refresh: jest.fn() },
+    AssetsController: { getAssets: jest.fn(() => Promise.resolve()) },
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
       update: jest.fn(),
