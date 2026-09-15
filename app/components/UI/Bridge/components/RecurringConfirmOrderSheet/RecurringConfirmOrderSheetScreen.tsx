@@ -34,6 +34,9 @@ export const RecurringConfirmOrderSheetScreen = () => {
       return;
     }
 
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
     try {
       await autoUpgradeEIP7702Account();
       await submitRecurringOrder();
