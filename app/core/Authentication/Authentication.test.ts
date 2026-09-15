@@ -4691,9 +4691,9 @@ describe('Authentication', () => {
 
     it('holds the Braze reset flag until the app is locked', async () => {
       // Arrange
-      const {
-        setBrazeResetInProgress,
-      } = jest.requireMock('../Braze/resetInProgress') as {
+      const { setBrazeResetInProgress } = jest.requireMock(
+        '../Braze/resetInProgress',
+      ) as {
         setBrazeResetInProgress: jest.Mock;
       };
       const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
@@ -4705,12 +4705,14 @@ describe('Authentication', () => {
 
       // Assert - flag is set before the temp vault is created, and cleared
       // only after lockApp so the deferred useAutoSignIn effect is covered.
-      const setTrueOrder = setBrazeResetInProgress.mock.invocationCallOrder[
-        setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === true)
-      ];
-      const setFalseOrder = setBrazeResetInProgress.mock.invocationCallOrder[
-        setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === false)
-      ];
+      const setTrueOrder =
+        setBrazeResetInProgress.mock.invocationCallOrder[
+          setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === true)
+        ];
+      const setFalseOrder =
+        setBrazeResetInProgress.mock.invocationCallOrder[
+          setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === false)
+        ];
       expect(setTrueOrder).toBeLessThan(
         newWalletSpy.mock.invocationCallOrder[0],
       );
