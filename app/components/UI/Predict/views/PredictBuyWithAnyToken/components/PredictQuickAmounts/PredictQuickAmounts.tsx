@@ -33,7 +33,7 @@ function PredictQuickAmounts({
             onSelectAmount(amount);
           }}
           isDisabled={disabled}
-          twClassName="flex-1"
+          twClassName="flex-1 rounded-xl"
         >
           {`$${amount}`}
         </Button>
