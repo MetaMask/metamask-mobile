@@ -615,12 +615,36 @@ jobs:
       # donor leaves the job without a test APK, so it falls through to a full build.
       - name: Build Android E2E APKs
         if: ${{ steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
-        run: |
-          echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:${{ inputs.build_type }}:e2e
-        shell: bash
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 55
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            # The runner image only ships NDK 26; AGP auto-downloads the pinned
+            # NDK (android/build.gradle ndkVersion) during configuration. A failed
+            # download leaves a corrupt zip / partial ndk/<version> dir ("Archive
+            # is not a ZIP archive" → InstallFailedException), which poisons the
+            # next attempt. Clear incomplete installs and SDK temp zips before
+            # each attempt — same pattern as .github/workflows/build.yml.
+            SDK_ROOT="${ANDROID_SDK_ROOT:-/opt/android-sdk}"
+            NDK_ROOT="$SDK_ROOT/ndk"
+            if [ -d "$NDK_ROOT" ]; then
+              for ndk_dir in "$NDK_ROOT"/*; do
+                if [ -d "$ndk_dir" ] && [ ! -f "$ndk_dir/source.properties" ]; then
+                  echo "Removing incomplete NDK install: $ndk_dir"
+                  rm -rf "$ndk_dir"
+                fi
+              done
+            fi
+            if [ -d "$SDK_ROOT/.temp" ]; then
+              echo "Clearing Android SDK temp downloads under $SDK_ROOT/.temp"
+              find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
+            fi
+            echo "🏗 Building Android E2E APKs..."
+            export NODE_OPTIONS="--max-old-space-size=4096"
+            cp android/gradle.properties.github android/gradle.properties
+            yarn build:android:${{ inputs.build_type }}:e2e
         env:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
