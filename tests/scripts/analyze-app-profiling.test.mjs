@@ -300,21 +300,43 @@ test('groupProfiles combines logical segment 1 through N into one scenario', () 
 
 test('groupProfiles keeps retries in the same scenario with locations', () => {
   const grouped = groupProfiles([
-    profile('browserstack-android-Warm_Start.cpuprofile'),
-    profile('browserstack-android-Warm_Start.retry-1.cpuprofile'),
-    profile('browserstack-android-Warm_Start.retry-1.segment-2.cpuprofile'),
+    profile('browserstack-android-Warm_Start.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 10,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+    profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 20,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+    profile('browserstack-android-Warm_Start.retry-1.segment-2.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 20,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
   ]);
   assert.deepEqual(grouped[0].attempts, [0, 1]);
-  assert.equal(grouped[0].segmentCount, 3);
+  assert.equal(grouped[0].selectedAttempt, 1);
+  assert.deepEqual(grouped[0].excludedAttempts, [0]);
+  assert.equal(grouped[0].profileCount, 2);
+  assert.equal(grouped[0].totalProfileCount, 3);
+  assert.equal(grouped[0].segmentCount, 2);
   assert.deepEqual(
     grouped[0].topSelfFrames[0].locations.map(
       ({ retry, segment }) => `${retry}:${segment}`,
     ),
-    ['0:1', '1:1', '1:2'],
+    ['1:1', '1:2'],
   );
 });
 
-test('groupProfiles averages JS work across retries and segments', () => {
+test('groupProfiles uses only the worst retry across its segments', () => {
   const grouped = groupProfiles([
     profile('browserstack-android-Warm_Start.cpuprofile', {
       skillAudit: {
@@ -335,9 +357,10 @@ test('groupProfiles averages JS work across retries and segments', () => {
       },
     }),
   ]);
-  assert.equal(grouped[0].jsWorkMs, 60);
-  assert.equal(grouped[0].averageJsWorkMs, 30);
-  assert.equal(grouped[0].jsDutyPct, 30);
+  assert.equal(grouped[0].selectedAttempt, 0);
+  assert.equal(grouped[0].jsWorkMs, 40);
+  assert.equal(grouped[0].averageJsWorkMs, 40);
+  assert.equal(grouped[0].jsDutyPct, 40);
 });
 
 test('scenario filter matches sanitized Hermes name', () => {

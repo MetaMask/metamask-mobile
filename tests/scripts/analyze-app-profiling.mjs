@@ -649,7 +649,26 @@ function groupProfiles(profiles, scenarioFilter = null) {
           left.segment - right.segment ||
           left.fileName.localeCompare(right.fileName),
       );
-      const usable = group.profiles.filter((profile) => !profile.skipped);
+      const allUsable = group.profiles.filter((profile) => !profile.skipped);
+      const attemptJsWork = new Map();
+      for (const profile of allUsable) {
+        attemptJsWork.set(
+          profile.retry,
+          (attemptJsWork.get(profile.retry) || 0) +
+            (profile.skillAudit?.jsWorkMs || 0),
+        );
+      }
+      const selectedAttempt =
+        [...attemptJsWork.entries()].sort(
+          ([leftAttempt, leftJsWork], [rightAttempt, rightJsWork]) =>
+            rightJsWork - leftJsWork || leftAttempt - rightAttempt,
+        )[0]?.[0] ?? group.profiles[0]?.retry;
+      const usable = allUsable.filter(
+        (profile) => profile.retry === selectedAttempt,
+      );
+      const selectedProfiles = group.profiles.filter(
+        (profile) => profile.retry === selectedAttempt,
+      );
       const captureLengthMs = usable.reduce(
         (total, profile) =>
           total + (profile.skillAudit?.captureLengthMs || 0),
@@ -668,13 +687,22 @@ function groupProfiles(profiles, scenarioFilter = null) {
       return {
         projectName: group.projectName,
         scenario: group.scenario,
-        profileCount: group.profiles.length,
+        profileCount: selectedProfiles.length,
+        totalProfileCount: group.profiles.length,
         segmentCount: new Set(
-          group.profiles.map(
+          selectedProfiles.map(
             (profile) => `${profile.retry}:${profile.segment}`,
           ),
         ).size,
         attempts: [...new Set(group.profiles.map((profile) => profile.retry))],
+        selectedAttempt,
+        excludedAttempts: [
+          ...new Set(
+            group.profiles
+              .filter((profile) => profile.retry !== selectedAttempt)
+              .map((profile) => profile.retry),
+          ),
+        ],
         sampleCount: usable.reduce(
           (total, profile) => total + profile.sampleCount,
           0,
@@ -719,7 +747,7 @@ function groupProfiles(profiles, scenarioFilter = null) {
         ).length,
         topSelfFrames: mergeFrameLists(usable, 'topSelfFrames'),
         topInclusiveFrames: mergeFrameLists(usable, 'topInclusiveFrames'),
-        profiles: group.profiles,
+        profiles: selectedProfiles,
       };
     })
     .sort((left, right) => left.scenario.localeCompare(right.scenario));
@@ -777,6 +805,8 @@ function buildAiBriefing(report) {
     projectName: scenario.projectName,
     profileCount: scenario.profileCount,
     attempts: scenario.attempts,
+    selectedAttempt: scenario.selectedAttempt,
+    excludedAttempts: scenario.excludedAttempts,
     profiles: scenario.profiles.map((profile) => ({
       retry: profile.retry,
       segment: profile.segment,
@@ -858,14 +888,14 @@ function buildMarkdown(report) {
     lines.push(
       '| Metric | Value |',
       '|---|---:|',
-      `| Profiles | ${scenario.profileCount} |`,
-      `| Attempts | ${scenario.attempts.length} |`,
+      `| Selected attempt | retry ${scenario.selectedAttempt} (worst of ${scenario.attempts.length}) |`,
+      `| Profiles (selected / total) | ${scenario.profileCount} / ${scenario.totalProfileCount} |`,
       `| Logical segments | ${scenario.segmentCount} |`,
       `| Capture length | ${formatMs(scenario.captureLengthMs)} |`,
       `| JS work sampled | ${formatMs(scenario.jsWorkMs)} |`,
       `| Runtime / idle / GC | ${formatMs(scenario.runtimeAndIdleMs)} |`,
       `| JS duty cycle | ${scenario.jsDutyPct}% |`,
-      `| Symbolicated | ${scenario.symbolicatedProfiles}/${scenario.profileCount} |`,
+      `| Symbolicated (selected retry) | ${scenario.symbolicatedProfiles}/${scenario.profileCount} |`,
       '',
       '| Attempt | Segment | JS work | Runtime / idle / GC | JS duty | Top contributor |',
       '|---:|---:|---:|---:|---:|---|',
@@ -951,7 +981,7 @@ function buildSlack(report) {
           (left.skillAudit?.jsWorkMs || 0),
       )[0];
     lines.push(
-      `• *${displayName(scenario.scenario)}* — avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%, maps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
+      `• *${displayName(scenario.scenario)}* — retry ${scenario.selectedAttempt}, avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%, maps ${scenario.symbolicatedProfiles}/${scenario.profileCount}`,
       `  ${highestSignalProfile ? profileOutcome(highestSignalProfile) : 'No readable skill timing data.'}`,
     );
   }
