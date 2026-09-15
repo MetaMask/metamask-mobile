@@ -1876,10 +1876,6 @@
         "current_price": "현재가",
         "liquidation_price": "청산 가격",
         "liquidation_distance": "청산 가격과의 차이",
-        "liquidation_warning": "가격이 {{percentage}} {{direction}}하면 청산됩니다",
-        "drops": "하락",
-        "rises": "상승",
-        "set_leverage": "{{leverage}}배 설정",
         "price_unavailable": "가격 정보 확인 불가"
       },
       "type": {

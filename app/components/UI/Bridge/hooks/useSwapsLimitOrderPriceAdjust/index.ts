@@ -10,6 +10,7 @@ import {
   getIsSwapsLimitOrderStablecoin,
   getSwapsLimitOrderDefaultPriceMode,
 } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
+import { getSwapsLimitOrderPriceComparisonDirection } from '../../utils/limitOrders/getSwapsLimitOrderPriceComparisonDirection';
 import { getSwapsLimitOrderPriceFromMarketPercent } from '../../utils/limitOrders/getSwapsLimitOrderPriceFromMarketPercent';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
@@ -254,6 +255,11 @@ export const useSwapsLimitOrderPriceAdjust = ({
     marketPrice: quotedFiatRate,
     percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
   });
+  const priceComparisonDirection = getSwapsLimitOrderPriceComparisonDirection({
+    limitFiat,
+    marketFiat: quotedFiatRate,
+    executionType,
+  });
 
   return {
     commitCustomPercent,
@@ -271,6 +277,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType,
     limitPrice,
     marketComparison,
+    priceComparisonDirection,
     onAmountTypeTogglePress: canToggleLimitPrice
       ? handleAmountTypeTogglePress
       : undefined,
