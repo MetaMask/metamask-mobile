@@ -493,7 +493,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { getAllByText, findByTestId, findByText, queryByText } =
+    const { getAllByText, findByTestId, findByText } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -508,9 +508,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
 
     // Wait for Transactions empty copy — the list shows a spinner until the EVM
     // query settles, so the empty-state testID is not mounted yet.
-    await waitFor(() => {
-      expect(queryByText(unfundedDescription)).toBeOnTheScreen();
-    });
+    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
@@ -530,7 +528,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText, queryByTestId, queryByText } =
+    const { getAllByText, findByTestId, findByText } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateFunded().build(),
         extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
@@ -543,9 +541,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    await waitFor(() => {
-      expect(queryByText(fundedDescription)).toBeOnTheScreen();
-    });
+    expect(await findByText(fundedDescription)).toBeOnTheScreen();
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
