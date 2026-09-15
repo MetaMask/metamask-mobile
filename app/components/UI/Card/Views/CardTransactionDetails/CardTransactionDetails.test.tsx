@@ -253,11 +253,11 @@ describe('CardTransactionDetails', () => {
     expect(getByText('card.transactions.load_error')).toBeOnTheScreen();
   });
 
-  it('renders the Network fee row from the funding source fees field', () => {
+  it('renders the Network fee row when feeAmount is present', () => {
     mockRouteParams = {
       transactionId: 'tx-1',
       transaction: createTransaction({
-        fundingSources: [{ txHash: '0xabc', fees: '0.02', currency: 'USDC' }],
+        feeAmount: { value: '0.02', currency: 'USDC' },
       }),
     };
 
@@ -267,11 +267,11 @@ describe('CardTransactionDetails', () => {
     expect(getByText('0.02 USDC')).toBeOnTheScreen();
   });
 
-  it('renders <0.01 when the funding source fee is below the minimum displayable amount', () => {
+  it('renders <0.01 when the fee is below the minimum displayable amount', () => {
     mockRouteParams = {
       transactionId: 'tx-1',
       transaction: createTransaction({
-        fundingSources: [{ txHash: '0xabc', fees: '0.005', currency: 'USDC' }],
+        feeAmount: { value: '0.005', currency: 'USDC' },
       }),
     };
 
@@ -280,7 +280,7 @@ describe('CardTransactionDetails', () => {
     expect(getByText('<0.01 USDC')).toBeOnTheScreen();
   });
 
-  it('does not render the Network fee row when no funding source has fees', () => {
+  it('does not render the Network fee row when feeAmount is absent', () => {
     mockRouteParams = {
       transactionId: 'tx-1',
       transaction: createTransaction(),
