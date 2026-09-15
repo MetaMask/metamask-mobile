@@ -57,5 +57,20 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
         positions: [],
       },
     },
+    {
+      urlEndpoint:
+        /^https:\/\/money\.api\.cx\.metamask\.io\/v1\/positions\/0x[a-fA-F0-9]{40}\/history(\?|$)/u,
+      responseCode: 200,
+      response: {
+        address: '0x0000000000000000000000000000000000000000',
+        cash_flows: [],
+        next_cursor: null,
+        has_more: false,
+        as_of_block: 0,
+        as_of_timestamp: new Date().toISOString(),
+        data_freshness: 'live',
+        indexer_lag_seconds: 0,
+      },
+    },
   ],
 };
