@@ -8,7 +8,11 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import { type AppiumElement, getDriver } from '../../framework';
+import {
+  type AppiumElement,
+  getDriver,
+  Utilities,
+} from '../../framework';
 
 class NetworkListModal {
   get networkScroll(): Promise<AppiumElement> {
@@ -123,15 +127,45 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
-    // Android: a title swipe scrolls the list instead of closing ReusableModal,
-    // and the open sheet hides the wallet chrome Android readiness looks for.
-    // System back closes it — verify before callers wait for wallet home.
+    // Android redesigned Enabled-networks sheet: system back is often a no-op
+    // (deeplink home hang). Gestures.swipe() on the title scrolls list content
+    // via scrollWithinContainer — dismiss with close control or a top-edge
+    // coordinate drag on the scroll container instead.
     if (PlatformDetector.isAndroid()) {
-      await getDriver().back();
-      await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
-        timeout: 15000,
-        description: 'Network selector dismissed',
-      });
+      await Utilities.executeWithRetry(
+        async () => {
+          const closeButton = Matchers.getElementByID('button-icon');
+          if (await Utilities.isElementVisible(closeButton, 2_000)) {
+            await Gestures.waitAndTap(closeButton, {
+              elemDescription: 'Close network selector sheet',
+            });
+          } else {
+            const sheet = await this.networkScroll;
+            const location = await sheet.unwrap().getLocation();
+            const size = await sheet.unwrap().getSize();
+            const centerX = Math.floor(location.x + size.width / 2);
+            const fromY = Math.floor(location.y + size.height * 0.05);
+            const toY = Math.floor(location.y + size.height * 0.9);
+            await getDriver().swipe({
+              direction: 'down',
+              percent: 0.85,
+              duration: 400,
+              from: { x: centerX, y: fromY },
+              to: { x: centerX, y: toY },
+            });
+          }
+
+          await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+            timeout: 5_000,
+            description: 'Network selector dismissed',
+          });
+        },
+        {
+          timeout: 25_000,
+          interval: 1_000,
+          description: 'Dismiss Android network selector sheet',
+        },
+      );
       return;
     }
 
