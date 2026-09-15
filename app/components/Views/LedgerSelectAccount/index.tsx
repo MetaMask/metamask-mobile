@@ -161,15 +161,21 @@ const LedgerSelectAccount = () => {
 
   useEffect(
     () => {
+      let cancelled = false;
+
       const init = async () => {
         try {
           DevLogger.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
           setTargetWalletType(HardwareWalletType.Ledger);
           const isReady = await ensureDeviceReady();
 
+          if (cancelled) return;
+
           if (isReady) {
             // We default to the Ledger Live path BEFORE fetching accounts.
             await setHDPath(LEDGER_LIVE_PATH);
+
+            if (cancelled) return;
 
             DevLogger.log(
               '[LedgerSelectAccount] Device ready - fetching accounts',
@@ -182,27 +188,29 @@ const LedgerSelectAccount = () => {
             navigation.goBack();
           }
         } catch {
-          navigation.goBack();
+          if (!cancelled) {
+            navigation.goBack();
+          }
         }
       };
 
       init();
+
+      // Single owner of the unmount lifecycle (Android back / swipe-away):
+      // arm the guard first, then settle any pending readiness promise —
+      // cancelConnectionFlow resolves it with `false`, and the stale init
+      // continuation runs as a microtask after this synchronous cleanup,
+      // so it sees `cancelled` and must not navigate (the navigator has
+      // already popped this screen; going back again would pop one more).
+      // This also resets the provider flow state so late adapter errors
+      // cannot re-open a stranded error bottom sheet over Home.
+      return () => {
+        cancelled = true;
+        cancelConnectionFlow();
+      };
     },
 
     // This is ran once on mount, so we don't need to add any dependencies
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
-  // Unmount-only cleanup: when the flow screen exits (Android back/gesture or
-  // sheet dismissal), settle any pending readiness promise and reset the
-  // provider flow state, so late adapter errors cannot re-open a stranded
-  // error bottom sheet over Home.
-  useEffect(
-    () => () => {
-      cancelConnectionFlow();
-    },
-    // Intentionally mount/unmount only — cancelConnectionFlow is stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
