@@ -1876,10 +1876,6 @@
         "current_price": "当前价格",
         "liquidation_price": "清算价格",
         "liquidation_distance": "清算距离",
-        "liquidation_warning": "如果价格{{direction}} {{percentage}}，您将被平仓",
-        "drops": "下跌",
-        "rises": "上涨",
-        "set_leverage": "设置 {{leverage}} 倍",
         "price_unavailable": "价格信息不可用"
       },
       "type": {

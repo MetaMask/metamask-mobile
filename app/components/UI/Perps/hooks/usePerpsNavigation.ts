@@ -25,6 +25,7 @@ import {
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   navigateToPerpsHomeTarget,
+  resetToPerpsHomeTarget,
   useGetPerpsHomeNavigationTarget,
 } from '../utils/perpsModeSwitch';
 
@@ -46,6 +47,12 @@ export interface PerpsNavigationHandlers {
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
   ) => void;
   navigateToHome: (source?: string) => void;
+  /**
+   * Replace the Perps stack with Home. Use after Home was dropped so Back
+   * from Home cannot return to the market that `navigateToHome` would leave
+   * underneath.
+   */
+  resetToHome: (source?: string) => void;
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
@@ -168,6 +175,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (source?: string) => {
       const target = getPerpsHomeNavigationTarget({ source });
       navigateToPerpsHomeTarget(navigation, target);
+    },
+    [navigation, getPerpsHomeNavigationTarget],
+  );
+
+  const resetToHome = useCallback(
+    (source?: string) => {
+      const target = getPerpsHomeNavigationTarget({ source });
+      resetToPerpsHomeTarget(navigation, target);
     },
     [navigation, getPerpsHomeNavigationTarget],
   );
@@ -339,6 +354,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     // Perps-specific navigation
     navigateToMarketDetails,
     navigateToHome,
+    resetToHome,
     navigateToMarketList,
     navigateToMarketListFromHeader,
     navigateToOrder,

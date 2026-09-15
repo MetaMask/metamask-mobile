@@ -1,24 +1,21 @@
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
+  ButtonSize,
+  ButtonsAlignment,
   IconName,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -126,36 +123,32 @@ const PerpsCustomSlippageBottomSheet: React.FC<
     onSave(percentToBps(finalPct));
   }, [draftIsInRange, parsedDraft, onSave]);
 
-  const footerButtonProps = [
-    {
-      label: strings('perps.slippage.cancel'),
-      testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CANCEL,
-      variant: ButtonVariants.Secondary,
-      size: ButtonSize.Lg,
-      onPress: onClose,
-    },
-    {
-      label: strings('perps.slippage.set'),
-      testID: PerpsCustomSlippageBottomSheetSelectorsIDs.SET,
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-      onPress: handleSet,
-      isDisabled: !draftIsInRange,
-    },
-  ];
+  const cancelButtonProps = {
+    children: strings('perps.slippage.cancel'),
+    testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CANCEL,
+    size: ButtonSize.Lg,
+    onPress: onClose,
+  };
+
+  const setButtonProps = {
+    children: strings('perps.slippage.set'),
+    testID: PerpsCustomSlippageBottomSheetSelectorsIDs.SET,
+    size: ButtonSize.Lg,
+    onPress: handleSet,
+    isDisabled: !draftIsInRange,
+  };
 
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-    >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('perps.slippage.use_custom_title')}
-        </Text>
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+      <BottomSheetHeader
+        onClose={onClose}
+        closeButtonProps={{
+          testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CLOSE,
+        }}
+      >
+        {strings('perps.slippage.use_custom_title')}
       </BottomSheetHeader>
 
       <View style={styles.container}>
@@ -217,7 +210,11 @@ const PerpsCustomSlippageBottomSheet: React.FC<
         </View>
       </View>
 
-      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        secondaryButtonProps={cancelButtonProps}
+        primaryButtonProps={setButtonProps}
+      />
     </BottomSheet>
   );
 };

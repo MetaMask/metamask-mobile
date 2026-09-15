@@ -1876,10 +1876,6 @@
         "current_price": "Giá hiện tại",
         "liquidation_price": "Giá thanh lý",
         "liquidation_distance": "Khoảng cách đến thanh lý",
-        "liquidation_warning": "Bạn sẽ bị thanh lý nếu giá {{direction}} {{percentage}}",
-        "drops": "giảm",
-        "rises": "tăng",
-        "set_leverage": "Đặt đòn bẩy {{leverage}}x",
         "price_unavailable": "Không có thông tin giá"
       },
       "type": {

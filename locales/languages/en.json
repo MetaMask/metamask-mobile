@@ -1361,6 +1361,22 @@
         "recent": "Recent"
       }
     },
+    "my_profile": {
+      "avatar_accessibility_label": "Your profile avatar",
+      "open_profile": "Open my profile",
+      "followers": "followers",
+      "following": "following",
+      "edit_profile": "Edit profile",
+      "share_profile": "Share profile",
+      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
+      "posts": "Posts",
+      "first_trade_prompt": "First trade?",
+      "empty_title": "Your feed starts here",
+      "empty_description": "Share a trade and it'll show up here for your followers",
+      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "share_first_trade": "Share your first trade",
+      "retry": "Try again"
+    },
     "trader_position": {
       "market_cap": "Market cap",
       "price": "Price",
@@ -1587,7 +1603,7 @@
         "view_transaction": "View transaction"
       },
       "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
+      "success_amount_added": "{{amount}} was added to Perps",
       "funds_are_ready_to_trade": "Funds are ready to trade",
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
@@ -1967,15 +1983,12 @@
       },
       "leverage_modal": {
         "title": "Leverage",
+        "set": "Set",
         "confirm": "Confirm",
         "entry_price": "Entry price",
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x",
         "price_unavailable": "Price information unavailable"
       },
       "type": {
