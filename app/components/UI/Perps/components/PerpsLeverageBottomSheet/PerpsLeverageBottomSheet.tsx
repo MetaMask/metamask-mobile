@@ -649,7 +649,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   );
 
   if (presentation === 'screen') {
-    return content;
+    return <Box twClassName="flex-1">{content}</Box>;
   }
 
   return (

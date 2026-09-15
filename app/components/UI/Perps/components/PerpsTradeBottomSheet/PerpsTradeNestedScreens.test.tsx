@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { NavigationContext } from '@react-navigation/native';
 import {
   PerpsTradePayWithScreen,
@@ -10,6 +10,14 @@ import { useDismissOnPaymentChange } from '../../../../Views/confirmations/hooks
 const mockGoBack = jest.fn();
 const mockClose = jest.fn();
 const mockRouteGoBack = jest.fn();
+let mockPayToken:
+  | {
+      address: string;
+      chainId: string;
+    }
+  | undefined;
+let mockBlurListener: (() => void) | undefined;
+let mockFocusListener: (() => void) | undefined;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   usePerpsTradeSheet: () => ({
@@ -22,6 +30,13 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useDismissOnPaymentChange',
   () => ({
     useDismissOnPaymentChange: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useTransactionPayToken',
+  () => ({
+    useTransactionPayToken: () => ({ payToken: mockPayToken }),
   }),
 );
 
@@ -79,11 +94,22 @@ jest.mock('../PerpsSlippageBottomSheet', () => {
 const navigationValue = {
   goBack: mockRouteGoBack,
   isFocused: () => true,
+  addListener: (event: string, listener: () => void) => {
+    if (event === 'blur') {
+      mockBlurListener = listener;
+    } else if (event === 'focus') {
+      mockFocusListener = listener;
+    }
+    return jest.fn();
+  },
 } as never;
 
 describe('PerpsTradeNestedScreens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPayToken = undefined;
+    mockBlurListener = undefined;
+    mockFocusListener = undefined;
   });
 
   it('keeps Pay With row selection inside the Trade stepper', () => {
@@ -98,8 +124,45 @@ describe('PerpsTradeNestedScreens', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockRouteGoBack).not.toHaveBeenCalled();
     expect(jest.mocked(useDismissOnPaymentChange)).toHaveBeenCalledWith({
+      dismissOnPayTokenChange: false,
       onDismiss: mockGoBack,
     });
+  });
+
+  it('ignores token hydration while Pay With remains focused', () => {
+    const { rerender } = render(
+      <NavigationContext.Provider value={navigationValue}>
+        <PerpsTradePayWithScreen />
+      </NavigationContext.Provider>,
+    );
+
+    mockPayToken = { address: '0x1', chainId: '0x1' };
+    rerender(
+      <NavigationContext.Provider value={navigationValue}>
+        <PerpsTradePayWithScreen />
+      </NavigationContext.Provider>,
+    );
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('returns to Trade after selecting a token in the child modal', () => {
+    const { rerender } = render(
+      <NavigationContext.Provider value={navigationValue}>
+        <PerpsTradePayWithScreen />
+      </NavigationContext.Provider>,
+    );
+
+    act(() => mockBlurListener?.());
+    mockPayToken = { address: '0x2', chainId: '0x1' };
+    rerender(
+      <NavigationContext.Provider value={navigationValue}>
+        <PerpsTradePayWithScreen />
+      </NavigationContext.Provider>,
+    );
+    act(() => mockFocusListener?.());
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders functional slippage settings in the nested screen', () => {

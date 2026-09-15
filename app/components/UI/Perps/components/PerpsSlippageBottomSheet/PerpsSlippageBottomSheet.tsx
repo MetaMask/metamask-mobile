@@ -123,7 +123,9 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
       <PerpsCustomSlippageBottomSheet
         isVisible
         currentValueBps={selectedBps}
-        onClose={handleCustomClose}
+        presentation={presentation}
+        onBack={presentation === 'screen' ? handleCustomClose : undefined}
+        onClose={presentation === 'screen' ? onClose : handleCustomClose}
         onSave={handleCustomSave}
       />
     );
@@ -185,7 +187,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   );
 
   if (presentation === 'screen') {
-    return content;
+    return <Box twClassName="flex-1">{content}</Box>;
   }
 
   return (

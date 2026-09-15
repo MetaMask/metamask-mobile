@@ -151,6 +151,7 @@ import {
 } from '../../selectors/featureFlags';
 import {
   BUTTON_COLOR_VARIANTS,
+  FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
 import {
@@ -2755,7 +2756,9 @@ const PerpsOrderView: React.FC = () => {
         hideTPSL={hideTPSL}
         defaultSzDecimals={defaultSzDecimals}
         defaultMaxLeverage={defaultMaxLeverage}
-        useBottomSheet={useBottomSheet}
+        useBottomSheet={
+          FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT || useBottomSheet
+        }
       />
     </PerpsOrderProvider>
   );
