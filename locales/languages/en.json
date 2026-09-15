@@ -1377,6 +1377,27 @@
       "share_first_trade": "Share your first trade",
       "retry": "Try again"
     },
+    "manage_profile": {
+      "title": "Manage profile",
+      "about": "About",
+      "privacy": "Privacy",
+      "display_name": "Display name",
+      "handle": "Handle",
+      "bio": "Bio",
+      "socials": "Socials",
+      "trading_activity": "Trading activity",
+      "trading_activity_on": "On",
+      "linked_social_account": "Linked social account",
+      "save": "Save",
+      "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
+      "socials_helper": "Your X handle appears on posts and your profile.",
+      "show_trading_activity": "Show trading activity",
+      "show_trading_activity_subtitle": "Public and available to copy",
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+      "trading_activity_info": "More information about trading activity",
+      "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
+      "avatar_accessibility_label": "Your profile avatar"
+    },
     "trader_position": {
       "market_cap": "Market cap",
       "price": "Price",
@@ -3100,17 +3121,29 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "home_title": "Predictions",
     "portfolio": {
-      "title": "Positions",
+      "title": "Portfolio",
       "positions": "Positions",
+      "activity_empty": {
+        "title": "No activity yet",
+        "description": "Your fills and settlements will appear here."
+      },
+      "load_failed": "Couldn't load.",
+      "load_failed_retry": "Try again",
+      "outcome_shares": "{{outcome}} · {{shares}} shares",
       "active_positions": "Active positions",
-      "history": "History",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
       "empty": {
         "title": "No positions yet",
         "description": "Your active and resolved positions will appear here.",
         "browse_markets": "Browse markets"
+      },
+      "activity": "History",
+      "activity_rows": {
+        "settled": "Settled",
+        "shares_at_price": "{{shares}} @ {{price}}"
       }
     }
   },
@@ -9073,6 +9106,9 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "order_created_toast_title": "Order created",
+      "order_created_toast_body": "We'll let you know when it's filled.",
+      "order_canceled_toast_title": "Order canceled",
       "paying_all_orders": "Paying (all orders)",
       "paying_per_order": "Paying (per order)",
       "receiving": "Receiving",
@@ -9217,6 +9253,8 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
+    "gas_fee_deduction": "-{{fee}} for gas",
     "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",

@@ -118,6 +118,55 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('authenticates Positions requests with encoded page parameters', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+    });
+
+    await client.fetchPositions(venueId, { cursor: 'next page', limit: 20 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/positions?cursor=next+page&limit=20',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer secret-token',
+        }),
+      }),
+    );
+  });
+
+  it('authenticates Activity requests with encoded page parameters', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+    });
+
+    await client.fetchActivity(venueId, { limit: 20 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/activity?limit=20',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer secret-token',
+        }),
+      }),
+    );
+  });
+
+  it('fails Positions requests before HTTP when no bearer token is available', async () => {
+    await expect(client.fetchPositions(venueId, {})).rejects.toMatchObject({
+      status: 401,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('encodes event-list query parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
 
