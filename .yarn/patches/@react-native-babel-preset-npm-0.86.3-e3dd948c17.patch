@@ -1,8 +1,8 @@
 diff --git a/src/configs/main.js b/src/configs/main.js
-index ad3dfe4628035ac99447e5364275447c5026bee4..282ead0240901cba46704e0d5fbff7fe131a9cee 100644
+index 69bcbd1e64fba395bbf0a292a569520faa8bdaf2..f6647de0f1da0a8c053245a72f2e4c3090e5fe44 100644
 --- a/src/configs/main.js
 +++ b/src/configs/main.js
-@@ -115,9 +115,14 @@ const getPreset = (src, options, babel) => {
+@@ -129,9 +129,14 @@ const getPreset = (src, options, babel) => {
      extraPlugins.push([require('@babel/plugin-transform-classes')]);
    }
  

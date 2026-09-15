@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
+import { Platform, TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -69,7 +69,7 @@ type LocationSelection = CardLocation | 'uk';
 const IMMERSVE_UK_COUNTRY_KEY = 'GB';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+const autoComplete = Platform.select<'sms-otp' | 'one-time-code'>({
   android: 'sms-otp',
   default: 'one-time-code',
 });

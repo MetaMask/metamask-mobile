@@ -1,6 +1,10 @@
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
-import { BackHandler, NativeEventSubscription } from 'react-native';
+import {
+  BackHandler,
+  HardwareBackPressEvent,
+  NativeEventSubscription,
+} from 'react-native';
 import SmartAccountNetworkList from './SmartAccountNetworkList';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 
@@ -73,7 +77,9 @@ describe('SmartAccountNetworkList', () => {
       .mockImplementation(
         (
           event: 'hardwareBackPress',
-          _handler: () => boolean | null | undefined,
+          _handler: (
+            event: HardwareBackPressEvent,
+          ) => boolean | null | undefined,
         ): NativeEventSubscription => {
           expect(event).toBe('hardwareBackPress');
           return { remove: removeMock } as unknown as NativeEventSubscription;
