@@ -3,11 +3,7 @@ import injectInpageProvider from './provider';
 import injectSolanaWalletStandard from './solanaWalletStandard';
 import injectBitcoinWalletStandard from './bitcoinWalletStandard';
 
-if (
-  typeof window !== 'undefined' &&
-  typeof window.document !== 'undefined' &&
-  shouldInject()
-) {
+if (shouldInject()) {
   injectInpageProvider();
   injectSolanaWalletStandard();
   injectBitcoinWalletStandard();
@@ -119,8 +115,6 @@ function blockedDomainCheck() {
     )
   );
 }
-
-export { blockedDomainCheck };
 
 /**
  * Returns a promise that resolves when the DOM is loaded (does not wait for images to load)
