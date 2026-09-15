@@ -81,6 +81,12 @@ export const SCREEN_VS_BOTTOM_SHEET_VARIANTS: Record<
   [ScreenVsBottomSheetVariant.Treatment]: { useBottomSheet: true },
 };
 
+/**
+ * TEMPORARY: forces the bottom-sheet treatment for local testing, bypassing the
+ * LaunchDarkly assignment. Revert to `false` before merging.
+ */
+export const FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT = true;
+
 export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS = {
   experimentName: 'Perps Screen vs Bottom Sheet',
   variationNames: {

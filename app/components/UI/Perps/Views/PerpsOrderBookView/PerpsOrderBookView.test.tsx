@@ -162,6 +162,12 @@ const mockCloseModifySheet = jest.fn();
 const mockHandleReversePosition = jest.fn();
 const mockModifyActionSheetRef = { current: null };
 
+// Keeps screen-path coverage meaningful while the temporary local force is on.
+jest.mock('../../abTestConfig', () => ({
+  ...jest.requireActual('../../abTestConfig'),
+  FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT: false,
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToOrder: mockNavigateToOrder,

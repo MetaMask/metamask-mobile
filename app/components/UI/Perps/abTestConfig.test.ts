@@ -111,10 +111,17 @@ describe('Perps abTestConfig', () => {
       ]);
     });
 
-    it('registers the close-position conversion event', () => {
+    it('registers the close-position and trade conversion events', () => {
       expect(
         SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.eventNames,
-      ).toEqual([EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION]);
+      ).toEqual([
+        EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+        EVENT_NAME.PERPS_SCREEN_VIEWED,
+        EVENT_NAME.PERPS_UI_INTERACTION,
+        EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+        EVENT_NAME.PERPS_TRADE_QUOTE_RECEIVED,
+        EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      ]);
     });
   });
 });

@@ -152,6 +152,7 @@ import {
 } from '../../selectors/featureFlags';
 import {
   BUTTON_COLOR_VARIANTS,
+  FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
 import {
@@ -1026,25 +1027,28 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
-  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
-    usePerpsOrderExecution({
-      onSuccess: (_position) => {
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
-        );
-      },
-      onError: (error) => {
-        // Error is already captured in usePerpsOrderExecution hook
-        // No need to capture again here to avoid duplicate Sentry reports
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].creationFailed(error),
-        );
-      },
-    });
+  const {
+    placeOrder: executeOrder,
+    isPlacing: isPlacingOrder,
+    error: orderExecutionError,
+  } = usePerpsOrderExecution({
+    onSuccess: (_position) => {
+      showToast(
+        PerpsToastOptions.orderManagement[
+          getOrderManagementToastKey(orderForm.type)
+        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+      );
+    },
+    onError: (error) => {
+      // Error is already captured in usePerpsOrderExecution hook
+      // No need to capture again here to avoid duplicate Sentry reports
+      showToast(
+        PerpsToastOptions.orderManagement[
+          getOrderManagementToastKey(orderForm.type)
+        ].creationFailed(error),
+      );
+    },
+  });
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(
@@ -1856,14 +1860,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
-    const payWithLabel = isPayTokenPerpsBalance
-      ? `${strings('perps.adjust_margin.perps_balance')} (${formatPerpsFiat(
-          account?.totalBalance ?? '0',
-          { ranges: PRICE_RANGES_MINIMAL_VIEW },
-        )})`
-      : `${payToken?.symbol ?? ''} (${formatPerpsFiat(payTokenBalanceUsd, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        })})`;
+    const payWithName = isPayTokenPerpsBalance
+      ? strings('perps.adjust_margin.perps_balance')
+      : (payToken?.symbol ?? '');
+    const payWithBalance = formatPerpsFiat(
+      isPayTokenPerpsBalance
+        ? (account?.totalBalance ?? '0')
+        : payTokenBalanceUsd,
+      { ranges: PRICE_RANGES_MINIMAL_VIEW },
+    );
     const submitDisabled =
       !orderValidation.isValid ||
       isPlacingOrder ||
@@ -1872,6 +1877,32 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isAtOICap ||
       shouldBlockBecauseOfFeesLoading ||
       hasBlockingPayAlerts;
+    const bottomSheetErrors = [
+      ...(!isLoadingMarketData && currentPrice != null
+        ? footerErrors.map((error) => ({
+            key: `validation-${error}`,
+            message: error,
+          }))
+        : []),
+      ...(hasBlockingPayAlerts && blockingPayAlertMessage
+        ? [
+            {
+              key:
+                blockingPayAlerts[0]?.key ??
+                `pay-alert-${String(blockingPayAlertMessage)}`,
+              message: blockingPayAlertMessage,
+            },
+          ]
+        : []),
+      ...(orderExecutionError
+        ? [
+            {
+              key: `execution-${orderExecutionError}`,
+              message: orderExecutionError,
+            },
+          ]
+        : []),
+    ];
 
     return (
       <PerpsTradeBottomSheet
@@ -1883,12 +1914,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               assetIconUrl={assetUrl}
               direction={orderForm.direction}
               leverage={orderForm.leverage}
-              maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
               amount={displayAmount}
               tokenAmount={livePositionSize}
               sliderMaximum={maxPossibleAmount}
               isAmountDisabled={isAmountDisabled}
               isAmountLoading={isLoadingAccount}
+              hasAmountError={spendableBalance > 0 && filteredErrors.length > 0}
               isInputFocused={isInputFocused}
               liquidationPrice={
                 hasValidAmount
@@ -1898,10 +1929,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : undefined
               }
               liquidationPercentage={liquidationPercentage}
-              payWithLabel={payWithLabel}
+              payWithName={payWithName}
+              payWithBalance={payWithBalance}
               feePercentage={feePercentage}
               isSubmitting={isPlacingOrder}
               isSubmitDisabled={submitDisabled}
+              errorMessages={bottomSheetErrors}
+              isAtOICap={isAtOICap}
+              showServiceInterruptionBanner={isServiceInterruptionBannerEnabled}
               onAmountPress={handleAmountPress}
               onSliderValueChange={handleSliderValueChange}
               onSliderDragEnd={handleSliderDragEnd}
@@ -1909,9 +1944,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPercentagePress={handlePercentagePress}
               onMaxPress={handleMaxPress}
               onDonePress={handleDonePress}
-              onLeverageChange={(value) =>
-                handleLeverageConfirm(value, 'preset')
-              }
               onSubmit={() => handlePlaceOrder()}
             />
           ),
@@ -2633,7 +2665,9 @@ const PerpsOrderView: React.FC = () => {
         hideTPSL={hideTPSL}
         defaultSzDecimals={defaultSzDecimals}
         defaultMaxLeverage={defaultMaxLeverage}
-        useBottomSheet={useBottomSheet}
+        useBottomSheet={
+          FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT || useBottomSheet
+        }
       />
     </PerpsOrderProvider>
   );

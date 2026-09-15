@@ -154,6 +154,39 @@ describe('PerpsAmountDisplay', () => {
       ).toBeOnTheScreen();
     });
 
+    it('switches between fiat and asset values in the trade sheet', () => {
+      const TradeSheetAmount = () => {
+        const [showTokenAmount, setShowTokenAmount] = React.useState(false);
+
+        return (
+          <PerpsAmountDisplay
+            amount="1000"
+            tokenAmount="0.5"
+            tokenSymbol="ETH"
+            variant="tradeSheet"
+            showTokenAmount={showTokenAmount}
+            onDisplayToggle={() => setShowTokenAmount((value) => !value)}
+            displayToggleAccessibilityLabel={
+              showTokenAmount ? 'Show fiat value' : 'Show asset value'
+            }
+          />
+        );
+      };
+
+      render(<TradeSheetAmount />);
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$1,000');
+
+      fireEvent.press(screen.getByLabelText('Show asset value'));
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('0.5 ETH');
+      expect(screen.getByLabelText('Show fiat value')).toBeOnTheScreen();
+    });
+
     it('handles press gracefully when onPress is not provided', () => {
       // Arrange
       const amount = '1000';

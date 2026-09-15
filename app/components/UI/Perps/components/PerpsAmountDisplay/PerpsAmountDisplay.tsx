@@ -15,7 +15,15 @@ import {
 } from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -35,6 +43,9 @@ interface PerpsAmountDisplayProps {
   showMaxAmount?: boolean;
   hasError?: boolean;
   isLoading?: boolean;
+  variant?: 'default' | 'tradeSheet';
+  onDisplayToggle?: () => void;
+  displayToggleAccessibilityLabel?: string;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -51,6 +62,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   showMaxAmount = true,
   hasError = false,
   isLoading = false,
+  variant = 'default',
+  onDisplayToggle,
+  displayToggleAccessibilityLabel,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -66,6 +80,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     }
     return PERPS_CONSTANTS.ZeroAmountDisplay;
   })();
+  const fiatDisplayValue = amount
+    ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
+    : PERPS_CONSTANTS.ZeroAmountDisplay;
+  const tokenDisplayValue =
+    tokenAmount && tokenSymbol
+      ? `${formatPositionSize(tokenAmount)} ${getPerpsDisplaySymbol(
+          tokenSymbol,
+        )}`
+      : undefined;
 
   useEffect(() => {
     if (isActive) {
@@ -89,6 +112,107 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       fadeAnim.setValue(0);
     }
   }, [isActive, fadeAnim]);
+
+  if (variant === 'tradeSheet') {
+    const primaryDisplayValue =
+      showTokenAmount && tokenDisplayValue
+        ? tokenDisplayValue
+        : fiatDisplayValue;
+    const secondaryDisplayValue = showTokenAmount
+      ? fiatDisplayValue
+      : tokenDisplayValue;
+
+    const primaryAmount = (
+      <Box
+        accessible={false}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        {isLoading ? (
+          <Skeleton width={80} height={40} />
+        ) : (
+          <Text
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+            variant={TextVariant.DisplayLg}
+            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+          >
+            {primaryDisplayValue}
+          </Text>
+        )}
+        {isActive ? (
+          <Animated.View
+            testID="cursor"
+            style={[
+              styles.cursor,
+              {
+                opacity: fadeAnim,
+              },
+            ]}
+          />
+        ) : null}
+      </Box>
+    );
+
+    return (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
+      >
+        {onPress ? (
+          <TouchableOpacity
+            testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel}
+            onPress={onPress}
+            activeOpacity={0.7}
+          >
+            {primaryAmount}
+          </TouchableOpacity>
+        ) : (
+          primaryAmount
+        )}
+        {secondaryDisplayValue ? (
+          <Box
+            accessible={false}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            gap={2}
+          >
+            {/* Mirrors the toggle's width so the value stays optically centered. */}
+            {onDisplayToggle ? (
+              <Box accessible={false} twClassName="h-6 w-6" />
+            ) : null}
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {secondaryDisplayValue}
+            </Text>
+            {onDisplayToggle ? (
+              <ButtonIcon
+                iconName={IconName.SwapVertical}
+                size={ButtonIconSize.Sm}
+                variant={ButtonIconVariant.Filled}
+                accessibilityLabel={displayToggleAccessibilityLabel}
+                onPress={onDisplayToggle}
+              />
+            ) : null}
+          </Box>
+        ) : null}
+        {showWarning ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.WarningDefault}
+            style={styles.warning}
+          >
+            {warningMessage}
+          </Text>
+        ) : null}
+      </Box>
+    );
+  }
 
   const content = (
     <View
