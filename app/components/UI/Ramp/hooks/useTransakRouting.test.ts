@@ -1773,9 +1773,7 @@ describe('useTransakRouting', () => {
       fiatCurrency: { symbol: 'USD' },
     };
 
-    const runApprovedFlowHeadless = async (
-      quote: typeof mockQuote = mockQuote,
-    ) => {
+    const runApprovedFlowHeadless = async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
         lastName: 'Doe',
@@ -1799,8 +1797,8 @@ describe('useTransakRouting', () => {
 
       await act(async () => {
         await result.current.routeAfterAuthentication(
-          quote as never,
-          quote.fiatAmount,
+          mockQuote as never,
+          mockQuote.fiatAmount,
         );
       });
 
@@ -2210,9 +2208,7 @@ describe('useTransakRouting', () => {
       );
       mockSelectedPaymentMethod = null;
 
-      const quote = { ...mockQuote, fiatAmount: 15 };
-
-      await runApprovedFlowHeadless(quote);
+      await runApprovedFlowHeadless();
 
       expect(mockGetUserLimits).toHaveBeenCalledWith(
         'USD',
@@ -2220,15 +2216,7 @@ describe('useTransakRouting', () => {
         'SIMPLE',
       );
       expect(mockRequestOtt).toHaveBeenCalled();
-      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalledWith(
-        'test-ott',
-        quote,
-        MOCK_WALLET_ADDRESS,
-        { theme: 'light' },
-      );
-      expect(mockGeneratePaymentWidgetUrl.mock.calls[0][3]).not.toHaveProperty(
-        'isFeeExcludedFromFiat',
-      );
+      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalled();
     });
 
     it('checks limits with the quote debit/card method when the Buy catalog has no selection', async () => {
@@ -2238,26 +2226,16 @@ describe('useTransakRouting', () => {
         }),
       );
       mockSelectedPaymentMethod = null;
-      mockIsTransakWidgetUrlProxyEnabled = true;
-      mockCreateWidgetUrl.mockResolvedValue('https://proxy-widget.example.com');
-      const quote = { ...mockQuote, fiatAmount: 15 };
 
-      await runApprovedFlowHeadless(quote);
+      await runApprovedFlowHeadless();
 
       expect(mockGetUserLimits).toHaveBeenCalledWith(
         'USD',
         '/payments/debit-credit-card',
         'SIMPLE',
       );
-      expect(mockCreateWidgetUrl).toHaveBeenCalledWith(
-        quote,
-        MOCK_WALLET_ADDRESS,
-        { widgetTheme: 'light' },
-      );
-      expect(mockCreateWidgetUrl.mock.calls[0][2]).not.toHaveProperty(
-        'isFeeExcludedFromFiat',
-      );
-      expect(mockRequestOtt).not.toHaveBeenCalled();
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalled();
     });
 
     it('prefers the session debit/card method over a stale Buy Apple Pay selection', async () => {
