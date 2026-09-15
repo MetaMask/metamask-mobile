@@ -58,6 +58,10 @@ describe('PredictHome', () => {
 
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
+    fireEvent(view.getByTestId(PredictHomeTestIds.TITLE_SECTION), 'layout', {
+      nativeEvent: { layout: { height: 48 } },
+    });
+
     expect(view.getByTestId(PredictHomeTestIds.HEADER_TITLE)).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
