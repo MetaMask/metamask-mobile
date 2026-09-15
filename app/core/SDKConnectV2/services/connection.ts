@@ -116,6 +116,16 @@ export class Connection {
         'method' in payload.data &&
         payload.data.method === 'wallet_createSession';
 
+      // The connection request is now ready to be shown to the user as an
+      // approval, so take down the "connecting" loading sheet first. For QR
+      // flows the dapp sends wallet_createSession only after the handshake, so
+      // this is the point where the loading sheet is dismissed before the
+      // approval appears (for direct deeplink flows it has usually already been
+      // dismissed by the connection registry).
+      if (isWalletCreateSessionRequest) {
+        this.hostApp.hideConnectionLoading(this.info);
+      }
+
       // If the request is a wallet_createSession request and there are pending approval requests, clear those pending approvals before
       // showing the wallet_createSession approval. We do this to prevent the user from seeing a stale wallet_createSession approval in the
       // scenario where they make a connection request, but leave the wallet before approving or rejecting the request, return to the dapp
