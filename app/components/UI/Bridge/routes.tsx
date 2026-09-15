@@ -71,8 +71,8 @@ export const BridgeScreenStack = () => (
       component={QuoteSelectorView}
     />
     <Stack.Screen
-      name={Routes.BRIDGE.RECURRING_JOB_DETAILS}
-      component={RecurringJobDetailsView}
+      name={Routes.BRIDGE.RECURRING_ORDER_DETAILS}
+      component={RecurringOrderDetailsView}
       options={{ headerShown: false }}
     />
     <Stack.Screen
