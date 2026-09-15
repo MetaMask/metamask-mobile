@@ -344,7 +344,7 @@ describe('Predict Controller Selectors', () => {
   });
 
   describe('selectPredictWonPositions', () => {
-    it('filters positions with WON status', () => {
+    it('filters positions with WON or REDEEMABLE status', () => {
       const testAddress = '0x123';
       const claimablePositions = {
         [testAddress]: [
@@ -368,6 +368,28 @@ describe('Predict Controller Selectors', () => {
             claimable: true,
             initialValue: 75,
             avgPrice: 0.75,
+            endDate: '2024-12-31',
+          },
+          {
+            id: 'pos-push',
+            providerId: POLYMARKET_PROVIDER_ID,
+            marketId: 'market-push',
+            outcomeId: 'outcome-push',
+            outcome: 'Yes',
+            outcomeTokenId: '789',
+            currentValue: 50,
+            title: 'Pushed Market',
+            icon: 'icon-url-push',
+            amount: 50,
+            price: 0.5,
+            status: PredictPositionStatus.REDEEMABLE,
+            size: 100,
+            outcomeIndex: 0,
+            percentPnl: 0,
+            cashPnl: 0,
+            claimable: true,
+            initialValue: 50,
+            avgPrice: 0.5,
             endDate: '2024-12-31',
           },
           {
@@ -411,9 +433,11 @@ describe('Predict Controller Selectors', () => {
         testAddress,
       ) as PredictPosition[];
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
       expect(result[0].status).toBe(PredictPositionStatus.WON);
       expect(result[0].id).toBe('pos-1');
+      expect(result[1].status).toBe(PredictPositionStatus.REDEEMABLE);
+      expect(result[1].id).toBe('pos-push');
     });
 
     it('returns empty array when no positions have WON status', () => {

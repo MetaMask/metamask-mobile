@@ -8,34 +8,65 @@ import {
 } from './types';
 import { cardControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { ImmersveProvider } from './providers/ImmersveProvider';
+import {
+  defaultCardFeatureFlag,
+  type ImmersveProgramConfig,
+} from '../../../../selectors/featureFlagController/card';
 
 jest.mock('./CardController', () => {
   const actual = jest.requireActual('./CardController');
   return {
     ...actual,
-    CardController: jest.fn(actual.CardController),
+    CardController: jest.fn((...args: unknown[]) => {
+      const Actual = actual.CardController;
+      return new Actual(...args);
+    }),
+  };
+});
+
+let capturedGetProgramConfig:
+  | (() => ImmersveProgramConfig | null | undefined)
+  | undefined;
+
+jest.mock('./providers/ImmersveProvider', () => {
+  const actual = jest.requireActual('./providers/ImmersveProvider');
+  return {
+    ...actual,
+    ImmersveProvider: jest.fn((args: unknown) => {
+      const { getProgramConfig } = args as {
+        getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
+      };
+      capturedGetProgramConfig = getProgramConfig;
+      return new actual.ImmersveProvider(args);
+    }),
   };
 });
 
 describe('cardControllerInit', () => {
   const cardControllerClassMock = jest.mocked(CardController);
+  const immersveProviderClassMock = jest.mocked(ImmersveProvider);
   let initRequestMock: jest.Mocked<
     MessengerClientInitRequest<CardControllerMessenger>
   >;
+  let getRemoteFeatureFlags: jest.Mock;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    capturedGetProgramConfig = undefined;
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
 
+    getRemoteFeatureFlags = jest.fn().mockReturnValue({
+      remoteFeatureFlags: {},
+    });
+
     baseControllerMessenger.registerActionHandler(
       // @ts-expect-error: Action not allowed.
       'RemoteFeatureFlagController:getState',
-      jest.fn().mockReturnValue({
-        remoteFeatureFlags: {},
-      }),
+      getRemoteFeatureFlags,
     );
 
     initRequestMock = buildMessengerClientInitRequestMock(
@@ -46,7 +77,9 @@ describe('cardControllerInit', () => {
   it('returns a controller instance', () => {
     const result = cardControllerInit(initRequestMock);
 
-    expect(result.controller).toBeInstanceOf(CardController);
+    expect(result.controller).toBeInstanceOf(
+      jest.requireActual('./CardController').CardController,
+    );
   });
 
   it('uses default state when no persisted state is provided', () => {
@@ -77,5 +110,35 @@ describe('cardControllerInit', () => {
 
     const constructorArgs = cardControllerClassMock.mock.calls[0][0];
     expect(constructorArgs.state).toStrictEqual(persistedState);
+  });
+
+  it('returns cardProgramId from the cardImmersveConfig flag', () => {
+    getRemoteFeatureFlags.mockReturnValue({
+      remoteFeatureFlags: {
+        cardFeature: defaultCardFeatureFlag,
+        cardImmersveConfig: { cardProgramId: 'flag-program' },
+      },
+    });
+
+    cardControllerInit(initRequestMock);
+
+    expect(immersveProviderClassMock).toHaveBeenCalled();
+    expect(capturedGetProgramConfig).toBeDefined();
+    expect(capturedGetProgramConfig?.()?.cardProgramId).toBe('flag-program');
+  });
+
+  it('ignores the legacy cardFeature.immersve block', () => {
+    getRemoteFeatureFlags.mockReturnValue({
+      remoteFeatureFlags: {
+        cardFeature: {
+          ...defaultCardFeatureFlag,
+          immersve: { cardProgramId: 'legacy-program' },
+        },
+      },
+    });
+
+    cardControllerInit(initRequestMock);
+
+    expect(capturedGetProgramConfig?.()?.cardProgramId).toBe('');
   });
 });

@@ -161,23 +161,11 @@ const PerpsMarketRowItem = ({
     return getPerpsDisplaySymbol(label);
   }, [showFullAssetNames, displayMarket.name, displayMarket.symbol]);
 
-  // Only show the ticker alongside the metric text when the row is already
-  // displaying the full name (otherwise the ticker is redundant) and the
-  // name is a genuine name rather than the ticker-fallback value returned
-  // when Terminal API / HyperLiquid name resolution has no real name for
-  // this market.
-  const showTickerSuffix = useMemo(
-    () =>
-      showFullAssetNames &&
-      Boolean(displayMarket.name) &&
-      displayMarket.name !== displayMarket.symbol &&
-      getPerpsDisplaySymbol(displayMarket.symbol) !== displayMarket.name,
-    [showFullAssetNames, displayMarket.name, displayMarket.symbol],
-  );
+  // The ticker always leads the second row, even when it duplicates the title,
+  // so markets with no human-readable name still surface their ticker.
+  const ticker = getPerpsDisplaySymbol(displayMarket.symbol);
 
-  const description = showTickerSuffix
-    ? `${getPerpsDisplaySymbol(displayMarket.symbol)} \u00B7 ${displayText}`
-    : displayText;
+  const description = displayText ? `${ticker} \u00B7 ${displayText}` : ticker;
 
   return (
     <ListItem
@@ -196,6 +184,10 @@ const PerpsMarketRowItem = ({
       titleProps={{
         testID: getPerpsMarketRowItemSelector.assetLabel(displayMarket.symbol),
         numberOfLines: 1,
+        // flexShrink lets the title text yield space to the leverage badge so
+        // it doesn't overflow into the price column on long asset names.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flexShrink: 1 },
       }}
       titleEndAccessory={
         <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />

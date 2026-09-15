@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import {
   createNavigationDetails,
@@ -39,7 +40,7 @@ export const createLedgerMessageSignModalNavDetails =
   );
 
 const LedgerMessageSignModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { signingEvent }: iEventGroup = useSelector(
     (state: RootState) => state.rpcEvents,

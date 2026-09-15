@@ -31,6 +31,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const {
     availableBalance,
+    balanceError,
     claim,
     claimableAmount,
     claimablePositionCount,
@@ -38,6 +39,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     hasClaimableWinnings,
     isClaimPending,
     isLoading,
+    error,
     openPositionCount,
     portfolioValue,
     positionsBadgeCount,
@@ -153,8 +155,10 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     <Box testID={PredictHomeSelectorsIDs.PORTFOLIO_MODULE} twClassName="gap-4">
       <PredictPortfolioSummary
         availableBalance={availableBalance}
+        hasBalanceError={Boolean(balanceError)}
         isHidden={Boolean(privacyMode)}
         isLoading={isLoading}
+        hasError={Boolean(error)}
         portfolioValue={portfolioValue}
         showPnlLine={showPnlLine}
         totalUnrealizedPnlAmount={totalUnrealizedPnlAmount}

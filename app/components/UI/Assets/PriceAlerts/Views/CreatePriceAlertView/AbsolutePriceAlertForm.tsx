@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { type KeypadChangeData } from '../../../../../Base/Keypad';
-import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import AlertAmountInput from '../../components/AlertAmountInput';
 import AlertFormShell from '../../components/AlertFormShell';
 import {
@@ -46,14 +45,15 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   existingAbsoluteAlerts,
 }) => {
   const isEditing = Boolean(editingAlert);
-  const [targetAmount, setTargetAmount] = useState(
-    editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
+  const [targetAmount, setTargetAmount] = useState(() =>
+    editingAlert
+      ? toKeypadString(editingAlert.threshold)
+      : toKeypadString(currentPrice),
   );
   const [isRecurring, setIsRecurring] = useState(
     editingAlert?.recurring ?? true,
   );
 
-  const hasInput = targetAmount !== KEYPAD_EMPTY;
   const targetPrice = useMemo(() => {
     const parsed = Number.parseFloat(targetAmount);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -77,7 +77,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
     isRecurring === editingAlert?.recurring;
 
   const percentDiff = useMemo(() => {
-    if (!hasInput || currentPrice <= 0 || targetPrice <= 0) {
+    if (currentPrice <= 0 || targetPrice <= 0) {
       return { rounded: 0, direction: 'none' as const };
     }
     const percent = ((targetPrice - currentPrice) / currentPrice) * 100;
@@ -87,16 +87,13 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
       return { rounded: Math.abs(rounded), direction: 'below' as const };
     }
     return { rounded: 0, direction: 'none' as const };
-  }, [currentPrice, hasInput, targetPrice]);
+  }, [currentPrice, targetPrice]);
 
-  const displayText = useMemo(() => {
-    if (!hasInput) {
-      return formatPriceWithSubscriptNotation(currentPrice, currentCurrency);
-    }
-    const currencySymbol =
-      CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
-    return `${currencySymbol}${targetAmount}`;
-  }, [currentCurrency, currentPrice, hasInput, targetAmount]);
+  const currencySymbol = CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
+  const isEmpty = targetAmount === KEYPAD_EMPTY;
+  const displayText = isEmpty
+    ? currencySymbol
+    : `${currencySymbol}${targetAmount}`;
 
   const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
 
@@ -190,7 +187,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 
         <AlertAmountInput
           text={displayText}
-          hasInput={hasInput}
+          hasInput
           testID={CreatePriceAlertTestIds.TARGET_PRICE_INPUT}
         />
 

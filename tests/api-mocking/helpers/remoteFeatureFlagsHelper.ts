@@ -63,16 +63,13 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   mobileMinimumVersions: {
     appMinimumBuild: 1,
   },
-  // Production uses a percentage rollout for this A/B test. Pin E2E to control
-  // so homepage section labels do not depend on the generated analytics ID.
-  homeTMCU470AbtestTrendingSections: 'control',
-  // Pin discovery tabs to control so wallet E2E uses the scrollable Homepage
-  // (wallet-scroll-view) instead of HomepageDiscoveryTabs tab swipes.
-  coreMCU589AbtestHubPageDiscoveryTabs: 'control',
   // Pin onboarding interest questionnaire to control so wallet E2E flows do not
   // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
   // APIs that are not available under Detox).
   tradeTO880AbtestOnboardingInterestQuestion: 'control',
+  // Production serves a threshold array. Pin a boolean so AccountActivity
+  // subscribe tests do not depend on canonical or MetaMetrics IDs.
+  backendWebSocketConnection: true,
 };
 
 /**
@@ -112,11 +109,16 @@ export const createRemoteFeatureFlagsMock = (
         !Array.isArray(existingFlag) &&
         !Array.isArray(flagValue)
       ) {
-        // Deep merge for nested objects
-        existingObj[flagName] = deepMerge(
-          existingFlag as Record<string, unknown>,
-          flagValue as Record<string, unknown>,
-        );
+        const existingRecord = existingFlag as Record<string, unknown>;
+        const overrideRecord = flagValue as Record<string, unknown>;
+        // Versioned client-config flags must not deep-merge with RC/test fixtures:
+        // newer registry `versions` keys (e.g. 8.9.0) would otherwise outrank a flat
+        // or older versioned override and change Pay confirmation UI under E2E.
+        if ('versions' in existingRecord || 'versions' in overrideRecord) {
+          existingObj[flagName] = flagValue;
+        } else {
+          existingObj[flagName] = deepMerge(existingRecord, overrideRecord);
+        }
       } else {
         // Replace simple values, arrays, or when types don't match
         existingObj[flagName] = flagValue;

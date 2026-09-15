@@ -7,7 +7,12 @@ import {
   PerpsControllerState,
   InitializationState,
   MARKET_SORTING_CONFIG,
+  PerpsMode,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_SELECTED_ORDER_TYPE,
   PerpsPlatformDependencies,
+  VISIBLE_CANDLE_COUNT_CONFIG,
 } from '@metamask/perps-controller';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -44,6 +49,17 @@ jest.mock('@metamask/perps-controller', () => {
     PerpsController: jest.fn(),
     parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
     MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
+    PerpsMode: actualConstants.PerpsMode,
+    DEFAULT_PRO_LAYOUT_PREFERENCES:
+      actualConstants.DEFAULT_PRO_LAYOUT_PREFERENCES,
+    DEFAULT_ORDER_BOOK_PREFERENCES:
+      actualConstants.DEFAULT_ORDER_BOOK_PREFERENCES,
+    DEFAULT_SELECTED_ORDER_TYPE: actualConstants.DEFAULT_SELECTED_ORDER_TYPE,
+    VISIBLE_CANDLE_COUNT_CONFIG: actualConstants.VISIBLE_CANDLE_COUNT_CONFIG,
+    PERPS_TRANSACTIONS_HISTORY_CONSTANTS:
+      actualConstants.PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
+    HYPERLIQUID_TWAP_LIMITS: actualConstants.HYPERLIQUID_TWAP_LIMITS,
+    CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
   };
 });
 
@@ -87,7 +103,7 @@ describe('perps controller init', () => {
     );
   });
 
-  it('controller state should be default state when no initial state is passed in', () => {
+  it('controller state should be default state with the mobile pro-layout defaults when no initial state is passed in', () => {
     const defaultPerpsControllerState = jest
       .requireActual('@metamask/perps-controller/PerpsController')
       .getDefaultPerpsControllerState();
@@ -97,7 +113,16 @@ describe('perps controller init', () => {
     const perpsControllerState =
       perpsControllerClassMock.mock.calls[0][0].state;
 
-    expect(perpsControllerState).toEqual(defaultPerpsControllerState);
+    // Mobile shows the order book pinned right; the shared default is the
+    // Extension behavior (closed, left).
+    expect(perpsControllerState).toEqual({
+      ...defaultPerpsControllerState,
+      proLayoutPreferences: {
+        ...defaultPerpsControllerState.proLayoutPreferences,
+        orderBookExpanded: true,
+        orderBookPosition: 'right',
+      },
+    });
   });
 
   it('controller state should be initial state when initial state is passed in', () => {
@@ -154,6 +179,11 @@ describe('perps controller init', () => {
       selectedPaymentToken: null,
       cachedMarketDataByProvider: {},
       cachedUserDataByProvider: {},
+      mode: PerpsMode.Lite,
+      proLayoutPreferences: DEFAULT_PRO_LAYOUT_PREFERENCES,
+      orderBookPreferences: DEFAULT_ORDER_BOOK_PREFERENCES,
+      selectedOrderType: DEFAULT_SELECTED_ORDER_TYPE,
+      visibleCandleCount: VISIBLE_CANDLE_COUNT_CONFIG.Default,
     };
 
     initRequestMock.persistedState = {

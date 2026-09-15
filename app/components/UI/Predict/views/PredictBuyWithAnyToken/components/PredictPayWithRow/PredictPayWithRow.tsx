@@ -12,7 +12,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -22,7 +25,6 @@ import Icon, {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../../../../Views/confirmations/utils/transaction';
 import {
   TokenIcon,
   TokenIconVariant,

@@ -1,15 +1,20 @@
 import { useMemo } from 'react';
 import type { Hex } from '@metamask/utils';
-import { SimulationData } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  SimulationData,
+} from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
-import { useConfirmActions } from '../useConfirmActions';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
+import { useConfirmReject } from '../useConfirmReject';
 import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 /**
@@ -94,9 +99,14 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
   const isGasSponsored = useIsGasSponsored();
   const { goToBuy } = useRampNavigation();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
 
   const { chainId, simulationData } = transactionMetadata ?? {};
+
+  const isMMPayTransaction = hasTransactionType(
+    transactionMetadata,
+    MM_PAY_TRANSACTION_TYPES,
+  );
 
   const callTraceErrors = (
     simulationData as SimulationDataWithCallTraceErrors | undefined
@@ -114,7 +124,8 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
   // Only show warning when:
   // 1. We have a warning match from configured rules
   // 2. Gas Sponsorship is expected to be enabled for this transaction.
-  const shouldShow = hasWarning && isGasSponsored;
+  // 3. This is not an MM Pay transaction (pay flows use their own alerts).
+  const shouldShow = hasWarning && isGasSponsored && !isMMPayTransaction;
 
   return useMemo(() => {
     if (!shouldShow || !chainId) {
@@ -135,7 +146,7 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
             onReject(undefined, true);
           },
         },

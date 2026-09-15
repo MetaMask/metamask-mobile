@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyBalanceSummary from './MoneyBalanceSummary';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
@@ -292,5 +293,65 @@ describe('MoneyBalanceSummary', () => {
         getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
       ).toHaveTextContent('•'.repeat(12));
     });
+  });
+
+  describe('on the pushed Money screen', () => {
+    it('renders the Money title, which the tab leaves in the header', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          showTitle
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toHaveTextContent(
+        strings('money.title'),
+      );
+    });
+
+    it('keeps the balance and the APY line under that title', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={5.5}
+          displayState={balanceState('$123.45')}
+          onApyInfoPress={jest.fn()}
+          showTitle
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+        '$123.45',
+      );
+      expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toHaveTextContent(
+        '5.5% APY • mUSD',
+      );
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('renders no title as the Money tab, which has one in its header', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('sits flush under the header, matching the Home page balance', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
+    );
+
+    const container = getByTestId(MoneyBalanceSummaryTestIds.CONTAINER);
+
+    expect(container).toHaveStyle({ paddingLeft: 16, paddingRight: 16 });
+    expect(
+      StyleSheet.flatten(container.props.style).paddingTop,
+    ).toBeUndefined();
   });
 });

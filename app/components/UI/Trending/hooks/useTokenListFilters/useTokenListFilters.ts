@@ -19,6 +19,10 @@ interface UseTokenListFiltersOptions {
    * When provided, the time filter is static and no time bottom sheet is shown.
    */
   timeOption?: TimeOption;
+  /**
+   * Initial network filter applied when the view opens.
+   */
+  initialNetwork?: CaipChainId[] | null;
 }
 
 export interface TokenListFilters {
@@ -71,13 +75,13 @@ export interface TokenListFilters {
 export const useTokenListFilters = (
   options: UseTokenListFiltersOptions = {},
 ): TokenListFilters => {
-  const { timeOption } = options;
+  const { timeOption, initialNetwork = null } = options;
 
   const navigation = useNavigation<AppNavigationProp>();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(
-    null,
+    initialNetwork,
   );
   const [selectedPriceChangeOption, setSelectedPriceChangeOption] = useState<
     PriceChangeOption | undefined

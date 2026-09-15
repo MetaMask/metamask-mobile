@@ -44,7 +44,7 @@ describe('cashbackWalletOptions', () => {
     const opts = cashbackWalletOptions();
 
     expect(opts.queryKey).toEqual(['card', 'cashback', 'wallet']);
-    expect(opts.staleTime).toBe(0);
+    expect(opts.staleTime).toBe(30_000);
   });
 
   it('calls Engine.context.CardController.getCashbackWallet in queryFn', async () => {

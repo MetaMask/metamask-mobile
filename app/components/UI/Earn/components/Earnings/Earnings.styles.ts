@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 15,
     },
     earningsContainer: {
-      paddingTop: 16,
+      paddingTop: 24,
     },
     title: {
       paddingBottom: 8,
@@ -37,6 +37,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     keyValueSecondaryText: {
       alignItems: 'flex-end',
+    },
+    earningsHistory: {
+      marginTop: 16,
+      paddingBottom: 24,
     },
   });
 };

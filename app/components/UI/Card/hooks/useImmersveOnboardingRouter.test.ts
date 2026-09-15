@@ -22,6 +22,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    })),
+  }),
+}));
+
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockShowToast = jest.fn();
@@ -43,7 +52,7 @@ describe('useImmersveOnboardingRouter', () => {
     });
   });
 
-  it('routes contact to SET_PHONE_NUMBER with email + countryKey', () => {
+  it('routes contact to SIGN_UP', () => {
     const action: ImmersveNextAction = {
       type: 'contact',
       needsEmail: true,
@@ -52,8 +61,8 @@ describe('useImmersveOnboardingRouter', () => {
     getRoute()(action, { email: 'a@b.co', countryKey: 'GB' });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-      { countryKey: 'GB', immersve: true, email: 'a@b.co' },
+      Routes.CARD.ONBOARDING.SIGN_UP,
+      {},
     );
   });
 
@@ -145,6 +154,7 @@ describe('useImmersveOnboardingRouter', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        params: {},
       });
     });
 

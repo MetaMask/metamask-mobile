@@ -6,12 +6,12 @@ import { useTheme } from '../../../../util/theme';
 
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Button,
   ButtonVariant,
   HeaderStandard,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -85,7 +85,7 @@ const SDKSessionsManager = () => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -144,7 +144,6 @@ const SDKSessionsManager = () => {
     >
       <HeaderStandard
         title={strings('app_settings.manage_sdk_connections_title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={handleBack}
         includesTopInset
         testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}

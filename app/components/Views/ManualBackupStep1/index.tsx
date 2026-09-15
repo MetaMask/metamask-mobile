@@ -8,8 +8,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   Box,
   Label,
@@ -30,6 +33,7 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import SecureContentView from '../../UI/SecureContentView';
 import {
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
@@ -58,7 +62,7 @@ import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
  * the backup seed phrase flow
  */
 const ManualBackupStep1 = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -84,6 +88,13 @@ const ManualBackupStep1 = () => {
 
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.MANUAL_BACKUP_STEP1,
+    contentReady: true,
+    isEmpty: false,
+    fullyDisplayed: ready,
+  });
 
   const steps = MANUAL_BACKUP_STEPS;
 
@@ -355,37 +366,39 @@ const ManualBackupStep1 = () => {
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
-          <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
-            <FlatList
-              data={words}
-              numColumns={3}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item, index }) => (
-                <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    maxFontSizeMultiplier={1}
-                  >
-                    {index + 1}.
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    key={index}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                    style={tw.style('flex-1')}
-                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                    maxFontSizeMultiplier={1}
-                  >
-                    {item}
-                  </Text>
-                </Box>
-              )}
-            />
-          </Box>
+          <SecureContentView style={tw.style('w-full')}>
+            <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
+              <FlatList
+                data={words}
+                numColumns={3}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                      maxFontSizeMultiplier={1}
+                    >
+                      {index + 1}.
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                      key={index}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      style={tw.style('flex-1')}
+                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                      maxFontSizeMultiplier={1}
+                    >
+                      {item}
+                    </Text>
+                  </Box>
+                )}
+              />
+            </Box>
+          </SecureContentView>
         )}
       </Box>
       <Box

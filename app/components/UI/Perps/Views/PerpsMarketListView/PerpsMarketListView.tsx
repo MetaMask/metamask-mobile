@@ -5,7 +5,13 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextFieldSearch,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import {
   View,
   Animated,
@@ -14,12 +20,7 @@ import {
   Platform,
 } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
@@ -45,6 +46,7 @@ import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
@@ -54,13 +56,17 @@ import {
   RouteProp,
   useNavigation,
   useFocusEffect,
+  CommonActions,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
@@ -87,23 +93,31 @@ const PerpsMarketListView = ({
   );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const { playSelection } = useHaptics();
 
   const perpsNavigation = usePerpsNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;
   const showBalanceActions =
     route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
-  const showWatchlistOnly =
-    route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
-  const defaultMarketTypeFilter =
-    route.params?.defaultMarketTypeFilter ?? 'all';
+  const requestedShowWatchlistOnly =
+    route.params?.showWatchlistOnly ?? propShowWatchlistOnly;
+  const defaultMarketTypeFilter = route.params?.defaultMarketTypeFilter;
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const replaceOnSelect = route.params?.replaceOnSelect === true;
+  const enableHaptics = route.params?.enableHaptics === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  // Hide a persisted watchlist-only filter while Watchlist V2 is disabled.
+  // This is a route override, so it does not erase the stored preference and
+  // the preference can be restored if the flag is enabled again.
+  const showWatchlistOnly = isWatchlistEnabled
+    ? requestedShowWatchlistOnly
+    : false;
   const isRecentlyViewedEnabled = useSelector(
     selectPerpsRecentlyViewedEnabledFlag,
   );
@@ -183,29 +197,41 @@ const PerpsMarketListView = ({
 
   const trimmedSearchQuery = searchQuery.trim().toLowerCase();
 
-  // The count/sort bar lives in fixed chrome above the Recently Viewed rail.
-  // The rail itself is just the FlashList's header, so it scrolls away with
-  // the rows — no sticky overlay, no absolute positioning. Only shown when the
-  // rail has content to show.
+  // On the watchlist tab, only show recently viewed markets that are also
+  // watchlisted. Category tabs already get a category-filtered list from the hook.
+  const visibleRecentlyViewedMarkets = useMemo(() => {
+    if (!showFavoritesOnly) {
+      return recentlyViewedMarketObjects;
+    }
+    return recentlyViewedMarketObjects.filter((market) =>
+      watchlistSymbols.includes(market.symbol),
+    );
+  }, [showFavoritesOnly, recentlyViewedMarketObjects, watchlistSymbols]);
+
+  // Recently viewed sits above count/sort in the scrolling content (FlashList
+  // header on the markets tab, ScrollView on watchlist) so it scrolls away
+  // with the rows. Count/sort then sticks under the category pills.
   const showRecentlyViewedRail =
     isRecentlyViewedEnabled &&
     !searchQuery.trim() &&
-    recentlyViewedMarketObjects.length > 0;
+    visibleRecentlyViewedMarkets.length > 0;
 
   // Watchlist rows visible in watchlist mode, filtered by the active search
-  // query — mirrors the filtering PerpsWatchlistMarketsV2 applies to its
-  // `markets` prop when a query is active.
-  const visibleWatchlistMarkets = useMemo(
-    () =>
-      trimmedSearchQuery
-        ? watchlistMarketObjects.filter(
-            (m) =>
-              m.symbol.toLowerCase().includes(trimmedSearchQuery) ||
-              m.name.toLowerCase().includes(trimmedSearchQuery),
-          )
-        : watchlistMarketObjects,
-    [watchlistMarketObjects, trimmedSearchQuery],
-  );
+  // query then sorted with the same field/direction as the main list.
+  const visibleWatchlistMarkets = useMemo(() => {
+    const filtered = trimmedSearchQuery
+      ? watchlistMarketObjects.filter(
+          (m) =>
+            m.symbol.toLowerCase().includes(trimmedSearchQuery) ||
+            m.name.toLowerCase().includes(trimmedSearchQuery),
+        )
+      : watchlistMarketObjects;
+    return sortMarkets({
+      markets: filtered,
+      sortBy,
+      direction,
+    });
+  }, [watchlistMarketObjects, trimmedSearchQuery, sortBy, direction]);
 
   // Suggested markets visible in watchlist mode, filtered by the active
   // search query and hidden once the watchlist is full — mirrors
@@ -241,9 +267,14 @@ const PerpsMarketListView = ({
     ],
   );
 
-  // Handler for market press (defined early to avoid use-before-define)
+  // Handler for market press (defined early to avoid use-before-define).
+  // Covers FlashList rows, watchlist rows, and recently-viewed tiles.
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, sourceSectionOverride?: string) => {
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
@@ -290,26 +321,59 @@ const PerpsMarketListView = ({
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ALL_MARKETS;
         }
 
+        const detailsParams = {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          source_section,
+          ...(replaceOnSelect
+            ? { detailGenerationTrigger: 'market_switch' as const }
+            : {}),
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
+        };
+
+        if (replaceOnSelect) {
+          // Header slide-up picker: dismiss this list and replace the stale
+          // MARKET_DETAILS beneath it so Back does not return to the prior market.
+          navigation.dispatch((state) => {
+            const routes = state.routes.slice(0, -1);
+            if (
+              routes[routes.length - 1]?.name === Routes.PERPS.MARKET_DETAILS
+            ) {
+              routes.pop();
+            }
+            return CommonActions.reset({
+              ...state,
+              index: routes.length,
+              routes: [
+                ...routes,
+                {
+                  name: Routes.PERPS.MARKET_DETAILS,
+                  params: detailsParams,
+                },
+              ],
+            });
+          });
+          return;
+        }
+
         // Use push instead of navigate so that MARKET_LIST is always beneath
         // MARKET_DETAILS in the stack. navigate() can jump to an existing
         // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
         // component's ROOT-based navigation), which would skip MARKET_LIST on
         // back and land the user on PERPS_HOME instead.
         navigation.dispatch(
-          StackActions.push(Routes.PERPS.MARKET_DETAILS, {
-            market,
-            source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-            source_section,
-            ...(transactionActiveAbTests?.length
-              ? { transactionActiveAbTests }
-              : {}),
-          }),
+          StackActions.push(Routes.PERPS.MARKET_DETAILS, detailsParams),
         );
       }
     },
     [
+      enableHaptics,
+      playSelection,
       onMarketSelect,
       navigation,
+      replaceOnSelect,
       transactionActiveAbTests,
       searchQuery,
       showFavoritesOnly,
@@ -422,6 +486,7 @@ const PerpsMarketListView = ({
     ];
     // mode: chips/category narrow the set → discovery; a short ticker-like
     // token → intent; free-text or empty context → browse.
+    // Interface Lite/Pro uses `perps_mode` (see getPerpsModeAnalyticsProperties).
     const mode = activeChips.length
       ? 'discovery'
       : /^[a-z0-9]{1,6}$/.test(normalizedQuery)
@@ -674,13 +739,13 @@ const PerpsMarketListView = ({
       return (
         <View style={styles.errorContainer}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Error}
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
             style={styles.errorText}
           >
             {strings('perps.failed_to_load_market_data')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.data_updates_automatically')}
           </Text>
         </View>
@@ -694,7 +759,7 @@ const PerpsMarketListView = ({
     // filtered (via the memoized visibleWatchlistMarkets / visibleSuggestedMarkets
     // above) so the user can find any relevant market by name or symbol, and so
     // search analytics (visibleSearchResults) match what's rendered here.
-    // "No tokens found" is only shown when nothing matches in either section.
+    // Empty search description is only shown when nothing matches in either section.
     if (isWatchlistEnabled && showFavoritesOnly) {
       if (
         trimmedSearchQuery &&
@@ -704,7 +769,6 @@ const PerpsMarketListView = ({
         return (
           <PerpsMarketListEmptyState
             containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-            title={strings('perps.no_tokens_found')}
             description={strings('perps.no_tokens_found_description', {
               searchQuery,
             })}
@@ -720,13 +784,39 @@ const PerpsMarketListView = ({
           style={styles.watchlistScrollContainer}
           contentContainerStyle={listContentContainerStyle}
           showsVerticalScrollIndicator={false}
+          // Always index 1: the rail component is the first ScrollView child
+          // even when it returns null, so index 0 would pin an empty slot
+          // instead of the count/sort bar.
+          stickyHeaderIndices={[1]}
         >
+          <PerpsRecentlyViewedRail
+            markets={
+              showRecentlyViewedRail
+                ? visibleRecentlyViewedMarkets
+                : EMPTY_RECENTLY_VIEWED
+            }
+            onMarketPress={(market) =>
+              handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+            }
+          />
+          <PerpsMarketFiltersBar
+            selectedOptionId={selectedOptionId}
+            onSortPress={() => setIsSortFieldSheetVisible(true)}
+            sortDirection={direction}
+            marketTypeFilter={marketTypeFilter}
+            onCategorySelect={handleCategorySelect}
+            marketCount={visibleWatchlistMarkets.length}
+            isWatchlistSelected={showFavoritesOnly}
+            showCategoryRow={false}
+            testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
+          />
           <PerpsWatchlistMarkets
             markets={visibleWatchlistMarkets}
             suggestedMarkets={visibleSuggestedMarkets}
             showHeader={false}
             enableShowMore={false}
             onMarketPress={handleMarketPress}
+            displayMetric={sortBy}
           />
         </ScrollView>
       );
@@ -735,14 +825,13 @@ const PerpsMarketListView = ({
     const hasSearchQuery = searchQuery.trim().length > 0;
     const hasActiveFilter = marketTypeFilter !== 'all';
 
-    // Filter-priority: both search and category filter active, no results.
-    // Show a filter-aware description and a "Clear filter" CTA so the user
-    // can widen results without losing their search term.
+    // Search + active filter, no results in this category → "Clear filter".
+    // Consistent regardless of whether there are global results; the description
+    // tells the user they can also try a different search.
     if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_markets_search_description', {
             searchQuery: searchQuery.trim(),
           })}
@@ -758,7 +847,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          title={strings('perps.no_tokens_found')}
           description={strings('perps.no_tokens_found_description', {
             searchQuery,
           })}
@@ -774,7 +862,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_markets_found_description')}
           ctaLabel={strings('perps.clear_filter')}
           onCtaPress={() => setMarketTypeFilter('all')}
@@ -783,11 +870,9 @@ const PerpsMarketListView = ({
       );
     }
 
-    // The Recently Viewed rail is simply the FlashList header, so it scrolls
-    // away with the rows. The list has no horizontal content padding, so the
-    // rail's own insets (see PerpsRecentlyViewedRail.styles) already align it
-    // with the search field and market rows. The count/sort bar is fixed
-    // chrome above the list (rendered outside this function).
+    // Rest order: recently viewed (list header) → count/sort (sticky first
+    // row) → market rows. The rail scrolls away with the rows; count/sort
+    // pins under the category pills via FlashList stickyHeaderIndices.
     //
     // The header is ALWAYS mounted (never toggled to null): when the rail has
     // nothing to show we hand it an empty list so it self-renders null. FlashList
@@ -798,12 +883,26 @@ const PerpsMarketListView = ({
       <PerpsRecentlyViewedRail
         markets={
           showRecentlyViewedRail
-            ? recentlyViewedMarketObjects
+            ? visibleRecentlyViewedMarkets
             : EMPTY_RECENTLY_VIEWED
         }
         onMarketPress={(market) =>
           handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
         }
+      />
+    );
+
+    const sortBar = (
+      <PerpsMarketFiltersBar
+        selectedOptionId={selectedOptionId}
+        onSortPress={() => setIsSortFieldSheetVisible(true)}
+        sortDirection={direction}
+        marketTypeFilter={marketTypeFilter}
+        onCategorySelect={handleCategorySelect}
+        marketCount={filteredMarkets.length}
+        isWatchlistSelected={showFavoritesOnly}
+        showCategoryRow={false}
+        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
       />
     );
 
@@ -825,6 +924,7 @@ const PerpsMarketListView = ({
           }`}
           contentContainerStyle={listContentContainerStyle}
           ListHeaderComponent={listHeader}
+          stickyHeader={sortBar}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -854,12 +954,14 @@ const PerpsMarketListView = ({
             onChangeText={setSearchQuery}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
-            autoComplete="off"
-            autoCorrect={false}
-            autoCapitalize="none"
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
+            }}
+            inputProps={{
+              autoComplete: 'off',
+              autoCorrect: false,
+              autoCapitalize: 'none',
+              testID: PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
             }}
           />
         </View>
@@ -869,28 +971,19 @@ const PerpsMarketListView = ({
         <PerpsMarketFiltersBar
           selectedOptionId={selectedOptionId}
           onSortPress={() => setIsSortFieldSheetVisible(true)}
+          sortDirection={direction}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          marketCount={filteredMarkets.length}
+          marketCount={
+            showFavoritesOnly
+              ? visibleWatchlistMarkets.length
+              : filteredMarkets.length
+          }
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
           showSortRow={false}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
-        />
-      )}
-
-      {/* Fixed count/sort bar, positioned above the scroll-away rail. */}
-      {!isLoadingMarkets && !error && (
-        <PerpsMarketFiltersBar
-          selectedOptionId={selectedOptionId}
-          onSortPress={() => setIsSortFieldSheetVisible(true)}
-          marketTypeFilter={marketTypeFilter}
-          onCategorySelect={handleCategorySelect}
-          marketCount={filteredMarkets.length}
-          isWatchlistSelected={showFavoritesOnly}
-          showCategoryRow={false}
-          testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
         />
       )}
 

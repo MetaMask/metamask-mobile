@@ -484,6 +484,36 @@ export type RewardsControllerOptInToCampaignAction = {
 };
 
 /**
+ * Opt a subscription into multiple campaigns in one batch.
+ * POSTs each opt-in sequentially (up to 3 attempts per campaign on throw or
+ * non-opted-in response), continues after exhausted failures, then invalidates
+ * once per campaign and publishes a single `campaignOptedIn` so UI listeners
+ * do not refetch after every intermediate opt-in (important for series campaigns).
+ * Participant-status cache entries are re-seeded from the POST responses so
+ * post-event status fetches hit cache instead of the network.
+ * @param campaignIds - Campaign IDs to opt into, in call order.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns Per-campaign participant statuses after opting in.
+ */
+export type RewardsControllerOptInToCampaignsAction = {
+  type: `RewardsController:optInToCampaigns`;
+  handler: RewardsController['optInToCampaigns'];
+};
+
+/**
+ * Register (or re-assert) the Money Account holder address for a subscription.
+ * Results are memoized in-session so repeated re-asserts do not re-POST, and
+ * a discovered conflict is returned synchronously on subsequent calls.
+ * @param moneyAccountAddress - The Money Account holder address to bind.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns `'bound'` or `'conflict'`.
+ */
+export type RewardsControllerRegisterMoneyAccountBindingAction = {
+  type: `RewardsController:registerMoneyAccountBinding`;
+  handler: RewardsController['registerMoneyAccountBinding'];
+};
+
+/**
  * Get the campaign participant status, cached for 5 minutes.
  * @param campaignId - The campaign ID to check status for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -645,6 +675,31 @@ export type RewardsControllerGetBenefitsAction = {
   handler: RewardsController['getBenefits'];
 };
 
+export type RewardsControllerGetVipTransactionsAction = {
+  type: `RewardsController:getVipTransactions`;
+  handler: RewardsController['getVipTransactions'];
+};
+
+export type RewardsControllerGetVipTransactionsIfChangedAction = {
+  type: `RewardsController:getVipTransactionsIfChanged`;
+  handler: RewardsController['getVipTransactionsIfChanged'];
+};
+
+export type RewardsControllerGetVipTransactionsLastUpdatedAction = {
+  type: `RewardsController:getVipTransactionsLastUpdated`;
+  handler: RewardsController['getVipTransactionsLastUpdated'];
+};
+
+export type RewardsControllerHasVipTransactionsChangedAction = {
+  type: `RewardsController:hasVipTransactionsChanged`;
+  handler: RewardsController['hasVipTransactionsChanged'];
+};
+
+export type RewardsControllerLookupVipTransactionAction = {
+  type: `RewardsController:lookupVipTransaction`;
+  handler: RewardsController['lookupVipTransaction'];
+};
+
 /**
  * Get the VIP dashboard with caching.
  * @param subscriptionId - The subscription ID for authentication
@@ -653,6 +708,16 @@ export type RewardsControllerGetBenefitsAction = {
 export type RewardsControllerGetVIPDashboardAction = {
   type: `RewardsController:getVIPDashboard`;
   handler: RewardsController['getVIPDashboard'];
+};
+
+/**
+ * Display-only equity multiplier estimate from client-supplied holdings.
+ * Must never be persisted as program truth or feed warrant settlement
+ * (RWDS-1485). Client balance is untrusted; cache is holdings-keyed TTL only.
+ */
+export type RewardsControllerGetVipEquityMultiplierAction = {
+  type: `RewardsController:getVipEquityMultiplier`;
+  handler: RewardsController['getVipEquityMultiplier'];
 };
 
 /**
@@ -714,16 +779,6 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 };
 
 /**
- * Fetch the visible first predict on us content from the public API.
- * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
- */
-export type RewardsControllerGetFirstPredictOnUsAction = {
-  type: `RewardsController:getFirstPredictOnUs`;
-  handler: RewardsController['getFirstPredictOnUs'];
-};
-
-/**
  * Invalidate referral details cache for a subscription
  * @param subscriptionId - The subscription ID to invalidate cache for
  */
@@ -775,6 +830,55 @@ export type RewardsControllerGetPredictThePitchPrizePoolAction = {
 };
 
 /**
+ * Fetch the current user's Money Account Sweepstakes stats.
+ * Results are cached for 1 minute using controller state.
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The user's sweepstakes stats.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesStatsMeAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesStatsMe`;
+  handler: RewardsController['getMoneyAccountSweepstakesStatsMe'];
+};
+
+/**
+ * Fetch the Money Account Sweepstakes prize pool.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The prize pool DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesPrizePool`;
+  handler: RewardsController['getMoneyAccountSweepstakesPrizePool'];
+};
+
+/**
+ * Fetch the Money Account Sweepstakes draw proof.
+ * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
+ * null (pending) responses are cached in-memory for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The draw proof DTO, or null if the draw has not been published yet.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesDrawProofAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesDrawProof`;
+  handler: RewardsController['getMoneyAccountSweepstakesDrawProof'];
+};
+
+/**
+ * Fetch the participant outcome for the current user in a completed Money
+ * Account Sweepstakes campaign. Results are cached for 10 minutes using a
+ * private in-memory Map.
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The participant outcome DTO, or null if unavailable.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction =
+  {
+    type: `RewardsController:getMoneyAccountSweepstakesParticipantOutcome`;
+    handler: RewardsController['getMoneyAccountSweepstakesParticipantOutcome'];
+  };
+
+/**
  * Get the perps trading campaign leaderboard.
  * This is a public endpoint - no authentication required.
  * Results are cached for 5 minutes.
@@ -813,6 +917,18 @@ export type RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction =
 export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
   type: `RewardsController:getPerpsTradingCampaignVolume`;
   handler: RewardsController['getPerpsTradingCampaignVolume'];
+};
+
+/**
+ * Get the perps trading campaign prize ladder and currently unlocked pool.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ * @param campaignId - The campaign ID to get the prize pool for.
+ * @returns The prize pool schedule and unlocked amount for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignPrizePoolAction = {
+  type: `RewardsController:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsController['getPerpsTradingCampaignPrizePool'];
 };
 
 /**
@@ -868,6 +984,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerGetCampaignsAction
   | RewardsControllerOptInToCampaignAction
+  | RewardsControllerOptInToCampaignsAction
+  | RewardsControllerRegisterMoneyAccountBindingAction
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
@@ -882,13 +1000,18 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerGetVipTransactionsAction
+  | RewardsControllerGetVipTransactionsIfChangedAction
+  | RewardsControllerGetVipTransactionsLastUpdatedAction
+  | RewardsControllerHasVipTransactionsChangedAction
+  | RewardsControllerLookupVipTransactionAction
   | RewardsControllerGetVIPDashboardAction
+  | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
@@ -896,6 +1019,11 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPositionsAction
   | RewardsControllerGetPredictThePitchParticipantOutcomeAction
   | RewardsControllerGetPredictThePitchPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsControllerGetPerpsTradingCampaignVolumeAction;
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction
+  | RewardsControllerGetPerpsTradingCampaignPrizePoolAction;

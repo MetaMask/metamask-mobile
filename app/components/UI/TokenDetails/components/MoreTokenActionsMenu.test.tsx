@@ -1,5 +1,5 @@
 import React from 'react';
-import { userEvent } from '@testing-library/react-native';
+import { userEvent, waitFor } from '@testing-library/react-native';
 import MoreTokenActionsMenu, {
   MoreTokenActionsMenuParams,
 } from './MoreTokenActionsMenu';
@@ -11,8 +11,8 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActio
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
+import { strings } from '../../../../../locales/i18n';
 
 // Mock BottomSheet so that onCloseBottomSheet(callback) immediately invokes the callback.
 // This allows testing the action handlers (Buy, Receive, View explorer, Remove token).
@@ -153,24 +153,34 @@ jest.mock('../../../../selectors/assets/assets-list', () => {
 
 jest.mock('../../../../core/Engine', () => ({
   resetState: jest.fn(),
-  context: {
-    TokensController: {
-      ignoreTokens: jest.fn(),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
-    },
-  },
+  context: {},
 }));
 
 jest.mock('../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+const mockDeactivateAsset = jest.fn();
+let mockCanDeactivate = false;
+let mockIsDeactivating = false;
+
+jest.mock('../hooks/useAssetActivation', () => ({
+  useAssetActivation: () => ({
+    deactivateAsset: mockDeactivateAsset,
+    get canDeactivate() {
+      return mockCanDeactivate;
+    },
+    get isDeactivating() {
+      return mockIsDeactivating;
+    },
+  }),
+}));
+
+const mockHandleHideToken = jest.fn();
 jest.mock('./useAssetVisibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    handleHideToken: jest.fn(),
+    handleHideToken: mockHandleHideToken,
   })),
 }));
 
@@ -205,6 +215,12 @@ const updateRouteParams = (params: Partial<MoreTokenActionsMenuParams>) => {
 describe('MoreTokenActionsMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanDeactivate = false;
+    mockIsDeactivating = false;
+    mockDeactivateAsset.mockResolvedValue({
+      success: true,
+      errorMessage: null,
+    });
     (selectAsset as unknown as jest.Mock).mockReturnValue({});
     Object.assign(mockRouteParams, {
       hasPerpsMarket: false,
@@ -445,7 +461,7 @@ describe('MoreTokenActionsMenu', () => {
       expect(onReceive).toHaveBeenCalled();
     });
 
-    it('navigates to Webview when View on block explorer is pressed and InAppBrowser is not available', async () => {
+    it('leaves Token Details then navigates to Webview when InAppBrowser is unavailable', async () => {
       mockInAppBrowserIsAvailable.mockResolvedValue(false);
       updateRouteParams({
         hasPerpsMarket: false,
@@ -460,15 +476,17 @@ describe('MoreTokenActionsMenu', () => {
 
       await userEvent.press(getByTestId('more-actions-view-explorer'));
 
-      await Promise.resolve();
-
-      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://etherscan.io/token/0x123',
-          title: 'Etherscan',
-        },
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: 'https://etherscan.io/token/0x123',
+            title: 'Etherscan',
+          },
+        });
       });
+
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
       expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Function),
@@ -479,7 +497,7 @@ describe('MoreTokenActionsMenu', () => {
       );
     });
 
-    it('opens InAppBrowser when View on block explorer is pressed and InAppBrowser is available', async () => {
+    it('leaves Token Details then opens InAppBrowser when available', async () => {
       mockInAppBrowserIsAvailable.mockResolvedValue(true);
       mockInAppBrowserOpen.mockResolvedValue(undefined);
       updateRouteParams({
@@ -495,11 +513,13 @@ describe('MoreTokenActionsMenu', () => {
 
       await userEvent.press(getByTestId('more-actions-view-explorer'));
 
-      await Promise.resolve();
+      await waitFor(() => {
+        expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
+          'https://etherscan.io/token/0x123',
+        );
+      });
 
-      expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
-        'https://etherscan.io/token/0x123',
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
     });
 
     it('uses block explorer base URL for native currency when View on block explorer is pressed', async () => {
@@ -549,11 +569,6 @@ describe('MoreTokenActionsMenu', () => {
         isBuyable: false,
         isNativeCurrency: false,
       });
-      (
-        Engine.context.NetworkController
-          .findNetworkClientIdByChainId as jest.Mock
-      ).mockReturnValue('mainnet');
-
       const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
         state: mockInitialState,
       });
@@ -582,13 +597,7 @@ describe('MoreTokenActionsMenu', () => {
       onConfirm?.();
 
       expect(mockNavigate).toHaveBeenCalledWith('WalletView');
-      expect(
-        Engine.context.NetworkController.findNetworkClientIdByChainId,
-      ).toHaveBeenCalledWith('0x1');
-      expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
-        ['0x123'],
-        'mainnet',
-      );
+      expect(mockHandleHideToken).toHaveBeenCalled();
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'simple_notification',
@@ -640,9 +649,7 @@ describe('MoreTokenActionsMenu', () => {
     });
 
     it('logs error when hide token fails', async () => {
-      (
-        Engine.context.TokensController.ignoreTokens as jest.Mock
-      ).mockImplementation(() => {
+      mockHandleHideToken.mockImplementationOnce(() => {
         throw new Error('Controller error');
       });
       updateRouteParams({
@@ -675,6 +682,97 @@ describe('MoreTokenActionsMenu', () => {
         expect.any(Error),
         'MoreTokenActionsMenu: Failed to hide token!',
       );
+    });
+  });
+
+  describe('deactivate asset', () => {
+    beforeEach(() => {
+      mockCanDeactivate = true;
+    });
+
+    it('renders Deactivate asset when canDeactivate is true', () => {
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      expect(getByTestId('more-actions-deactivate-asset')).toBeOnTheScreen();
+    });
+
+    it('does not render Deactivate asset when canDeactivate is false', () => {
+      mockCanDeactivate = false;
+
+      const { queryByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      expect(
+        queryByTestId('more-actions-deactivate-asset'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to transactions view when deactivation succeeds', async () => {
+      mockDeactivateAsset.mockResolvedValue({
+        success: true,
+        errorMessage: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-deactivate-asset'));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      });
+      expect(mockDeactivateAsset).toHaveBeenCalled();
+      expect(NotificationManager.showSimpleNotification).not.toHaveBeenCalled();
+    });
+
+    it('shows an error notification when deactivation fails', async () => {
+      mockDeactivateAsset.mockResolvedValue({
+        success: false,
+        errorMessage: 'deactivate error',
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-deactivate-asset'));
+
+      await waitFor(() => {
+        expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith(
+          {
+            status: 'error',
+            duration: 5000,
+            title: strings(
+              'transactions.activity_trustline_deactivation_failed',
+            ),
+            description: 'deactivate error',
+          },
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('does not navigate or notify when deactivation is cancelled', async () => {
+      mockDeactivateAsset.mockResolvedValue({
+        success: false,
+        errorMessage: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-deactivate-asset'));
+
+      await waitFor(() => {
+        expect(mockDeactivateAsset).toHaveBeenCalled();
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(NotificationManager.showSimpleNotification).not.toHaveBeenCalled();
     });
   });
 });

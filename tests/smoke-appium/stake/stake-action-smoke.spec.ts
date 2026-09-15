@@ -3,8 +3,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { LocalNode, LocalNodeType } from '../../framework/types.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder.js';
@@ -14,13 +12,13 @@ import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
 import { SmokeStake } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
 import StakeView from '../../page-objects/Stake/StakeView.js';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils.js';
 import { AnvilManager } from '../../seeder/anvil-manager.js';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 
 appiumTest.describe(SmokeStake('Stake from Actions'), () => {
-  const FIRST_ROW = 0;
   const AMOUNT_TO_STAKE = '1';
 
   appiumTest(
@@ -143,24 +141,17 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
-          await StakeView.tapReviewWithRetry(30000);
-          await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
-            timeout: 30000,
-          });
-          await StakeView.tapConfirm(30000);
-
+          // Redesigned stake confirmations use confirm-button (FooterActions),
+          // not the legacy text "Confirm" locator in StakeView.tapReviewWithRetry.
+          await StakeView.tapReview();
           await Assertions.expectElementToBeVisible(
-            ActivitiesView.stakeDepositedLabel,
+            FooterActions.confirmButton,
             {
-              description: 'Staking deposit activity row title',
-              timeout: 120000,
+              description:
+                'Redesigned Confirm button should appear after Review',
             },
           );
-          await Assertions.expectElementToHaveText(
-            ActivitiesView.transactionStatus(FIRST_ROW),
-            ActivitiesViewSelectorsText.CONFIRM_TEXT,
-            { timeout: 120000 },
-          );
+          await FooterActions.tapConfirmButton();
 
           // Go back to Home tab
           await TabBarComponent.tapHome();

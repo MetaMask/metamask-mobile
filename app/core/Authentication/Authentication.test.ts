@@ -49,7 +49,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-import { TraceName, TraceOperation } from '../../util/trace';
+import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
@@ -60,9 +60,10 @@ import Logger from '../../util/Logger';
 import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackForcedReset } from '../../util/analytics/accountAccessTracking';
+import { UnlockWalletErrorType, ReauthenticateErrorType } from './types';
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
-import { ReauthenticateErrorType } from './types';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { MultichainAccountService } from '@metamask/multichain-account-service';
 import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
@@ -78,6 +79,11 @@ const mockAddress = '0x1234567890abcdef';
 const mockMnemonicPhraseToBytes = jest
   .fn()
   .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+const mockClearBrazeUser = jest.fn();
+
+jest.mock('../Braze', () => ({
+  clearBrazeUser: () => mockClearBrazeUser(),
+}));
 
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
@@ -198,9 +204,14 @@ jest.mock('../Engine', () => ({
       },
     },
 
+    AuthenticationController: {
+      clearState: jest.fn(),
+    },
+
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
+      clearState: jest.fn(),
       state: { vault: null },
     },
 
@@ -214,8 +225,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
-      enrichPrimaryProvisioningEntry: jest.fn(),
-      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
+      importRemainingSecrets: jest.fn(),
     },
   },
 }));
@@ -236,6 +246,10 @@ const mockNavigation = {
 };
 
 const mockNavigateToPostUnlockHome = jest.fn();
+const mockCancelDeeplinkNavigatedTrace = jest.fn();
+const mockClearUnlockAppStartType = jest.fn();
+const mockGetUnlockAppStartType = jest.fn(() => 'warm');
+const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
@@ -251,6 +265,18 @@ jest.mock('../NavigationService', () => ({
 
 jest.mock('../DeeplinkManager/utils/startupDeeplinkNavigation', () => ({
   navigateToPostUnlockHome: () => mockNavigateToPostUnlockHome(),
+}));
+
+jest.mock('../Performance/DeeplinkPerformance', () => ({
+  cancelDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkNavigatedTrace(...args),
+}));
+
+jest.mock('../Performance/unlockTraces', () => ({
+  clearUnlockAppStartType: () => mockClearUnlockAppStartType(),
+  getUnlockAppStartType: () => mockGetUnlockAppStartType(),
+  resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
+    mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -282,6 +308,7 @@ jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
     trackEvent: jest.fn(),
+    identify: jest.fn(),
   },
 }));
 
@@ -358,9 +385,14 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
   jest.fn(),
 );
 
+jest.mock('../../util/analytics/accountAccessTracking', () => ({
+  trackForcedReset: jest.fn(),
+}));
+
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
 const mockGetTraceTags = jest.fn();
+const mockGetTraceContext = jest.fn();
 
 jest.mock('../../util/sentry/tags', () => ({
   getTraceTags: () => mockGetTraceTags(),
@@ -372,6 +404,8 @@ jest.mock('../../util/trace', () => ({
   trace: (...args: any[]) => mockTrace(...args),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTrace: (...args: any[]) => mockEndTrace(...args),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getTraceContext: (...args: any[]) => mockGetTraceContext(...args),
 }));
 
 const mockMultichainAccountGroup = {
@@ -1372,6 +1406,20 @@ describe('Authentication', () => {
         expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when creating a new wallet', async () => {
+        const createWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: createWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndRestore', async () => {
         const restoreMockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1413,9 +1461,25 @@ describe('Authentication', () => {
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when restoring a wallet', async () => {
+        const restoreWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: restoreWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+          'test seed phrase',
+          true,
+        );
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('imports remaining QR sync secrets after primary vault restore', async () => {
         const Engine = jest.requireMock('../Engine');
-        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
 
         await Authentication.newWalletAndRestore(
           'password',
@@ -1425,9 +1489,6 @@ describe('Authentication', () => {
           true,
         );
 
-        expect(
-          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
-        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
         expect(
           Engine.context.QrSyncController.importRemainingSecrets,
         ).toHaveBeenCalledWith();
@@ -1571,6 +1632,57 @@ describe('Authentication', () => {
       createWalletSpy.mockRestore();
     });
 
+    it('nests Create Key and Backup SRP under the open New Social Create Wallet span', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const parentContext = {
+        _name: TraceName.OnboardingNewSocialCreateWallet,
+      } as unknown as TraceContext;
+      mockGetTraceContext.mockReturnValue(parentContext);
+
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: jest.fn(),
+      };
+      Engine.context.KeyringController.state.keyrings = [
+        { metadata: { id: 'test-keyring' } },
+      ];
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+      Engine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await Authentication.createAndBackupSeedPhrase('test-password');
+
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
+        }),
+      );
+
+      createWalletSpy.mockRestore();
+      mockGetTraceContext.mockReturnValue(undefined);
+    });
+
     it('sets migration version on successful backup', async () => {
       const Engine = jest.requireMock('../Engine');
 
@@ -1619,6 +1731,9 @@ describe('Authentication', () => {
       const Engine = jest.requireMock('../Engine');
 
       // Mock the required Engine context methods to fail
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      };
       Engine.context.SeedlessOnboardingController = {
         state: {},
         createToprfKeyAndBackupSeedPhrase: jest
@@ -1649,6 +1764,13 @@ describe('Authentication', () => {
 
       // Verify rollback was called
       expect(newWalletSpy).toHaveBeenCalled();
+      expect(
+        Engine.context.AuthenticationController.clearState,
+      ).toHaveBeenCalled();
+      expect(
+        (Engine.context.AuthenticationController.clearState as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(newWalletSpy.mock.invocationCallOrder[0]);
       expect(
         Engine.context.SeedlessOnboardingController.clearState,
       ).toHaveBeenCalled();
@@ -1774,6 +1896,12 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.submitPassword,
       ).toHaveBeenCalledWith('');
+      expect(
+        Engine.context.AuthenticationController.clearState,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.clearState,
+      ).toHaveBeenCalled();
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
     });
   });
@@ -2011,6 +2139,100 @@ describe('Authentication', () => {
       );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('forwards parentContext from unlockWallet to rehydrateSeedPhrase when supplied', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+        parentContext: mockParentContext,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockParentContext,
+      );
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('passes an undefined parent context for ordinary unlockWallet callers', async () => {
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(mockPassword, undefined);
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('nests OnboardingFetchSrps under the provided parent context', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockParentContext);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: mockParentContext,
+        }),
+      );
+    });
+
+    it('starts OnboardingFetchSrps without a parent context when called with one argument', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: undefined,
+        }),
+      );
     });
 
     it('rehydrate with multiple seed phrases', async () => {
@@ -4236,6 +4458,10 @@ describe('Authentication', () => {
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      } as unknown as (typeof Engine.context)['AuthenticationController'];
+
       Engine.context.SeedlessOnboardingController = {
         clearState: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
@@ -4279,16 +4505,24 @@ describe('Authentication', () => {
       await Authentication.deleteWallet();
 
       // Assert
+      expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
       expect(resetWalletStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteUserSpy).toHaveBeenCalledTimes(1);
+      const clearBrazeCallOrder =
+        mockClearBrazeUser.mock.invocationCallOrder[0];
       const resetCallOrder = resetWalletStateSpy.mock.invocationCallOrder[0];
       const deleteCallOrder = deleteUserSpy.mock.invocationCallOrder[0];
+      expect(clearBrazeCallOrder).toBeLessThan(resetCallOrder);
       expect(resetCallOrder).toBeLessThan(deleteCallOrder);
     });
 
     it('completes wallet deletion successfully', async () => {
       // Arrange
       const clearVaultSpy = jest.mocked(clearAllVaultBackups);
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
       const clearStateSpy = jest.spyOn(
         Engine.context.SeedlessOnboardingController,
         'clearState',
@@ -4300,6 +4534,7 @@ describe('Authentication', () => {
 
       // Assert
       expect(clearVaultSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setExistingUser(false),
@@ -4323,6 +4558,10 @@ describe('Authentication', () => {
         dispatch: jest.fn(),
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
+
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      } as unknown as (typeof Engine.context)['AuthenticationController'];
 
       Engine.context.SeedlessOnboardingController = {
         clearState: jest.fn(),
@@ -4350,6 +4589,32 @@ describe('Authentication', () => {
 
     afterEach(() => {
       EngineClass.disableAutomaticVaultBackup = false;
+    });
+
+    it('clears auth state before the throwaway vault and again after lock', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+      const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(lockAppSpy).toHaveBeenCalledWith({ navigateToLogin: false });
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(clearAuthStateSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        lockAppSpy.mock.invocationCallOrder[0],
+      );
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledWith({
+        canonical_profile_id: null,
+      });
     });
 
     it('calls vault backup clear before creating temporary wallet', async () => {
@@ -4417,6 +4682,10 @@ describe('Authentication', () => {
         Authentication,
         'newWalletAndKeychain',
       );
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
       const clearStateSpy = jest.spyOn(
         Engine.context.SeedlessOnboardingController,
         'clearState',
@@ -4434,6 +4703,13 @@ describe('Authentication', () => {
       expect(newWalletAndKeychain).toHaveBeenCalledWith(expect.any(String), {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
+      expect(clearAuthStateSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
+      );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(
@@ -4453,6 +4729,23 @@ describe('Authentication', () => {
       expect(Authentication.lockApp).toHaveBeenCalledWith({
         navigateToLogin: false,
       });
+    });
+
+    it('clears auth state after a later reset step throws', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('lock failed'));
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
     });
 
     it('logs error when resetWalletState fails', async () => {
@@ -5276,11 +5569,33 @@ describe('Authentication', () => {
               screen: Routes.ONBOARDING.NAV,
               params: {
                 screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: expect.any(Function),
+                },
               },
             },
           },
         ],
       });
+      expect(mockCancelDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+        reason: 'metrics_opt_in',
+      });
+      expect(mockClearUnlockAppStartType).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes pending deeplink navigation after metrics consent', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
+
+      await Authentication.unlockWallet({ password: passwordToUse });
+      const onContinue =
+        mockReset.mock.calls[0][0].routes[0].params.params.params.onContinue;
+      await onContinue();
+
+      expect(mockResumeUnlockDeeplinkNavigatedAfterOptIn).toHaveBeenCalledWith({
+        appStartType: 'warm',
+      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
     it('submits password to KeyringController when password is derived', async () => {
@@ -5345,6 +5660,28 @@ describe('Authentication', () => {
       expect(trackErrorSpy).toHaveBeenCalledWith(
         'Unlock Wallet Error',
         unlockError.message,
+      );
+    });
+
+    it('tracks the classified error type and reset state when unlock fails', async () => {
+      const trackForcedResetSpy = jest.mocked(trackForcedReset);
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      expect(trackForcedResetSpy).toHaveBeenCalledWith(
+        UnlockWalletErrorType.UNRECOGNIZED_ERROR,
+        false,
       );
     });
 
@@ -5461,7 +5798,10 @@ describe('Authentication', () => {
         });
 
         // Verify that the rehydrateSeedPhrase is called.
-        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(passwordToUse);
+        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(
+          passwordToUse,
+          undefined,
+        );
       });
 
       it('syncs password and unlocks wallet when seedless password is outdated', async () => {
@@ -5671,6 +6011,26 @@ describe('Authentication', () => {
 
           alertSpy.mockRestore();
           lockAppSpy.mockRestore();
+        });
+
+        it('tracks forced reset as USER_NOT_AUTHENTICATED when biometric changed alert is confirmed', async () => {
+          const trackForcedResetSpy = jest.mocked(trackForcedReset);
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(trackForcedResetSpy).toHaveBeenCalledWith(
+            UnlockWalletErrorType.USER_NOT_AUTHENTICATED,
+            true,
+          );
+
+          alertSpy.mockRestore();
         });
 
         it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {

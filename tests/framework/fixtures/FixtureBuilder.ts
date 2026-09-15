@@ -45,7 +45,15 @@ import {
 } from '../../../app/util/test/keyringControllerTestUtils.ts';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
+import { USDC_MAINNET } from '../../constants/musd-mainnet.ts';
+import {
+  ANVIL_LOCAL_ETH_HOLDING,
+  toWeiHex,
+  type TokenHolding,
+} from './mmpay-token-holdings-registry.ts';
+import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import type { CaipAssetType } from '@metamask/utils';
 import type {
   Fixture,
   ProviderConfig,
@@ -91,14 +99,11 @@ export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
 export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
 
 /**
- * Options for mUSD conversion E2E fixture state.
+ * Options for Mainnet USDC E2E fixture state.
  */
-export interface MusdFixtureOptions {
-  musdConversionEducationSeen: boolean;
+export interface MainnetUsdcFixtureOptions {
   hasUsdcBalance?: boolean;
   usdcBalance?: number;
-  hasMusdBalance?: boolean;
-  musdBalance?: number;
 }
 
 /**
@@ -187,6 +192,7 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
+      '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
@@ -295,6 +301,15 @@ class FixtureBuilder {
     };
 
     networkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Anvil / Localhost fixtures need a seeded native balance under
+    // assetsUnifyState; otherwise Confirm stays disabled with an empty pay
+    // balance. Not applied in withDefaultFixture() — that always registers
+    // 0x539 for RPC wiring and must not enable Anvil holdings globally.
+    if (providerConfig.chainId === '0x539') {
+      this.withAnvilLocalEthBalance();
+    }
+
     return this;
   }
 
@@ -1409,6 +1424,7 @@ class FixtureBuilder {
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     });
 
     // Enable basic functionality in settings (required for profile syncing)
@@ -1427,6 +1443,21 @@ class FixtureBuilder {
   withBasicFunctionalityEnabled() {
     merge(this.fixture.state.settings, {
       basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
+   * Disables auto-lock (`settings.lockTime = -1`).
+   * Needed for flows that background MetaMask (e.g. Chrome MM Connect) so a
+   * pending connect deeplink is not blocked behind the lock screen long enough
+   * for the dapp SDK transport to time out.
+   * @returns The current instance for method chaining.
+   */
+  withAutoLockDisabled() {
+    merge(this.fixture.state.settings, {
+      lockTime: -1,
     });
 
     return this;
@@ -1482,6 +1513,13 @@ class FixtureBuilder {
   withTransactions(transactions: Record<string, unknown>[]) {
     merge(this.fixture.state.engine.backgroundState.TransactionController, {
       transactions,
+    });
+    return this;
+  }
+
+  withCompletedOnboardingStepper(stepperId: string, totalSteps: number) {
+    merge(this.fixture.state.user, {
+      onboardingStepperProgress: { [stepperId]: totalSteps },
     });
     return this;
   }
@@ -1563,6 +1601,7 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     };
     return this;
   }
@@ -1950,21 +1989,197 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets mUSD conversion fixture state: user flags, fiat orders, currency rates,
-   * and Mainnet token balances (USDC, optional MUSD) and native ETH for the default account.
-   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC, MUSD?]), and withTokenRates.
+   * Seeds Anvil / Localhost (`0x539`) native ETH into legacy + unified
+   * AssetsController state and enables the chain. Prefer calling
+   * `withNetworkController({ chainId: '0x539', ... })`, which applies this
+   * automatically. Use this explicitly with `withDefaultFixture()` when the
+   * local node is selected without reconfiguring NetworkController.
    *
-   * @param options - mUSD conversion options (education seen, USDC/MUSD balances).
+   * @param amount - Whole ETH amount to seed (default `100`).
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withAnvilLocalEthBalance(amount: string = ANVIL_LOCAL_ETH_HOLDING.amount) {
+    return this.withTokenHoldings([
+      {
+        ...ANVIL_LOCAL_ETH_HOLDING,
+        amount,
+      },
+    ]);
+  }
+
+  /**
+   * Seeds native and ERC20 balances (plus fiat rates and network enablement) so
+   * each holding appears in both the wallet home Tokens list and the MM Pay
+   * pay-token picker. Spread a PREDEFINED_TOKENS entry and supply only `amount`.
+   * Pair with applyTokenHoldingsMocks so on-chain balance reads resolve.
+   *
+   * @param holdings - Tokens to seed onto the account.
+   * @param defaultAccount - Account to seed when a holding omits `account`.
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withTokenHoldings(
+    holdings: TokenHolding[],
+    defaultAccount: string = DEFAULT_FIXTURE_ACCOUNT,
+  ) {
+    const engine = this.fixture.state.engine.backgroundState;
+
+    merge(engine, {
+      CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+      AccountTrackerController: { accounts: {}, accountsByChainId: {} },
+      TokenBalancesController: { tokenBalances: {} },
+      TokenRatesController: { marketData: {} },
+    });
+
+    // Home Tokens list hides zero-balance tokens when this flag is on; seeded
+    // balances are non-zero but keep it explicit for visibility.
+    merge(this.fixture.state.settings, { hideZeroBalanceTokens: false });
+
+    for (const holding of holdings) {
+      const { chainId, symbol, decimals, address, isNative, usdValue } =
+        holding;
+      const account = holding.account ?? defaultAccount;
+
+      // Home Tokens list gates on the holding's chain being enabled.
+      this.withNetworkEnabledMap({ eip155: { [chainId]: true } });
+
+      // Mirror every holding into the unified AssetsController state so the
+      // holding surfaces when the assetsUnifyState flag resolves ON (the
+      // production path for app versions >= 8.3.0), which reroutes the asset
+      // selectors away from the legacy controllers written below.
+      this.applyUnifiedAssetHolding(holding, account);
+
+      if (isNative) {
+        const balanceWei = toWeiHex(holding.amount, decimals);
+        merge(engine.AccountTrackerController, {
+          accountsByChainId: {
+            [chainId]: { [account]: { balance: balanceWei } },
+          },
+        });
+        if (chainId === CHAIN_IDS.MAINNET) {
+          merge(engine.AccountTrackerController, {
+            accounts: { [account]: { balance: balanceWei } },
+          });
+        }
+        merge(engine.CurrencyRateController, {
+          currencyRates: {
+            [symbol.toUpperCase()]: {
+              conversionDate: Date.now() / 1000,
+              conversionRate: usdValue,
+              usdConversionRate: usdValue,
+            },
+          },
+        });
+        continue;
+      }
+
+      const checksumAddress = toChecksumHexAddress(address);
+      this.withTokens(
+        [
+          {
+            address: checksumAddress,
+            symbol,
+            decimals,
+            name: symbol,
+            type: 'erc20',
+          },
+        ],
+        chainId,
+        account,
+      );
+      merge(engine.TokenBalancesController, {
+        tokenBalances: {
+          [account]: {
+            [chainId]: {
+              [checksumAddress]: toWeiHex(holding.amount, decimals),
+            },
+          },
+        },
+      });
+      this.withTokenRates(chainId, checksumAddress, usdValue);
+    }
+
+    return this;
+  }
+
+  /**
+   * Writes a single holding into the unified AssetsController state
+   * (assetsInfo + assetsBalance + assetsPrice + customAssets) under the
+   * holding account's internal id and CAIP-19 asset id. Read back by the
+   * asset-migration selectors when assetsUnifyState is enabled.
+   */
+  private applyUnifiedAssetHolding(holding: TokenHolding, account: string) {
+    const engine = this.fixture.state.engine.backgroundState;
+    const accountsController = engine.AccountsController;
+    const internalAccounts = accountsController?.internalAccounts?.accounts;
+    const accountId =
+      accountsController?.accountIdByAddress?.[account.toLowerCase()] ??
+      Object.values(internalAccounts ?? {}).find(
+        (internalAccount) =>
+          internalAccount?.address?.toLowerCase() === account.toLowerCase(),
+      )?.id ??
+      accountsController?.internalAccounts?.selectedAccount;
+    if (!accountId) {
+      return;
+    }
+
+    const decimalChainId = parseInt(holding.chainId, 16);
+    const nativeAssetId =
+      SPOT_PRICES_SUPPORT_INFO[
+        holding.chainId as keyof typeof SPOT_PRICES_SUPPORT_INFO
+      ] ?? `eip155:${decimalChainId}/slip44:60`;
+    const assetId: CaipAssetType = holding.isNative
+      ? (nativeAssetId as CaipAssetType)
+      : `eip155:${decimalChainId}/erc20:${holding.address.toLowerCase()}`;
+
+    merge(engine, {
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [assetId]: {
+            type: holding.isNative ? 'native' : 'erc20',
+            symbol: holding.symbol,
+            name: holding.symbol,
+            decimals: holding.decimals,
+          },
+        },
+        assetsBalance: {
+          [accountId]: {
+            [assetId]: { amount: holding.amount },
+          },
+        },
+        assetsPrice: {
+          [assetId]: {
+            assetPriceType: 'fungible',
+            price: holding.usdValue,
+            usdPrice: holding.usdValue,
+            lastUpdated: Date.now(),
+          },
+        },
+      },
+    });
+
+    if (!holding.isNative) {
+      const assetsController =
+        engine.AssetsController as Partial<AssetsControllerState>;
+      const customAssets: Record<string, CaipAssetType[]> =
+        assetsController.customAssets ?? {};
+      const accountCustom = customAssets[accountId] ?? [];
+      customAssets[accountId] = [...new Set([...accountCustom, assetId])];
+      assetsController.customAssets = customAssets;
+    }
+  }
+
+  /**
+   * Sets Mainnet USDC fixture state: fiat orders, currency rates, and Mainnet
+   * USDC token balance plus native ETH for the default account.
+   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC]), and withTokenRates.
+   *
+   * @param options - Mainnet USDC options (balance presence and amount).
    * @returns - The FixtureBuilder instance for method chaining.
    */
-  withMusdConversion(options: MusdFixtureOptions) {
+  withMainnetUsdcBalance(options: MainnetUsdcFixtureOptions) {
     const USDC_DECIMALS = 6;
-    const MUSD_DECIMALS = 6;
     const ETH_BALANCE_WEI = '0x' + (BigInt(10) * BigInt(10 ** 18)).toString(16);
-
-    merge(this.fixture.state.user, {
-      musdConversionEducationSeen: options.musdConversionEducationSeen,
-    });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
 
@@ -2024,13 +2239,6 @@ class FixtureBuilder {
       mainnetBalances[toChecksumHexAddress(USDC_MAINNET.toLowerCase())] =
         '0x' +
         Math.floor((options.usdcBalance ?? 100) * 10 ** USDC_DECIMALS).toString(
-          16,
-        );
-    }
-    if (options.hasMusdBalance) {
-      mainnetBalances[toChecksumHexAddress(MUSD_MAINNET.toLowerCase())] =
-        '0x' +
-        Math.floor((options.musdBalance ?? 10) * 10 ** MUSD_DECIMALS).toString(
           16,
         );
     }

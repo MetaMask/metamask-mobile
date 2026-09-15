@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   AvatarTokenSize,
   Box,
@@ -51,7 +52,7 @@ export function RampOrderIdValue({
         copyText={orderId}
         size={ButtonIconSizes.Sm}
         iconColor={LegacyIconColor.Alternative}
-        testID="ramp-order-id-copy"
+        testID={ActivityDetailsSelectorsIDs.RAMP_ORDER_ID_COPY}
       />
     </Box>
   );
@@ -80,7 +81,7 @@ export function RampStatusWithProviderLink({
   providerName?: string;
   providerOrderLink?: string;
 }>) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleProviderLinkPress = useCallback(() => {
     if (!providerOrderLink) {
@@ -130,8 +131,7 @@ export function RampStatusWithProviderLink({
 
 /**
  * Full-width centered status description (Aggregator Stage / OrderContent copy).
- * Placed below the metadata section (after Transaction ID) with equal spacing
- * to the following SectionDivider (`marginVertical={3}` → 12px).
+ * Placed below the metadata section (after Transaction ID).
  */
 export function RampStatusDescription({
   description,
@@ -141,7 +141,7 @@ export function RampStatusDescription({
   }
 
   return (
-    <Box twClassName="w-full mt-3" testID="ramp-status-description">
+    <Box twClassName="w-full" testID="ramp-status-description">
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}

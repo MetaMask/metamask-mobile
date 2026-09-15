@@ -1,4 +1,5 @@
 // Core hooks (direct controller access)
+export { useBottomSafeAreaInset } from './useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
@@ -21,6 +22,15 @@ export { usePerpsMarketListView } from './usePerpsMarketListView';
 export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
+export { usePerpsMode } from './usePerpsMode';
+export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsVisibleCandleCount } from './usePerpsVisibleCandleCount';
+export { usePerpsProOrderBookExpanded } from './usePerpsProOrderBookExpanded';
+export { usePerpsProOrderBookPosition } from './usePerpsProOrderBookPosition';
+export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
+export { usePerpsProOrdersPreferences } from './usePerpsProOrdersPreferences';
+export { usePerpsProPositionsPreferences } from './usePerpsProPositionsPreferences';
+export { usePerpsSyncedChartPrice } from './usePerpsSyncedChartPrice';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
@@ -37,6 +47,7 @@ export { usePerpsPrices } from './usePerpsPrices';
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
+export { usePerpsPositionModifyPreview } from './usePerpsPositionModifyPreview';
 export {
   usePerpsMarketData,
   type UsePerpsMarketDataParams,
@@ -83,11 +94,18 @@ export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
-export { default as usePerpsToasts } from './usePerpsToasts';
+export {
+  default as usePerpsToasts,
+  getPerpsToastLabels,
+} from './usePerpsToasts';
+
+// A/B tests
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';
+export { usePerpsRecordedOrderFees } from './usePerpsRecordedOrderFees';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';
@@ -97,6 +115,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
+export { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 
 // Performance tracking hooks
 // Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement

@@ -30,8 +30,22 @@ const AVATAR_SIZE = 40;
 // drifting due to font-scale or button-size differences.
 export const TRADER_ROW_HEIGHT = 71;
 
+/**
+ * The figure shown under the username. Callers that rank by something other
+ * than PnL (e.g. the leaderboard's Sort by control) pass the ranked value here
+ * so the row shows what the list is ordered by.
+ */
+export interface TraderRowMetric {
+  /** Pre-formatted value, e.g. `+$45,900.89`, `+43.00%` or `92%`. */
+  label: string;
+  /** Renders the value in success green rather than error red. */
+  isPositive: boolean;
+}
+
 export interface TraderRowProps {
   trader: TopTrader;
+  /** Defaults to the trader's PnL for the loaded window. */
+  metric?: TraderRowMetric;
   onFollowPress: (traderId: string) => void;
   onTraderPress?: (
     traderId: string,
@@ -55,10 +69,11 @@ export interface TraderRowProps {
  * TraderRow -- a single row in the Top Traders leaderboard.
  *
  * Displays the trader's avatar (with a podium medal badge for ranks 1–3),
- * username, 30D PnL, and a Follow / Following toggle button.
+ * username, the ranked metric, and a Follow / Following toggle button.
  */
 const TraderRow: React.FC<TraderRowProps> = ({
   trader,
+  metric,
   onFollowPress,
   onTraderPress,
   isMuted = false,
@@ -68,8 +83,8 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const pnlText = formatSignedUsd(trader.pnlValue);
-  const isPnlPositive = trader.pnlValue >= 0;
+  const metricText = metric?.label ?? formatSignedUsd(trader.pnlValue);
+  const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
   const showMedal = isTopRank(trader.rank);
   const canShowMuteChip = showMute && Boolean(onMuteToggle);
 
@@ -132,10 +147,10 @@ const TraderRow: React.FC<TraderRowProps> = ({
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
               twClassName={
-                isPnlPositive ? 'text-success-default' : 'text-error-default'
+                isMetricPositive ? 'text-success-default' : 'text-error-default'
               }
             >
-              {pnlText}
+              {metricText}
             </Text>
           </Box>
         </Box>

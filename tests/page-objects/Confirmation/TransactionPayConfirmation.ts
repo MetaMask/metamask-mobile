@@ -1,5 +1,8 @@
 import {
   ConfirmationRowComponentIDs,
+  PayWithBottomSheetIDs,
+  PerpsAccountPickerSelectorsIDs,
+  PredictAccountPickerSelectorsIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -8,306 +11,190 @@ import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/componen
 import enContent from '../../../locales/languages/en.json';
 import {
   Assertions,
-  FrameworkDetector,
+  Gestures,
   Matchers,
   PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-  UnifiedGestures,
-  asDetoxElement,
-  asPlaywrightElement,
-  encapsulated,
-  encapsulatedAction,
-  getDriver,
-  type EncapsulatedElementType,
+  Utilities,
+  sleep,
+  type AppiumElement,
 } from '../../framework';
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
 const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
+const MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID = 'money-account-withdraw-balance';
+// Money-funded deposit confirmations set their navbar title (and the navbar
+// back button testID, `<title>-navbar-back-button`) from the destination.
+const PERPS_SEND_TITLE = enContent.perps.send_to_perps;
+const PREDICT_SEND_TITLE = enContent.predict.send_to_predictions;
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
 }
 
 class TransactionPayConfirmation {
-  get bridgeTime(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(ConfirmationRowComponentIDs.BRIDGE_TIME),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ConfirmationRowComponentIDs.BRIDGE_TIME,
-          {
-            exact: true,
-          },
-        ),
+  get bridgeTime(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.BRIDGE_TIME);
+  }
+
+  get keypad(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD);
+  }
+
+  async expectKeyboardLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard exists',
+      timeout: 30000,
     });
   }
 
-  get keyboardContainer(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TransactionPayComponentIDs.KEYBOARD_CONTAINER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.KEYBOARD_CONTAINER,
-          {
-            exact: true,
-          },
-        ),
-    });
-  }
-  get payWithRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ConfirmationRowComponentIDs.PAY_WITH,
-          {
-            exact: true,
-          },
-        ),
+  async expectPayWithRowLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.payWithRow, {
+      description: 'Pay with row should finish loading',
+      timeout: 15000,
     });
   }
 
-  get payWithSymbol(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.PAY_WITH_SYMBOL,
-          {
-            exact: true,
-          },
-        ),
+  async focusAmountInput(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible before typing amount',
+    });
+    await Gestures.waitAndTap(this.keypad, {
+      elemDescription: 'Focus amount via deposit keyboard container',
+      checkEnabled: false,
+      checkVisibility: false,
     });
   }
 
-  get payWithFiat(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_FIAT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.PAY_WITH_FIAT,
-          {
-            exact: true,
-          },
-        ),
-    });
+  async typeAmount(amount: string): Promise<void> {
+    await this.tapKeyboardAmount(amount);
   }
 
-  get payWithBalance(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_BALANCE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.PAY_WITH_BALANCE,
-          {
-            exact: true,
-          },
-        ),
-    });
+  async tapContinue(): Promise<void> {
+    await this.tapKeyboardContinueButton();
   }
 
-  get keyboardContinueButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          TransactionPayComponentIDs.KEYBOARD_CONTINUE_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.KEYBOARD_CONTINUE_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+  get keyboardContainer(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      TransactionPayComponentIDs.KEYBOARD_CONTAINER,
+    );
   }
 
-  get amount(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(ConfirmationRowComponentIDs.AMOUNT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ConfirmationRowComponentIDs.AMOUNT, {
-          exact: true,
-        }),
-    });
+  get payWithRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH);
   }
 
-  get total(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(ConfirmationRowComponentIDs.TOTAL),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ConfirmationRowComponentIDs.TOTAL, {
-          exact: true,
-        }),
-    });
+  get payWithSymbol(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_SYMBOL);
   }
 
-  // "You'll receive" row, shown instead of Total for withdraw flows.
-  get receive(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ConfirmationRowComponentIDs.RECEIVE, {
-          exact: true,
-        }),
-    });
+  get payWithFiat(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_FIAT);
   }
 
-  // Shared MetaMask Pay withdraw marker (Perps + Predict). No testID.
-  // Detox matches the full "Available balance: $X" string (iOS by.text needs
-  // the amount). Appium uses contains — Android textMatches on `$` is unreliable
-  // and RN may expose the label via content-desc rather than @text.
-  get availableBalance(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(/Available balance: \$[0-9,.]+/u),
-      appium: () =>
-        PlaywrightMatchers.getElementByText('Available balance', false),
-    });
+  get payWithBalance(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_BALANCE);
   }
 
-  get transactionFee(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(ConfirmationRowComponentIDs.TRANSACTION_FEE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ConfirmationRowComponentIDs.TRANSACTION_FEE,
-          {
-            exact: true,
-          },
-        ),
-    });
+  get keyboardContinueButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      TransactionPayComponentIDs.KEYBOARD_CONTINUE_BUTTON,
+    );
   }
 
-  get payWithTokenList(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
-          {
-            exact: true,
-          },
-        ),
-    });
+  get amount(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.AMOUNT);
   }
 
-  get tokenListScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(
+  get total(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.TOTAL);
+  }
+
+  get receive(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE);
+  }
+
+  get availableBalance(): Promise<AppiumElement> {
+    return Matchers.getElementByText('Available balance');
+  }
+
+  get withdrawBalance(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID);
+  }
+
+  get transactionFee(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.TRANSACTION_FEE);
+  }
+
+  get paidByMetaMask(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.PAID_BY_METAMASK,
+    );
+  }
+
+  get bridgeFeeRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID('bridge-fee-row');
+  }
+
+  get payWithTokenList(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
       TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
     );
   }
 
-  get tokenSearchInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TEXTFIELDSEARCH_TEST_ID),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TEXTFIELDSEARCH_TEST_ID, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(TOKEN_SEARCH_PLACEHOLDER),
-      },
-    });
+  // iOS: match search placeholder text; Android: use testID.
+  get tokenSearchInput(): Promise<AppiumElement> {
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[contains(@name,'${TOKEN_SEARCH_PLACEHOLDER}') or contains(@label,'${TOKEN_SEARCH_PLACEHOLDER}') or contains(@text,'${TOKEN_SEARCH_PLACEHOLDER}')]`,
+      );
+    }
+    return Matchers.getElementByID(TEXTFIELDSEARCH_TEST_ID);
   }
 
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
-    const testId = getAssetTestId(symbol);
-    return encapsulated({
-      detox: () => Matchers.getElementByID(testId),
-      appium: () => PlaywrightMatchers.getElementById(testId, { exact: true }),
-    });
+  getTokenBySymbol(symbol: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(getAssetTestId(symbol));
   }
 
-  getTokenOptionAt(
-    tokenSymbol: string,
-    index: number,
-  ): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(tokenSymbol, index),
-      appium: async () => {
-        const elements =
-          await PlaywrightMatchers.getAllElementsByText(tokenSymbol);
-        if (elements.length === 0) {
-          throw new Error(
-            `No pay with token option found for "${tokenSymbol}"`,
-          );
-        }
-        if (index >= elements.length) {
-          throw new Error(
-            `Token index ${index} out of bounds (${elements.length} elements)`,
-          );
-        }
-        return elements[index];
-      },
-    });
+  getTokenOptionAt(tokenSymbol: string, index: number): Promise<AppiumElement> {
+    return Matchers.getElementByText(tokenSymbol, index);
   }
 
-  getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(tokenSymbol, 0),
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
-        ),
-    });
+  getFirstTokenOption(tokenSymbol: string): Promise<AppiumElement> {
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
+    );
   }
 
-  getNetworkFilter(networkName: string): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(networkName),
-      appium: () => {
-        const networkFilter =
-          networkName === 'Ethereum'
-            ? ETHEREUM_NETWORK_FILTER_TEST_ID
-            : ARBITRUM_NETWORK_FILTER_TEST_ID;
-        return PlaywrightMatchers.getElementById(networkFilter, {
-          exact: true,
-        });
-      },
-    });
+  getNetworkFilter(networkName: string): Promise<AppiumElement> {
+    const networkFilter =
+      networkName === 'Ethereum'
+        ? ETHEREUM_NETWORK_FILTER_TEST_ID
+        : ARBITRUM_NETWORK_FILTER_TEST_ID;
+    return Matchers.getElementByID(networkFilter);
   }
 
-  getKeypadButton(key: string): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(key),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            getKeypadKeyTestId(key),
-          ),
-      },
-    });
+  getKeypadButton(key: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(getKeypadKeyTestId(key));
   }
 
   async expectText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     description: string,
   ): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToHaveText(asDetoxElement(elem), text, {
-          description,
-        });
-      },
-      appium: async () => {
-        const resolved = await asPlaywrightElement(elem);
+    await Assertions.expectElementToHaveText(elem, text, { description });
+  }
+
+  // Amount row text includes the label; match by contains.
+  private async expectTextContains(
+    elem: Promise<AppiumElement>,
+    text: string,
+    description: string,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const resolved = (await elem) as { textContent: () => Promise<string> };
         const actualText = (await resolved.textContent())
           .replace(/\s+/gu, ' ')
           .trim();
@@ -317,174 +204,196 @@ class TransactionPayConfirmation {
           );
         }
       },
-    });
+      { timeout: 15000, description },
+    );
   }
 
   async tapPayWithRow(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.payWithRow, {
-      description: 'Pay With Row',
+    await Gestures.waitAndTap(this.payWithRow, {
+      elemDescription: 'Pay With Row',
+    });
+  }
+
+  getPercentageButton(pct: 10 | 25 | 50 | 90): Promise<AppiumElement> {
+    return Matchers.getElementByText(`${pct}%`);
+  }
+
+  async tapPercentage(pct: 10 | 25 | 50 | 90): Promise<void> {
+    await Gestures.waitAndTap(this.getPercentageButton(pct), {
+      elemDescription: `Keyboard ${pct}% button`,
+      timeout: 15000,
+    });
+  }
+
+  get maxButton(): Promise<AppiumElement> {
+    return Matchers.getElementByText('Max');
+  }
+
+  async tapMax(): Promise<void> {
+    await Gestures.waitAndTap(this.maxButton, {
+      elemDescription: 'Keyboard Max button',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPercentageApplied(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 15000,
+      description:
+        'Percentage tap should populate an amount and reveal the Done button',
+    });
+  }
+
+  get preferredPayTokenRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
+    );
+  }
+
+  async tapPreferredPayToken(): Promise<void> {
+    await Gestures.waitAndTap(this.preferredPayTokenRow, {
+      elemDescription: 'Preferred pay token row',
     });
   }
 
   async searchToken(tokenName: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.typeText(this.tokenSearchInput, tokenName, {
-          description: `Search token ${tokenName}`,
-        });
-      },
-      appium: async () => {
-        const searchField = await asPlaywrightElement(this.tokenSearchInput);
-        await PlaywrightAssertions.expectElementToBeVisible(searchField, {
-          timeout: 15000,
-          description: 'Token search field should be visible',
-        });
-        await searchField.fill(tokenName);
-      },
+    await Assertions.expectElementToBeVisible(this.tokenSearchInput, {
+      timeout: 15000,
+      description: 'Token search field should be visible',
+    });
+    await Gestures.typeText(this.tokenSearchInput, tokenName, {
+      elemDescription: `Search token ${tokenName}`,
+      hideKeyboard: false,
     });
   }
 
   async tapByNetworkFilter(networkName: string): Promise<void> {
     const networkFilter = this.getNetworkFilter(networkName);
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(networkFilter, {
-          description: 'Ethereum filter should be visible',
-          timeout: 15000,
-        });
-
-        await UnifiedGestures.waitAndTap(networkFilter, {
-          description: 'Ethereum Filter',
-        });
-      },
-      appium: async () => {
-        const resolvedFilter = await asPlaywrightElement(networkFilter);
-        await PlaywrightAssertions.expectElementToBeVisible(resolvedFilter, {
-          timeout: 15000,
-          description: 'Network filter should be visible',
-        });
-
-        if (await PlatformDetector.isIOS()) {
-          await PlaywrightGestures.dblTap(resolvedFilter);
-        } else {
-          await PlaywrightGestures.waitAndTap(resolvedFilter, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-        }
-
-        await PlaywrightGestures.waitForElementStable(resolvedFilter, {
-          timeout: 3000,
-          interval: 200,
-          stableCount: 4,
-        });
-      },
+    await Assertions.expectElementToBeVisible(networkFilter, {
+      timeout: 15000,
+      description: 'Network filter should be visible',
     });
+
+    if (PlatformDetector.isIOS()) {
+      await Gestures.dblTap(networkFilter);
+    } else {
+      await Gestures.waitAndTap(networkFilter, {
+        checkForDisplayed: true,
+        checkEnabled: true,
+      });
+    }
   }
 
   async tapFirstUsdc(tokenName: string): Promise<void> {
     const tokenElement = this.getTokenBySymbol(tokenName);
 
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.waitAndTap(tokenElement, {
-          description: `First token ${tokenName}`,
-        });
-      },
-      appium: async () => {
-        const resolvedToken = await asPlaywrightElement(tokenElement);
-        await PlaywrightAssertions.expectElementToBeVisible(resolvedToken, {
-          timeout: 15000,
-          description: `${tokenName} token should be visible`,
-        });
-        await PlaywrightGestures.waitAndTap(resolvedToken, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
-      },
+    await Assertions.expectElementToBeVisible(tokenElement, {
+      timeout: 15000,
+      description: `${tokenName} token should be visible`,
+    });
+    await Gestures.waitAndTap(tokenElement, {
+      checkForDisplayed: true,
+      checkEnabled: true,
     });
   }
 
   async tapPayWithToken(tokenSymbol: string, index = 0): Promise<void> {
     const tokenElement = this.getTokenOptionAt(tokenSymbol, index);
-    const opts = { description: `Pay With Token ${tokenSymbol}` };
+    await Gestures.waitAndTap(tokenElement, {
+      elemDescription: `Pay With Token ${tokenSymbol}`,
+    });
+  }
 
-    if (FrameworkDetector.isDetox()) {
-      await UnifiedGestures.scrollToElement(
-        tokenElement,
-        this.tokenListScrollViewIdentifier,
-        { ...opts, direction: 'down', scrollAmount: 200 },
-      );
+  // Wait until the continue button stays enabled across consecutive checks.
+  private async waitForKeyboardContinueButtonInteractive(): Promise<void> {
+    const timeout = 30_000;
+    const pollIntervalMs = 250;
+    const requiredStableReads = 4;
+    const settleMs = 400;
+    const start = Date.now();
+    let stableReads = 0;
+
+    while (Date.now() - start < timeout) {
+      try {
+        await Utilities.checkElementEnabled(this.keyboardContinueButton);
+        stableReads += 1;
+        if (stableReads >= requiredStableReads) {
+          await sleep(settleMs);
+          return;
+        }
+      } catch {
+        stableReads = 0;
+      }
+      await sleep(pollIntervalMs);
     }
-    await UnifiedGestures.waitAndTap(tokenElement, opts);
+
+    throw new Error(
+      `Keyboard Continue Button was not enabled for ${requiredStableReads} consecutive checks within ${timeout}ms`,
+    );
   }
 
   async tapKeyboardContinueButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
-          description: 'Keyboard Continue Button',
-          timeout: 30_000,
-          checkStability: true,
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
-          description: 'Keyboard Continue Button',
-          timeout: 30_000,
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          waitForInteractive: true,
-          enabledStableReads: 4,
-          postEnabledSettleMs: 400,
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 30_000,
+      description: 'Keyboard Continue Button should be visible',
+    });
+    await this.waitForKeyboardContinueButtonInteractive();
+    await Gestures.waitAndTap(this.keyboardContinueButton, {
+      elemDescription: 'Keyboard Continue Button',
+      timeout: 30_000,
+      checkForDisplayed: true,
+      checkEnabled: false,
+    });
+  }
+
+  get keypadDeleteButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID('keypad-delete-button');
+  }
+
+  async clearAmount(): Promise<void> {
+    await Gestures.longPress(this.keypadDeleteButton, {
+      duration: 600,
+      elemDescription: 'Keypad delete button (long-press clears amount)',
+      timeout: 15000,
     });
   }
 
   async tapKeyboardAmount(amount: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        for (const char of amount) {
-          await UnifiedGestures.waitAndTap(this.getKeypadButton(char), {
-            description: `Keyboard Key ${char}`,
-          });
-        }
-      },
-      appium: async () => {
-        const waitForKeypad = async (): Promise<void> => {
-          await Assertions.expectElementToBeVisible(this.getKeypadButton('0'), {
-            timeout: 60_000,
-            description: 'Transaction pay amount keypad',
-          });
-        };
+    const waitForKeypad = async (): Promise<void> => {
+      await Assertions.expectElementToBeVisible(this.getKeypadButton('0'), {
+        timeout: 60_000,
+        description: 'Transaction pay amount keypad',
+      });
+    };
 
-        try {
-          await waitForKeypad();
-        } catch {
-          await Assertions.expectElementToBeVisible(this.keyboardContainer, {
-            timeout: 60_000,
-            description: 'Custom amount input before opening keypad',
-          });
-          await UnifiedGestures.waitAndTap(this.keyboardContainer, {
-            description: 'Custom amount input field',
-            timeout: 15_000,
-          });
-          await waitForKeypad();
-        }
+    try {
+      await waitForKeypad();
+    } catch {
+      await Assertions.expectElementToBeVisible(this.keyboardContainer, {
+        timeout: 60_000,
+        description: 'Custom amount input before opening keypad',
+      });
+      await Gestures.waitAndTap(this.keyboardContainer, {
+        elemDescription: 'Custom amount input field',
+        timeout: 15_000,
+      });
+      await waitForKeypad();
+    }
 
-        for (const char of amount) {
-          await UnifiedGestures.waitAndTap(this.getKeypadButton(char), {
-            description: `Keyboard Key ${char}`,
-            timeout: 15_000,
-          });
-        }
-      },
-    });
+    for (const char of amount) {
+      await Gestures.waitAndTap(this.getKeypadButton(char), {
+        elemDescription: `Keyboard Key ${char}`,
+        timeout: 15_000,
+      });
+    }
   }
 
   async enterAmountAndContinue(amount: string): Promise<void> {
     await this.tapKeyboardAmount(amount);
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 30_000,
+      description: 'Deposit keyboard Done button after amount entry',
+    });
     await this.tapKeyboardContinueButton();
   }
 
@@ -497,7 +406,11 @@ class TransactionPayConfirmation {
   }
 
   async verifyAmount(amount: string): Promise<void> {
-    await this.expectText(this.amount, amount, 'Amount should be correct');
+    await this.expectTextContains(
+      this.amount,
+      amount,
+      'Amount should be correct',
+    );
   }
 
   async verifyTotal(total: string): Promise<void> {
@@ -513,9 +426,30 @@ class TransactionPayConfirmation {
   }
 
   async verifyTransactionFeeVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.transactionFee, {
-      description: 'Transaction fee row should be visible',
+    await Assertions.expectElementToBeVisible(this.bridgeFeeRow, {
+      description: 'Bridge fee row should be visible',
       timeout: 15000,
+    });
+
+    // Prod pay configs may sponsor gas (Paid by MetaMask) instead of showing a
+    // fiat `transaction-fee` value — either means the quote/fee row resolved.
+    await Utilities.waitUntil(
+      async () => {
+        const feeExisting = await (await this.transactionFee)
+          .unwrap()
+          .isExisting();
+        if (feeExisting) {
+          return true;
+        }
+        return (await this.paidByMetaMask).unwrap().isExisting();
+      },
+      { interval: 300, timeout: 15000 },
+    );
+  }
+
+  async verifyCustomAmount(amount: string, description: string): Promise<void> {
+    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+      description,
     });
   }
 
@@ -531,6 +465,54 @@ class TransactionPayConfirmation {
       description: 'Available balance row should be visible',
       timeout: 15000,
     });
+  }
+
+  async verifyWithdrawBalanceVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.withdrawBalance, {
+      description: 'Money account withdraw balance should be visible',
+      timeout: 15000,
+    });
+  }
+
+  get perpsAccountPickerRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsAccountPickerSelectorsIDs.ROW);
+  }
+
+  get predictAccountPickerRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PredictAccountPickerSelectorsIDs.ROW);
+  }
+
+  async verifyPerpsAccountPickerRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.perpsAccountPickerRow, {
+      description: 'Perps account picker row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPredictAccountPickerRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.predictAccountPickerRow, {
+      description: 'Predict account picker row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  getNavbarBackButton(title: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(`${title}-navbar-back-button`);
+  }
+
+  async tapNavbarBackButton(title: string): Promise<void> {
+    await Gestures.waitAndTap(this.getNavbarBackButton(title), {
+      elemDescription: `${title} navbar back button`,
+      timeout: 15000,
+    });
+  }
+
+  async tapPerpsNavbarBackButton(): Promise<void> {
+    await this.tapNavbarBackButton(PERPS_SEND_TITLE);
+  }
+
+  async tapPredictNavbarBackButton(): Promise<void> {
+    await this.tapNavbarBackButton(PREDICT_SEND_TITLE);
   }
 
   async verifyReceive(amount: string): Promise<void> {

@@ -4,10 +4,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { useAddressPoisoningDetection } from '../send/useAddressPoisoningDetection';
 import { strings } from '../../../../../../locales/i18n';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { AddressPoisoningAlertContent } from '../../components/send/address-poisoning-alert-content/address-poisoning-alert-content';
 
 export function useAddressPoisoningAlert(): Alert[] {
@@ -27,7 +24,7 @@ export function useAddressPoisoningAlert(): Alert[] {
         title: strings('alert_system.address_poisoning.title'),
         content: (
           <Box>
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('alert_system.address_poisoning.message')}
             </Text>
             <AddressPoisoningAlertContent

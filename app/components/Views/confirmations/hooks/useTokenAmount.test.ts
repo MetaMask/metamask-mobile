@@ -5,7 +5,6 @@ import {
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { waitFor } from '@testing-library/react-native';
-import { Interface } from '@ethersproject/abi';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   stakingDepositConfirmationState,
@@ -18,7 +17,7 @@ import {
   tokensControllerMock,
 } from '../__mocks__/controllers/other-controllers-mock';
 import { updateEditableParams } from '../../../../util/transaction-controller';
-import { DISTRIBUTOR_CLAIM_ABI } from '../../../UI/Earn/components/MerklRewards/constants';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 
 jest.mock('../../../../util/transaction-controller');
 
@@ -31,6 +30,8 @@ jest.mock('./useNetworkInfo', () => ({
 
 const mockData =
   '0xa9059cbb000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa96045000000000000000000000000000000000000000000000000016345785d8a0000';
+const ethAssetId = 'eip155:1/slip44:60';
+const ethConversionRate = 3596.25;
 
 describe('useTokenAmount', () => {
   describe('returns amount and fiat display values', () => {
@@ -97,6 +98,8 @@ describe('ERC20 token transactions', () => {
   const erc20TokenAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
   const checksumErc20TokenAddress =
     '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+  const erc20AssetId = `eip155:1/erc20:${checksumErc20TokenAddress}`;
+  const selectedAccountId = '0x0000000000000000000000000000000000000000';
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
 
   const createERC20State = (
@@ -106,12 +109,29 @@ describe('ERC20 token transactions', () => {
     merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                [checksumErc20TokenAddress]: {
-                  price: contractExchangeRate,
-                },
+          AssetsController: {
+            assetsInfo: {
+              [erc20AssetId]: {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
+            },
+            assetsPrice:
+              contractExchangeRate === undefined
+                ? {}
+                : {
+                    [erc20AssetId]: {
+                      assetPriceType: 'fungible' as const,
+                      price: contractExchangeRate * ethConversionRate,
+                      usdPrice: contractExchangeRate * ethConversionRate,
+                      lastUpdated: 1732887955694,
+                    },
+                  },
+            assetsBalance: {
+              [selectedAccountId]: {
+                [erc20AssetId]: { amount: '0' },
               },
             },
           },
@@ -172,9 +192,14 @@ describe('ERC20 token transactions', () => {
     const stateWithoutExchangeRate = merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {}, // No exchange rate for this token
+          AssetsController: {
+            assetsInfo: {
+              [erc20AssetId]: {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
             },
           },
           TransactionController: {
@@ -335,12 +360,21 @@ describe('Edge cases', () => {
     const smallExchangeRateState = merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
-                  price: 0.000000001, // Very small exchange rate
-                },
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                assetPriceType: 'fungible' as const,
+                price: 0.000000001 * 3596.25,
+                usdPrice: 0.000000001 * 3596.25,
+                lastUpdated: 1732887955694,
               },
             },
           },
@@ -391,8 +425,15 @@ describe('Edge cases', () => {
     const stateWithoutTokenRates = merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {},
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
+            },
           },
           TransactionController: {
             transactions: [
@@ -428,22 +469,15 @@ describe('Edge cases', () => {
   });
 
   it('calculates USD value when usdConversionRateFromCurrencyRates is not available', async () => {
-    const stateWithoutUsdRate = merge({}, transferConfirmationState, {
-      engine: {
-        backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'usd',
-            currencyRates: {
-              ETH: {
-                conversionDate: 1732887955.694,
-                conversionRate: 3596.25,
-                usdConversionRate: null,
-              },
-            },
-          },
-        },
-      },
-    });
+    const stateWithoutUsdRate = merge({}, transferConfirmationState);
+    const { assetsPrice } =
+      stateWithoutUsdRate.engine.backgroundState.AssetsController;
+    const ethPrice = assetsPrice[ethAssetId];
+    if (ethPrice.assetPriceType === 'fungible') {
+      const { usdPrice: _usdPrice, ...ethPriceWithoutUsd } = ethPrice;
+      assetsPrice[ethAssetId] =
+        ethPriceWithoutUsd as unknown as typeof ethPrice;
+    }
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
       state: stateWithoutUsdRate,
@@ -485,20 +519,22 @@ describe('Edge cases', () => {
 
 describe('musdClaim transactions', () => {
   const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
-  const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+  const OTHER_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+  const MERKL_DISTRIBUTOR_ADDRESS =
+    '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae';
+  const TRANSFER_TOPIC =
+    '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-  // Helper to encode valid claim data
-  const encodeClaimData = (amount: string): string => {
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    return contractInterface.encodeFunctionData('claim', [
-      [USER_ADDRESS],
-      [TOKEN_ADDRESS],
-      [amount],
-      [[]],
-    ]);
-  };
+  const padAddress = (address: string) =>
+    `0x${address.slice(2).toLowerCase().padStart(64, '0')}`;
 
-  const createMusdClaimState = (claimData: string) =>
+  const makeTransferLog = (from: string, amount: bigint) => ({
+    address: MUSD_TOKEN_ADDRESS,
+    topics: [TRANSFER_TOPIC, padAddress(from), padAddress(USER_ADDRESS)],
+    data: `0x${amount.toString(16).padStart(64, '0')}`,
+  });
+
+  const createMusdClaimState = (logs: ReturnType<typeof makeTransferLog>[]) =>
     merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
@@ -507,8 +543,10 @@ describe('musdClaim transactions', () => {
               {
                 type: TransactionType.musdClaim,
                 txParams: {
-                  data: claimData,
                   from: USER_ADDRESS,
+                },
+                txReceipt: {
+                  logs,
                 },
               },
             ],
@@ -517,12 +555,12 @@ describe('musdClaim transactions', () => {
       },
     });
 
-  it('decodes and returns correct amount for musdClaim transaction', async () => {
-    const claimAmount = '50000000'; // 50 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
+  const createClaimStateForAmount = (amount: bigint) =>
+    createMusdClaimState([makeTransferLog(MERKL_DISTRIBUTOR_ADDRESS, amount)]);
 
+  it('returns the claimed amount for a musdClaim transaction', async () => {
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(50000000n), // 50 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -541,11 +579,8 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles fractional mUSD amounts correctly', async () => {
-    const claimAmount = '12345000'; // 12.345 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
-
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(12345000n), // 12.345 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -564,11 +599,8 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles very small mUSD amounts', async () => {
-    const claimAmount = '100'; // 0.0001 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
-
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(100n), // 0.0001 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -585,11 +617,8 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles large mUSD amounts', async () => {
-    const claimAmount = '100000000000'; // 100,000 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
-
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(100000000000n), // 100,000 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -605,15 +634,12 @@ describe('musdClaim transactions', () => {
     });
   });
 
-  it('returns default values when claim data is invalid', async () => {
-    const invalidClaimData = '0x123456'; // Invalid data
-
+  it('returns default values when the receipt has no distributor Transfer log', async () => {
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(invalidClaimData),
+      state: createMusdClaimState([makeTransferLog(OTHER_ADDRESS, 50000000n)]),
     });
 
     await waitFor(() => {
-      // When decoding fails, it falls through to default case
       expect(result.current.amount).toBeDefined();
     });
   });

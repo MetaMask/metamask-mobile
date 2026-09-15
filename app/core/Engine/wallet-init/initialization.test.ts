@@ -3,7 +3,6 @@ import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
-import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -31,8 +30,37 @@ jest.mock('./instance-options/connectivity-controller', () => ({
     () => 'connectivity-options',
   ),
 }));
+jest.mock('./instance-options/gas-fee-controller', () => ({
+  getGasFeeControllerInstanceOptions: jest.fn(() => 'gas-fee-options'),
+}));
+jest.mock('./instance-options/seedless-onboarding-controller', () => ({
+  getSeedlessOnboardingControllerInstanceOptions: jest.fn(
+    () => 'seedless-options',
+  ),
+}));
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
+}));
+jest.mock('./instance-options/subscription-service', () => ({
+  getSubscriptionServiceInstanceOptions: jest.fn(
+    () => 'subscription-service-options',
+  ),
+}));
+jest.mock('./instance-options/shield-api-service', () => ({
+  getShieldApiServiceInstanceOptions: jest.fn(
+    () => 'shield-api-service-options',
+  ),
+}));
+jest.mock('./instance-options/claims-service', () => ({
+  getClaimsServiceInstanceOptions: jest.fn(() => 'claims-service-options'),
+}));
+jest.mock('./instance-options/config-registry-api-service', () => ({
+  getConfigRegistryApiServiceInstanceOptions: jest.fn(
+    () => 'config-registry-api-service-options',
+  ),
+}));
+jest.mock('./instance-options/network-controller', () => ({
+  getNetworkControllerInstanceOptions: jest.fn(() => 'network-options'),
 }));
 jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
@@ -60,8 +88,14 @@ describe('initializeWallet', () => {
         keyringController: 'keyring-options',
         remoteFeatureFlagController: 'rffc-options',
         connectivityController: 'connectivity-options',
+        gasFeeController: 'gas-fee-options',
+        seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
-        networkController: getNetworkControllerInstanceOptions(),
+        subscriptionService: 'subscription-service-options',
+        shieldApiService: 'shield-api-service-options',
+        claimsService: 'claims-service-options',
+        configRegistryApiService: 'config-registry-api-service-options',
+        networkController: 'network-options',
         transactionController: 'transaction-options',
       },
     });
@@ -70,7 +104,10 @@ describe('initializeWallet', () => {
   it('threads the messenger and state through to the builders that need them', () => {
     initializeWallet({ messenger, state });
 
-    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      false,
+    );
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
       messenger,
       state,
@@ -89,5 +126,17 @@ describe('initializeWallet', () => {
     expect(setupTransactionControllerListeners).toHaveBeenCalledWith({
       messenger: 'tx-init-messenger',
     });
+  });
+
+  it('sets up TransactionController listeners before constructing the Wallet, so the TransactionController can emit events to the wallet messenger during initialization', () => {
+    initializeWallet({ messenger, state });
+
+    const setupListenersCallOrder = jest.mocked(
+      setupTransactionControllerListeners,
+    ).mock.invocationCallOrder[0];
+    const walletConstructorCallOrder =
+      jest.mocked(Wallet).mock.invocationCallOrder[0];
+
+    expect(setupListenersCallOrder).toBeLessThan(walletConstructorCallOrder);
   });
 });

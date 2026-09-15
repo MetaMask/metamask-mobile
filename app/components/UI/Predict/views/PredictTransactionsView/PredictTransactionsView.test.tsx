@@ -180,6 +180,24 @@ describe('PredictTransactionsView', () => {
     });
   });
 
+  it('fetches activity when the list is visible', () => {
+    render(<PredictTransactionsView isVisible />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('fetches activity when visibility is omitted', () => {
+    render(<PredictTransactionsView />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('does not fetch activity while the list is hidden', () => {
+    render(<PredictTransactionsView isVisible={false} />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: false });
+  });
+
   it('can defer visible-list analytics to the parent surface', () => {
     render(
       <PredictTransactionsView isVisible shouldTrackActivityViewed={false} />,
@@ -257,7 +275,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('No recent activity')).toBeNull();
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Retry'));
+      fireEvent.press(screen.getByText('Try again'));
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
@@ -467,7 +485,61 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('+$4.50')).toBeNull();
   });
 
-  it('omits non-actionable claim pending positions', () => {
+  it('shows redeemable push positions as resolved rather than won', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[
+          createClaimPendingPosition({
+            cashPnl: 0,
+            status: PredictPositionStatus.REDEEMABLE,
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('Prediction resolved')).toBeOnTheScreen();
+    expect(screen.queryByText('Prediction won')).toBeNull();
+  });
+
+  it('keeps redeemable positions with negative P&L in claim pending', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[
+          createClaimPendingPosition({
+            cashPnl: -1.2,
+            currentValue: 4.5,
+            id: 'push-position',
+            status: PredictPositionStatus.REDEEMABLE,
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('Claim pending')).toBeOnTheScreen();
+    expect(screen.getByText('Prediction resolved')).toBeOnTheScreen();
+    expect(screen.getByText('+$4.50')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getPredictPositionsHistoryListSelector.claimPendingRow('push-position'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits claim pending positions without a claimable status', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         data: [],
@@ -485,10 +557,9 @@ describe('PredictTransactionsView', () => {
             title: 'Lost prediction market',
           }),
           createClaimPendingPosition({
-            currentValue: 0,
-            id: 'zero-value-won-position',
-            status: PredictPositionStatus.WON,
-            title: 'Zero value won market',
+            id: 'open-position',
+            status: PredictPositionStatus.OPEN,
+            title: 'Open prediction market',
           }),
         ]}
       />,
@@ -497,7 +568,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('Claim pending')).toBeNull();
     expect(screen.queryByText('Prediction lost')).toBeNull();
     expect(screen.queryByText('Lost prediction market')).toBeNull();
-    expect(screen.queryByText('Zero value won market')).toBeNull();
+    expect(screen.queryByText('Open prediction market')).toBeNull();
     expect(
       screen.queryByTestId(
         getPredictPositionsHistoryListSelector.claimPendingRow('lost-position'),

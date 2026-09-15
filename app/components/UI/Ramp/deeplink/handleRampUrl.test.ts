@@ -7,6 +7,7 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import type { Country, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
@@ -21,7 +22,7 @@ jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: {
     store: {
-      getState: jest.fn(() => ({})),
+      getState: jest.fn(),
     },
   },
 }));
@@ -137,11 +138,22 @@ jest.mock('../../../../core/Engine', () => ({
 const mockRefreshGeolocation = Engine.context.GeolocationController
   .refreshGeolocation as jest.Mock;
 
+const mockStartRampsBuyCufTrace = jest.fn();
+jest.mock('../utils/rampsBuyCufTrace', () => ({
+  startRampsBuyCufTrace: (...args: unknown[]) =>
+    mockStartRampsBuyCufTrace(...args),
+}));
+
 describe('handleRampUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (NavigationService.navigation.navigate as jest.Mock).mockClear();
     (handleRedirection as jest.Mock).mockClear();
+    jest.mocked(ReduxService.store.getState).mockReturnValue({
+      engine: {
+        backgroundState,
+      },
+    } as ReturnType<typeof ReduxService.store.getState>);
     mockSelectGeolocationLocation.mockReturnValue('us-ca');
     mockSelectUserRegion.mockReturnValue(null);
     mockSelectCountries.mockReturnValue({ data: [] });
@@ -207,6 +219,7 @@ describe('handleRampUrl', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'ELIGIBILITY_FAILED_MODAL_ROUTE',
       );
+      expect(mockStartRampsBuyCufTrace).not.toHaveBeenCalled();
     });
 
     it('continues to TokenSelection when geolocation refresh resolves a known region', async () => {
@@ -224,6 +237,9 @@ describe('handleRampUrl', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'TOKEN_SELECTION_ROUTE',
       );
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'deep_link',
+      });
     });
 
     it('does not refresh geolocation when a known location is already in state', async () => {

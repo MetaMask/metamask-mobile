@@ -15,22 +15,22 @@ import {
   formatAbbreviatedUsd,
   formatPercent,
   formatSignedUsd,
+  formatTradeUnitPrice,
   formatUsd,
 } from '../../utils/formatters';
+import { resolveTradeAction } from '../../utils/tradeAction';
+import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
   FeedAction,
   FeedItem,
   FeedPerpItem,
   FeedSpotItem,
+  FeedSubHeader,
 } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-const toMs = (timestamp: number): number =>
-  timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
 interface FeedItemPresentation {
   valueLabel: string;
@@ -54,7 +54,7 @@ function findTriggeringTrade(
   }
 
   const exact = trades.find(
-    (trade) => toMs(trade.timestamp) === feedTimestampMs,
+    (trade) => tradeTimestampToMs(trade.timestamp) === feedTimestampMs,
   );
   if (exact) {
     return exact;
@@ -62,59 +62,62 @@ function findTriggeringTrade(
 
   return trades.reduce(
     (latest, trade) =>
-      toMs(trade.timestamp) > toMs(latest.timestamp) ? trade : latest,
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
     trades[0],
   );
 }
 
 /**
- * Feed rows are keyed off a triggering trade when one exists, and the trade's
- * intent is authoritative in both directions: an `exit` fill reads as closed
- * (even when {@link isClosedPosition} misclassifies a perp that still carries
- * stale non-zero margin in the Clicker payload), and an `enter` fill reads as
- * open (even when the position snapshot looks closed). We only fall back to the
- * {@link isClosedPosition} snapshot heuristic when there is no triggering trade.
+ * Resolves the lifecycle stage a feed row announces from its triggering trade
+ * (see {@link resolveTradeAction}), which separates a partial exit from a full
+ * close — the row used to read "closed" for a 10% trim.
+ *
+ * Missing action metadata remains undefined so the row can use a neutral label
+ * without inventing a lifecycle stage.
  */
-function isFeedItemClosed(
+function resolveAction(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
-): boolean {
-  if (trade) {
-    return trade.intent === 'exit';
-  }
-  return isClosedPosition(coreItem);
-}
-
-/**
- * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
- * spot as "bought"/"sold" (mirrors `TradeRow`).
- */
-function resolveAction(isPerp: boolean, isClosed: boolean): FeedAction {
-  if (isPerp) {
-    return isClosed ? 'closed' : 'opened';
-  }
-  return isClosed ? 'sold' : 'bought';
+): FeedAction | undefined {
+  return trade ? resolveTradeAction(coreItem, trade) : undefined;
 }
 
 /**
  * Builds the row sub-header from real API fields only: the triggering trade's
- * USD size, plus a derived per-unit price when it is meaningful (the API does
- * not expose a historical market cap, so that part of the Figma is omitted).
+ * USD size, plus either historical market cap at trade time (spot) or a derived
+ * per-unit price when it is meaningful.
  */
-function buildSubHeader(trade: Trade | undefined): string {
+function buildSubHeader(
+  trade: Trade | undefined,
+  isSpot: boolean,
+): FeedSubHeader {
   if (!trade) {
-    return '';
+    return { sizeLabel: '' };
   }
 
-  const size = formatAbbreviatedUsd(Math.abs(trade.usdCost));
-  const price =
-    trade.tokenAmount > 0 ? Math.abs(trade.usdCost / trade.tokenAmount) : null;
+  const sizeLabel = formatAbbreviatedUsd(Math.abs(trade.usdCost));
 
-  // Guard against sub-cent prices rendering as a misleading "$0.00".
-  if (price != null && price >= 0.01) {
-    return `${size} at ${formatUsd(price)}`;
+  if (isSpot && trade.marketCap != null) {
+    return {
+      sizeLabel,
+      contextValueLabel: formatAbbreviatedUsd(trade.marketCap),
+      contextKind: 'marketCap',
+    };
   }
-  return size;
+
+  const tokenAmount = Math.abs(trade.tokenAmount);
+  const price = tokenAmount > 0 ? Math.abs(trade.usdCost) / tokenAmount : null;
+
+  if (price != null && price > 0) {
+    return {
+      sizeLabel,
+      contextValueLabel: formatTradeUnitPrice(price),
+      contextKind: 'price',
+    };
+  }
+  return { sizeLabel };
 }
 
 function realizedPnlPercent(
@@ -221,9 +224,10 @@ function mapPerpFeedItem(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
   presentation: FeedItemPresentation,
-  action: FeedAction,
+  action: FeedAction | undefined,
+  isClosed: boolean,
   timestampMs: number,
-  subHeader: string,
+  subHeader: FeedSubHeader,
 ): FeedPerpItem {
   const { targetSymbol } = getSupportedXyzPerpMarketSymbol(
     coreItem.tokenSymbol,
@@ -237,6 +241,7 @@ function mapPerpFeedItem(
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
     action,
+    isClosed,
     timestamp: timestampMs,
     subHeader,
     ...presentation,
@@ -256,9 +261,10 @@ function mapPerpFeedItem(
 function mapSpotFeedItem(
   coreItem: CoreFeedItem,
   presentation: FeedItemPresentation,
-  action: FeedAction,
+  action: FeedAction | undefined,
+  isClosed: boolean,
   timestampMs: number,
-  subHeader: string,
+  subHeader: FeedSubHeader,
 ): FeedSpotItem | null {
   const chain = chainNameToId(coreItem.chain);
   if (!chain) {
@@ -272,6 +278,7 @@ function mapSpotFeedItem(
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
     action,
+    isClosed,
     timestamp: timestampMs,
     subHeader,
     ...presentation,
@@ -296,12 +303,16 @@ function mapSpotFeedItem(
 export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const { timestamp, trades } = coreItem;
 
-  const timestampMs = toMs(timestamp);
+  const timestampMs = tradeTimestampToMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
-  const isClosed = isFeedItemClosed(coreItem, trade);
-  const action = resolveAction(isPerp, isClosed);
-  const subHeader = buildSubHeader(trade);
+  const action = resolveAction(coreItem, trade);
+  const isClosed =
+    action === 'closed' || (action === undefined && isClosedPosition(coreItem));
+  // Only a full close realizes P&L. A reduce leaves the position open, so the
+  // right column keeps showing current value — the old `intent === 'exit'`
+  // test flipped it to a realized figure on every partial trim.
+  const subHeader = buildSubHeader(trade, !isPerp);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 
   if (isPerp) {
@@ -310,6 +321,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
       trade,
       presentation,
       action,
+      isClosed,
       timestampMs,
       subHeader,
     );
@@ -319,6 +331,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
     coreItem,
     presentation,
     action,
+    isClosed,
     timestampMs,
     subHeader,
   );

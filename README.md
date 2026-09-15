@@ -15,6 +15,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
+- [Animations](./docs/readme/animations.md)
 - [BigInt number migration](./docs/bigint-migration-guide.md) (deprecated `app/util/number/index.js` burndown and ESLint allowlist)
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
@@ -26,6 +27,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Development Process](./docs/readme/development-process.md)
 - [Performance](./docs/performance/)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
+- [Internal Android distribution](./docs/readme/android-internal-distribution.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 - [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
@@ -81,7 +83,7 @@ yarn watch
 
 #### Download and install the development build
 
-Expo development builds are produced by the [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) GitHub Actions workflow on every push to `main`. Artifacts are stored as GitHub Actions artifacts (not Runway buckets).
+Expo development builds are produced by the [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) GitHub Actions workflow. It runs on every push to `main`, but only actually compiles iOS/Android when the `@expo/fingerprint` hash of native code changed since the last build (plus a weekly Monday refresh so artifacts never go stale) — most pushes just reuse the existing build. This means the resolved run may be older than `main` HEAD; that's expected. Artifacts are stored as GitHub Actions artifacts (not Runway buckets).
 
 **Prerequisites:** [GitHub CLI](https://cli.github.com/) (`gh`) authenticated with access to this repository (`gh auth login`).
 
@@ -102,9 +104,18 @@ yarn install:ios:dev --skipInstall
 yarn install:android:dev --skipInstall
 ```
 
+Re-runs skip the download when the GitHub Actions artifact digest matches a local cache under `build/gh-expo-dev-build/`. Force a fresh download with `--force-download`:
+
+```bash
+yarn install:ios:dev --force-download
+yarn install:android:dev --force-download
+```
+
 Artifacts land under `build/` (`MetaMask.app` on iOS, `metamask-dev.apk` on Android). The workflow run id is saved to `build/expo-dev-build-run-id.txt`.
 
 **Manual download from GitHub Actions:**
+
+Note: since most runs skip the actual build (fingerprint unchanged), the most recent successful run may not have build artifacts attached — open the run and check for a `build-dev` job (skipped runs only have `resolve-dev-build`).
 
 ```bash
 # List recent successful Expo Dev Build runs on main
@@ -243,13 +254,13 @@ yarn start:android
 
 ### AI Agent Skills (`yarn skills`)
 
-AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [MetaMask/skills](https://github.com/MetaMask/skills) repo, with an optional private overlay from [Consensys/skills](https://github.com/Consensys/skills). Per [ADR #57](https://github.com/MetaMask/decisions/pull/162) this content is **not committed here** — `yarn skills` syncs it on demand into local-only paths under `.cursor/`, `.claude/`, and `.agents/`.
+AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [MetaMask/skills](https://github.com/MetaMask/skills) repo, with an optional private overlay from [Consensys/skills](https://github.com/Consensys/skills). Per [ADR #57](https://github.com/MetaMask/decisions/pull/162) this content is **not committed here** — it is synced into local-only paths under `.cursor/`, `.claude/`, and `.agents/`. `yarn install` syncs the base set; `yarn skills` syncs every domain.
 
 Zero-config setup:
 
 ```bash
-yarn install # refreshes the MetaMask/skills cache via the shared @metamask/skills CLI
-yarn skills  # syncs all default skills through metamask-skills sync
+yarn install # installs the base skill set (and refreshes the MetaMask/skills cache)
+yarn skills  # installs every domain, not just the base set
 ```
 
 Optional local configuration:
@@ -263,7 +274,9 @@ SKILLS_DOMAINS=perps,testing yarn skills      # one-off domain override
 
 Use `.skills.local` for persistent skills configuration. Shell environment variables with the same names are supported for one-off or CI overrides and take precedence.
 
-Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. To opt into best-effort regeneration during install/setup, set `SKILLS_AUTO_UPDATE=1` in your shell or `.skills.local`.
+Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. Set `SKILLS_AUTO_UPDATE=0` in your shell or `.skills.local` to opt out.
+
+Regeneration is best-effort, and quieter than it sounds. Yarn runs `postinstall` only when the dependency tree changes or the previous build failed, so a `yarn install` on an unchanged lockfile will not refresh skills — `git pull` on a branch that touched no dependencies usually leaves them as they were. Yarn also discards the output of a build it considers successful, and the hook deliberately exits 0 so a skills problem cannot fail `yarn install`, so nothing is printed either way. Run `yarn skills` when you want a refresh you can watch.
 
 ### Git Hooks (Husky)
 

@@ -4,14 +4,12 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import {
-  isHardwareAccount,
-  isQRHardwareAccount,
-} from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
 import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
@@ -21,8 +19,8 @@ import {
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import {
+  getPayTransactionType,
   getPostQuoteTransactionType,
-  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
@@ -45,6 +43,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -88,8 +87,6 @@ export function useAutomaticTransactionPayToken({
     [from],
   );
 
-  const isQRWallet = useMemo(() => isQRHardwareAccount(from ?? ''), [from]);
-
   const targetToken = useMemo(
     () => requiredTokens.find((token) => !token.allowUnderMinimum),
     [requiredTokens],
@@ -99,18 +96,19 @@ export function useAutomaticTransactionPayToken({
     () =>
       getPreferredTokensForTransactionType(
         payTokensFlags.preferredTokens,
-        postQuoteTransactionType ?? transactionMeta.type,
+        postQuoteTransactionType ??
+          getPayTransactionType(transactionMeta) ??
+          transactionMeta.type,
       ),
-    [
-      transactionMeta.type,
-      postQuoteTransactionType,
-      payTokensFlags.preferredTokens,
-    ],
+    [transactionMeta, postQuoteTransactionType, payTokensFlags.preferredTokens],
   );
 
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
   ]);
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
@@ -131,13 +129,24 @@ export function useAutomaticTransactionPayToken({
     [availableTokens, isWithdraw, withdrawTokenFilter],
   );
 
+  const {
+    isPending: isMoneyAccountPayPending,
+    shouldSelect: shouldSelectMoneyAccount,
+  } = useAutomaticMoneyAccountPayToken({
+    autoSelectFiatPayment,
+    disable,
+    hasFiatPaymentSelected,
+    hasTokenBalance: tokens.length > 0,
+    payTokenSelected: Boolean(payToken),
+  });
+
   const selectBestToken = useCallback(
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyPaymentOverride,
+        isMoneyAccountDeposit,
         isMoneyAccountWithdraw,
-        isQRWallet,
+        isMoneyPaymentOverride,
         isWithdraw,
         lastWithdrawToken,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
@@ -146,13 +155,12 @@ export function useAutomaticTransactionPayToken({
         preferredTokensFromFlags,
         targetToken,
         tokens,
-        transactionMeta,
       }),
     [
       isHardwareWallet,
-      isMoneyPaymentOverride,
+      isMoneyAccountDeposit,
       isMoneyAccountWithdraw,
-      isQRWallet,
+      isMoneyPaymentOverride,
       isWithdraw,
       lastWithdrawToken,
       relayFixedSpread,
@@ -161,7 +169,6 @@ export function useAutomaticTransactionPayToken({
       preferredTokensFromFlags,
       targetToken,
       tokens,
-      transactionMeta,
     ],
   );
 
@@ -182,7 +189,22 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
+    // Let money-account fallback own the default when the EOA has no tokens.
+    if (isMoneyAccountPayPending || shouldSelectMoneyAccount) {
+      if (shouldSelectMoneyAccount) {
+        isUpdated.current = transactionId;
+      }
+      return;
+    }
+
     if (autoSelectFiatPayment || tokens.length === 0) {
+      // Do NOT set isUpdated.current here. This return is intentionally
+      // unlatch-able: if isFiatEnabled is false because an incompatible provider
+      // is selected (e.g. Coinbase left over from UB2), useEnsureCompatibleProvider
+      // will dispatch a switch and trigger a re-render. The effect must be free to
+      // re-run on that render and complete fiat selection. Setting the latch here
+      // would silently prevent that re-run and leave the "Pay with..." row as a
+      // permanent skeleton.
       if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }
@@ -224,11 +246,13 @@ export function useAutomaticTransactionPayToken({
     disable,
     hasFiatPaymentSelected,
     isFiatEnabled,
+    isMoneyAccountPayPending,
     maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,
     requiredTokens,
     setPayToken,
+    shouldSelectMoneyAccount,
     tokens,
     transactionId,
   ]);
@@ -321,9 +345,9 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
-  isMoneyPaymentOverride,
+  isMoneyAccountDeposit,
   isMoneyAccountWithdraw,
-  isQRWallet,
+  isMoneyPaymentOverride,
   isWithdraw,
   lastWithdrawToken,
   minimumRequiredTokenBalance,
@@ -332,12 +356,11 @@ function getBestToken({
   preferredTokensFromFlags,
   targetToken,
   tokens,
-  transactionMeta,
 }: {
   isHardwareWallet: boolean;
-  isMoneyPaymentOverride: boolean;
+  isMoneyAccountDeposit: boolean;
   isMoneyAccountWithdraw: boolean;
-  isQRWallet: boolean;
+  isMoneyPaymentOverride: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   minimumRequiredTokenBalance: number;
@@ -346,12 +369,7 @@ function getBestToken({
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
-  transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } | undefined {
-  const isMusdConversion = hasTransactionType(transactionMeta, [
-    TransactionType.musdConversion,
-  ]);
-
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,
@@ -359,7 +377,7 @@ function getBestToken({
       }
     : undefined;
 
-  if (isHardwareWallet && (!isMusdConversion || isQRWallet)) {
+  if (isHardwareWallet) {
     return targetTokenFallback;
   }
 
@@ -367,10 +385,19 @@ function getBestToken({
     return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 
+  // Exclude zero-balance EOA tokens from every money-account deposit
+  // selection path. If none are funded, leave the pay token unresolved so the
+  // deposit prefill lifecycle can settle in its skipped state.
+  const selectableTokens = isMoneyAccountDeposit
+    ? tokens.filter((token) => (token.fiat?.balance ?? 0) > 0)
+    : tokens;
+  const hasMinimumRequiredBalance = (token: AssetType) =>
+    (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance;
+
   // Money account withdraws always default to mUSD (passed in via preferredToken),
   // ignoring the user's last-used withdraw token.
   if (isMoneyAccountWithdraw && preferredToken) {
-    const preferredTokenAvailable = tokens.some(
+    const preferredTokenAvailable = selectableTokens.some(
       (token) =>
         token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
         token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
@@ -382,7 +409,7 @@ function getBestToken({
   }
 
   if (isWithdraw && lastWithdrawToken) {
-    const lastWithdrawTokenAvailable = tokens.some(
+    const lastWithdrawTokenAvailable = selectableTokens.some(
       (token) =>
         token.address.toLowerCase() ===
           lastWithdrawToken.address.toLowerCase() &&
@@ -396,7 +423,7 @@ function getBestToken({
   }
 
   if (preferredToken) {
-    const preferredTokenAvailable = tokens.some(
+    const preferredTokenAvailable = selectableTokens.some(
       (token) =>
         token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
         token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
@@ -410,7 +437,7 @@ function getBestToken({
   if (preferredTokensFromFlags.length) {
     const candidates: AssetType[] = [];
     for (const preferred of preferredTokensFromFlags) {
-      const matchingToken = tokens.find(
+      const matchingToken = selectableTokens.find(
         (token) =>
           token.address.toLowerCase() === preferred.address.toLowerCase() &&
           token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
@@ -428,9 +455,7 @@ function getBestToken({
     }
 
     const eligible = candidates
-      .filter(
-        (token) => (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance,
-      )
+      .filter(hasMinimumRequiredBalance)
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
     if (eligible.length) {
@@ -441,12 +466,11 @@ function getBestToken({
     }
   }
 
-  if (tokens?.length && !isWithdraw) {
-    const noFeeCandidates = tokens
+  if (selectableTokens.length && !isWithdraw) {
+    const noFeeCandidates = selectableTokens
       .filter((token) => {
         if (!token.chainId) return false;
-        const fiatBalance = token.fiat?.balance ?? 0;
-        if (fiatBalance < minimumRequiredTokenBalance) return false;
+        if (!hasMinimumRequiredBalance(token)) return false;
         return isSubsidizedSource(relayFixedSpread, {
           chainId: token.chainId,
           address: token.address,
@@ -462,16 +486,19 @@ function getBestToken({
     }
   }
 
-  if (tokens?.length) {
+  if (selectableTokens.length) {
     if (isWithdraw) {
-      return undefined;
+      // Withdraws never guess a token from balances, but the required
+      // destination token is a known, safe default — and the one the pay-with
+      // row already displays.
+      return targetTokenFallback;
     }
 
     return {
-      address: tokens[0].address as Hex,
-      chainId: tokens[0].chainId as Hex,
+      address: selectableTokens[0].address as Hex,
+      chainId: selectableTokens[0].chainId as Hex,
     };
   }
 
-  return targetTokenFallback;
+  return isMoneyAccountDeposit ? undefined : targetTokenFallback;
 }

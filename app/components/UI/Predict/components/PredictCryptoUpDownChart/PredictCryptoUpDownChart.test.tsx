@@ -279,9 +279,14 @@ describe('PredictCryptoUpDownChart', () => {
       window: 300,
     });
 
+    // The component is memoized, so a same-props rerender would bail out
+    // before reading the updated hook mock. In production the hook's own
+    // state update re-renders the component; simulate that here by changing
+    // a prop alongside the mocked hook value.
     rerender(
       <PredictCryptoUpDownChart
         market={market}
+        targetPrice={100}
         onCurrentPriceChange={onCurrentPriceChange}
       />,
     );
@@ -289,7 +294,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).toHaveBeenCalledWith(-1);
   });
 
-  it('does not report placeholder current price while loading', () => {
+  it('clears the current price while loading without chart data', () => {
     const market = createMockMarket();
     const onCurrentPriceChange = jest.fn();
 
@@ -308,7 +313,7 @@ describe('PredictCryptoUpDownChart', () => {
       />,
     );
 
-    expect(onCurrentPriceChange).not.toHaveBeenCalled();
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(undefined);
   });
 
   it('reports current price while Liveline waits for renderable data', () => {
@@ -333,7 +338,30 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).toHaveBeenCalledWith(51000);
   });
 
-  it('does not report placeholder current price without chart data', () => {
+  it('reports the first TWAP observation while Liveline waits for renderable data', () => {
+    const market = { ...createMockMarket(), twapWindowSeconds: 30 as const };
+    const onCurrentPriceChange = jest.fn();
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: true,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+
+    render(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(51000);
+  });
+
+  it('clears the current price without chart data', () => {
     const market = createMockMarket();
     const onCurrentPriceChange = jest.fn();
 
@@ -352,7 +380,7 @@ describe('PredictCryptoUpDownChart', () => {
       />,
     );
 
-    expect(onCurrentPriceChange).not.toHaveBeenCalled();
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(undefined);
   });
 
   describe('orderbook wiring', () => {

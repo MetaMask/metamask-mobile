@@ -1,14 +1,16 @@
 import React, { useMemo } from 'react';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
+import { Text } from '@metamask/design-system-react-native';
 
 const FALLBACK_TYPES = [
   TransactionType.moneyAccountWithdraw,

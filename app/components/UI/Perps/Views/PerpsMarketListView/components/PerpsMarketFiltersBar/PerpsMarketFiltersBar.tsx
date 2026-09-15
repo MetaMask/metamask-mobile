@@ -1,15 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../../locales/i18n';
 import PerpsMarketSortDropdowns from '../../../../components/PerpsMarketSortDropdowns';
 import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategoryBadges';
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 /**
  * PerpsMarketFiltersBar Component
@@ -35,6 +36,7 @@ import styleSheet from './PerpsMarketFiltersBar.styles';
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
+  sortDirection,
   marketTypeFilter,
   onCategorySelect,
   marketCount,
@@ -61,12 +63,12 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
         />
       )}
 
-      {/* Row 2: Market count (left) + Sort dropdown (right) — hidden when watchlist filter is active */}
-      {showSortRow && !isWatchlistSelected && (
+      {/* Row 2: Market count (left) + Sort dropdown (right) */}
+      {showSortRow && (
         <View style={styles.sortRow}>
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
             testID={testID ? `${testID}-market-count` : undefined}
           >
             {marketCount === 1
@@ -76,6 +78,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
           <PerpsMarketSortDropdowns
             selectedOptionId={selectedOptionId}
             onSortPress={onSortPress}
+            sortDirection={sortDirection}
             testID={testID ? `${testID}-sort` : undefined}
           />
         </View>

@@ -43,17 +43,21 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
-  isUnlimitedApproval: boolean;
+  isUnlimitedApproval?: boolean;
 }
 
 // Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.
 const APPROVE_AMOUNT_UNLIMITED_THRESHOLD = 1e15;
 
 export function useMultichainTransactionDisplay(
-  transaction: Transaction,
+  transaction: Transaction | undefined,
   chainId: CaipChainId,
 ): MultichainTransactionDisplayData {
   const locale = I18n.locale;
+  if (!transaction) {
+    return { isRedeposit: false };
+  }
+
   const decimalPlaces = MULTICHAIN_NETWORK_DECIMAL_PLACES[chainId];
   const isRedeposit =
     transaction.to.length === 0 && transaction.type === TransactionType.Send;

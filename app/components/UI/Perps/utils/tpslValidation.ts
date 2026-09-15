@@ -11,7 +11,10 @@
  */
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
+import {
+  DECIMAL_PRECISION_CONFIG,
+  type OrderType,
+} from '@metamask/perps-controller';
 // Re-export significant figures utilities from controller for backwards compatibility
 export {
   countSignificantFigures,
@@ -28,6 +31,27 @@ interface ValidationParams {
 }
 
 /**
+ * Checks that a trigger price can be sent to the protocol at all.
+ *
+ * Direction checks alone let a non-positive price through: a negative take
+ * profit is still "below" a short's current price, and a negative stop loss is
+ * still "below" a long's current price. The protocol rejects the whole order
+ * when `p` or `triggerPx` is at or below zero, so this floor is checked before
+ * the direction rules.
+ *
+ * @param price - The trigger price to validate
+ * @returns False only when the price parses to a number at or below zero
+ */
+export const isPositiveTriggerPrice = (price?: string): boolean => {
+  if (!price) return true;
+
+  const parsedPrice = parseFloat(price.replace(/[$,]/g, ''));
+  if (isNaN(parsedPrice)) return true;
+
+  return parsedPrice > 0;
+};
+
+/**
  * Validates if a take profit price is valid for the given direction.
  *
  * @param price - The take profit price to validate
@@ -40,6 +64,8 @@ export const isValidTakeProfitPrice = (
   price: string,
   { currentPrice, direction }: ValidationParams,
 ): boolean => {
+  if (!isPositiveTriggerPrice(price)) return false;
+
   if (!currentPrice || !direction || !price) return true;
 
   const tpPrice = parseFloat(price.replace(/[$,]/g, ''));
@@ -62,6 +88,8 @@ export const isValidStopLossPrice = (
   price: string,
   { currentPrice, direction }: ValidationParams,
 ): boolean => {
+  if (!isPositiveTriggerPrice(price)) return false;
+
   if (!currentPrice || !direction || !price) return true;
 
   const slPrice = parseFloat(price.replace(/[$,]/g, ''));
@@ -101,6 +129,90 @@ export const isStopLossSafeFromLiquidation = (
     : slPriceNum < liquidationPriceNum;
 };
 
+export interface PerpsOrderTpSlWarningsInput {
+  orderType: OrderType;
+  limitPrice?: string;
+  direction: 'long' | 'short';
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  /** Current liquidation price for the prospective order. */
+  liquidationPrice: string;
+  /** Mid/market price used as the validation reference for market orders. */
+  marketPrice: number;
+}
+
+export interface PerpsOrderTpSlWarnings {
+  /** Stop loss sits at/beyond the liquidation price. */
+  doesStopLossRiskLiquidation: boolean;
+  /** Take profit is on the wrong side of the reference price. */
+  isTakeProfitPriceInvalid: boolean;
+  /** Stop loss is on the wrong side of the reference price. */
+  isStopLossPriceInvalid: boolean;
+  /** Which price the warnings validated against ('entry' for priced limit, else 'current'). */
+  tpslPriceType: 'entry' | 'current';
+}
+
+/**
+ * Pure derivation of the order-form TP/SL warning flags shared by the lite
+ * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. For priced
+ * limit orders the limit price is the validation reference; otherwise the
+ * market price is used. Mirrors the lite form's original inline logic exactly.
+ *
+ * @param input - TP/SL warning inputs.
+ * @returns The three warning flags plus the reference price type.
+ */
+export const getPerpsOrderTpSlWarnings = ({
+  orderType,
+  limitPrice,
+  direction,
+  takeProfitPrice,
+  stopLossPrice,
+  liquidationPrice,
+  marketPrice,
+}: PerpsOrderTpSlWarningsInput): PerpsOrderTpSlWarnings => {
+  const doesStopLossRiskLiquidation = Boolean(
+    stopLossPrice &&
+      !isStopLossSafeFromLiquidation(
+        stopLossPrice,
+        liquidationPrice,
+        direction,
+      ),
+  );
+
+  const isLimitWithPrice = orderType === 'limit' && Boolean(limitPrice);
+  const validationReferencePrice = isLimitWithPrice
+    ? Number.parseFloat(String(limitPrice))
+    : marketPrice;
+  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
+
+  const isTakeProfitPriceInvalid = Boolean(
+    takeProfitPrice?.trim() &&
+      (!isPositiveTriggerPrice(takeProfitPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidTakeProfitPrice(takeProfitPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
+  );
+
+  const isStopLossPriceInvalid = Boolean(
+    stopLossPrice?.trim() &&
+      (!isPositiveTriggerPrice(stopLossPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidStopLossPrice(stopLossPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
+  );
+
+  return {
+    doesStopLossRiskLiquidation,
+    isTakeProfitPriceInvalid,
+    isStopLossPriceInvalid,
+    tpslPriceType,
+  };
+};
+
 /**
  * Validates both take profit and stop loss prices.
  *
@@ -114,6 +226,15 @@ export const validateTPSLPrices = (
   stopLossPrice: string | undefined,
   params: ValidationParams,
 ): boolean => {
+  // The positive-price floor does not depend on a reference price, so it is
+  // applied before the early return that skips the direction rules.
+  if (
+    !isPositiveTriggerPrice(takeProfitPrice) ||
+    !isPositiveTriggerPrice(stopLossPrice)
+  ) {
+    return false;
+  }
+
   if (!params.currentPrice || !params.direction) return true;
 
   let isValid = true;

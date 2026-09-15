@@ -13,9 +13,6 @@ import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { AppThemeKey } from '../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../util/theme/pureBlackPreview';
-import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
   HeaderStandard,
@@ -26,7 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 const ROW_HEIGHT = 35;
-export const createStyles = (theme) => {
+const createStyles = (theme) => {
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -48,23 +45,14 @@ export const createStyles = (theme) => {
       width: '100%',
       padding: 60,
     },
-    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
-    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
-    // Use: backgroundColor: colors.background.default, borderWidth: 0
     modalView: {
-      backgroundColor: getElevatedSurfaceColor(theme),
+      backgroundColor: theme.colors.background.elevated1,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
-      borderWidth:
-        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-          ? 1
-          : 0,
-      borderColor:
-        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-          ? colors.border.muted
-          : undefined,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
     },
     list: {
       width: '100%',

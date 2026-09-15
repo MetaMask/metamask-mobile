@@ -1,6 +1,7 @@
 import { TrxScope } from '@metamask/keyring-api';
 import { isTradableToken } from './index';
 import { BridgeToken } from '../../types';
+import { KnownCaip19Id } from '../../../../../core/Multichain/constants';
 
 // Helper function to create test tokens
 const createTestToken = (
@@ -170,13 +171,25 @@ describe('isTradableToken', () => {
 
       expect(result).toBe(true);
     });
+
+    it('returns true for native TRX', () => {
+      const token = createTestToken({
+        chainId: TrxScope.Mainnet,
+        address: `${TrxScope.Mainnet}/slip44:195`,
+        symbol: 'TRX',
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-tradable Tron resource tokens', () => {
     it('returns false for Tron Energy token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'energy',
+        address: KnownCaip19Id.EnergyMainnet,
       });
 
       const result = isTradableToken(token);
@@ -187,7 +200,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron Bandwidth token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'bandwidth',
+        address: KnownCaip19Id.BandwidthMainnet,
       });
 
       const result = isTradableToken(token);
@@ -195,10 +208,10 @@ describe('isTradableToken', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false for Tron Max Bandwidth token', () => {
+    it('returns false for Tron Maximum Bandwidth token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'max-bandwidth',
+        address: KnownCaip19Id.MaximumBandwidthMainnet,
       });
 
       const result = isTradableToken(token);
@@ -206,10 +219,10 @@ describe('isTradableToken', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false for Tron energy token with lowercase', () => {
+    it('returns false for Tron Maximum Energy token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'energy',
+        address: KnownCaip19Id.MaximumEnergyMainnet,
       });
 
       const result = isTradableToken(token);
@@ -217,21 +230,10 @@ describe('isTradableToken', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false for Tron bandwidth token with uppercase', () => {
+    it('returns false for TRX staked for energy', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'BANDWIDTH',
-      });
-
-      const result = isTradableToken(token);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for Tron max bandwidth token with mixed case', () => {
-      const token = createTestToken({
-        chainId: TrxScope.Mainnet,
-        symbol: 'MaX-BaNdWiDtH',
+        address: KnownCaip19Id.TrxStakedForEnergyMainnet,
       });
 
       const result = isTradableToken(token);
@@ -242,7 +244,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron Ready for Withdrawal token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'TRX-READY-FOR-WITHDRAWAL',
+        address: KnownCaip19Id.TrxReadyForWithdrawalMainnet,
       });
 
       const result = isTradableToken(token);
@@ -253,7 +255,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron Staking Rewards token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'TRX-STAKING-REWARDS',
+        address: KnownCaip19Id.TrxStakingRewardsMainnet,
       });
 
       const result = isTradableToken(token);
@@ -264,7 +266,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron In Lock Period token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        symbol: 'TRX-IN-LOCK-PERIOD',
+        address: KnownCaip19Id.TrxInLockPeriodMainnet,
       });
 
       const result = isTradableToken(token);

@@ -1,9 +1,12 @@
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../reducers';
 import {
+  selectIsTransactionPaySubmitReadyByTransactionId,
   selectTransactionDataByTransactionId,
   selectTransactionPayTotalsByTransactionId,
   selectIsTransactionPayLoadingByTransactionId,
   selectTransactionPayQuotesByTransactionId,
+  selectTransactionPayQuotesLastUpdatedByTransactionId,
   selectTransactionPayTokensByTransactionId,
   selectTransactionPaymentTokenByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
@@ -137,6 +140,22 @@ describe('transactionPayController selectors', () => {
       );
 
       expect(result).toStrictEqual(quotes);
+    });
+  });
+
+  describe('selectTransactionPayQuotesLastUpdatedByTransactionId', () => {
+    it('returns the quote update timestamp from transaction data', () => {
+      const quotesLastUpdated = 123;
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: { quotesLastUpdated },
+      });
+
+      const result = selectTransactionPayQuotesLastUpdatedByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(quotesLastUpdated);
     });
   });
 
@@ -356,6 +375,135 @@ describe('transactionPayController selectors', () => {
       const result = selectPaymentOverrideByTransactionId(state, 'nonexistent');
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectIsTransactionPaySubmitReadyByTransactionId', () => {
+    const REQUIRED_TOKEN = {
+      address: '0xRequiredToken',
+      chainId: '0xa4b1',
+      skipIfBalance: false,
+    };
+
+    const MATCHING_PAYMENT_TOKEN = {
+      address: '0xrequiredtoken',
+      chainId: '0xa4b1',
+    };
+
+    const OTHER_PAYMENT_TOKEN = {
+      address: '0xOtherToken',
+      chainId: '0x1',
+    };
+
+    it('returns true when an executable quote is in state', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {
+          quotes: [{ strategy: TransactionPayStrategy.Relay }],
+        },
+      });
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when no pay state exists for the transaction', () => {
+      const state = createMockRootState({});
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the payment token is not set and there are no quotes', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {
+          quotes: [],
+          tokens: [REQUIRED_TOKEN],
+        },
+      });
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when paying with a different token and only a no-op quote exists', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {
+          quotes: [{ strategy: TransactionPayStrategy.None }],
+          tokens: [REQUIRED_TOKEN],
+          paymentToken: OTHER_PAYMENT_TOKEN,
+        },
+      });
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true for a direct route paying with the required token itself', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {
+          quotes: [],
+          tokens: [REQUIRED_TOKEN],
+          paymentToken: MATCHING_PAYMENT_TOKEN,
+          sourceAmounts: [],
+        },
+      });
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when a required conversion is pending without a quote', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {
+          quotes: [],
+          tokens: [REQUIRED_TOKEN],
+          paymentToken: MATCHING_PAYMENT_TOKEN,
+          sourceAmounts: [{ targetTokenAddress: REQUIRED_TOKEN.address }],
+        },
+      });
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true for a fiat-funded deposit with an order created', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {
+          quotes: [],
+          fiatPayment: { orderId: 'order-1' },
+        },
+      });
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(true);
     });
   });
 });

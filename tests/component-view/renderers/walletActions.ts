@@ -10,16 +10,27 @@ import { initialStateWalletActions } from '../presets/walletActions';
 interface RenderWalletActionsViewOptions {
   overrides?: DeepPartial<RootState>;
   isEvmSelected?: boolean;
+  /** Extra remote feature flags merged on top of the wallet-actions preset defaults. */
+  remoteFeatureFlags?: Record<string, unknown>;
 }
 
 export function renderWalletActionsView(
   options: RenderWalletActionsViewOptions = {},
 ): ReturnType<typeof renderComponentViewScreen> {
-  const { overrides, isEvmSelected } = options;
+  const { overrides, isEvmSelected, remoteFeatureFlags } = options;
 
-  const builder = initialStateWalletActions({ isEvmSelected });
+  let builder = initialStateWalletActions({ isEvmSelected });
+  if (remoteFeatureFlags) {
+    builder = builder.withRemoteFeatureFlags({
+      perpsPerpTradingEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+      ...remoteFeatureFlags,
+    });
+  }
   if (overrides) {
-    builder.withOverrides(overrides);
+    builder = builder.withOverrides(overrides);
   }
   const state = builder.build();
 

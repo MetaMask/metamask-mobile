@@ -7,6 +7,7 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
@@ -15,7 +16,6 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { isPerpsPredictMoneyWithdraw } from '../../Money/utils/moneyTransactionGuards';
 import { store } from '../../../../store';

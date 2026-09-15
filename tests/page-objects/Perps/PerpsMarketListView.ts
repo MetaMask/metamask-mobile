@@ -1,5 +1,6 @@
 import {
   PerpsHomeViewSelectorsIDs,
+  PerpsMarketBalanceActionsSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
@@ -8,15 +9,10 @@ import {
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import {
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { encapsulatedAction, PlaywrightGestures } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import Utilities from '../../framework/Utilities';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
+import type { ScrollContainer } from '../../framework/types';
 
 export type PerpsOrderSide = 'long' | 'short';
 
@@ -40,7 +36,7 @@ class PerpsMarketListView {
    * HeaderCompactStandard back on explore market list (see PerpsMarketListView.tsx).
    * Navigates from the market list back to Perps portfolio home.
    */
-  get headerBackButton(): EncapsulatedElementType {
+  get headerBackButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
     );
@@ -68,52 +64,18 @@ class PerpsMarketListView {
   }
 
   /** List header - wdio PerpsMarketListView uses 'perps-home' for isHeaderVisible */
-  get listHeader(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketListViewSelectorsIDs.LIST_HEADER,
-          { exact: true },
-        ),
-    });
+  get listHeader(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER);
   }
 
-  get header(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            PerpsMarketListViewSelectorsIDs.MARKET_LIST,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            PerpsMarketListViewSelectorsIDs.MARKET_LIST,
-          ),
-      },
-    });
+  get header(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST);
   }
 
-  get marketRowItemBTC(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(getPerpsMarketRowItemSelector.rowItem('BTC')),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            getPerpsMarketRowItemSelector.rowItem('BTC'),
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            getPerpsMarketRowItemSelector.rowItem('BTC'),
-          ),
-      },
-    });
+  get marketRowItemBTC(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      getPerpsMarketRowItemSelector.rowItem('BTC'),
+    );
   }
 
   // Generic selector for first market row item (regardless of coin)
@@ -129,26 +91,31 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.MODAL);
   }
 
-  get scrollableContainer(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(PerpsTokenSelectorSelectorsIDs.MODAL);
+  get scrollableContainer(): ScrollContainer {
+    return Matchers.scrollContainer(PerpsTokenSelectorSelectorsIDs.MODAL);
   }
 
-  get marketListScrollableContainer(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(PerpsMarketListViewSelectorsIDs.MARKET_LIST);
+  get marketListScrollableContainer(): ScrollContainer {
+    return Matchers.scrollContainer(
+      PerpsMarketListViewSelectorsIDs.MARKET_LIST,
+    );
   }
 
   get closeTokenSelector() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON);
   }
 
+  get withdrawButton() {
+    return Matchers.getElementByID(
+      PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+    );
+  }
+
   // Actions
   async tapMarketRowItemBTC() {
-    await encapsulatedAction({
-      appium: async () => {
-        const marketElement = await asPlaywrightElement(this.marketRowItemBTC);
-        await PlaywrightGestures.scrollIntoView(marketElement);
-        await PlaywrightGestures.waitAndTap(marketElement);
-      },
+    await Gestures.scrollIntoView(this.marketRowItemBTC);
+    await Gestures.waitAndTap(this.marketRowItemBTC, {
+      elemDescription: 'BTC market row',
     });
   }
 
@@ -194,19 +161,15 @@ class PerpsMarketListView {
     );
   }
 
-  private get perpsHomeScrollView(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT);
-  }
-
   /**
    * Scrolls the Perps home feed (or full market list) until the market row is visible.
    * Avoids tapping Explore crypto, which is flaky when clipped on CI.
    */
-  async scrollToMarketRow(marketName: string): Promise<void> {
+  async scrollToMarketRow(marketName: string): Promise<boolean> {
     const marketElement = this.getMarketRowElement(marketName);
 
     if (await Utilities.isElementVisible(marketElement, 1500)) {
-      return;
+      return true;
     }
 
     const watchlistSection = Matchers.getElementByID(
@@ -219,41 +182,36 @@ class PerpsMarketListView {
 
     if (perpsHomeScrollVisible) {
       if (await Utilities.isElementVisible(watchlistSection, 1000)) {
-        await Gestures.scrollToElement(
-          watchlistSection,
-          this.perpsHomeScrollView,
-          {
-            direction: 'down',
-            scrollAmount: 200,
-            timeout: 10000,
-            elemDescription: 'Perps home watchlist section',
-          },
+        await Gestures.swipe(
+          Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+          'up',
+          { percentage: 0.6 },
         );
       }
 
       if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
+        return true;
       }
 
-      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
-        direction: 'down',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row on Perps home`,
-      });
-
+      await Gestures.swipe(
+        Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+        'up',
+        { percentage: 0.6 },
+      );
       if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
+        return true;
       }
 
-      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
-        direction: 'up',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row on Perps home (scroll up)`,
-      });
+      await Gestures.swipe(
+        Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+        'down',
+        { percentage: 0.6 },
+      );
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return true;
+      }
 
-      return;
+      return false;
     }
 
     const marketListVisible = await Utilities.isElementVisible(
@@ -261,55 +219,61 @@ class PerpsMarketListView {
       1000,
     );
     if (marketListVisible) {
-      await Gestures.scrollToElement(
-        marketElement,
-        this.marketListScrollableContainer,
-        {
-          direction: 'down',
-          scrollAmount: 200,
-          timeout: 10000,
-          elemDescription: `${marketName} market row in market list`,
-        },
+      await Gestures.swipe(
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST),
+        'up',
+        { percentage: 0.6 },
       );
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return true;
+      }
     }
+
+    return false;
+  }
+
+  /**
+   * Opens the market-list search UI and types the symbol so late-loading
+   * watchlist rows can still be selected.
+   */
+  private async searchAndRevealMarketRow(marketName: string): Promise<void> {
+    const marketElement = this.getMarketRowElement(marketName);
+    if (!(await Utilities.isElementVisible(this.searchBar, 1000))) {
+      await this.openMarketListFromHomeSearch();
+    }
+    await Gestures.typeText(this.searchBar, marketName, {
+      elemDescription: 'Perps market search input',
+      hideKeyboard: true,
+    });
+    await Gestures.scrollToElement(
+      marketElement,
+      this.marketListScrollableContainer,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        timeout: 10000,
+        elemDescription: `${marketName} market row in searched market list`,
+      },
+    );
   }
 
   async selectMarket(marketName: string) {
-    await encapsulatedAction({
-      detox: async () => {
-        const marketElement = this.getMarketRowElement(marketName);
-        try {
-          await this.scrollToMarketRow(marketName);
-        } catch {
-          await this.openMarketListFromHomeSearch();
-          await Gestures.typeText(this.searchBar, marketName, {
-            elemDescription: 'Perps market search input',
-            hideKeyboard: true,
-          });
-          await Gestures.scrollToElement(
-            marketElement,
-            this.marketListScrollableContainer,
-            {
-              direction: 'down',
-              scrollAmount: 200,
-              timeout: 10000,
-              elemDescription: `${marketName} market row in searched market list`,
-            },
-          );
-        }
-        await Gestures.waitAndTap(marketElement, {
-          elemDescription: `${marketName} market row`,
-        });
-      },
-      appium: async () => {
-        const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
-        const marketElement = await PlaywrightMatchers.getElementById(
-          marketSelector,
-          { exact: true },
-        );
-        await PlaywrightGestures.scrollIntoView(marketElement);
-        await PlaywrightGestures.waitAndTap(marketElement);
-      },
+    const marketElement = this.getMarketRowElement(marketName);
+    const marketRowFound = await this.scrollToMarketRow(marketName);
+
+    if (!marketRowFound) {
+      await this.searchAndRevealMarketRow(marketName);
+    }
+
+    // Scroll can "succeed" without the row mounting (FlatList / late mocks).
+    // Always fall back to search before the final tap when still missing.
+    if (!(await Utilities.isElementVisible(marketElement, 1500))) {
+      await this.searchAndRevealMarketRow(marketName);
+    }
+
+    await Gestures.waitAndTap(marketElement, {
+      elemDescription: `${marketName} market row`,
+      timeout: 15000,
     });
   }
 

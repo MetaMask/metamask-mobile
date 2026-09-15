@@ -3,6 +3,7 @@ import {
   encodeSmartContractWrite,
   immersveNetworkToCaipChainId,
   immersveNetworkToFundingToken,
+  withApproveAmount,
 } from './immersveFunding';
 import {
   BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
@@ -58,6 +59,40 @@ describe('immersveNetworkToFundingToken', () => {
   it('throws for an unknown or missing network', () => {
     expect(() => immersveNetworkToFundingToken('polygon')).toThrow();
     expect(() => immersveNetworkToFundingToken(undefined)).toThrow();
+  });
+});
+
+describe('withApproveAmount', () => {
+  const spender = '0x1111111111111111111111111111111111111111';
+
+  it('overrides the uint256 approve amount by name and position', () => {
+    const write: CardSmartContractWriteParams = {
+      abi: APPROVE_ABI,
+      contractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      method: 'approve',
+      params: { _spender: spender, _value: '1000000' },
+    };
+
+    expect(withApproveAmount(write, '5000000')).toStrictEqual({
+      ...write,
+      params: {
+        _spender: spender,
+        _value: '5000000',
+        '1': '5000000',
+      },
+    });
+  });
+
+  it('does not mutate the original write params', () => {
+    const write: CardSmartContractWriteParams = {
+      abi: APPROVE_ABI,
+      contractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      method: 'approve',
+      params: { _spender: spender, _value: '1000000' },
+    };
+
+    withApproveAmount(write, '9');
+    expect(write.params._value).toBe('1000000');
   });
 });
 

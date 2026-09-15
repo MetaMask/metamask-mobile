@@ -2,10 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -18,6 +14,12 @@ import {
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
+import {
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -93,8 +95,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     >
       {label && (
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.label}
         >
           {label}
@@ -107,8 +109,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         ) : (
           <Text
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-            color={hasError ? TextColor.Error : TextColor.Default}
-            variant={TextVariant.BodyMDBold}
+            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
             style={
               Platform.OS === 'android'
                 ? styles.amountValueTokenAndroid
@@ -133,8 +136,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       {/* Display token amount equivalent for current input */}
       {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.maxAmount}
           testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
@@ -143,8 +146,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       )}
       {showWarning && (
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Warning}
+          variant={TextVariant.BodySm}
+          color={TextColor.WarningDefault}
           style={styles.warning}
         >
           {warningMessage}

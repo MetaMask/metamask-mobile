@@ -55,9 +55,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({ countryKey: 'GB' }),
 }));
 
-jest.mock('../../hooks/useImmersveSpendingPrerequisites');
-jest.mock('../../hooks/useImmersveFunding');
-jest.mock('../../hooks/useImmersveOnboardingRouter');
+jest.mock('../../hooks/useImmersveSpendingPrerequisites', () => ({
+  useImmersveSpendingPrerequisites: jest.fn(),
+}));
+jest.mock('../../hooks/useImmersveFunding', () => ({
+  useImmersveFunding: jest.fn(),
+}));
+jest.mock('../../hooks/useImmersveOnboardingRouter', () => ({
+  useImmersveOnboardingRouter: jest.fn(),
+}));
 
 const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
@@ -84,6 +90,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../util/metrics', () => ({
   CardScreens: { FUNDING_APPROVAL: 'FUNDING_APPROVAL' },
+  CardActions: {
+    FUNDING_APPROVAL_CONFIRM: 'FUNDING_APPROVAL_CONFIRM',
+    FUNDING_APPROVAL_RETRY: 'FUNDING_APPROVAL_RETRY',
+  },
+  withCardProvider: (
+    provider: string | null | undefined,
+    properties: Record<string, unknown> = {},
+  ) => ({
+    provider,
+    ...properties,
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -142,7 +159,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 
 const WRITE = {
@@ -180,7 +196,6 @@ describe('ImmersveFundingApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
       reset: mockReset,
     });
     (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
@@ -234,7 +249,7 @@ describe('ImmersveFundingApproval', () => {
 
     fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
 
-    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE);
+    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
     // Settling flips synchronously on press — the card stays mounted, only the
     // button's own state changes.
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
@@ -313,7 +328,7 @@ describe('ImmersveFundingApproval', () => {
     expect(retryButton.props.accessibilityState.disabled).toBeFalsy();
 
     fireEvent.press(retryButton);
-    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE);
+    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
   });
 
   it('shows an inline error and retries createCard when it fails', () => {

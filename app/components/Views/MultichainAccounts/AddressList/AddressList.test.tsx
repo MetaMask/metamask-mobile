@@ -3,6 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 import { IconName, toast } from '@metamask/design-system-react-native';
+import { FlashList } from '@shopify/flash-list';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -23,12 +24,17 @@ const TITLE = 'Test Address List';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
+let mockFocusCleanup: (() => void) | undefined;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     setOptions: mockSetOptions,
+  }),
+  useFocusEffect: jest.fn((callback) => {
+    const cleanup = callback();
+    mockFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
   }),
 }));
 
@@ -183,6 +189,7 @@ const renderWithAddressList = () => {
 describe('AddressList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusCleanup = undefined;
 
     const { useParams } = jest.requireMock(
       '../../../../util/navigation/navUtils',
@@ -280,6 +287,47 @@ describe('AddressList', () => {
         },
       },
     );
+  });
+
+  it('calls route onLoad once when FlashList loads', () => {
+    const onLoad = jest.fn();
+    const { useParams } = jest.requireMock(
+      '../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      title: TITLE,
+      groupId: ACCOUNT_GROUP_ID,
+      source: 'copy_button',
+      onLoad,
+    });
+
+    const { UNSAFE_getByType, unmount } = renderWithAddressList();
+
+    UNSAFE_getByType(FlashList).props.onLoad({ elapsedTimeInMs: 10 });
+    mockFocusCleanup?.();
+    unmount();
+
+    expect(onLoad).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls route onLoad when the screen loses focus before FlashList loads', () => {
+    const onLoad = jest.fn();
+    const { useParams } = jest.requireMock(
+      '../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      title: TITLE,
+      groupId: ACCOUNT_GROUP_ID,
+      source: 'copy_button',
+      onLoad,
+    });
+
+    const { unmount } = renderWithAddressList();
+
+    mockFocusCleanup?.();
+    unmount();
+
+    expect(onLoad).toHaveBeenCalledTimes(1);
   });
 
   describe('Analytics tracking', () => {

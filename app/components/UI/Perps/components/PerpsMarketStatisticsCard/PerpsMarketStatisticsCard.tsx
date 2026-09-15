@@ -11,16 +11,12 @@ import {
   SectionHeader,
   Tag,
   TagSeverity,
-  Text as DSText,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor as CLTextColor,
-  TextVariant as CLTextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
@@ -67,9 +63,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       marketStats.fundingRate &&
       marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
     ) {
-      fundingValue =
-        parseFloat(marketStats.fundingRate.replace('%', '')) /
-        FUNDING_RATE_CONFIG.PercentageMultiplier;
+      fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
       displayText = marketStats.fundingRate;
     } else {
       fundingValue = 0;
@@ -89,12 +83,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const fundingValueContent = useMemo(
     () => (
       <View style={styles.fundingRateContainer}>
-        <DSText variant={TextVariant.BodyMd} color={fundingRateData.color}>
+        <Text variant={TextVariant.BodyMd} color={fundingRateData.color}>
           {fundingRateData.displayText}
-        </DSText>
+        </Text>
         <FundingCountdown
-          variant={CLTextVariant.BodySM}
-          color={CLTextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.fundingCountdown}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
@@ -115,7 +109,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   const oraclePriceContent = useMemo(
     () => (
-      <DSText
+      <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextDefault}
         testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE}
@@ -125,7 +119,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               ranges: PRICE_RANGES_UNIVERSAL,
             })
           : '-'}
-      </DSText>
+      </Text>
     ),
     [liveOraclePrice],
   );
@@ -137,9 +131,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        <DSText variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {strings('perps.market.stats')}
-        </DSText>
+        </Text>
         {dexName ? (
           <Tag severity={TagSeverity.Neutral}>{dexName.toUpperCase()}</Tag>
         ) : null}

@@ -1,13 +1,16 @@
 import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
 import {
   isSubsidizedRoute,
   isSubsidizedSource,
 } from '../../utils/relayFixedSpread';
-import { hasTransactionType } from '../../utils/transaction';
 import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -15,6 +18,8 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import { NoFeeTag } from '../../components/UI/no-fee-tag';
 import { TokenTagRenderer } from '../../components/UI/token';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 
 export interface NoFeeTokenResult {
   address: Hex;
@@ -65,13 +70,17 @@ export function usePayWithNoFeeToken({
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { availableTokens } = useTransactionPayAvailableTokens();
   const transactionMeta = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
+  const isHardwareWallet = Boolean(
+    payingAccount && isHardwareAccount(payingAccount),
+  );
   const isMoneyWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
 
   const matchesNoFee = useCallback(
     (address: string | undefined, chainId: string | undefined): boolean => {
-      if (!address || !chainId) return false;
+      if (isHardwareWallet || !address || !chainId) return false;
       const hexChainId = safeFormatChainIdToHex(chainId);
 
       if (isMoneyWithdraw) {
@@ -89,7 +98,7 @@ export function usePayWithNoFeeToken({
         chainId: hexChainId,
       });
     },
-    [relayFixedSpread, isMoneyWithdraw],
+    [isHardwareWallet, relayFixedSpread, isMoneyWithdraw],
   );
 
   // Matches purely on the route config — NOT gated on `availableTokens`. The

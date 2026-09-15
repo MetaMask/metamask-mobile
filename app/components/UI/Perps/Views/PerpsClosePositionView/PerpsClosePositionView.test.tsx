@@ -1,4 +1,10 @@
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -7,6 +13,7 @@ import {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
@@ -16,6 +23,7 @@ import {
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import {
   defaultMinimumOrderAmountMock,
   defaultPerpsClosePositionMock,
@@ -29,6 +37,7 @@ import {
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
 import PerpsClosePositionView from './PerpsClosePositionView';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -36,6 +45,11 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useIsFocused: jest.fn(),
+}));
+jest.mock('../../../../../util/haptics');
+jest.mock('../../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
 }));
 
 // Mock React Native Linking specifically for this test to prevent NavigationContainer errors
@@ -84,10 +98,13 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 // Following best practice: "Use mocks only when necessary"
 jest.mock('../../../../Base/Keypad', () => 'Keypad');
 
-jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
-  __esModule: true,
-  default: 'PerpsSlider',
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    Slider: 'Slider',
+  };
+});
 
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');
@@ -176,6 +193,7 @@ const defaultPerpsToastsMock = {
   PerpsToastOptions: {
     positionManagement: {
       closePosition: {
+        positionAlreadyClosed: { label: 'already-closed' },
         limitClose: {
           partial: {
             switchToMarketOrderMissingLimitPrice: {},
@@ -204,6 +222,9 @@ describe('PerpsClosePositionView', () => {
   );
   const useRouteMock = jest.mocked(
     jest.requireMock('@react-navigation/native').useRoute,
+  );
+  const useIsFocusedMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useIsFocused,
   );
   const usePerpsLivePositionsMock = jest.mocked(
     jest.requireMock('../../hooks/stream').usePerpsLivePositions,
@@ -251,6 +272,8 @@ describe('PerpsClosePositionView', () => {
       goBack: mockGoBack,
       addListener: jest.fn(() => jest.fn()),
     });
+
+    useIsFocusedMock.mockReturnValue(true);
 
     // Setup default route params
     useRouteMock.mockReturnValue({
@@ -389,13 +412,199 @@ describe('PerpsClosePositionView', () => {
       await waitFor(() => {
         expect(handleClosePosition).toHaveBeenCalled();
       });
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('plays PrimaryCTA once for an opted-in close confirmation', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          enableHaptics: true,
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('dismisses the sheet with already-closed toast when live position is gone', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'positions',
+      );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'accountState',
+      );
+      expect(handleClosePosition).not.toHaveBeenCalled();
+    });
+
+    it('does not dismiss a second time when the stream drops the position after a confirmed close', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+    });
+
+    it('keeps the sheet open while positions are still loading', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
+    });
+
+    it('defers the already-closed dismissal while the sheet is not focused', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      useIsFocusedMock.mockReturnValue(false);
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
+
+      useIsFocusedMock.mockReturnValue(true);
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
     });
 
     it('disables confirm button when closing is in progress', () => {
       // Arrange
+      const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({
-        handleClosePosition: jest.fn(),
+        handleClosePosition,
         isClosing: true,
+      });
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          enableHaptics: true,
+        },
       });
 
       const { getByTestId } = renderWithProvider(
@@ -416,6 +625,9 @@ describe('PerpsClosePositionView', () => {
         confirmButton.props.disabled ||
           confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
+      fireEvent.press(confirmButton);
+      expect(handleClosePosition).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('shows loading state on confirm button when closing', () => {
@@ -1423,6 +1635,175 @@ describe('PerpsClosePositionView', () => {
         expect(handleClosePosition).not.toHaveBeenCalled();
       });
       selectLimitFlagMock.mockReturnValue(false);
+    });
+  });
+
+  describe('Slider drag commit funnel', () => {
+    it('blocks confirm while a drag is in flight, then confirms once the value is committed', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
+      const getConfirmButton = () =>
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        );
+
+      // Act - start (but never end) a drag, then try to confirm immediately
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(40);
+      });
+      fireEvent.press(getConfirmButton());
+
+      // Assert - the in-flight drag is flushed instead of being submitted
+      await waitFor(() => {
+        expect(handleClosePosition).not.toHaveBeenCalled();
+      });
+
+      // Act - press confirm again now that the value has committed
+      fireEvent.press(getConfirmButton());
+
+      // Assert - this second tap goes through
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+    });
+
+    it('commits the live value on drag end', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
+
+      // Act
+      act(() => {
+        const { onValueChange, onDragEnd } = getSlider().props as {
+          onValueChange: (v: number) => void;
+          onDragEnd: (v: number) => void;
+        };
+        onValueChange(60);
+        onDragEnd(60);
+      });
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      // Assert - a committed 60% close is a partial close, so a non-empty
+      // size must be sent (unlike the default 100% full close, which omits
+      // size entirely).
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(handleClosePosition.mock.calls[0][0].size).not.toBe('');
+    });
+
+    it('flushes the live drag value forward on cancel instead of discarding it', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
+
+      // Act
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(25);
+      });
+      // A gesture cancelled by competing-gesture arbitration never fires
+      // onDragEnd; only the wrapping View's onTouchCancel signals it.
+      act(() => {
+        fireEvent(getSlider().parent as ReactTestInstance, 'touchCancel');
+      });
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      // Assert - the cancelled drag's 25% value must have been flushed
+      // forward (a partial close), not discarded back to the default 100%
+      // full close (which would send an empty size).
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(handleClosePosition.mock.calls[0][0].size).not.toBe('');
+    });
+
+    it('does not commit anything on cancel when the slider was never dragged', () => {
+      // Arrange
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
+
+      // Act & Assert - isDraggingSlider is already false, so this is a no-op
+      expect(() => {
+        fireEvent(getSlider().parent as ReactTestInstance, 'touchCancel');
+      }).not.toThrow();
+    });
+  });
+
+  describe('Keypad USD input commit funnel', () => {
+    it('commits a percentage from typed USD input without clobbering the raw typed string', () => {
+      // Arrange
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Focus the USD input so handleKeypadChange treats input as active
+      fireEvent.press(getByTestId('perps-amount-display'));
+      const keypad = UNSAFE_getByType('Keypad' as never);
+
+      // Act - type a trailing decimal point, as a user would mid-entry
+      act(() => {
+        (
+          keypad.props as {
+            onChange: (v: { value: string; valueAsNumber: number }) => void;
+          }
+        ).onChange({ value: '2.', valueAsNumber: 2 });
+      });
+
+      // Assert - commitClosePercentage's own USD recompute must not clobber
+      // the raw typed string ("2.") with a reformatted value; this is what
+      // the `{ syncUsdString: false }` option on the commit call preserves.
+      expect(
+        (UNSAFE_getByType('Keypad' as never).props as { value: string }).value,
+      ).toBe('2.');
     });
   });
 

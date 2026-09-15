@@ -12,12 +12,12 @@ import RewardsVipView from './Views/RewardsVipView';
 import RewardsVipRefereeSplashView from './Views/RewardsVipRefereeSplashView';
 import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
+import RewardsVipTransactionsView from './Views/RewardsVipTransactionsView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
-import MusdCalculatorView from './Views/MusdCalculatorView';
 import OndoLeaderboardView from './Views/OndoLeaderboardView';
 import OndoCampaignRwaSelectorView from './Views/OndoCampaignRwaSelectorView';
 import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
@@ -31,6 +31,8 @@ import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignW
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
 import PredictThePitchCampaignStatsView from './Views/PredictThePitchCampaignStatsView';
+import MoneyAccountSweepstakesCampaignDetailsView from './Views/MoneyAccountSweepstakesCampaignDetailsView';
+import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSweepstakesCampaignWinningView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -201,6 +203,11 @@ const RewardsNavigator: React.FC = () => {
         options={vipScreenOptions}
       />
       <Stack.Screen
+        name={Routes.REWARDS_VIP_TRANSACTIONS_VIEW}
+        component={RewardsVipTransactionsView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW}
         component={RewardsVipRefereeSplashView}
         options={vipScreenOptions}
@@ -233,10 +240,6 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_CAMPAIGN_MECHANICS}
         component={CampaignMechanicsView}
-      />
-      <Stack.Screen
-        name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
-        component={MusdCalculatorView}
       />
       <Stack.Screen
         name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
@@ -293,6 +296,16 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW}
         component={PredictThePitchCampaignWinningView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW}
+        component={MoneyAccountSweepstakesCampaignDetailsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW}
+        component={MoneyAccountSweepstakesCampaignWinningView}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

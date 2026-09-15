@@ -8,14 +8,12 @@ import React, {
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStyles } from '../../../../../component-library/hooks';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import TradingViewChart, {
   type TradingViewChartRef,
   type TPSLLines,
@@ -35,6 +33,10 @@ import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  getPerpsChartAnalyticsProperties,
+  getPerpsChartLibrary,
+} from '../../utils/chartAnalytics';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -44,6 +46,8 @@ export interface PerpsChartFullscreenModalProps {
   visibleCandleCount?: number;
   onClose: () => void;
   onIntervalChange: (interval: CandlePeriod) => void;
+  /** Persist pinch-zoom candle count from the fullscreen chart. */
+  onVisibleCandleCountChange?: (count: number) => void;
   /** When true, renders PerpsAdvancedChart instead of TradingViewChart. */
   isAdvancedChartEnabled?: boolean;
   /** Market symbol — required when isAdvancedChartEnabled is true. */
@@ -52,17 +56,9 @@ export interface PerpsChartFullscreenModalProps {
   positionSize?: string;
   /** Hyperliquid size decimals; forwarded so fullscreen advanced chart matches market precision. */
   szDecimals?: number | null;
+  /** Loads older candles when the fullscreen Advanced Chart falls back to Lightweight. */
+  fallbackFetchMoreHistory?: () => void;
 }
-
-const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
-  isAdvancedChartEnabled
-    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
-    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
-
-const getChartAnalyticsPropertiesForLibrary = (chartLibrary: string) => ({
-  [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
-  [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
-});
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   isVisible,
@@ -72,10 +68,12 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   visibleCandleCount,
   onClose,
   onIntervalChange,
+  onVisibleCandleCountChange,
   isAdvancedChartEnabled,
   symbol,
   positionSize,
   szDecimals,
+  fallbackFetchMoreHistory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -93,7 +91,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
   const { track } = usePerpsEventTracking();
   const configuredChartLibrary = useMemo(
-    () => getChartLibrary(Boolean(isAdvancedChartEnabled)),
+    () => getPerpsChartLibrary(Boolean(isAdvancedChartEnabled)),
     [isAdvancedChartEnabled],
   );
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
@@ -103,7 +101,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     setEffectiveChartLibrary(configuredChartLibrary);
   }, [configuredChartLibrary, isVisible, symbol]);
   const chartAnalyticsProperties = useMemo(
-    () => getChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
+    () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
     [effectiveChartLibrary],
   );
 
@@ -141,7 +139,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
         `${symbol}:${trackedChartLibrary}`,
       );
       const screenViewChartAnalyticsProperties = chartLibrary
-        ? getChartAnalyticsPropertiesForLibrary(chartLibrary)
+        ? getPerpsChartAnalyticsProperties(chartLibrary)
         : chartAnalyticsProperties;
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -260,8 +258,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             />
             <ButtonIcon
               iconName={IconName.Close}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
+              size={ButtonIconSize.Md}
               onPress={handleClose}
               accessibilityLabel="Close"
               testID="perps-chart-fullscreen-close-button"
@@ -332,7 +329,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 onCrosshairDataChange={setOhlcData}
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 fallbackCandleData={candleData ?? null}
+                fallbackFetchMoreHistory={fallbackFetchMoreHistory}
               />
             ) : (
               <TradingViewChart
@@ -349,6 +348,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 showOverlay={false}
                 coloredVolume
                 onOhlcDataChange={setOhlcData}
+                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 testID="fullscreen-chart"
               />
             )}

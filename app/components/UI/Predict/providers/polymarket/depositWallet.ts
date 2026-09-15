@@ -18,6 +18,7 @@ import type { SafeTransaction } from './safe/types';
 import type { ApiKeyCreds } from './types';
 import type { Signer } from '../types';
 import { getL2Headers, getPolymarketEndpoints } from './utils';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 export const DEPOSIT_WALLET_FACTORY_ADDRESS =
   '0x00000000000Fb5C9ADea0298D729A0CB3823Cc07';
@@ -335,7 +336,7 @@ async function postRelayerProxy<TResponse>(
   envelope: RelayerProxyEnvelope,
 ): Promise<TResponse> {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
-  const response = await fetch(`${CLOB_RELAYER}/transaction`, {
+  const response = await fetchWithTimeout(`${CLOB_RELAYER}/transaction`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(envelope),
@@ -630,7 +631,7 @@ export async function syncDepositWalletCollateralBalanceAllowance({
     address: signerAddress,
     apiKey,
   });
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${protocol.transport.clobBaseUrl}${requestPath}?${queryString}`,
     {
       method: 'GET',

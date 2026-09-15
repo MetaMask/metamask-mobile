@@ -106,3 +106,10 @@ export const selectOnboardingStepperProgress = (state: RootState) =>
  */
 export const selectAppInstallEventFired = (state: RootState) =>
   state.user?.appInstallEventFired ?? false;
+
+/**
+ * Selects the install captured on first launch that is still awaiting an
+ * analytics consent decision, or `null` when nothing is pending.
+ */
+export const selectPendingAppInstall = (state: RootState) =>
+  state.user?.pendingAppInstall ?? null;

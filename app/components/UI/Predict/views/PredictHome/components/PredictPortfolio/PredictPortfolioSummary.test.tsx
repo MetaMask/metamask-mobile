@@ -12,6 +12,8 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'predict.portfolio.available_amount': `${params?.amount} available`,
       'predict.portfolio.value_accessibility': `Portfolio value, ${params?.value}`,
       'predict.portfolio.value_hidden_accessibility': 'Portfolio value hidden',
+      'predict.portfolio.value_unavailable_accessibility':
+        'Portfolio value unavailable',
       'predict.unrealized_pnl_value': `${params?.amount} (${params?.percent})`,
     };
     return mockStrings[key] || key;
@@ -105,5 +107,39 @@ describe('PredictPortfolioSummary', () => {
     expect(StyleSheet.flatten(secondarySkeleton.props.style).height).toBe(
       typography.sBodySM.lineHeight,
     );
+  });
+
+  it('keeps a successful available balance visible when positions loading fails', () => {
+    renderSummary({ hasError: true });
+
+    expect(screen.queryByText('$0.00')).toBeNull();
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('$0.00 available')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Portfolio value unavailable'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows unavailable portfolio values while keeping the available balance private', () => {
+    renderSummary({ hasError: true, isHidden: true });
+
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.queryByText('$0.00 available')).toBeNull();
+    expect(screen.getByText('•••••••••')).toBeOnTheScreen();
+  });
+
+  it('shows an unavailable balance in privacy mode', () => {
+    renderSummary({ hasBalanceError: true, hasError: true, isHidden: true });
+
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('— available')).toBeOnTheScreen();
+  });
+
+  it('renders the available balance as unavailable when balance loading fails', () => {
+    renderSummary({ hasBalanceError: true, hasError: true });
+
+    expect(screen.queryByText('$0.00')).toBeNull();
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('— available')).toBeOnTheScreen();
   });
 });

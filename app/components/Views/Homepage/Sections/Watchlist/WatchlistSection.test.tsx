@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import WatchlistSection from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 
 let mockIsWatchlistEnabled = true;
 const mockNavigate = jest.fn();
@@ -130,6 +131,24 @@ describe('WatchlistSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
+  });
+
+  it('keeps the shared performance hook on its legacy metadata contract', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    render(<WatchlistSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(jest.mocked(useSectionPerformance)).toHaveBeenCalledWith({
+      sectionId: 'watchlist',
+      contentReady: true,
+      isEmpty: true,
+      isLoading: false,
+      enabled: true,
+    });
   });
 
   it('returns null when feature flag is off', () => {

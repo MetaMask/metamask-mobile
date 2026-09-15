@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Fuse from 'fuse.js';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
@@ -182,6 +183,7 @@ interface SearchContentProps {
   browserHistory: FuseSearchResult[];
   bookmarks: FuseSearchResult[];
   onSelect: (item: AutocompleteSearchResult) => void;
+  onSelectPressIn?: () => void;
   hide: () => void;
   styles: ReturnType<typeof styleSheet>;
 }
@@ -195,11 +197,12 @@ const SearchContent: React.FC<SearchContentProps> = ({
   browserHistory,
   bookmarks,
   onSelect,
+  onSelectPressIn,
   hide,
   styles,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -404,9 +407,18 @@ const SearchContent: React.FC<SearchContentProps> = ({
         return (
           <Result
             result={item}
+            onPressIn={
+              item.category === UrlAutocompleteCategory.Sites ||
+              item.category === UrlAutocompleteCategory.Recents ||
+              item.category === UrlAutocompleteCategory.Favorites
+                ? onSelectPressIn
+                : undefined
+            }
             onPress={() => {
-              // Only hide for URL-based results (user navigates away from browser)
-              // Keep open for Tokens/Perps/Predictions so user can explore multiple items
+              // Select first so BrowserTab can start WebView navigation, then
+              // hide autocomplete for URL-based results.
+              // Keep autocomplete open for Tokens/Perps/Predictions.
+              onSelect(item);
               const isUrlBasedResult =
                 item.category === UrlAutocompleteCategory.Sites ||
                 item.category === UrlAutocompleteCategory.Recents ||
@@ -414,14 +426,13 @@ const SearchContent: React.FC<SearchContentProps> = ({
               if (isUrlBasedResult) {
                 hide();
               }
-              onSelect(item);
             }}
             onSwapPress={goToSwaps}
             navigation={navigation}
           />
         );
       },
-      [hide, onSelect, goToSwaps, navigation],
+      [hide, onSelect, onSelectPressIn, goToSwaps, navigation],
     );
 
   const keyExtractor = useCallback(
@@ -496,7 +507,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
 const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
->(({ onSelect, onDismiss }, ref) => {
+>(({ onSelect, onSelectPressIn, onDismiss }, ref) => {
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
 
@@ -612,14 +623,15 @@ const UrlAutocomplete = forwardRef<
       ({ item }) => (
         <Result
           result={item}
+          onPressIn={onSelectPressIn}
           onPress={() => {
-            hide();
             onSelect(item);
+            hide();
           }}
           onSwapPress={goToSwaps}
         />
       ),
-      [hide, onSelect, goToSwaps],
+      [hide, onSelect, onSelectPressIn, goToSwaps],
     );
 
   const keyExtractor = useCallback(
@@ -662,6 +674,7 @@ const UrlAutocomplete = forwardRef<
                 browserHistory={browserHistory}
                 bookmarks={bookmarks}
                 onSelect={onSelect}
+                onSelectPressIn={onSelectPressIn}
                 hide={hide}
                 styles={styles}
               />

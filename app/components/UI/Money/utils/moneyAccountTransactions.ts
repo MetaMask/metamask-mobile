@@ -55,7 +55,7 @@ export function applySlippage(value: bigint): bigint {
 export interface MoneyAccountTxParams {
   params: {
     to: Hex;
-    data: Hex;
+    data?: Hex;
     value: Hex;
   };
   type: TransactionType;
@@ -175,6 +175,7 @@ export async function buildMoneyAccountDepositBatch({
   accountantAddress,
   lensAddress,
   provider,
+  initialiseWithoutData = false,
 }: {
   amount: bigint;
   chainId: Hex;
@@ -183,6 +184,7 @@ export async function buildMoneyAccountDepositBatch({
   accountantAddress: string;
   lensAddress: string;
   provider: ethers.providers.Provider;
+  initialiseWithoutData?: boolean;
 }): Promise<MoneyAccountDepositBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
@@ -201,8 +203,12 @@ export async function buildMoneyAccountDepositBatch({
           }),
         );
 
-  const approveData = buildApproveData(boringVault, amount);
-  const depositData = buildDepositData(musdAddress, amount, minimumMint);
+  const approveData = initialiseWithoutData
+    ? undefined
+    : buildApproveData(boringVault, amount);
+  const depositData = initialiseWithoutData
+    ? undefined
+    : buildDepositData(musdAddress, amount, minimumMint);
 
   return {
     approveTx: {
@@ -249,9 +255,11 @@ export async function updateMoneyAccountDepositTokenAmount(
   const provider = getProviderByChainId(chainIdHex);
   if (!provider) return [];
 
+  // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+  // more mUSD than the source balance can fund (ROUND_UP was pushing past it).
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
-      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .decimalPlaces(0, BigNumber.ROUND_DOWN)
       .toFixed(0),
   );
 
@@ -265,9 +273,13 @@ export async function updateMoneyAccountDepositTokenAmount(
     provider,
   });
 
+  const approveData = approveTx.params.data;
+  const depositData = depositTx.params.data;
+  if (!approveData || !depositData) return [];
+
   return [
-    { nestedTransactionIndex: 0, transactionData: approveTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: depositTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: approveData },
+    { nestedTransactionIndex: 1, transactionData: depositData },
   ];
 }
 
@@ -309,9 +321,13 @@ export async function updateMoneyAccountWithdrawTokenAmount(
     provider,
   });
 
+  const withdrawData = withdrawTx.params.data;
+  const transferData = transferTx.params.data;
+  if (!withdrawData || !transferData) return [];
+
   return [
-    { nestedTransactionIndex: 0, transactionData: withdrawTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: transferTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: withdrawData },
+    { nestedTransactionIndex: 1, transactionData: transferData },
   ];
 }
 

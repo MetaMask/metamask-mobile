@@ -3,8 +3,12 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../selectors/featureFlagController/networkBlacklist';
 import { isTestNet, getNetworkImageSource } from '../../../../util/networks';
-import { PopularList } from '../../../../util/networks/customNetworks';
+import {
+  getFilteredPopularNetworks,
+  PopularList,
+} from '../../../../util/networks/customNetworks';
 import { SECTION_KEYS } from '../NetworksManagementView.constants';
 import {
   NetworkManagementItem,
@@ -43,12 +47,12 @@ const buildAddedNetworkItem = (
 };
 
 /**
- * Builds a NetworkManagementItem from a PopularList entry that is NOT yet added.
+ * Builds a NetworkManagementItem from a popular network that is NOT yet added.
  */
 const buildAvailableNetworkItem = (
-  popular: (typeof PopularList)[number],
+  popular: ReturnType<typeof getFilteredPopularNetworks>[number],
 ): NetworkManagementItem => ({
-  chainId: popular.chainId,
+  chainId: popular.chainId as Hex,
   name: popular.nickname,
   isTestNet: false,
   imageSource:
@@ -77,7 +81,8 @@ const filterBySearch = (
  *
  * Reads the user's added networks from NetworkController, classifies them
  * as mainnet or testnet, and computes which popular networks are still
- * available to add. Supports search filtering across all sections.
+ * available to add. Available networks respect the additional networks
+ * blacklist feature flag. Supports search filtering across all sections.
  */
 export const useNetworkManagementData = ({
   searchQuery,
@@ -85,10 +90,18 @@ export const useNetworkManagementData = ({
   const networkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const blacklistedChainIds = useSelector(
+    selectAdditionalNetworksBlacklistFeatureFlag,
+  );
 
   const popularChainIds = useMemo(
     () => new Set(PopularList.map((p) => p.chainId)),
     [],
+  );
+
+  const filteredPopularNetworks = useMemo(
+    () => getFilteredPopularNetworks(blacklistedChainIds, PopularList),
+    [blacklistedChainIds],
   );
 
   const addedNetworks = useMemo(() => {
@@ -101,10 +114,13 @@ export const useNetworkManagementData = ({
 
   const availableNetworks = useMemo(
     () =>
-      PopularList.filter(
-        (popular) => !networkConfigurationsByChainId?.[popular.chainId as Hex],
-      ).map(buildAvailableNetworkItem),
-    [networkConfigurationsByChainId],
+      filteredPopularNetworks
+        .filter(
+          (popular) =>
+            !networkConfigurationsByChainId?.[popular.chainId as Hex],
+        )
+        .map(buildAvailableNetworkItem),
+    [filteredPopularNetworks, networkConfigurationsByChainId],
   );
 
   const sections = useMemo(() => {

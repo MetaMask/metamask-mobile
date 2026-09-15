@@ -4,7 +4,14 @@ import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MONEY_DISCLAIMER_URL } from '../../../../../constants/urls';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -18,9 +25,10 @@ const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
   typeof handleDeeplink
 >;
 
-jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => jest.fn());
-const mockUseMoneyAccountBalance =
-  useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+jest.mock('../../../Money/hooks/useMoneyVaultApy', () => jest.fn());
+const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
+  typeof useMoneyVaultApy
+>;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -41,7 +49,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const map: Record<string, string> = {
       'rewards.earn_rewards.title': 'Earn rewards',
-      'rewards.earn_rewards.musd_title': 'Up to {{percentage}}% bonus on mUSD',
+      'rewards.earn_rewards.musd_money_title': 'Earn up to {{percentage}}% APY',
+      'rewards.earn_rewards.musd_disclaimer_accessibility_label':
+        'mUSD APY disclaimer',
       'rewards.earn_rewards.musd_subtitle': 'Money accounts are here',
       'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
       'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
@@ -108,9 +118,9 @@ const setupSelectors = ({
 describe('EarnRewardsPreview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 3.8,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
   });
 
   describe('section title', () => {
@@ -225,17 +235,18 @@ describe('EarnRewardsPreview', () => {
     it('renders correct text for mUSD card', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3.8% bonus on mUSD')).toBeOnTheScreen();
+      expect(getByText(/Earn up to 3\.8% APY/)).toBeOnTheScreen();
+      expect(getByText('*')).toBeOnTheScreen();
       expect(getByText('Money accounts are here')).toBeOnTheScreen();
     });
 
     it('falls back to 3% in the mUSD card title when APY is unavailable', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
+      mockUseMoneyVaultApy.mockReturnValue({
         apyPercent: undefined,
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% bonus on mUSD')).toBeOnTheScreen();
+      expect(getByText(/Earn up to 3% APY/)).toBeOnTheScreen();
     });
 
     it('renders correct text for MetaMask card', () => {
@@ -305,6 +316,24 @@ describe('EarnRewardsPreview', () => {
       expect(mockHandleDeeplink).toHaveBeenCalledWith({
         uri: 'metamask://money',
       });
+    });
+
+    it('opens the APY disclaimer in the in-app browser when the asterisk is pressed', () => {
+      setupSelectors({ geoLocation: 'US' });
+      const { getByTestId } = render(<EarnRewardsPreview />);
+
+      fireEvent.press(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK),
+        { stopPropagation: jest.fn() },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: expect.objectContaining({
+          newTabUrl: MONEY_DISCLAIMER_URL,
+        }),
+      });
+      expect(mockHandleDeeplink).not.toHaveBeenCalled();
     });
 
     it('triggers card-home deeplink when card card is pressed', () => {

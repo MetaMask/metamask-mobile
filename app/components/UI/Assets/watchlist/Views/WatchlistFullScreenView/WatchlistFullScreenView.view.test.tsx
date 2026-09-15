@@ -34,7 +34,6 @@ import { getTrendingTokenRowItemTestId } from '../../../../Trending/components/T
 import { TrendingViewSelectorsIDs } from '../../../../../Views/TrendingView/TrendingView.testIds';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
-import ToastService from '../../../../../../core/ToastService/ToastService';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 const SEARCH_TOKEN = mockTrendingTokensData[1];
@@ -47,7 +46,6 @@ beforeEach(() => {
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
   setupReadOnlyNetworkStoreMock();
-  jest.spyOn(ToastService, 'showToast').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -57,17 +55,20 @@ afterEach(() => {
 
 describeForPlatforms('WatchlistFullScreenView', () => {
   it('loads and displays all token fields for each editable row (newest first)', async () => {
-    const { findAllByTestId } = renderWatchlistFullScreenViewWithRoutes({
+    const { getAllByTestId } = renderWatchlistFullScreenViewWithRoutes({
       deterministicFiat: true,
     });
 
-    const editableRows = await waitFor(async () => {
-      const rows = await findAllByTestId(
-        WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
-      );
-      expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
-      return rows;
-    });
+    const editableRows = await waitFor(
+      () => {
+        const rows = getAllByTestId(
+          WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
+        );
+        expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
+        return rows;
+      },
+      { timeout: 5000 },
+    );
 
     editableRows.forEach((row, index) => {
       const assetId = NEWEST_FIRST_ASSET_IDS[index];
@@ -117,11 +118,16 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       fireEvent.press(unwatchStars[0]);
     });
 
-    await waitFor(() => expect(putScope.isDone()).toBe(true));
-
     await waitFor(() => {
       expect(queryByTestId(getRowTestId(assetToRemove))).not.toBeOnTheScreen();
     });
+    expect(putScope.isDone()).toBe(false);
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+
+    await waitFor(() => expect(putScope.isDone()).toBe(true));
     expect(
       queryByTestId(getRowTestId(NEWEST_FIRST_ASSET_IDS[1])),
     ).toBeOnTheScreen();

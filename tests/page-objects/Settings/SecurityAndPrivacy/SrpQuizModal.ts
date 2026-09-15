@@ -8,25 +8,36 @@ import {
 } from '../../../../app/components/Views/Quiz/SRPQuiz/SrpQuizModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
-import UnifiedGestures from '../../../framework/UnifiedGestures';
+import { type AppiumElement } from '../../../framework';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
+import type { TapOptions } from '../../../framework/types';
+
+/** Appium iOS: skip displayed/enabled checks when XCTest falsely reports hidden. */
+const iosAppiumTapOptions = (elemDescription: string): TapOptions => {
+  const skipDisplayedChecks = PlatformDetector.isIOSAppium();
+  return {
+    elemDescription,
+    checkForDisplayed: !skipDisplayedChecks,
+    checkEnabled: !skipDisplayedChecks,
+  };
+};
 
 class SrpQuizModal {
-  get getStartedContainer(): EncapsulatedElementType {
+  get getStartedContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
-  get getStartedScreenDismiss(): EncapsulatedElementType {
+  get getStartedScreenDismiss(): Promise<AppiumElement> {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
-  get modalIntroduction(): EncapsulatedElementType {
+  get modalIntroduction(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SrpQuizGetStartedSelectorsText.INTRODUCTION,
     );
   }
 
-  get getStartedButton(): EncapsulatedElementType {
+  get getStartedButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
@@ -82,9 +93,7 @@ class SrpQuizModal {
     return Matchers.getElementByID(ids.WRONG_ANSWER_TRY_AGAIN_BUTTON);
   }
 
-  getQuestionRightAnswerButton(
-    questionNumber: number,
-  ): EncapsulatedElementType {
+  getQuestionRightAnswerButton(questionNumber: number): Promise<AppiumElement> {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.RIGHT_ANSWER);
   }
@@ -101,7 +110,7 @@ class SrpQuizModal {
 
   getQuestionRightContinueButton(
     questionNumber: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.RIGHT_CONTINUE);
   }
@@ -113,9 +122,10 @@ class SrpQuizModal {
   }
 
   async tapGetStartedButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getStartedButton, {
-      description: 'Srp Quiz - Get Started Button',
-    });
+    await Gestures.waitAndTap(
+      this.getStartedButton,
+      iosAppiumTapOptions('Srp Quiz - Get Started Button'),
+    );
   }
 
   async tapQuestionDismiss(questionNumber: number): Promise<void> {
@@ -142,20 +152,18 @@ class SrpQuizModal {
   }
 
   async tapQuestionRightAnswerButton(questionNumber: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getQuestionRightAnswerButton(questionNumber),
-      {
-        description: `Srp Quiz - Question ${questionNumber} Right Answer`,
-      },
+      iosAppiumTapOptions(`Srp Quiz - Question ${questionNumber} Right Answer`),
     );
   }
 
   async tapQuestionContinueButton(questionNumber: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getQuestionRightContinueButton(questionNumber),
-      {
-        description: `Srp Quiz - Question ${questionNumber} Right Continue`,
-      },
+      iosAppiumTapOptions(
+        `Srp Quiz - Question ${questionNumber} Right Continue`,
+      ),
     );
   }
 }

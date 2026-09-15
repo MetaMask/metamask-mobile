@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStyles } from '../../../../component-library/hooks';
 import {
   Box,
@@ -82,7 +83,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Default back handler
   const defaultHandleBack = useCallback(() => {

@@ -153,6 +153,48 @@ describe('useCampaignGeoRestriction', () => {
       );
       expect(result.current.isGeoRestricted).toBe(true);
     });
+
+    it('matches full region codes like US-NY against the full geolocation', () => {
+      mockGeolocation = 'US-NY';
+      setupSelectors();
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(
+          buildCampaign({ excludedRegions: ['GB', 'US-NY', 'US-FL'] }),
+        ),
+      );
+      expect(result.current.isGeoRestricted).toBe(true);
+    });
+
+    it('does not treat US-NY exclusion as blocking other US states', () => {
+      mockGeolocation = 'US-CA';
+      setupSelectors();
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(
+          buildCampaign({ excludedRegions: ['GB', 'US-NY', 'US-FL'] }),
+        ),
+      );
+      expect(result.current.isGeoRestricted).toBe(false);
+    });
+
+    it('still matches country-only exclusions like GB', () => {
+      mockGeolocation = 'GB';
+      setupSelectors();
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(
+          buildCampaign({ excludedRegions: ['GB', 'US-NY', 'US-FL'] }),
+        ),
+      );
+      expect(result.current.isGeoRestricted).toBe(true);
+    });
+
+    it('treats country-only US exclusion as blocking all US subdivisions', () => {
+      mockGeolocation = 'US-TX';
+      setupSelectors();
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(buildCampaign({ excludedRegions: ['US'] })),
+      );
+      expect(result.current.isGeoRestricted).toBe(true);
+    });
   });
 
   describe('with customRestrictedCountries (checked before excludedRegions)', () => {

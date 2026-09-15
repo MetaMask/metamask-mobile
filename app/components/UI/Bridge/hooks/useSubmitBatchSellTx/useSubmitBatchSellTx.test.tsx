@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import type { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import type { QuoteResponse } from '@metamask/bridge-controller';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 
 import {
@@ -11,9 +11,10 @@ import {
   DummyQuotesWithApproval,
 } from '../../../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../constants/bridge';
 import { useSubmitBatchSellTx } from '.';
 
-type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+type BridgeQuoteResponse = QuoteResponse;
 
 let mockSubmitBatchSell: jest.Mock<
   Promise<TransactionMeta>,
@@ -153,6 +154,7 @@ describe('useSubmitBatchSellTx', () => {
       isStxEnabled: true,
       quotesReceivedContext: undefined,
       tokenSecurityTypeDestination: 'Malicious',
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
     expect(txResult).toEqual(mockBatchSellResult);
   });

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { providerErrors } from '@metamask/rpc-errors';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -11,6 +12,15 @@ import {
 import { useAlerts } from '../../Views/confirmations/context/alert-system-context';
 import { useSecurityAlertResponse } from '../../Views/confirmations/hooks/alerts/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import {
+  selectRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+} from '../../../selectors/featureFlagController';
+import { resolveABTestAssignment } from '../../../util/abTest';
+import {
+  SCAM_QUESTIONNAIRE_FLAG_KEY,
+  SCAM_QUESTIONNAIRE_VARIANTS,
+} from './scam-questionnaire.constants';
 import { ScamQuestionnaireProps } from './scam-questionnaire';
 
 interface UseSendScamQuestionnaireOptions {
@@ -47,6 +57,19 @@ interface UseSendScamQuestionnaireResult {
 export function useSendScamQuestionnaire({
   onReject,
 }: UseSendScamQuestionnaireOptions): UseSendScamQuestionnaireResult {
+  const flags = useSelector(selectRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
+  const { variantName } = resolveABTestAssignment(
+    flags,
+    SCAM_QUESTIONNAIRE_FLAG_KEY,
+    Object.keys(SCAM_QUESTIONNAIRE_VARIANTS),
+    thresholdGroups,
+  );
+  const showQuestionnaire =
+    SCAM_QUESTIONNAIRE_VARIANTS[
+      variantName as keyof typeof SCAM_QUESTIONNAIRE_VARIANTS
+    ].showQuestionnaire;
+
   const { setAlertConfirmed } = useAlerts();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -65,6 +88,7 @@ export function useSendScamQuestionnaire({
 
   const isScamQuestionnaireRequired =
     !isScamQuestionnaireCompleted &&
+    showQuestionnaire &&
     isMMSendReq &&
     securityAlertResponse?.result_type === ResultType.Malicious;
 

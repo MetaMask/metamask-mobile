@@ -13,6 +13,8 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
@@ -123,6 +125,12 @@ jest.mock('../NotificationPreferences/hooks', () => ({
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
+}));
+
+let mockIsMasterNotificationsEnabled = true;
+jest.mock('../../../../selectors/notifications', () => ({
+  ...jest.requireActual('../../../../selectors/notifications'),
+  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
 }));
 
 jest.mock(
@@ -407,6 +415,7 @@ describe('TraderProfileView', () => {
     };
     mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
+    mockIsMasterNotificationsEnabled = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
@@ -423,6 +432,24 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  describe('safe area layout', () => {
+    it('excludes bottom safe area so the scroll list extends to the screen edge', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER).props.edges,
+      ).toEqual(SCROLLABLE_SCREEN_SAFE_AREA_EDGES);
+    });
+
+    it('keeps the top inset on the header to prevent layout shift on push', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expectHeaderIncludesTopInset(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      );
+    });
   });
 
   it('displays the trader name in the profile header and compact nav header', () => {
@@ -501,7 +528,7 @@ describe('TraderProfileView', () => {
 
   const runDeferredSetupAction = async () => {
     const setupCall = mockNavigate.mock.calls.find(
-      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
     const onSetupComplete = setupCall?.[1]?.onSetupComplete;
     await act(async () => {
@@ -528,11 +555,30 @@ describe('TraderProfileView', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
     expect(mockToggleFollow).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to the feature notifications gate when following with the master toggle off', async () => {
+    mockIsMasterNotificationsEnabled = false;
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+      params: { feature: 'socialAI', autoDismiss: true },
+    });
   });
 
   it('follows immediately without a haptic when a channel is already enabled', async () => {
@@ -547,7 +593,7 @@ describe('TraderProfileView', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -587,7 +633,7 @@ describe('TraderProfileView', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
     expect(mockToggleTraderNotification).not.toHaveBeenCalled();
@@ -648,7 +694,7 @@ describe('TraderProfileView', () => {
     expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -677,20 +723,17 @@ describe('TraderProfileView', () => {
 
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        traderId: 'trader-1',
-        traderName: 'trader1',
-        traderImageUrl: 'https://example.com/avatar.png',
-        traderAddress: '0xabc',
-        tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
-        position: fixtureOpenPositions[0],
-        source: 'profile_position',
-        originalEntryPoint: 'leaderboard',
-        isClosed: false,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+      traderImageUrl: 'https://example.com/avatar.png',
+      traderAddress: '0xabc',
+      tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
+      position: fixtureOpenPositions[0],
+      source: 'profile_position',
+      originalEntryPoint: 'leaderboard',
+      isClosed: false,
+    });
   });
 
   it('tracks Trader Profile Position Clicked with perps_market for a perp row', () => {

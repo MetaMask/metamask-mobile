@@ -7,6 +7,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
@@ -91,7 +92,7 @@ import { handleTronStakingNavigationResult } from '../../utils/tron';
 
 const EarnInputView = () => {
   // navigation hooks
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<EarnInputViewProps['route']>();
   const { token } = route.params;
 
@@ -130,6 +131,7 @@ const EarnInputView = () => {
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
+  let tronApyPercent: string | null = null;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     isTronNative,
@@ -142,7 +144,7 @@ const EarnInputView = () => {
     confirmStake: tronConfirmStake,
     tronAccountId,
   } = useTronStake({ token });
-  useTronStakeApy();
+  tronApyPercent = useTronStakeApy().apyPercent;
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
@@ -152,6 +154,8 @@ const EarnInputView = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const earnToken = getEarnToken(token);
+  const stakingExperienceType =
+    earnToken?.experience.type ?? EARN_EXPERIENCES.POOLED_STAKING;
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, earnToken?.chainId as Hex),
@@ -259,7 +263,10 @@ const EarnInputView = () => {
   const navigateToLearnMoreModal = useCallback(() => {
     const tokenExperience = earnToken?.experience?.type;
 
-    if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (
+      tokenExperience === EARN_EXPERIENCES.POOLED_STAKING ||
+      tokenExperience === EARN_EXPERIENCES.TRX_STAKING
+    ) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
 
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -322,7 +329,7 @@ const EarnInputView = () => {
               amount: value,
               is_max: false,
               mode: !isFiat ? 'native' : 'fiat',
-              experience: EARN_EXPERIENCES.POOLED_STAKING,
+              experience: stakingExperienceType,
             })
             .build(),
         );
@@ -338,6 +345,7 @@ const EarnInputView = () => {
       network?.name,
       balanceValue,
       isFiat,
+      stakingExperienceType,
     ],
   );
 
@@ -550,7 +558,7 @@ const EarnInputView = () => {
             tokens_to_stake_usd_value: amountFiatNumber,
             estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
           })
           .build(),
       );
@@ -577,7 +585,7 @@ const EarnInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
-      experience: EARN_EXPERIENCES.POOLED_STAKING,
+      experience: stakingExperienceType,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -652,6 +660,7 @@ const EarnInputView = () => {
     earnToken?.chainId,
     earnToken?.isETH,
     earnToken?.experience?.type,
+    stakingExperienceType,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -739,7 +748,7 @@ const EarnInputView = () => {
             location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
             is_max: true,
             mode: !isFiat ? 'native' : 'fiat',
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
           })
           .build(),
       );
@@ -754,6 +763,7 @@ const EarnInputView = () => {
     network?.name,
     balanceValue,
     isFiat,
+    stakingExperienceType,
   ]);
 
   // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
@@ -862,7 +872,7 @@ const EarnInputView = () => {
           .addProperties({
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
             token: token.symbol,
           })
           .build(),
@@ -876,19 +886,31 @@ const EarnInputView = () => {
     createEventBuilder,
     token.symbol,
     navigation,
+    stakingExperienceType,
   ]);
 
   const handleInfoPress = useCallback(() => {
+    const apr =
+      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING
+        ? (tronApyPercent ?? undefined)
+        : earnToken?.experience?.apr !== undefined
+          ? `${earnToken.experience.apr}%`
+          : undefined;
+    const tooltipName =
+      stakingExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING
+        ? 'Lending Historic Market APY Graph'
+        : 'Staking Historic Market APY Graph';
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOOLTIP_OPENED)
         .addProperties({
           selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
           location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-          tooltip_name: 'Lending Historic Market APY Graph',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          tooltip_name: tooltipName,
+          experience: stakingExperienceType,
           token: token.symbol,
-          apr: `${earnToken?.experience.apr}%`,
+          apr,
         })
         .build(),
     );
@@ -897,8 +919,10 @@ const EarnInputView = () => {
     trackEvent,
     createEventBuilder,
     token.symbol,
-    earnToken?.experience.apr,
+    earnToken?.experience?.apr,
     navigateToLearnMoreModal,
+    stakingExperienceType,
+    tronApyPercent,
   ]);
 
   const headerTitle = useMemo(() => {

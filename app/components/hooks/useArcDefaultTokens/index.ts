@@ -6,13 +6,17 @@ import type { CaipAssetType } from '@metamask/utils';
 import { NETWORK_CHAIN_ID } from '../../../util/networks/customNetworks';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { getMultiChainAssetsControllerAccountsAssets } from '../../../selectors/assets/assets-migration';
+import type { RootState } from '../../../reducers';
 import Engine from '../../../core/Engine';
 
 export const ARC_USDC_ASSET_ID: CaipAssetType =
   'eip155:5042/erc20:0x3600000000000000000000000000000000000000';
 
-export const ARC_NATIVE_ASSET_ID: CaipAssetType =
+export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
+
+// Pre-slip44 placeholder some accounts may still have cached; keep filtering
+// it out alongside ARC_NATIVE_ASSET_ID so upgraded users don't see a duplicate.
+export const ARC_NATIVE_ASSET_ID_LEGACY: CaipAssetType =
   'eip155:5042/erc20:0x0000000000000000000000000000000000000000';
 
 /**
@@ -28,8 +32,13 @@ export function useArcDefaultTokens() {
     selectEvmNetworkConfigurationsByChainId,
   );
   const allAccounts = useSelector(selectInternalAccounts);
-  const accountsAssets = useSelector(
-    getMultiChainAssetsControllerAccountsAssets,
+  const assetsBalance = useSelector(
+    (state: RootState) =>
+      state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+  );
+  const customAssets = useSelector(
+    (state: RootState) =>
+      state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
   );
 
   // Track account IDs we've already dispatched for so we don't re-call on
@@ -49,7 +58,10 @@ export function useArcDefaultTokens() {
         continue;
       }
 
-      const existingAssets: string[] = accountsAssets?.[account.id] ?? [];
+      const existingAssets: string[] = [
+        ...Object.keys(assetsBalance[account.id] ?? {}),
+        ...(customAssets[account.id] ?? []),
+      ];
       const alreadyPresent = existingAssets.some(
         (id) => id.toLowerCase() === ARC_USDC_ASSET_ID.toLowerCase(),
       );
@@ -69,5 +81,5 @@ export function useArcDefaultTokens() {
         dispatchedRef.current.delete(account.id);
       });
     }
-  }, [networkConfigurations, allAccounts, accountsAssets]);
+  }, [networkConfigurations, allAccounts, assetsBalance, customAssets]);
 }

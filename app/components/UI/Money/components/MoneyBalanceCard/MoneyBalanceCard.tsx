@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -31,6 +32,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -51,19 +53,18 @@ import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
     totalFiatFormatted,
-    apyPercent,
     isBalanceLoading,
     isBalanceFetchError,
     moneyBalanceQuery,
     refetchBalance,
-    vaultApyQuery,
   } = useMoneyAccountBalance();
+  const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -115,7 +116,7 @@ const MoneyBalanceCard = () => {
   let buttonVariant: ButtonVariant;
   let containerTestId: string;
 
-  if (!hasMoneyAccount || isError || isRetrying) {
+  if (isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
@@ -206,19 +207,7 @@ const MoneyBalanceCard = () => {
   }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
-    if (!hasMoneyAccount) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT}
-        >
-          {strings('money.balance_no_account')}
-        </Text>
-      );
-    }
-    if (isBalanceLoading || isRetrying) {
+    if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}

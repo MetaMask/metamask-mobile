@@ -52,6 +52,12 @@ export interface BadgeWrapperProps extends ViewProps {
    * Any element that will be placed in the position of the badge.
    */
   badgeElement: React.ReactNode;
+  /**
+   * Optional known dimensions of the anchor element. When provided, badge
+   * positioning is computed immediately on mount instead of waiting for
+   * onLayout — useful when the wrapper remounts with a fixed-size child.
+   */
+  anchorSize?: { width: number; height: number };
 }
 
 /**

@@ -120,6 +120,12 @@ describe('Transaction Pay Controller Init', () => {
     expect(polymarket).toBe(polymarketCallbacksMock);
   });
 
+  it('wires the getBalance callback into the controller', () => {
+    const getBalance = testConstructorOption('getBalance');
+
+    expect(getBalance).toBeInstanceOf(Function);
+  });
+
   it('wires fiat test options through controller options', () => {
     const fiatOptions = {
       testAmountOverride: '0.1',

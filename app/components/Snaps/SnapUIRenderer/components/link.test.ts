@@ -1,3 +1,4 @@
+import { TextColor } from '@metamask/design-system-react-native';
 import { link } from './link';
 import { LinkElement } from '@metamask/snaps-sdk/jsx';
 import { mockTheme } from '../../../../util/theme';
@@ -30,9 +31,9 @@ describe('link component', () => {
           children: 'link',
           key: expect.any(String),
           props: {
-            color: mockTheme.colors.info.default,
+            color: TextColor.PrimaryDefault,
+            fontWeight: undefined,
             style: {
-              fontWeight: undefined,
               textAlign: undefined,
             },
             variant: undefined,
@@ -75,9 +76,9 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
-            color: mockTheme.colors.info.default,
+            color: TextColor.PrimaryDefault,
+            fontWeight: undefined,
             style: {
-              fontWeight: undefined,
               textAlign: undefined,
             },
             variant: undefined,
@@ -120,9 +121,9 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
-            color: mockTheme.colors.info.default,
+            color: TextColor.PrimaryDefault,
+            fontWeight: undefined,
             style: {
-              fontWeight: undefined,
               textAlign: undefined,
             },
             variant: undefined,
@@ -133,9 +134,9 @@ describe('link component', () => {
           children: 'MetaMask',
           key: expect.any(String),
           props: {
-            color: mockTheme.colors.info.default,
+            color: TextColor.PrimaryDefault,
+            fontWeight: undefined,
             style: {
-              fontWeight: undefined,
               textAlign: undefined,
             },
             variant: undefined,

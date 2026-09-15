@@ -38,6 +38,7 @@ export enum CardMessageBoxType {
   KYCPending = 'kyc_pending',
   Blocked = 'blocked',
   CardProvisioning = 'card_provisioning',
+  PendingVerification = 'pending_verification',
   AuthPrompt = 'auth_prompt',
   CashbackFundingRequired = 'cashback_funding_required',
   CashbackMoneyAccountRequired = 'cashback_money_account_required',
@@ -45,6 +46,8 @@ export enum CardMessageBoxType {
   CreditMoneyAccountRequired = 'credit_money_account_required',
   CreditAvailable = 'credit_available',
   CreditAvailableNoMoneyAccount = 'credit_available_no_money_account',
+  UkMigrationSoft = 'uk_migration_soft',
+  UkMigrationRequired = 'uk_migration_required',
 }
 
 export type CardUserPhase =

@@ -62,6 +62,11 @@ const mockedCallTronSnap = (createSnapCaller as unknown as () => jest.Mock)();
 const mockedGetCaipAccountIdsFromCaip25CaveatValue =
   getCaipAccountIdsFromCaip25CaveatValue as jest.Mock;
 
+const MOCK_ORIGIN_METADATA = {
+  transport: 'WalletConnect',
+  selfReportedOrigin: 'https://metamask.io',
+};
+
 describe('multichain/tron', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -252,6 +257,8 @@ describe('multichain/tron', () => {
       });
 
       const result = await tronAdapter.handleRequest({
+        origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -268,6 +275,8 @@ describe('multichain/tron', () => {
       });
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith({
+        origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: ['tron:728126428:TTestAddress'],
         scope: 'tron:728126428',
         requestId: 1,
@@ -288,12 +297,14 @@ describe('multichain/tron', () => {
       });
     });
 
-    it('does not forward any dapp origin to the Snap routing service', async () => {
+    it('forwards the per-session channel id as the Snap origin', async () => {
       mockedCallTronSnap.mockResolvedValue({
         signature: '0xsig',
       });
 
       await tronAdapter.handleRequest({
+        origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -306,18 +317,17 @@ describe('multichain/tron', () => {
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith(
         expect.objectContaining({
+          origin: 'channelId',
           connectedAddresses: ['tron:728126428:TTestAddress'],
           scope: 'tron:728126428',
           requestId: 1,
         }),
       );
-      expect(mockedCallTronSnap).toHaveBeenCalledWith(
-        expect.not.objectContaining({ origin: expect.anything() }),
-      );
     });
 
     it('rejects unsupported WalletConnect methods', async () => {
       const args = {
+        origin: 'channelId',
         connectedAddresses: [] as CaipAccountId[],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,

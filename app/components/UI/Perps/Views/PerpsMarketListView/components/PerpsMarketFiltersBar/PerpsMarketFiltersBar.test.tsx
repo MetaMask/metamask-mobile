@@ -70,25 +70,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../../../../../../component-library/components/Texts/Text',
-  () => {
-    const { Text: RNText } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        testID,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-      }) => <RNText testID={testID}>{children}</RNText>,
-      TextVariant: { BodyMD: 'BodyMD', BodySM: 'BodySM' },
-      TextColor: { Alternative: 'Alternative', Default: 'Default' },
-    };
-  },
-);
-
 describe('PerpsMarketFiltersBar', () => {
   const mockOnSortPress = jest.fn();
   const mockOnCategorySelect = jest.fn();
@@ -219,8 +200,8 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByTestId('filters-bar-market-count')).toBeTruthy();
     });
 
-    it('does not render market count when watchlist filter is active', () => {
-      const { queryByTestId } = render(
+    it('renders market count and sort when watchlist filter is active', () => {
+      const { getByTestId } = render(
         <PerpsMarketFiltersBar
           {...defaultProps}
           isWatchlistSelected
@@ -228,9 +209,8 @@ describe('PerpsMarketFiltersBar', () => {
         />,
       );
 
-      // The entire sort row (including count) is hidden when watchlist is active
-      expect(queryByTestId('filters-bar-market-count')).toBeNull();
-      expect(queryByTestId('filters-bar-sort')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+      expect(getByTestId('filters-bar-sort')).toBeTruthy();
     });
   });
 

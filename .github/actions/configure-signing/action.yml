@@ -50,8 +50,10 @@ runs:
           printf '%s' "$value" | while IFS= read -r line || [[ -n "$line" ]]; do
             echo "::add-mask::$line"
           done
-          # Use heredoc for GITHUB_ENV to support multiline values (e.g. base64 certs)
-          delimiter="$(uuidgen)"
+          # Use heredoc for GITHUB_ENV to support multiline values (e.g. base64 certs).
+          # uuidgen is not installed on every runner image (e.g. Namespace Linux);
+          # fall back to the kernel's UUID source, present on any Linux.
+          delimiter="$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid)"
           {
             echo "${key}<<${delimiter}"
             printf '%s' "$value"

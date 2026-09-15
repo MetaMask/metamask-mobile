@@ -55,13 +55,160 @@ export function setBasicFunctionality(basicFunctionalityEnabled) {
   };
 }
 
-// Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
-export function toggleBasicFunctionality(basicFunctionalityEnabled) {
-  return async (dispatch) => {
-    // First dispatch the Redux state update
-    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
+export function setBasicFunctionalityConsolidatedEnabled(
+  isBasicFunctionalityConsolidatedEnabled,
+) {
+  return {
+    type: 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED',
+    isBasicFunctionalityConsolidatedEnabled,
+  };
+}
+
+export function setBasicFunctionalityMigrationNotification(
+  basicFunctionalityMigrationNotification,
+) {
+  return {
+    type: 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION',
+    basicFunctionalityMigrationNotification,
+  };
+}
+
+export function dismissBasicFunctionalityMigrationNotification() {
+  return {
+    type: 'DISMISS_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION',
+  };
+}
+
+export function consolidateBasicFunctionality() {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const {
+      selectMobileUxBftcConsolidationFlagEnabled,
+      BFT_CHILD_PREFERENCES,
+    } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
+    if (
+      !selectMobileUxBftcConsolidationFlagEnabled(state) ||
+      state.settings?.isBasicFunctionalityConsolidatedEnabled
+    ) {
+      return;
+    }
+
+    const {
+      getBasicFunctionalityConsolidationPlan,
+      isBasicFunctionalitySocialLoginUser,
+    } = require('../../util/basicFunctionality/getBasicFunctionalityConsolidationPlan');
+    const {
+      syncConsolidatedBasicFunctionalityPreferences,
+    } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
+    const seedlessState =
+      state.engine?.backgroundState?.SeedlessOnboardingController;
+    const isSocialLogin = isBasicFunctionalitySocialLoginUser({
+      accountType: state.onboarding?.accountType,
+      authConnection: seedlessState?.authConnection,
+      hasSeedlessVault: seedlessState?.vault != null,
+    });
+    const preferencesController =
+      state.engine?.backgroundState?.PreferencesController ?? {};
+    const preferenceState = {
+      basicFunctionalityEnabled:
+        state.settings?.basicFunctionalityEnabled === true,
+    };
+    BFT_CHILD_PREFERENCES.forEach((preference) => {
+      preferenceState[preference] = preferencesController[preference] === true;
+    });
+
+    const { landingState, notification } =
+      getBasicFunctionalityConsolidationPlan(preferenceState, isSocialLogin);
 
     const Engine = require('../../core/Engine').default;
+    await Engine.context.MultichainAccountService.setBasicFunctionality(
+      landingState,
+    );
+
+    syncConsolidatedBasicFunctionalityPreferences(landingState);
+    dispatch(setBasicFunctionality(landingState));
+    dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    dispatch(
+      setBasicFunctionalityMigrationNotification(
+        state.settings?.basicFunctionalityMigrationNotificationDismissed
+          ? null
+          : notification,
+      ),
+    );
+  };
+}
+
+// Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
+export function toggleBasicFunctionality(basicFunctionalityEnabled) {
+  return async (dispatch, getState) => {
+    const {
+      selectMobileUxBftcConsolidationFlagEnabled,
+      selectIsSocialLoginBasicFunctionalityLocked,
+    } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
+    const {
+      syncConsolidatedBasicFunctionalityPreferences,
+    } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
+
+    const state = getState();
+
+    // The UI disables this toggle for social-login wallets, but enforce the
+    // invariant in the action as well so non-UI callers cannot turn it off.
+    if (
+      !basicFunctionalityEnabled &&
+      selectIsSocialLoginBasicFunctionalityLocked(state)
+    ) {
+      return;
+    }
+
+    // Evaluate the rollout before flipping BF. A mixed legacy wallet may invoke
+    // this through Backup & Sync before its background migration completes; in
+    // that case the persisted cohort marker is still false, but the user action
+    // must still update BF and every consolidated child as one logical change.
+    const shouldSyncConsolidatedPreferences =
+      selectMobileUxBftcConsolidationFlagEnabled(state);
+
+    const Engine = require('../../core/Engine').default;
+    const { UserStorageController } = Engine.context;
+    const isBackupAndSyncEnabled =
+      state.engine?.backgroundState?.UserStorageController
+        ?.isBackupAndSyncEnabled === true;
+    if (
+      !basicFunctionalityEnabled &&
+      isBackupAndSyncEnabled &&
+      UserStorageController
+    ) {
+      const {
+        BACKUPANDSYNC_FEATURES,
+      } = require('@metamask/profile-sync-controller/user-storage');
+      // Backup & Sync depends on BF, so clear its master toggle here instead of
+      // waiting for the Backup & Sync screen to mount. Turning BF off is a
+      // privacy action and must still succeed if this fails; that screen's own
+      // effect retries the cleanup.
+      try {
+        await UserStorageController.setIsBackupAndSyncFeatureEnabled(
+          BACKUPANDSYNC_FEATURES.main,
+          false,
+        );
+      } catch (error) {
+        console.error(
+          'Failed to disable Backup & Sync while turning off basic functionality:',
+          error,
+        );
+      }
+    }
+
+    // Persist cohort membership before flipping BF so the UI does not briefly
+    // re-show granular toggles while children are still mixed.
+    if (shouldSyncConsolidatedPreferences) {
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    }
+
+    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
+
+    if (shouldSyncConsolidatedPreferences) {
+      syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
+    }
+
     Engine.context.MultichainAccountService.setBasicFunctionality(
       basicFunctionalityEnabled,
     ).catch((error) => {
@@ -105,6 +252,13 @@ export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
   return {
     type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
     preferredCandlePeriod,
+  };
+}
+
+export function setPerpsMarketListPreferences(preferences) {
+  return {
+    type: 'SET_PERPS_MARKET_LIST_PREFERENCES',
+    preferences,
   };
 }
 

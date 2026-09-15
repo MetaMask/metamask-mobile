@@ -41,12 +41,12 @@ export const PriceImpactModal = () => {
     location,
   });
   const priceImpactViewData = usePriceImpactViewData(
-    activeQuote?.quote.priceData?.priceImpact,
+    activeQuote?.quote.priceData?.priceImpact?.amount,
   );
   const isDangerousPriceImpact = useMemo(
     () =>
       exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact),
+        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount),
         bridgeFeatureFlags?.priceImpactThreshold?.error,
       ),
     [activeQuote, bridgeFeatureFlags],

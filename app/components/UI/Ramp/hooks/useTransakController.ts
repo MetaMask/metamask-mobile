@@ -89,6 +89,11 @@ export interface UseTransakControllerResult {
     walletAddress: string,
     extraParams?: Record<string, string>,
   ) => string;
+  createWidgetUrl: (
+    quote: TransakBuyQuote,
+    walletAddress: string,
+    extraParams?: Record<string, string>,
+  ) => Promise<string>;
   submitPurposeOfUsageForm: (purpose: string[]) => Promise<void>;
   patchUser: (data: TransakPatchUserRequestBody) => Promise<unknown>;
   submitSsnDetails: (ssn: string, quoteId: string) => Promise<unknown>;
@@ -284,6 +289,20 @@ export function useTransakController(): UseTransakControllerResult {
     [],
   );
 
+  const createWidgetUrl = useCallback(
+    async (
+      quote: TransakBuyQuote,
+      walletAddress: string,
+      extraParams?: Record<string, string>,
+    ) =>
+      getRampsController().transakCreateWidgetUrl(
+        quote,
+        walletAddress,
+        extraParams,
+      ),
+    [],
+  );
+
   const submitPurposeOfUsageForm = useCallback(
     async (purpose: string[]) =>
       getRampsController().transakSubmitPurposeOfUsageForm(purpose),
@@ -364,6 +383,7 @@ export function useTransakController(): UseTransakControllerResult {
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
+    createWidgetUrl,
     submitPurposeOfUsageForm,
     patchUser,
     submitSsnDetails,

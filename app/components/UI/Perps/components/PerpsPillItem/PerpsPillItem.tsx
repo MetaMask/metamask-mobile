@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
@@ -46,7 +47,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   marketDetailsSourceSection,
   transactionActiveAbTests,
 }) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { market } = item;
 
   const { changeLabel, changeTextColor } = useMemo(

@@ -110,8 +110,6 @@ export enum RewardsMetricsButtons {
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
-  BUY_MUSD = 'buy_musd',
-  SWAP_TO_MUSD = 'swap_to_musd',
   COPY_WINNER_VERIFICATION_CODE = 'copy_winner_verification_code',
 }
 
@@ -220,6 +218,26 @@ export const exitRewardsFlow = (
   navigation.navigate(Routes.HOME_TABS, {
     screen: Routes.REWARDS_VIEW,
   });
+};
+
+/**
+ * Resolves the "Contact support" URL used for beta builds only.
+ *
+ * Extracted as its own function (rather than inlined at each call site) so the
+ * branch that depends on it — direct beta Intercom link vs. the support-consent
+ * flow — can be exercised in both directions from unit tests via module
+ * mocking. `///: ONLY_INCLUDE_IF(beta)` code fences are stripped by the Metro
+ * bundler at build time but are inert under Jest, so without this seam the
+ * beta branch always wins in tests and the consent-flow branch is unreachable.
+ */
+export const getBetaSupportUrl = (): string => {
+  let betaSupportUrl = '';
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
+  ///: END:ONLY_INCLUDE_IF
+
+  return betaSupportUrl;
 };
 
 // Referral URL builder

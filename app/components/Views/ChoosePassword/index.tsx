@@ -42,6 +42,8 @@ import {
 } from '../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
@@ -88,15 +90,20 @@ import {
   trace,
   TraceOperation,
   TraceContext,
+  getTraceContext,
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -104,8 +111,11 @@ import generateDeviceAnalyticsMetaData, {
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 interface KeyringState {
   type: string;
@@ -168,12 +178,13 @@ const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
   const metrics = useAnalytics();
+  const messenger = useMessenger<RouteMessengerInstance>();
 
   const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -189,9 +200,42 @@ const ChoosePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const stallOauthProvider = route.params?.provider;
+  const stallAccountType = stallOauthProvider
+    ? getSocialAccountType(stallOauthProvider, false)
+    : AccountType.Metamask;
+  const walletSetupType =
+    route.params?.[PREVIOUS_SCREEN] === ONBOARDING ? 'new' : 'import';
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.CREATE_PASSWORD,
+    properties: {
+      wallet_setup_type: walletSetupType,
+      account_type: stallAccountType,
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
+
+  // The form renders synchronously; geolocation is the only async dependency.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+    contentReady: true,
+    isEmpty: false,
+    isLoading: isSocialLoginUser && !isGeolocationResolved,
+    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
+  });
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+    destinationReady: true,
+  });
 
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
@@ -222,9 +266,7 @@ const ChoosePassword = () => {
     let cancelled = false;
     setIsGeolocationResolved(false);
 
-    Promise.resolve(
-      Engine.context.GeolocationController?.refreshGeolocation?.(),
-    )
+    Promise.resolve(messenger.call('GeolocationController:refreshGeolocation'))
       .then((location) => {
         if (!cancelled) {
           setResolvedGeolocationLocation(location);
@@ -241,7 +283,7 @@ const ChoosePassword = () => {
     return () => {
       cancelled = true;
     };
-  }, [isSocialLoginUser, geoLocation]);
+  }, [isSocialLoginUser, geoLocation, messenger]);
 
   const marketingOptInChecked = useMemo(() => {
     if (isSocialLoginUser) {
@@ -507,7 +549,7 @@ const ChoosePassword = () => {
           ...(accountType && { accountType }),
         });
       } else {
-        onContinueNavigation();
+        await onContinueNavigation();
       }
     },
     [
@@ -548,12 +590,14 @@ const ChoosePassword = () => {
         ...(socialAccountType && { account_type: socialAccountType }),
       });
 
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingPasswordSetupError,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
           tags: { errorMessage: caughtError.toString() },
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
@@ -600,12 +644,14 @@ const ChoosePassword = () => {
       );
       authType.oauth2Login = isSocialLogin;
 
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingSRPAccountCreationTime,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
           tags: {
             is_social_login: Boolean(provider),
             account_type: accountType,
@@ -732,12 +778,15 @@ const ChoosePassword = () => {
 
   useEffect(() => {
     const initBiometrics = async () => {
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         passwordSetupAttemptTraceCtx.current = trace({
           name: TraceName.OnboardingPasswordSetupAttempt,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
         });
       }
 
@@ -758,7 +807,7 @@ const ChoosePassword = () => {
     };
 
     initBiometrics();
-  }, [route.params?.onboardingTraceCtx]);
+  }, []);
 
   // End password-setup trace on unmount
   useEffect(
@@ -817,6 +866,8 @@ const ChoosePassword = () => {
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
             keyboardShouldPersistTaps="handled"
+            // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
+            mode="layout"
           >
             <Box
               flexDirection={BoxFlexDirection.Column}
@@ -1057,6 +1108,7 @@ const ChoosePassword = () => {
             </Box>
           </KeyboardAwareScrollView>
         )}
+        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );
   };

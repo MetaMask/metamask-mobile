@@ -14,7 +14,11 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
 import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
@@ -212,5 +216,5 @@ export function setupTrendingApiFetchMock(
 export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
   clearSitesCache();
-  clearAllNockMocks();
+  teardownNock();
 }

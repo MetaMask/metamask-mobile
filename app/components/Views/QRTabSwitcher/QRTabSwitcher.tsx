@@ -21,9 +21,17 @@ import {
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
-import Engine from '../../../core/Engine';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
+import { useMessenger } from '../../../hooks/useMessenger';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { RouteMessengerInstance } from './messenger';
+import {
+  selectQrSyncError,
   selectQrSyncIsSessionActive,
   selectQrSyncPhase,
   selectQrSyncPresentation,
@@ -63,7 +71,12 @@ export interface StartScan {
 const USER_CANCELLED = 'USER_CANCELLED';
 
 export interface QRTabSwitcherParams {
-  onScanSuccess: (data: ScanSuccess, content?: string) => void;
+  /**
+   * Required for non-add-device origins. For add-device (`origin` =
+   * `ADD_DEVICE_TO_WALLET`), omit this — QRTabSwitcher submits via its own
+   * route messenger so it does not depend on a stale parent-screen callback.
+   */
+  onScanSuccess?: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
   initialScreen?: QRTabSwitcherScreens;
@@ -78,6 +91,7 @@ export const createQRScannerNavDetails =
 const QRTabSwitcher = () => {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
     route.params as QRTabSwitcherParams;
 
@@ -86,9 +100,25 @@ const QRTabSwitcher = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const qrSyncError = useSelector(selectQrSyncError);
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasShownExtensionCancelSheetRef = useRef(false);
   const prevPhaseRef = useRef(phase);
+  const keepWaitingScreenAfterCancelRef = useRef(false);
+
+  if (isAddDeviceOrigin) {
+    if (
+      phase === QrSyncPhases.INITIALIZING ||
+      phase === QrSyncPhases.DISPLAYING_OTP
+    ) {
+      keepWaitingScreenAfterCancelRef.current = false;
+    } else if (
+      DEVICE_LINKED_WAIT_PHASES.has(prevPhaseRef.current) &&
+      (phase === QrSyncPhases.IDLE || phase === QrSyncPhases.FAILED)
+    ) {
+      keepWaitingScreenAfterCancelRef.current = true;
+    }
+  }
 
   const showExtensionCancelSheetOnce = useCallback(() => {
     if (hasShownExtensionCancelSheetRef.current) {
@@ -96,8 +126,10 @@ const QRTabSwitcher = () => {
     }
 
     hasShownExtensionCancelSheetRef.current = true;
-    showExtensionCancelledErrorSheet(navigation);
-  }, [navigation]);
+    showExtensionCancelledErrorSheet(navigation, {
+      errorMessage: qrSyncError?.message,
+    });
+  }, [navigation, qrSyncError?.message]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -105,6 +137,7 @@ const QRTabSwitcher = () => {
 
   const resetExtensionCancelSheetState = useCallback(() => {
     hasShownExtensionCancelSheetRef.current = false;
+    keepWaitingScreenAfterCancelRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -128,7 +161,9 @@ const QRTabSwitcher = () => {
   useQrSyncImportNavigation({ enabled: isAddDeviceOrigin });
 
   const showDeviceAddedLoader =
-    isAddDeviceOrigin && presentation === 'device-linked';
+    isAddDeviceOrigin &&
+    (presentation === 'device-linked' ||
+      keepWaitingScreenAfterCancelRef.current);
 
   useEffect(() => {
     if (!isAddDeviceOrigin) {
@@ -182,9 +217,40 @@ const QRTabSwitcher = () => {
     endTrace({ name: TraceName.QRTabSwitcher });
   }, []);
 
+  /**
+   * Submit on this screen's live route messenger. Do not call through a
+   * nav-param callback from AddDeviceToWallet — that screen can unmount in
+   * post-onboarding AppFlow and revoke its messenger handlers.
+   */
+  const handleAddDeviceScanSuccess = useCallback(
+    (data: ScanSuccess, content?: string) => {
+      const scannedQrPayload = content ?? data.content ?? '';
+
+      Promise.resolve(
+        messenger.call(
+          'QrSyncController:handleScannedQrPayload',
+          scannedQrPayload,
+        ),
+      ).catch((err: unknown) => {
+        reportQrSyncFailure(err, {
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.QR_TAB_SWITCHER_ADD_DEVICE_SCAN,
+        });
+      });
+    },
+    [messenger],
+  );
+
+  const resolvedOnScanSuccess = isAddDeviceOrigin
+    ? handleAddDeviceScanSuccess
+    : onScanSuccess;
+
   const goBack = () => {
     if (isAddDeviceOrigin && isSessionActive) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
 
     navigation.goBack();
@@ -211,7 +277,7 @@ const QRTabSwitcher = () => {
       {selectedIndex === QRTabSwitcherScreens.Scanner ? (
         <QRScanner
           onScanError={onScanError}
-          onScanSuccess={onScanSuccess}
+          onScanSuccess={resolvedOnScanSuccess ?? (() => undefined)}
           onStartScan={onStartScan}
           origin={origin}
           shouldDismissOnScan={

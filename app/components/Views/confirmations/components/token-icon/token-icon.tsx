@@ -55,13 +55,13 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
       style={styles.container}
       badgePosition={BadgePosition.BottomRight}
       badgeElement={
-        showNetwork && (
+        showNetwork && networkImageSource ? (
           <Badge
             variant={BadgeVariant.Network}
             imageSource={networkImageSource}
             style={styles.badge}
           />
-        )
+        ) : undefined
       }
     >
       <BaseTokenIcon

@@ -20,6 +20,7 @@ import {
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AvatarAccountVariant } from '@metamask/design-system-react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -86,6 +87,12 @@ jest.mock('../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
   toFormattedAddress: jest.fn((address) => address),
   areAddressesEqual: jest.fn((addr1, addr2) => addr1 === addr2),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
 }));
 
 const mockNetworkControllerState = {
@@ -364,6 +371,39 @@ describe('AccountGroupDetails', () => {
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
       source: 'account_details',
       onLoad: expect.any(Function),
+    });
+  });
+
+  it('ends the address list trace when the Address List onLoad callback is invoked', () => {
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+    fireEvent.press(networksLink);
+
+    const navigationParams = mockNavigate.mock.calls[0][1];
+    navigationParams.onLoad();
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+    });
+  });
+
+  it('ends the address list trace if navigating to Address List throws', () => {
+    const navigationError = new Error('navigation failed');
+    mockNavigate.mockImplementationOnce(() => {
+      throw navigationError;
+    });
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+
+    expect(() => fireEvent.press(networksLink)).toThrow(navigationError);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
     });
   });
 

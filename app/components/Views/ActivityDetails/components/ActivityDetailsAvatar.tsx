@@ -10,6 +10,7 @@ import {
 import { getNetworkImageSource } from '../../../../util/networks';
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
+import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 /**
  * Renders one or two overlapping token avatars for the details amount header,
@@ -64,9 +65,18 @@ export function ActivityDetailsAvatar({
 
   const avatar =
     tokens.length === 1 ? (
-      <AvatarToken name={tokens[0].symbol} src={imageSources[0]} size={size} />
+      <Box testID={ActivityDetailsSelectorsIDs.AMOUNT_AVATAR_SINGLE}>
+        <AvatarToken
+          name={tokens[0].symbol}
+          src={imageSources[0]}
+          size={size}
+        />
+      </Box>
     ) : (
-      <Box twClassName="flex-row">
+      <Box
+        twClassName="flex-row"
+        testID={ActivityDetailsSelectorsIDs.AMOUNT_AVATAR_DUAL}
+      >
         <AvatarToken
           name={tokens[0].symbol}
           src={imageSources[0]}

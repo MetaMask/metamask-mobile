@@ -1,4 +1,5 @@
 import {
+  RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
 } from '@metamask/ramps-controller';
@@ -42,39 +43,9 @@ export function getRampsControllerMessenger(
       // The controller reads the `moneyHeadlessAllProviders` feature flag
       // itself for quote widening.
       'RemoteFeatureFlagController:getState',
-      'RampsService:getGeolocation',
-      'RampsService:getCountries',
-      'RampsService:getTokens',
-      'RampsService:getProviders',
-      'RampsService:getPaymentMethods',
-      'RampsService:getQuotes',
-      'RampsService:getBuyWidgetUrl',
-      'RampsService:getOrder',
-      'RampsService:getOrderFromCallback',
-      'TransakService:setApiKey',
-      'TransakService:setAccessToken',
-      'TransakService:clearAccessToken',
-      'TransakService:sendUserOtp',
-      'TransakService:verifyUserOtp',
-      'TransakService:logout',
-      'TransakService:getUserDetails',
-      'TransakService:getBuyQuote',
-      'TransakService:getKycRequirement',
-      'TransakService:getAdditionalRequirements',
-      'TransakService:createOrder',
-      'TransakService:getOrder',
-      'TransakService:getUserLimits',
-      'TransakService:requestOtt',
-      'TransakService:generatePaymentWidgetUrl',
-      'TransakService:submitPurposeOfUsageForm',
-      'TransakService:patchUser',
-      'TransakService:submitSsnDetails',
-      'TransakService:confirmPayment',
-      'TransakService:getTranslation',
-      'TransakService:getIdProofStatus',
-      'TransakService:cancelOrder',
-      'TransakService:cancelAllActiveOrders',
-      'TransakService:getActiveOrders',
+      // Spread the package-owned required list so new service actions
+      // (e.g. getDefaultRedirectCallbackUrl) cannot be forgotten at upgrade.
+      ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
     ],
     events: [],
   });

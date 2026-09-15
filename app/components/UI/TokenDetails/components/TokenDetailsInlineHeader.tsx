@@ -2,6 +2,9 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 import React, { useMemo, type ReactNode } from 'react';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -16,14 +19,6 @@ import {
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../locales/i18n';
 import { formatAddress } from '../../../../util/address';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
@@ -55,7 +50,6 @@ export const TokenDetailsInlineHeader = ({
   starButton?: ReactNode;
   onCopyAddress?: () => void;
 }) => {
-  const tw = useTailwind();
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
@@ -124,23 +118,12 @@ export const TokenDetailsInlineHeader = ({
     isStockToken,
   ]);
 
+  // Left → right: watchlist star, price alert, share.
   const endAccessory = useMemo(() => {
     const buttons: ReactNode[] = [];
 
     if (starButton) {
       buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
-    }
-    if (onSharePress) {
-      buttons.push(
-        <ButtonIcon
-          key="share"
-          iconName={IconName.Share}
-          size={ButtonIconSize.Md}
-          onPress={onSharePress}
-          testID="share-button"
-          accessibilityLabel="Share token"
-        />,
-      );
     }
     if (onPriceAlertPress) {
       buttons.push(
@@ -154,6 +137,18 @@ export const TokenDetailsInlineHeader = ({
         />,
       );
     }
+    if (onSharePress) {
+      buttons.push(
+        <ButtonIcon
+          key="share"
+          iconName={IconName.Share}
+          size={ButtonIconSize.Md}
+          onPress={onSharePress}
+          testID="share-button"
+          accessibilityLabel="Share token"
+        />,
+      );
+    }
 
     if (buttons.length === 0) return undefined;
     return (
@@ -161,7 +156,7 @@ export const TokenDetailsInlineHeader = ({
         {buttons}
       </Box>
     );
-  }, [starButton, onSharePress, onPriceAlertPress]);
+  }, [starButton, onPriceAlertPress, onSharePress]);
 
   const inlineDescription = useMemo(() => {
     if (!contractAddress) {
@@ -208,15 +203,11 @@ export const TokenDetailsInlineHeader = ({
       endAccessory={endAccessory}
       avatar={
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          style={tw.style('self-center')}
-          badgeElement={
+          twClassName="self-center"
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             networkBadgeSource ? (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-                size={AvatarSize.Xs}
-              />
+              <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
             ) : undefined
           }
         >

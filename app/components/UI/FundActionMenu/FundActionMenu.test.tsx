@@ -205,9 +205,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: 'eip155:1/slip44:60',
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: 'eip155:1/slip44:60' },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -264,9 +265,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: 'eip155:137/slip44:60',
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: 'eip155:137/slip44:60' },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -282,9 +284,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -397,9 +400,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { surface: 'fund_menu' },
+        );
       });
     });
 
@@ -418,9 +422,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: undefined,
-        });
+        expect(mockGoToBuy).toHaveBeenCalledWith(
+          { assetId: undefined },
+          { surface: 'fund_menu' },
+        );
       });
     });
   });
