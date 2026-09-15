@@ -3873,20 +3873,6 @@ export const usePerpsProOrderForm = ({
     }
   }, [keepReduceOnlySizeEmpty, setAmount]);
 
-  useEffect(() => {
-    if (orderForm.type !== 'chase' || !(assetData.price > 0)) {
-      return;
-    }
-
-    DevLogger.log(
-      '[PR-TAT-3914] BUG_MARKER: chase reference price uses default fiat decimals',
-      JSON.stringify({
-        price: assetData.price,
-        formatted: formatPerpsFiat(assetData.price),
-      }),
-    );
-  }, [assetData.price, orderForm.type]);
-
   return {
     direction: orderForm.direction,
     onDirectionChange,
