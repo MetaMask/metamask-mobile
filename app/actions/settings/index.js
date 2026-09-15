@@ -120,6 +120,15 @@ export function consolidateBasicFunctionality() {
     const { landingState, notification } =
       getBasicFunctionalityConsolidationPlan(preferenceState, isSocialLogin);
 
+    // Aligned wallets already match the landing state across BF and every
+    // child preference, so nothing is rewritten. Analytics only covers the
+    // unaligned mixed / unaligned social upgrades that actually change state.
+    const isAligned =
+      preferenceState.basicFunctionalityEnabled === landingState &&
+      BFT_CHILD_PREFERENCES.every(
+        (preference) => preferenceState[preference] === landingState,
+      );
+
     const Engine = require('../../core/Engine').default;
     await Engine.context.MultichainAccountService.setBasicFunctionality(
       landingState,
@@ -135,6 +144,24 @@ export function consolidateBasicFunctionality() {
           : notification,
       ),
     );
+
+    if (!isAligned) {
+      const { analytics } = require('../../util/analytics/analytics');
+      const {
+        AnalyticsEventBuilder,
+      } = require('../../util/analytics/AnalyticsEventBuilder');
+      const { MetaMetricsEvents } = require('../../core/Analytics');
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.BASIC_FUNCTIONALITY_MIGRATED,
+        )
+          .addProperties({
+            routed_bf_state: landingState ? 'on' : 'off',
+            is_social_login: isSocialLogin,
+          })
+          .build(),
+      );
+    }
   };
 }
 

@@ -27,9 +27,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { InputSectionProps, InputSectionRef } from './types';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { LimitOrderExecutionType } from '../../../constants/limitOrders';
+import {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../../constants/limitOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { getCurrencySymbol } from '../../../utils/currencyUtils';
+import { getSwapsLimitOrderDefaultPriceComparisonDirection } from '../../../utils/limitOrders/getSwapsLimitOrderPriceComparisonDirection';
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
 import { useAutoSizingFont } from '../../../hooks/useAutoSizingFont';
 import { LimitOrderPriceAdjustInputSectionSelectorsIDs } from './testIds';
@@ -50,6 +54,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       secondaryValue,
       onAmountTypeTogglePress,
       marketComparison,
+      priceComparisonDirection,
       testID = LimitOrderPriceAdjustInputSectionSelectorsIDs.CONTAINER,
     },
     ref,
@@ -61,9 +66,13 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const actionLabel = isSell
       ? strings('bridge.limit.sell_when')
       : strings('bridge.limit.buy_when');
-    const comparisonLabel = isSell
-      ? strings('bridge.limit.is_at_or_above')
-      : strings('bridge.limit.is_at_or_below');
+    const comparisonDirection =
+      priceComparisonDirection ??
+      getSwapsLimitOrderDefaultPriceComparisonDirection(executionType);
+    const comparisonLabel =
+      comparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
+        ? strings('bridge.limit.is_at_or_above')
+        : strings('bridge.limit.is_at_or_below');
     const quoteUnitLabel = quotedSymbol
       ? strings('bridge.limit.quote_unit', {
           amount: 1,

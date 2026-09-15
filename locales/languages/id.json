@@ -1876,10 +1876,6 @@
         "current_price": "Harga saat ini",
         "liquidation_price": "Harga likuidasi",
         "liquidation_distance": "Jarak likuidasi",
-        "liquidation_warning": "Anda akan dilikuidasi jika harga {{direction}} sebesar {{percentage}}",
-        "drops": "turun",
-        "rises": "naik",
-        "set_leverage": "Atur {{leverage}}x",
         "price_unavailable": "Informasi harga tidak tersedia"
       },
       "type": {
