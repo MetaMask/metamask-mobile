@@ -1,6 +1,5 @@
 import { useABTest } from '../../../../hooks/useABTest';
 import {
-  FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT,
   PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
   SCREEN_VS_BOTTOM_SHEET_VARIANTS,
@@ -27,10 +26,6 @@ export function usePerpsScreenVsBottomSheetAbTest(): UsePerpsScreenVsBottomSheet
     SCREEN_VS_BOTTOM_SHEET_VARIANTS,
     SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
   );
-
-  if (FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT) {
-    return { useBottomSheet: true };
-  }
 
   return { useBottomSheet: variant?.useBottomSheet ?? false };
 }

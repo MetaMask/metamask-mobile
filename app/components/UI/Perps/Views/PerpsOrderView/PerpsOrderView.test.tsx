@@ -684,12 +684,6 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => mockUseABTest(),
 }));
 
-// Keeps screen-path coverage meaningful while the temporary local force is on.
-jest.mock('../../abTestConfig', () => ({
-  ...jest.requireActual('../../abTestConfig'),
-  FORCE_SCREEN_VS_BOTTOM_SHEET_TREATMENT: false,
-}));
-
 // Mock useTooltipModal hook
 jest.mock('../../../../hooks/useTooltipModal', () => ({
   __esModule: true,
