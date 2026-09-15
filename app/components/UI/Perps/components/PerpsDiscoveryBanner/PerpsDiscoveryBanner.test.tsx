@@ -7,11 +7,17 @@ jest.mock('../../../../../component-library/hooks', () => ({
     styles: {
       container: {},
       banner: {},
-      textContainer: {},
-      perpsLogo: {},
     },
   }),
 }));
+
+jest.mock('../../../../../images/perps-discovery-banner-icon.svg', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
