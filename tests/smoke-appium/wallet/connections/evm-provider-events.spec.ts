@@ -11,7 +11,11 @@ import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccou
 import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector.js';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  ensureAccountListOpenPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../../flows/wallet.flow.js';
 import {
   navigateToBrowserView,
   waitForTestDappToLoad,
@@ -140,9 +144,12 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
             TabBarComponent.tabBarWalletButton,
           );
           await TabBarComponent.tapWallet();
-          await WalletView.tapIdenticon();
+          await waitForWalletHomePlaywright();
+          await ensureAccountListOpenPlaywright();
           await AccountListBottomSheet.tapAccountByNameV2('Account 2');
+          await waitForWalletHomePlaywright();
           await navigateToBrowserView();
+          await Browser.navigateToTestDApp();
           await waitForTestDappToLoad();
 
           // Active account is now Account 2 (native proxy for accountsChanged).
