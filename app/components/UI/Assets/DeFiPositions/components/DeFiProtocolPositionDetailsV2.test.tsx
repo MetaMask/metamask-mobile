@@ -39,6 +39,18 @@ jest.mock('./DeFiProtocolPositionGroupsV2', () => ({
 
 const mockInitialState = { engine: { backgroundState } };
 
+const eurState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'eur',
+      },
+    },
+  },
+};
+
 const mockGroup: DeFiProtocolPositionGroup = {
   protocolId: 'Aave V3',
   productName: 'Aave V3',
@@ -52,14 +64,13 @@ const mockGroup: DeFiProtocolPositionGroup = {
 const renderWithGroup = (
   group: DeFiProtocolPositionGroup | undefined = mockGroup,
   networkIconAvatar: number | undefined = 42,
+  state: typeof mockInitialState = mockInitialState,
 ) => {
   mockUseParams.mockReturnValue({
     protocolPositionGroup: group,
     networkIconAvatar,
   });
-  return renderWithProvider(<DeFiProtocolPositionDetailsV2 />, {
-    state: mockInitialState,
-  });
+  return renderWithProvider(<DeFiProtocolPositionDetailsV2 />, { state });
 };
 
 describe('DeFiProtocolPositionDetailsV2', () => {
@@ -97,6 +108,14 @@ describe('DeFiProtocolPositionDetailsV2', () => {
       getByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
     ).toHaveTextContent('$4,100.50');
     expect(getByTestId('position-groups')).toBeOnTheScreen();
+  });
+
+  it('renders the market value in the selected fiat currency', () => {
+    const { getByTestId } = renderWithGroup(mockGroup, 42, eurState);
+
+    expect(
+      getByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
+    ).toHaveTextContent('€4,100.50');
   });
 
   it('formats an undefined market value as zero', () => {
