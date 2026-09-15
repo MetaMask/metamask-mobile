@@ -183,9 +183,7 @@ describe('WalletRecoveryPrototype', () => {
     expect(
       within(passkeySheet).getByText('Sign in to Money account'),
     ).toBeOnTheScreen();
-    expect(
-      within(passkeySheet).getByText('Use your passkey or another method.'),
-    ).toBeOnTheScreen();
+    expect(within(passkeySheet).getByText('Learn more')).toBeOnTheScreen();
     expect(within(passkeySheet).queryByText('or')).toBeNull();
     expect(
       within(passkeySheet).queryByTestId(

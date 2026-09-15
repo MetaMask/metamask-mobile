@@ -375,6 +375,7 @@
     "or": "or",
     "recover_money_title": "Sign in to Money account",
     "recover_money_description": "Use your passkey or another method.",
+    "learn_more": "Learn more",
     "money_recovery_success_toast": "You’re signed in",
     "passkey_ready_title": "Use your passkey",
     "passkey_ready_description": "Confirm with Face ID to recover your wallet.",

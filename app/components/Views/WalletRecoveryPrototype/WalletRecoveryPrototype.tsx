@@ -1483,6 +1483,13 @@ const WalletRecoveryPrototype = () => {
                         ? 'wallet_recovery_prototype.recover_money_description'
                         : PASSKEY_COPY_KEYS[passkeyState].description,
                     )}
+                {verificationPurpose === 'money' &&
+                  passkeyState === 'ready' && (
+                    <Text color={TextColor.PrimaryDefault}>
+                      {' '}
+                      {strings('wallet_recovery_prototype.learn_more')}
+                    </Text>
+                  )}
               </Text>
             </Box>
             {passkeyState === 'ready' && (
