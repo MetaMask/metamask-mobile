@@ -2,6 +2,7 @@
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { TestInfo } from '@playwright/test';
 import {
   buildRecordingFileBaseName,
   extractRecordingPayload,
@@ -11,6 +12,7 @@ import {
   isVideoRecordingOnFailureEnabled,
   sanitizeRecordingFileName,
   shouldPersistRecordingAlways,
+  startFailureRecording,
 } from './ScreenRecording.ts';
 import { ProviderName } from '../../types.ts';
 
@@ -215,6 +217,71 @@ describe('ScreenRecording', () => {
       expect(extractRecordingPayload({ media: 'video-data' })).toBe(
         'video-data',
       );
+    });
+  });
+
+  describe('startFailureRecording', () => {
+    // Only the iOS path reads testInfo (ffmpeg annotation); Android ignores it.
+    const androidTestInfo = { annotations: [] } as unknown as TestInfo;
+
+    beforeEach(() => {
+      jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('prefers media projection over adb screenrecord on Android', async () => {
+      const execute = jest.fn().mockResolvedValue(true);
+      const startRecordingScreen = jest.fn().mockResolvedValue('');
+      const browser = {
+        isAndroid: true,
+        isIOS: false,
+        capabilities: { platformName: 'Android' },
+        execute,
+        startRecordingScreen,
+      } as unknown as WebdriverIO.Browser;
+
+      const backend = await startFailureRecording(browser, androidTestInfo);
+
+      expect(backend).toBe('android-media-projection');
+      expect(execute).toHaveBeenCalledWith(
+        'mobile: startMediaProjectionRecording',
+        {
+          maxDurationSec: 600,
+          resolution: '1280x720',
+        },
+      );
+      expect(startRecordingScreen).not.toHaveBeenCalled();
+    });
+
+    it('falls back to adb screenrecord when media projection is unavailable', async () => {
+      const execute = jest
+        .fn()
+        .mockRejectedValue(new Error('media projection unavailable'));
+      const startRecordingScreen = jest.fn().mockResolvedValue('');
+      const browser = {
+        isAndroid: true,
+        isIOS: false,
+        capabilities: { platformName: 'Android' },
+        execute,
+        startRecordingScreen,
+      } as unknown as WebdriverIO.Browser;
+
+      const backend = await startFailureRecording(browser, androidTestInfo);
+
+      expect(backend).toBe('android-screenrecord');
+      expect(execute).toHaveBeenCalledWith(
+        'mobile: startMediaProjectionRecording',
+        {
+          maxDurationSec: 600,
+          resolution: '1280x720',
+        },
+      );
+      expect(startRecordingScreen).toHaveBeenCalledWith({
+        timeLimit: '600',
+      });
     });
   });
 });
