@@ -110,6 +110,7 @@ const PlanSelectorCard = ({
         {/* Radio indicator */}
         <Box
           twClassName={`w-8 h-8 shrink-0 rounded-full items-center justify-center ${radioIndicatorBgClass} border-border-muted`}
+          testID={BenefitsTestIds.PLAN_CARD_RADIO(plan.id)}
         >
           {isSelected && (
             <Icon

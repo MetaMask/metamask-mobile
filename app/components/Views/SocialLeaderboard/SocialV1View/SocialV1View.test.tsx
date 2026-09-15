@@ -6,6 +6,8 @@ import { getSubnavPillTestId } from '../shell/SubnavPills';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
+import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
@@ -33,6 +35,19 @@ jest.mock('../analytics', () => {
   };
 });
 
+jest.mock(
+  '../../Homepage/Sections/Perpetuals/components/SparklineChart',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
+jest.mock('../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -58,6 +73,16 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: () => mockPlaySelection(),
 }));
 
+jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'top-traders-view' }),
+  };
+});
+
 jest.mock(
   '../../../../util/notifications/services/NotificationService',
   () => ({
@@ -79,6 +104,43 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return Reanimated;
+});
+
+jest.mock('react-native-gesture-handler', () => {
+  const chainable = () => {
+    const api: Record<string, unknown> = {};
+    const returnApi = () => api;
+    [
+      'enabled',
+      'onBegin',
+      'onStart',
+      'onUpdate',
+      'onEnd',
+      'onFinalize',
+      'activeOffsetX',
+      'failOffsetY',
+      'hitSlop',
+      'minDistance',
+      'maxPointers',
+    ].forEach((method) => {
+      api[method] = jest.fn(returnApi);
+    });
+    return api;
+  };
+
+  return {
+    Gesture: {
+      Pan: jest.fn(chainable),
+    },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
+
 describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -99,7 +161,7 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
   });
 
-  it('renders each tab subnav over an empty scroll surface', () => {
+  it('renders every tab subnav', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
@@ -109,11 +171,33 @@ describe('SocialV1View', () => {
       screen.getByTestId(getSubnavPillTestId('following')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getSubnavPillTestId('memecoins')),
+      screen.getByTestId(getSubnavPillTestId('topGainers')),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(getSubnavPillTestId('topTraders')),
     ).toBeOnTheScreen();
+  });
+
+  it('mounts the leaderboard list once the Leaderboard tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
+  });
+
+  it('renders the three mocked position cards on Feed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
+      expect(
+        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
@@ -134,6 +218,42 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('renders a filter icon button on the tabs row', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the filters bottom sheet when the filter button is pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('closes the filters bottom sheet when Show results is pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(
+      screen.getByTestId('social-filters-bottom-sheet-show-results'),
+    );
+
+    expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('closes the filters bottom sheet when the backdrop is pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
+
+    expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
   });
 
   it('omits the header back button', () => {

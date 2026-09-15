@@ -513,6 +513,12 @@ describe('MoneyHomeView', () => {
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
     jest.mocked(selectPrivacyMode).mockReturnValue(false);
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+      variantName: 'control',
+      isActive: false,
+    });
+    mockUseIsProSubscriber.mockReturnValue(false);
 
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Disabled,

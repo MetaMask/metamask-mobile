@@ -1,5 +1,10 @@
 import { strings } from '../../../../../../../locales/i18n';
-import { PLANS, type PlanId, type PlanOption } from '../Benefits.constants';
+import {
+  ANNUAL_SAVINGS_COPY,
+  PLANS,
+  type PlanId,
+  type PlanOption,
+} from '../Benefits.constants';
 import { formatSubscriptionFiat } from './formatSubscriptionFiat';
 import type { MoneyAccountPlusPricingView } from './mapMoneyAccountPlusPricing';
 
@@ -126,17 +131,13 @@ export const getPlanSelectorCardCopy = (
   };
 
   if (planId === 'annual' && plusPricing.savings !== undefined) {
-    if (plan.subPrice !== undefined) {
-      copy.subPrice = strings(plan.subPrice, {
-        price: formatSubscriptionFiat(
-          plusPricing.savings.equivalentMonthly,
-          planPricing.currency,
-        ),
-      });
-    }
-    if (plan.savingsBadge !== undefined) {
-      copy.savingsBadge = strings(plan.savingsBadge);
-    }
+    copy.subPrice = strings(ANNUAL_SAVINGS_COPY.subPrice, {
+      price: formatSubscriptionFiat(
+        plusPricing.savings.equivalentMonthly,
+        planPricing.currency,
+      ),
+    });
+    copy.savingsBadge = strings(ANNUAL_SAVINGS_COPY.savingsBadge);
   }
 
   if (
