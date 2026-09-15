@@ -4,6 +4,7 @@ import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet'
 import { Assertions } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
 
 const logger = createLogger({ name: 'SwapUnifiedUI' });
 
@@ -93,4 +94,6 @@ export async function checkSwapActivity(
 export async function returnToWalletFromSwapActivity(): Promise<void> {
   await ActivitiesView.tapBackButton();
   await QuoteView.tapOnBackButton();
+  // iOS: wallet-screen often exists with displayed=false; use home indicators.
+  await waitForWalletHomePlaywright(15000);
 }

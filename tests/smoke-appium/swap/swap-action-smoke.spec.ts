@@ -2,7 +2,6 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { LocalNodeType } from '../../framework/types.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import { SmokeSwap } from '../../tags.js';
 import {
@@ -68,7 +67,6 @@ appiumTest.describe.skip(SmokeSwap('Swap from Actions'), () => {
           await checkSwapActivity('ETH', 'USDC');
           await returnToWalletFromSwapActivity();
 
-          await TabBarComponent.tapWallet();
           await WalletView.tapWalletSwapButton();
 
           // Submit second swap: ERC20->ETH
