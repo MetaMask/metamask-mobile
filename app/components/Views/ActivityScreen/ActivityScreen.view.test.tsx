@@ -493,7 +493,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByText } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -506,10 +506,14 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
+    // Wait for Transactions empty copy — the list shows a spinner until the EVM
+    // query settles, so the empty-state testID is not mounted yet.
+    await waitFor(() => {
+      expect(queryByText(unfundedDescription)).toBeOnTheScreen();
+    });
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
-    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(addFundsLabel));
 
@@ -526,7 +530,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText, queryByTestId } =
+    const { getAllByText, findByTestId, findByText, queryByTestId, queryByText } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateFunded().build(),
         extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
@@ -540,11 +544,11 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     });
 
     await waitFor(() => {
-      expect(
-        queryByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-      ).toBeOnTheScreen();
+      expect(queryByText(fundedDescription)).toBeOnTheScreen();
     });
-    expect(await findByText(fundedDescription)).toBeOnTheScreen();
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
 
     fireEvent.press(await findByText(swapTokensLabel));
 
