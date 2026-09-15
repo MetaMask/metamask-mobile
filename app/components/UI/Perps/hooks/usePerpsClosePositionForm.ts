@@ -42,6 +42,7 @@ import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
 import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
   calculateCloseAmountFromPercentage,
@@ -203,16 +204,10 @@ export function usePerpsClosePositionForm(
     ? parseFloat(priceData[position.symbol].price)
     : parseFloat(position.entryPrice);
 
-  // Mark price used as the reference for HyperLiquid's oracle price band. Falls
-  // back to the mid/mark currentPrice when the mark price is missing or does
-  // not parse to a finite positive number (otherwise a NaN reference would
-  // silently skip the band check).
-  const markPrice = priceData[position.symbol]?.markPrice;
-  const parsedMarkPrice = markPrice ? parseFloat(markPrice) : NaN;
-  const referencePrice =
-    Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
-      ? parsedMarkPrice
-      : currentPrice;
+  const referencePrice = resolveOracleReferencePrice(
+    priceData[position.symbol]?.markPrice,
+    currentPrice,
+  );
 
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({

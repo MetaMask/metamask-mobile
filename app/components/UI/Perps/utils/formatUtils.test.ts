@@ -22,6 +22,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatLimitPriceInput,
   formatPerpsPrice,
   formatPositionTriggerSummary,
 } from './formatUtils';
@@ -2144,6 +2145,25 @@ describe('formatUtils', () => {
     it('returns null when a side has neither a count nor a usable price', () => {
       expect(formatPositionTriggerSummary({ count: 0 })).toBeNull();
       expect(formatPositionTriggerSummary({ price: '0' })).toBeNull();
+    });
+  });
+
+  describe('formatLimitPriceInput', () => {
+    it('returns empty for absent or zero input', () => {
+      expect(formatLimitPriceInput('')).toBe('');
+      expect(formatLimitPriceInput('0')).toBe('');
+    });
+
+    it('preserves a trailing decimal point while typing', () => {
+      expect(formatLimitPriceInput('12.')).toBe('$12.');
+    });
+
+    it('preserves trailing zeros after the decimal while typing', () => {
+      expect(formatLimitPriceInput('12.50')).toBe('$12.50');
+    });
+
+    it('formats a complete number', () => {
+      expect(formatLimitPriceInput('3000')).toBe('$3,000');
     });
   });
 });

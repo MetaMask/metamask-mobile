@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { BigNumber } from 'bignumber.js';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_EVENT_PROPERTY,
@@ -11,8 +10,16 @@ import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG, MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { formatPerpsFiat, formatWithSignificantDigits } from '../../utils/formatUtils';
-import { isPriceOutsideDeviationBand } from '../../utils/orderUtils';
+import {
+  formatLimitPriceInput,
+  formatWithSignificantDigits,
+} from '../../utils/formatUtils';
+import { getLimitPriceDirectionWarning } from '../../utils/limitPriceFarFromMarket';
+import {
+  calculateLimitPriceForPercentage,
+  isPriceOutsideDeviationBand,
+  resolveOracleReferencePrice,
+} from '../../utils/orderUtils';
 
 export interface PerpsLimitPricePreset {
   label: string;
@@ -59,16 +66,10 @@ export function usePerpsLimitPriceInput({
     ? parseFloat(currentPriceData.price)
     : passedCurrentPrice;
 
-  // Mark price is HyperLiquid's reference for the oracle band; fall back to the
-  // mid price when it is missing or unparseable so a NaN reference cannot
-  // silently skip the check.
-  const parsedMarkPrice = currentPriceData?.markPrice
-    ? parseFloat(currentPriceData.markPrice)
-    : NaN;
-  const referencePrice =
-    Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
-      ? parsedMarkPrice
-      : currentPrice;
+  const referencePrice = resolveOracleReferencePrice(
+    currentPriceData?.markPrice,
+    currentPrice,
+  );
 
   const topOfBook = usePerpsTopOfBook({ symbol: asset });
   const isLong = direction === 'long';
@@ -109,19 +110,16 @@ export function usePerpsLimitPriceInput({
       : currentPrice;
 
     const applyPercentage = (percentage: number) => {
-      const parsedLimitPrice = limitPrice
-        ? parseFloat(limitPrice.replace(/[$,]/g, ''))
-        : 0;
-      const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
-      if (!basePrice) {
+      const calculated = calculateLimitPriceForPercentage(
+        limitPrice,
+        currentPrice,
+        percentage,
+      );
+      if (!calculated) {
         return;
       }
       applyLimitPrice(
-        parseFloat(
-          BigNumber(basePrice)
-            .multipliedBy(1 + percentage / 100)
-            .toString(),
-        ),
+        parseFloat(calculated),
         PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
       );
     };
@@ -162,39 +160,10 @@ export function usePerpsLimitPriceInput({
     ];
   }, [applyLimitPrice, currentPrice, isLong, limitPrice, topOfBook]);
 
-  const formattedLimitPrice = useMemo(() => {
-    if (!limitPrice || limitPrice === '0') {
-      return '';
-    }
-
-    // Preserve the raw input while it is still being typed ("12.", "12.50"),
-    // which formatPerpsFiat would otherwise collapse.
-    if (limitPrice.endsWith('.') || /\.\d*0$/.test(limitPrice)) {
-      const parts = limitPrice.split('.');
-      const formatted = formatPerpsFiat(parts[0] || '0', {
-        ranges: [
-          {
-            condition: () => true,
-            threshold: 0,
-            maximumDecimals: 0,
-            minimumDecimals: 0,
-          },
-        ],
-      });
-      return `${formatted}${parts.length > 1 ? `.${parts[1]}` : '.'}`;
-    }
-
-    return formatPerpsFiat(limitPrice, {
-      ranges: [
-        {
-          condition: () => true,
-          threshold: 0.00000001,
-          maximumDecimals: 7,
-          minimumDecimals: Math.min(limitPrice.split('.')[1]?.length || 0, 7),
-        },
-      ],
-    });
-  }, [limitPrice]);
+  const formattedLimitPrice = useMemo(
+    () => formatLimitPriceInput(limitPrice),
+    [limitPrice],
+  );
 
   const error = useMemo(() => {
     const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
@@ -213,16 +182,12 @@ export function usePerpsLimitPriceInput({
       return '';
     }
 
-    // direction is the closing order's side: selling to close a long should
-    // not sit below the market, and buying to close a short not above it.
-    if (direction === 'short' && parsedLimit < currentPrice) {
-      return strings('perps.order.limit_price_modal.limit_price_below');
-    }
-    if (direction === 'long' && parsedLimit > currentPrice) {
-      return strings('perps.order.limit_price_modal.limit_price_above');
-    }
-
-    return '';
+    return getLimitPriceDirectionWarning({
+      limitPrice,
+      currentPrice,
+      direction,
+      isClosingPosition: true,
+    });
   }, [currentPrice, direction, limitPrice, referencePrice]);
 
   const trackInputMethod = useCallback(() => {
