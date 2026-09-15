@@ -21,7 +21,7 @@ import {
   type FlatList,
   type ScrollView,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import {
   useNavigation,
   useRoute,
@@ -67,6 +67,7 @@ import {
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
+import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
 import {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
@@ -110,6 +111,15 @@ const buildQueryEnabledTabs = (
   tokens: activeTab === 'tokens',
   perps: activeTab === 'perps',
 });
+
+/**
+ * Slide a row runs when the ranking reshuffles. Eased out so rows leave quickly
+ * and settle gently, and matched to `RANK_CHANGE_DURATION` so the row's own
+ * pulse resolves exactly as it lands.
+ */
+const rowLayoutTransition = LinearTransition.duration(
+  RANK_CHANGE_DURATION,
+).easing(Easing.out(Easing.ease));
 
 const LEADERBOARD_LIMIT = 50;
 const INITIAL_TRADER_ROWS_TO_RENDER = 6;
@@ -183,6 +193,12 @@ export interface TopTradersViewProps {
    * sits above this list. `tokens` and `perps` still require the perps flag.
    */
   pinnedTypeFilter?: SocialTypeFilter;
+  /**
+   * Slides rows to their new offsets when the ranking changes, instead of
+   * snapping. Rows pair this with their own rank-change pulse. Off by default
+   * so the legacy leaderboard keeps its instant re-sort.
+   */
+  animateReorder?: boolean;
 }
 
 /**
@@ -198,6 +214,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   SkeletonComponent = TraderRowSkeleton,
   rowHeight = TRADER_ROW_HEIGHT,
   pinnedTypeFilter,
+  animateReorder = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
@@ -616,6 +633,10 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           ref={listRef}
           data={traders}
           keyExtractor={(item) => item.id}
+          // Stable keys are what let a reorder read as movement rather than a
+          // re-render: the cell for a given trader survives the sort, so
+          // Reanimated has an old and new offset to interpolate between.
+          itemLayoutAnimation={animateReorder ? rowLayoutTransition : undefined}
           renderItem={renderTraderRow}
           ListHeaderComponent={listHeader}
           showsVerticalScrollIndicator={false}
