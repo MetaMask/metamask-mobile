@@ -3,7 +3,6 @@ import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { SocialV1FeedItem } from '../types';
 import CopyTradeButton from './CopyTradeButton';
-import PositionCardChart from './PositionCardChart';
 import PositionCardComment from './PositionCardComment';
 import PositionCardHeader from './PositionCardHeader';
 import PositionCardShell from './PositionCardShell';
@@ -11,7 +10,6 @@ import PositionCardStats, {
   type PositionCardStatRow,
 } from './PositionCardStats';
 import {
-  getSocialFeedPositionCardChartTestId,
   getSocialFeedPositionCardCommentTestId,
   getSocialFeedPositionCardCopyTradeTestId,
   getSocialFeedPositionCardStatTestId,
@@ -43,7 +41,6 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   item,
 }) => {
   const commentTestID = getSocialFeedPositionCardCommentTestId(item.id);
-  const chartTestID = getSocialFeedPositionCardChartTestId(item.id);
 
   if (item.variant === 'perpsOpen') {
     const stats: PositionCardStatRow[] = [
@@ -83,12 +80,6 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
             valueLabel={item.valueLabel}
             pnlLabel={item.pnlLabel}
             isPnlPositive={item.isPnlPositive}
-          />
-          <PositionCardChart
-            showChart={item.showChart}
-            series={item.chartSeries}
-            isPnlPositive={item.isPnlPositive}
-            testID={chartTestID}
           />
           <PositionCardStats rows={stats} />
           <CopyTradeButton
@@ -151,12 +142,6 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
             valueLabel={item.valueLabel}
             pnlLabel={item.pnlLabel}
             isPnlPositive={item.isPnlPositive}
-          />
-          <PositionCardChart
-            showChart={item.showChart}
-            series={item.chartSeries}
-            isPnlPositive={item.isPnlPositive}
-            testID={chartTestID}
           />
           <PositionCardStats rows={stats} />
         </PositionCardShell>

@@ -48,7 +48,8 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
   SocialShellTab,
   SocialShellFilters
 > = {
-  feed: { ...DEFAULT_FILTERS },
+  forYou: { ...DEFAULT_FILTERS },
+  following: { ...DEFAULT_FILTERS },
   liveTrades: { ...DEFAULT_FILTERS },
   leaderboard: { ...DEFAULT_FILTERS },
 };
@@ -68,8 +69,8 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
 };
 
 /**
- * Cohort options per tab. Feed and Live trades surface `following`;
- * Leaderboard does not (the screenshot shows only All/Shrimp/Dolphin/Whale/KOL).
+ * Cohort options per tab. Live trades surfaces `following`;
+ * Leaderboard does not (All/Shrimp/Dolphin/Whale/KOL).
  */
 export const COHORT_OPTIONS_WITH_FOLLOWING: SocialTraderCohort[] = [
   'all',
