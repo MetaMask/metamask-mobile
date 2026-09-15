@@ -119,7 +119,7 @@ describe('ChartTypeToggle', () => {
     const container = UNSAFE_getByType(Box);
 
     expect(container.props.twClassName).toBe(
-      'ml-2 rounded-lg border border-border-muted p-0.5',
+      'ml-2 rounded-full border border-border-muted p-0.5',
     );
   });
 
