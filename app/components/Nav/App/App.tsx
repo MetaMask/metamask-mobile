@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -11,6 +12,7 @@ import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
+import WalletRecoveryPrototype from '../../Views/WalletRecoveryPrototype';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
@@ -106,6 +108,7 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
+import { FeatureNotificationsGateSheet } from '../../Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import WalletCreationError from '../../Views/WalletCreationError';
@@ -587,6 +590,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
       component={ExperienceEnhancerModal}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.FEATURE_NOTIFICATIONS_GATE}
+      component={FeatureNotificationsGateSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.DATA_COLLECTION}
@@ -1137,6 +1144,30 @@ const AppFlow = () => {
         component={OnboardingRootNav}
       />
       <NativeStack.Screen
+        name={Routes.ONBOARDING.RECOVERY_PROTOTYPE}
+        component={WalletRecoveryPrototype}
+        options={({ route }) => {
+          const isMoneyRecovery =
+            route.params &&
+            'initialStage' in route.params &&
+            route.params.initialStage === 'verifyMoney';
+          return {
+            presentation: isMoneyRecovery ? 'transparentModal' : 'card',
+            animation: isMoneyRecovery ? 'fade' : 'default',
+            gestureEnabled: false,
+            ...(isMoneyRecovery
+              ? {
+                  contentStyle: { backgroundColor: importedColors.transparent },
+                }
+              : {
+                  contentStyle: {
+                    backgroundColor: colors.background.default,
+                  },
+                }),
+          };
+        }}
+      />
+      <NativeStack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}
         component={OnboardingSuccessFlow}
         // Opaque, full-screen flow: present as a card so safe-area insets resolve
@@ -1483,11 +1514,10 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
-        <Toast ref={toastRef} />
         {/*
-          FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
-          layer — including native-stack card screens — which a plain absolute View as a
-          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render
+          FullWindowOverlay (iOS) renders toasts in a UIWindow above every native layer —
+          including native-stack card screens — which a plain absolute View as a sibling
+          of <AppFlow /> cannot reach. Without this wrapper some toasts render
           behind the native stack card screens and are not visible.
           unstable_accessibilityContainerViewIsModal={false} prevents react-native-screens
           from marking the native container as accessibilityViewIsModal=YES, which would
@@ -1496,7 +1526,10 @@ const App: React.FC = () => {
           See: https://consensyssoftware.atlassian.net/browse/DSYS-931
         */}
         <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
-          <Toaster />
+          <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+            <Toast ref={toastRef} />
+            <Toaster />
+          </View>
         </FullWindowOverlay>
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}

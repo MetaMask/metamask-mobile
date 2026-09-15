@@ -298,30 +298,30 @@ In Perps Pro mode, users can edit the **limit price** or **size** of eligible op
 
 ### Key Components Used
 
-| Component | Purpose |
-| --------- | ------- |
-| `PerpsProOrderCard` | Order row with tappable price/size rows and edit affordances |
-| `PerpsProOrderEditSheets` | Renders limit-price or size sheet from shared edit state |
+| Component                    | Purpose                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `PerpsProOrderCard`          | Order row with tappable price/size rows and edit affordances                                     |
+| `PerpsProOrderEditSheets`    | Renders limit-price or size sheet from shared edit state                                         |
 | `PerpsLimitPriceBottomSheet` | Limit price keypad (also used by `PerpsOrderView`; resting-order margin validation when editing) |
-| `PerpsOrderSizeBottomSheet` | Size keypad with minimum-notional and incremental-margin checks |
+| `PerpsOrderSizeBottomSheet`  | Size keypad with minimum-notional and incremental-margin checks                                  |
 
 ### Hooks Consumed
 
-| Hook | Purpose |
-| ---- | ------- |
-| `usePerpsProOrderEdit` | Sheet state, confirm handler, optimistic apply/rollback |
+| Hook                               | Purpose                                                   |
+| ---------------------------------- | --------------------------------------------------------- |
+| `usePerpsProOrderEdit`             | Sheet state, confirm handler, optimistic apply/rollback   |
 | `usePerpsProPositionsPanelActions` | Wires panel handlers and portal `renderOrderEditSheets()` |
 
 ### testIDs (`Perps.testIds.ts`)
 
-| Constant | testID |
-| -------- | ------ |
-| `PerpsProMarketViewSelectorsIDs.ORDER_EDIT` | `perps-pro-market-order-edit` |
-| `PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT` | `perps-pro-market-order-price-edit` |
-| `PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT` | `perps-pro-market-order-size-edit` |
-| `PerpsOrderSizeBottomSheetSelectorsIDs.SIZE_DISPLAY` | `perps-order-size-display` |
-| `PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON` | `perps-order-size-confirm-button` |
-| `PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON` | `perps-limit-price-confirm-button` |
+| Constant                                                | testID                              |
+| ------------------------------------------------------- | ----------------------------------- |
+| `PerpsProMarketViewSelectorsIDs.ORDER_EDIT`             | `perps-pro-market-order-edit`       |
+| `PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT`       | `perps-pro-market-order-price-edit` |
+| `PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT`        | `perps-pro-market-order-size-edit`  |
+| `PerpsOrderSizeBottomSheetSelectorsIDs.SIZE_DISPLAY`    | `perps-order-size-display`          |
+| `PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON`  | `perps-order-size-confirm-button`   |
+| `PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON` | `perps-limit-price-confirm-button`  |
 
 ### Eligibility
 

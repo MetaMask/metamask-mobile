@@ -51,7 +51,11 @@ import type {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { useTheme } from '../../../util/theme';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import {
+  passwordSet,
+  seedphraseBackedUp,
+  setOnboardingStepperStep,
+} from '../../../actions/user';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
@@ -124,7 +128,9 @@ import {
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { STEPPER_IDS } from '../../UI/Money/hooks/useOnboardingStep';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import { RECOVERY_PROTOTYPE_PASSWORD } from '../../../constants/recoveryPrototype';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -200,6 +206,7 @@ interface ImportFromSecretRecoveryPhraseRouteParams {
   onboardingTraceCtx?: TraceContext;
   oauthLoginSuccess?: boolean;
   previous_screen?: string;
+  recoveryPrototypeImportEnabled?: boolean;
 }
 
 interface PasswordVisibilityToggleProps {
@@ -514,10 +521,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     return true;
   };
 
-  const handleContinueImportFlow = () => {
-    if (!validateSeedPhrase()) {
-      return;
-    }
+  const continueAfterRecoveryVerification = () => {
     animateToStep(currentStep + 1);
     // Start the trace when moving to the password setup step
     const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
@@ -528,6 +532,18 @@ const ImportFromSecretRecoveryPhrase = () => {
         parentContext: onboardingTraceCtx,
       });
     }
+  };
+
+  const handleContinueImportFlow = () => {
+    if (!validateSeedPhrase()) {
+      return;
+    }
+    if (!route.params?.recoveryPrototypeImportEnabled) {
+      continueAfterRecoveryVerification();
+      return;
+    }
+    Keyboard.dismiss();
+    void onPressImport(RECOVERY_PROTOTYPE_PASSWORD);
   };
 
   const isContinueButtonDisabled = useMemo(
@@ -557,20 +573,21 @@ const ImportFromSecretRecoveryPhrase = () => {
     });
   };
 
-  const onPressImport = async () => {
+  async function onPressImport(passwordOverride?: string) {
+    const importPassword = passwordOverride ?? password;
     // Trim each word before joining for processing
     const trimmedSeedPhrase = seedPhrase
       .map((item) => item.trim())
       .join(SPACE_CHAR);
-    const vaultSeed = await parseVaultValue(password, trimmedSeedPhrase);
+    const vaultSeed = await parseVaultValue(importPassword, trimmedSeedPhrase);
     const parsedSeed = parseSeedPhrase(vaultSeed || trimmedSeedPhrase);
 
     if (loading) return;
     track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     let setupError = null;
-    if (!passwordRequirementsMet(password)) {
+    if (!passwordRequirementsMet(importPassword)) {
       setupError = strings('import_from_seed.password_length_error');
-    } else if (password !== confirmPassword) {
+    } else if (passwordOverride === undefined && password !== confirmPassword) {
       setupError = strings('import_from_seed.password_dont_match');
     }
 
@@ -615,7 +632,7 @@ const ImportFromSecretRecoveryPhrase = () => {
         );
 
       await Authentication.newWalletAndRestore(
-        password,
+        importPassword,
         authData,
         parsedSeed,
         true,
@@ -638,6 +655,20 @@ const ImportFromSecretRecoveryPhrase = () => {
     dispatch(passwordSet());
     dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
     dispatch(seedphraseBackedUp());
+    if (route.params?.recoveryPrototypeImportEnabled) {
+      dispatch(
+        setOnboardingStepperStep(
+          STEPPER_IDS.MONEY_RECOVERY_SOCIAL_LOGIN_WALLET,
+          0,
+        ),
+      );
+      dispatch(
+        setOnboardingStepperStep(
+          STEPPER_IDS.MONEY_RECOVERY_VERIFICATION_PENDING,
+          1,
+        ),
+      );
+    }
     track(MetaMetricsEvents.WALLET_IMPORTED, {
       biometrics_enabled: Boolean(biometryType),
     });
@@ -683,7 +714,7 @@ const ImportFromSecretRecoveryPhrase = () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
       });
     }
-  };
+  }
 
   const isError =
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
@@ -993,7 +1024,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             isLoading={loading}
             isFullWidth
             variant={ButtonVariant.Primary}
-            onPress={onPressImport}
+            onPress={() => void onPressImport()}
             size={ButtonSize.Lg}
             isDisabled={isContinueButtonDisabled}
             testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
@@ -1012,7 +1043,8 @@ const ImportFromSecretRecoveryPhrase = () => {
             onPress={handleContinueImportFlow}
             isFullWidth
             size={ButtonSize.Lg}
-            isDisabled={isSRPContinueButtonDisabled}
+            isLoading={loading}
+            isDisabled={isSRPContinueButtonDisabled || loading}
             testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
           >
             {strings('import_from_seed.continue')}

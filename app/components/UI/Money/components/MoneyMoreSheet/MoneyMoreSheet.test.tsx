@@ -37,9 +37,20 @@ const mockTrackActivitySurfaceClicked = jest.fn();
 const mockTrackScreenViewed = jest.fn();
 const mockTrackComponentViewed = jest.fn();
 const mockTrackOnboardingEvent = jest.fn();
+const mockResetProgress = jest.fn();
+const mockAdvanceTwoWeeks = jest.fn();
+let mockIsTwoWeeksLater = false;
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyFinishSetup', () => ({
+  useMoneyFinishSetup: () => ({
+    advanceTwoWeeks: mockAdvanceTwoWeeks,
+    isTwoWeeksLater: mockIsTwoWeeksLater,
+    isVisible: true,
+    resetProgress: mockResetProgress,
+  }),
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -92,6 +103,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsTwoWeeksLater = false;
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     jest.mocked(useMoneyAnalytics).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
@@ -111,17 +123,24 @@ describe('MoneyMoreSheet', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders How it works, What you get, and Contact support rows', () => {
+  it('renders all menu rows', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     expect(
       getByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(MoneyMoreSheetTestIds.MANAGE_SECURITY_OPTION),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION),
     ).toBeOnTheScreen();
     expect(
       getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByTestId(MoneyMoreSheetTestIds.REFRESH_OPTION)).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyMoreSheetTestIds.TWO_WEEKS_LATER_OPTION),
     ).toBeOnTheScreen();
   });
 
@@ -143,6 +162,12 @@ describe('MoneyMoreSheet', () => {
     expect(getByText(strings('money.more_sheet.title'))).toBeOnTheScreen();
   });
 
+  it('labels the security entry point as 2-step verification', () => {
+    const { getByText } = renderWithProvider(<MoneyMoreSheet />);
+
+    expect(getByText('2-step verification')).toBeOnTheScreen();
+  });
+
   it('navigates to MoneyHowItWorks when "How it works" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
@@ -150,6 +175,15 @@ describe('MoneyMoreSheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
+  });
+
+  it('navigates to MoneyManageSecurity when security is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.MANAGE_SECURITY_OPTION));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY);
   });
 
   it('opens the Money landing URL in the in-app browser when "What you get" is pressed', () => {
@@ -190,6 +224,45 @@ describe('MoneyMoreSheet', () => {
 
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('refreshes prototype state from the More sheet', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.REFRESH_OPTION));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockResetProgress).toHaveBeenCalledTimes(1);
+  });
+
+  it('advances the prototype by two weeks from below Refresh', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.TWO_WEEKS_LATER_OPTION));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockAdvanceTwoWeeks).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves Finish setting up into More with a notification dot', () => {
+    mockIsTwoWeeksLater = true;
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    expect(
+      getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_OPTION),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_DOT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_ICON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_OPTION));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.FINISH_SETUP_SHEET,
+    });
   });
 
   it('closes the sheet before opening the consented support URL in the in-app browser', () => {

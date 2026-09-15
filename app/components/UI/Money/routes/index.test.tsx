@@ -285,4 +285,24 @@ describe('MoneyModalStack', () => {
 
     expect(getByTestId('money-screen-MoneyGeoBlockSheet')).toBeOnTheScreen();
   });
+
+  it('registers the Protect wallet sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-MoneyProtectWalletSheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('registers the authenticator setup-key sheet', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-MoneyAuthenticatorKeySheet'),
+    ).toBeOnTheScreen();
+  });
 });

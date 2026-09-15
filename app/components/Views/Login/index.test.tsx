@@ -845,6 +845,22 @@ describe('Login', () => {
       expect(mockGetAuthType).toHaveBeenCalled();
     });
 
+    it('accepts the prototype password shortcut in test builds', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'password');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() =>
+        expect(mockUnlockWallet).toHaveBeenCalledWith({
+          password: 'MetaMaskDemo2026!',
+        }),
+      );
+    });
+
     it('does not call getAuthType after unlock when seedless password is not outdated', async () => {
       // Arrange
       mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);

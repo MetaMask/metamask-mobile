@@ -18,8 +18,11 @@ import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import { MoneySecurityViewTestIds } from '../../../UI/Money/Views/MoneySecurityView/MoneySecurityView.testIds';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../../core/redux/types';
+import { AuthConnection } from '../../../../core/OAuthService/OAuthInterface';
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
@@ -59,6 +62,10 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@react-native-cookies/cookies', () => ({
   clearAll: jest.fn(),
   getAll: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock('../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: () => true,
 }));
 
 let mockUseParamsValues: {
@@ -159,6 +166,49 @@ describe('SecuritySettings', () => {
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
     expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
+    expect(getByText('Security methods')).toBeOnTheScreen();
+    expect(getByText('Passkeys')).toBeOnTheScreen();
+    expect(getByText('Social')).toBeOnTheScreen();
+    expect(getByText('Authenticator app')).toBeOnTheScreen();
+    expect(getByText('Transaction verification')).toBeOnTheScreen();
+  });
+
+  it('opens Money passkeys from global security settings', () => {
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+
+    fireEvent.press(getByTestId(MoneySecurityViewTestIds.PASSKEYS_ROW));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.PASSKEYS, {
+      entryPoint: 'security',
+    });
+  });
+
+  it('hides the social identity above Security methods for social-login users', () => {
+    const socialLoginState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+            socialLoginEmail: 'account@gmail.com',
+          },
+        },
+      },
+    };
+    const { getByText, queryByText } = renderWithProvider(
+      <SecuritySettings />,
+      {
+        state: socialLoginState,
+      },
+    );
+
+    expect(getByText('Security methods')).toBeOnTheScreen();
+    expect(getByText('SMS')).toBeOnTheScreen();
+    expect(queryByText('Social login')).not.toBeOnTheScreen();
+    expect(queryByText('account@gmail.com')).not.toBeOnTheScreen();
   });
 
   it('renders Blockaid settings', async () => {

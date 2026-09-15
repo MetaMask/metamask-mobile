@@ -13,6 +13,7 @@ import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
+import { MoneyFinishSetupCardTestIds } from '../../components/MoneyFinishSetupCard/MoneyFinishSetupCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -63,6 +64,8 @@ import {
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
 } from '../../selectors/featureFlags';
+import { userInitialState } from '../../../../../reducers/user';
+import { STEPPER_IDS } from '../../hooks/useOnboardingStep';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -614,6 +617,44 @@ describe('MoneyHomeView', () => {
     expect(
       getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the two-weeks-later balance and protection prompt', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <MoneyHomeView />,
+      {
+        state: {
+          user: {
+            ...userInitialState,
+            onboardingStepperProgress: {
+              [STEPPER_IDS.MONEY_FINISH_SETUP]: 0,
+              [STEPPER_IDS.MONEY_PASSKEY_COUNT]: 0,
+              [STEPPER_IDS.MONEY_TWO_WEEKS_LATER]: 1,
+            },
+          },
+        },
+      },
+    );
+
+    expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+      '$500.00',
+    );
+    expect(
+      getByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyFinishSetupCardTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyHeaderTestIds.MENU_NOTIFICATION_DOT),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByText('Set up now'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
+      params: { returnToMoneyHome: true },
+    });
   });
 
   it('renders the onboarding card', () => {

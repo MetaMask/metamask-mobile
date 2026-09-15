@@ -1021,10 +1021,17 @@ const Wallet = ({
     </View>
   ) : null;
 
+  const handleProtectWallet = useCallback(() => {
+    appNavigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.PROTECT_WALLET_SHEET,
+    });
+  }, [appNavigation]);
+
   /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
   const walletHomeAccountGroupBalanceProps = {
     onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
     suspendRiveForCurtain: postOnboardingExitAnimating,
+    onFundPrimaryPress: handleProtectWallet,
     onTradePrimaryPress,
     onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
   };

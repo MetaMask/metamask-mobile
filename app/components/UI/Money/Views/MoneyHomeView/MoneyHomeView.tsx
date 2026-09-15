@@ -16,6 +16,11 @@ import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -27,6 +32,7 @@ import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyFinishSetupCard from '../../components/MoneyFinishSetupCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -47,6 +53,13 @@ import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
+import {
+  MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS,
+  useMoneySecurityMethods,
+} from '../../hooks/useMoneySecurityMethods';
+import { selectOnboardingStepperProgress } from '../../../../../reducers/user/selectors';
+import { STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
@@ -116,6 +129,22 @@ const MoneyHomeView = () => {
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
+  const {
+    isTwoWeeksLater,
+    isVisible: isFinishSetupVisible,
+    passkeyCount,
+  } = useMoneyFinishSetup();
+  const onboardingProgress = useSelector(selectOnboardingStepperProgress);
+  const isRecoveredMoneyPrototype =
+    onboardingProgress[STEPPER_IDS.MONEY_RECOVERY_PROTOTYPE_COMPLETED] === 1;
+  const hasPrototypeBalance = isRecoveredMoneyPrototype || isTwoWeeksLater;
+  const {
+    defaultVerificationMethod: defaultVerificationMethodType,
+    isTransactionVerificationEnabled,
+  } = useMoneySecurityMethods(passkeyCount);
+  const defaultVerificationMethod = strings(
+    MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS[defaultVerificationMethodType],
+  );
 
   const {
     trackButtonClicked,
@@ -139,6 +168,10 @@ const MoneyHomeView = () => {
     apyPercent,
     apyDecimal,
   } = useMoneyAccountBalance();
+  const displayedTotalFiatFormatted = hasPrototypeBalance
+    ? '$500.00'
+    : totalFiatFormatted;
+  const displayedTotalFiatRaw = hasPrototypeBalance ? '500' : totalFiatRaw;
   const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
     useMoneyAccountInterest();
 
@@ -171,8 +204,11 @@ const MoneyHomeView = () => {
   const { tokenBalanceAggregated: musdTokenBalanceAggregated } =
     useMusdBalance();
   const musdFiatFormatted = useMemo(
-    () => moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
-    [musdTokenBalanceAggregated],
+    () =>
+      hasPrototypeBalance
+        ? '$500.00'
+        : moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
+    [hasPrototypeBalance, musdTokenBalanceAggregated],
   );
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
@@ -238,11 +274,13 @@ const MoneyHomeView = () => {
   });
 
   let displayState: MoneyBalanceDisplayState;
-  if (!hasMoneyAccount) {
+  if (hasPrototypeBalance) {
+    displayState = { kind: 'balance', value: '$500.00' };
+  } else if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
-  } else if (totalFiatFormatted !== undefined) {
+  } else if (displayedTotalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
-    displayState = { kind: 'balance', value: totalFiatFormatted };
+    displayState = { kind: 'balance', value: displayedTotalFiatFormatted };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -259,8 +297,8 @@ const MoneyHomeView = () => {
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
     hasBalanceValue &&
-    !!totalFiatRaw &&
-    new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
+    !!displayedTotalFiatRaw &&
+    new BigNumber(displayedTotalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
   const isEmptyState = hasBalanceValue && !isFunded;
 
@@ -299,8 +337,8 @@ const MoneyHomeView = () => {
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
   const projectedMonthlyFallback = useMemo(() => {
-    if (!totalFiatRaw || !apyDecimal) return formattedZero;
-    const balance = new BigNumber(totalFiatRaw);
+    if (!displayedTotalFiatRaw || !apyDecimal) return formattedZero;
+    const balance = new BigNumber(displayedTotalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
@@ -310,7 +348,7 @@ const MoneyHomeView = () => {
     if (!Number.isFinite(earnings)) return formattedZero;
     const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyDecimal, formattedZero]);
+  }, [displayedTotalFiatRaw, apyDecimal, formattedZero]);
 
   const formatInterestEarned = useCallback(
     (value: string | undefined): string | undefined => {
@@ -358,6 +396,22 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
     });
   }, [navigation, trackButtonClicked]);
+
+  const handleSecurityPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_INFO_SHEET,
+      params: {
+        defaultMethod: defaultVerificationMethod,
+      },
+    });
+  }, [defaultVerificationMethod, navigation]);
+
+  const handleSetUpPasskey = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
+      params: { returnToMoneyHome: true },
+    });
+  }, [navigation]);
 
   const handleAddPress = useCallback(
     ({
@@ -871,7 +925,12 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader onMenuPress={handleMenuPress} />
+      <MoneyHeader
+        onMenuPress={handleMenuPress}
+        showSecurityIndicator={isTransactionVerificationEnabled}
+        onSecurityPress={handleSecurityPress}
+        showSetupNotification={isTwoWeeksLater && isFinishSetupVisible}
+      />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
@@ -921,6 +980,27 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
+        {isTwoWeeksLater && (
+          <Box twClassName="px-4 pt-2 pb-2">
+            <BannerAlert
+              severity={BannerAlertSeverity.Neutral}
+              startAccessory={
+                <Icon
+                  name={IconName.SecurityTick}
+                  size={IconSize.Lg}
+                  color={IconColor.IconDefault}
+                />
+              }
+              title={strings('money.protect_money_banner.title')}
+              description={strings('money.protect_money_banner.description')}
+              descriptionProps={{ color: TextColor.TextAlternative }}
+              actionButtonLabel={strings('money.protect_money_banner.action')}
+              actionButtonOnPress={handleSetUpPasskey}
+              testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
+            />
+          </Box>
+        )}
+        {!isTwoWeeksLater && <MoneyFinishSetupCard />}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

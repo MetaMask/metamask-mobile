@@ -98,8 +98,18 @@ export const selectTokenIndicators = (state: RootState): string[] =>
 /**
  * Selects the onboarding stepper progress record (keyed by stepper ID)
  */
+const EMPTY_ONBOARDING_STEPPER_PROGRESS: Record<string, number> = {};
+
 export const selectOnboardingStepperProgress = (state: RootState) =>
-  state.user?.onboardingStepperProgress ?? {};
+  state.user?.onboardingStepperProgress ?? EMPTY_ONBOARDING_STEPPER_PROGRESS;
+
+const EMPTY_MONEY_PASSKEY_NAMES: Record<string, string> = {};
+
+export const selectMoneyPasskeyNames = (state: RootState) =>
+  state.user?.moneyPasskeyNames ?? EMPTY_MONEY_PASSKEY_NAMES;
+
+export const selectMoneySmsPhoneNumber = (state: RootState) =>
+  state.user?.moneySmsPhoneNumber ?? '';
 
 /**
  * Selects whether the App Installed analytics event has already been fired

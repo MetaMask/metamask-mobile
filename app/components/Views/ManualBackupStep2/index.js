@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  Alert,
   TouchableOpacity,
   FlatList,
   Platform,
@@ -49,6 +48,7 @@ const ManualBackupStep2 = ({
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
+  const isCreateWalletFlow = !backupFlow && !settingsBackup;
 
   const tw = useTailwind();
   const { width: innerWidth, height: windowHeight } = useWindowDimensions();
@@ -59,6 +59,7 @@ const ManualBackupStep2 = ({
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [usedWordIndices, setUsedWordIndices] = useState(new Set());
   const [wordPositionMap, setWordPositionMap] = useState({});
+  const [hasConfirmationError, setHasConfirmationError] = useState(false);
 
   const validateWords = useCallback(() => {
     const validWords = route.params?.words ?? [];
@@ -72,93 +73,105 @@ const ManualBackupStep2 = ({
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
-  const goNext = () => {
-    if (validateWords()) {
-      seedphraseBackedUp();
-      if (backupFlow || settingsBackup) {
-        const resetAction = CommonActions.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
+  const goNext = useCallback(() => {
+    seedphraseBackedUp();
+    if (backupFlow || settingsBackup) {
+      const resetAction = CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.SUCCESS_FLOW,
+            params: {
+              screen: Routes.ONBOARDING.SUCCESS,
               params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: backupFlow
-                    ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
-                    : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
-                },
+                successFlow: backupFlow
+                  ? ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
+                  : ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,
               },
             },
-          ],
-        });
+          },
+        ],
+      });
+      navigation.dispatch(resetAction);
+    } else {
+      const resetAction = CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.SUCCESS_FLOW,
+            params: {
+              screen: Routes.ONBOARDING.SUCCESS,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+              },
+            },
+          },
+        ],
+      });
+      endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      if (isMetricsEnabled()) {
         navigation.dispatch(resetAction);
       } else {
-        const resetAction = CommonActions.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-                },
-              },
-            },
-          ],
+        navigation.navigate('OptinMetrics', {
+          successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+          accountType: AccountType.Metamask,
         });
-        endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-        if (isMetricsEnabled()) {
-          navigation.dispatch(resetAction);
-        } else {
-          navigation.navigate('OptinMetrics', {
-            successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-            accountType: AccountType.Metamask,
-          });
-        }
       }
-      trackOnboarding(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
-        ).build(),
-        saveOnboardingEvent,
-      );
-    } else {
-      Alert.alert(
-        strings('account_backup_step_5.error_title'),
-        strings('account_backup_step_5.error_message'),
-      );
     }
-  };
+    trackOnboarding(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
+      ).build(),
+      saveOnboardingEvent,
+    );
+  }, [
+    backupFlow,
+    isMetricsEnabled,
+    navigation,
+    saveOnboardingEvent,
+    seedphraseBackedUp,
+    settingsBackup,
+  ]);
 
-  const generateMissingWords = useCallback(() => {
-    const rows = [0, 1, 2, 3];
-    const sortGridRows = rows.sort(() => 0.5 - Math.random());
-    const selectRandomSlots = sortGridRows.slice(0, 3);
-    const emptySlotsIndexes = selectRandomSlots.map((row) => {
-      const col = Math.floor(Math.random() * 3);
-      return row * 3 + col;
-    });
+  const generateMissingWords = useCallback(
+    (slotsToAvoid = []) => {
+      let emptySlotsIndexes;
+      if (slotsToAvoid.length > 0) {
+        emptySlotsIndexes = words
+          .map((_, index) => index)
+          .filter((index) => !slotsToAvoid.includes(index))
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+      } else {
+        const rows = [0, 1, 2, 3];
+        const sortGridRows = rows.sort(() => 0.5 - Math.random());
+        const selectRandomSlots = sortGridRows.slice(0, 3);
+        emptySlotsIndexes = selectRandomSlots.map((row) => {
+          const col = Math.floor(Math.random() * 3);
+          return row * 3 + col;
+        });
+      }
 
-    const tempGrid = [...words];
-    const removed = [];
+      const tempGrid = [...words];
+      const removed = [];
 
-    emptySlotsIndexes.forEach((i) => {
-      removed.push(tempGrid[i]);
-      tempGrid[i] = '';
-    });
+      emptySlotsIndexes.forEach((i) => {
+        removed.push(tempGrid[i]);
+        tempGrid[i] = '';
+      });
 
-    setGridWords(tempGrid);
-    setMissingWords(removed);
-    setEmptySlots(emptySlotsIndexes);
-    const sortedIndexes = [...emptySlotsIndexes].sort((a, b) => a - b);
-    setSelectedSlot(sortedIndexes[0]);
-    setUsedWordIndices(new Set());
-    setWordPositionMap({});
-  }, [words]);
+      setGridWords(tempGrid);
+      setMissingWords(removed);
+      setEmptySlots(emptySlotsIndexes);
+      const sortedIndexes = [...emptySlotsIndexes].sort((a, b) => a - b);
+      setSelectedSlot(sortedIndexes[0]);
+      setUsedWordIndices(new Set());
+      setWordPositionMap({});
+    },
+    [words],
+  );
 
   useEffect(() => {
     generateMissingWords();
@@ -166,6 +179,9 @@ const ManualBackupStep2 = ({
 
   const handleWordSelect = useCallback(
     (word, wordIndex) => {
+      if (hasConfirmationError) {
+        setHasConfirmationError(false);
+      }
       const updatedGrid = [...gridWords];
 
       if (usedWordIndices.has(wordIndex)) {
@@ -210,6 +226,25 @@ const ManualBackupStep2 = ({
 
       const newGrid = [...updatedGrid];
       newGrid[targetIndex] = word;
+
+      const isComplete =
+        newGrid.filter((gridWord) => gridWord !== '').length === words.length;
+      if (isCreateWalletFlow && isComplete) {
+        if (compareMnemonics(words, newGrid)) {
+          trackOnboarding(
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
+            ).build(),
+            saveOnboardingEvent,
+          );
+          goNext();
+        } else {
+          setHasConfirmationError(true);
+          generateMissingWords(emptySlots);
+        }
+        return;
+      }
+
       setGridWords(newGrid);
 
       const newUsedIndices = new Set(usedWordIndices);
@@ -232,6 +267,12 @@ const ManualBackupStep2 = ({
       emptySlots,
       usedWordIndices,
       wordPositionMap,
+      generateMissingWords,
+      goNext,
+      hasConfirmationError,
+      isCreateWalletFlow,
+      saveOnboardingEvent,
+      words,
     ],
   );
 
@@ -304,8 +345,8 @@ const ManualBackupStep2 = ({
           style={tw.style(
             'py-1 px-2 rounded-lg bg-default border border-muted flex-row items-center justify-start h-10 opacity-50',
             Platform.OS === 'ios' ? 'gap-1 m-1' : 'gap-[3px] m-[3px]',
-            isEmpty && 'bg-default opacity-100 border-2 border-default',
-            isSelected && 'border-2 border-primary-default',
+            isEmpty && 'bg-default opacity-100 border-2 border-muted',
+            isSelected && 'border-2 border-default',
             { width: innerWidth / 3.85 },
           )}
           onPress={() => handleSlotPress(index)}
@@ -326,7 +367,7 @@ const ManualBackupStep2 = ({
 
   const renderGrid = useCallback(
     () => (
-      <Box twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1">
+      <Box twClassName="bg-muted rounded-[10px] mb-2 p-4 gap-1">
         <FlatList
           data={gridWords}
           numColumns={3}
@@ -343,7 +384,7 @@ const ManualBackupStep2 = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-wrap"
+        twClassName="gap-3"
       >
         {missingWords.map((word, i) => {
           const isUsed = usedWordIndices.has(i);
@@ -352,9 +393,8 @@ const ManualBackupStep2 = ({
               key={`${word}-${i}`}
               testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
               style={tw.style(
-                'py-1 px-2 m-2 rounded-lg bg-default border border-primary-default flex-row items-center justify-center h-10',
-                isUsed && 'bg-alternative border-0',
-                { width: innerWidth / 3.9 },
+                'flex-1 py-1 px-2 rounded-lg bg-muted flex-row items-center justify-center h-10',
+                isUsed && 'bg-alternative opacity-50',
               )}
               onPress={() => handleWordSelect(word, i)}
             >
@@ -362,7 +402,7 @@ const ManualBackupStep2 = ({
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={
-                  isUsed ? TextColor.TextAlternative : TextColor.PrimaryDefault
+                  isUsed ? TextColor.TextAlternative : TextColor.TextDefault
                 }
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
                 maxFontSizeMultiplier={1}
@@ -374,7 +414,7 @@ const ManualBackupStep2 = ({
         })}
       </Box>
     ),
-    [missingWords, usedWordIndices, innerWidth, handleWordSelect, tw],
+    [missingWords, usedWordIndices, handleWordSelect, tw],
   );
 
   const validateSeedPhrase = () => {
@@ -414,6 +454,44 @@ const ManualBackupStep2 = ({
     }
   };
 
+  const confirmationContent = (
+    <Box
+      justifyContent={BoxJustifyContent.SpaceBetween}
+      twClassName="flex-1 gap-y-4"
+      style={{ height: windowHeight - 290 }}
+      testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+    >
+      <Text
+        variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.TextDefault}
+      >
+        {strings('manual_backup_step_2.action')}
+      </Text>
+
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('manual_backup_step_2.info')}
+      </Text>
+
+      <Box twClassName="flex-1 gap-1">
+        {renderGrid()}
+        <Box twClassName="h-12">
+          {hasConfirmationError && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={ManualBackUpStepsSelectorsIDs.CONFIRMATION_ERROR}
+              accessibilityRole="alert"
+            >
+              {strings('manual_backup_step_2.inline-error')}
+            </Text>
+          )}
+        </Box>
+        {renderMissingWords()}
+      </Box>
+    </Box>
+  );
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -427,42 +505,25 @@ const ManualBackupStep2 = ({
         }}
       />
       <Box twClassName="flex-1 px-4">
-        <ActionView
-          confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-          confirmText={strings('manual_backup_step_2.continue')}
-          onConfirmPress={validateSeedPhrase}
-          confirmDisabled={!areAllWordsPlaced}
-          showCancelButton={false}
-          confirmButtonMode={'confirm'}
-          buttonContainerStyle={tw.style(
-            'px-0',
-            Platform.OS === 'android' && 'mb-4',
-          )}
-          contentContainerStyle={tw.style('flex-1')}
-        >
-          <Box
-            justifyContent={BoxJustifyContent.SpaceBetween}
-            twClassName="flex-1 gap-y-4"
-            style={{ height: windowHeight - 290 }}
-            testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+        {isCreateWalletFlow ? (
+          confirmationContent
+        ) : (
+          <ActionView
+            confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
+            confirmText={strings('manual_backup_step_2.continue')}
+            onConfirmPress={validateSeedPhrase}
+            confirmDisabled={!areAllWordsPlaced}
+            showCancelButton={false}
+            confirmButtonMode={'confirm'}
+            buttonContainerStyle={tw.style(
+              'px-0',
+              Platform.OS === 'android' && 'mb-4',
+            )}
+            contentContainerStyle={tw.style('flex-1')}
           >
-            <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-              {strings('manual_backup_step_2.action')}
-            </Text>
-
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('manual_backup_step_2.info')}
-            </Text>
-
-            <Box twClassName="flex-1 gap-1">
-              {renderGrid()}
-              {renderMissingWords()}
-            </Box>
-          </Box>
-        </ActionView>
+            {confirmationContent}
+          </ActionView>
+        )}
       </Box>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>

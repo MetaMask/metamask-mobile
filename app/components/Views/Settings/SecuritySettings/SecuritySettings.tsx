@@ -65,6 +65,8 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
+import MoneySecurityMethodsSection from '../../../UI/Money/components/MoneySecurityMethodsSection';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
@@ -102,6 +104,7 @@ const Settings: React.FC = () => {
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   const seedphraseBackedUp = useSelector(
     (state: RootState) => state.user.seedphraseBackedUp,
@@ -375,6 +378,14 @@ const Settings: React.FC = () => {
           <AutoLock />
           <DeviceSecurityToggle />
           <BlockaidSettings />
+          {isMoneyAccountEnabled && (
+            <View style={styles.moneySecuritySection}>
+              <MoneySecurityMethodsSection
+                title={strings('money.security.section_title')}
+                compactBottomSpacing
+              />
+            </View>
+          )}
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.privacy_heading')}
           </Text>

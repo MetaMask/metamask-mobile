@@ -7,6 +7,9 @@ export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
 }
 
+export type MoneyPasskeysEntryPoint = 'finish_setup' | 'security';
+export type MoneyAuthenticatorEntryPoint = 'finish_setup' | 'security';
+
 export interface MoneyPreferredPaymentToken {
   address: Hex;
   chainId: Hex;
@@ -58,6 +61,26 @@ export type MoneyModalsNavigationParamList = {
     | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
     | undefined;
   MoneyGeoBlockSheet: undefined;
+  MoneyFinishSetupSheet: undefined;
+  MoneyProtectWalletSheet: undefined;
+  MoneyAddPasskeySheet: { returnToMoneyHome?: boolean } | undefined;
+  MoneySecurityInfoSheet:
+    | {
+        defaultMethod?: string;
+        variant?: 'info' | 'disable-transaction-verification';
+      }
+    | undefined;
+  MoneyDeletePasskeySheet: { passkeyIndex: number };
+  MoneyRemoveAuthenticatorSheet: undefined;
+  MoneyAuthenticatorKeySheet: { entryPoint: MoneyAuthenticatorEntryPoint };
+  MoneyRemoveSmsSheet: undefined;
+  MoneyAddSocialSheet:
+    | {
+        returnToMoneyHome?: boolean;
+        showAuthenticatorAlternative?: boolean;
+      }
+    | undefined;
+  MoneyRemoveSocialSheet: undefined;
 };
 
 /**
@@ -72,6 +95,17 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: undefined;
+    MoneyManageSecurity: { successToast?: string } | undefined;
+    MoneyPasskeys: { entryPoint: MoneyPasskeysEntryPoint };
+    MoneyPasskeyDetails: { passkeyIndex: number };
+    MoneyAuthenticator: {
+      entryPoint: MoneyAuthenticatorEntryPoint;
+      initialStep?: 'setup' | 'verify';
+    };
+    MoneyAuthenticatorDetails: undefined;
+    MoneySmsSetup: { returnToMoneyHome?: boolean } | undefined;
+    MoneySmsDetails: undefined;
+    MoneySocialDetails: undefined;
     MoneyTransactionDetails: { transactionId: string };
     MoneyCardTransactionDetails: { activity?: AccountsApiActivity } | undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;

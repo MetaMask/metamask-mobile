@@ -15,3 +15,8 @@ RCT_EXTERN_METHOD(unTar:(nonnull NSString *)pathToRead
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 @end
+
+@interface RCT_EXTERN_MODULE(WalletRecoveryPasskeyModule, NSObject)
+RCT_EXTERN_METHOD(signIn:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+@end

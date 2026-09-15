@@ -36,6 +36,8 @@ export const userInitialState: UserState = {
   tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
   tokenIndicators: [],
   onboardingStepperProgress: {},
+  moneyPasskeyNames: {},
+  moneySmsPhoneNumber: '',
   appInstallEventFired: false,
 };
 
@@ -202,6 +204,16 @@ const userReducer = (
           ...state.onboardingStepperProgress,
           [action.payload.stepperId]: action.payload.step,
         },
+      };
+    case UserActionType.SET_MONEY_PASSKEY_NAMES:
+      return {
+        ...state,
+        moneyPasskeyNames: action.payload.names,
+      };
+    case UserActionType.SET_MONEY_SMS_PHONE_NUMBER:
+      return {
+        ...state,
+        moneySmsPhoneNumber: action.payload.phoneNumber,
       };
     case UserActionType.SET_APP_INSTALL_EVENT_FIRED:
       return {

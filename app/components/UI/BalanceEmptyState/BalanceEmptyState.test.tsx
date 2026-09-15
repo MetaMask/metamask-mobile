@@ -85,6 +85,16 @@ describe('BalanceEmptyState', () => {
     expect(mockGoToBuy).toHaveBeenCalled();
   });
 
+  it('uses the Wallet-owned action instead of opening token selection', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = renderComponent({ onAction });
+
+    fireEvent.press(getByTestId('balance-empty-state-action-button'));
+
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(mockGoToBuy).not.toHaveBeenCalled();
+  });
+
   it('tracks RAMPS_BUTTON_CLICKED event with ramp_type UNIFIED_BUY_2', () => {
     const { getByTestId } = renderComponent();
     const actionButton = getByTestId('balance-empty-state-action-button');

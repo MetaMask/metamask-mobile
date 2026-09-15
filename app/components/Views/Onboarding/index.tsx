@@ -527,6 +527,7 @@ const Onboarding = () => {
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
           onboardingTraceCtx: onboardingTraceCtx.current,
+          recoveryPrototypeImportEnabled: true,
         },
       );
       dispatch(
@@ -1129,6 +1130,25 @@ const Onboarding = () => {
 
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
+      if (actionType === 'existing') {
+        dispatch(clearSeedlessOnboarding());
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.ONBOARDING_SHEET,
+          params: {
+            onPressImport,
+            onPressContinueWithGoogle: () =>
+              navigation.navigate(Routes.ONBOARDING.RECOVERY_PROTOTYPE, {
+                initialStage: 'googlePicker',
+              }),
+            onPressContinueWithApple,
+            onPressContinueWithTelegram,
+            createWallet: false,
+            recoveryPrototype: true,
+          },
+        });
+        return;
+      }
+
       if (SEEDLESS_ONBOARDING_ENABLED) {
         dispatch(clearSeedlessOnboarding());
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1139,13 +1159,11 @@ const Onboarding = () => {
             onPressContinueWithGoogle,
             onPressContinueWithApple,
             ...(isTelegramLoginEnabled ? { onPressContinueWithTelegram } : {}),
-            createWallet: actionType === 'create',
+            createWallet: true,
           },
         });
-      } else if (actionType === 'create') {
-        await onPressCreate();
       } else {
-        await onPressImport();
+        await onPressCreate();
       }
     },
     [
@@ -1227,9 +1245,7 @@ const Onboarding = () => {
               isFullWidth
               size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             >
-              {SEEDLESS_ONBOARDING_ENABLED
-                ? strings('onboarding.import_using_srp_social_login')
-                : strings('onboarding.import_using_srp')}
+              {strings('onboarding.have_existing_wallet')}
             </Button>
           </ThemeProvider>
         </OnboardingAnimation>

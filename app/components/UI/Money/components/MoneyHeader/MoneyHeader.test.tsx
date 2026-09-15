@@ -38,4 +38,29 @@ describe('MoneyHeader', () => {
       paddingRight: 12,
     });
   });
+
+  it('shows and handles the money security indicator', () => {
+    const mockOnSecurityPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyHeader
+        onMenuPress={jest.fn()}
+        showSecurityIndicator
+        onSecurityPress={mockOnSecurityPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyHeaderTestIds.SECURITY_BUTTON));
+
+    expect(mockOnSecurityPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a notification dot on the More button when setup moved there', () => {
+    const { getByTestId } = render(
+      <MoneyHeader onMenuPress={jest.fn()} showSetupNotification />,
+    );
+
+    expect(
+      getByTestId(MoneyHeaderTestIds.MENU_NOTIFICATION_DOT),
+    ).toBeOnTheScreen();
+  });
 });

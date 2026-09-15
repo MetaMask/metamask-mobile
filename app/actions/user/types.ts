@@ -36,6 +36,8 @@ export enum UserActionType {
   SET_TOKEN_OVERVIEW_CHART_INTERVAL = 'SET_TOKEN_OVERVIEW_CHART_INTERVAL',
   SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
   SET_ONBOARDING_STEPPER_STEP = 'SET_ONBOARDING_STEPPER_STEP',
+  SET_MONEY_PASSKEY_NAMES = 'SET_MONEY_PASSKEY_NAMES',
+  SET_MONEY_SMS_PHONE_NUMBER = 'SET_MONEY_SMS_PHONE_NUMBER',
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
 }
 
@@ -153,6 +155,16 @@ export type SetOnboardingStepperStepAction =
     payload: { stepperId: string; step: number };
   };
 
+export type SetMoneyPasskeyNamesAction =
+  Action<UserActionType.SET_MONEY_PASSKEY_NAMES> & {
+    payload: { names: Record<string, string> };
+  };
+
+export type SetMoneySmsPhoneNumberAction =
+  Action<UserActionType.SET_MONEY_SMS_PHONE_NUMBER> & {
+    payload: { phoneNumber: string };
+  };
+
 export type SetAppInstallEventFiredAction =
   Action<UserActionType.SET_APP_INSTALL_EVENT_FIRED>;
 
@@ -192,4 +204,6 @@ export type UserAction =
   | SetTokenOverviewChartIntervalAction
   | SetTokenIndicatorsAction
   | SetOnboardingStepperStepAction
+  | SetMoneyPasskeyNamesAction
+  | SetMoneySmsPhoneNumberAction
   | SetAppInstallEventFiredAction;

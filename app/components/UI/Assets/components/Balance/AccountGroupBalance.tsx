@@ -50,11 +50,14 @@ export interface AccountGroupBalanceProps {
   onTradePrimaryPress?: () => void;
   /** Notifications checklist step: Primary invokes this (e.g. open settings) before advancing. */
   onNotificationsPrimaryPress?: () => void;
+  /** Fund empty state/checklist: Primary invokes this instead of the default on-ramp. */
+  onFundPrimaryPress?: () => void;
 }
 
 const AccountGroupBalance = ({
   onCoordinatedFlowExit,
   suspendRiveForCurtain = false,
+  onFundPrimaryPress,
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
 }: AccountGroupBalanceProps) => {
@@ -171,6 +174,7 @@ const AccountGroupBalance = ({
     !isLoading && shouldShowEmptyState ? (
       <BalanceEmptyState
         testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
+        onAction={onFundPrimaryPress}
       />
     ) : (
       <TouchableOpacity
@@ -210,7 +214,9 @@ const AccountGroupBalance = ({
           isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
-          onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
+          onFundPrimaryPress={
+            onFundPrimaryPress ?? onFundPrimaryPressWithChecklistAnalytics
+          }
           canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
           onTradePrimaryPress={onTradePrimaryPress}
           onNotificationsPrimaryPress={onNotificationsPrimaryPress}

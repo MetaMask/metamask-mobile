@@ -20,4 +20,6 @@ export interface BalanceEmptyStateProps
    * @default 'balance-empty-state'
    */
   testID?: string;
+  /** Optional Wallet-owned action for prototype or coordinated funding flows. */
+  onAction?: () => void;
 }

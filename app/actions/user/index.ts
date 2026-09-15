@@ -33,6 +33,8 @@ import {
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
+  type SetMoneyPasskeyNamesAction,
+  type SetMoneySmsPhoneNumberAction,
   type SetAppInstallEventFiredAction,
   UserActionType,
 } from './types';
@@ -311,6 +313,24 @@ export function setOnboardingStepperStep(
   return {
     type: UserActionType.SET_ONBOARDING_STEPPER_STEP,
     payload: { stepperId, step },
+  };
+}
+
+export function setMoneyPasskeyNames(
+  names: Record<string, string>,
+): SetMoneyPasskeyNamesAction {
+  return {
+    type: UserActionType.SET_MONEY_PASSKEY_NAMES,
+    payload: { names },
+  };
+}
+
+export function setMoneySmsPhoneNumber(
+  phoneNumber: string,
+): SetMoneySmsPhoneNumberAction {
+  return {
+    type: UserActionType.SET_MONEY_SMS_PHONE_NUMBER,
+    payload: { phoneNumber },
   };
 }
 

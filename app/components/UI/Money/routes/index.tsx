@@ -21,6 +21,16 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
+import MoneyFinishSetupSheet from '../components/MoneyFinishSetupSheet';
+import MoneyProtectWalletSheet from '../components/MoneyProtectWalletSheet';
+import MoneyAddPasskeySheet from '../components/MoneyAddPasskeySheet';
+import MoneySecurityInfoSheet from '../components/MoneySecurityInfoSheet';
+import MoneyDeletePasskeySheet from '../components/MoneyDeletePasskeySheet';
+import MoneyRemoveAuthenticatorSheet from '../components/MoneyRemoveAuthenticatorSheet';
+import MoneyAuthenticatorKeySheet from '../components/MoneyAuthenticatorKeySheet';
+import MoneyRemoveSmsSheet from '../components/MoneyRemoveSmsSheet';
+import MoneyAddSocialSheet from '../components/MoneyAddSocialSheet';
+import MoneyRemoveSocialSheet from '../components/MoneyRemoveSocialSheet';
 import type {
   MoneyConfirmationsNavigationParamList,
   MoneyModalsNavigationParamList,
@@ -142,6 +152,56 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
         component={MoneyGeoBlockSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.FINISH_SETUP_SHEET}
+        component={MoneyFinishSetupSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.PROTECT_WALLET_SHEET}
+        component={MoneyProtectWalletSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.ADD_PASSKEY_SHEET}
+        component={MoneyAddPasskeySheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.SECURITY_INFO_SHEET}
+        component={MoneySecurityInfoSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.DELETE_PASSKEY_SHEET}
+        component={MoneyDeletePasskeySheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.REMOVE_AUTHENTICATOR_SHEET}
+        component={MoneyRemoveAuthenticatorSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.AUTHENTICATOR_KEY_SHEET}
+        component={MoneyAuthenticatorKeySheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.REMOVE_SMS_SHEET}
+        component={MoneyRemoveSmsSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.ADD_SOCIAL_SHEET}
+        component={MoneyAddSocialSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.REMOVE_SOCIAL_SHEET}
+        component={MoneyRemoveSocialSheet}
         options={{ headerShown: false }}
       />
     </ModalStack.Navigator>

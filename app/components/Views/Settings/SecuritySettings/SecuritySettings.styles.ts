@@ -50,6 +50,14 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     halfSetting: {
       marginTop: 24,
     },
+    moneySecuritySection: {
+      marginTop: 40,
+      marginHorizontal: -16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      borderTopWidth: 8,
+      borderTopColor: colors.background.muted,
+    },
     modalView: {
       alignItems: 'center',
       flex: 1,
@@ -93,8 +101,8 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       marginTop: 40,
       marginHorizontal: -16,
       paddingHorizontal: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
+      borderTopWidth: 8,
+      borderTopColor: colors.background.muted,
       paddingTop: 36,
     },
   });

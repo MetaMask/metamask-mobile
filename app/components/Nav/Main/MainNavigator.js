@@ -129,6 +129,14 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MoneySecurityView from '../../UI/Money/Views/MoneySecurityView';
+import MoneyPasskeysView from '../../UI/Money/Views/MoneyPasskeysView';
+import MoneyPasskeyDetailsView from '../../UI/Money/components/MoneyPasskeyDetailsSheet';
+import MoneyAuthenticatorView from '../../UI/Money/Views/MoneyAuthenticatorView';
+import MoneyAuthenticatorDetailsView from '../../UI/Money/Views/MoneyAuthenticatorDetailsView';
+import MoneySmsSetupView from '../../UI/Money/Views/MoneySmsSetupView';
+import MoneySmsDetailsView from '../../UI/Money/Views/MoneySmsDetailsView';
+import MoneySocialDetailsView from '../../UI/Money/Views/MoneySocialDetailsView';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
@@ -1257,6 +1265,46 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.POTENTIAL_EARNINGS}
             component={MoneyPotentialEarningsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.MANAGE_SECURITY}
+            component={MoneySecurityView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.PASSKEYS}
+            component={MoneyPasskeysView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.PASSKEY_DETAILS}
+            component={MoneyPasskeyDetailsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.AUTHENTICATOR}
+            component={MoneyAuthenticatorView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.AUTHENTICATOR_DETAILS}
+            component={MoneyAuthenticatorDetailsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SMS_SETUP}
+            component={MoneySmsSetupView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SMS_DETAILS}
+            component={MoneySmsDetailsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SOCIAL_DETAILS}
+            component={MoneySocialDetailsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

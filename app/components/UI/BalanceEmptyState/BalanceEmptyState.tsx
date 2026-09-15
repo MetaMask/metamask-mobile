@@ -34,6 +34,7 @@ import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
  */
 const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   testID = 'balance-empty-state',
+  onAction,
   ...props
 }) => {
   const tw = useTailwind();
@@ -44,6 +45,11 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const buttonClickData = useRampsButtonClickData();
 
   const handleAction = () => {
+    if (onAction) {
+      onAction();
+      return;
+    }
+
     goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
 
     trackEvent(

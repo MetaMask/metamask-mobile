@@ -1,4 +1,5 @@
 import UIKit
+import AuthenticationServices
 internal import Expo
 import React
 import ReactAppDependencyProvider
@@ -287,5 +288,75 @@ extension AppDelegate: BrazeDelegate {
       return false
     }
     return false
+  }
+}
+
+@objc(WalletRecoveryPasskeyModule)
+final class WalletRecoveryPasskeyModule: NSObject,
+  ASAuthorizationControllerDelegate,
+  ASAuthorizationControllerPresentationContextProviding {
+  private var resolve: RCTPromiseResolveBlock?
+  private var reject: RCTPromiseRejectBlock?
+
+  @objc static func requiresMainQueueSetup() -> Bool {
+    true
+  }
+
+  @objc(signIn:rejecter:)
+  func signIn(
+    _ resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    self.resolve = resolve
+    self.reject = reject
+
+    let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+      relyingPartyIdentifier: "link.metamask.io"
+    )
+    let challenge = Data(UUID().uuidString.utf8)
+    let request = provider.createCredentialAssertionRequest(challenge: challenge)
+    request.userVerificationPreference = .required
+
+    let controller = ASAuthorizationController(authorizationRequests: [request])
+    controller.delegate = self
+    controller.presentationContextProvider = self
+    controller.performRequests()
+  }
+
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithAuthorization authorization: ASAuthorization
+  ) {
+    resolve?(true)
+    clearCallbacks()
+  }
+
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithError error: Error
+  ) {
+    let authorizationError = error as? ASAuthorizationError
+    let code =
+      authorizationError?.code == .canceled
+      ? "PASSKEY_CANCELLED"
+      : "PASSKEY_FAILED"
+    reject?(code, error.localizedDescription, error)
+    clearCallbacks()
+  }
+
+  func presentationAnchor(
+    for controller: ASAuthorizationController
+  ) -> ASPresentationAnchor {
+    let windowScene = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .first { $0.activationState == .foregroundActive }
+    return windowScene?.windows.first { $0.isKeyWindow }
+      ?? windowScene?.windows.first
+      ?? ASPresentationAnchor()
+  }
+
+  private func clearCallbacks() {
+    resolve = nil
+    reject = nil
   }
 }

@@ -30,5 +30,7 @@ export interface UserState {
   tokenOverviewChartInterval: string;
   tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
+  moneyPasskeyNames: Record<string, string>;
+  moneySmsPhoneNumber: string;
   appInstallEventFired: boolean;
 }

@@ -5,9 +5,13 @@ import {
 } from './useMoneyNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
-import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
+import {
+  selectMoneyOnboardingSeen,
+  selectOnboardingStepperProgress,
+} from '../../../../reducers/user/selectors';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import { STEPPER_IDS } from './useOnboardingStep';
 
 const mockNavigate = jest.fn();
 
@@ -17,6 +21,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../reducers/user/selectors', () => ({
   selectMoneyOnboardingSeen: jest.fn(),
+  selectOnboardingStepperProgress: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
@@ -32,12 +37,20 @@ const { useSelector } = jest.requireMock('react-redux');
 const setupSelectorMocks = ({
   hasSeenOnboarding = false,
   isOnboardingEnabled = true,
+  isRecoveryVerificationPending = false,
 }: {
   hasSeenOnboarding?: boolean;
   isOnboardingEnabled?: boolean;
+  isRecoveryVerificationPending?: boolean;
 } = {}) => {
   useSelector.mockImplementation((selector: unknown) => {
     if (selector === selectMoneyOnboardingSeen) return hasSeenOnboarding;
+    if (selector === selectOnboardingStepperProgress) {
+      return {
+        [STEPPER_IDS.MONEY_RECOVERY_VERIFICATION_PENDING]:
+          isRecoveryVerificationPending ? 1 : 0,
+      };
+    }
     if (selector === selectMoneyOnboardingStepperAnimationEnabled)
       return isOnboardingEnabled;
     return undefined;
@@ -52,6 +65,24 @@ describe('useMoneyNavigation', () => {
   });
 
   describe('navigateToMoneyHome', () => {
+    it('requires recovery verification before the first Money visit', () => {
+      setupSelectorMocks({ isRecoveryVerificationPending: true });
+
+      const { result } = renderHook(() => useMoneyNavigation());
+
+      act(() => result.current.navigateToMoneyHome());
+
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+      expect(mockNavigate).toHaveBeenNthCalledWith(
+        2,
+        Routes.ONBOARDING.RECOVERY_PROTOTYPE,
+        { initialStage: 'verifyMoney' },
+      );
+    });
+
     it('navigates to onboarding when user has not seen onboarding and flag is enabled', () => {
       setupSelectorMocks({
         hasSeenOnboarding: false,

@@ -17,6 +17,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 import TextShimmer from '../TextShimmer';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
@@ -50,6 +51,9 @@ const MoneyBalanceSummary = ({
   privacyMode = false,
   onBalancePress,
 }: MoneyBalanceSummaryProps) => {
+  const { colors } = useTheme();
+  const balanceTextStyle = { color: colors.text.default };
+
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
   const showApy =
@@ -117,6 +121,7 @@ const MoneyBalanceSummary = ({
           <SensitiveText
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
+            style={balanceTextStyle}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={MoneyBalanceSummaryTestIds.BALANCE}

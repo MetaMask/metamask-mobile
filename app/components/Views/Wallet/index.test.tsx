@@ -342,6 +342,20 @@ const getAssetDetailsActionsProps = () => {
   };
 };
 
+const getAccountGroupBalanceProps = () => {
+  const mockAccountGroupBalance = jest.mocked(
+    jest.requireMock('../../UI/Assets/components/Balance/AccountGroupBalance')
+      .default,
+  );
+  const props = mockAccountGroupBalance.mock.calls.at(-1)?.[0];
+  if (!props) {
+    throw new Error('Expected AccountGroupBalance to render');
+  }
+  return props as {
+    onFundPrimaryPress?: () => void;
+  };
+};
+
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
@@ -822,6 +836,19 @@ describe('Wallet', () => {
       );
     render(Wallet);
     expect(capturedContext).toBeDefined();
+  });
+
+  it('provides the Protect wallet action to the funding card', () => {
+    render(Wallet);
+
+    const onFundPrimaryPress = getAccountGroupBalanceProps().onFundPrimaryPress;
+    expect(onFundPrimaryPress).toEqual(expect.any(Function));
+
+    onFundPrimaryPress?.();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.PROTECT_WALLET_SHEET,
+    });
   });
 
   describe('AssetDetailsActions', () => {

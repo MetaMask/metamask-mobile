@@ -94,6 +94,7 @@ import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsigh
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
 import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
+import type { FeatureNotificationsGateSheetParams } from '../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
@@ -323,6 +324,7 @@ interface ImportFromSecretRecoveryPhraseParams {
   onboardingTraceCtx?: TraceContext;
   initialStep?: number;
   qrSyncImport?: boolean;
+  recoveryPrototypeImportEnabled?: boolean;
 }
 
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
@@ -412,6 +414,7 @@ export type RootModalFlowParamList = {
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
+  FeatureNotificationsGate: FeatureNotificationsGateSheetParams;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
@@ -716,6 +719,9 @@ export type RootStackParamList = {
   HomeNav: undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
+  WalletRecoveryPrototype:
+    | { initialStage?: 'googlePicker' | 'verifyMoney' }
+    | undefined;
   Login: undefined;
   OnboardingNav: undefined;
   SocialLoginSuccessNewUser: SocialLoginRouteParams | undefined;
@@ -873,6 +879,16 @@ export type RootStackParamList = {
   MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
+  MoneyManageSecurity: MoneyNavigationParamList['MoneyManageSecurity'];
+  MoneyProtectWalletSheet: MoneyNavigationParamList['MoneyProtectWalletSheet'];
+  MoneyPasskeys: MoneyNavigationParamList['MoneyPasskeys'];
+  MoneyPasskeyDetails: MoneyNavigationParamList['MoneyPasskeyDetails'];
+  MoneyAuthenticator: MoneyNavigationParamList['MoneyAuthenticator'];
+  MoneyAuthenticatorDetails: MoneyNavigationParamList['MoneyAuthenticatorDetails'];
+  MoneyAuthenticatorKeySheet: MoneyNavigationParamList['MoneyAuthenticatorKeySheet'];
+  MoneySmsSetup: MoneyNavigationParamList['MoneySmsSetup'];
+  MoneySmsDetails: MoneyNavigationParamList['MoneySmsDetails'];
+  MoneySocialDetails: MoneyNavigationParamList['MoneySocialDetails'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
@@ -884,6 +900,13 @@ export type RootStackParamList = {
   MoneyLinkCardSheet: MoneyNavigationParamList['MoneyLinkCardSheet'];
   MoneyEarnCryptoInfoSheet: MoneyNavigationParamList['MoneyEarnCryptoInfoSheet'];
   MoneyGeoBlockSheet: MoneyNavigationParamList['MoneyGeoBlockSheet'];
+  MoneyAddPasskeySheet: MoneyNavigationParamList['MoneyAddPasskeySheet'];
+  MoneySecurityInfoSheet: MoneyNavigationParamList['MoneySecurityInfoSheet'];
+  MoneyDeletePasskeySheet: MoneyNavigationParamList['MoneyDeletePasskeySheet'];
+  MoneyRemoveAuthenticatorSheet: MoneyNavigationParamList['MoneyRemoveAuthenticatorSheet'];
+  MoneyRemoveSmsSheet: MoneyNavigationParamList['MoneyRemoveSmsSheet'];
+  MoneyAddSocialSheet: MoneyNavigationParamList['MoneyAddSocialSheet'];
+  MoneyRemoveSocialSheet: MoneyNavigationParamList['MoneyRemoveSocialSheet'];
   MoneyDeeplinkModal: MoneyDeeplinkModalParams | undefined;
   TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;

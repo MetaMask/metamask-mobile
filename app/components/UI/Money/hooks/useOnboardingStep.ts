@@ -9,6 +9,24 @@ import { setOnboardingStepperStep } from '../../../../actions/user';
  */
 export const STEPPER_IDS = {
   MONEY: 'money-home-onboarding-stepper',
+  MONEY_FINISH_SETUP: 'money-finish-setup',
+  MONEY_PASSKEY_COUNT: 'money-passkey-count',
+  MONEY_PASSKEY_METHOD: 'money-passkey-method',
+  MONEY_PASSKEY_CREATED_AT: 'money-passkey-created-at',
+  MONEY_SECURITY_SOCIAL: 'money-security-social',
+  MONEY_SECURITY_SOCIAL_REMOVED: 'money-security-social-removed',
+  MONEY_SECURITY_SOCIAL_PROVIDER: 'money-security-social-provider',
+  MONEY_SECURITY_SOCIAL_CREATED_AT: 'money-security-social-created-at',
+  MONEY_SECURITY_AUTHENTICATOR: 'money-security-authenticator',
+  MONEY_SECURITY_AUTHENTICATOR_CREATED_AT:
+    'money-security-authenticator-created-at',
+  MONEY_SECURITY_SMS_REMOVED: 'money-security-sms-removed',
+  MONEY_SECURITY_SMS_CREATED_AT: 'money-security-sms-created-at',
+  MONEY_TRANSACTION_VERIFICATION: 'money-transaction-verification',
+  MONEY_RECOVERY_VERIFICATION_PENDING: 'money-recovery-verification-pending',
+  MONEY_RECOVERY_PROTOTYPE_COMPLETED: 'money-recovery-prototype-completed',
+  MONEY_RECOVERY_SOCIAL_LOGIN_WALLET: 'money-recovery-social-login-wallet',
+  MONEY_TWO_WEEKS_LATER: 'money-two-weeks-later',
 } as const;
 
 /**

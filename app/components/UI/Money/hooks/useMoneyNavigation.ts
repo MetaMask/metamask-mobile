@@ -1,10 +1,14 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
+import {
+  selectMoneyOnboardingSeen,
+  selectOnboardingStepperProgress,
+} from '../../../../reducers/user/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import type { MoneyOnboardingParams } from '../types/navigation';
+import { STEPPER_IDS } from './useOnboardingStep';
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -54,8 +58,23 @@ export const useMoneyOnboardingNavigation = () => {
 export const useMoneyNavigation = () => {
   const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
     useMoneyOnboardingNavigation();
+  const onboardingProgress = useSelector(selectOnboardingStepperProgress) ?? {};
+  const isRecoveryVerificationPending =
+    onboardingProgress[STEPPER_IDS.MONEY_RECOVERY_VERIFICATION_PENDING] === 1;
 
   const navigateToMoneyHome = useCallback(() => {
+    if (isRecoveryVerificationPending) {
+      NavigationService.navigation.navigate(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+      NavigationService.navigation.navigate(
+        Routes.ONBOARDING.RECOVERY_PROTOTYPE,
+        { initialStage: 'verifyMoney' },
+      );
+      return;
+    }
+
     if (redirectToOnboardingIfNeeded()) {
       return;
     }
@@ -64,7 +83,7 @@ export const useMoneyNavigation = () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-  }, [redirectToOnboardingIfNeeded]);
+  }, [isRecoveryVerificationPending, redirectToOnboardingIfNeeded]);
 
   return { isOnboardingRedirectNeeded, navigateToMoneyHome };
 };

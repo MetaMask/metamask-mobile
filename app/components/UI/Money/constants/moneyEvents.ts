@@ -17,6 +17,7 @@ export enum SCREEN_NAMES {
   MONEY_HOW_IT_WORKS = 'money_how_it_works',
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
+  MONEY_MANAGE_SECURITY = 'money_manage_security',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
 }
@@ -33,6 +34,7 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
   MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
+  MONEY_FINISH_SETUP_SHEET = 'money_finish_setup_sheet',
   MONEY_DEEPLINK_MODAL = 'money_deeplink_modal',
 }
 
@@ -67,6 +69,8 @@ export enum COMPONENT_NAMES {
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
+  MONEY_FINISH_SETUP_CARD = 'money_finish_setup_card',
+  MONEY_FINISH_SETUP_SHEET = 'money_finish_setup_sheet',
 
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
@@ -101,6 +105,7 @@ export enum COMPONENT_NAMES {
 
   // — More Sheet —
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',
+  MONEY_MORE_SHEET_MANAGE_SECURITY = 'money_more_sheet_manage_security',
   MONEY_MORE_SHEET_WHAT_YOU_GET = 'money_more_sheet_what_you_get',
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
 

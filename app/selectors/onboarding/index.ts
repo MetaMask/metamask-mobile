@@ -14,6 +14,11 @@ export const selectOnboardingAccountType = createSelector(
   (onboardingState) => onboardingState.accountType,
 );
 
+export const selectOnboardingSeedlessAuthConnection = createSelector(
+  selectOnboarding,
+  (onboardingState) => onboardingState?.seedlessOnboarding?.authConnection,
+);
+
 export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
   selectOnboarding,
   (onboardingState) =>

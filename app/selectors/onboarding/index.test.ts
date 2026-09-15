@@ -1,6 +1,7 @@
 import {
   selectCompletedOnboarding,
   selectOnboardingAccountType,
+  selectOnboardingSeedlessAuthConnection,
   selectPendingSocialLoginMarketingConsentBackfill,
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
@@ -10,6 +11,7 @@ import {
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
 import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
+import { AuthConnection } from '../../core/OAuthService/OAuthInterface';
 
 describe('Onboarding selectors', () => {
   const mockState = {
@@ -40,6 +42,21 @@ describe('Onboarding selectors', () => {
     expect(
       selectOnboardingAccountType(stateWithoutAccountType),
     ).toBeUndefined();
+  });
+
+  it('returns the persisted seedless auth connection', () => {
+    const state = {
+      onboarding: {
+        seedlessOnboarding: {
+          clientId: 'client-id',
+          authConnection: AuthConnection.Google,
+        },
+      },
+    } as RootState;
+
+    expect(selectOnboardingSeedlessAuthConnection(state)).toBe(
+      AuthConnection.Google,
+    );
   });
 
   it('returns null for selectPendingSocialLoginMarketingConsentBackfill when not set', () => {

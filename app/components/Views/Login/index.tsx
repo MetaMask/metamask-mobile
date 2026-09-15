@@ -84,7 +84,7 @@ import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
-import { hasTestOverrides } from '../../../util/test/utils';
+import { hasTestOverrides, isTestEnvironment } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
@@ -99,6 +99,10 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
+import {
+  RECOVERY_PROTOTYPE_LOGIN_PASSWORD,
+  RECOVERY_PROTOTYPE_PASSWORD,
+} from '../../../constants/recoveryPrototype';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -303,6 +307,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const unlockWithPassword = useCallback(async () => {
     if (loading) return;
 
+    const unlockPassword =
+      isTestEnvironment && password === RECOVERY_PROTOTYPE_LOGIN_PASSWORD
+        ? RECOVERY_PROTOTYPE_PASSWORD
+        : password;
+
     fieldRef.current?.clear();
     setPassword('');
     setLoading(true);
@@ -327,7 +336,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               skipCache: false,
               captureSentryError: true,
             });
-          await unlockWallet({ password });
+          await unlockWallet({ password: unlockPassword });
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
             if (

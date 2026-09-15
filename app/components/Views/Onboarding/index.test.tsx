@@ -786,7 +786,7 @@ describe('Onboarding', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
-    it('navigates to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
+    it('opens the Existing wallet sheet with prototype recovery actions', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -816,12 +816,13 @@ describe('Onboarding', () => {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: expect.objectContaining({
             createWallet: false,
+            recoveryPrototype: true,
           }),
         }),
       );
     });
 
-    it('navigates to import flow when import wallet is pressed with seedless disabled', async () => {
+    it('opens prototype recovery when seedless onboarding is disabled', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(false);
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -839,27 +840,16 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          expect.objectContaining({
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            onboardingTraceCtx: expect.any(Object),
-          }),
-        );
-      });
-
-      expect(annotateTrace).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
-          'onboarding.method': OnboardingMethod.Srp,
-          account_type: AccountType.Imported,
+          screen: Routes.SHEET.ONBOARDING_SHEET,
+          params: expect.objectContaining({
+            createWallet: false,
+            recoveryPrototype: true,
+          }),
         }),
       );
-
-      await waitFor(() => {
-        expect(mockAnalytics.optOut).toHaveBeenCalled();
-      });
     });
   });
 

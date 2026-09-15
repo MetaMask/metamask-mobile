@@ -16,4 +16,5 @@ export const ManualBackUpStepsSelectorsIDs = {
   WORD_ITEM_USED: 'word-item-used',
   SEEDPHRASE_LINK: 'seedphrase-link',
   GRID_ITEM_EMPTY: 'grid-item-empty',
+  CONFIRMATION_ERROR: 'manual-backup-step-confirmation-error',
 };

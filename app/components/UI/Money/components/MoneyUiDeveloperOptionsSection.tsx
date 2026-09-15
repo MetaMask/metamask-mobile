@@ -27,6 +27,7 @@ import {
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
+import { useMoneyFinishSetup } from '../hooks/useMoneyFinishSetup';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 
@@ -56,6 +57,12 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const handleResetOnboardingStepperStep = useCallback(() => {
     dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY, 0));
   }, [dispatch]);
+
+  const { resetProgress: resetFinishSetupProgress } = useMoneyFinishSetup();
+
+  const handleResetFinishSetupProgress = useCallback(() => {
+    resetFinishSetupProgress();
+  }, [resetFinishSetupProgress]);
 
   const handleCopyAddress = useCallback(async () => {
     if (moneyAccountAddress) {
@@ -136,6 +143,24 @@ export const MoneyUiDeveloperOptionsSection = () => {
           isFullWidth
         >
           {'Reset onboarding stepper'}
+        </Button>
+      </Box>
+      <Box>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {'Reset Money finish setup checklist'}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handleResetFinishSetupProgress}
+          isFullWidth
+        >
+          {'Reset finish setup'}
         </Button>
       </Box>
       <Box>
