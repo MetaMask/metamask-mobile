@@ -6,11 +6,30 @@ jest.mock('@metamask/bridge-controller', () => ({
   assetIdsMatch: jest.fn(),
 }));
 
-const mockAsset = {
+interface MockAsset {
+  assetId: `${string}:${string}/${string}:${string}`;
+  symbol: string;
+  name: string;
+  decimals: number;
+  iconUrl: string;
+}
+
+const mockAsset: MockAsset = {
   assetId: 'eip155:1/erc20:0xtoken',
   symbol: 'USDC',
+  name: 'USD Coin',
+  decimals: 6,
   iconUrl: 'https://example.com/usdc.png',
 };
+
+type TxFee = NonNullable<Parameters<typeof getGaslessFeeAsset>[0]>[number];
+
+const createTxFee = (asset: MockAsset): TxFee => ({
+  amount: '1',
+  asset,
+  maxFeePerGas: '1',
+  maxPriorityFeePerGas: '1',
+});
 
 describe('getGaslessFeeAsset', () => {
   beforeEach(() => {
@@ -26,15 +45,19 @@ describe('getGaslessFeeAsset', () => {
   it('returns undefined when the first fee asset is incomplete', () => {
     expect(
       getGaslessFeeAsset([
-        { amount: '1', asset: { assetId: mockAsset.assetId } },
+        createTxFee({
+          ...mockAsset,
+          assetId: undefined,
+          symbol: '',
+        } as unknown as MockAsset),
       ]),
     ).toBeUndefined();
   });
 
   it('returns the fee asset when all fees use the same asset', () => {
     const feeAsset = getGaslessFeeAsset([
-      { amount: '1', asset: mockAsset },
-      { amount: '2', asset: mockAsset },
+      createTxFee(mockAsset),
+      { ...createTxFee(mockAsset), amount: '2' },
     ]);
 
     expect(feeAsset).toBe(mockAsset);
@@ -49,10 +72,13 @@ describe('getGaslessFeeAsset', () => {
 
     expect(
       getGaslessFeeAsset([
-        { amount: '1', asset: mockAsset },
+        createTxFee(mockAsset),
         {
+          ...createTxFee({
+            ...mockAsset,
+            assetId: 'eip155:1/erc20:0xother',
+          }),
           amount: '2',
-          asset: { ...mockAsset, assetId: 'eip155:1/erc20:0xother' },
         },
       ]),
     ).toBeUndefined();
