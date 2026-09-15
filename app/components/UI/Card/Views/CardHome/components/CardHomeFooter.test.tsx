@@ -132,8 +132,6 @@ describe('CardHomeFooter', () => {
 
     fireEvent.press(getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
 
-    // An unhandled rejection here is what red-boxes the app in dev, so the
-    // assertion is really that flushing the microtask queue stays quiet.
     await waitFor(() => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         'mailto:support@example.com',

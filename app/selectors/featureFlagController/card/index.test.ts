@@ -1028,8 +1028,7 @@ describe('selectCardIntercomSupportEnabled', () => {
           },
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any;
+    }) as Parameters<typeof selectCardIntercomSupportEnabled>[0];
 
   beforeEach(() => {
     delete process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED;
@@ -1073,7 +1072,6 @@ describe('selectCardIntercomSupportEnabled', () => {
     mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
     process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED = 'true';
 
-    // resultFunc bypasses createSelector memoization after env changes.
     expect(selectCardIntercomSupportEnabled.resultFunc({})).toBe(true);
   });
 

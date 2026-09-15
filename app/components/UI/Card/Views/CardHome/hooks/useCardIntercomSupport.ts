@@ -13,15 +13,6 @@ import { selectCardIntercomSupportEnabled } from '../../../../../../selectors/fe
 import { getBetaSupportUrl } from '../../../../../../util/support/betaSupportUrl';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 
-/**
- * Opens the card "Contact support" entry as an Intercom conversation in the
- * in-app WebView, carrying the provider identity so our agents own the first
- * contact and can escalate to the card provider without interrogating the user.
- *
- * Returns `undefined` while the `cardIntercomSupport` flag is off, which is the
- * signal for the caller to keep the legacy `mailto:` routing. That keeps the
- * flag a pure routing switch, with no release needed to go back.
- */
 export const useCardIntercomSupport = (): (() => void) | undefined => {
   const isIntercomSupportEnabled = useSelector(
     selectCardIntercomSupportEnabled,
@@ -50,9 +41,6 @@ export const useCardIntercomSupport = (): (() => void) | undefined => {
       return;
     }
 
-    // The consent sheet decides whether device details (app version, customer
-    // service token) are appended; the provider params are part of the base URL
-    // either way, since support cannot route a card request without them.
     openSupportWithConsent(
       openWebview,
       buildCardSupportUrl({ providerUserId, providerName }),

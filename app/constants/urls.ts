@@ -72,14 +72,6 @@ export const buildVipPrioritySupportUrl = (
   return `${baseUrl}${separator}priority=vip&address=${encodeURIComponent(account)}`;
 };
 
-// Card
-// Builds the help-center URL for the card "Contact support" entry. Support runs
-// Intercom behind the help center, so the params below land on the conversation
-// our agents pick up: `provider_user_id` and `provider_name` let an agent match
-// the cardholder against the card provider (Immersve, Baanx) when a request has
-// to be escalated, without asking the user to recite account details.
-// Params are omitted rather than sent empty when the provider identity is
-// unknown (e.g. unauthenticated), so support never sees a blank identifier.
 export const buildCardSupportUrl = (
   {
     providerUserId,

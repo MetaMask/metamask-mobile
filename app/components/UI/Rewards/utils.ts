@@ -220,8 +220,6 @@ export const exitRewardsFlow = (
   });
 };
 
-// Re-exported so existing rewards call sites (and the tests that mock this
-// module to flip the beta branch) keep importing it from here.
 export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';
 
 // Referral URL builder

@@ -1,6 +1,12 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
+import {
+  selectCardActiveProviderId,
+  selectCardProviderUserId,
+} from '../../../../../../selectors/cardController';
+import { selectCardIntercomSupportEnabled } from '../../../../../../selectors/featureFlagController/card';
 import { getBetaSupportUrl } from '../../../../../../util/support/betaSupportUrl';
 import { useCardIntercomSupport } from './useCardIntercomSupport';
 
@@ -20,9 +26,6 @@ jest.mock('../../../../../hooks/useSupportConsent', () => ({
   }),
 }));
 
-// The `///: ONLY_INCLUDE_IF(beta)` fence is only stripped by Metro, so under
-// Jest the real helper always returns the beta URL. Mocking it here is what
-// makes the non-beta consent branch reachable.
 jest.mock('../../../../../../util/support/betaSupportUrl', () => ({
   getBetaSupportUrl: jest.fn(() => ''),
 }));
@@ -32,29 +35,11 @@ let mockProviderUserId: string | null = 'cardholder-1';
 let mockProviderName: string | null = 'immersve';
 
 jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => {
-    const {
-      selectCardProviderUserId,
-      selectCardActiveProviderId,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-    } = require('../../../../../../selectors/cardController');
-    const {
-      selectCardIntercomSupportEnabled,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-    } = require('../../../../../../selectors/featureFlagController/card');
-
-    if (selector === selectCardIntercomSupportEnabled) {
-      return mockIsIntercomSupportEnabled;
-    }
-    if (selector === selectCardProviderUserId) {
-      return mockProviderUserId;
-    }
-    if (selector === selectCardActiveProviderId) {
-      return mockProviderName;
-    }
-    return undefined;
-  },
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('useCardIntercomSupport', () => {
   beforeEach(() => {
@@ -63,6 +48,18 @@ describe('useCardIntercomSupport', () => {
     mockProviderUserId = 'cardholder-1';
     mockProviderName = 'immersve';
     (getBetaSupportUrl as jest.Mock).mockReturnValue('');
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectCardIntercomSupportEnabled) {
+        return mockIsIntercomSupportEnabled;
+      }
+      if (selector === selectCardProviderUserId) {
+        return mockProviderUserId;
+      }
+      if (selector === selectCardActiveProviderId) {
+        return mockProviderName;
+      }
+      return undefined;
+    });
   });
 
   it('returns undefined while the flag is off so the caller keeps mailto routing', () => {

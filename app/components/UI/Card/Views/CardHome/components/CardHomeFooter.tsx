@@ -131,13 +131,7 @@ const CardHomeFooter = ({
           onPress={
             onContactSupport ??
             (() => {
-              // Rejects when the device has no mail handler (e.g. the iOS
-              // Simulator, or a device with no mail account). Swallow it: an
-              // unhandled rejection red-boxes in dev and there is nothing
-              // actionable to offer beyond the address already shown.
-              Linking.openURL(`mailto:${supportEmail}`).catch(() => {
-                // Intentionally ignored.
-              });
+              Linking.openURL(`mailto:${supportEmail}`).catch(() => undefined);
             })
           }
           testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}

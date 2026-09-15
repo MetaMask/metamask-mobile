@@ -109,6 +109,7 @@ import {
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -514,6 +515,10 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
+}));
+
 // Mock bridge actions
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   setDestToken: jest.fn((token) => ({
@@ -784,9 +789,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-// Metro strips the `///: ONLY_INCLUDE_IF(beta)` fence at build time but Jest
-// leaves it inert, so the real helper always returns the beta Intercom URL.
-// Forcing '' here keeps these tests on the production (non-beta) support path.
 jest.mock('../../../../../util/support/betaSupportUrl', () => ({
   getBetaSupportUrl: jest.fn(() => ''),
 }));
@@ -893,8 +895,6 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
-    // Must be explicit: the `[]` fallback below is truthy, which would read as
-    // an enabled flag and silently reroute "Contact support" off mailto.
     if (selector === selectCardIntercomSupportEnabled)
       return config.isCardIntercomSupportEnabled;
     if (selector === selectCardProviderUserId) return config.providerUserId;
@@ -1936,8 +1936,6 @@ describe('CardHome Component', () => {
 
     fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
 
-    // The consent sheet is what opens the WebView; the resulting support URL is
-    // asserted in useCardIntercomSupport's own tests.
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
@@ -7198,15 +7196,30 @@ describe('CardHome Component', () => {
         cardDetails: { type: CardType.VIRTUAL },
         countryOfResidence: 'GB',
       });
+      jest.mocked(useCardUkMigrationUpdateBadge).mockReturnValue('danger');
 
       render();
       mockNavigate.mockClear();
+      mockEventBuilder.addProperties.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockTrackEvent.mockClear();
 
       fireEvent.press(screen.getByTestId('confirm-button'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.UK_MIGRATION,
       });
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
+        flow: 'migration',
+        migration_phase: 'post_cutoff',
+        badge_reasons: ['card_migration'],
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

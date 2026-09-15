@@ -45,26 +45,18 @@ function stripE2EQrSyncScheme(url: string): string {
   return current;
 }
 
-function parseBoolParam(value: string | null, defaultValue: boolean): boolean {
-  if (value === null || value === '') {
-    return defaultValue;
-  }
-  return value === 'true' || value === '1';
-}
-
 function parseApplySyncReadyPayload(
   queryString: string,
 ): QrSyncTestSyncReadyPayload {
   const params = new URLSearchParams(queryString);
   return {
     mnemonic: params.get('mnemonic') ?? '',
-    isPrimary: parseBoolParam(params.get('isPrimary'), true),
     walletName: params.get('walletName') ?? undefined,
     accountName: params.get('accountName') ?? undefined,
   };
 }
 
-function handleE2EQrSyncUrl(incomingUrl = ''): void {
+async function handleE2EQrSyncUrl(incomingUrl = ''): Promise<void> {
   if (!incomingUrl) {
     return;
   }
@@ -98,12 +90,13 @@ function handleE2EQrSyncUrl(incomingUrl = ''): void {
     return;
   }
 
+  processedDeepLinks.add(incomingUrl);
   try {
     const payload = parseApplySyncReadyPayload(queryString);
-    controller.applyTestSyncReadyPayload(payload);
-    processedDeepLinks.add(incomingUrl);
+    await controller.applyTestSyncReadyPayload(payload);
     Logger.log('[E2E QR Sync] Applied test sync-ready payload');
   } catch (error) {
+    processedDeepLinks.delete(incomingUrl);
     Logger.error(error as Error, 'E2E QR Sync apply-sync-ready failed');
   }
 }
@@ -152,6 +145,6 @@ export function __resetE2EQrSyncBridgeForTests(): void {
 }
 
 /** @internal test helper */
-export function __handleE2EQrSyncUrlForTests(url: string): void {
-  handleE2EQrSyncUrl(url);
+export async function __handleE2EQrSyncUrlForTests(url: string): Promise<void> {
+  await handleE2EQrSyncUrl(url);
 }
