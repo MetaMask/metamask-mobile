@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { VBA_KYC_VENDOR } from '../constants';
+import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockInitialize = jest.fn();
@@ -42,7 +42,10 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(mockInitialize).toHaveBeenCalledWith({ vendor: VBA_KYC_VENDOR });
+    expect(mockInitialize).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      product: VBA_KYC_PRODUCT,
+    });
     expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
     expect(result.current.disclaimers).toStrictEqual([
       { id: '1', url: 'https://t.c', display_name: 'T&C' },

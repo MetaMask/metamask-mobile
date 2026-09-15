@@ -13,10 +13,11 @@ import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
+import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
-import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
@@ -26,7 +27,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
-jest.mock('../../ActivityList/hooks/useLocalActivityItems');
 jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
@@ -38,12 +38,15 @@ jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   })),
   findBridgeHistoryItemBySrcTxHash: jest.fn(),
 }));
+jest.mock('./useLocalTransactionMeta', () => ({
+  useLocalTransactionMeta: jest.fn(),
+}));
 
 const useApiTransactionMock = jest.mocked(useApiTransaction);
-const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
 const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
+const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
 
 const rampOrder: FiatOrder = {
   id: 'ramp-order-id',
@@ -75,18 +78,52 @@ function makeItem(
   } as ActivityListItem;
 }
 
+function stubGroup(item: ActivityListItem) {
+  return {
+    primaryTransaction: { hash: item.hash, id: item.hash },
+    initialTransaction: { hash: item.hash, id: item.hash },
+  };
+}
+
+let localByIdentifier = new Map<string, ActivityListItem>();
+
+function identifierMapFrom(
+  items: ActivityListItem[],
+  groups: ReturnType<typeof stubGroup>[],
+) {
+  const byKey = new Map<string, ActivityListItem>();
+  items.forEach((item, index) => {
+    const group = groups[index] ?? stubGroup(item);
+    for (const transaction of [
+      group.primaryTransaction,
+      group.initialTransaction,
+    ]) {
+      if (transaction.hash) {
+        byKey.set(transaction.hash.toLowerCase(), item);
+      }
+      if (transaction.id) {
+        byKey.set(String(transaction.id).toLowerCase(), item);
+      }
+    }
+  });
+  return byKey;
+}
+
 function setSources({
   local = [],
+  localGroups,
   confirmed = [],
   nonEvm = [],
   ramp = [],
 }: {
   local?: ActivityListItem[];
+  localGroups?: ReturnType<typeof stubGroup>[];
   confirmed?: ActivityListItem[];
   nonEvm?: ActivityListItem[];
   ramp?: ActivityListItem[];
 }) {
-  useLocalActivityItemsMock.mockReturnValue(local);
+  const groups = localGroups ?? local.map(stubGroup);
+  localByIdentifier = identifierMapFrom(local, groups);
   useRampActivityItemsMock.mockReturnValue(ramp);
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
@@ -102,7 +139,12 @@ describe('useActivityDetailsItem', () => {
       transaction: undefined,
       isFetching: false,
     });
+    useLocalTransactionMetaMock.mockReturnValue(undefined);
+    localByIdentifier = new Map();
     jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
       if (selector === selectSelectedAccountGroupInternalAccounts) {
         return [];
       }
@@ -142,6 +184,9 @@ describe('useActivityDetailsItem', () => {
     const transaction = { id: 'sol-tx', account: 'account-1' };
     const subjectAddress = 'So11111111111111111111111111111111111111112';
     jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
       if (selector === selectSelectedAccountGroupInternalAccounts) {
         return [{ id: 'account-1', address: subjectAddress }];
       }
@@ -285,15 +330,44 @@ describe('useActivityDetailsItem', () => {
     const local = makeItem({
       type: 'send',
       hash: '0xnewhash',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-1', hash: '0xnewhash' },
-          initialTransaction: { id: 'meta-1', hash: '0xoldhash' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'meta-1',
+      hash: '0xnewhash',
+    } as ReturnType<typeof useLocalTransactionMeta>);
     setSources({ local: [local] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('resolves a local item by the initial transaction hash', () => {
+    const local = makeItem({ type: 'send', hash: '0xprimary' });
+    setSources({
+      local: [local],
+      localGroups: [
+        {
+          primaryTransaction: { id: 'primary-id', hash: '0xprimary' },
+          initialTransaction: { id: 'initial-id', hash: '0xinitial' },
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xinitial'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('resolves a local item by the transaction group id', () => {
+    const local = makeItem({ type: 'send', hash: '0xabc' });
+    setSources({
+      local: [local],
+      localGroups: [
+        {
+          primaryTransaction: { id: 'meta-1', hash: '0xabc' },
+          initialTransaction: { id: 'meta-1', hash: '0xabc' },
+        },
+      ],
+    });
 
     const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
     expect(result.current.item).toBe(local);

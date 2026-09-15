@@ -13,10 +13,11 @@ import {
   selectSelectedAccountGroupEvmInternalAccount,
   selectSelectedAccountGroupInternalAccounts,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
+import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
 import { isValidTransactionHash } from '../../ActivityList/hooks/activity/isValidTransactionHash';
-import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
@@ -58,44 +59,7 @@ function buildItemsByHash(
   return byHash;
 }
 
-/** Keys that can address a local EVM Activity row (meta id + hashes). */
-function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
-  const keys = new Set<string>();
-  if (item.hash) {
-    keys.add(item.hash.toLowerCase());
-  }
-  if (item.raw?.type !== 'localTransaction') {
-    return [...keys];
-  }
-  const { primaryTransaction, initialTransaction } = item.raw.data;
-  for (const tx of [primaryTransaction, initialTransaction]) {
-    if (tx?.id) {
-      keys.add(tx.id.toLowerCase());
-    }
-    if (tx?.hash) {
-      keys.add(tx.hash.toLowerCase());
-    }
-  }
-  return [...keys];
-}
-
-function buildLocalItemsByLookupKey(
-  items: ActivityListItem[],
-): Map<string, ActivityListItem> {
-  const byKey = new Map<string, ActivityListItem>();
-  for (const item of items) {
-    for (const key of getLocalActivityLookupKeys(item)) {
-      if (!byKey.has(key)) {
-        byKey.set(key, item);
-      }
-    }
-  }
-  return byKey;
-}
-
-function buildItemsByIdentifier(
-  items: ActivityListItem[],
-): Map<string, ActivityListItem> {
+function buildItemsByIdentifier(items: ActivityListItem[]) {
   const byIdentifier = buildItemsByHash(items);
   for (const item of items) {
     const domainId =
@@ -103,11 +67,6 @@ function buildItemsByIdentifier(
     const normalizedDomainId = domainId?.toLowerCase();
     if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
       byIdentifier.set(normalizedDomainId, item);
-    }
-    for (const key of getLocalActivityLookupKeys(item)) {
-      if (!byIdentifier.has(key)) {
-        byIdentifier.set(key, item);
-      }
     }
   }
   return byIdentifier;
@@ -126,11 +85,26 @@ function filterByChain(
   return items.filter((item) => item.chainId === chainId);
 }
 
+function getPreferredItem(
+  items: Map<string, ActivityListItem>,
+  ...identifiers: (string | number | undefined)[]
+) {
+  for (const identifier of identifiers) {
+    if (identifier === undefined) {
+      continue;
+    }
+    const item = items.get(String(identifier).toLowerCase());
+    if (item) {
+      return item;
+    }
+  }
+}
+
 function getPreferredApiItem(
   apiByHash: Map<string, ActivityListItem>,
   id: string,
   ...candidates: (ActivityListItem | undefined)[]
-): ActivityListItem | undefined {
+) {
   const direct = apiByHash.get(id);
   if (direct) {
     return direct;
@@ -154,7 +128,7 @@ export function useActivityDetailsItem(
   item: ActivityListItem | undefined;
   isFetching: boolean;
 } {
-  const localActivityItems = useLocalActivityItems();
+  const localByLookupKey = useSelector(selectLocalActivityItemsByIdentifier);
   const rampActivityItems = useRampActivityItems();
   const { data: evmTransactions, isFetching: isListFetching } =
     useTransactionsQuery();
@@ -196,14 +170,6 @@ export function useActivityDetailsItem(
     [nonEvmState?.transactions, bridgeHistoryItemsBySrcTxHash, accounts],
   );
 
-  const chainedLocalItems = useMemo(
-    () => filterByChain(localActivityItems, chainId),
-    [localActivityItems, chainId],
-  );
-  const localByLookupKey = useMemo(
-    () => buildLocalItemsByLookupKey(chainedLocalItems),
-    [chainedLocalItems],
-  );
   const apiByHash = useMemo(
     () => buildItemsByHash(filterByChain(confirmedEvmItems, chainId)),
     [confirmedEvmItems, chainId],
@@ -216,6 +182,7 @@ export function useActivityDetailsItem(
     () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
     [rampActivityItems, chainId],
   );
+  const localTransactionMeta = useLocalTransactionMeta(txIdentifier);
 
   const fetchedApiItem = useMemo(() => {
     if (!apiTransaction || !evmAddress) {
@@ -239,21 +206,32 @@ export function useActivityDetailsItem(
   }, [apiTransaction, chainId, evmAddress]);
 
   const item = useMemo(() => {
-    const id = txIdentifier?.toLowerCase();
-    if (!id) {
+    if (!txIdentifier) {
       return undefined;
     }
 
-    const rampsActivityItem = rampByIdentifier.get(id);
+    const rampsActivityItem = getPreferredItem(rampByIdentifier, txIdentifier);
     if (rampsActivityItem) {
       return rampsActivityItem;
     }
 
-    const localItem = localByLookupKey.get(id);
+    const localItem = getPreferredItem(
+      localByLookupKey,
+      txIdentifier,
+      localTransactionMeta?.hash,
+      localTransactionMeta?.id,
+    );
     const apiItem =
-      getPreferredApiItem(apiByHash, id, localItem, fetchedApiItem) ??
-      (fetchedApiItem?.hash?.toLowerCase() === id ? fetchedApiItem : undefined);
-    const nonEvmItem = nonEvmByHash.get(id);
+      getPreferredApiItem(
+        apiByHash,
+        txIdentifier.toLowerCase(),
+        localItem,
+        fetchedApiItem,
+      ) ??
+      (fetchedApiItem?.hash?.toLowerCase() === txIdentifier.toLowerCase()
+        ? fetchedApiItem
+        : undefined);
+    const nonEvmItem = getPreferredItem(nonEvmByHash, txIdentifier);
 
     if (localItem) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
@@ -270,6 +248,7 @@ export function useActivityDetailsItem(
     apiByHash,
     nonEvmByHash,
     rampByIdentifier,
+    localTransactionMeta,
     fetchedApiItem,
   ]);
 

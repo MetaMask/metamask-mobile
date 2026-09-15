@@ -10,15 +10,19 @@ import {
   getIsSwapsLimitOrderStablecoin,
   getSwapsLimitOrderDefaultPriceMode,
 } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
+import { getSwapsLimitOrderPriceComparisonDirection } from '../../utils/limitOrders/getSwapsLimitOrderPriceComparisonDirection';
 import { getSwapsLimitOrderPriceFromMarketPercent } from '../../utils/limitOrders/getSwapsLimitOrderPriceFromMarketPercent';
+import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { getSwapsLimitOrderSecondaryValue } from '../../utils/limitOrders/getSwapsLimitOrderSecondaryValue';
+import { isSwapsLimitOrderPriceWithinMarketPercent } from '../../utils/limitOrders/isSwapsLimitOrderPriceWithinMarketPercent';
 import {
   getInitialLimitOrderPriceAdjustState,
   limitOrderPriceAdjustReducer,
 } from '../../reducers/limitOrderPriceAdjustReducer';
 import {
   LIMIT_ORDER_CUSTOM_PERCENT_MAX,
+  LIMIT_ORDER_NEAR_MARKET_PERCENT,
   LimitOrderExecutionType,
 } from '../../constants/limitOrders';
 
@@ -65,15 +69,23 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({ type: 'setLimitPrice', limitPrice: value });
   }, []);
 
+  // Presets (Market / percent buttons) and committed custom percents all
+  // derive their price from this. The result is capped to a fixed number of
+  // significant digits regardless of the counter token's smart-contract
+  // decimals, so quick-picked prices stay readable. Manually typing into the
+  // price input afterwards goes through `handleLimitPriceChange` instead, and
+  // is not subject to this cap.
   const getLimitPriceFromSignedPercent = useCallback(
     (signedPercent: number) =>
-      getSwapsLimitOrderPriceFromMarketPercent({
-        counterFiatRate,
-        counterTokenDecimals: counterToken?.decimals,
-        isLimitFiatMode,
-        marketFiat: quotedFiatRate,
-        signedPercent,
-      }),
+      formatLimitOrderQuickPrice(
+        getSwapsLimitOrderPriceFromMarketPercent({
+          counterFiatRate,
+          counterTokenDecimals: counterToken?.decimals,
+          isLimitFiatMode,
+          marketFiat: quotedFiatRate,
+          signedPercent,
+        }),
+      ),
     [counterFiatRate, counterToken?.decimals, isLimitFiatMode, quotedFiatRate],
   );
 
@@ -200,16 +212,18 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'toggleFiatMode',
       convertLimitPrice: (currentLimitPrice) =>
-        isLimitFiatMode
-          ? formatTokenInputAmountFromFiat({
-              fiatAmount: currentLimitPrice,
-              tokenFiatRate: counterFiatRate,
-              tokenDecimals: counterToken?.decimals,
-            })
-          : formatLimitOrderFiatPriceFromTokenAmount(
-              currentLimitPrice,
-              counterFiatRate,
-            ),
+        formatLimitOrderQuickPrice(
+          isLimitFiatMode
+            ? formatTokenInputAmountFromFiat({
+                fiatAmount: currentLimitPrice,
+                tokenFiatRate: counterFiatRate,
+                tokenDecimals: counterToken?.decimals,
+              })
+            : formatLimitOrderFiatPriceFromTokenAmount(
+                currentLimitPrice,
+                counterFiatRate,
+              ),
+        ),
     });
   }, [
     canToggleLimitPrice,
@@ -236,6 +250,16 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType,
     threshold: 0,
   });
+  const isTriggerPriceNearMarket = isSwapsLimitOrderPriceWithinMarketPercent({
+    price: limitFiat,
+    marketPrice: quotedFiatRate,
+    percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
+  });
+  const priceComparisonDirection = getSwapsLimitOrderPriceComparisonDirection({
+    limitFiat,
+    marketFiat: quotedFiatRate,
+    executionType,
+  });
 
   return {
     commitCustomPercent,
@@ -249,9 +273,11 @@ export const useSwapsLimitOrderPriceAdjust = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isTriggerPriceNearMarket,
     executionType,
     limitPrice,
     marketComparison,
+    priceComparisonDirection,
     onAmountTypeTogglePress: canToggleLimitPrice
       ? handleAmountTypeTogglePress
       : undefined,

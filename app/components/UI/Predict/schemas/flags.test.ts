@@ -26,6 +26,7 @@ describe('PredictFeedCarouselSchema', () => {
     title: 'Wimbledon',
     deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
     priorityOrder: ['10684'],
+    prioritySlots: [{ seriesId: '10684', index: 1 }],
     contentSource: {
       composition: 'query-results',
       queryParams: 'tag_slug=tennis&title_search=Wimbledon',
@@ -83,12 +84,28 @@ describe('PredictFeedCarouselSchema', () => {
     expect(priorityOrder).toEqual([]);
   });
 
+  it('defaults an omitted prioritySlots to an empty list', () => {
+    const { prioritySlots } = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        mode: 'custom',
+        title: 'Top markets',
+      },
+      PredictFeedCarouselSchema,
+    );
+
+    expect(prioritySlots).toEqual([]);
+  });
+
   it.each([
     ['mode', 'automatic'],
     ['minimumVersion', 'not-semver'],
     ['title', 123],
     ['deeplink', false],
     ['priorityOrder', ['10684', 2]],
+    ['prioritySlots', [{ seriesId: '10684', index: '1' }]],
+    ['prioritySlots', [{ seriesId: '10684', index: -1 }]],
   ])('throws for unsupported %s value', (field, value) => {
     const input = { ...validFlag, [field]: value };
 
