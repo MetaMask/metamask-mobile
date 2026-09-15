@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { Icon } from '@metamask/design-system-react-native';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
@@ -51,7 +52,7 @@ describe('TimeRangeSelector', () => {
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onSelect when tapping the already selected range', () => {
+  it('does not call onSelect when tapping the already selected range', () => {
     const onSelect = jest.fn();
     const { getByText } = render(
       <TimeRangeSelector selected="1D" onSelect={onSelect} />,
@@ -59,7 +60,7 @@ describe('TimeRangeSelector', () => {
 
     fireEvent.press(getByText('1D'));
 
-    expect(onSelect).toHaveBeenCalledWith('1D');
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   describe('chart type segmented toggle', () => {
@@ -72,12 +73,14 @@ describe('TimeRangeSelector', () => {
         />,
       );
 
-      const lineButton = getByLabelText('Line chart');
-      const lineIcon = lineButton.children[0] as ReactTestInstance;
+      const lineIcon = getByLabelText('Line chart').findByType(
+        Icon,
+      ) as ReactTestInstance;
       expect(lineIcon.props.twClassName).toBe('text-icon-default');
 
-      const candleButton = getByLabelText('Candlestick chart');
-      const candleIcon = candleButton.children[0] as ReactTestInstance;
+      const candleIcon = getByLabelText('Candlestick chart').findByType(
+        Icon,
+      ) as ReactTestInstance;
       expect(candleIcon.props.twClassName).toBe('text-icon-alternative');
     });
 
@@ -90,12 +93,14 @@ describe('TimeRangeSelector', () => {
         />,
       );
 
-      const candleButton = getByLabelText('Candlestick chart');
-      const candleIcon = candleButton.children[0] as ReactTestInstance;
+      const candleIcon = getByLabelText('Candlestick chart').findByType(
+        Icon,
+      ) as ReactTestInstance;
       expect(candleIcon.props.twClassName).toBe('text-icon-default');
 
-      const lineButton = getByLabelText('Line chart');
-      const lineIcon = lineButton.children[0] as ReactTestInstance;
+      const lineIcon = getByLabelText('Line chart').findByType(
+        Icon,
+      ) as ReactTestInstance;
       expect(lineIcon.props.twClassName).toBe('text-icon-alternative');
     });
 

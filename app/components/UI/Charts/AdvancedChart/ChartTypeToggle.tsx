@@ -14,7 +14,7 @@ import { ChartType } from './AdvancedChart.types';
 interface ChartTypeToggleProps {
   chartType?: ChartType;
   onChartTypeSelect?: (type: ChartType) => void;
-  twClassName?: SegmentedControlProps['twClassName'];
+  twClassName?: string;
 }
 
 const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
@@ -24,15 +24,22 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
 }) => {
   if (!onChartTypeSelect) return null;
 
+  const handleChange = (value: string) => {
+    const numValue = parseInt(value, 10) as ChartType;
+    onChartTypeSelect(numValue);
+  };
+
+  const selectedValue = chartType ? chartType.toString() : '';
+
   return (
     <SegmentedControl
-      value={chartType}
-      onChange={(value) => onChartTypeSelect(value as ChartType)}
+      value={selectedValue}
+      onChange={handleChange}
       size={SegmentedControlSize.Sm}
       twClassName={twClassName}
     >
       <FilterButton
-        value={ChartType.Line}
+        value={ChartType.Line.toString()}
         size={FilterButtonSize.Sm}
         variant={FilterButtonVariant.Secondary}
         accessibilityLabel="Line chart"
@@ -49,7 +56,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
         />
       </FilterButton>
       <FilterButton
-        value={ChartType.Candles}
+        value={ChartType.Candles.toString()}
         size={FilterButtonSize.Sm}
         variant={FilterButtonVariant.Secondary}
         accessibilityLabel="Candlestick chart"
