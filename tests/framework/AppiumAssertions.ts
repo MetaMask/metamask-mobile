@@ -362,7 +362,15 @@ export default class AppiumAssertions {
       }
       await this.pollSleep(Math.min(interval, remaining));
     }
-    throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
+    let actual = '';
+    try {
+      actual = ((await el.textContent()) ?? '').trim();
+    } catch {
+      actual = '<unreadable>';
+    }
+    throw new Error(
+      `Expected element text "${expected}" within ${timeout}ms (last saw "${actual}")`,
+    );
   }
 
   /**

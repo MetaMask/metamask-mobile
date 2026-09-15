@@ -351,11 +351,31 @@ class TransactionPayConfirmation {
   }
 
   async clearAmount(): Promise<void> {
-    await Gestures.longPress(this.keypadDeleteButton, {
-      duration: 600,
-      elemDescription: 'Keypad delete button (long-press clears amount)',
-      timeout: 15000,
-    });
+    // Long-press delete is racy on Android: Done can stay visible while the
+    // amount field still shows the prior value (e.g. "125" after 25%). Typing
+    // the next amount then appends ("12550") and verifyCustomAmount("50")
+    // polls until timeout. Retry clear until the field is empty or "0".
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.longPress(this.keypadDeleteButton, {
+          duration: 600,
+          elemDescription: 'Keypad delete button (long-press clears amount)',
+          timeout: 15000,
+        });
+        const amountText = ((await (await this.keyboardContainer).getText()) ?? '')
+          .trim();
+        if (amountText !== '' && amountText !== '0') {
+          throw new Error(
+            `Amount field still shows "${amountText}" after clear; expected empty or 0`,
+          );
+        }
+      },
+      {
+        timeout: 15000,
+        interval: 400,
+        description: 'Clear custom amount until empty or 0',
+      },
+    );
   }
 
   async tapKeyboardAmount(amount: string): Promise<void> {
