@@ -185,6 +185,17 @@ describe('PerpsProOrderBookConfigSheet', () => {
     );
   });
 
+  it('renders the FilterButton chips at the design size', () => {
+    const { getByTestId } = renderSheet();
+
+    const chipHeight = (id: string) =>
+      StyleSheet.flatten(getByTestId(id).props.style).height;
+
+    expect(chipHeight('config-sheet-currency-base')).toBe(40);
+    expect(chipHeight('config-sheet-metric-size')).toBe(40);
+    expect(chipHeight('config-sheet-grouping-1')).toBe(40);
+  });
+
   it('renders the order-book layout options with the current side selected', () => {
     const { getByTestId, getByText } = renderSheet({ layout: 'right' });
 

@@ -101,7 +101,7 @@ const OptionFilterButton = ({
   <FilterButton
     isSelected={isSelected}
     variant={FilterButtonVariant.Secondary}
-    size={FilterButtonSize.Lg}
+    size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
     twClassName="flex-1"
