@@ -16,17 +16,38 @@ export type MoneyDepositAsset = Asset & {
   chainId: Hex;
 };
 
+export interface MoneyDepositToken {
+  address: string;
+  chainId?: string;
+}
+
+export type MoneyDepositBlockedTokens = ReturnType<
+  typeof getBlockedTokensForTransactionType
+>;
+
 const hasBalance = (asset: MoneyDepositAsset) =>
   Number(asset.fiat?.balance ?? 0) > 0 ||
   (asset.rawBalance !== undefined && asset.rawBalance !== '0x0');
 
-const isEvmAsset = (asset: Asset): asset is MoneyDepositAsset =>
+export const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
   'address' in asset &&
   typeof asset.address === 'string' &&
   asset.address.length > 0 &&
   typeof asset.chainId === 'string' &&
   asset.chainId.length > 0 &&
   asset.accountType?.startsWith('eip155:') === true;
+
+/**
+ * Returns whether a token can be used as a Money deposit source regardless of
+ * its current balance.
+ */
+export const isMoneyDepositSupportedToken = (
+  token: MoneyDepositToken,
+  blockedTokens?: MoneyDepositBlockedTokens,
+): boolean =>
+  token.chainId?.startsWith('0x') === true &&
+  token.address.length > 0 &&
+  !isTokenBlocked(token, blockedTokens);
 
 const meetsMinimumBalance = (
   asset: MoneyDepositAsset,
@@ -41,37 +62,41 @@ const meetsMinimumBalance = (
   );
 };
 
-export const filterMoneyDepositEligibleAssets = (
+export const filterMoneyDepositSupportedAssets = (
   assets: readonly Asset[],
-  blockedTokens: ReturnType<typeof getBlockedTokensForTransactionType>,
-  minimumBalance: number,
+  blockedTokens: MoneyDepositBlockedTokens,
 ): MoneyDepositAsset[] =>
   assets
-    .filter(isEvmAsset)
-    .filter(
-      (asset) =>
-        hasBalance(asset) &&
-        !isTokenBlocked(asset, blockedTokens) &&
-        meetsMinimumBalance(asset, minimumBalance),
-    )
-    .sort(
-      (first, second) =>
-        (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
-    );
+    .filter(isMoneyDepositAsset)
+    .filter((asset) => !isTokenBlocked(asset, blockedTokens));
 
-export const selectMoneyDepositEligibleAssets = createDeepEqualSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    selectMetaMaskPayTokensFlags,
-    selectMoneyDepositMinBalance,
-  ],
-  (assetsByChain, payTokenFlags, minimumBalance) =>
-    filterMoneyDepositEligibleAssets(
-      Object.values(assetsByChain).flat() as Asset[],
-      getBlockedTokensForTransactionType(
-        payTokenFlags.blockedTokens,
-        TransactionType.moneyAccountDeposit,
-      ),
-      minimumBalance,
+export const selectMoneyDepositBlockedTokens = createDeepEqualSelector(
+  [selectMetaMaskPayTokensFlags],
+  (payTokenFlags) =>
+    getBlockedTokensForTransactionType(
+      payTokenFlags.blockedTokens,
+      TransactionType.moneyAccountDeposit,
     ),
 );
+
+export const selectMoneyDepositAssetsMeetingMinimumBalance =
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      selectMoneyDepositBlockedTokens,
+      selectMoneyDepositMinBalance,
+    ],
+    (assetsByChain, blockedTokens, minimumBalance) =>
+      filterMoneyDepositSupportedAssets(
+        Object.values(assetsByChain).flat() as Asset[],
+        blockedTokens,
+      )
+        .filter(
+          (asset) =>
+            hasBalance(asset) && meetsMinimumBalance(asset, minimumBalance),
+        )
+        .sort(
+          (first, second) =>
+            (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
+        ),
+  );

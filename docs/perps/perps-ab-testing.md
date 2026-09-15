@@ -10,27 +10,26 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 
 ## Active tests
 
-| Flag key (Redux / `useABTest`)   | Variants               | Purpose                                  |
-| -------------------------------- | ---------------------- | ---------------------------------------- |
-| `perpsTAT1937AbtestButtonColor`  | `control`, `colors`    | Long/short button color (TAT-1937)       |
-| `perpsAbtestScreenVsBottomSheet` | `control`, `treatment` | Shared screen vs bottom-sheet experience |
+| Flag key (Redux / `useABTest`)          | Variants               | Purpose                                  |
+| --------------------------------------- | ---------------------- | ---------------------------------------- |
+| `perpsTAT1937AbtestButtonColor`         | `control`, `colors`    | Long/short button color (TAT-1937)       |
+| `perpsTAT3938AbtestScreenVsBottomSheet` | `control`, `treatment` | Shared screen vs bottom-sheet experience |
 
 `perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition. See [`docs/perps/perps-feature-flags.md`](./perps-feature-flags.md).
 
-## Screen vs bottom sheet (`perpsAbtestScreenVsBottomSheet`)
+## Screen vs bottom sheet (`perpsTAT3938AbtestScreenVsBottomSheet`)
 
 One experiment governs every Perps flow that is converting from a full page to a bottom sheet (Close Position — TAT-3552 — and later tickets under the same epic). Do **not** define a new experiment per conversion.
 
-The flag key is intentionally semantic and ticket-independent because this is
-a long-lived shared assignment consumed by multiple conversion tickets. This
-is a deliberate exception to the ticket-based naming convention in
-[`docs/ab-testing.md`](../ab-testing.md).
+The LaunchDarkly / `useABTest` key follows `{team}{TICKET}Abtest{TestName}` from
+[`docs/ab-testing.md`](../ab-testing.md), using TAT-3938 as the setup ticket.
+Later conversion tickets reuse this same key rather than creating their own.
 
 Assignment is **orthogonal to Lite/Pro mode**. Mode is still `selectPerpsProModeEnabledFlag` / `useIsPerpsProModeActive()` in `app/components/UI/Perps/utils/perpsModeSwitch.ts`. A Lite treatment user and a Pro treatment user each get **that mode's** new sheets; control users of either mode keep full-page flows.
 
 ### LaunchDarkly
 
-Create a JSON flag named `perpsAbtestScreenVsBottomSheet`. Default targeting must serve **0% treatment** until product signs off:
+Create a JSON flag named `perpsTAT3938AbtestScreenVsBottomSheet`. Default targeting must serve **0% treatment** until product signs off:
 
 ```json
 [

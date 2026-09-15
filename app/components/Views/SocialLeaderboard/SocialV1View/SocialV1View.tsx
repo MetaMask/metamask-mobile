@@ -8,9 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -54,6 +51,7 @@ import {
   SOCIAL_V1_VARIANTS,
 } from './abTestConfig';
 import EmptyShellTabPage from '../shell/EmptyShellTabPage';
+import LeaderboardShellTabPage from '../shell/LeaderboardShellTabPage';
 import {
   SOCIAL_V1_TAB_ORDER,
   SOCIAL_SHELL_TAB_CONFIG,
@@ -125,6 +123,7 @@ const SocialV1View: React.FC = () => {
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const feedIndex = tabOrder.indexOf('feed');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
+  const leaderboardIndex = tabOrder.indexOf('leaderboard');
   // The landing tab is the first one, so the surface always opens on index 0.
   const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
 
@@ -526,13 +525,22 @@ const SocialV1View: React.FC = () => {
                   collapsable={false}
                   testID={testIds.page}
                 >
-                  <EmptyShellTabPage
-                    tab={tab}
-                    onScroll={scrollHandlers[tab]}
-                    pageRef={pageRef}
-                    containerTestID={testIds.container}
-                    scrollTestID={testIds.scroll}
-                  />
+                  {tab === 'leaderboard' ? (
+                    <LeaderboardShellTabPage
+                      isActive={activeIndex === leaderboardIndex}
+                      onScroll={scrollHandlers[tab]}
+                      pageRef={pageRef}
+                      containerTestID={testIds.container}
+                    />
+                  ) : (
+                    <EmptyShellTabPage
+                      tab={tab}
+                      onScroll={scrollHandlers[tab]}
+                      pageRef={pageRef}
+                      containerTestID={testIds.container}
+                      scrollTestID={testIds.scroll}
+                    />
+                  )}
                 </View>
               );
             })}

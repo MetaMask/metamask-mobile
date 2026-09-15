@@ -4,6 +4,11 @@ import {
   type MockAnyNamespace,
 } from '@metamask/messenger';
 import type {
+  PredictLiveDataServiceActions,
+  PredictLiveDataServiceEvents,
+  PredictLiveDataServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictLiveDataService';
+import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
   PredictMarketDataServiceMessenger,
@@ -13,9 +18,19 @@ import type {
   PredictPortfolioServiceEvents,
   PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
-import type { RootExtendedMessenger } from '../types';
+import {
+  KALSHI_VENUE_ID,
+  type PredictEntityId,
+} from '../../../components/UI/PredictNext/types';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getPredictLiveDataServiceMessenger } from '../messengers/predict-live-data-service-messenger';
+import type {
+  MessengerClientInitRequest,
+  RootExtendedMessenger,
+} from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import {
+  predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
@@ -80,6 +95,37 @@ describe('Predict service initialization', () => {
     expect(call).toHaveBeenCalledWith(
       'AuthenticationController:getBearerToken',
     );
+    controller.destroy();
+  });
+
+  it('publishes socket updates on the live-data service messenger', () => {
+    const rootMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      PredictLiveDataServiceActions,
+      PredictLiveDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const messenger = getPredictLiveDataServiceMessenger(rootMessenger);
+    const request = {
+      ...buildMessengerClientInitRequestMock(rootMessenger),
+      controllerMessenger: messenger,
+      initMessenger: undefined,
+    } as unknown as MessengerClientInitRequest<PredictLiveDataServiceMessenger>;
+    const listener = jest.fn();
+    messenger.subscribe('PredictLiveDataService:gameLiveUpdated', listener);
+    const update = {
+      venueId: KALSHI_VENUE_ID,
+      eventId: 'event-1' as PredictEntityId,
+      type: 'football_game',
+      details: { status: 'live' },
+    };
+
+    const { controller } = predictLiveDataServiceInit(request);
+    messenger.call('PredictLiveDataService:watchGames', KALSHI_VENUE_ID, [
+      update.eventId,
+    ]);
+    controller.onGameUpdate(update);
+
+    expect(listener).toHaveBeenCalledWith(update);
     controller.destroy();
   });
 });
