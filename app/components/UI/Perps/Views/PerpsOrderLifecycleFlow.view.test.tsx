@@ -62,6 +62,14 @@ describe('Order Lifecycle & Funds Flow', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.replaceProperty(process, 'env', {
+      ...process.env,
+      METAMASK_ENVIRONMENT: 'dev',
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('trader closes position, reviews order book, checks order details, views PnL, withdraws, and opens provider selection', async () => {

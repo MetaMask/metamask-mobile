@@ -689,25 +689,6 @@ export type RootStackParamList = {
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
     | undefined;
-  FirstPredictOnUsSplash:
-    | {
-        content: unknown;
-        markets: unknown;
-      }
-    | undefined;
-  FirstPredictOnUsOrderSheet:
-    | {
-        confirmLabel: string;
-        selectedOrder: {
-          market: unknown;
-          outcome: unknown;
-          outcomeToken: unknown;
-        };
-        tradeDescriptionTemplate: string;
-        tradePlacedLabel: string;
-        usdAmount: number;
-      }
-    | undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -911,7 +892,7 @@ export type RootStackParamList = {
   BatchSellTokenSelect: BridgeScreensStackParamList['BatchSellTokenSelect'];
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
-  RecurringJobDetails: BridgeScreensStackParamList['RecurringJobDetails'];
+  RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -1021,6 +1002,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  MyProfileView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

@@ -3,9 +3,12 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getSubnavPillTestId } from '../shell/SubnavPills';
+import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
+import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
@@ -33,6 +36,19 @@ jest.mock('../analytics', () => {
   };
 });
 
+jest.mock(
+  '../../Homepage/Sections/Perpetuals/components/SparklineChart',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
+jest.mock('../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -57,6 +73,16 @@ jest.mock('react-native-pager-view', () => {
 jest.mock('../../../../util/haptics', () => ({
   playSelection: () => mockPlaySelection(),
 }));
+
+jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'top-traders-view' }),
+  };
+});
 
 jest.mock(
   '../../../../util/notifications/services/NotificationService',
@@ -136,7 +162,7 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
   });
 
-  it('renders each tab subnav over an empty scroll surface', () => {
+  it('renders every tab subnav', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
@@ -153,6 +179,28 @@ describe('SocialV1View', () => {
     ).toBeOnTheScreen();
   });
 
+  it('mounts the leaderboard list once the Leaderboard tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
+  });
+
+  it('renders the three mocked position cards on Feed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
+      expect(
+        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('emits TSA-1122 exposure when the v1 home opens', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -163,10 +211,17 @@ describe('SocialV1View', () => {
     );
   });
 
-  it('renders placeholder header actions that do not navigate', () => {
+  it('opens My Profile from the avatar', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+  });
+
+  it('keeps the remaining placeholder header actions inactive', () => {
+    renderWithProvider(<SocialV1View />);
+
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.HEART_BUTTON));
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 

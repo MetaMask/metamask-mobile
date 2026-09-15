@@ -1275,6 +1275,32 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
+    it('shows the size precision bound when a TWAP suborder rounds below it', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('0');
+        result.current.twap.onMinutesChange('0');
+      });
+
+      expect(result.current.summary.twapSummary?.sizePerSuborder).toBe(
+        '<0.001 BTC',
+      );
+    });
+
+    it('shows the TWAP size per suborder at the asset size precision', () => {
+      mockOrderForm.type = 'twap';
+      mockOrderForm.amount = '54000';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.twapSummary?.sizePerSuborder).toBe(
+        '0.010 BTC',
+      );
+    });
+
     it('submits valid TWAP params with live mid price and Randomize', async () => {
       mockOrderForm.type = 'twap';
       const { result } = renderProForm();

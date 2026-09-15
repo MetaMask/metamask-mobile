@@ -113,6 +113,7 @@ const BridgeLimitOrderViewContent = ({
     executionType,
     limitPrice,
     marketComparison,
+    priceComparisonDirection,
     onAmountTypeTogglePress,
     onQuoteUnitPress,
     quotedSymbol,
@@ -370,6 +371,9 @@ const BridgeLimitOrderViewContent = ({
               orderSide={executionType}
               quoteTokenSymbol={quotedSymbol}
               isLimitFiatMode={isLimitFiatMode}
+              priceUnitSymbol={
+                isLimitFiatMode ? undefined : counterToken?.symbol
+              }
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}
@@ -379,6 +383,7 @@ const BridgeLimitOrderViewContent = ({
               onAmountTypeTogglePress={onAmountTypeTogglePress}
               marketComparison={marketComparison}
               isTriggerPriceNearMarket={isTriggerPriceNearMarket}
+              priceComparisonDirection={priceComparisonDirection}
               pricePresets={LIMIT_ORDER_BUTTON_PRICE_PRESETS}
               isCustomPercentActive={isCustomActive}
               customPercent={customValue}

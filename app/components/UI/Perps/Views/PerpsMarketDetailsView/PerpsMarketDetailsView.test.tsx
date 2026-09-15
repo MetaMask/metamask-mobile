@@ -658,6 +658,7 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockNavigateToHome,
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
@@ -695,6 +696,7 @@ jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
 jest.mock('../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockNavigateToHome,
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
