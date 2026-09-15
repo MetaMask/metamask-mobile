@@ -3,14 +3,15 @@ import { Dimensions, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  FontWeight,
   Icon,
   IconName,
   IconSize,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
@@ -117,46 +118,23 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="w-full flex-1 rounded-full"
         >
-          {ranges.map((range) => {
-            const isSelected = selected === range;
-            return (
-              <Pressable
+          <FilterButtonGroup
+            value={selected}
+            onChange={(value) => onSelect(value as TimeRange)}
+            variant={FilterButtonVariant.Primary}
+            twClassName="flex-1 rounded-full"
+          >
+            {ranges.map((range) => (
+              <FilterButton
                 key={range}
-                style={({ pressed }) =>
-                  tw.style(
-                    SEGMENT_BUTTON_BASE,
-                    isSelected &&
-                      (selectedColor
-                        ? { backgroundColor: selectedColor }
-                        : 'bg-muted'),
-                    pressed && 'opacity-70',
-                  )
-                }
-                onPress={() => onSelect(range)}
+                value={range}
+                size={FilterButtonSize.Sm}
+                twClassName="flex-1"
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  twClassName={
-                    isSelected
-                      ? selectedColor
-                        ? 'text-success-inverse'
-                        : 'text-text-default'
-                      : selectedColor
-                        ? undefined
-                        : 'text-text-alternative'
-                  }
-                  style={
-                    !isSelected && selectedColor
-                      ? { color: selectedColor }
-                      : undefined
-                  }
-                >
-                  {range}
-                </Text>
-              </Pressable>
-            );
-          })}
+                {range}
+              </FilterButton>
+            ))}
+          </FilterButtonGroup>
           {onChartTypeToggle ? (
             <Pressable
               style={({ pressed }) =>
