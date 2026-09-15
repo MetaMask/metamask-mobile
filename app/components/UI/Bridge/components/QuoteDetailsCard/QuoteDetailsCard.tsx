@@ -315,7 +315,11 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     >
                       <AvatarToken
                         name={gaslessFeeAsset.symbol}
-                        src={gaslessFeeAsset.iconUrl ?? undefined}
+                        src={
+                          gaslessFeeAsset.iconUrl
+                            ? { uri: gaslessFeeAsset.iconUrl }
+                            : undefined
+                        }
                         size={AvatarTokenSize.Xs}
                       />
                       <Text
