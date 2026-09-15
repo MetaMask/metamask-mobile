@@ -42,7 +42,7 @@ export const PredictPortfolioScreen = () => {
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextPortfolioView,
-    conditions: [!balanceQuery.isLoading],
+    conditions: [!balanceQuery.isPending],
     debugContext: {
       hasBalance: Boolean(balanceQuery.data),
       error: balanceQuery.isError,
