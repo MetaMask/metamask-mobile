@@ -10,6 +10,11 @@ This is complementary to:
 - GitHub workflow `Analyze App Profiling` (Actions → workflow_dispatch)
 - Weekly rollup in `weekly-app-profiling-report.md` (7-day merged-PR averages)
 
+Note: `workflow_dispatch` is only offered for workflows already on the default
+branch. Before `Analyze App Profiling` lands on `main`, run it either with the
+local command below or by adding the `run-app-profiling-analysis` label to its
+PR.
+
 ## Suggested trigger
 
 - Cadence: ad-hoc (no schedule yet)

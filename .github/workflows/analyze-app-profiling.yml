@@ -4,12 +4,21 @@
 # present) from a scheduled performance E2E run, flags heuristic issues, then
 # asks Claude to review each scenario.
 #
-# Ad-hoc only for now (workflow_dispatch). Does not replace the 6-hour
-# performance suite or the weekly rollup automation.
+# Ad-hoc only for now. Does not replace the 6-hour performance suite or the
+# weekly rollup automation.
+#
+# NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
+# on the default branch, so this cannot be launched from a PR branch. The
+# `pull_request: [labeled]` trigger exists to exercise it before it lands:
+# add the `run-app-profiling-analysis` label to the PR and the PR branch's own
+# version of this workflow runs with the latest scheduled performance run.
 
 name: Analyze App Profiling
 
 on:
+  pull_request:
+    types:
+      - labeled
   workflow_dispatch:
     inputs:
       run_id:
@@ -45,6 +54,12 @@ permissions:
 jobs:
   analyze:
     name: Analyze per-scenario profiling
+    # Label runs are a pre-merge smoke test of this workflow, so they are
+    # restricted to same-repo PRs where the secrets are available.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'run-app-profiling-analysis' &&
+       !github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -106,7 +121,11 @@ jobs:
           retention-days: 30
 
       - name: Post Slack summary
-        if: ${{ success() && inputs.post_to_slack }}
+        # Label runs always post: seeing the message arrive is the point of the
+        # pre-merge test. Dispatch runs honour the checkbox.
+        if: >-
+          ${{ success() &&
+          (github.event_name != 'workflow_dispatch' || inputs.post_to_slack) }}
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
