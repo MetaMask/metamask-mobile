@@ -56,7 +56,6 @@ import {
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
 import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
-import { getPerpsConversionScreenOptions } from '../utils/perpsConversionScreenOptions';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -75,6 +74,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+const getPerpsConversionScreenOptions = (
+  isBottomSheet: boolean,
+  baseOptions: NativeStackNavigationOptions,
+): NativeStackNavigationOptions =>
+  isBottomSheet
+    ? { ...baseOptions, ...transparentModalScreenOptions }
+    : baseOptions;
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},

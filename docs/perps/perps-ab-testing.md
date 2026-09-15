@@ -85,7 +85,7 @@ Rules:
 - Register the existing route name (`Routes.PERPS.*`) on the router, not on a new treatment-only route.
 - Do not branch on Lite/Pro for _whether_ the experiment applies — only for _which_ sheet/page that mode owns.
 - Control (`useBottomSheet === false`) must keep today's full-page UI in both modes.
-- Screen options live on the navigator, so `PerpsScreenStack` resolves the assignment once with `{ trackExposure: false }` and each converted screen passes it through `getPerpsConversionScreenOptions` to add the transparent presentation. Add one `Stack.Screen` line; do not add another hook call to that navigator. Exposure stays with the router, which only mounts when the flow opens.
+- Screen options live on the navigator, so `PerpsScreenStack` resolves the assignment once with `{ trackExposure: false }` and each converted screen passes it through `getPerpsConversionScreenOptions` (local to `routes/index.tsx`, where every converted screen is registered) to add the transparent presentation. Add one `Stack.Screen` line; do not add another hook call to that navigator. Exposure stays with the router, which only mounts when the flow opens.
 - Keep each flow's non-visual logic in one hook both variants render from (`usePerpsClosePositionForm` for Close Position) so the two cannot drift. It takes a `dismiss` override so the sheet animates closed before the route pops.
 
 ### Analytics
