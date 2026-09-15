@@ -13,6 +13,11 @@ import { useNftRefresh } from './useNftRefresh';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
+import {
+  useLocalNetworkFilter,
+  useChainIdsForLocalFilter,
+  useEvmChainIdsForLocalFilter,
+} from '../../hooks/useLocalNetworkFilter/useLocalNetworkFilter';
 import { RefreshTestId } from './constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { Nft } from '@metamask/assets-controllers';
@@ -39,7 +44,9 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import BaseControlBar from '../shared/BaseControlBar';
+import BaseControlBar, {
+  useLocalNetworkFilterControlBarProps,
+} from '../shared/BaseControlBar';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -103,11 +110,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       useState<Nft | null>(null);
     const tw = useTailwind();
     const { colors } = useTheme();
-    const { refreshing, onRefresh } = useNftRefresh();
-
-    useImperativeHandle(ref, () => ({
-      refresh: onRefresh,
-    }));
 
     const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
@@ -123,6 +125,23 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       [selectedGroupAccounts],
     );
 
+    const [networkFilter, setNetworkFilter] = useLocalNetworkFilter();
+    const preferredChainIds = useChainIdsForLocalFilter(networkFilter);
+    // NFT detection is EVM-only, so narrow the local filter (or "all popular
+    // networks") down to Hex EVM chain ids for NftDetectionController.
+    const evmChainIdsToDetect = useEvmChainIdsForLocalFilter(networkFilter);
+    const localNetworkFilterProps = useLocalNetworkFilterControlBarProps(
+      networkFilter,
+      setNetworkFilter,
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+    );
+
+    const { refreshing, onRefresh } = useNftRefresh(evmChainIdsToDetect);
+
+    useImperativeHandle(ref, () => ({
+      refresh: onRefresh,
+    }));
+
     const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
       (state: RootState) =>
         (
@@ -131,11 +150,10 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
             preferredChainIds?: string[],
             addressesOverride?: string[],
           ) => Record<string, Nft[]>
-        )(state, undefined, addressesOverride),
+        )(state, preferredChainIds, addressesOverride),
     );
 
-    const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
-      useNftDetection();
+    const { detectNfts, abortDetection } = useNftDetection();
 
     const isInitialMount = useRef(true);
     const hasTrackedScreenViewRef = useRef(false);
@@ -204,21 +222,25 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       createEventBuilder,
     ]);
 
-    // Trigger NFT detection when enabled networks change (after initial mount)
+    // Trigger NFT detection when the chains to detect for change (after initial mount).
+    // The full view always fetches all pages via the focus effect below, so skip the
+    // redundant first-page-only call here to avoid a wasted duplicate request.
     useEffect(() => {
       if (isInitialMount.current) {
         isInitialMount.current = false;
         return;
       }
 
-      detectNfts();
-    }, [chainIdsToDetectNftsFor, detectNfts]);
+      if (isFullView) return;
+
+      detectNfts(evmChainIdsToDetect);
+    }, [evmChainIdsToDetect, detectNfts, isFullView]);
 
     // Trigger NFT detection when the full view is focused
     useFocusEffect(
       useCallback(() => {
         if (isFullView) {
-          detectNfts(false); // Fetch all pages for full view
+          detectNfts(evmChainIdsToDetect, false); // Fetch all pages for full view
         }
 
         // Cleanup: abort detection when screen loses focus or unmounts
@@ -227,7 +249,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
             abortDetection();
           }
         };
-      }, [isFullView, detectNfts, abortDetection]),
+      }, [isFullView, detectNfts, evmChainIdsToDetect, abortDetection]),
     );
 
     const goToAddCollectible = useCallback(() => {
@@ -337,6 +359,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           }
           hideSort
           style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
+          {...localNetworkFilterProps}
         />
 
         <NftGridHeader />

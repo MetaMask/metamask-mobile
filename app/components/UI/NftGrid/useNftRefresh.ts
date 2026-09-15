@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../core/Engine';
 import { useNftDetection } from '../../hooks/useNftDetection';
@@ -10,15 +11,15 @@ interface UseNftRefreshReturn {
   onRefresh: () => Promise<void>;
 }
 
-export const useNftRefresh = (): UseNftRefreshReturn => {
+export const useNftRefresh = (chainIds: Hex[]): UseNftRefreshReturn => {
   const allEVMNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const { detectNfts, chainIdsToDetectNftsFor } = useNftDetection();
+  const { detectNfts } = useNftDetection();
 
   const [refreshing, setRefreshing] = useState(false);
 
   const allNetworkClientIds = useMemo(
     () =>
-      chainIdsToDetectNftsFor.flatMap((chainId) => {
+      chainIds.flatMap((chainId) => {
         const entry = allEVMNetworks[chainId as `0x${string}`];
         if (!entry) {
           return [];
@@ -27,7 +28,7 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
         const endpoint = entry.rpcEndpoints[index];
         return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
       }),
-    [chainIdsToDetectNftsFor, allEVMNetworks],
+    [chainIds, allEVMNetworks],
   );
 
   const onRefresh = useCallback(async () => {
@@ -40,7 +41,7 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
       // - Checks if NFT detection is enabled in user preferences
       // - Dispatches loading indicators
       // - Handles analytics tracking
-      const detectNftsPromise = detectNfts();
+      const detectNftsPromise = detectNfts(chainIds);
 
       // Also update ownership status for all NFTs across all enabled networks
       const ownershipPromises = allNetworkClientIds.map((networkClientId) =>
@@ -51,7 +52,7 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
     } finally {
       setRefreshing(false);
     }
-  }, [detectNfts, allNetworkClientIds]);
+  }, [detectNfts, chainIds, allNetworkClientIds]);
 
   return {
     refreshing,

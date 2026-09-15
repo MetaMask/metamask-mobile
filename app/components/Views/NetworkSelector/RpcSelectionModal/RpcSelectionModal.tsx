@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import BottomSheet, {
   BottomSheetRef,
@@ -46,6 +46,12 @@ interface RpcSelectionModalProps {
   closeRpcModal: () => void;
   rpcMenuSheetRef: React.RefObject<BottomSheetRef | null>;
   networkConfigurations: Record<string, NetworkConfiguration>;
+  /**
+   * When provided, syncs the caller's local (Redux-free) network filter to
+   * the network whose RPC was just picked, so Tokens/NFT/DeFi lists reflect
+   * it right away instead of only the Redux writes below.
+   */
+  onLocalNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   styles: StyleSheet.NamedStyles<{
     baseHeader: unknown;
     alternativeText: unknown;
@@ -61,6 +67,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   closeRpcModal,
   rpcMenuSheetRef,
   networkConfigurations,
+  onLocalNetworkSelect,
   styles,
 }) => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
@@ -140,9 +147,16 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       onRpcSelect(networkClientId, chainIdArg);
       setTokenNetworkFilter(chainIdArg);
       selectNetwork(chainIdArg);
+      onLocalNetworkSelect?.([formatChainIdToCaip(chainIdArg)]);
       closeRpcModal();
     },
-    [onRpcSelect, setTokenNetworkFilter, closeRpcModal, selectNetwork],
+    [
+      onRpcSelect,
+      setTokenNetworkFilter,
+      closeRpcModal,
+      selectNetwork,
+      onLocalNetworkSelect,
+    ],
   );
 
   if (!showMultiRpcSelectModal.isVisible) return null;

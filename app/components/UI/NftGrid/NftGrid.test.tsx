@@ -54,7 +54,6 @@ jest.mock('../../hooks/useNftDetection', () => ({
   useNftDetection: () => ({
     detectNfts: mockDetectNfts,
     abortDetection: mockAbortDetection,
-    chainIdsToDetectNftsFor: ['0x1'],
   }),
 }));
 
@@ -65,6 +64,17 @@ jest.mock('./useNftRefresh', () => ({
     refreshing: false,
     onRefresh: mockOnRefresh,
   }),
+}));
+
+// Mock the chain-id resolution hooks - keeps this test focused on NftGrid's
+// own logic instead of the full NetworkEnablementController/selector chain.
+// `useLocalNetworkFilter` (the useState) stays real.
+jest.mock('../../hooks/useLocalNetworkFilter/useLocalNetworkFilter', () => ({
+  ...jest.requireActual(
+    '../../hooks/useLocalNetworkFilter/useLocalNetworkFilter',
+  ),
+  useChainIdsForLocalFilter: () => ['eip155:1'],
+  useEvmChainIdsForLocalFilter: () => ['0x1'],
 }));
 
 // Mock FlashList
@@ -174,9 +184,15 @@ jest.mock('../CollectiblesEmptyState', () => ({
 // Mock BaseControlBar - renders additionalButtons
 jest.mock('../shared/BaseControlBar', () => {
   const { View } = jest.requireActual('react-native');
-  return ({ additionalButtons }: { additionalButtons?: React.ReactNode }) => (
-    <View testID="base-control-bar">{additionalButtons}</View>
-  );
+  return {
+    __esModule: true,
+    default: ({
+      additionalButtons,
+    }: {
+      additionalButtons?: React.ReactNode;
+    }) => <View testID="base-control-bar">{additionalButtons}</View>,
+    useLocalNetworkFilterControlBarProps: () => ({}),
+  };
 });
 
 // Mock dependencies for real NftGridItem and NftGridFooter
@@ -957,7 +973,7 @@ describe('NftGrid', () => {
       </Provider>,
     );
 
-    expect(mockDetectNfts).toHaveBeenCalledWith(false);
+    expect(mockDetectNfts).toHaveBeenCalledWith(['0x1'], false);
   });
 
   it('calls abortDetection when full view component unmounts', () => {
@@ -993,7 +1009,7 @@ describe('NftGrid', () => {
       </Provider>,
     );
 
-    expect(mockDetectNfts).not.toHaveBeenCalledWith(false);
+    expect(mockDetectNfts).not.toHaveBeenCalledWith(['0x1'], false);
   });
 
   it('does not call abortDetection when non-full view component unmounts', () => {

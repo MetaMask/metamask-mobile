@@ -23,12 +23,17 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { RootState } from '../../../reducers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import { selectSortedAssetsBySelectedAccountGroupForChainIds } from '../../../selectors/assets/assets-list';
+import {
+  useLocalNetworkFilter,
+  useChainIdsForLocalFilter,
+} from '../../hooks/useLocalNetworkFilter/useLocalNetworkFilter';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
@@ -106,9 +111,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
 
+    const [networkFilter, setNetworkFilter] = useLocalNetworkFilter();
+    const chainIdsForTokenList = useChainIdsForLocalFilter(networkFilter);
+
     // Memoize selector computation for better performance
-    const sortedTokenKeys = useSelector(
-      selectSortedAssetsBySelectedAccountGroup,
+    const sortedTokenKeys = useSelector((state: RootState) =>
+      selectSortedAssetsBySelectedAccountGroupForChainIds(
+        state,
+        chainIdsForTokenList,
+      ),
     );
 
     // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
@@ -318,6 +329,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             showAddToken={!showOnlyMusd}
             hideSort={showOnlyMusd}
             style={isFullView ? tw`px-4 pb-3` : undefined}
+            networkFilter={networkFilter}
+            onNetworkFilterChange={setNetworkFilter}
           />
         )}
         {tokenContent}

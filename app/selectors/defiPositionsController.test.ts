@@ -1,8 +1,6 @@
-import { KnownCaipNamespace } from '@metamask/utils';
 import { RootState } from '../reducers';
 import {
   selectDeFiPositionsByAddress,
-  selectDefiPositionsByEnabledNetworks,
   selectDefiPositionsByChainIds,
 } from './defiPositionsController';
 
@@ -144,98 +142,6 @@ describe('defiPositionsController selectors', () => {
         selectedAccountGroup: 'entropy:wallet0/btc-only',
       });
       const result = selectDeFiPositionsByAddress(state);
-      expect(result).toStrictEqual({});
-    });
-  });
-
-  describe('selectDefiPositionsByEnabledNetworks', () => {
-    it('returns positions only for enabled networks', () => {
-      const state = createMockState({
-        selectedAccountGroup: 'entropy:wallet0/0',
-        defiPositions: {
-          [mockAddress1]: mockDefiPositions,
-        },
-        enabledNetworks: {
-          [KnownCaipNamespace.Eip155]: {
-            '0x1': true,
-            '0x89': false,
-            '0xa86a': true,
-          },
-        },
-      });
-
-      const result = selectDefiPositionsByEnabledNetworks(state);
-      expect(result).toStrictEqual({
-        '0x1': mockDefiPositions['0x1'],
-        '0xa86a': mockDefiPositions['0xa86a'],
-      });
-      expect(result?.['0x89']).toBeUndefined();
-    });
-
-    it('returns empty object when there is no evm account in the selected account group', () => {
-      const state = createMockState({
-        selectedAccountGroup: 'entropy:wallet0/btc-only',
-      });
-
-      const result = selectDefiPositionsByEnabledNetworks(state);
-
-      expect(result).toStrictEqual({});
-    });
-
-    it('returns undefined when no positions exist for the selected address', () => {
-      const state = createMockState({
-        selectedAccountGroup: 'entropy:wallet0/0',
-      });
-
-      const result = selectDefiPositionsByEnabledNetworks(state);
-      expect(result).toBeUndefined();
-    });
-
-    it('returns null when that is the value stored for that address', () => {
-      const state = createMockState({
-        selectedAccountGroup: 'entropy:wallet0/0',
-        defiPositions: {
-          [mockAddress1]: null,
-        },
-      });
-
-      const result = selectDefiPositionsByEnabledNetworks(state);
-      expect(result).toBeNull();
-    });
-
-    it('returns empty object when there are no evm networks', () => {
-      const state = createMockState({
-        selectedAccountGroup: 'entropy:wallet0/0',
-        defiPositions: {
-          [mockAddress1]: mockDefiPositions,
-        },
-        enabledNetworks: {
-          [KnownCaipNamespace.Bip122]: {
-            'bip122:0': true,
-          },
-        },
-      });
-
-      const result = selectDefiPositionsByEnabledNetworks(state);
-      expect(result).toStrictEqual({});
-    });
-
-    it('returns empty object when no evm networks are enabled', () => {
-      const state = createMockState({
-        selectedAccountGroup: 'entropy:wallet0/0',
-        defiPositions: {
-          [mockAddress1]: mockDefiPositions,
-        },
-        enabledNetworks: {
-          [KnownCaipNamespace.Eip155]: {
-            '0x1': false,
-            '0x89': false,
-            '0xa86a': false,
-          },
-        },
-      });
-
-      const result = selectDefiPositionsByEnabledNetworks(state);
       expect(result).toStrictEqual({});
     });
   });

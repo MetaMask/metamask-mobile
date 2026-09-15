@@ -38,7 +38,6 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../hooks/useNftDetection', () => ({
   useNftDetection: () => ({
     detectNfts: mockDetectNfts,
-    chainIdsToDetectNftsFor: ['0x1'],
   }),
 }));
 
@@ -60,7 +59,7 @@ describe('CollectibleDetectionModal', () => {
 
     fireEvent.press(getByTestId(`collectible-detection-modal-button`));
 
-    expect(mockDetectNfts).toHaveBeenCalled();
+    expect(mockDetectNfts).toHaveBeenCalledWith(expect.any(Array));
   });
 
   it('shows success toast when NFT detection is enabled', () => {

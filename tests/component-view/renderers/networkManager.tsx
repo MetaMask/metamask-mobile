@@ -1,5 +1,6 @@
 import '../mocks';
-import React from 'react';
+import React, { useState } from 'react';
+import type { CaipChainId } from '@metamask/utils';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen } from '../render';
@@ -18,6 +19,8 @@ interface RenderNetworkMultiSelectorOptions {
   activeEvmChainId?: string;
   /** Include custom/testnet networks in config. */
   includeCustomNetworks?: boolean;
+  /** Seeds the local (Redux-free) network filter selection. Defaults to `null` ("All popular networks"). */
+  initialLocalSelectedChainIds?: CaipChainId[] | null;
 }
 
 /**
@@ -32,6 +35,7 @@ export function renderNetworkMultiSelector(
     enabledNetworks,
     activeEvmChainId,
     includeCustomNetworks,
+    initialLocalSelectedChainIds = null,
   } = options;
 
   const builder = initialStateNetworkManager({
@@ -48,13 +52,21 @@ export function renderNetworkMultiSelector(
   const mockOpenModal = jest.fn();
   const mockOpenRpcModal = jest.fn();
 
-  const NetworkMultiSelectorWrapper = () => (
-    <NetworkMultiSelector
-      openModal={mockOpenModal}
-      dismissModal={mockDismissModal}
-      openRpcModal={mockOpenRpcModal}
-    />
-  );
+  const NetworkMultiSelectorWrapper = () => {
+    const [localSelectedChainIds, setLocalSelectedChainIds] = useState<
+      CaipChainId[] | null
+    >(initialLocalSelectedChainIds);
+
+    return (
+      <NetworkMultiSelector
+        openModal={mockOpenModal}
+        dismissModal={mockDismissModal}
+        openRpcModal={mockOpenRpcModal}
+        onLocalNetworkSelect={setLocalSelectedChainIds}
+        localSelectedChainIds={localSelectedChainIds}
+      />
+    );
+  };
 
   return renderComponentViewScreen(
     NetworkMultiSelectorWrapper,
