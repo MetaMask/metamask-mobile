@@ -8,6 +8,7 @@ import { SmokeSwap } from '../../tags.js';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
+  returnToWalletFromSwapActivity,
 } from '../../helpers/swap/swap-unified-ui.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.js';
@@ -64,6 +65,7 @@ appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
             slippage: '3.5',
           });
           await checkSwapActivity('ETH', 'USDC');
+          await returnToWalletFromSwapActivity();
 
           await TabBarComponent.tapWallet();
           await WalletView.tapWalletSwapButton();

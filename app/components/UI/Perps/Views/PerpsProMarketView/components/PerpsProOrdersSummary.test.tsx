@@ -1,3 +1,4 @@
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,6 +22,16 @@ describe('PerpsProOrdersSummary', () => {
     expect(
       screen.getByText(strings('perps.pro_positions_panel.cancel_all')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the cancel control as a tertiary button', () => {
+    render(<PerpsProOrdersSummary orderCount={3} />);
+
+    expect(
+      screen.UNSAFE_getByProps({
+        testID: PerpsProMarketViewSelectorsIDs.ORDERS_CANCEL_ALL,
+      }).props.variant,
+    ).toBe(ButtonVariant.Tertiary);
   });
 
   it('narrows the count to the orders left after filtering', () => {

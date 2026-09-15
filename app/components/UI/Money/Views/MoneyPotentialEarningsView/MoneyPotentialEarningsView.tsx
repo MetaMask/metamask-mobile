@@ -7,9 +7,6 @@ import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonIcon,
   ButtonIconSize,
@@ -22,6 +19,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -193,7 +191,7 @@ const MoneyPotentialEarningsView = () => {
 
   const listHeader = useMemo(
     () => (
-      <Box twClassName="px-4 py-3 gap-3">
+      <Box twClassName="px-4 pt-1 pb-3 gap-3">
         <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>
@@ -277,26 +275,21 @@ const MoneyPotentialEarningsView = () => {
       style={[styles.safeArea, { paddingTop: insets.top }]}
       testID={MoneyPotentialEarningsViewTestIds.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-2"
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBackPress}
-          testID={MoneyPotentialEarningsViewTestIds.BACK_BUTTON}
-        />
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSize.Md}
-          onPress={handleInfoPress}
-          accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
-          testID={MoneyPotentialEarningsViewTestIds.INFO_BUTTON}
-        />
-      </Box>
+      <HeaderStandard
+        onBack={handleBackPress}
+        backButtonProps={{
+          testID: MoneyPotentialEarningsViewTestIds.BACK_BUTTON,
+        }}
+        endAccessory={
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Md}
+            onPress={handleInfoPress}
+            accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
+            testID={MoneyPotentialEarningsViewTestIds.INFO_BUTTON}
+          />
+        }
+      />
       <Box twClassName="flex-1">
         <FlashList
           testID={MoneyPotentialEarningsViewTestIds.SCROLL_VIEW}

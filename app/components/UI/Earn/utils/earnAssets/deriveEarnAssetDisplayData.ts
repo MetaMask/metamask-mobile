@@ -1,10 +1,9 @@
 import type { EarnAssetMetadata } from '../../types/earnAssets';
 import {
   getEarnAssetFiatDisplay,
-  getEarnAssetMetadata,
+  getReadyEarnDepositExperiences,
   hasEarnAssetSubsidizedFee,
 } from '.';
-import { isEarnAssetBalanceBelowMinDepositAmount } from './earnAssetBalance';
 import { getEarnAssetHighestRateCopy } from '../earnSection/getEarnAssetHighestRateCopy';
 import type { EarnSectionRankedAsset } from '../earnSection';
 
@@ -12,7 +11,7 @@ import type { EarnSectionRankedAsset } from '../earnSection';
 export interface EarnAssetDisplayData {
   /** Normalized name, symbol, ticker, and token metadata. */
   metadata: EarnAssetMetadata;
-  /** Localized fiat balance for held assets, when available. */
+  /** Localized fiat balance for tracked assets, when available. */
   fiatBalance?: string;
   /** Whether the asset meets the minimum deposit amount. */
   hasMinDepositAmount: boolean;
@@ -34,11 +33,10 @@ export const deriveEarnAssetDisplayData = (
   const fiatBalance = getEarnAssetFiatDisplay(asset);
 
   return {
-    metadata: getEarnAssetMetadata(asset),
+    metadata: asset.metadata,
     fiatBalance,
     hasMinDepositAmount:
-      fiatBalance !== undefined &&
-      !isEarnAssetBalanceBelowMinDepositAmount(asset),
+      getReadyEarnDepositExperiences(asset.experiences).length > 0,
     hasSubsidizedFee: hasEarnAssetSubsidizedFee(asset),
     highestRateCopy: getEarnAssetHighestRateCopy({ asset }),
   };

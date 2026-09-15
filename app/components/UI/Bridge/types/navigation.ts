@@ -23,7 +23,7 @@ import type { BatchSellMinimumReceivedInfoModalParams } from '../components/Batc
 import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
 import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
 import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
-import type { RecurringJobDetailsRouteParams } from '../Views/RecurringJobDetailsView/RecurringJobDetailsView.types';
+import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -36,7 +36,7 @@ export type BridgeScreensStackParamList = {
   BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
   BatchSellReview: undefined;
   QuoteSelectorView: undefined;
-  RecurringJobDetails: RecurringJobDetailsRouteParams;
+  RecurringOrderDetails: RecurringOrderDetailsRouteParams;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
 };
@@ -77,6 +77,7 @@ export type BridgeModalsNavigationParamList = {
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;
   RecurringConfirmOrderModal: undefined;
+  RecurringDelegationFeeInfoModal: undefined;
 };
 
 /**

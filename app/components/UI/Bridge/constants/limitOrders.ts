@@ -6,6 +6,16 @@ export enum LimitOrderExecutionType {
   SELL = 'sell',
 }
 
+/**
+ * Which way the trigger-price copy reads, e.g. "Buy when 1 LINK is at or
+ * below". A buy above market ("buy the pump") and a sell below market (stop
+ * loss) read the opposite way from their side's default.
+ */
+export enum LimitOrderPriceComparisonDirection {
+  AT_OR_ABOVE = 'atOrAbove',
+  AT_OR_BELOW = 'atOrBelow',
+}
+
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
 
 /**
@@ -13,6 +23,12 @@ export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
  * preset input. Values above this are clamped on commit.
  */
 export const LIMIT_ORDER_CUSTOM_PERCENT_MAX = 99;
+
+/**
+ * Inclusive percent band around market at which the trigger-price warning is
+ * shown. The order may fill immediately when the limit sits this close.
+ */
+export const LIMIT_ORDER_NEAR_MARKET_PERCENT = 1;
 
 export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
   AppConstants.SWAPS.DEFAULT_SLIPPAGE,
