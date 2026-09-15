@@ -176,10 +176,7 @@ import {
   SocialV1View,
   MyProfileView,
   ManageProfileView,
-  ManageProfileDisplayNameView,
-  ManageProfileHandleView,
-  ManageProfileBioView,
-  ManageProfileSocialsView,
+  ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
   ManageProfileLinkedAccountView,
   TraderProfileView,
@@ -1456,23 +1453,8 @@ const MainNavigator = () => {
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_DISPLAY_NAME}
-            component={ManageProfileDisplayNameView}
-            options={{ headerShown: false, ...slideFromRightNativeOptions }}
-          />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_HANDLE}
-            component={ManageProfileHandleView}
-            options={{ headerShown: false, ...slideFromRightNativeOptions }}
-          />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_BIO}
-            component={ManageProfileBioView}
-            options={{ headerShown: false, ...slideFromRightNativeOptions }}
-          />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_SOCIALS}
-            component={ManageProfileSocialsView}
+            name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
+            component={ManageProfileTextEditorView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

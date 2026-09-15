@@ -1365,12 +1365,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
-    expect(screenNames).not.toContain(
-      Routes.SOCIAL.MANAGE_PROFILE_DISPLAY_NAME,
-    );
-    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_HANDLE);
-    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_BIO);
-    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_SOCIALS);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
     );

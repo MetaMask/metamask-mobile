@@ -91,7 +91,8 @@ describe('ManageProfileView', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.MANAGE_PROFILE_DISPLAY_NAME,
+      Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+      { field: 'displayName' },
     );
   });
 
@@ -103,7 +104,8 @@ describe('ManageProfileView', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.MANAGE_PROFILE_HANDLE,
+      Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+      { field: 'handle' },
     );
   });
 
@@ -112,7 +114,10 @@ describe('ManageProfileView', () => {
 
     fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.BIO_ROW));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MANAGE_PROFILE_BIO);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+      { field: 'bio' },
+    );
   });
 
   it('navigates to the socials editor', () => {
@@ -123,7 +128,8 @@ describe('ManageProfileView', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.MANAGE_PROFILE_SOCIALS,
+      Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+      { field: 'socials' },
     );
   });
 

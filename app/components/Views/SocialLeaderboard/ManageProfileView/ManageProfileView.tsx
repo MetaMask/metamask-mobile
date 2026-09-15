@@ -27,6 +27,7 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
+import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -39,21 +40,12 @@ const ManageProfileView: React.FC = () => {
       renderShortAddress(selectedAccount.address)
     : undefined;
 
-  const handleOpenDisplayName = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_DISPLAY_NAME);
-  }, [navigation]);
-
-  const handleOpenHandle = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_HANDLE);
-  }, [navigation]);
-
-  const handleOpenBio = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_BIO);
-  }, [navigation]);
-
-  const handleOpenSocials = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_SOCIALS);
-  }, [navigation]);
+  const handleOpenTextEditor = useCallback(
+    (field: ManageProfileTextEditorField) => {
+      navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR, { field });
+    },
+    [navigation],
+  );
 
   const handleOpenTradingActivity = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY);
@@ -106,27 +98,27 @@ const ManageProfileView: React.FC = () => {
           <ManageProfileNavRow
             label={strings('social_leaderboard.manage_profile.display_name')}
             value={displayName}
-            onPress={handleOpenDisplayName}
+            onPress={() => handleOpenTextEditor('displayName')}
             testID={ManageProfileViewSelectorsIDs.DISPLAY_NAME_ROW}
           />
           <ManageProfileNavRow
             label={strings('social_leaderboard.manage_profile.handle')}
             value={handle}
-            onPress={handleOpenHandle}
+            onPress={() => handleOpenTextEditor('handle')}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.HANDLE_ROW}
           />
           <ManageProfileNavRow
             label={strings('social_leaderboard.manage_profile.bio')}
             value={bio}
-            onPress={handleOpenBio}
+            onPress={() => handleOpenTextEditor('bio')}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.BIO_ROW}
           />
           <ManageProfileNavRow
             label={strings('social_leaderboard.manage_profile.socials')}
             value={socials}
-            onPress={handleOpenSocials}
+            onPress={() => handleOpenTextEditor('socials')}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.SOCIALS_ROW}
           />

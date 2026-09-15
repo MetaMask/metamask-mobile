@@ -4,10 +4,7 @@ export { default as SocialV1View } from './SocialV1View';
 export { default as MyProfileView } from './MyProfileView';
 export {
   default as ManageProfileView,
-  ManageProfileDisplayNameView,
-  ManageProfileHandleView,
-  ManageProfileBioView,
-  ManageProfileSocialsView,
+  ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
   ManageProfileLinkedAccountView,
 } from './ManageProfileView';
