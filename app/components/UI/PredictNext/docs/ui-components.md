@@ -46,6 +46,14 @@ Do not add context merely to avoid passing one or two ordinary props. Do not cre
 
 Build the parts and variants required by the active vertical slice. Do not create widget registries, universal section schemas, speculative variants, or extension APIs for hypothetical callers.
 
+## Visual reference when no designs exist
+
+When a ticket or slice ships without Figma designs, use the legacy Polymarket implementation under `../Predict/` as the visual and behavioral guideline for the equivalent surface (for example, `PredictPosition` and `PredictActivity` rows for portfolio lists). Treat it strictly as a reference:
+
+- rebuild the UI as composable PredictNext components per this document, never copying legacy components or their styling wholesale;
+- bind rows to canonical PredictNext contracts and omit values the contract does not carry rather than importing legacy data assumptions;
+- keep legacy-only affordances (detail modals, venue-specific flows) out unless the active Jira slice requires them.
+
 ## Story and review expectations
 
 For each complex core UI story:
