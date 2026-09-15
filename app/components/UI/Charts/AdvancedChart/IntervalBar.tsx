@@ -77,7 +77,6 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
       <ChartTypeToggle
         chartType={chartType}
         onChartTypeSelect={onChartTypeSelect}
-        containerTwClassName="shrink-0 rounded-full border border-border-muted p-0.5"
       />
     </Box>
   );
