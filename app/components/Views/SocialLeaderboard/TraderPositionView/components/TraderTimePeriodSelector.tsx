@@ -32,7 +32,7 @@ const TraderTimePeriodSelector: React.FC<TraderTimePeriodSelectorProps> = ({
       value={activeTimePeriod}
       onChange={(value) => onSelectPeriod(value as TimePeriod)}
       variant={FilterButtonVariant.Primary}
-      twClassName="flex-1 rounded-full"
+      twClassName="w-full flex-1 rounded-full"
     >
       {timePeriods.map((period) => (
         <FilterButton
