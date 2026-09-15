@@ -63,7 +63,7 @@ describe('PerpsProPositionCard', () => {
       ).toHaveTextContent(
         liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
       );
-      expect(screen.getByText('Margin used')).toBeOnTheScreen();
+      expect(screen.getByText('Position margin used')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN,
@@ -98,7 +98,7 @@ describe('PerpsProPositionCard', () => {
     expect(
       screen.queryByTestId('cross-liquidation-info-pro-ETH'),
     ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Margin used')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Position margin used')).not.toBeOnTheScreen();
   });
 
   it.each([null, '2500'])(

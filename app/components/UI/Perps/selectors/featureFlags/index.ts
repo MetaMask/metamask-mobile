@@ -526,7 +526,7 @@ export const PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY =
 /**
  * Selector for Cross margin support on existing positions.
  * When enabled: Cross positions show the Cross badge, the shared-collateral
- * liquidation explanation and a non-editable "Margin used" label.
+ * liquidation explanation and a non-editable "Position margin used" label.
  * When disabled: Cross positions fall back to the isolated presentation.
  * Defaults to false so Cross margin can be rolled out and rolled back
  * independently of Pro mode.
@@ -536,9 +536,8 @@ export const PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY =
 export const selectPerpsCrossMarginEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag = remoteFeatureFlags?.[
-      PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY
-    ] as unknown as VersionGatedFeatureFlag;
+    const remoteFlag =
+      remoteFeatureFlags?.[PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY];
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

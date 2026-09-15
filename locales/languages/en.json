@@ -2332,10 +2332,6 @@
         "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
       },
       "orderValidation": {
-        "marginModeInvalid": "Choose a valid margin mode.",
-        "marginModeUnsupported": "The selected margin mode is not available for this market.",
-        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
-        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode.",
         "coinRequired": "Coin is required for orders",
         "sizePositive": "Size must be a positive number",
         "pricePositive": "Price must be a positive number if provided",
@@ -2372,10 +2368,10 @@
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
         "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range",
-        "marginModeInvalid": "Margin mode is invalid",
-        "marginModeUnsupported": "This margin mode isn't available on this market",
-        "marginModePositionOpen": "Can't change margin mode while a position is open",
-        "marginModeOrderOpen": "Can't change margin mode while an order is open"
+        "marginModeInvalid": "Choose a valid margin mode.",
+        "marginModeUnsupported": "The selected margin mode is not available for this market.",
+        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
+        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode."
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -2818,7 +2814,7 @@
     },
     "cross_position": {
       "badge": "Cross",
-      "margin_used": "Margin used",
+      "margin_used": "Position margin used",
       "no_liquidation_price": "No liquidation price",
       "liquidation_info": "About cross liquidation price"
     },

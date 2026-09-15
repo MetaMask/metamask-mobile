@@ -358,7 +358,9 @@ describe('PerpsPositionCard', () => {
     (liquidationPrice) => {
       const { useSelector } = jest.requireMock('react-redux');
       useSelector.mockImplementation(
-        (selector: unknown) => selector === selectPrivacyMode,
+        (selector: unknown) =>
+          selector === selectPrivacyMode ||
+          selector === selectPerpsCrossMarginEnabledFlag,
       );
 
       render(
@@ -371,11 +373,16 @@ describe('PerpsPositionCard', () => {
         />,
       );
 
+      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
         ),
       ).toHaveTextContent('•'.repeat(6));
+      expect(
+        screen.queryByText('perps.cross_position.no_liquidation_price'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('$1,800')).not.toBeOnTheScreen();
     },
   );
 
