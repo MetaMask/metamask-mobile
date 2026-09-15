@@ -4,7 +4,7 @@ import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet'
 import { Assertions } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import WalletView from '../../page-objects/wallet/WalletView';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
 
 const logger = createLogger({ name: 'SwapUnifiedUI' });
 
@@ -94,10 +94,6 @@ export async function checkSwapActivity(
 export async function returnToWalletFromSwapActivity(): Promise<void> {
   await ActivitiesView.tapBackButton();
   await QuoteView.tapOnBackButton();
-  // Prove Swap is fully dismissed before callers burn TabBar enable-retry
-  // budget. After Activity → Quote → back, wallet home should already be up.
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet home after dismissing Swap via Activity back',
-    timeout: 15000,
-  });
+  // iOS: wallet-screen often exists with displayed=false; use home indicators.
+  await waitForWalletHomePlaywright(15000);
 }

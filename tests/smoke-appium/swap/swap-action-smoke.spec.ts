@@ -2,7 +2,6 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { LocalNodeType } from '../../framework/types.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import { SmokeSwap } from '../../tags.js';
 import {
@@ -18,9 +17,7 @@ import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.js';
 import { swapActionExpectations } from '../../helpers/analytics/expectations/swap-action.analytics.js';
 
 appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
-  // Two full swap legs + Activity round-trips; TabBar enable waits alone can
-  // burn 10–15s each on Android, so 180s leaves no headroom after #36190.
-  appiumTest.describe.configure({ timeout: 300000 });
+  appiumTest.describe.configure({ timeout: 180000 });
 
   appiumTest(
     'swaps ETH->USDC with custom slippage and USDC->ETH',
@@ -69,7 +66,6 @@ appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
           await checkSwapActivity('ETH', 'USDC');
           await returnToWalletFromSwapActivity();
 
-          await TabBarComponent.tapWallet();
           await WalletView.tapWalletSwapButton();
 
           // Submit second swap: ERC20->ETH
