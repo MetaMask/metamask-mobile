@@ -51,6 +51,7 @@ import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
+  useBottomSheet?: boolean;
 }
 
 export const PAY_WITH_CRYPTO_SECTION_TEST_ID =
@@ -66,7 +67,8 @@ export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
 
 export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const navigation = useNavigation<AppNavigationProp>();
-  const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
+  const { preferredPaymentToken, useBottomSheet } =
+    useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const transactionMeta = useTransactionMetadataRequest();
   const resolvedPreferredToken = useMemo(
@@ -158,9 +160,11 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      dismissOnSelectCount: 2,
+      // The Trade treatment embeds Pay With in the confirmation route, so
+      // only the token selector route needs to be popped after selection.
+      dismissOnSelectCount: useBottomSheet ? 1 : 2,
     });
-  }, [clearPaymentOverride, navigation]);
+  }, [clearPaymentOverride, navigation, useBottomSheet]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (isPreferredTokenSelected) {

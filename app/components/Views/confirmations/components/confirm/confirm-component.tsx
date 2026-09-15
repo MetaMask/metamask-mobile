@@ -122,36 +122,42 @@ export interface FullScreenConfirmationParams extends ConfirmationParams {
 const ConfirmWrapped = ({
   styles,
   route,
+  contentOnly = false,
 }: {
   styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
+  contentOnly?: boolean;
 }) => {
   const isScrollDisabled = useDisableScroll();
+
+  const content = contentOnly ? (
+    <Info route={route} />
+  ) : (
+    <>
+      <Title />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        nestedScrollEnabled
+        scrollEnabled={!isScrollDisabled}
+      >
+        <TouchableWithoutFeedback>
+          <>
+            <AlertBanner ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER} />
+            <Info route={route} />
+          </>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+      <Footer />
+      <MmPayDebugFloatingButton />
+    </>
+  );
 
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
         <ConfirmationAlerts>
-          <QRHardwareContextProvider>
-            <Title />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollViewContent}
-              nestedScrollEnabled
-              scrollEnabled={!isScrollDisabled}
-            >
-              <TouchableWithoutFeedback>
-                <>
-                  <AlertBanner
-                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                  />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-            <MmPayDebugFloatingButton />
-          </QRHardwareContextProvider>
+          <QRHardwareContextProvider>{content}</QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
@@ -164,12 +170,15 @@ interface ConfirmProps {
   disableSafeArea?: boolean;
   /** Optional style applied to the full-screen confirmation container. */
   fullscreenStyle?: StyleProp<ViewStyle>;
+  /** Renders only the confirmation info body for feature-owned sheet shells. */
+  contentOnly?: boolean;
 }
 
 export const Confirm = ({
   route,
   disableSafeArea = false,
   fullscreenStyle,
+  contentOnly = false,
 }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
@@ -205,6 +214,7 @@ export const Confirm = ({
     <ConfirmInternal
       disableSafeArea={disableSafeArea}
       fullscreenStyle={fullscreenStyle}
+      contentOnly={contentOnly}
       route={route}
     />
   );
@@ -214,6 +224,7 @@ function ConfirmInternal({
   route,
   disableSafeArea = false,
   fullscreenStyle,
+  contentOnly = false,
 }: ConfirmProps) {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
@@ -243,7 +254,11 @@ function ConfirmInternal({
         testID={ConfirmationUIType.FLAT}
         onLayout={onFirstPaint}
       >
-        <ConfirmWrapped styles={styles} route={route} />
+        <ConfirmWrapped
+          styles={styles}
+          route={route}
+          contentOnly={contentOnly}
+        />
       </SafeAreaView>
     );
   }

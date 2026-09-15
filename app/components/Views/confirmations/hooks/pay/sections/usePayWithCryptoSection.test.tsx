@@ -824,6 +824,23 @@ describe('usePayWithCryptoSection', () => {
     );
   });
 
+  it('pops only the token selector when Pay With is embedded in the Trade sheet', () => {
+    useParamsMock.mockReturnValue({ useBottomSheet: true });
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const otherAssetsRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-other-assets',
+    );
+    act(() => {
+      otherAssetsRow?.onPress?.();
+    });
+
+    expect(navigateMock).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_MODAL,
+      { dismissOnSelectCount: 1 },
+    );
+  });
+
   it('renders the last-used tag on the preferred row when the last-used token matches it', () => {
     isLastUsedMock.mockImplementation(
       (address, chainId) =>

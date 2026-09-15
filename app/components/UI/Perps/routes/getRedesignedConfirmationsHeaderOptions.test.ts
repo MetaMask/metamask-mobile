@@ -22,6 +22,22 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
     expect(options).not.toHaveProperty('presentation');
   });
 
+  it('uses transparent modal presentation for the bottom-sheet treatment', () => {
+    const options = getRedesignedConfirmationsHeaderOptions({
+      useBottomSheet: true,
+      showPerpsHeader: false,
+    });
+
+    expect(options).toEqual(
+      expect.objectContaining({
+        presentation: 'transparentModal',
+        headerShown: false,
+        animation: 'none',
+        contentStyle: { backgroundColor: 'transparent' },
+      }),
+    );
+  });
+
   it('defaults to showing perps header when no params provided', () => {
     const options = getRedesignedConfirmationsHeaderOptions();
 
