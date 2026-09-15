@@ -11,13 +11,17 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { TraceName } from '../../../../../util/trace';
 import { useBalance } from '../../hooks/useBalance';
+import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
+import type { PredictEntityId } from '../../types';
 import type {
   PredictNextStackParamList,
   PredictPortfolioTab,
 } from '../../navigation/types';
-import { PortfolioEmptyState } from './internal/PortfolioEmptyState';
+import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
+import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioTabs } from './internal/PortfolioTabs';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
@@ -29,7 +33,8 @@ export const PredictPortfolioScreen = () => {
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextPortfolio'>>();
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
-  const balanceQuery = useBalance(route.params.venueId);
+  const venueId = route.params.venueId;
+  const balanceQuery = useBalance(venueId);
   const [activeTab, setActiveTab] = useState<PredictPortfolioTab>(
     route.params.initialTab ?? 'positions',
   );
@@ -37,6 +42,16 @@ export const PredictPortfolioScreen = () => {
   useEffect(() => {
     setActiveTab(route.params.initialTab ?? 'positions');
   }, [route.params.initialTab]);
+
+  usePredictNextMeasurement({
+    traceName: TraceName.PredictNextPortfolioView,
+    conditions: [!balanceQuery.isPending],
+    debugContext: {
+      hasBalance: Boolean(balanceQuery.data),
+      error: balanceQuery.isError,
+      tab: activeTab,
+    },
+  });
 
   const browseMarkets = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -46,8 +61,19 @@ export const PredictPortfolioScreen = () => {
     navigation.navigate(PredictNextRoutes.HOME);
   }, [navigation]);
 
+  const openEvent = useCallback(
+    (eventId: PredictEntityId, titleSnapshot: string) => {
+      navigation.navigate(PredictNextRoutes.EVENT, {
+        venueId,
+        eventId,
+        titleSnapshot,
+      });
+    },
+    [navigation, venueId],
+  );
+
   const positionsActive = activeTab === 'positions';
-  const historyActive = activeTab === 'history';
+  const activityActive = activeTab === 'activity';
 
   return (
     <SafeAreaView
@@ -81,18 +107,28 @@ export const PredictPortfolioScreen = () => {
             style={tw.style('flex-1', !positionsActive && 'hidden')}
             testID={PredictPortfolioScreenTestIds.POSITIONS_CONTENT}
           >
-            <PortfolioEmptyState onBrowseMarkets={browseMarkets} />
+            <PortfolioPositionsPanel
+              venueId={venueId}
+              isPrivacyMode={Boolean(privacyMode)}
+              onOpenEvent={openEvent}
+              onBrowseMarkets={browseMarkets}
+            />
           </Box>
           <Box
-            accessibilityElementsHidden={!historyActive}
+            accessibilityElementsHidden={!activityActive}
             importantForAccessibility={
-              historyActive ? 'auto' : 'no-hide-descendants'
+              activityActive ? 'auto' : 'no-hide-descendants'
             }
-            pointerEvents={historyActive ? 'auto' : 'none'}
-            style={tw.style('flex-1', !historyActive && 'hidden')}
-            testID={PredictPortfolioScreenTestIds.HISTORY_CONTENT}
+            pointerEvents={activityActive ? 'auto' : 'none'}
+            style={tw.style('flex-1', !activityActive && 'hidden')}
+            testID={PredictPortfolioScreenTestIds.ACTIVITY_CONTENT}
           >
-            <PortfolioEmptyState onBrowseMarkets={browseMarkets} />
+            <PortfolioActivityPanel
+              venueId={venueId}
+              isPrivacyMode={Boolean(privacyMode)}
+              onOpenEvent={openEvent}
+              onBrowseMarkets={browseMarkets}
+            />
           </Box>
         </Box>
       </Box>

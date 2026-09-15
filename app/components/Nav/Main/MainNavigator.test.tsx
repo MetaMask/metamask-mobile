@@ -1415,7 +1415,7 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SocialV0View screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes Social screens when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1432,6 +1432,7 @@ describe('MainNavigator', () => {
                 enabled: true,
                 minimumVersion: '0.0.1',
               },
+              socialAiTSA1122AbtestSocialBundleV1: 'treatment',
             },
           },
         },
@@ -1472,6 +1473,71 @@ describe('MainNavigator', () => {
 
     expect(bundleV1Screen).toBeDefined();
     expect(bundleV1Screen?.component.name).toBe('SocialV1View');
+
+    const myProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MY_PROFILE,
+    );
+
+    expect(myProfileScreen).toBeDefined();
+    expect(myProfileScreen?.component.name).toBe('MyProfileView');
+
+    const manageProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
+    );
+
+    expect(manageProfileScreen).toBeDefined();
+    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
+  });
+
+  it('omits Social V1 screens for the control variant', () => {
+    const stateWithSocialV1Control = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              socialAiTSA1122AbtestSocialBundleV1: 'control',
+            },
+          },
+        },
+      },
+    };
+
+    const { root } = renderWithProvider(<MainNavigator />, {
+      state: stateWithSocialV1Control,
+    });
+
+    const screenNames = root.children
+      .filter(
+        (child): child is ReactTestInstance =>
+          typeof child === 'object' &&
+          'type' in child &&
+          'props' in child &&
+          child.type?.toString() === 'Screen',
+      )
+      .map((child) => child.props.name);
+
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+    );
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+    );
+    expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {

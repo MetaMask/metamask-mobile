@@ -100,6 +100,10 @@ import {
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   HEADER_NAV_BAR_VARIANTS,
 } from '../../Views/Homepage/abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
@@ -172,6 +176,11 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  MyProfileView,
+  ManageProfileView,
+  ManageProfileTextEditorView,
+  ManageProfileTradingActivityView,
+  ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -216,6 +225,9 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
+
+const Tab = createBottomTabNavigator();
+const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -917,6 +929,13 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_ASSIGNMENT_OPTIONS,
+  );
+  const isSocialV1Enabled =
+    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -1349,12 +1368,39 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
-      {isSocialLeaderboardEnabled && (
-        <NativeStack.Screen
-          name={Routes.SOCIAL.V1}
-          component={SocialV1View}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
-        />
+      {isSocialV1Enabled && (
+        <>
+          <NativeStack.Screen
+            name={Routes.SOCIAL.V1}
+            component={SocialV1View}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MY_PROFILE}
+            component={MyProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE}
+            component={ManageProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
+            component={ManageProfileTextEditorView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY}
+            component={ManageProfileTradingActivityView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
+            component={ManageProfileLinkedAccountView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+        </>
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen

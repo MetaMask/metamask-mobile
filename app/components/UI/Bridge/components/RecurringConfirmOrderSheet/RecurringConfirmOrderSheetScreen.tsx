@@ -18,6 +18,7 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
+  showRecurringOrderCreatedToast,
   submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
 
@@ -50,6 +51,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
     try {
       await autoUpgradeEIP7702Account();
       await submitRecurringOrder();
+      showRecurringOrderCreatedToast();
       dispatch(resetBridgeTokenInputs());
       Engine.context.BridgeController?.resetState?.();
       dispatch(incrementBridgeBalanceRefreshKey());

@@ -28,9 +28,6 @@ import { useParams } from '../../../util/navigation/navUtils';
 
 import {
   ActionListItem,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   IconName,
   Tag,
@@ -42,7 +39,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
-import { PerpsMode } from '@metamask/perps-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -88,7 +84,6 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
-import { usePerpsMode } from '../../UI/Perps/hooks';
 import {
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,
@@ -227,10 +222,6 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  const { mode: perpsMode } = usePerpsMode();
-  // Product default is Lite; only Pro gets the gold badge treatment.
-  const perpsModeBadge =
-    perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -381,16 +372,7 @@ function TradeWalletActions() {
     <>
       {shouldRenderBatchSell && (
         <ActionListItem
-          label={
-            <View style={tw.style('flex-row items-center gap-2')}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.batch_sell')}
-              </Text>
-              <Tag severity={TagSeverity.Info}>
-                {strings('asset_overview.batch_sell_new_label')}
-              </Tag>
-            </View>
-          }
+          label={strings('asset_overview.batch_sell')}
           description={strings('asset_overview.batch_sell_description')}
           iconName={IconName.Merge}
           iconProps={{
@@ -413,29 +395,7 @@ function TradeWalletActions() {
       )}
       {isPerpsEnabled && (
         <ActionListItem
-          label={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.perps_button')}
-              </Text>
-              {isPerpsProModeEnabled ? (
-                <Tag
-                  severity={
-                    perpsModeBadge === PerpsMode.Pro
-                      ? TagSeverity.Warning
-                      : TagSeverity.Neutral
-                  }
-                  testID={WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE}
-                >
-                  {strings(`perps.mode.${perpsModeBadge}`)}
-                </Tag>
-              ) : null}
-            </Box>
-          }
+          label={strings('asset_overview.perps_button')}
           description={strings('asset_overview.perps_description')}
           iconName={IconName.Candlestick}
           onPress={onPerps}

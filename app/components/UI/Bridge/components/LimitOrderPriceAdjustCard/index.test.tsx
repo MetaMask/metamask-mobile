@@ -6,6 +6,7 @@ import { initialState } from '../../_mocks_/initialState';
 import {
   LIMIT_ORDER_NEAR_MARKET_PERCENT,
   LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import { LimitOrderPriceAdjustCard } from './index';
 import { LimitOrderPriceAdjustCardSelectorsIDs } from './testIds';
@@ -108,6 +109,15 @@ describe('LimitOrderPriceAdjustCard', () => {
 
     expect(onMarketPresetPress).toHaveBeenCalledTimes(1);
     expect(onPercentPresetPress).toHaveBeenCalledWith(5);
+  });
+
+  it('forwards the price comparison direction to the input section', () => {
+    const { getByText } = renderCard({
+      orderSide: LimitOrderExecutionType.BUY,
+      priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+    });
+
+    expect(getByText(strings('bridge.limit.is_at_or_above'))).toBeOnTheScreen();
   });
 
   it('renders the near-market warning when the trigger price is near market', () => {

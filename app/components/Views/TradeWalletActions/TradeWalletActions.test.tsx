@@ -29,7 +29,6 @@ import {
   selectIsFirstTimePerpsUser,
   selectPerpsMode,
 } from '../../UI/Perps/selectors/perpsController';
-import { usePerpsMode } from '../../UI/Perps/hooks';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
@@ -125,12 +124,6 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => {
 
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
-}));
-
-jest.mock('../../UI/Perps/hooks', () => ({
-  usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
-  })),
 }));
 
 const mockHasCompletedPerpsModeSelection = jest.fn(() =>
@@ -520,10 +513,6 @@ describe('TradeWalletActions', () => {
       remove: jest.fn(),
     });
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(true);
-    jest.mocked(usePerpsMode).mockReturnValue({
-      mode: PerpsMode.Lite,
-      setMode: jest.fn(),
-    });
     jest.mocked(isHardwareAccount).mockReturnValue(false);
 
     mockCreateEventBuilder.mockReturnValue(mockLegacyEventBuilder);
@@ -553,7 +542,7 @@ describe('TradeWalletActions', () => {
   });
 
   it('should renderScreen correctly', () => {
-    const { getByTestId, getByText, queryByTestId } = renderScreen(
+    const { getByTestId, queryByText, queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -566,7 +555,7 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
     ).toBeDefined();
-    expect(getByText('New')).toBeOnTheScreen();
+    expect(queryByText('New')).toBeNull();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
@@ -930,7 +919,7 @@ describe('TradeWalletActions', () => {
     ).toBeDefined();
   });
 
-  it('renders the Lite badge on the Perps row when Lite mode is active', () => {
+  it('does not render Lite or Pro tags on the Perps row', () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -942,65 +931,7 @@ describe('TradeWalletActions', () => {
       >
     ).mockReturnValue(true);
 
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).toHaveTextContent('Lite');
-  });
-
-  it('renders the Pro badge on the Perps row when Pro mode is active', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPerpsProModeEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsProModeEnabledFlag
-      >
-    ).mockReturnValue(true);
-    jest.mocked(usePerpsMode).mockReturnValue({
-      mode: PerpsMode.Pro,
-      setMode: jest.fn(),
-    });
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).toHaveTextContent('Pro');
-  });
-
-  it('hides the mode badge when the Pro mode flag is disabled', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPerpsProModeEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsProModeEnabledFlag
-      >
-    ).mockReturnValue(false);
-
-    const { getByTestId, queryByTestId } = renderScreen(
+    const { getByTestId, queryByText } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -1013,33 +944,8 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeDefined();
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('keeps the mode badge visible when the Perps action is disabled', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPerpsProModeEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsProModeEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      { name: 'TradeWalletActions' },
-      { state: mockInitialState },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).toHaveTextContent('Lite');
+    expect(queryByText('Lite')).toBeNull();
+    expect(queryByText('Pro')).toBeNull();
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
