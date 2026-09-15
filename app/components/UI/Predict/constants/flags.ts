@@ -4,6 +4,8 @@ import type {
   PredictFeedCarouselConfig,
   PredictFeeCollection,
   PredictHiddenMarketsFlag,
+  PredictHomeCategoriesConfig,
+  PredictHomeCategoryConfig,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
@@ -243,3 +245,47 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
     }),
   ],
 };
+
+/** Icon used for a home category tile whose `iconName` is missing or unknown. */
+export const PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME = 'Explore';
+
+const createHomeCategory = ({
+  id,
+  tagSlug = id,
+  iconName,
+}: {
+  id: string;
+  tagSlug?: string;
+  iconName: string;
+}): PredictHomeCategoryConfig => ({
+  id,
+  tagSlug,
+  titleKey: `predict.category.${id}`,
+  iconName,
+  enabled: true,
+});
+
+/**
+ * Bundled Predict home "Categories" rail (PRED-1226). Used when the
+ * `predictHomeCategories` LaunchDarkly flag is missing, invalid, or fails its
+ * version gate. Order here is the default display order. `tagSlug` values are
+ * confirmed live against Polymarket Gamma (`Culture` → `pop-culture`).
+ */
+export const DEFAULT_PREDICT_HOME_CATEGORIES_FLAG: PredictHomeCategoriesConfig =
+  {
+    enabled: true,
+    minimumVersion: '',
+    categories: [
+      createHomeCategory({ id: 'politics', iconName: 'Global' }),
+      createHomeCategory({ id: 'sports', iconName: 'Trophy' }),
+      createHomeCategory({ id: 'crypto', iconName: 'MoneyBag' }),
+      createHomeCategory({ id: 'esports', iconName: 'Speedometer' }),
+      createHomeCategory({
+        id: 'culture',
+        tagSlug: 'pop-culture',
+        iconName: 'StarFilled',
+      }),
+      createHomeCategory({ id: 'finance', iconName: 'Bank' }),
+      createHomeCategory({ id: 'tech', iconName: 'Data' }),
+    ],
+  };

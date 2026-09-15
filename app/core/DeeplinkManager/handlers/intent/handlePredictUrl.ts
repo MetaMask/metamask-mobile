@@ -6,11 +6,15 @@ import {
   isPredictTabKey,
   type PredictTabKey,
 } from '../../../../components/UI/Predict/constants/feedTabs';
-import { selectPredictHomeRedesignEnabledFlag } from '../../../../components/UI/Predict/selectors/featureFlags';
+import {
+  selectPredictHomeCategoriesConfig,
+  selectPredictHomeRedesignEnabledFlag,
+} from '../../../../components/UI/Predict/selectors/featureFlags';
+import type { PredictHomeCategoriesConfig } from '../../../../components/UI/Predict/types/flags';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import {
-  isPredictFeedId,
+  resolvePredictFeedConfig,
   type PredictFeedId,
 } from '../../../../components/UI/Predict/constants/feedConfig';
 
@@ -74,6 +78,36 @@ const getPredictHomeRedesignEnabled = (): boolean => {
     return false;
   }
 };
+
+const getPredictHomeCategoriesConfig = ():
+  | PredictHomeCategoriesConfig
+  | undefined => {
+  try {
+    return selectPredictHomeCategoriesConfig(ReduxService.store.getState());
+  } catch (error) {
+    DevLogger.log(
+      '[handlePredictUrl] Unable to read home categories flag, using bundled categories:',
+      error,
+    );
+    return undefined;
+  }
+};
+
+/**
+ * True when `feed` resolves to a generic feed: a built-in id or a category
+ * defined by the `predictHomeCategories` flag (bundled defaults otherwise).
+ */
+const isResolvablePredictFeedId = (
+  feed: string | undefined,
+): feed is PredictFeedId =>
+  Boolean(
+    feed &&
+      resolvePredictFeedConfig(
+        feed,
+        undefined,
+        getPredictHomeCategoriesConfig(),
+      ),
+  );
 
 const getMarketListParams = ({
   entryPoint,
@@ -198,7 +232,7 @@ const marketTarget = (
  * Navigation behavior:
  * - No market param: Navigate to market list
  * - market=X or marketId=X: Navigate directly to market details for market X
- * - feed=<known generic id> (sports/politics/crypto/live/trending): Navigate to the generic PredictFeedView when the predictHomeRedesign flag is enabled (tab -> initialTabId, filter -> initialFilterId)
+ * - feed=<known generic id> (sports/politics/crypto/live/trending, or any `predictHomeCategories` category id such as esports/culture/finance/tech): Navigate to the generic PredictFeedView when the predictHomeRedesign flag is enabled (tab -> initialTabId, filter -> initialFilterId)
  * - feed=popular-today: Redirect to the Trending feed while preserving its filter
  * - Unknown feed (or flag disabled): Fall back to the Predict market list
  * - Optional tab param when no market: Open feed on a specific tab
@@ -229,7 +263,10 @@ const resolvePredictTarget = ({
 
   if (navParams.market) {
     return marketTarget(navParams.market, entryPoint);
-  } else if (isPredictFeedId(genericFeed) && getPredictHomeRedesignEnabled()) {
+  } else if (
+    isResolvablePredictFeedId(genericFeed) &&
+    getPredictHomeRedesignEnabled()
+  ) {
     return genericFeedTarget({
       feedId: genericFeed,
       // The generic feed's sub-tab ids (e.g. basketball/all/live) are resolved
