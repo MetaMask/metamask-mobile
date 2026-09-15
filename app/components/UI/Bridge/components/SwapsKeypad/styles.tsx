@@ -12,6 +12,5 @@ export const quickPickButtonsStyles = StyleSheet.create({
     flexBasis: 0,
     flexShrink: 1,
     minWidth: 0,
-    borderRadius: 999,
   },
 });
