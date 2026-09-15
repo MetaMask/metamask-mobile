@@ -100,6 +100,44 @@ describe('usePushPermissionNotificationSetup', () => {
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
+  it('skips marketing consent when onboarding defers it to a later screen', async () => {
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
+
+    act(() => {
+      result.current.enableNotificationsInBackground(true, {
+        hasMarketingConsent: false,
+      });
+    });
+
+    await waitFor(() => {
+      expect(enableNotifications).toHaveBeenCalledWith({
+        hasMarketingConsent: false,
+        productAnnouncementEnabled: true,
+        registerPushNotifications: true,
+      });
+    });
+    expect(setMarketingNotificationPreferencesEnabled).not.toHaveBeenCalled();
+  });
+
+  it('skips marketing consent when onboarding defers it to a later screen', async () => {
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
+
+    act(() => {
+      result.current.enableNotificationsInBackground(true, {
+        hasMarketingConsent: false,
+      });
+    });
+
+    await waitFor(() => {
+      expect(enableNotifications).toHaveBeenCalledWith({
+        hasMarketingConsent: false,
+        productAnnouncementEnabled: true,
+        registerPushNotifications: true,
+      });
+    });
+    expect(setMarketingNotificationPreferencesEnabled).not.toHaveBeenCalled();
+  });
+
   it('updates existing marketing preferences when enabling notifications from the prompt', async () => {
     jest.mocked(hasNotificationPreferences).mockResolvedValue(true);
     const { result } = renderHook(() => usePushPermissionNotificationSetup());

@@ -37,6 +37,7 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
+import { navigateOnboardingConsentFlow } from '../../../util/onboarding/onboardingConsentFlow';
 import { AppThemeKey } from '../../../util/theme/models';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
@@ -105,7 +106,8 @@ const AccountBackupStep1 = (props) => {
     if (isAnalyticsEnabled()) {
       navigation.dispatch(resetAction);
     } else {
-      navigation.navigate('OptinMetrics', {
+      navigateOnboardingConsentFlow(navigation, {
+        kind: 'srp',
         onContinue: () => {
           navigation.dispatch(resetAction);
         },

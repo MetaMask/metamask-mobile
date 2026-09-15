@@ -1,4 +1,5 @@
 export const MetaMetricsOptInSelectorsIDs = {
+  BACK_BUTTON_ID: 'optin-metrics-back-button',
   OPTIN_METRICS_TITLE_ID: 'optin-metrics-title-id',
   OPTIN_METRICS_CONTINUE_BUTTON_ID: 'optin-metrics-continue-button-id',
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID:

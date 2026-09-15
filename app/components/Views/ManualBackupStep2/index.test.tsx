@@ -402,10 +402,14 @@ describe('ManualBackupStep2', () => {
 
       expect(mockDispatch).toHaveBeenCalled();
 
-      expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
-        successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-        accountType: AccountType.Metamask,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.PUSH_NOTIFICATIONS,
+        {
+          kind: 'srp',
+          successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+          accountType: AccountType.Metamask,
+        },
+      );
     });
 
     it('navigates to onboarding success flow when analytics is enabled', async () => {

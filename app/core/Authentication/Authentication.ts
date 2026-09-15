@@ -887,8 +887,9 @@ class AuthenticationService {
                   params: {
                     screen: Routes.ONBOARDING.NAV,
                     params: {
-                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      screen: Routes.ONBOARDING.PUSH_NOTIFICATIONS,
                       params: {
+                        kind: 'srp',
                         onContinue: async () => {
                           resumeUnlockDeeplinkNavigatedAfterOptIn({
                             appStartType: deeplinkAppStartType,

@@ -27,6 +27,7 @@ import type { SimpleWebviewParams } from '../../../Views/Webview/Webview.types';
 import type { ExploreFeedRouteParams } from '../../../Views/TrendingView/TrendingView';
 import type { ChoosePasswordRouteParams } from '../../../Views/ChoosePassword/ChoosePassword.types';
 import type { OptinMetricsRouteParams } from '../../../UI/OptinMetrics/OptinMetrics.types';
+import type { OnboardingConsentFlowParams } from '../../../../util/onboarding/onboardingConsentFlow';
 import type { QRTabSwitcherParams } from '../../../Views/QRTabSwitcher/QRTabSwitcher';
 import type { TransactionsViewParams } from '../../../Views/TransactionsView/TransactionsView.types';
 import type { RampOrderDetailsParams } from '../../../UI/Ramp/Aggregator/types/navigation';
@@ -154,6 +155,8 @@ export type SetPasswordFlowParamList = {
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
   OptinMetrics: OptinMetricsRouteParams | undefined;
+  OnboardingPushNotifications: OnboardingConsentFlowParams;
+  OnboardingMarketingConsent: OnboardingConsentFlowParams;
 };
 
 /**

@@ -353,7 +353,14 @@
     "by_continuing": "By continuing, you agree to MetaMask's",
     "terms_of_use": "Terms of use",
     "privacy_notice": "Privacy notice",
-    "and": "and"
+    "and": "and",
+    "push_notifications": {
+      "title": "Get instant updates",
+      "description": "Enable push notifications for real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
+      "cta_enable": "Enable notifications",
+      "cta_skip": "Skip",
+      "preview_accessibility_label": "Examples of MetaMask notifications: price alerts, transaction updates, and rewards payouts"
+    }
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -4057,6 +4064,7 @@
     "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
     "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
     "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "cta_yes_please": "Yes please",
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree",
     "continue": "Continue",

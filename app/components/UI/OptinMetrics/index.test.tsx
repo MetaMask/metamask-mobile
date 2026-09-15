@@ -159,6 +159,57 @@ describe('OptinMetrics', () => {
       );
       expect(toJSON()).not.toBeNull();
     });
+
+    it('places title and description above the illustration', () => {
+      const { toJSON } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      const order: string[] = [];
+      const walk = (node: unknown) => {
+        if (!node) {
+          return;
+        }
+        if (Array.isArray(node)) {
+          node.forEach(walk);
+          return;
+        }
+        if (typeof node !== 'object') {
+          return;
+        }
+        const treeNode = node as {
+          type?: unknown;
+          props?: { testID?: string };
+          children?: unknown;
+        };
+        if (treeNode.props?.testID) {
+          order.push(treeNode.props.testID);
+        }
+        if (treeNode.type === 'Image') {
+          order.push('Image');
+        }
+        walk(treeNode.children);
+      };
+      walk(toJSON());
+
+      const titleIndex = order.indexOf(
+        MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+      );
+      const descriptionIndex = order.indexOf(
+        MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
+      );
+      const illustrationIndex = order.indexOf('Image');
+      const checkboxIndex = order.indexOf(
+        MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX,
+      );
+
+      expect(titleIndex).toBeGreaterThanOrEqual(0);
+      expect(descriptionIndex).toBeGreaterThan(titleIndex);
+      expect(illustrationIndex).toBeGreaterThan(descriptionIndex);
+      expect(checkboxIndex).toBeGreaterThan(illustrationIndex);
+    });
   });
 
   describe('Snapshots android', () => {
@@ -230,18 +281,7 @@ describe('OptinMetrics', () => {
             }),
           }),
         );
-        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-          2,
-          expect.objectContaining({
-            name: 'Analytics Preference Selected',
-            properties: expect.objectContaining({
-              has_marketing_consent: false,
-              is_metrics_opted_in: true,
-              location: 'onboarding_metametrics',
-              updated_after_onboarding: false,
-            }),
-          }),
-        );
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
         expect(mockAnalytics.identify).toHaveBeenNthCalledWith(1, {
           chain_id_list: ['eip155:1'],
           deviceProp: 'Device value',
@@ -250,45 +290,12 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('with marketing consent', async () => {
+    it('does not render a marketing checkbox', () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-      fireEvent.press(
-        screen.getByText(strings('privacy_policy.checkbox_marketing')),
-      );
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-          1,
-          expect.objectContaining({
-            name: MetaMetricsEvents.METRICS_OPT_IN.category,
-            properties: expect.objectContaining({
-              location: 'onboarding_metametrics',
-              updated_after_onboarding: false,
-            }),
-          }),
-        );
-        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-          2,
-          expect.objectContaining({
-            name: 'Analytics Preference Selected',
-            properties: expect.objectContaining({
-              has_marketing_consent: true,
-              is_metrics_opted_in: true,
-              location: 'onboarding_metametrics',
-              updated_after_onboarding: false,
-            }),
-          }),
-        );
-        expect(mockAnalytics.identify).toHaveBeenNthCalledWith(1, {
-          chain_id_list: ['eip155:1'],
-          deviceProp: 'Device value',
-          userProp: 'User value',
-        });
-      });
+
+      expect(
+        screen.queryByText(strings('privacy_policy.checkbox_marketing')),
+      ).toBeNull();
     });
 
     it('clears persisted attribution without marketing consent while keeping pending deeplink', async () => {
@@ -297,56 +304,6 @@ describe('OptinMetrics', () => {
       mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(
-          mockAppStateEventProcessor.clearPendingDeeplink,
-        ).not.toHaveBeenCalled();
-        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
-          pendingDeeplink,
-        );
-      });
-    });
-
-    it('keeps pending deeplink after marketing opt-in', async () => {
-      const pendingDeeplink =
-        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
-      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-      fireEvent.press(
-        screen.getByText(strings('privacy_policy.checkbox_marketing')),
-      );
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(
-          mockAppStateEventProcessor.clearPendingDeeplink,
-        ).not.toHaveBeenCalled();
-        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
-          pendingDeeplink,
-        );
-      });
-    });
-
-    it('keeps pending deeplink when install link also targets navigation', async () => {
-      const pendingDeeplink =
-        'https://link.metamask.io/rewards?utm_source=campaign&utm_campaign=summer';
-      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-      fireEvent.press(
-        screen.getByText(strings('privacy_policy.checkbox_marketing')),
-      );
       fireEvent.press(
         screen.getByRole('button', {
           name: strings('privacy_policy.continue'),
@@ -384,17 +341,6 @@ describe('OptinMetrics', () => {
           expect.objectContaining({
             name: MetaMetricsEvents.METRICS_OPT_IN.category,
             properties: expect.objectContaining({
-              location: 'onboarding_metametrics',
-              updated_after_onboarding: false,
-              account_type: AccountType.Imported,
-            }),
-          }),
-        );
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: 'Analytics Preference Selected',
-            properties: expect.objectContaining({
-              is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
               updated_after_onboarding: false,
               account_type: AccountType.Imported,
@@ -449,7 +395,7 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'Analytics Preference Selected',
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
             properties: expect.not.objectContaining({
               account_type: expect.anything(),
             }),
@@ -587,47 +533,6 @@ describe('OptinMetrics', () => {
         );
       });
     });
-
-    it('unchecks marketing when basic usage is unchecked and fires METRICS_OPT_OUT on navigate out', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-      fireEvent.press(marketingCheckbox);
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      fireEvent.press(basicUsageCheckbox);
-
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
-            properties: expect.objectContaining({
-              updated_after_onboarding: false,
-              location: 'onboarding_metametrics',
-            }),
-          }),
-        );
-      });
-
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: false,
-              is_metrics_opted_in: false,
-            }),
-          }),
-        );
-      });
-    });
   });
 
   describe('Learn more functionality', () => {
@@ -658,78 +563,6 @@ describe('OptinMetrics', () => {
       }).not.toThrow();
 
       expect(learnMoreLink).toBeTruthy();
-    });
-  });
-
-  describe('Marketing checkbox functionality', () => {
-    it('should toggle marketing checkbox state when touched', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      // Verify initial state: isMarketingChecked should be false
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: false,
-              is_metrics_opted_in: true, // Basic usage should be true by default
-            }),
-          }),
-        );
-      });
-
-      jest.clearAllMocks();
-
-      // Press to toggle the marketing checkbox
-      fireEvent.press(marketingCheckbox);
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: true,
-              is_metrics_opted_in: true,
-            }),
-          }),
-        );
-      });
-    });
-  });
-
-  describe('Combined checkbox scenarios', () => {
-    it('should handle both checkboxes independently', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      fireEvent.press(basicUsageCheckbox);
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-      fireEvent.press(marketingCheckbox);
-
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.optOut).toHaveBeenCalled();
-      });
     });
   });
 
@@ -830,15 +663,6 @@ describe('OptinMetrics', () => {
   });
 
   describe('Text Display and Component Interaction Tests', () => {
-    it('should display marketing updates description text', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingDescription = screen.getByText(
-        strings('privacy_policy.checkbox'),
-      );
-      expect(marketingDescription).toBeTruthy();
-    });
-
     it('should display gather basic usage description text', () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -858,44 +682,6 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('should handle marketing checkbox state when pressed', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      // Verify initial state: marketing should be unchecked
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: false,
-            }),
-          }),
-        );
-      });
-
-      jest.clearAllMocks();
-
-      fireEvent.press(marketingCheckbox);
-
-      // Verify the state actually changed: marketing should now be checked
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: true,
-            }),
-          }),
-        );
-      });
-    });
-
     it('should render component without errors', () => {
       const { toJSON } = renderScreen(
         OptinMetrics,
@@ -908,28 +694,12 @@ describe('OptinMetrics', () => {
   });
 
   describe('Component Lifecycle Tests', () => {
-    it('should handle component unmount', () => {
-      const { BackHandler } = jest.requireMock('react-native');
-      const mockRemove = jest.fn();
-      const addSpy = jest
-        .spyOn(BackHandler, 'addEventListener')
-        .mockReturnValue({ remove: mockRemove });
+    it('renders a header back button', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
-      const { unmount } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-
-      unmount();
-
-      expect(addSpy).toHaveBeenCalledWith(
-        'hardwareBackPress',
-        expect.any(Function),
-      );
-      expect(mockRemove).toHaveBeenCalled();
-
-      addSpy.mockRestore();
+      expect(
+        screen.getByTestId(MetaMetricsOptInSelectorsIDs.BACK_BUTTON_ID),
+      ).toBeOnTheScreen();
     });
 
     it('should handle scroll end reached', () => {
@@ -958,42 +728,10 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'Analytics Preference Selected',
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
           }),
         );
       });
-    });
-
-    it('should initialize with correct default checkbox states', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      expect(basicUsageCheckbox).toBeTruthy();
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should handle checkbox state changes correctly', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageTitle = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      const marketingTitle = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(basicUsageTitle);
-
-      fireEvent.press(marketingTitle);
-
-      expect(basicUsageTitle).toBeTruthy();
-      expect(marketingTitle).toBeTruthy();
     });
   });
 
@@ -1050,258 +788,6 @@ describe('OptinMetrics', () => {
       });
 
       expect(scrollView).toBeTruthy();
-    });
-  });
-
-  describe('Checkbox Interdependency Logic', () => {
-    it('should uncheck and disable marketing checkbox when basic usage is unchecked', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(marketingCheckbox);
-
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: true,
-              is_metrics_opted_in: true,
-            }),
-          }),
-        );
-      });
-
-      jest.clearAllMocks();
-
-      fireEvent.press(basicUsageCheckbox);
-
-      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: false,
-              is_metrics_opted_in: false,
-            }),
-          }),
-        );
-      });
-    });
-
-    it('should prevent marketing checkbox toggle when basic usage is unchecked', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-      fireEvent.press(marketingCheckbox);
-
-      expect(basicUsageCheckbox).toBeTruthy();
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should allow marketing checkbox toggle when basic usage is checked', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(marketingCheckbox);
-
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should maintain marketing checkbox state when basic usage remains checked', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(marketingCheckbox);
-      fireEvent.press(marketingCheckbox);
-
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should track both checkbox states correctly in analytics event', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(marketingCheckbox);
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: true,
-              is_metrics_opted_in: true,
-            }),
-          }),
-        );
-      });
-    });
-
-    it('should track disabled marketing state in analytics when basic usage is unchecked', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              has_marketing_consent: false,
-              is_metrics_opted_in: false,
-            }),
-          }),
-        );
-      });
-    });
-
-    it('should test isMarketingDisabled getter directly', () => {
-      const { getByTestId } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-
-      const component = getByTestId(
-        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
-      );
-      expect(component).toBeTruthy();
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-      expect(basicUsageCheckbox).toBeTruthy();
-    });
-
-    it('should apply disabled styling when marketing is disabled', () => {
-      const { getByTestId } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-
-      const component = getByTestId(
-        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
-      );
-      expect(component).toBeTruthy();
-    });
-
-    it('should preserve marketing state when basic usage is re-enabled', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(marketingCheckbox);
-      fireEvent.press(basicUsageCheckbox);
-      fireEvent.press(basicUsageCheckbox);
-
-      expect(basicUsageCheckbox).toBeTruthy();
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should handle multiple attempts to toggle disabled marketing checkbox', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-      fireEvent.press(marketingCheckbox);
-      fireEvent.press(marketingCheckbox);
-      fireEvent.press(marketingCheckbox);
-
-      expect(basicUsageCheckbox).toBeTruthy();
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should test handleBasicUsageToggle ternary logic branches', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-      const marketingCheckbox = screen.getByText(
-        strings('privacy_policy.checkbox_marketing'),
-      );
-
-      fireEvent.press(marketingCheckbox);
-      fireEvent.press(basicUsageCheckbox);
-      fireEvent.press(basicUsageCheckbox);
-
-      expect(basicUsageCheckbox).toBeTruthy();
-      expect(marketingCheckbox).toBeTruthy();
-    });
-
-    it('should test conditional activeOpacity and disabled props', () => {
-      const { getByTestId } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-
-      const basicUsageCheckbox = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_title'),
-      );
-
-      fireEvent.press(basicUsageCheckbox);
-
-      const component = getByTestId(
-        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
-      );
-      expect(component).toBeTruthy();
     });
   });
 });

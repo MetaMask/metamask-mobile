@@ -498,8 +498,9 @@ describe('ManualBackupStep1', () => {
       });
 
       expect(navigate).toHaveBeenCalledWith(
-        'OptinMetrics',
+        'OnboardingPushNotifications',
         expect.objectContaining({
+          kind: 'srp',
           successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
           accountType: AccountType.Metamask,
         }),

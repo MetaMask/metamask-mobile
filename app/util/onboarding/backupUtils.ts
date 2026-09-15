@@ -6,6 +6,7 @@ import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
 } from '../../constants/onboarding';
+import { navigateOnboardingConsentFlow } from './onboardingConsentFlow';
 import { TraceName, endTrace } from '../trace';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import {
@@ -113,7 +114,8 @@ export const handleSkipBackup = async ({
   if (isMetricsEnabled()) {
     navigation.dispatch(resetAction);
   } else {
-    navigation.navigate('OptinMetrics', {
+    navigateOnboardingConsentFlow(navigation, {
+      kind: 'srp',
       accountType: AccountType.Metamask,
       successFlow,
     });

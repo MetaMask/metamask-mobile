@@ -106,7 +106,7 @@ describeForPlatforms('OptinMetrics new-wallet analytics (CV)', () => {
     jest.clearAllMocks();
   });
 
-  it('dispatches "Analytics Preference Selected" with is_metrics_opted_in=true when user confirms with metrics enabled', async () => {
+  it('does not dispatch "Analytics Preference Selected" when user confirms with metrics enabled', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
     try {
       const { getByTestId } = renderOptinMetrics(AccountType.Metamask, {
@@ -120,17 +120,7 @@ describeForPlatforms('OptinMetrics new-wallet analytics (CV)', () => {
       );
 
       await waitFor(() => {
-        const preferenceEvent = findAnalyticsPreferenceEvent(trackEventSpy);
-        expect(preferenceEvent).toBeDefined();
-        expect(preferenceEvent).toMatchObject({
-          name: ANALYTICS_PREFERENCE_SELECTED,
-          properties: expect.objectContaining({
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-            account_type: AccountType.Metamask,
-          }),
-        });
+        expect(findAnalyticsPreferenceEvent(trackEventSpy)).toBeUndefined();
       });
     } finally {
       trackEventSpy.mockRestore();
@@ -178,7 +168,7 @@ describeForPlatforms('OptinMetrics import-wallet analytics (CV)', () => {
     jest.clearAllMocks();
   });
 
-  it('dispatches "Analytics Preference Selected" with is_metrics_opted_in=true when imported user confirms with metrics enabled', async () => {
+  it('does not dispatch "Analytics Preference Selected" when imported user confirms with metrics enabled', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
     try {
       const { getByTestId } = renderOptinMetrics(AccountType.Imported, {
@@ -192,17 +182,7 @@ describeForPlatforms('OptinMetrics import-wallet analytics (CV)', () => {
       );
 
       await waitFor(() => {
-        const preferenceEvent = findAnalyticsPreferenceEvent(trackEventSpy);
-        expect(preferenceEvent).toBeDefined();
-        expect(preferenceEvent).toMatchObject({
-          name: ANALYTICS_PREFERENCE_SELECTED,
-          properties: expect.objectContaining({
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-            account_type: AccountType.Imported,
-          }),
-        });
+        expect(findAnalyticsPreferenceEvent(trackEventSpy)).toBeUndefined();
       });
     } finally {
       trackEventSpy.mockRestore();

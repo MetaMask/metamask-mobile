@@ -43,6 +43,7 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
+import { navigateOnboardingConsentFlow } from '../../../util/onboarding/onboardingConsentFlow';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
@@ -127,7 +128,8 @@ const ManualBackupStep2 = ({
         if (isMetricsEnabled()) {
           navigation.dispatch(resetAction);
         } else {
-          navigation.navigate('OptinMetrics', {
+          navigateOnboardingConsentFlow(navigation, {
+            kind: 'srp',
             successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
             accountType: AccountType.Metamask,
           });

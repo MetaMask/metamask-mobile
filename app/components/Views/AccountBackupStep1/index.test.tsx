@@ -371,14 +371,15 @@ describe('AccountBackupStep1', () => {
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
+      expect(mockNavigate).toHaveBeenCalledWith('OnboardingPushNotifications', {
+        kind: 'srp',
         onContinue: expect.any(Function),
         accountType: AccountType.Metamask,
       });
 
       // Get the onConfirm function from the modal params
       const modalParams2 = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'OptinMetrics',
+        (call) => call[0] === 'OnboardingPushNotifications',
       )[1];
 
       // Call the onContinue function

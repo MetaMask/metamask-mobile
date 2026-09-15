@@ -362,11 +362,11 @@ const ManualBackupStep1 = () => {
           </Text>
         </Text>
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+          <Box twClassName="mt-6 bg-default rounded-lg flex-row border border-default min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
-          <SecureContentView style={tw.style('w-full')}>
+          <SecureContentView style={tw.style('w-full mt-6')}>
             <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
               <FlatList
                 data={words}
@@ -431,18 +431,20 @@ const ManualBackupStep1 = () => {
 
   return (
     <SafeAreaView
-      edges={showHeader ? { bottom: 'additive' } : ['top', 'bottom']}
+      edges={{ bottom: 'additive' }}
       style={tw.style('bg-default flex-1')}
     >
-      {showHeader ? (
-        <HeaderStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-          backButtonProps={{
-            testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
-          }}
-        />
-      ) : null}
+      {/* Onboarding keeps the header blank so the layout matches the other
+          onboarding screens without offering a way out of the flow. */}
+      <HeaderStandard
+        includesTopInset
+        onBack={showHeader ? () => navigation.goBack() : undefined}
+        backButtonProps={
+          showHeader
+            ? { testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON }
+            : undefined
+        }
+      />
       {ready ? (
         <>
           <Box twClassName="flex-1 px-4">

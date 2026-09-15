@@ -26,6 +26,8 @@ import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
 import ReviewModal from '../../UI/ReviewModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import OnboardingPushNotifications from '../../Views/OnboardingPushNotifications';
+import OnboardingMarketingConsent from '../../Views/OnboardingMarketingConsent';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -384,8 +386,18 @@ const OnboardingNav = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
+        name={Routes.ONBOARDING.PUSH_NOTIFICATIONS}
+        component={OnboardingPushNotifications}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <NativeStack.Screen
         name="OptinMetrics"
         component={OptinMetrics}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.MARKETING_CONSENT}
+        component={OnboardingMarketingConsent}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen

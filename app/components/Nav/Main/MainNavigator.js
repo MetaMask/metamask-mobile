@@ -73,6 +73,8 @@ import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import OptinMetrics from '../../UI/OptinMetrics';
+import OnboardingPushNotifications from '../../Views/OnboardingPushNotifications';
+import OnboardingMarketingConsent from '../../Views/OnboardingMarketingConsent';
 
 import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
@@ -963,7 +965,17 @@ const SetPasswordFlow = () => (
       name="ManualBackupStep3"
       component={ManualBackupStep3}
     />
+    <NativeStack.Screen
+      name="OnboardingPushNotifications"
+      component={OnboardingPushNotifications}
+      options={{ headerShown: false, gestureEnabled: false }}
+    />
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
+    <NativeStack.Screen
+      name="OnboardingMarketingConsent"
+      component={OnboardingMarketingConsent}
+      options={{ headerShown: false }}
+    />
   </NativeStack.Navigator>
 );
 

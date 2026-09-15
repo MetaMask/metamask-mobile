@@ -30,8 +30,12 @@ export function usePushPermissionNotificationSetup() {
   // Returns the in-flight promise so callers that navigate away immediately can
   // `await` it first (errors are handled internally, so it never rejects).
   const enableNotificationsInBackground = useCallback(
-    (nativePermissionEnabled: boolean) => {
+    (
+      nativePermissionEnabled: boolean,
+      options?: { hasMarketingConsent?: boolean },
+    ) => {
       const registerPushNotifications = nativePermissionEnabled;
+      const hasMarketingConsent = options?.hasMarketingConsent ?? true;
 
       const enableNotifications = async () => {
         try {
@@ -44,10 +48,12 @@ export function usePushPermissionNotificationSetup() {
             await enableNotificationsHelper({
               registerPushNotifications,
             });
-            await setMarketingNotificationPreferencesEnabled(true);
+            if (hasMarketingConsent) {
+              await setMarketingNotificationPreferencesEnabled(true);
+            }
           } else {
             await enableNotificationsHelper({
-              hasMarketingConsent: true,
+              hasMarketingConsent,
               productAnnouncementEnabled: true,
               registerPushNotifications,
             });

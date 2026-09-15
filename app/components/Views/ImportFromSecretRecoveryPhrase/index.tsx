@@ -106,6 +106,7 @@ import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
+import { navigateOnboardingConsentFlow } from '../../../util/onboarding/onboardingConsentFlow';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { RouteMessengerInstance } from './messenger';
@@ -695,7 +696,8 @@ const ImportFromSecretRecoveryPhrase = () => {
     if (isMetricsEnabled()) {
       navigation.dispatch(resetAction);
     } else {
-      navigation.navigate('OptinMetrics', {
+      navigateOnboardingConsentFlow(navigation, {
+        kind: 'srp',
         accountType: AccountType.Imported,
         successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
       });
