@@ -507,6 +507,78 @@ class TestSnaps {
     );
   }
 
+  private async isSnapAlertVisible(
+    text: string | RegExp,
+    timeout: number,
+  ): Promise<boolean> {
+    try {
+      await Assertions.expectElementToBeVisible(
+        Matchers.getElementByText(text),
+        { timeout },
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * After re-enabling Dialog Example Snap, Send Alert can miss or land before
+   * SnapController is ready (null result, no dialog). Re-tap with a short
+   * visibility probe; if the disabled alert appears, dismiss it and fail the
+   * attempt so the caller can re-enable.
+   */
+  async tapSendAlertAndExpectEnabled(
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 90_000;
+    let firstAttempt = true;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        if (!firstAttempt) {
+          if (
+            await this.isSnapAlertVisible('This is an alert dialog', 1_000)
+          ) {
+            return;
+          }
+          if (
+            await this.isSnapAlertVisible(
+              /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
+              1_000,
+            )
+          ) {
+            await this.dismissAlert();
+            throw new Error(
+              'Disabled Snap alert after enable — SnapController not ready',
+            );
+          }
+        }
+        firstAttempt = false;
+        await this.tapButton('sendAlertButton');
+        if (
+          await this.isSnapAlertVisible(
+            /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
+            1_500,
+          )
+        ) {
+          await this.dismissAlert();
+          throw new Error(
+            'Disabled Snap alert after enable — SnapController not ready',
+          );
+        }
+        await this.expectEnabledSnapAlert(5_000);
+      },
+      {
+        timeout,
+        interval: 500,
+        maxRetries: 12,
+        elemDescription: 'Send Alert button / enabled Snap alert dialog',
+        description: 'Send enabled Snap alert until dialog is visible',
+      },
+    );
+  }
+
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
