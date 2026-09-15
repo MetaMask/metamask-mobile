@@ -1,0 +1,22 @@
+diff --git a/src/configs/main.js b/src/configs/main.js
+index ad3dfe4628035ac99447e5364275447c5026bee4..282ead0240901cba46704e0d5fbff7fe131a9cee 100644
+--- a/src/configs/main.js
++++ b/src/configs/main.js
+@@ -115,9 +115,14 @@ const getPreset = (src, options, babel) => {
+     extraPlugins.push([require('@babel/plugin-transform-classes')]);
+   }
+ 
+-  extraPlugins.push([
+-    require('@babel/plugin-transform-named-capturing-groups-regex'),
+-  ]);
++  // NOTE (MetaMask): Do NOT down-level named-capture-group regexes on Hermes.
++  // Current Hermes supports them natively, and the `@babel/runtime/helpers/wrapRegExp`
++  // helper that this transform introduces breaks under SES lockdown (frozen
++  // intrinsics), causing `RegExp.exec` to return null for matching strings
++  // (e.g. NetworkController's INFURA_URL_REGEX -> "Could not derive Infura network").
++  // extraPlugins.push([
++  //   require('@babel/plugin-transform-named-capturing-groups-regex'),
++  // ]);
+   // Needed for regenerator
+   if (enableRegenerator) {
+     extraPlugins.push([

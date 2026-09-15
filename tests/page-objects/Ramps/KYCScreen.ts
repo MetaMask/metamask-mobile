@@ -11,7 +11,6 @@ import {
 } from '../../framework';
 
 const EMAIL_INPUT_IOS_XPATH = `//*[@name='${EnterEmailSelectorsIDs.EMAIL_INPUT}' or contains(@name,'${EnterEmailSelectorsIDs.EMAIL_INPUT}') or contains(@label,'name@domain.com') or contains(@name,'name@domain.com') or contains(@value,'name@domain.com')]`;
-const OTP_INPUT_IOS_XPATH = `//*[@name='${OtpCodeSelectorsIDs.OTP_CODE_INPUT}' or contains(@name,'${OtpCodeSelectorsIDs.OTP_CODE_INPUT}')]//XCUIElementTypeTextField | //*[@name='${OtpCodeSelectorsIDs.OTP_CODE_INPUT}' or contains(@name,'${OtpCodeSelectorsIDs.OTP_CODE_INPUT}')]`;
 const SEND_EMAIL_IOS_XPATH = `//*[@name='${EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}' or @label='Send email' or @name='Send email']`;
 
 class KYCScreen {
@@ -38,13 +37,23 @@ class KYCScreen {
   }
 
   get otpCodeInput(): Promise<AppiumElement> {
-    if (PlatformDetector.isIOS()) {
-      return Matchers.getElementByNativeXPath(OTP_INPUT_IOS_XPATH);
-    }
     return Matchers.getElementByID(OtpCodeSelectorsIDs.OTP_CODE_INPUT);
   }
 
   async enterOtpCode(code: string): Promise<void> {
+    if (PlatformDetector.isIOS()) {
+      // RN 0.85 Fabric no longer exposes CodeField's hidden internal
+      // TextInput (opacity 0.015, which carries the testID) in the XCUITest
+      // tree, so the input is unfindable by name. The field auto-focuses
+      // with the number pad up — type by tapping keyboard keys instead.
+      await Assertions.expectElementToBeVisible(this.otpScreen, {
+        timeout: 15000,
+        description: 'OTP code screen should be visible',
+      });
+      await Gestures.typeViaIosKeyboard(code, { numberPad: true });
+      return;
+    }
+
     await Assertions.expectElementToBeVisible(this.otpCodeInput, {
       timeout: 15000,
       description: 'OTP code input should be visible',
