@@ -65,4 +65,5 @@ export type PerpsTooltipContentKey =
   | 'spread'
   | 'pay_with'
   | 'slippage'
-  | 'size_skew';
+  | 'size_skew'
+  | 'twap_runtime';
