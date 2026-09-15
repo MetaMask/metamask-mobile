@@ -12,11 +12,13 @@ import { TransactionPayControllerInitMessenger } from '../../messengers/transact
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 import { createSolanaPayCallbacks } from './solana-pay-callbacks';
+import { trackSolanaPayLifecycle } from './solana-pay-analytics';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
 jest.mock('../../../../util/environment');
 jest.mock('./solana-pay-callbacks');
+jest.mock('./solana-pay-analytics');
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -139,6 +141,22 @@ describe('Transaction Pay Controller Init', () => {
     const solana = testConstructorOption('solana');
 
     expect(solana).toBe(callbacks);
+  });
+
+  it('registers Solana Pay lifecycle analytics during initialization', () => {
+    const requestMock = buildInitRequestMock();
+    const subscribeSpy = jest.spyOn(
+      requestMock.controllerMessenger,
+      'subscribe',
+    );
+
+    TransactionPayControllerInit(requestMock);
+
+    expect(subscribeSpy).toHaveBeenCalledWith(
+      'TransactionPayController:solanaPayLifecycle',
+      expect.any(Function),
+    );
+    expect(trackSolanaPayLifecycle).not.toHaveBeenCalled();
   });
 
   it('wires fiat test options through controller options', () => {

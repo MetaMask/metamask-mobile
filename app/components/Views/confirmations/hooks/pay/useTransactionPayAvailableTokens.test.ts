@@ -1,7 +1,13 @@
-import { EthAccountType } from '@metamask/keyring-api';
-import { TransactionType } from '@metamask/transaction-controller';
+import { EthAccountType, SolScope } from '@metamask/keyring-api';
+import {
+  TransactionType,
+  type MetamaskPaySource,
+} from '@metamask/transaction-controller';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import {
+  filterSolanaPayTokens,
+  useTransactionPayAvailableTokens,
+} from './useTransactionPayAvailableTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { AssetType, TokenStandard } from '../../types/token';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -10,6 +16,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import {
   selectMetaMaskPayTokensFlags,
   MetaMaskPayTokensFlags,
+  selectSolanaPayEnabled,
 } from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('../send/useAccountTokens');
@@ -22,6 +29,7 @@ jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
     selectMetaMaskPayTokensFlags: jest.fn(),
+    selectSolanaPayEnabled: jest.fn(),
   }),
 );
 
@@ -46,6 +54,7 @@ describe('useTransactionPayAvailableTokens', () => {
   const selectMetaMaskPayTokensFlagsMock = jest.mocked(
     selectMetaMaskPayTokensFlags,
   );
+  const selectSolanaPayEnabledMock = jest.mocked(selectSolanaPayEnabled);
 
   const defaultPayTokensFlags: MetaMaskPayTokensFlags = {
     preferredTokens: { default: [], overrides: {} },
@@ -63,6 +72,7 @@ describe('useTransactionPayAvailableTokens', () => {
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
     jest.mocked(getAvailableTokens).mockReturnValue([TOKEN_MOCK]);
     selectMetaMaskPayTokensFlagsMock.mockReturnValue(defaultPayTokensFlags);
+    selectSolanaPayEnabledMock.mockReturnValue(false);
   });
 
   it('returns available tokens and hasTokens true when tokens exist', () => {
@@ -165,5 +175,59 @@ describe('useTransactionPayAvailableTokens', () => {
         blockedTokens: defaultBlocked,
       }),
     );
+  });
+});
+
+describe('filterSolanaPayTokens', () => {
+  const solanaToken = {
+    ...TOKEN_MOCK,
+    accountId: 'solana-account-id',
+    address: `${SolScope.Mainnet}/token:USDCMint`,
+    assetId: `${SolScope.Mainnet}/token:USDCMint`,
+    chainId: SolScope.Mainnet,
+  } as AssetType;
+  const solanaSource = {
+    sourceAccountId: `${SolScope.Mainnet}:account`,
+    sourceAssetId: solanaToken.assetId,
+  } as MetamaskPaySource;
+
+  it('removes a new Solana source when rollout is disabled', () => {
+    const tokens = [TOKEN_MOCK, solanaToken];
+
+    const result = filterSolanaPayTokens(tokens, false, undefined);
+
+    expect(result).toEqual([TOKEN_MOCK]);
+  });
+
+  it('includes Solana sources when rollout is enabled', () => {
+    const tokens = [TOKEN_MOCK, solanaToken];
+
+    const result = filterSolanaPayTokens(tokens, true, undefined);
+
+    expect(result).toEqual(tokens);
+  });
+
+  it('retains the admitted Solana source after rollout is disabled', () => {
+    const tokens = [TOKEN_MOCK, solanaToken];
+
+    const result = filterSolanaPayTokens(tokens, false, solanaSource);
+
+    expect(result).toEqual(tokens);
+  });
+
+  it('removes other Solana sources after rollout is disabled', () => {
+    const otherSolanaToken = {
+      ...solanaToken,
+      assetId: `${SolScope.Mainnet}/slip44:501`,
+      address: `${SolScope.Mainnet}/slip44:501`,
+    } as AssetType;
+
+    const result = filterSolanaPayTokens(
+      [solanaToken, otherSolanaToken],
+      false,
+      solanaSource,
+    );
+
+    expect(result).toEqual([solanaToken]);
   });
 });

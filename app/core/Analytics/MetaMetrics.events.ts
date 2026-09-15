@@ -141,6 +141,9 @@ enum EVENT_NAME {
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
 
+  // MetaMask Pay
+  METAMASK_PAY_SOLANA_LIFECYCLE = 'MetaMask Pay Solana Lifecycle',
+
   // Portfolio
   PORTFOLIO_LINK_CLICKED = 'Portfolio Link Clicked',
 
@@ -1009,6 +1012,11 @@ const events = {
   SEND_TRANSACTION_STARTED: generateOpt(EVENT_NAME.SEND_TRANSACTION_STARTED),
   SEND_TRANSACTION_COMPLETED: generateOpt(
     EVENT_NAME.SEND_TRANSACTION_COMPLETED,
+  ),
+
+  // MetaMask Pay
+  METAMASK_PAY_SOLANA_LIFECYCLE: generateOpt(
+    EVENT_NAME.METAMASK_PAY_SOLANA_LIFECYCLE,
   ),
   EXTERNAL_LINK_CLICKED: generateOpt(EVENT_NAME.EXTERNAL_LINK_CLICKED),
 

@@ -62,4 +62,17 @@ describe('getTransactionPayControllerInitMessenger', () => {
 
     expect(result).toBeInstanceOf(Messenger);
   });
+
+  it('delegates AnalyticsController:trackEvent', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerInitMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['AnalyticsController:trackEvent']),
+      }),
+    );
+  });
 });

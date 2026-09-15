@@ -326,9 +326,9 @@ function getSubmissionFailure(error: unknown): SolanaPaySubmissionResult {
     return { outcome: 'user-rejected' };
   }
   if (code !== undefined && INVALID_REQUEST_CODES.has(code)) {
-    return { outcome: 'not-submitted', reason: `snap-rpc-${code}` };
+    return { outcome: 'not-submitted', errorCode: 'construction_failed' };
   }
-  return { outcome: 'ambiguous', reason: 'snap_request_failed' };
+  return { outcome: 'ambiguous' };
 }
 
 export async function signAndSendSolanaPayTransaction({
@@ -345,7 +345,7 @@ export async function signAndSendSolanaPayTransaction({
     scope,
   });
   if (expectedPreparationId !== preparationId) {
-    return { outcome: 'not-submitted', reason: 'preparation_mismatch' };
+    return { outcome: 'not-submitted', errorCode: 'construction_failed' };
   }
   const account =
     Engine.context.AccountsController.state.internalAccounts.accounts[
@@ -354,7 +354,7 @@ export async function signAndSendSolanaPayTransaction({
   const snapId = account?.metadata.snap?.id;
 
   if (!snapId) {
-    return { outcome: 'not-submitted', reason: 'source_account_unavailable' };
+    return { outcome: 'not-submitted', errorCode: 'preflight_failed' };
   }
 
   try {
@@ -384,7 +384,7 @@ export async function signAndSendSolanaPayTransaction({
       return { outcome: 'submitted', transactionId: response.transactionId };
     }
 
-    return { outcome: 'ambiguous', reason: 'missing_transaction_id' };
+    return { outcome: 'ambiguous' };
   } catch (error) {
     return getSubmissionFailure(error);
   }
@@ -493,7 +493,7 @@ export async function submitSolanaPayFollowUp(
   request: SolanaPayFollowUpRequest,
 ): Promise<SolanaPaySubmissionResult> {
   if (!request.relayTransactionId) {
-    return { outcome: 'not-submitted', reason: 'missing_relay_transaction' };
+    return { outcome: 'not-submitted', errorCode: 'construction_failed' };
   }
 
   const amount = await getSettledAmount(request);
@@ -507,7 +507,7 @@ export async function submitSolanaPayFollowUp(
   const from = request.transaction.txParams.from;
 
   if (!nestedTransactions?.length || !updates.length || !from) {
-    return { outcome: 'not-submitted', reason: 'follow_up_data_unavailable' };
+    return { outcome: 'not-submitted', errorCode: 'construction_failed' };
   }
 
   updates.forEach(({ nestedTransactionIndex, data }) => {

@@ -13,6 +13,7 @@ import {
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
+import { AnalyticsControllerTrackEventAction } from '@metamask/analytics-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger<
@@ -62,6 +63,7 @@ export function getTransactionPayControllerMessenger(
 }
 
 type InitMessengerActions =
+  | AnalyticsControllerTrackEventAction
   | DelegationControllerSignDelegationAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignPersonalMessageAction
@@ -90,6 +92,7 @@ export function getTransactionPayControllerInitMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AnalyticsController:trackEvent',
       'DelegationController:signDelegation',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',

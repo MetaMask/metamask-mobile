@@ -1827,6 +1827,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           originGasOverhead: '500000',
           pollingTimeout: 180000,
           enabled: true,
+          solana: {
+            enabled: false,
+            minimumVersion: '8.13.0',
+          },
         },
         across: {
           fallbackGas: {

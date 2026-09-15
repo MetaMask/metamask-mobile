@@ -26,14 +26,25 @@ import {
   PreferredToken,
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
+  selectSolanaPayEnabled,
+  SOLANA_PAY_ENABLED_DEFAULT,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 import { RootState } from '../../../reducers';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('8.13.0'),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({ isRemoteFeatureFlagOverrideActivated: false }),
+);
 
 describe('MetaMask Pay Feature Flags', () => {
   it('returns default buffer step if not in feature flags', () => {
@@ -148,6 +159,68 @@ describe('MetaMask Pay Feature Flags', () => {
       };
 
     expect(selectMetaMaskPayFlags(state).stxDisabled).toEqual(true);
+  });
+});
+
+describe('selectSolanaPayEnabled', () => {
+  it('defaults to disabled when the rollout capability is missing', () => {
+    const result = selectSolanaPayEnabled(mockedEmptyFlagsState);
+
+    expect(result).toBe(SOLANA_PAY_ENABLED_DEFAULT);
+  });
+
+  it('returns true when the Relay Solana capability is explicitly enabled', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          payStrategies: {
+            relay: {
+              solana: { enabled: true, minimumVersion: '8.13.0' },
+            },
+          },
+        },
+      };
+
+    const result = selectSolanaPayEnabled(state);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when the minimum version is not met', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          payStrategies: {
+            relay: {
+              solana: { enabled: true, minimumVersion: '99.0.0' },
+            },
+          },
+        },
+      };
+
+    const result = selectSolanaPayEnabled(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('fails closed for a truthy non-boolean capability value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          payStrategies: {
+            relay: {
+              solana: { enabled: 'true', minimumVersion: '8.13.0' },
+            },
+          },
+        },
+      };
+
+    const result = selectSolanaPayEnabled(state);
+
+    expect(result).toBe(false);
   });
 });
 

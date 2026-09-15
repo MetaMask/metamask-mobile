@@ -223,6 +223,10 @@ const BASE_CONFIRMATIONS_FLAGS = [
           executeEnabled: false,
           gaslessEnabled: true,
           originGasOverhead: '300000',
+          solana: {
+            enabled: false,
+            minimumVersion: '8.13.0',
+          },
         },
         across: {
           apiBase: 'https://intents.uat-api.cx.metamask.io/across',
