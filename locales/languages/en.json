@@ -213,7 +213,7 @@
     "does_not_look_right": "Something doesn’t look right?",
     "report_an_issue": "Report an issue",
     "before_you_proceed": "Before you proceed",
-    "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while it's being set up. This will take less than a minute to complete.",
     "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
