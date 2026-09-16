@@ -7,6 +7,7 @@ import test from 'node:test';
 import {
   parseArgs,
   resolveLatestRun,
+  resolveRunsInWindow,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,
@@ -20,6 +21,11 @@ import {
   buildAiBriefing,
   buildMarkdown,
   buildSlack,
+  median,
+  scenarioFrameTotals,
+  aggregateWindow,
+  buildWindowMarkdown,
+  buildWindowSlack,
 } from './analyze-app-profiling.mjs';
 
 function profile(fileName, overrides = {}) {
@@ -545,4 +551,272 @@ test('Slack suppresses frames below five percent of JS work', () => {
   };
   assert.match(buildSlack(report), /No single frame reached 5% of JS work/);
   assert.doesNotMatch(buildSlack(report), /Top JS contributor: `smallFrame`/);
+});
+
+function windowScenario(
+  name,
+  { jsWorkMs, runtimeAndIdleMs = 100, frames = [] },
+) {
+  return groupProfiles([
+    profile(`browserstack-android-${name}.cpuprofile`, {
+      skillAudit: {
+        captureLengthMs: jsWorkMs + runtimeAndIdleMs,
+        jsWorkMs,
+        runtimeAndIdleMs,
+        topSwapsFrames: [],
+        topNonSwapsFrames: frames,
+      },
+    }),
+  ])[0];
+}
+
+function windowRunReport(runId, scenarios) {
+  return {
+    meta: {
+      runId,
+      runUrl: `https://github.com/MetaMask/metamask-mobile/actions/runs/${runId}`,
+      createdAt: `2026-09-16T0${runId}:00:00Z`,
+      profileCount: scenarios.length,
+      symbolicatedProfileCount: 0,
+    },
+    scenarios,
+  };
+}
+
+function threeRunWindow() {
+  const hotFrame = (selfMs) => ({ name: 'formatDate', selfMs, calls: 4 });
+  return aggregateWindow(
+    [
+      windowRunReport('1', [
+        windowScenario('Perps', {
+          jsWorkMs: 100,
+          frames: [hotFrame(40), { name: 'noise', selfMs: 2 }],
+        }),
+      ]),
+      windowRunReport('2', [
+        windowScenario('Perps', { jsWorkMs: 120, frames: [hotFrame(48)] }),
+      ]),
+      windowRunReport('3', [
+        windowScenario('Perps', { jsWorkMs: 400, frames: [hotFrame(60)] }),
+        windowScenario('Warm_Start', { jsWorkMs: 10, frames: [] }),
+      ]),
+    ],
+    {
+      lookbackHours: 24,
+      since: '2026-09-15T07:00:00.000Z',
+      until: '2026-09-16T07:00:00.000Z',
+      repo: 'MetaMask/metamask-mobile',
+    },
+  );
+}
+
+test('parseArgs reads the lookback window in hours or days', () => {
+  assert.equal(parseArgs(['--lookback-hours', '24']).lookbackHours, 24);
+  assert.equal(parseArgs(['--days', '2']).lookbackHours, 48);
+  assert.equal(parseArgs([]).lookbackHours, null);
+});
+
+test('resolveRunsInWindow keeps finished runs inside the window, newest first', () => {
+  const now = Date.parse('2026-09-16T07:00:00Z');
+  const runs = resolveRunsInWindow(
+    [
+      {
+        databaseId: 1,
+        event: 'schedule',
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2026-09-16T06:00:00Z',
+      },
+      {
+        // A failed run still profiled the scenarios it reached.
+        databaseId: 2,
+        event: 'schedule',
+        status: 'completed',
+        conclusion: 'failure',
+        createdAt: '2026-09-16T00:00:00Z',
+      },
+      {
+        databaseId: 3,
+        event: 'schedule',
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2026-09-14T00:00:00Z',
+      },
+      {
+        databaseId: 4,
+        event: 'workflow_dispatch',
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2026-09-16T05:00:00Z',
+      },
+      {
+        databaseId: 5,
+        event: 'schedule',
+        status: 'in_progress',
+        conclusion: null,
+        createdAt: '2026-09-16T06:30:00Z',
+      },
+    ],
+    { lookbackHours: 24, now },
+  );
+  assert.deepEqual(
+    runs.map((run) => run.databaseId),
+    [1, 2],
+  );
+});
+
+test('median takes the middle value and averages an even sample', () => {
+  assert.equal(median([3, 1, 2]), 2);
+  assert.equal(median([1, 2, 3, 6]), 2.5);
+  assert.equal(median([]), 0);
+});
+
+test('scenarioFrameTotals sums frame self time across segments', () => {
+  const scenario = groupProfiles([
+    profile('browserstack-android-Perps.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 50,
+        runtimeAndIdleMs: 50,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'formatDate', selfMs: 20, calls: 2 }],
+      },
+    }),
+    profile('browserstack-android-Perps.segment-2.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 50,
+        runtimeAndIdleMs: 50,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'formatDate', selfMs: 5, calls: 1 }],
+      },
+    }),
+  ])[0];
+  assert.deepEqual(scenarioFrameTotals(scenario), [
+    { name: 'formatDate', url: null, line: null, selfMs: 25, calls: 3 },
+  ]);
+});
+
+test('aggregateWindow reports per-run medians and how often a frame stayed hot', () => {
+  const window = threeRunWindow();
+  assert.equal(window.meta.runCount, 3);
+  assert.equal(window.meta.lookbackHours, 24);
+  const [perps] = window.scenarios;
+  assert.equal(perps.scenario, 'Perps');
+  assert.equal(perps.runsObserved, 3);
+  assert.equal(perps.runsTotal, 3);
+  assert.equal(perps.medianJsWorkMs, 120);
+  assert.equal(perps.minJsWorkMs, 100);
+  assert.equal(perps.maxJsWorkMs, 400);
+  assert.equal(perps.peakRunId, '3');
+  assert.equal(perps.spikeRatio, 3.33);
+  assert.deepEqual(
+    perps.contributors.map(({ name, runsHot, medianSelfMs }) => ({
+      name,
+      runsHot,
+      medianSelfMs,
+    })),
+    [{ name: 'formatDate', runsHot: 3, medianSelfMs: 48 }],
+  );
+  // A scenario missing from earlier runs keeps its own sample count.
+  const warmStart = window.scenarios.find(
+    (scenario) => scenario.scenario === 'Warm_Start',
+  );
+  assert.equal(warmStart.runsObserved, 1);
+});
+
+test('window digest drops frames that were hot in only one run', () => {
+  const [perps] = threeRunWindow().scenarios;
+  assert.equal(
+    perps.contributors.some((contributor) => contributor.name === 'noise'),
+    false,
+  );
+  assert.doesNotMatch(buildWindowSlack(threeRunWindow()), /noise/);
+});
+
+test('window shares divide by the same JS work the frames were summed over', () => {
+  const twoSegments = groupProfiles([
+    profile('browserstack-android-Perps.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 100,
+        runtimeAndIdleMs: 100,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'formatDate', selfMs: 10 }],
+      },
+    }),
+    profile('browserstack-android-Perps.segment-2.cpuprofile', {
+      skillAudit: {
+        jsWorkMs: 100,
+        runtimeAndIdleMs: 100,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'formatDate', selfMs: 10 }],
+      },
+    }),
+  ]);
+  const window = aggregateWindow([windowRunReport('1', twoSegments)], {
+    lookbackHours: 24,
+  });
+  const [scenario] = window.scenarios;
+  assert.equal(scenario.medianJsWorkMs, 200);
+  assert.equal(scenario.contributors[0].medianSelfMs, 20);
+  assert.equal(scenario.contributors[0].medianSharePct, 10);
+});
+
+test('a flat profile is named instead of hiding its repeated frames', () => {
+  const flat = aggregateWindow(
+    [
+      windowRunReport('1', [
+        windowScenario('Perps', {
+          jsWorkMs: 1000,
+          frames: [{ name: 'propagateParentContextChanges', selfMs: 20 }],
+        }),
+      ]),
+      windowRunReport('2', [
+        windowScenario('Perps', {
+          jsWorkMs: 1000,
+          frames: [{ name: 'propagateParentContextChanges', selfMs: 30 }],
+        }),
+      ]),
+    ],
+    { lookbackHours: 24 },
+  );
+  const [scenario] = flat.scenarios;
+  assert.equal(scenario.hasDominantFrame, false);
+  assert.equal(scenario.contributors.length, 1);
+  const slack = buildWindowSlack(flat);
+  assert.match(
+    slack,
+    /No scenario concentrated 5% of its JS work in one frame/,
+  );
+  assert.match(slack, /`propagateParentContextChanges` 25\.0 ms median self/);
+  assert.match(slack, /every scenario above stayed under 1\.5× its median/);
+  assert.match(
+    buildWindowMarkdown(flat),
+    /flat profile — every repeated frame stays below 5% of JS work/,
+  );
+});
+
+test('window Slack digest separates the median from the spikiest run', () => {
+  const slack = buildWindowSlack(threeRunWindow());
+  const [, disclaimer] = slack.split('\n');
+  assert.match(disclaimer, /testing experiment, not a production alert/);
+  assert.match(slack, /last 24h/);
+  assert.match(slack, /median JS 120\.0 ms \(range 100\.0 ms – 400\.0 ms\)/);
+  assert.match(slack, /Spikiest run <[^|]+\|3> at 400\.0 ms \(3\.33× the median\)/);
+  assert.match(
+    slack,
+    /`formatDate` 48\.0 ms median self, 40\.0% of JS work, hot in 3\/3 runs/,
+  );
+  // A spiky scenario must not be described as stable in the same digest.
+  assert.doesNotMatch(slack, /Run-to-run spread/);
+  assert.match(slack, /ran in 1\/3 runs/);
+  assert.match(slack, /Hermes CPU sampling only/);
+  assert.match(slack, /4\/4 profiles had no matching sourcemap/);
+});
+
+test('window markdown lists every run and its per-run numbers', () => {
+  const markdown = buildWindowMarkdown(threeRunWindow());
+  assert.match(markdown, /# Hermes CPU-profile analysis — last 24h/);
+  assert.match(markdown, /## Runs analyzed/);
+  assert.match(markdown, /Median JS work per run \| 120\.0 ms/);
+  assert.match(markdown, /Runs observed \| 3\/3/);
+  assert.match(markdown, /BrowserStack app-profiling metrics are excluded/);
 });

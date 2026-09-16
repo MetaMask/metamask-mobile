@@ -16,9 +16,15 @@
  * Usage:
  *   node tests/scripts/analyze-app-profiling.mjs
  *   node tests/scripts/analyze-app-profiling.mjs --run 123456789
+ *   node tests/scripts/analyze-app-profiling.mjs --lookback-hours 24
  *   node tests/scripts/analyze-app-profiling.mjs --scenario "Cold Start"
  *   node tests/scripts/analyze-app-profiling.mjs \
  *     --current-dir ./downloaded-test-results --skip-ai
+ *
+ * A single run samples each scenario once, so one capture cannot tell a
+ * reproducible hotspot from a one-off spike. `--lookback-hours` analyzes every
+ * scheduled run in the window and reports per-run medians plus how often each
+ * frame stayed hot.
  *
  * Requirements:
  *   - `gh` with actions:read when downloading a run
@@ -36,6 +42,16 @@ const DEFAULT_BRANCH = 'main';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const MAX_PROFILE_BYTES = 50 * 1024 * 1024;
 const TOP_FRAMES = 15;
+// The skill treats a frame below this share of JS work as unactionable, so the
+// window digest ignores it too.
+const MIN_CONTRIBUTOR_SHARE_PCT = 5;
+// Frames ranked per run before they are matched across runs. Wider than the
+// reported list so a frame that slips a few places still counts as repeated.
+const WINDOW_FRAMES_PER_RUN = 10;
+const WINDOW_SCENARIOS_IN_CHAT = 8;
+// A run whose JS work exceeds this multiple of the scenario median is called
+// out separately instead of being averaged into the headline number.
+const SPIKE_RATIO = 1.5;
 const KNOWN_PROJECTS = [
   'android-onboarding-seedless',
   'browserstack-android',
@@ -65,6 +81,7 @@ function parseArgs(argv) {
     skipDownload: false,
     scheduledOnly: true,
     dryRun: false,
+    lookbackHours: null,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -106,6 +123,14 @@ function parseArgs(argv) {
       case '--skip-download':
         args.skipDownload = true;
         break;
+      case '--lookback-hours':
+        args.lookbackHours = Number(next);
+        index += 1;
+        break;
+      case '--days':
+        args.lookbackHours = Number(next) * 24;
+        index += 1;
+        break;
       case '--any-run':
         args.scheduledOnly = false;
         break;
@@ -121,6 +146,12 @@ function parseArgs(argv) {
         break;
     }
   }
+  if (
+    args.lookbackHours != null &&
+    (!Number.isFinite(args.lookbackHours) || args.lookbackHours <= 0)
+  ) {
+    fail('--lookback-hours and --days must be positive numbers');
+  }
   return args;
 }
 
@@ -130,6 +161,8 @@ function printHelp() {
 
 Options:
   --run <id>             Performance workflow run id
+  --lookback-hours <n>   Analyze every run in the window and report medians
+  --days <n>             Same window expressed in days
   --scenario <text>      Analyze matching scenario names only
   --repo <owner/name>    GitHub repo (default: ${DEFAULT_REPO})
   --workflow <file>      Source workflow (default: ${DEFAULT_WORKFLOW})
@@ -160,7 +193,7 @@ function runGh(args) {
   return (result.stdout || '').trim();
 }
 
-function listLatestRuns({ repo, workflow, branch }) {
+function listLatestRuns({ repo, workflow, branch, limit = 20 }) {
   return JSON.parse(
     runGh([
       'run',
@@ -172,7 +205,7 @@ function listLatestRuns({ repo, workflow, branch }) {
       '--branch',
       branch,
       '--limit',
-      '20',
+      String(limit),
       '--json',
       'databaseId,conclusion,createdAt,event,url,headSha,status',
     ]) || '[]',
@@ -189,6 +222,27 @@ function resolveLatestRun(runs, { scheduledOnly = true } = {}) {
   return (
     eligible.find((run) => run.conclusion === 'success') || eligible[0] || null
   );
+}
+
+/**
+ * Every finished run started inside the lookback window, newest first. A
+ * failed run still captured profiles for the scenarios it reached, so it is
+ * kept as one more sample of the same scenarios.
+ */
+function resolveRunsInWindow(
+  runs,
+  { lookbackHours, now = Date.now(), scheduledOnly = true } = {},
+) {
+  const cutoff = now - lookbackHours * 60 * 60 * 1000;
+  return runs
+    .filter(
+      (run) =>
+        run.status === 'completed' &&
+        ['success', 'failure'].includes(run.conclusion) &&
+        (!scheduledOnly || run.event === 'schedule') &&
+        Date.parse(run.createdAt) >= cutoff,
+    )
+    .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 }
 
 function downloadArtifactPattern(runId, pattern, destination, repo) {
@@ -1041,6 +1095,414 @@ function buildSlack(report) {
   return lines.join('\n');
 }
 
+function median(values) {
+  const sorted = values.filter(Number.isFinite).sort((left, right) => left - right);
+  if (sorted.length === 0) {
+    return 0;
+  }
+  const middle = Math.floor(sorted.length / 2);
+  const value =
+    sorted.length % 2 === 1
+      ? sorted[middle]
+      : (sorted[middle - 1] + sorted[middle]) / 2;
+  return Number(value.toFixed(2));
+}
+
+/**
+ * Self time per frame across the profiles a single run kept for a scenario.
+ * One frame can appear in several segments, so its self time is summed before
+ * the frames are ranked.
+ */
+function scenarioFrameTotals(scenario) {
+  const totals = new Map();
+  for (const profile of scenario.profiles || []) {
+    const audit = profile.skillAudit;
+    if (!audit) {
+      continue;
+    }
+    for (const frame of [
+      ...(audit.topSwapsFrames || []),
+      ...(audit.topNonSwapsFrames || []),
+    ]) {
+      if (!(frame.selfMs > 0)) {
+        continue;
+      }
+      const current = totals.get(frame.name) || {
+        name: frame.name,
+        url: null,
+        line: null,
+        selfMs: 0,
+        calls: 0,
+      };
+      current.selfMs += frame.selfMs;
+      current.calls += frame.calls || 0;
+      if (!current.url && profile.symbolicated && frame.url) {
+        current.url = frame.url;
+        current.line = frame.line ?? null;
+      }
+      totals.set(frame.name, current);
+    }
+  }
+  return [...totals.values()]
+    .map((frame) => ({ ...frame, selfMs: Number(frame.selfMs.toFixed(2)) }))
+    .sort((left, right) => right.selfMs - left.selfMs);
+}
+
+/**
+ * Scenario captures run for minutes, so their millisecond totals are easier to
+ * compare when the large ones are expressed in seconds.
+ */
+function formatDuration(value) {
+  const ms = Number(value || 0);
+  return ms >= 10_000 ? `${(ms / 1000).toFixed(1)} s` : formatMs(ms);
+}
+
+function windowSignal(scenario) {
+  return scenario.medianJsWorkMs * (scenario.medianJsDutyPct / 100);
+}
+
+/**
+ * Collapses one report per run into per-scenario medians. A scenario is
+ * sampled once per run, so the median across runs is what separates a
+ * reproducible hotspot from a single noisy capture.
+ */
+function aggregateWindow(runReports, meta = {}) {
+  const runs = runReports.map((report) => ({
+    runId: report.meta.runId,
+    runUrl: report.meta.runUrl,
+    createdAt: report.meta.createdAt,
+    profileCount: report.meta.profileCount,
+    symbolicatedProfileCount: report.meta.symbolicatedProfileCount,
+    scenarioCount: report.scenarios.length,
+  }));
+
+  const grouped = new Map();
+  for (const report of runReports) {
+    for (const scenario of report.scenarios) {
+      const key = `${scenario.projectName}|${scenario.scenario}`;
+      const entry = grouped.get(key) || {
+        projectName: scenario.projectName,
+        scenario: scenario.scenario,
+        observations: [],
+      };
+      // Frame self times are summed over the profiles kept for the scenario,
+      // so the JS-work denominator has to be the same sum, not a per-profile
+      // average, or every share would be multiplied by the segment count.
+      entry.observations.push({
+        runId: report.meta.runId,
+        runUrl: report.meta.runUrl,
+        jsWorkMs: scenario.jsWorkMs,
+        jsDutyPct: scenario.jsDutyPct,
+        profileCount: scenario.profileCount,
+        attempts: scenario.attempts.length,
+        frames: scenarioFrameTotals(scenario).slice(0, WINDOW_FRAMES_PER_RUN),
+      });
+      grouped.set(key, entry);
+    }
+  }
+
+  const scenarios = [...grouped.values()]
+    .map((entry) => {
+      const jsWork = entry.observations.map(
+        (observation) => observation.jsWorkMs,
+      );
+      const medianJsWorkMs = median(jsWork);
+      const maxJsWorkMs = Math.max(...jsWork);
+      const peak = entry.observations.find(
+        (observation) => observation.jsWorkMs === maxJsWorkMs,
+      );
+
+      const frameStats = new Map();
+      for (const observation of entry.observations) {
+        for (const frame of observation.frames) {
+          const stat = frameStats.get(frame.name) || {
+            name: frame.name,
+            url: frame.url,
+            line: frame.line,
+            selfMs: [],
+            sharePct: [],
+          };
+          stat.selfMs.push(frame.selfMs);
+          stat.sharePct.push(
+            observation.jsWorkMs > 0
+              ? Number(((frame.selfMs / observation.jsWorkMs) * 100).toFixed(1))
+              : 0,
+          );
+          if (!stat.url && frame.url) {
+            stat.url = frame.url;
+            stat.line = frame.line;
+          }
+          frameStats.set(frame.name, stat);
+        }
+      }
+
+      // A frame that ranks high in a single run is noise; the window exists to
+      // keep the ones that stay hot in at least half of the runs that reached
+      // this scenario.
+      const minRunsHot = Math.max(1, Math.ceil(entry.observations.length / 2));
+      const contributors = [...frameStats.values()]
+        .map((stat) => ({
+          name: stat.name,
+          url: stat.url || null,
+          line: stat.line ?? null,
+          runsHot: stat.selfMs.length,
+          medianSelfMs: median(stat.selfMs),
+          medianSharePct: median(stat.sharePct),
+        }))
+        .filter((contributor) => contributor.runsHot >= minRunsHot)
+        .sort((left, right) => right.medianSelfMs - left.medianSelfMs)
+        .slice(0, 5);
+
+      return {
+        projectName: entry.projectName,
+        scenario: entry.scenario,
+        runsObserved: entry.observations.length,
+        runsTotal: runs.length,
+        medianJsWorkMs,
+        minJsWorkMs: Math.min(...jsWork),
+        maxJsWorkMs,
+        medianJsDutyPct: median(
+          entry.observations.map((observation) => observation.jsDutyPct),
+        ),
+        spikeRatio:
+          medianJsWorkMs > 0
+            ? Number((maxJsWorkMs / medianJsWorkMs).toFixed(2))
+            : 0,
+        peakRunId: peak?.runId || null,
+        peakRunUrl: peak?.runUrl || null,
+        // Long scenario captures spread JS work over thousands of frames, so
+        // the skill's 5% actionability bar is usually missed. Say so instead
+        // of dropping the repeated frames.
+        hasDominantFrame: contributors.some(
+          (contributor) =>
+            contributor.medianSharePct >= MIN_CONTRIBUTOR_SHARE_PCT,
+        ),
+        contributors,
+        observations: entry.observations.map(
+          ({ frames, ...observation }) => observation,
+        ),
+      };
+    })
+    .sort((left, right) => windowSignal(right) - windowSignal(left));
+
+  const profileCount = runs.reduce((total, run) => total + run.profileCount, 0);
+  return {
+    meta: {
+      mode: 'lookback-window',
+      lookbackHours: meta.lookbackHours || null,
+      since: meta.since || null,
+      until: meta.until || null,
+      repo: meta.repo || null,
+      generatedAt: new Date().toISOString(),
+      source: 'Hermes CPU sampling profiles only',
+      reasoningSkill: 'mms-swaps-cpu-profile-audit',
+      reasoningParser: meta.reasoningParser || null,
+      runCount: runs.length,
+      profileCount,
+      symbolicatedProfileCount: runs.reduce(
+        (total, run) => total + run.symbolicatedProfileCount,
+        0,
+      ),
+    },
+    runs,
+    scenarios,
+  };
+}
+
+function contributorLine(contributor, scenario) {
+  const location =
+    contributor.url
+      ? ` (${contributor.url}${contributor.line ? `:${contributor.line}` : ''})`
+      : '';
+  return `\`${contributor.name}\` ${formatMs(contributor.medianSelfMs)} median self, ${contributor.medianSharePct.toFixed(1)}% of JS work, hot in ${contributor.runsHot}/${scenario.runsObserved} runs${location}`;
+}
+
+function windowCoverageNote(scenario) {
+  return scenario.runsObserved < scenario.runsTotal
+    ? ` · ran in ${scenario.runsObserved}/${scenario.runsTotal} runs`
+    : '';
+}
+
+function buildWindowMarkdown(window) {
+  const { meta } = window;
+  const lines = [
+    `# Hermes CPU-profile analysis — last ${meta.lookbackHours}h`,
+    '',
+    `Window: ${meta.since} → ${meta.until}`,
+    `Runs: ${meta.runCount} · Scenarios: ${window.scenarios.length} · Hermes profiles: ${meta.profileCount}`,
+    `Profiles with a matching sourcemap: ${meta.symbolicatedProfileCount}/${meta.profileCount}`,
+    '',
+    '## Runs analyzed',
+    '',
+    '| Run | Started | Profiles | Scenarios |',
+    '|---|---|---:|---:|',
+  ];
+  for (const run of window.runs) {
+    lines.push(
+      `| [${run.runId}](${run.runUrl}) | ${run.createdAt || '—'} | ${run.profileCount} | ${run.scenarioCount} |`,
+    );
+  }
+  lines.push(
+    '',
+    '## Per-scenario medians across runs',
+    '',
+    'Each run samples a scenario once, so the median is the headline number and',
+    'the maximum is reported separately instead of being averaged into it.',
+    '',
+  );
+  for (const scenario of window.scenarios) {
+    lines.push(`### ${displayName(scenario.scenario)}`);
+    lines.push('| Metric | Value |', '|---|---:|');
+    lines.push(
+      `| Runs observed | ${scenario.runsObserved}/${scenario.runsTotal} |`,
+      `| Median JS work per run | ${formatDuration(scenario.medianJsWorkMs)} |`,
+      `| Range across runs | ${formatDuration(scenario.minJsWorkMs)} – ${formatDuration(scenario.maxJsWorkMs)} |`,
+      `| Median JS duty cycle | ${scenario.medianJsDutyPct.toFixed(1)}% |`,
+      `| Peak run | ${
+        scenario.peakRunId
+          ? `[${scenario.peakRunId}](${scenario.peakRunUrl}) (${scenario.spikeRatio}× the median)`
+          : '—'
+      } |`,
+      '',
+    );
+    if (scenario.contributors.length === 0) {
+      lines.push(
+        '**Outcome:** no frame stayed hot in half of the runs that reached this scenario.',
+        '',
+      );
+    } else {
+      lines.push(
+        scenario.hasDominantFrame
+          ? `**Outcome:** repeated frames, at least one above ${MIN_CONTRIBUTOR_SHARE_PCT}% of JS work.`
+          : `**Outcome:** flat profile — every repeated frame stays below ${MIN_CONTRIBUTOR_SHARE_PCT}% of JS work, so cost is spread rather than concentrated.`,
+        '',
+        '| Frame | Median self | Median share | Runs hot |',
+        '|---|---:|---:|---:|',
+      );
+      for (const contributor of scenario.contributors) {
+        lines.push(
+          `| \`${contributor.name}\`${contributor.url ? ` (${contributor.url}${contributor.line ? `:${contributor.line}` : ''})` : ''} | ${formatMs(contributor.medianSelfMs)} | ${contributor.medianSharePct.toFixed(1)}% | ${contributor.runsHot}/${scenario.runsObserved} |`,
+        );
+      }
+      lines.push('');
+    }
+    lines.push('| Run | JS work | JS duty | Profiles |', '|---|---:|---:|---:|');
+    for (const observation of scenario.observations) {
+      lines.push(
+        `| [${observation.runId}](${observation.runUrl}) | ${formatDuration(observation.jsWorkMs)} | ${observation.jsDutyPct}% | ${observation.profileCount} |`,
+      );
+    }
+    lines.push('');
+  }
+  if (meta.symbolicatedProfileCount < meta.profileCount) {
+    lines.push(
+      `_Caveat: ${meta.profileCount - meta.symbolicatedProfileCount}/${meta.profileCount} profiles had no matching sourcemap, so frame names cannot be traced to files or owners._`,
+      '',
+    );
+  }
+  lines.push(
+    '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
+    '',
+  );
+  return lines.join('\n');
+}
+
+function buildWindowSlack(window) {
+  const { meta } = window;
+  const lines = [
+    `*Hermes CPU-profile analysis — last ${meta.lookbackHours}h*`,
+    ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
+    '',
+    `_Window:_ ${meta.since?.slice(0, 16)}Z → ${meta.until?.slice(0, 16)}Z`,
+    `_Runs:_ ${meta.runCount} · _Scenarios:_ ${window.scenarios.length} · _Profiles:_ ${meta.profileCount}`,
+    '',
+    `*Highest-signal scenarios (median of ${meta.runCount} runs)*`,
+  ];
+  const scenarios = window.scenarios.slice(0, WINDOW_SCENARIOS_IN_CHAT);
+  // Repeating the same flat-profile sentence under every bullet buries the
+  // numbers, so it is stated once when it holds for the whole digest.
+  const allFlat = scenarios.every((scenario) => !scenario.hasDominantFrame);
+  if (allFlat) {
+    lines.push(
+      `_No scenario concentrated ${MIN_CONTRIBUTOR_SHARE_PCT}% of its JS work in one frame; the frames below are the widest ones that repeat across runs._`,
+    );
+  }
+  for (const scenario of scenarios) {
+    lines.push(
+      `• *${displayName(scenario.scenario)}* — median JS ${formatDuration(scenario.medianJsWorkMs)} (range ${formatDuration(scenario.minJsWorkMs)} – ${formatDuration(scenario.maxJsWorkMs)}), duty ${scenario.medianJsDutyPct.toFixed(1)}%${windowCoverageNote(scenario)}`,
+    );
+    if (scenario.contributors.length === 0) {
+      lines.push(
+        '  No frame stayed hot in half of the runs that reached this scenario.',
+      );
+    } else {
+      if (!allFlat && !scenario.hasDominantFrame) {
+        lines.push(
+          `  Flat profile — no repeated frame reaches ${MIN_CONTRIBUTOR_SHARE_PCT}% of JS work; the widest ones are:`,
+        );
+      }
+      for (const contributor of scenario.contributors.slice(0, 3)) {
+        lines.push(`  ${contributorLine(contributor, scenario)}`);
+      }
+    }
+    if (scenario.spikeRatio >= SPIKE_RATIO && scenario.peakRunUrl) {
+      lines.push(
+        `  Spikiest run <${scenario.peakRunUrl}|${scenario.peakRunId}> at ${formatDuration(scenario.maxJsWorkMs)} (${scenario.spikeRatio}× the median).`,
+      );
+    }
+  }
+  if (window.scenarios.length > scenarios.length) {
+    lines.push(
+      `_+${window.scenarios.length - scenarios.length} lower-signal scenarios in the workflow artifact._`,
+    );
+  }
+  // Stability is a result too: it says the medians above are not an artefact
+  // of one unlucky capture.
+  if (
+    scenarios.length > 0 &&
+    scenarios.every((scenario) => scenario.spikeRatio < SPIKE_RATIO)
+  ) {
+    lines.push(
+      '',
+      `_Run-to-run spread:_ every scenario above stayed under ${SPIKE_RATIO}× its median, so no single capture skews these numbers.`,
+    );
+  }
+  lines.push(
+    '',
+    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
+  );
+  if (meta.symbolicatedProfileCount < meta.profileCount) {
+    lines.push(
+      `_Caveat:_ ${meta.profileCount - meta.symbolicatedProfileCount}/${meta.profileCount} profiles had no matching sourcemap, so frame names cannot be traced to files or owners.`,
+    );
+  }
+  lines.push('_Disclaimer:_ Testing experiment only — not a production alert.');
+  return lines.join('\n');
+}
+
+function writeWindowOutputs(outputDirectory, window) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  const scenariosDirectory = path.join(outputDirectory, 'scenarios');
+  fs.mkdirSync(scenariosDirectory, { recursive: true });
+  for (const scenario of window.scenarios) {
+    fs.writeFileSync(
+      path.join(scenariosDirectory, `${sanitize(scenario.scenario)}.json`),
+      `${JSON.stringify(scenario, null, 2)}\n`,
+    );
+  }
+  fs.writeFileSync(
+    path.join(outputDirectory, 'report.json'),
+    `${JSON.stringify(window, null, 2)}\n`,
+  );
+  const markdown = `${buildWindowMarkdown(window)}\n`;
+  fs.writeFileSync(path.join(outputDirectory, 'report.md'), markdown);
+  fs.writeFileSync(path.join(outputDirectory, 'github-summary.md'), markdown);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack.md'),
+    `${buildWindowSlack(window)}\n`,
+  );
+}
+
 async function callClaude(briefing) {
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
   if (!apiKey) {
@@ -1102,78 +1564,55 @@ function writeOutputs(outputDirectory, report) {
   );
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const outputDirectory =
-    args.outDir ||
-    fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-profile-analysis-'));
-  let sourceDirectory = args.currentDir;
-  let sourcemapDirectory = args.currentDir;
-  let run = null;
+function downloadRunInputs({ runId, repo, workingDirectory }) {
+  const sourceDirectory = path.join(workingDirectory, 'source-profiles');
+  const sourcemapDirectory = path.join(workingDirectory, 'source-sourcemaps');
 
-  if (!sourceDirectory && args.skipDownload) {
-    fail('--current-dir is required with --skip-download');
+  // New runs expose small dedicated artifacts. Existing 6-hour runs keep
+  // the same named profiles inside their raw test-result artifacts.
+  const dedicated = downloadArtifactPattern(
+    runId,
+    'hermes-cpuprofiles-*',
+    sourceDirectory,
+    repo,
+  );
+  if (!dedicated || findHermesProfiles(sourceDirectory).length === 0) {
+    console.log('📥 Falling back to raw *-test-results-* artifacts');
+    downloadArtifactPattern(runId, '*-test-results-*', sourceDirectory, repo);
   }
 
-  if (!sourceDirectory) {
-    if (!args.run) {
-      run = resolveLatestRun(
-        listLatestRuns({
-          repo: args.repo,
-          workflow: args.workflow,
-          branch: args.branch,
-        }),
-        { scheduledOnly: args.scheduledOnly },
-      );
-      if (!run) {
-        fail('No matching performance run found');
-      }
-      args.run = String(run.databaseId);
-    }
-    sourceDirectory = path.join(outputDirectory, 'source-profiles');
-    sourcemapDirectory = path.join(outputDirectory, 'source-sourcemaps');
+  // Sourcemaps are accepted only from the same workflow run. Repacked APKs
+  // publish the two variants together; fresh builds publish one artifact per
+  // build profile. Missing or ambiguous variants remain unsymbolicated.
+  downloadArtifactPattern(
+    runId,
+    'performance-android-sourcemaps',
+    sourcemapDirectory,
+    repo,
+  );
+  downloadArtifactPattern(
+    runId,
+    'android-sourcemaps-main-*-with-srp',
+    path.join(sourcemapDirectory, 'with-srp'),
+    repo,
+  );
+  downloadArtifactPattern(
+    runId,
+    'android-sourcemaps-main-*-without-srp',
+    path.join(sourcemapDirectory, 'without-srp'),
+    repo,
+  );
 
-    // New runs expose small dedicated artifacts. Existing 6-hour runs keep
-    // the same named profiles inside their raw test-result artifacts.
-    const dedicated = downloadArtifactPattern(
-      args.run,
-      'hermes-cpuprofiles-*',
-      sourceDirectory,
-      args.repo,
-    );
-    if (!dedicated || findHermesProfiles(sourceDirectory).length === 0) {
-      console.log('📥 Falling back to raw *-test-results-* artifacts');
-      downloadArtifactPattern(
-        args.run,
-        '*-test-results-*',
-        sourceDirectory,
-        args.repo,
-      );
-    }
+  return { sourceDirectory, sourcemapDirectory };
+}
 
-    // Sourcemaps are accepted only from the same workflow run. Repacked APKs
-    // publish the two variants together; fresh builds publish one artifact per
-    // build profile. Missing or ambiguous variants remain unsymbolicated.
-    downloadArtifactPattern(
-      args.run,
-      'performance-android-sourcemaps',
-      sourcemapDirectory,
-      args.repo,
-    );
-    downloadArtifactPattern(
-      args.run,
-      'android-sourcemaps-main-*-with-srp',
-      path.join(sourcemapDirectory, 'with-srp'),
-      args.repo,
-    );
-    downloadArtifactPattern(
-      args.run,
-      'android-sourcemaps-main-*-without-srp',
-      path.join(sourcemapDirectory, 'without-srp'),
-      args.repo,
-    );
-  }
-
+function analyzeProfileDirectory({
+  sourceDirectory,
+  sourcemapDirectory,
+  workingDirectory,
+  scenarioFilter,
+  skillAnalyzerPath,
+}) {
   const files = [...new Set(findHermesProfiles(sourceDirectory))];
   if (files.length === 0) {
     fail('No named Hermes profiles found under hermes-cpuprofiles/');
@@ -1182,11 +1621,7 @@ async function main() {
   const sourcemaps = findAndroidSourcemaps(sourcemapDirectory);
   console.log(`🗺️ Verified same-run Android sourcemaps: ${sourcemaps.length}`);
 
-  const skillAnalyzerPath = findSkillAnalyzer();
-  console.log(
-    `🧭 Reasoning parser: ${path.relative(process.cwd(), skillAnalyzerPath)}`,
-  );
-  const convertedDirectory = path.join(outputDirectory, 'symbolicated');
+  const convertedDirectory = path.join(workingDirectory, 'symbolicated');
   const profiles = files.map((filePath, index) => {
     const sourcemapPath = selectSourcemap(filePath, sourcemaps);
     if (!sourcemapPath) {
@@ -1217,23 +1652,48 @@ async function main() {
       return loadProfile(filePath, skillAnalyzerPath);
     }
   });
-  const scenarios = groupProfiles(profiles, args.scenario);
+
+  const scenarios = groupProfiles(profiles, scenarioFilter);
   if (scenarios.length === 0) {
     fail(
-      args.scenario
-        ? `No Hermes scenario matched "${args.scenario}"`
+      scenarioFilter
+        ? `No Hermes scenario matched "${scenarioFilter}"`
         : 'No Hermes scenarios found',
     );
   }
+  return { profiles, scenarios };
+}
 
-  const report = {
+function analyzeRun({
+  args,
+  run = null,
+  runId = null,
+  workingDirectory,
+  skillAnalyzerPath,
+  localDirectory = null,
+}) {
+  const { sourceDirectory, sourcemapDirectory } = localDirectory
+    ? { sourceDirectory: localDirectory, sourcemapDirectory: localDirectory }
+    : downloadRunInputs({
+        runId,
+        repo: args.repo,
+        workingDirectory,
+      });
+
+  const { profiles, scenarios } = analyzeProfileDirectory({
+    sourceDirectory,
+    sourcemapDirectory,
+    workingDirectory,
+    scenarioFilter: args.scenario,
+    skillAnalyzerPath,
+  });
+
+  return {
     meta: {
-      runId: args.run,
+      runId,
       runUrl:
         run?.url ||
-        (args.run
-          ? `https://github.com/${args.repo}/actions/runs/${args.run}`
-          : null),
+        (runId ? `https://github.com/${args.repo}/actions/runs/${runId}` : null),
       createdAt: run?.createdAt || null,
       generatedAt: new Date().toISOString(),
       source: 'Hermes CPU sampling profiles only',
@@ -1248,6 +1708,52 @@ async function main() {
     scenarios,
     aiAnalysis: null,
   };
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const outputDirectory =
+    args.outDir ||
+    fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-profile-analysis-'));
+
+  if (!args.currentDir && args.skipDownload) {
+    fail('--current-dir is required with --skip-download');
+  }
+
+  const skillAnalyzerPath = findSkillAnalyzer();
+  console.log(
+    `🧭 Reasoning parser: ${path.relative(process.cwd(), skillAnalyzerPath)}`,
+  );
+
+  if (args.lookbackHours && !args.currentDir) {
+    await runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath });
+    return;
+  }
+
+  let run = null;
+  if (!args.currentDir && !args.run) {
+    run = resolveLatestRun(
+      listLatestRuns({
+        repo: args.repo,
+        workflow: args.workflow,
+        branch: args.branch,
+      }),
+      { scheduledOnly: args.scheduledOnly },
+    );
+    if (!run) {
+      fail('No matching performance run found');
+    }
+    args.run = String(run.databaseId);
+  }
+
+  const report = analyzeRun({
+    args,
+    run,
+    runId: args.run,
+    workingDirectory: outputDirectory,
+    skillAnalyzerPath,
+    localDirectory: args.currentDir,
+  });
 
   if (!args.skipAi && !args.dryRun) {
     report.aiAnalysis = await callClaude(buildAiBriefing(report));
@@ -1255,7 +1761,56 @@ async function main() {
   }
   writeOutputs(outputDirectory, report);
   console.log(
-    `✅ Wrote Hermes-only analysis for ${scenarios.length} scenarios to ${outputDirectory}`,
+    `✅ Wrote Hermes-only analysis for ${report.scenarios.length} scenarios to ${outputDirectory}`,
+  );
+}
+
+async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
+  const now = Date.now();
+  const runs = resolveRunsInWindow(
+    listLatestRuns({
+      repo: args.repo,
+      workflow: args.workflow,
+      branch: args.branch,
+      limit: Math.max(20, Math.ceil(args.lookbackHours / 6) * 2),
+    }),
+    { lookbackHours: args.lookbackHours, now, scheduledOnly: args.scheduledOnly },
+  );
+  if (runs.length === 0) {
+    fail(`No performance run finished in the last ${args.lookbackHours}h`);
+  }
+  console.log(
+    `🗓️ Runs in the last ${args.lookbackHours}h: ${runs
+      .map((run) => run.databaseId)
+      .join(', ')}`,
+  );
+
+  const runReports = [];
+  for (const run of runs) {
+    const runId = String(run.databaseId);
+    console.log(`\n▶️ Run ${runId} (${run.createdAt})`);
+    const runDirectory = path.join(outputDirectory, 'runs', runId);
+    const report = analyzeRun({
+      args,
+      run,
+      runId,
+      workingDirectory: runDirectory,
+      skillAnalyzerPath,
+    });
+    writeOutputs(runDirectory, report);
+    runReports.push(report);
+  }
+
+  const window = aggregateWindow(runReports, {
+    lookbackHours: args.lookbackHours,
+    since: new Date(now - args.lookbackHours * 60 * 60 * 1000).toISOString(),
+    until: new Date(now).toISOString(),
+    repo: args.repo,
+    reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
+  });
+  writeWindowOutputs(outputDirectory, window);
+  console.log(
+    `\n✅ Wrote a ${args.lookbackHours}h window analysis for ${window.scenarios.length} scenarios across ${runReports.length} runs to ${outputDirectory}`,
   );
 }
 
@@ -1268,6 +1823,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 export {
   parseArgs,
   resolveLatestRun,
+  resolveRunsInWindow,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,
@@ -1283,4 +1839,9 @@ export {
   buildAiBriefing,
   buildMarkdown,
   buildSlack,
+  median,
+  scenarioFrameTotals,
+  aggregateWindow,
+  buildWindowMarkdown,
+  buildWindowSlack,
 };

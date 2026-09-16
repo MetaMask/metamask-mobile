@@ -6,6 +6,10 @@
 # Claude adds optional short context only. BrowserStack app-profiling metrics
 # are intentionally not used.
 #
+# `lookback_hours` analyzes every scheduled run in a window instead of one run,
+# reporting per-run medians and how often each frame stayed hot. One run samples
+# a scenario once, which cannot separate a reproducible hotspot from noise.
+#
 # Ad-hoc only for now. Does not replace the 6-hour performance suite or the
 # weekly rollup automation.
 #
@@ -34,6 +38,11 @@ on:
     inputs:
       run_id:
         description: 'Performance workflow run id (blank = latest successful scheduled run on main)'
+        required: false
+        type: string
+        default: ''
+      lookback_hours:
+        description: 'Analyze every scheduled run in the last N hours and report medians (blank = single run)'
         required: false
         type: string
         default: ''
@@ -92,6 +101,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
           RUN_ID: ${{ inputs.run_id }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
           SCENARIO: ${{ inputs.scenario }}
           SKIP_AI: ${{ inputs.skip_ai }}
         run: |
@@ -102,7 +112,9 @@ jobs:
             --out-dir /tmp/analyze-app-profiling
             --repo "${GITHUB_REPOSITORY}"
           )
-          if [ -n "${RUN_ID}" ]; then
+          if [ -n "${LOOKBACK_HOURS}" ]; then
+            ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")
+          elif [ -n "${RUN_ID}" ]; then
             ARGS+=(--run "${RUN_ID}")
           fi
           if [ -n "${SCENARIO}" ]; then

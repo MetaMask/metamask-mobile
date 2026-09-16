@@ -72,6 +72,16 @@ disclaimer stating this is a testing experiment and not a production alert.
    node tests/scripts/analyze-app-profiling.mjs --run <id> --scenario "Cold Start Login" --skip-ai --out-dir /tmp/analyze-app-profiling
    ```
 
+   To cover every scheduled run in a window instead of a single capture, which
+   is what separates a repeated hotspot from one noisy run:
+
+   ```bash
+   node tests/scripts/analyze-app-profiling.mjs --lookback-hours 24 --skip-ai --out-dir /tmp/analyze-app-profiling
+   ```
+
+   Window mode writes the same `report.{json,md}` and `slack.md` names, plus a
+   full single-run analysis per run under `runs/<run-id>/`.
+
    `--skip-ai` is required here: you are the agent pass. The GitHub workflow
    can call Claude itself when `E2E_CLAUDE_API_KEY` is present.
 
