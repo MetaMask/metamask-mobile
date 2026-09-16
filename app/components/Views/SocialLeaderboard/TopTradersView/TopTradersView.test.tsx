@@ -18,6 +18,8 @@ import type {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
+import { readSnapshot } from './leaderboardSnapshot';
+import { REVEAL_DWELL_MS } from './components/useLeaderboardReveal';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
   getSortFilterOptionTestId,
@@ -53,6 +55,14 @@ const selectSort = (sort: LeaderboardSort) => {
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
+
+jest.mock('./leaderboardSnapshot', () => ({
+  ...jest.requireActual('./leaderboardSnapshot'),
+  readSnapshot: jest.fn(() => null),
+  writeSnapshot: jest.fn(),
+}));
+
+const mockReadSnapshot = jest.mocked(readSnapshot);
 
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
 const mockPlayImpact = jest.fn();
@@ -337,6 +347,7 @@ jest.mock('../analytics', () => {
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockReadSnapshot.mockReturnValue(null);
     resetTabResults();
     mockUseTopTradersHook.mockImplementation(
       (options?: UseTopTradersHookOptions) =>
@@ -868,6 +879,69 @@ describe('TopTradersView', () => {
       screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+  });
+
+  describe('previous-order reveal', () => {
+    it('does not read a snapshot unless the surface opts in', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expect(mockReadSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('reads the snapshot for the active ranking when opted in', () => {
+      renderWithProvider(<TopTradersView revealPreviousOrder />);
+
+      expect(mockReadSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({ type: LANDING_TAB }),
+      );
+    });
+
+    it('renders the remembered order before revealing the fresh one', () => {
+      jest.useFakeTimers();
+      try {
+        // The query has already answered (warm cache), so the only thing
+        // holding the fresh order back is the reveal dwell.
+        setTabResult(LANDING_TAB, { hasFetched: true });
+        // Remembered order is the reverse of the fixture order.
+        mockReadSnapshot.mockReturnValue(
+          [...fixtureTraders].reverse().map((trader, index) => ({
+            ...trader,
+            rank: index + 1,
+          })),
+        );
+
+        renderWithProvider(<TopTradersView revealPreviousOrder />);
+
+        const remembered = screen
+          .getAllByText(/\.eth$/)
+          .map((node) => node.props.children);
+        expect(remembered[0]).toBe('gamma.eth');
+
+        act(() => {
+          jest.advanceTimersByTime(REVEAL_DWELL_MS);
+        });
+
+        const revealed = screen
+          .getAllByText(/\.eth$/)
+          .map((node) => node.props.children);
+        expect(revealed[0]).toBe('alpha.eth');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('suppresses the loading skeleton while a snapshot stands in', () => {
+      setTabResult(LANDING_TAB, {
+        isLoading: true,
+        traders: [],
+        hasFetched: false,
+      });
+      mockReadSnapshot.mockReturnValue(fixtureTraders);
+
+      renderWithProvider(<TopTradersView revealPreviousOrder />);
+
+      expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    });
   });
 
   describe('injected row components', () => {
