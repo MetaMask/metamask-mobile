@@ -1,5 +1,5 @@
-import AppConstants from '../../../../core/AppConstants';
 import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
 
 export enum LimitOrderExecutionType {
   BUY = 'buy',
@@ -33,6 +33,12 @@ export const LIMIT_ORDER_NEAR_MARKET_PERCENT = 1;
 export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
   AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 );
+
+/**
+ * Cost tolerance in % that limit orders start with until the user picks
+ * another value.
+ */
+export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '2';
 
 export const SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES = [
   10, 60, 1440, 4320, 10080, 43200,
