@@ -6,6 +6,7 @@ import renderWithProviderBase from '../../../../../util/test/renderWithProvider'
 import TrendingTokenRowItem, {
   getAssetNavigationParams,
 } from './TrendingTokenRowItem';
+import { getTrendingTokenRowAddButtonTestId } from './TrendingTokenRowItem.testIds';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -1808,6 +1809,83 @@ describe('TrendingTokenRowItem', () => {
       );
 
       fireEvent.press(getByTestId('quick-trade-button'));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Add to watchlist button (onAddPress)', () => {
+    it('does not render the add button when onAddPress is not provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(
+        queryByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      ).toBeNull();
+    });
+
+    it('renders the add button when onAddPress is provided', () => {
+      const token = createMockToken();
+      const onAddPress = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onAddPress={onAddPress} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(
+        getByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onAddPress with the token when the add button is pressed', () => {
+      const token = createMockToken();
+      const onAddPress = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onAddPress={onAddPress} />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      );
+
+      expect(onAddPress).toHaveBeenCalledTimes(1);
+      expect(onAddPress).toHaveBeenCalledWith(token);
+    });
+
+    it('does not trigger row navigation when the add button is pressed', async () => {
+      const token = createMockToken();
+      const onAddPress = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onAddPress={onAddPress} />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      );
 
       await waitFor(() => {
         expect(mockNavigate).not.toHaveBeenCalled();

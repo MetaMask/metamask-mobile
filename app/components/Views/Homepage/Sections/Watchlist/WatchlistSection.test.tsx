@@ -40,6 +40,39 @@ jest.mock(
   }),
 );
 
+const mockUseSuggestedWatchlistItemsQuery = jest.fn();
+jest.mock(
+  '../../../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery',
+  () => ({
+    useSuggestedWatchlistItemsQuery: () =>
+      mockUseSuggestedWatchlistItemsQuery(),
+  }),
+);
+
+const mockMutate = jest.fn();
+jest.mock(
+  '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations',
+  () => ({
+    useTokenWatchlistAddItemMutation: () => ({
+      mutate: mockMutate,
+      isPending: false,
+    }),
+  }),
+);
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({ event: 'mock' });
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties });
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -55,13 +88,25 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
 jest.mock(
   '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => {
-    const { Text } = jest.requireActual('react-native');
+    const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
     const ReactActual = jest.requireActual('react');
-    const Mock = ({ token }: { token: { name: string } }) =>
+    const Mock = ({
+      token,
+      onAddPress,
+    }: {
+      token: { name: string };
+      onAddPress?: () => void;
+    }) =>
       ReactActual.createElement(
-        Text,
+        View,
         { testID: `row-${token.name}` },
-        token.name,
+        ReactActual.createElement(Text, null, token.name),
+        onAddPress
+          ? ReactActual.createElement(TouchableOpacity, {
+              testID: `row-add-${token.name}`,
+              onPress: onAddPress,
+            })
+          : null,
       );
     Mock.displayName = 'TrendingTokenRowItem';
     return {
@@ -90,21 +135,6 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../../images/watchlist-empty-dark.svg',
-  () => 'WatchlistEmptyDark',
-);
-jest.mock(
-  '../../../../../images/watchlist-empty-light.svg',
-  () => 'WatchlistEmptyLight',
-);
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
-  Theme: { Dark: 'dark', Light: 'light' },
-  useTheme: () => 'light',
-}));
-
 jest.mock('../../../Wallet/WalletView.testIds', () => ({
   WalletViewSelectorsIDs: {
     HOMEPAGE_SECTION_TITLE: (name: string) => `homepage-section-title-${name}`,
@@ -127,10 +157,29 @@ const makeWatchlistToken = (name: string) => ({
   },
 });
 
+const makeSuggestedToken = (name: string) => ({
+  assetId: `eip155:1/erc20:0x${name}`,
+  symbol: name.toUpperCase(),
+  name,
+  decimals: 18,
+  balance: '0',
+  isInWallet: false,
+  marketData: {
+    price: 100,
+    pricePercentChange24h: 1.5,
+    marketCap: 1_000_000,
+    totalVolume: 500_000,
+  },
+});
+
 describe('WatchlistSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
   });
 
   it('keeps the shared performance hook on its legacy metadata contract', () => {
@@ -178,24 +227,89 @@ describe('WatchlistSection', () => {
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
-  it('shows empty state when watchlist has no items', () => {
+  it('renders suggested tokens with add buttons when the watchlist is empty', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
       refetch: jest.fn(),
     });
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [makeSuggestedToken('bitcoin'), makeSuggestedToken('ethereum')],
+      isLoading: false,
+    });
 
-    const { getByTestId, getAllByText, getByText } = render(
+    const { getByTestId, getByText } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(getByTestId('watchlist-empty-icon')).toBeDefined();
-    expect(getAllByText('Watchlist').length).toBeGreaterThanOrEqual(1);
-    expect(getByText('You have no watchlist items yet')).toBeDefined();
-    // Translations long enough to wrap fall back to left alignment without this.
-    expect(getByText('You have no watchlist items yet')).toHaveStyle({
-      textAlign: 'center',
+    expect(getByTestId('watchlist-empty-state')).toBeDefined();
+    expect(getByText('Tap + to add a token to your watchlist.')).toBeDefined();
+    expect(getByTestId('row-bitcoin')).toBeDefined();
+    expect(getByTestId('row-ethereum')).toBeDefined();
+    expect(getByTestId('row-add-bitcoin')).toBeDefined();
+    expect(getByTestId('row-add-ethereum')).toBeDefined();
+  });
+
+  it('adds a suggested token to the watchlist when its add button is pressed', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
     });
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [makeSuggestedToken('bitcoin')],
+      isLoading: false,
+    });
+
+    const { getByTestId } = render(
+      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    fireEvent.press(getByTestId('row-add-bitcoin'));
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(mockMutate).toHaveBeenCalledWith(
+      'eip155:1/erc20:0xbitcoin',
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+  });
+
+  it('shows suggested-token skeletons while suggestions are loading', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    });
+
+    const { getAllByTestId } = render(
+      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
+  });
+
+  it('renders only the empty subtitle when no suggested tokens are available', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    const { getByTestId, getByText, queryByTestId } = render(
+      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    expect(getByTestId('watchlist-empty-state')).toBeDefined();
+    expect(getByText('Tap + to add a token to your watchlist.')).toBeDefined();
+    expect(queryByTestId('row-add-bitcoin')).toBeNull();
   });
 
   it('renders up to 3 tokens when watchlist has items (newest first)', () => {
