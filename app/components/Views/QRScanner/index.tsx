@@ -6,14 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import {
-  Alert,
-  DeviceEventEmitter,
-  Image,
-  InteractionManager,
-  View,
-  Linking,
-} from 'react-native';
+import { Alert, DeviceEventEmitter, Image, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -33,6 +26,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/intent/handleBrowserUrl';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -453,8 +447,10 @@ const QRScanner = ({
             })
             .build(),
         );
-        // Open the URL and end the scanner
-        await Linking.openURL(content);
+        // Open generic HTTP(S) URLs in the in-app browser. Linking.openURL
+        // re-enters DeeplinkManager, which treats non-MetaMask hosts as
+        // INVALID and shows "This page doesn't exist".
+        handleBrowserUrl({ url: content });
         end();
         return;
       }
@@ -617,12 +613,12 @@ const QRScanner = ({
                 .build(),
             );
             end();
-            InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
                 predefinedRecipient,
               });
-            });
+            }, 0);
             return;
           }
           ///: END:ONLY_INCLUDE_IF
@@ -664,12 +660,12 @@ const QRScanner = ({
 
             end();
 
-            InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
                 predefinedRecipient,
               });
-            });
+            }, 0);
 
             return;
           }
@@ -723,7 +719,7 @@ const QRScanner = ({
         ) {
           shouldReadBarCodeRef.current = false;
           data = {
-            private_key: content.length === 64 ? content : content.substr(2),
+            private_key: content.length === 64 ? content : content.substring(2),
           };
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -821,9 +817,9 @@ const QRScanner = ({
     }
 
     navigation.goBack();
-    InteractionManager.runAfterInteractions(() => {
+    setTimeout(() => {
       showCameraNotAuthorizedAlert();
-    });
+    }, 0);
   }, [
     hasPermission,
     isAddDeviceScanner,
@@ -847,11 +843,11 @@ const QRScanner = ({
   const onError = useCallback(
     (error: Error) => {
       navigation.goBack();
-      InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
         if (onScanError && error) {
           onScanError(error.message);
         }
-      });
+      }, 0);
     },
     [onScanError, navigation],
   );
