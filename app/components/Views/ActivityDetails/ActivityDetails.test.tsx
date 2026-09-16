@@ -9,8 +9,6 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
 import ActivityDetails from './ActivityDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
-// eslint-disable-next-line import-x/no-restricted-paths -- same query the screen uses
-import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { useParams } from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths -- test controls the shared speed-up/cancel actions hook
 import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
@@ -30,14 +28,6 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 
 jest.mock('./hooks/useActivityDetailsItem', () => ({
   useActivityDetailsItem: jest.fn(),
-}));
-
-jest.mock('../ActivityList/useTransactionsQuery', () => ({
-  useTransactionsQuery: jest.fn(() => ({
-    data: { pages: [{ data: [] }] },
-    isPending: false,
-    isFetching: false,
-  })),
 }));
 
 // The title resolves the bridge quote via this selector; the screen test uses a
@@ -113,7 +103,6 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
 
 const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
-const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
 const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
 const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
@@ -153,18 +142,16 @@ const sendItem: ActivityListItem = {
 describe('ActivityDetails screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useTransactionsQueryMock.mockReturnValue({
-      data: { pages: [{ data: [] }] },
-      isPending: false,
-      isFetching: false,
-    } as unknown as ReturnType<typeof useTransactionsQuery>);
     mockIsFocused.mockReturnValue(true);
     useParamsMock.mockReturnValue({
       chainId: 'eip155:1',
       txIdentifier: '0xhash',
     });
     useUnifiedTxActionsMock.mockReturnValue(buildTxActions());
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     usePerpsDetailsItemMock.mockReturnValue({
       item: undefined,
       transaction: undefined,
@@ -178,7 +165,10 @@ describe('ActivityDetails screen', () => {
   });
 
   it('renders the template when the transaction resolves', () => {
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ActivityDetails />,
@@ -190,7 +180,10 @@ describe('ActivityDetails screen', () => {
   });
 
   it('renders a not-found message when the transaction cannot be resolved', () => {
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ActivityDetails />,
@@ -206,7 +199,10 @@ describe('ActivityDetails screen', () => {
     useUnifiedTxActionsMock.mockReturnValue(
       buildTxActions({ existingTx: pendingTx, speedUpIsOpen: true }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
@@ -214,19 +210,28 @@ describe('ActivityDetails screen', () => {
     fireEvent.press(getByTestId('mock-speedup-cancel-confirm'));
 
     // Replacement commits: the original tx is dropped and no longer resolves.
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('does not auto-dismiss when the item disappears without a speed-up/cancel (pending→confirmed flip)', () => {
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { rerender } = renderWithProvider(<ActivityDetails />);
 
     // No confirm; the item vanishes on the id→hash flip.
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -236,14 +241,20 @@ describe('ActivityDetails screen', () => {
     useUnifiedTxActionsMock.mockReturnValue(
       buildTxActions({ existingTx: pendingTx, speedUpIsOpen: true }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
     fireEvent.press(getByTestId('mock-speedup-cancel-confirm'));
 
     // Action failed: tx not replaced, item still resolves.
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -257,12 +268,18 @@ describe('ActivityDetails screen', () => {
         isQRHardwareAccount: true,
       }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
     fireEvent.press(getByTestId('mock-speedup-cancel-confirm'));
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -272,7 +289,10 @@ describe('ActivityDetails screen', () => {
     useUnifiedTxActionsMock.mockReturnValue(
       buildTxActions({ existingTx: pendingTx, speedUpIsOpen: true }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
@@ -281,19 +301,20 @@ describe('ActivityDetails screen', () => {
     // The screen is backgrounded (another screen pushed on top) when the
     // replacement commits — goBack must not pop whatever is now on top.
     mockIsFocused.mockReturnValue(false);
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('does not flash not-found while rematch is still loading', () => {
-    useActivityDetailsItemMock.mockReturnValue(undefined);
-    useTransactionsQueryMock.mockReturnValue({
-      data: undefined,
-      isPending: true,
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
       isFetching: true,
-    } as unknown as ReturnType<typeof useTransactionsQuery>);
+    });
 
     const { queryByTestId } = renderWithProvider(<ActivityDetails />);
 

@@ -3,4 +3,6 @@ export const TopTradersViewSelectorsIDs = {
   TYPE_SELECTOR: 'top-traders-view-type-selector',
   TIMEFRAME_SELECTOR: 'top-traders-view-timeframe-selector',
   SORT_SELECTOR: 'top-traders-view-sort-selector',
+  COHORT_SELECTOR: 'top-traders-view-cohort-selector',
+  RANKING_SELECTOR: 'top-traders-view-ranking-selector',
 } as const;
