@@ -124,6 +124,7 @@ const triggeredOrderTypeIDs = [
 
 let connectionReadySpy: jest.SpyInstance;
 let connectionSubscriptionSpy: jest.SpyInstance;
+let dateNowSpy: jest.SpyInstance | undefined;
 const issuedTwapReadPromises = new Set<Promise<TwapOrder[]>>();
 const activeTwapSubscriptions = new Set<symbol>();
 const settledChaseReadPromises = new Set<Promise<ChaseOrder[]>>();
@@ -330,9 +331,8 @@ afterEach(async () => {
     resetChaseOrderVisibilityForTests();
     // The TWAP elapsed journey pins Date.now; restore it here so a failed
     // assertion cannot leak a frozen clock into the next test.
-    if (jest.isMockFunction(Date.now)) {
-      Date.now.mockRestore();
-    }
+    dateNowSpy?.mockRestore();
+    dateNowSpy = undefined;
   }
 });
 
@@ -717,7 +717,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       // describes. Without this the schedule reads as decades old and clamps
       // to its full duration. A Date.now spy keeps timers real, which the
       // async findBy* assertions below depend on.
-      jest.spyOn(Date, 'now').mockReturnValue(completeTwap.startedAt + 60_000);
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(completeTwap.startedAt + 60_000);
       mockTwapOrders([completeTwap]);
       renderProMarketWithTwapFlag(true);
 
