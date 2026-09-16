@@ -12220,10 +12220,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/stellar-wallet-snap@npm:0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/stellar-wallet-snap@npm:0.1.0"
-  checksum: 10/373cebc4af1b95e3a9228b0ce2bea79fb71d6d61f86abb03f3160ed040469392307d4f932fe0189b13d555d729c14205eaad20ab6957ab6291888a4c00a3cc6e
+"@metamask/stellar-wallet-snap@npm:@metamask-previews/stellar-wallet-snap@1.0.0-preview-5f8b336f":
+  version: 1.0.0-preview-5f8b336f
+  resolution: "@metamask-previews/stellar-wallet-snap@npm:1.0.0-preview-5f8b336f"
+  checksum: 10/cb90c553db5d0bfd559757e6cc2dde79db200e6f802efc45c0b6893b321580b1d9d1628274e2871b213b22806c574614744cbb623d8d56d502f60992bd553909
   languageName: node
   linkType: hard
 
