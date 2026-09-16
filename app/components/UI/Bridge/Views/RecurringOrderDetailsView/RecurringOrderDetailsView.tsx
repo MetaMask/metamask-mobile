@@ -36,6 +36,7 @@ import OpenOrderRow from '../../components/OpenOrderRow';
 import { DetailRow } from '../../components/LimitOrderConfirmationModal/DetailRow';
 import type { BridgeToken } from '../../types';
 import { getTokenImageSource } from '../../utils';
+import { showRecurringOrderCanceledToast } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import {
   getRecurringOrderSwapCounts,
@@ -139,6 +140,11 @@ function RecurringOrderDetailsView() {
   }, []);
 
   const handleCloseCancelSheet = useCallback(() => {
+    setIsCancelSheetVisible(false);
+  }, []);
+
+  const handleConfirmCancel = useCallback(() => {
+    showRecurringOrderCanceledToast();
     setIsCancelSheetVisible(false);
   }, []);
 
@@ -391,7 +397,7 @@ function RecurringOrderDetailsView() {
       <RecurringOrderCancelSheet
         isVisible={isCancelSheetVisible}
         onClose={handleCloseCancelSheet}
-        onConfirm={handleCloseCancelSheet}
+        onConfirm={handleConfirmCancel}
       />
     </SafeAreaView>
   );
