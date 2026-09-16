@@ -24,7 +24,6 @@ import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/comp
 // eslint-disable-next-line import-x/no-restricted-paths -- mirrors WatchlistSection.tsx (ADR-0020 backlog)
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
-import { strings } from '../../../../../../locales/i18n';
 import { formatPriceWithSubscriptNotation } from '../../../../UI/Predict/utils/format';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
@@ -100,11 +99,14 @@ describeForPlatforms('WatchlistSection', () => {
   it('shows the empty section state and navigates to the full-screen empty CTA', async () => {
     setupWatchlistStorageMock(EMPTY_BLOB);
 
-    const { findByText, getByTestId, findByTestId } =
-      renderWatchlistSectionWithRoutes();
+    const { getByTestId, findByTestId } = renderWatchlistSectionWithRoutes();
 
+    // Empty state = suggested rows with add buttons below the header (no
+    // helper copy, matching the perps watchlist structure).
     expect(
-      await findByText(strings('token_watchlist.home_empty_subtitle')),
+      await findByTestId(
+        getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -114,24 +116,24 @@ describeForPlatforms('WatchlistSection', () => {
     await findByTestId(WatchlistEmptyCTATestIds.CONTAINER);
   });
 
-  it('shows perps-style suggested tokens with add buttons in the empty state', async () => {
+  it('shows suggested tokens with outline-star add buttons in the empty state', async () => {
     setupWatchlistStorageMock(EMPTY_BLOB);
 
-    const { findByText, findByTestId } = renderWatchlistSectionWithRoutes();
-
-    expect(
-      await findByText(strings('token_watchlist.home_empty_subtitle')),
-    ).toBeOnTheScreen();
+    const { findByTestId, getByTestId } = renderWatchlistSectionWithRoutes();
 
     // The suggested query hydrates the curated defaults; the token API mock
     // only serves ETH from those IDs, so exactly one suggested row renders.
     const suggestedRow = await findByTestId(getRowTestId('eip155:1/slip44:60'));
     expect(suggestedRow).toBeOnTheScreen();
+    const addButton = await findByTestId(
+      getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+    );
+    expect(addButton).toBeOnTheScreen();
+    // Outline star button exposes an accessibility label, matching perps.
     expect(
-      await findByTestId(
-        getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
-      ),
-    ).toBeOnTheScreen();
+      getByTestId(getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'))
+        .props.accessibilityLabel,
+    ).toBe('Add to watchlist');
   });
 
   it('adds a suggested token to the watchlist from the empty state', async () => {

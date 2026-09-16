@@ -5,6 +5,7 @@ import {
 } from './TrendingTokenRowItem.testIds';
 import { Pressable, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -17,7 +18,6 @@ import {
   BadgeWrapperPosition,
   ButtonIcon,
   ButtonIconSize,
-  ButtonIconVariant,
   Icon,
   IconName,
   IconSize,
@@ -93,7 +93,7 @@ interface TrendingTokenRowItemProps {
   testIdInstanceKey?: string;
   /** When provided, shows a circular Quick Trade button on the right of the row. */
   onQuickTrade?: (token: TrendingAsset) => void;
-  /** When provided, shows a perps-style add-to-watchlist (+) button on the right of the row. */
+  /** When provided, shows an outline star button (add to watchlist) on the right of the row. */
   onAddPress?: (token: TrendingAsset) => void;
 }
 
@@ -275,10 +275,10 @@ const TrendingTokenRowItem = ({
       </View>
       {onAddPress && (
         <ButtonIcon
-          iconName={IconName.Add}
+          iconName={IconName.Star}
           size={ButtonIconSize.Md}
-          variant={ButtonIconVariant.Filled}
           onPress={() => onAddPress(token)}
+          accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
           testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
         />
       )}
