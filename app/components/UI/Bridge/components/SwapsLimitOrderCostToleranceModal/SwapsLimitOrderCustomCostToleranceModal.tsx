@@ -100,7 +100,9 @@ export const SwapsLimitOrderCustomCostToleranceModal = () => {
       // Cap the value to the max and to the allowed decimals due to JS rounding issues
       return newValue >= COST_TOLERANCE_MAX
         ? String(COST_TOLERANCE_MAX)
-        : String(Number.parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)));
+        : String(
+            Number.parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)),
+          );
     });
   }, [resetCursor]);
 
@@ -113,7 +115,9 @@ export const SwapsLimitOrderCustomCostToleranceModal = () => {
       // Cap the value to the min and to the allowed decimals due to JS rounding issues
       return newValue <= COST_TOLERANCE_MIN
         ? String(COST_TOLERANCE_MIN)
-        : String(Number.parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)));
+        : String(
+            Number.parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)),
+          );
     });
   }, [resetCursor]);
 
