@@ -32,27 +32,34 @@ import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
 /**
- * Determines the close direction category for aggregation purposes.
+ * Determines the direction category for aggregation purposes.
  * Returns a normalized direction string for grouping fills that should be aggregated together.
+ * Opens, closes and flips all qualify: a single order that HyperLiquid filled in several
+ * pieces must be shown as one trade whichever way it moved the position.
  *
- * @param direction - The fill direction string (e.g., "Close Long", "Close Short", "Sell")
- * @returns A normalized close direction for grouping, or null if not a close fill
+ * @param direction - The fill direction string (e.g., "Close Long", "Open Short", "Long > Short")
+ * @returns A normalized direction for grouping, or null when the direction is unknown
  */
-function getCloseDirectionForAggregation(
+function getDirectionForAggregation(
   direction: string | undefined,
 ): string | null {
   if (!direction) return null;
 
   const [part1, part2] = direction.split(' ');
 
-  // Handle standard close directions
-  if (part1 === 'Close') {
-    return `Close ${part2}`; // "Close Long" or "Close Short"
+  // Handle standard open and close directions
+  if (part1 === 'Open' || part1 === 'Close') {
+    return `${part1} ${part2}`; // e.g. "Open Long" or "Close Short"
   }
 
-  // Handle spot-perps and prelaunch markets that use "Sell" for closing
-  if (direction === 'Sell') {
-    return 'Sell';
+  // Handle position flips, which HyperLiquid reports as "Long > Short"
+  if (part2 === '>') {
+    return direction;
+  }
+
+  // Handle spot-perps and prelaunch markets that use "Buy"/"Sell"
+  if (direction === 'Buy' || direction === 'Sell') {
+    return direction;
   }
 
   // Handle auto-deleveraging as a closeable position
@@ -60,59 +67,107 @@ function getCloseDirectionForAggregation(
     return 'Auto-Deleveraging';
   }
 
-  // Not a close fill - don't aggregate
+  // Unknown direction - don't aggregate
   return null;
 }
 
 /**
- * Aggregates fills that occur at the same timestamp for the same asset when closing positions.
- * This handles cases where a stop loss or take profit order is split into multiple fills
- * by HyperLiquid, ensuring users see the aggregate PnL instead of partial amounts.
+ * Aggregates the fills belonging to one trade so a trade the user placed once is shown once.
+ * HyperLiquid splits a single order across the book - over several price levels and, for larger
+ * orders, over several seconds - and each piece comes back as its own fill.
  *
- * Aggregation criteria:
- * - Same asset symbol
- * - Same timestamp (truncated to the same second)
- * - Same close direction (Close Long, Close Short, Sell, or Auto-Deleveraging)
+ * Fills are grouped when they share an asset and a direction category (Open Long, Close Short,
+ * Long > Short, Buy, Sell, Auto-Deleveraging...) and either of:
+ * - the same order id, which covers an order that filled across several seconds
+ * - the same second, which covers a trigger order HyperLiquid split into several child
+ * orders that fill together under different order ids
+ *
+ * Grouping is transitive, so fills linked by either rule end up in the same entry.
  *
  * For aggregated fills:
  * - Sizes are summed
  * - PnLs are summed
  * - Fees are summed
  * - Price is calculated as VWAP (Volume Weighted Average Price)
- * - First fill's orderId and metadata are preserved
+ * - Latest fill's orderId, timestamp and metadata are preserved
+ * - startPosition comes from the earliest fill, so it still describes the position before the order
  * - detailedOrderType (Stop Loss, Take Profit) is preserved from any grouped fill
  * - liquidation info is preserved from any grouped fill
  *
  * @param fills - Array of OrderFill objects to aggregate
- * @returns Array of OrderFill objects with close fills aggregated by timestamp
+ * @returns Array of OrderFill objects with each order's fills aggregated into one
  */
 export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
-  // Map to group fills by aggregation key
-  const aggregationMap = new Map<string, OrderFill[]>();
+  // Fills of one asset + direction that landed in the same second, keyed by that second
+  const secondGroups: { bucket: string; fills: OrderFill[] }[] = [];
+  const secondGroupByKey = new Map<
+    string,
+    { bucket: string; fills: OrderFill[] }
+  >();
   // Array to preserve non-aggregatable fills in order
   const nonAggregatableFills: OrderFill[] = [];
 
-  // Group fills by asset + timestamp (truncated to second) + close direction
+  // Group fills by asset + direction + the second they landed in
   for (const fill of fills) {
-    const closeDirection = getCloseDirectionForAggregation(fill.direction);
+    const direction = getDirectionForAggregation(fill.direction);
 
-    if (closeDirection === null) {
-      // Not a close fill - don't aggregate, preserve as-is
+    if (direction === null) {
+      // Unknown direction - don't aggregate, preserve as-is
       nonAggregatableFills.push(fill);
       continue;
     }
 
-    // Create aggregation key: asset + timestamp (truncated to second) + close direction
-    const timestampSecond = Math.floor(fill.timestamp / 1000);
-    const aggregationKey = `${fill.symbol}-${timestampSecond}-${closeDirection}`;
+    const bucket = `${fill.symbol}-${direction}`;
+    const secondKey = `${bucket}-${Math.floor(fill.timestamp / 1000)}`;
 
-    const existingGroup = aggregationMap.get(aggregationKey);
+    const existingGroup = secondGroupByKey.get(secondKey);
     if (existingGroup) {
-      existingGroup.push(fill);
+      existingGroup.fills.push(fill);
     } else {
-      aggregationMap.set(aggregationKey, [fill]);
+      const group = { bucket, fills: [fill] };
+      secondGroupByKey.set(secondKey, group);
+      secondGroups.push(group);
     }
   }
+
+  // Link the per-second groups that share an order id. An order large enough to walk the
+  // book fills over several seconds, and every one of those fills is still the one trade
+  // the user placed, so they have to end up in the same group.
+  const groupOwner = secondGroups.map((_group, index) => index);
+  const resolveOwner = (index: number): number => {
+    let owner = index;
+    while (groupOwner[owner] !== owner) {
+      owner = groupOwner[owner];
+    }
+    return owner;
+  };
+
+  const ownerByOrderKey = new Map<string, number>();
+  secondGroups.forEach((group, index) => {
+    for (const fill of group.fills) {
+      if (!fill.orderId) {
+        continue;
+      }
+      const orderKey = `${group.bucket}-${fill.orderId}`;
+      const knownOwner = ownerByOrderKey.get(orderKey);
+      if (knownOwner === undefined) {
+        ownerByOrderKey.set(orderKey, resolveOwner(index));
+      } else {
+        groupOwner[resolveOwner(index)] = resolveOwner(knownOwner);
+      }
+    }
+  });
+
+  const aggregationMap = new Map<number, OrderFill[]>();
+  secondGroups.forEach((group, index) => {
+    const owner = resolveOwner(index);
+    const owned = aggregationMap.get(owner);
+    if (owned) {
+      owned.push(...group.fills);
+    } else {
+      aggregationMap.set(owner, [...group.fills]);
+    }
+  });
 
   // Build aggregated fills
   const aggregatedFills: OrderFill[] = [];
@@ -124,8 +179,13 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       continue;
     }
 
-    // Aggregate multiple fills
-    const firstFill = groupedFills[0];
+    // Aggregate multiple fills. The latest fill stands in for the completed order, so the
+    // row keeps its place in a history sorted newest first; the earliest fill is the one
+    // that still describes the position the order started from.
+    const fillsOldestFirst = [...groupedFills].sort(
+      (a, b) => a.timestamp - b.timestamp,
+    );
+    const latestFill = fillsOldestFirst[fillsOldestFirst.length - 1];
 
     // Sum sizes, PnLs, and fees
     let totalSize = BigNumber(0);
@@ -138,7 +198,7 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
     let aggregatedLiquidation: OrderFill['liquidation'];
     let aggregatedStartPosition: string | undefined;
 
-    for (const fill of groupedFills) {
+    for (const fill of fillsOldestFirst) {
       const size = BigNumber(fill.size);
       const price = BigNumber(fill.price);
       const pnl = BigNumber(fill.pnl || '0');
@@ -159,7 +219,7 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
         aggregatedLiquidation = fill.liquidation;
       }
 
-      // Use the startPosition from the first fill (represents position before any fills)
+      // Use the startPosition from the earliest fill (position before any of these fills)
       if (fill.startPosition && !aggregatedStartPosition) {
         aggregatedStartPosition = fill.startPosition;
       }
@@ -167,25 +227,25 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
 
     // Calculate VWAP: totalNotional / totalSize
     const vwapPrice = totalSize.isZero()
-      ? BigNumber(firstFill.price)
+      ? BigNumber(latestFill.price)
       : totalNotional.dividedBy(totalSize);
 
     // Create aggregated fill
     const aggregatedFill: OrderFill = {
-      orderId: firstFill.orderId, // Use first fill's orderId
-      symbol: firstFill.symbol,
-      side: firstFill.side,
+      orderId: latestFill.orderId,
+      symbol: latestFill.symbol,
+      side: latestFill.side,
       size: totalSize.toString(),
       price: vwapPrice.toString(),
       pnl: totalPnl.toString(),
-      direction: firstFill.direction,
+      direction: latestFill.direction,
       fee: totalFee.toString(),
-      feeToken: firstFill.feeToken,
-      timestamp: firstFill.timestamp, // Use first fill's timestamp
+      feeToken: latestFill.feeToken,
+      timestamp: latestFill.timestamp, // Order is complete at its last fill
       startPosition: aggregatedStartPosition,
-      success: firstFill.success,
+      success: latestFill.success,
       liquidation: aggregatedLiquidation,
-      orderType: firstFill.orderType,
+      orderType: latestFill.orderType,
       detailedOrderType: aggregatedDetailedOrderType,
     };
 
