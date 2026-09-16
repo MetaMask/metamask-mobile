@@ -135,14 +135,15 @@ describe('PerpsPillItem', () => {
     expect(getByText('-0.50%')).toBeTruthy();
   });
 
-  it('renders leverage and price without a per-pill change interval', () => {
+  it('renders symbol and change without leverage, price, or a 24h suffix', () => {
     const { getByText, queryByText } = render(
       <PerpsPillItem item={buildItem('1.5')} />,
     );
 
-    expect(getByText('40x')).toBeTruthy();
-    expect(getByText('$3,000')).toBeTruthy();
+    expect(getByText('ETH')).toBeTruthy();
     expect(getByText('+1.50%')).toBeTruthy();
+    expect(queryByText('40x')).toBeNull();
+    expect(queryByText('$3,000')).toBeNull();
     expect(queryByText('24h')).toBeNull();
   });
 });

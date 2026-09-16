@@ -7,7 +7,6 @@ import {
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import { PerpsLeverage } from '../PerpsLeverage';
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
@@ -89,12 +88,6 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
         />
       }
       title={getPerpsDisplaySymbol(market.symbol)}
-      titleEndAccessory={
-        market.maxLeverage ? (
-          <PerpsLeverage maxLeverage={market.maxLeverage} />
-        ) : undefined
-      }
-      valueLabel={market.price}
       changeLabel={changeLabel}
       changeTextColor={changeTextColor}
     />
