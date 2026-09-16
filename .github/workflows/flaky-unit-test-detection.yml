@@ -52,6 +52,7 @@ jobs:
       # validation and sticky blob links refer to the same tree. fetch-depth: 0
       # is required so Stage 1 can diff origin/${base}...${headSha}.
       - name: Checkout repository
+        id: checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -66,7 +67,8 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install CI script dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        id: install
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -111,6 +113,7 @@ jobs:
       # analyzer's load_skill tool can find it (single source of truth — no
       # hand-duplicated pattern content in this repo).
       - name: Sync flaky-test-detection skill
+        id: skill-sync
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
@@ -136,6 +139,7 @@ jobs:
       # because AI_ANALYZER_TOKEN / AI_ANALYZER_LITELLM_KEY are not available
       # to workflows triggered from forks.
       - name: Checkout AI Analyzer
+        id: ai-checkout
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
@@ -149,6 +153,7 @@ jobs:
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
       - name: Install AI Analyzer dependencies
+        id: ai-install
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
@@ -166,6 +171,7 @@ jobs:
       # so a 1-2 line edit that introduces a flaky pattern must still be
       # analyzed instead of being skipped for being "too small".
       - name: Run flaky unit test AI analysis
+        id: ai
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
@@ -191,6 +197,7 @@ jobs:
       # analysis (should_analyze=false but has_test_files=true), the existing
       # comment is left untouched and Stage 3 is skipped. Never blocks the PR.
       - name: Post unified sticky comment
+        id: sticky
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' ||
           steps.detect-history.outputs.has_test_files == 'false'
@@ -201,3 +208,38 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: yarn flaky-sticky-comment
+
+      - name: Job summary
+        if: always()
+        env:
+          FLAKY_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FLAKY_SHOULD_ANALYZE: ${{ steps.detect-history.outputs.should_analyze }}
+          FLAKY_SKIP_REASON: ${{ steps.detect-history.outputs.skip_reason }}
+          FLAKY_HAS_TEST_FILES: ${{ steps.detect-history.outputs.has_test_files }}
+          FLAKY_MODIFIED_FILE_COUNT: ${{ steps.detect-history.outputs.modified_file_count }}
+          FLAKY_FILES_TO_ANALYZE_COUNT: ${{ steps.detect-history.outputs.files_to_analyze_count }}
+          FLAKY_HISTORICALLY_FLAKY_COUNT: ${{ steps.detect-history.outputs.historically_flaky_count }}
+          FLAKY_UNREAD_FAILED_RUNS: ${{ steps.detect-history.outputs.unread_failed_runs }}
+          FLAKY_MISSING_PRIOR_SHA_COUNT: ${{ steps.detect-history.outputs.missing_prior_sha_count }}
+          FLAKY_COMMENT_POSTED: ${{ steps.sticky.outputs.comment_posted }}
+          FLAKY_COMMENT_ACTION: ${{ steps.sticky.outputs.comment_action }}
+          FLAKY_FINDING_COUNT: ${{ steps.sticky.outputs.finding_count }}
+          FLAKY_STAGE3_SKIP_REASON: ${{ steps.sticky.outputs.skip_reason }}
+          FLAKY_CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          FLAKY_INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          FLAKY_STAGE1_OUTCOME: ${{ steps.detect-history.outcome }}
+          FLAKY_SKILL_SYNC_OUTCOME: ${{ steps.skill-sync.outcome }}
+          FLAKY_AI_CHECKOUT_OUTCOME: ${{ steps.ai-checkout.outcome }}
+          FLAKY_AI_INSTALL_OUTCOME: ${{ steps.ai-install.outcome }}
+          FLAKY_AI_OUTCOME: ${{ steps.ai.outcome }}
+          FLAKY_STAGE3_OUTCOME: ${{ steps.sticky.outcome }}
+        run: |
+          if [ -f .github/scripts/node_modules/.bin/ts-node ]; then
+            yarn --cwd .github/scripts flaky-job-summary
+          else
+            {
+              echo "## Flaky unit test detection"
+              echo
+              echo "**Stopped before analysis.** Checkout, Node setup, or yarn install did not complete, so Stage 1 never ran."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

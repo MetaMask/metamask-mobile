@@ -121,6 +121,31 @@ interface Comment {
   body?: string;
 }
 
+type CommentAction = 'created' | 'updated' | 'all_clear' | 'none';
+type Stage3SkipReason =
+  | 'missing_token_or_pr'
+  | 'history_artifact_missing'
+  | 'comment_api_failed'
+  | 'stage3_crash'
+  | '';
+
+function setStage3Outputs({
+  commentPosted,
+  commentAction,
+  findingCount,
+  skipReason,
+}: {
+  commentPosted: boolean;
+  commentAction: CommentAction;
+  findingCount: number;
+  skipReason: Stage3SkipReason;
+}): void {
+  core.setOutput('comment_posted', commentPosted ? 'true' : 'false');
+  core.setOutput('comment_action', commentAction);
+  core.setOutput('finding_count', String(findingCount));
+  core.setOutput('skip_reason', skipReason);
+}
+
 const env = {
   token: process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? '',
   repo: process.env.GITHUB_REPOSITORY ?? '',
@@ -349,6 +374,12 @@ async function findExistingStickyComment(
 async function main(): Promise<void> {
   if (!env.token || !env.repo || !env.prNumber) {
     console.log('⏭️  Missing token/repo/PR number — skipping sticky comment');
+    setStage3Outputs({
+      commentPosted: false,
+      commentAction: 'none',
+      findingCount: 0,
+      skipReason: 'missing_token_or_pr',
+    });
     return;
   }
 
@@ -356,6 +387,12 @@ async function main(): Promise<void> {
     console.log(
       '⏭️  History artifact missing — Stage 1 did not complete, skipping',
     );
+    setStage3Outputs({
+      commentPosted: false,
+      commentAction: 'none',
+      findingCount: 0,
+      skipReason: 'history_artifact_missing',
+    });
     return;
   }
 
@@ -529,6 +566,12 @@ async function main(): Promise<void> {
       console.log(
         '✅ No findings and no existing sticky comment — nothing to do',
       );
+      setStage3Outputs({
+        commentPosted: false,
+        commentAction: 'none',
+        findingCount: mergedFindings.length,
+        skipReason: '',
+      });
       return;
     }
 
@@ -548,6 +591,12 @@ async function main(): Promise<void> {
         }),
       });
       console.log('📝 Created sticky flaky-test-detection comment');
+      setStage3Outputs({
+        commentPosted: true,
+        commentAction: 'created',
+        findingCount: mergedFindings.length,
+        skipReason: '',
+      });
       return;
     }
 
@@ -569,6 +618,12 @@ async function main(): Promise<void> {
       console.log(
         '🔄 Updated sticky flaky-test-detection comment with latest findings',
       );
+      setStage3Outputs({
+        commentPosted: true,
+        commentAction: 'updated',
+        findingCount: mergedFindings.length,
+        skipReason: '',
+      });
       return;
     }
 
@@ -584,13 +639,31 @@ async function main(): Promise<void> {
     console.log(
       '🎉 Updated sticky comment — all previously flagged issues are fixed',
     );
+    setStage3Outputs({
+      commentPosted: true,
+      commentAction: 'all_clear',
+      findingCount: 0,
+      skipReason: '',
+    });
   } catch (error) {
     core.warning(
       `Failed to manage sticky comment: ${(error as Error).message}`,
     );
+    setStage3Outputs({
+      commentPosted: false,
+      commentAction: 'none',
+      findingCount: 0,
+      skipReason: 'comment_api_failed',
+    });
   }
 }
 
 main().catch((error: Error) => {
   core.warning(`Stage 3 failed: ${error.message}`);
+  setStage3Outputs({
+    commentPosted: false,
+    commentAction: 'none',
+    findingCount: 0,
+    skipReason: 'stage3_crash',
+  });
 });
