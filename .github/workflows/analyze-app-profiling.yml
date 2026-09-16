@@ -1,0 +1,150 @@
+# Ad-hoc per-scenario app profiling analysis
+#
+# Downloads Hermes CPU profiles from a scheduled performance E2E run, groups
+# every segment and retry by scenario, symbolicates with verified same-run
+# Android sourcemaps when available, then emits deterministic skill timing.
+# Claude adds optional short context only. BrowserStack app-profiling metrics
+# are intentionally not used.
+#
+# Ad-hoc only for now. Does not replace the 6-hour performance suite or the
+# weekly rollup automation.
+#
+# NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
+# on the default branch, so this cannot be launched from a PR branch. The
+# `pull_request` trigger exists to exercise it before it lands: a PR that
+# touches the analysis workflow or its script runs the PR branch's own version
+# against the latest scheduled performance run. The `run-app-profiling-analysis`
+# label re-runs it on demand without a new commit.
+
+name: Analyze App Profiling
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+    paths:
+      - '.github/workflows/analyze-app-profiling.yml'
+      - '.github/workflows/build-android-upload-to-browserstack.yml'
+      - 'tests/scripts/analyze-app-profiling.mjs'
+      - 'tests/scripts/analyze-app-profiling.test.mjs'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Performance workflow run id (blank = latest successful scheduled run on main)'
+        required: false
+        type: string
+        default: ''
+      scenario:
+        description: 'Optional exact scenario title filter (blank = all scenarios in the run)'
+        required: false
+        type: string
+        default: ''
+      skip_ai:
+        description: 'Skip Claude analysis (Hermes summaries only)'
+        required: false
+        type: boolean
+        default: false
+      post_to_slack:
+        description: 'Send the analysis summary to the personal testing Slack DM'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  # A quick sequence of PR pushes should produce only the newest analysis and
+  # one Slack DM. Manual dispatches remain independent by using their run id.
+  group: analyze-app-profiling-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze per-scenario profiling
+    # PR runs are a pre-merge smoke test of this workflow, so they are
+    # restricted to same-repo PRs where the secrets are available. Unrelated
+    # labels must not re-trigger it, hence the label name check.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (!github.event.pull_request.head.repo.fork &&
+       (github.event.action != 'labeled' ||
+        github.event.label.name == 'run-app-profiling-analysis'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup JavaScript dependencies
+        uses: ./.github/actions/setup-ci-js-deps
+
+      - name: Load MetaMask performance analysis skills
+        run: yarn skills
+
+      - name: Analyze app profiling
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          RUN_ID: ${{ inputs.run_id }}
+          SCENARIO: ${{ inputs.scenario }}
+          SKIP_AI: ${{ inputs.skip_ai }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          ARGS=(
+            node tests/scripts/analyze-app-profiling.mjs
+            --out-dir /tmp/analyze-app-profiling
+            --repo "${GITHUB_REPOSITORY}"
+          )
+          if [ -n "${RUN_ID}" ]; then
+            ARGS+=(--run "${RUN_ID}")
+          fi
+          if [ -n "${SCENARIO}" ]; then
+            ARGS+=(--scenario "${SCENARIO}")
+          fi
+          if [ "${SKIP_AI}" = "true" ]; then
+            ARGS+=(--skip-ai)
+          fi
+          "${ARGS[@]}"
+
+      - name: Write job summary
+        if: always()
+        run: |
+          if [ -f /tmp/analyze-app-profiling/github-summary.md ]; then
+            cat /tmp/analyze-app-profiling/github-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No analysis summary was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload analysis artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-profiling-analysis
+          path: /tmp/analyze-app-profiling/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Post Slack summary
+        # Label runs always post: seeing the message arrive is the point of the
+        # pre-merge test. Dispatch runs honour the checkbox.
+        if: >-
+          ${{ success() &&
+          (github.event_name != 'workflow_dispatch' || inputs.post_to_slack) }}
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          # Slack member id, not a public channel or a `D...` conversation id.
+          # Addressing the member sends this only to the bot's personal DM
+          # with Javier and needs `chat:write` rather than `im:write`.
+          SLACK_TARGET: UEYQL2PEV
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node tests/scripts/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/slack.md

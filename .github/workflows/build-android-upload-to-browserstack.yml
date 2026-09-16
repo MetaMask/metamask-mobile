@@ -710,6 +710,17 @@ jobs:
           mv artifacts/with-srp-repacked artifacts/with-srp
           mv artifacts/without-srp-repacked artifacts/without-srp
 
+      - name: Upload repacked Android sourcemaps
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: actions/upload-artifact@v7
+        with:
+          name: performance-android-sourcemaps
+          path: sourcemaps/android/*.map
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload APKs to BrowserStack
         id: browserstack-upload
         env:
