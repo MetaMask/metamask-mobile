@@ -223,10 +223,14 @@ const DeleteWalletModal: React.FC = () => {
                 : undefined
             }
             onClose={triggerClose}
-            backButtonProps={{
-              testID: ForgotPasswordModalSelectorsIDs.BACK_BUTTON,
-              isDisabled: isDeletingWallet,
-            }}
+            backButtonProps={
+              !isResetWalletFromParams
+                ? {
+                    testID: ForgotPasswordModalSelectorsIDs.BACK_BUTTON,
+                    isDisabled: isDeletingWallet,
+                  }
+                : undefined
+            }
             closeButtonProps={{
               testID: ForgotPasswordModalSelectorsIDs.CLOSE_BUTTON,
               isDisabled: isDeletingWallet,
