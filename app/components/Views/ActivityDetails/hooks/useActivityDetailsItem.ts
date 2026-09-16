@@ -189,9 +189,11 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
+    // Match the activity list (`transformApiTransactions`): API from/to are
+    // lowercase while account addresses are often EIP-55 checksummed.
     const activity = {
       ...mapApiTransaction({
-        subjectAddress: evmAddress,
+        subjectAddress: evmAddress.toLowerCase(),
         transaction: apiTransaction,
       }),
       raw: { type: 'apiEvmTransaction' as const, data: apiTransaction },

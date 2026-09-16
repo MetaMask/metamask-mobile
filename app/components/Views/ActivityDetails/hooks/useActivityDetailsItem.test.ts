@@ -414,6 +414,68 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
   });
 
+  it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {
+    const checksummedSubject = '0x1234567890AbCdEf1234567890aBcDeF12345678';
+    const lowercaseSubject = checksummedSubject.toLowerCase();
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [];
+      }
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return { address: checksummedSubject };
+      }
+      if (selector === selectEvmAddress) {
+        return checksummedSubject;
+      }
+      return { transactions: [] };
+    });
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchedreceive',
+        from: counterparty,
+        to: lowercaseSubject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '1',
+        transactionCategory: 'TRANSFER',
+        valueTransfers: [
+          {
+            from: counterparty,
+            to: lowercaseSubject,
+            amount: '1',
+            decimal: 18,
+            contractAddress: '',
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
   it('reports fetching while the single-transaction fallback is loading', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
