@@ -72,6 +72,31 @@ describe('entitlementResolution', () => {
       expect(getSnapshot()).toBe('resolved');
     });
 
+    it('refetches the new account after a switch during an in-flight fetch', async () => {
+      let resolveFirst: (value: never[]) => void = () => undefined;
+      mockGetSubscriptions.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      );
+
+      const pendingA = ensureResolved('acct-a');
+      const pendingB = ensureResolved('acct-b');
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+
+      resolveFirst([]);
+      await Promise.all([pendingA, pendingB]);
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+      expect(getSnapshot()).toBe('resolved');
+
+      await ensureResolved('acct-b');
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+    });
+
     it('reports error and logs when the fetch fails', async () => {
       const error = new Error('network down');
       mockGetSubscriptions.mockRejectedValue(error);
@@ -118,8 +143,22 @@ describe('entitlementResolution', () => {
       expect(getSnapshot()).toBe('resolved');
     });
 
-    it('issues a new fetch even when ensureResolved is already in flight', async () => {
-      await Promise.all([ensureResolved(), refresh()]);
+    it('refetches sequentially when refresh runs while ensureResolved is in flight', async () => {
+      let resolveFirst: (value: never[]) => void = () => undefined;
+      mockGetSubscriptions.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      );
+
+      const pendingEnsure = ensureResolved();
+      const pendingRefresh = refresh();
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+
+      resolveFirst([]);
+      await Promise.all([pendingEnsure, pendingRefresh]);
 
       expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
       expect(getSnapshot()).toBe('resolved');

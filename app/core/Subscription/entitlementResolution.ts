@@ -21,12 +21,12 @@ export type EntitlementResolutionStatus =
 interface EntitlementResolutionStore {
   status: EntitlementResolutionStatus;
   listeners: Set<() => void>;
-  /** Shared so concurrent callers issue one request instead of one each. */
+  /** Shared so concurrent callers wait on one serialized fetch loop. */
   inFlight: Promise<void> | undefined;
   /**
-   * Bumped by `reset` to invalidate requests already in flight. Without it, a
-   * fetch started before a lock could report `resolved` afterwards and let the
-   * next user skip resolution entirely.
+   * Bumped by `reset` and `refresh` to invalidate requests already in flight.
+   * Without it, a fetch started before a lock could report `resolved`
+   * afterwards and let the next user skip resolution entirely.
    */
   generation: number;
   /**
@@ -35,6 +35,17 @@ interface EntitlementResolutionStore {
    * treating the previous account's status as current.
    */
   resolvedAccountId: string | undefined;
+  /**
+   * Latest account a caller asked to resolve. Compared while a fetch is in
+   * flight so a switch queues a follow-up instead of joining the stale one.
+   */
+  requestedAccountId: string | undefined;
+  /**
+   * When true, the fetch loop must run `getSubscriptions` again after the
+   * current call so overlapping requests never write controller state out of
+   * order.
+   */
+  queuedRefresh: boolean;
 }
 
 const store: EntitlementResolutionStore = {
@@ -43,6 +54,8 @@ const store: EntitlementResolutionStore = {
   inFlight: undefined,
   generation: 0,
   resolvedAccountId: undefined,
+  requestedAccountId: undefined,
+  queuedRefresh: false,
 };
 
 const emit = () => {
@@ -57,37 +70,87 @@ const setStatus = (status: EntitlementResolutionStatus) => {
   emit();
 };
 
-const fetchEntitlements = async (accountId?: string): Promise<void> => {
-  const generation = store.generation;
-  setStatus('loading');
+const wasSuperseded = (generation: number): boolean =>
+  generation !== store.generation || store.queuedRefresh;
 
-  try {
-    await Engine.context.SubscriptionController.getSubscriptions();
-    if (generation === store.generation) {
-      if (accountId !== undefined) {
-        store.resolvedAccountId = accountId;
+const fetchEntitlements = async (): Promise<void> => {
+  while (true) {
+    const generation = store.generation;
+    const accountId = store.requestedAccountId;
+    store.queuedRefresh = false;
+    setStatus('loading');
+
+    try {
+      await Engine.context.SubscriptionController.getSubscriptions();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[entitlementResolution] Failed to resolve subscription entitlements',
+      );
+      if (wasSuperseded(generation)) {
+        if (store.queuedRefresh) {
+          continue;
+        }
+        return;
       }
-      setStatus('resolved');
-    }
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      '[entitlementResolution] Failed to resolve subscription entitlements',
-    );
-    if (generation === store.generation) {
       setStatus('error');
+      return;
     }
-  } finally {
-    if (generation === store.generation) {
+
+    if (wasSuperseded(generation)) {
+      if (store.queuedRefresh) {
+        continue;
+      }
+      return;
+    }
+
+    if (accountId !== undefined) {
+      store.resolvedAccountId = accountId;
+    }
+    setStatus('resolved');
+    return;
+  }
+};
+
+const startFetch = (): Promise<void> => {
+  const run = fetchEntitlements().finally(() => {
+    if (store.inFlight === run) {
       store.inFlight = undefined;
     }
+  });
+  store.inFlight = run;
+  return run;
+};
+
+/**
+ * Re-resolves entitlements after an event that can change them, such as
+ * subscribing, cancelling, or switching accounts.
+ *
+ * Always results in a fetch for the latest request. If one is already in
+ * flight, that call finishes first and a follow-up `getSubscriptions` runs
+ * afterward so controller state is never written by overlapping responses.
+ *
+ * @param accountId - Selected internal account id to record on success. Omit
+ * when the account has not changed (subscribe / cancel).
+ * @returns A promise that settles when entitlements have been re-resolved.
+ */
+export const refresh = async (accountId?: string): Promise<void> => {
+  store.generation += 1;
+  store.requestedAccountId = accountId;
+  store.queuedRefresh = true;
+
+  if (store.inFlight) {
+    return await store.inFlight;
   }
+
+  return await startFetch();
 };
 
 /**
  * Resolves entitlements once per session and account. Repeat calls while a
- * request is in flight share it. Calls after a successful resolution are a
- * no-op unless `accountId` differs from the last resolved account.
+ * request is in flight share it when they target the same account. Calls after
+ * a successful resolution are a no-op unless `accountId` differs from the last
+ * resolved account.
  *
  * @param accountId - Selected internal account id. When omitted, a resolved
  * status is treated as current regardless of account.
@@ -103,29 +166,15 @@ export const ensureResolved = async (accountId?: string): Promise<void> => {
   }
 
   if (store.inFlight) {
-    return await store.inFlight;
+    if (accountId === undefined || accountId === store.requestedAccountId) {
+      return await store.inFlight;
+    }
+
+    return await refresh(accountId);
   }
 
-  store.inFlight = fetchEntitlements(accountId);
-  return await store.inFlight;
-};
-
-/**
- * Re-resolves entitlements after an event that can change them, such as
- * subscribing, cancelling, or switching accounts.
- *
- * Always issues a new fetch. Joining an in-flight `ensureResolved` would
- * return the pre-mutation snapshot and could bounce a new subscriber out of
- * the hub.
- *
- * @param accountId - Selected internal account id to record on success. Omit
- * when the account has not changed (subscribe / cancel).
- * @returns A promise that settles when entitlements have been re-resolved.
- */
-export const refresh = async (accountId?: string): Promise<void> => {
-  store.generation += 1;
-  store.inFlight = fetchEntitlements(accountId);
-  return await store.inFlight;
+  store.requestedAccountId = accountId;
+  return await startFetch();
 };
 
 /**
@@ -136,6 +185,8 @@ export const reset = () => {
   store.generation += 1;
   store.inFlight = undefined;
   store.resolvedAccountId = undefined;
+  store.requestedAccountId = undefined;
+  store.queuedRefresh = false;
   setStatus('idle');
 };
 
@@ -166,4 +217,6 @@ export const __resetForTest = () => {
   store.listeners.clear();
   store.generation = 0;
   store.resolvedAccountId = undefined;
+  store.requestedAccountId = undefined;
+  store.queuedRefresh = false;
 };
