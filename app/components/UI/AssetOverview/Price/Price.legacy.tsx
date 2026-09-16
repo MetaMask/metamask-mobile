@@ -185,22 +185,31 @@ const PriceLegacy = ({
                 variant={FilterButtonVariant.Secondary}
                 twClassName="w-full"
               >
-                {chartNavigationButtons.map((label) => (
-                  <FilterButton
-                    key={label}
-                    value={label}
-                    size={FilterButtonSize.Sm}
-                    twClassName={`flex-1 ${
-                      initialAmbientColor && timePeriod === label
-                        ? `bg-[${initialAmbientColor}]`
-                        : ''
-                    }`}
-                  >
-                    {strings(
-                      `asset_overview.chart_time_period_navigation.${label}`,
-                    )}
-                  </FilterButton>
-                ))}
+                {chartNavigationButtons.map((label) => {
+                  const isSelected = timePeriod === label;
+                  const hasCustomColor = initialAmbientColor && isSelected;
+                  const textColor = hasCustomColor
+                    ? initialAmbientColor.includes('success') ||
+                      initialAmbientColor === LIGHT_MODE_SUCCESS_GREEN
+                      ? 'text-success-inverse'
+                      : 'text-warning-inverse'
+                    : '';
+
+                  return (
+                    <FilterButton
+                      key={label}
+                      value={label}
+                      size={FilterButtonSize.Sm}
+                      twClassName={`flex-1 ${
+                        hasCustomColor ? `bg-[${initialAmbientColor}] ${textColor}` : ''
+                      }`}
+                    >
+                      {strings(
+                        `asset_overview.chart_time_period_navigation.${label}`,
+                      )}
+                    </FilterButton>
+                  );
+                })}
               </FilterButtonGroup>
             </Box>
           </View>
@@ -234,22 +243,31 @@ const PriceLegacy = ({
                 variant={FilterButtonVariant.Secondary}
                 twClassName="w-full"
               >
-                {chartNavigationButtons.map((label) => (
-                  <FilterButton
-                    key={label}
-                    value={label}
-                    size={FilterButtonSize.Sm}
-                    twClassName={`flex-1 ${
-                      initialAmbientColor && timePeriod === label
-                        ? `bg-[${initialAmbientColor}]`
-                        : ''
-                    }`}
-                  >
-                    {strings(
-                      `asset_overview.chart_time_period_navigation.${label}`,
-                    )}
-                  </FilterButton>
-                ))}
+                {chartNavigationButtons.map((label) => {
+                  const isSelected = timePeriod === label;
+                  const hasCustomColor = initialAmbientColor && isSelected;
+                  const textColor = hasCustomColor
+                    ? initialAmbientColor.includes('success') ||
+                      initialAmbientColor === LIGHT_MODE_SUCCESS_GREEN
+                      ? 'text-success-inverse'
+                      : 'text-warning-inverse'
+                    : '';
+
+                  return (
+                    <FilterButton
+                      key={label}
+                      value={label}
+                      size={FilterButtonSize.Sm}
+                      twClassName={`flex-1 ${
+                        hasCustomColor ? `bg-[${initialAmbientColor}] ${textColor}` : ''
+                      }`}
+                    >
+                      {strings(
+                        `asset_overview.chart_time_period_navigation.${label}`,
+                      )}
+                    </FilterButton>
+                  );
+                })}
               </FilterButtonGroup>
             </Box>
           </View>

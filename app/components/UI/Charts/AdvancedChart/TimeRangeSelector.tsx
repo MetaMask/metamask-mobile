@@ -124,16 +124,29 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             size={SegmentedControlSize.Sm}
             twClassName="flex-1 rounded-full"
           >
-            {ranges.map((range) => (
-              <FilterButton
-                key={range}
-                value={range}
-                size={FilterButtonSize.Sm}
-                twClassName="flex-1"
-              >
-                {range}
-              </FilterButton>
-            ))}
+            {ranges.map((range) => {
+              const isSelected = selected === range;
+              const hasCustomColor = selectedColor && isSelected;
+              const textColor = hasCustomColor
+                ? selectedColor.includes('success') ||
+                  selectedColor === '#02C84B'
+                  ? 'text-success-inverse'
+                  : 'text-warning-inverse'
+                : '';
+
+              return (
+                <FilterButton
+                  key={range}
+                  value={range}
+                  size={FilterButtonSize.Sm}
+                  twClassName={`flex-1 ${
+                    hasCustomColor ? `bg-[${selectedColor}] ${textColor}` : ''
+                  }`}
+                >
+                  {range}
+                </FilterButton>
+              );
+            })}
           </SegmentedControl>
           {onChartTypeToggle ? (
             <Pressable
