@@ -7,7 +7,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import { LIMIT_PRICE_CONFIG, MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
+import {
+  LIMIT_PRICE_CONFIG,
+  MAX_PERPS_INPUT_DIGITS,
+} from '../../constants/perpsConfig';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -178,7 +181,12 @@ export function usePerpsLimitPriceInput({
       return strings('perps.order.limit_price_modal.limit_price_too_far');
     }
 
-    if (!limitPrice || isNaN(parsedLimit) || !currentPrice || currentPrice <= 0) {
+    if (
+      !limitPrice ||
+      isNaN(parsedLimit) ||
+      !currentPrice ||
+      currentPrice <= 0
+    ) {
       return '';
     }
 

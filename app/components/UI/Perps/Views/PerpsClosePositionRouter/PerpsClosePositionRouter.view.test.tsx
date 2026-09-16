@@ -65,9 +65,7 @@ describe('PerpsClosePositionRouter', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER,
-      ),
+      screen.queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER),
     ).toBeNull();
   });
 
@@ -82,9 +80,7 @@ describe('PerpsClosePositionRouter', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER,
-      ),
+      screen.queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER),
     ).toBeNull();
   });
 

@@ -423,13 +423,10 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.CLOSE_POSITION}
                 component={PerpsClosePositionRouter}
-                options={getPerpsConversionScreenOptions(
-                  isPerpsBottomSheet,
-                  {
-                    title: strings('perps.close_position.title'),
-                    headerShown: false,
-                  },
-                )}
+                options={getPerpsConversionScreenOptions(isPerpsBottomSheet, {
+                  title: strings('perps.close_position.title'),
+                  headerShown: false,
+                })}
               />
 
               {/* Debug tools - only available in development builds */}

@@ -86,10 +86,7 @@ export interface UsePerpsClosePositionFormResult {
   handleSliderGrip: () => void;
   handleSliderMark: () => void;
   handleAmountPress: () => void;
-  handleKeypadChange: (input: {
-    value: string;
-    valueAsNumber: number;
-  }) => void;
+  handleKeypadChange: (input: { value: string; valueAsNumber: number }) => void;
   handlePercentagePress: (percentage: number) => void;
   handleMaxPress: () => void;
   handleDonePress: () => void;
