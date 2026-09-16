@@ -14,6 +14,8 @@ process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
 process.env.KYC_API_URL = 'https://kyc-api.example.com';
+process.env.IDOS_ENCLAVE_URL = 'https://enclave.example.com';
+process.env.IDOS_RELAY_URL = 'https://relay.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -67,6 +69,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/assets-controllers',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  '@metamask/address-book-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
@@ -80,8 +83,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/phishing-controller',
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
+  '@metamask/profile-metrics-controller',
+  '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
+  '@signinwithethereum',
   '@metamask/design-system-twrnc-preset',
   '@metamask/design-system-react-native',
   '@metamask/messenger',

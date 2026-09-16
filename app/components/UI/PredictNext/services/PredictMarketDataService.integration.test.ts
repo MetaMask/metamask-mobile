@@ -76,7 +76,134 @@ describe('PredictNext public market data', () => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
   });
 
-  it('reads venue status through the real controller-to-transport chain', async () => {
+  it('reads Balance through the authenticated service-to-transport chain', async () => {
+    const balance = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.125',
+    };
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: balance,
+    }));
+
+    const result = await harness.messenger.call(
+      'PredictPortfolioService:getBalance',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual(balance);
+    expect(harness.getBearerTokenMock).toHaveBeenCalledTimes(1);
+    expect(harness.fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/v1/venues/kalshi/balance',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-bearer-token',
+        }),
+      }),
+    );
+    harness.destroy();
+  });
+
+  it('maps a rejected Balance request to UNAUTHENTICATED without retrying', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({ status: 401 }));
+
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('keeps Feeds working when Balance failures exhaust their own policy', async () => {
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/balance')
+        ? { status: 503 }
+        : {
+            body: {
+              venueId: 'kalshi',
+              id: feedId,
+              title: 'NFL Games',
+              events: [event],
+            },
+          },
+    );
+
+    // One exhausted Balance read (three attempts) opens the portfolio circuit.
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+    // Balance now fails fast on its own open circuit without new requests.
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toBeInstanceOf(BrokenCircuitError);
+    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+    // The market-data circuit never saw a Balance failure.
+    const feed = await harness.messenger.call(
+      'PredictMarketDataService:getFeed',
+      KALSHI_VENUE_ID,
+      feedId,
+      {},
+    );
+    expect(feed.events).toHaveLength(1);
+    harness.destroy();
+  });
+
+  it('keeps Balance working when market-data failures open their circuit', async () => {
+    const balance = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '42',
+    };
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/balance') ? { body: balance } : { status: 503 },
+    );
+
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getVenueStatus',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    const result = await harness.messenger.call(
+      'PredictPortfolioService:getBalance',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual(balance);
+    harness.destroy();
+  });
+
+  it('treats a failing bearer token provider as UNAUTHENTICATED before HTTP', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: { venueId: 'kalshi', currency: 'USD', available: '1' },
+    }));
+    harness.getBearerTokenMock.mockRejectedValue(new Error('not signed in'));
+
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+    harness.destroy();
+  });
+
+  it('reads venue status through the real service-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: status,
     }));
@@ -91,7 +218,7 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
-  it('reads Market history through the real controller-to-transport chain', async () => {
+  it('reads Market history through the real service-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: marketHistory,
     }));

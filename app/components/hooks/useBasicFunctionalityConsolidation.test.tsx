@@ -1,7 +1,13 @@
-import React, { type PropsWithChildren } from 'react';
-import { act, renderHook } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from '@testing-library/react-native';
 
-import { ToastContext } from '../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
+
 import Routes from '../../constants/navigation/Routes';
 import {
   selectMobileUxBftcConsolidationFlagEnabled,
@@ -25,15 +31,22 @@ import {
 
 const mockDispatch = jest.fn(() => Promise.resolve());
 const mockNavigate = jest.fn();
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
 const mockConsolidateAction = jest.fn();
 const mockDismissAction = { type: 'DISMISS_BFT_MIGRATION' };
 let mockSelectorValues = new Map<unknown, unknown>();
 
+const mockToast = toast as unknown as jest.Mock & { dismiss: jest.Mock };
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) =>
     mockSelectorValues.has(selector) ? mockSelectorValues.get(selector) : true,
+}));
+
+// Only the imperative `toast` entry point is stubbed; Text/TextButton stay real
+// so the rendered description is asserted against the design system output.
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
 }));
 
 jest.mock('./useThunkDispatch', () => ({
@@ -56,17 +69,6 @@ jest.mock('../../actions/settings', () => ({
     () => mockDismissAction,
   ),
 }));
-
-const toastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
-
-const wrapper = ({ children }: PropsWithChildren) => (
-  <ToastContext.Provider value={{ toastRef }}>{children}</ToastContext.Provider>
-);
 
 function setSelectorValues({
   isFlagEnabled = true,
@@ -118,7 +120,7 @@ describe('useBasicFunctionalityConsolidation', () => {
   it('runs the one-time migration for an eligible wallet', () => {
     setSelectorValues({ isConsolidated: false });
 
-    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+    renderHook(() => useBasicFunctionalityConsolidation());
 
     expect(consolidateBasicFunctionality).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
@@ -129,10 +131,7 @@ describe('useBasicFunctionalityConsolidation', () => {
     // so a session that started pre-onboarding must never migrate.
     setSelectorValues({ isConsolidated: false, completedOnboarding: false });
 
-    const { rerender } = renderHook(
-      () => useBasicFunctionalityConsolidation(),
-      { wrapper },
-    );
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
 
     setSelectorValues({ isConsolidated: false, completedOnboarding: true });
     rerender(undefined);
@@ -144,38 +143,81 @@ describe('useBasicFunctionalityConsolidation', () => {
   it('opens the migration bottom sheet when scheduled', () => {
     setSelectorValues({ shouldShowBottomSheet: true });
 
-    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+    renderHook(() => useBasicFunctionalityConsolidation());
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
     });
   });
 
-  it('shows the migration toast and links to Privacy settings', async () => {
+  it('shows a persistent migration toast titled for the settings change', () => {
     setSelectorValues({ shouldShowToast: true });
 
-    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+    renderHook(() => useBasicFunctionalityConsolidation());
 
-    const toastOptions = mockShowToast.mock.calls[0][0];
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: strings('basic_functionality_migration.title'),
+        hasNoTimeout: true,
+      }),
+    );
+  });
+
+  it('shows a pending migration toast after the rollout is disabled', () => {
+    setSelectorValues({
+      isFlagEnabled: false,
+      shouldShowToast: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+    expect(mockToast).toHaveBeenCalled();
+  });
+
+  it('links to Privacy settings from inside the description', async () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    render(mockToast.mock.calls[0][0].description);
 
     await act(async () => {
-      toastOptions.linkButtonOptions.onPress();
+      fireEvent.press(
+        screen.getByText(
+          strings('basic_functionality_migration.settings_link'),
+        ),
+      );
     });
 
     expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
-    expect(mockCloseToast).toHaveBeenCalled();
+    expect(mockToast.dismiss).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.SECURITY_SETTINGS,
     });
   });
 
+  it('dismisses the notification when the toast is closed', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    mockToast.mock.calls[0][0].onClose();
+
+    expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
+  });
+
   it('describes Basic Functionality as enabled when the wallet lands on', () => {
     setSelectorValues({ shouldShowToast: true });
 
-    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+    renderHook(() => useBasicFunctionalityConsolidation());
 
-    expect(mockShowToast.mock.calls[0][0].descriptionOptions.description).toBe(
+    render(mockToast.mock.calls[0][0].description);
+
+    // Not exact: the inline settings link is part of the same paragraph.
+    expect(screen.root).toHaveTextContent(
       strings('basic_functionality_migration.toast_description'),
+      { exact: false },
     );
   });
 
@@ -185,36 +227,54 @@ describe('useBasicFunctionalityConsolidation', () => {
       basicFunctionalityEnabled: false,
     });
 
-    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+    renderHook(() => useBasicFunctionalityConsolidation());
 
-    expect(mockShowToast.mock.calls[0][0].descriptionOptions.description).toBe(
+    render(mockToast.mock.calls[0][0].description);
+
+    expect(screen.root).toHaveTextContent(
       strings('basic_functionality_migration.toast_description_disabled'),
+      { exact: false },
     );
   });
 
   it('withholds the toast while locked and presents it after unlock', () => {
     setSelectorValues({ shouldShowToast: true, isUnlocked: false });
 
-    const { rerender } = renderHook(
-      () => useBasicFunctionalityConsolidation(),
-      { wrapper },
-    );
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
 
     setSelectorValues({ shouldShowToast: true, isUnlocked: true });
     rerender(undefined);
 
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the toast on lock without dismissing the notice', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockToast).toHaveBeenCalledTimes(1);
+
+    setSelectorValues({ shouldShowToast: true, isUnlocked: false });
+    rerender(undefined);
+
+    expect(mockToast.dismiss).toHaveBeenCalled();
+    expect(
+      dismissBasicFunctionalityMigrationNotification,
+    ).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowToast: true, isUnlocked: true });
+    rerender(undefined);
+
+    expect(mockToast).toHaveBeenCalledTimes(2);
   });
 
   it('withholds the bottom sheet while locked and presents it after unlock', () => {
     setSelectorValues({ shouldShowBottomSheet: true, isUnlocked: false });
 
-    const { rerender } = renderHook(
-      () => useBasicFunctionalityConsolidation(),
-      { wrapper },
-    );
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
 
     expect(mockNavigate).not.toHaveBeenCalled();
 

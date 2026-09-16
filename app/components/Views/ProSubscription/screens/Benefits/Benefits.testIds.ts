@@ -21,4 +21,5 @@ export const BenefitsTestIds = {
   PLAN_CARD_SAVINGS_BADGE: (planId: string) =>
     `benefits-plan-card-${planId}-savings-badge`,
   PLAN_CARD_TRIAL: (planId: string) => `benefits-plan-card-${planId}-trial`,
+  PLAN_CARD_RADIO: (planId: string) => `benefits-plan-card-${planId}-radio`,
 } as const;
