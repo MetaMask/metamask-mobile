@@ -565,6 +565,30 @@ describe('ManualBackupStep1', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
+    it('tracks analytics with JSON-serialized payload when getPassword throws a non-Error object', async () => {
+      mockGetPassword.mockRejectedValue({ code: 'USER_CANCELED' });
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'ManualBackupStep1: SRP recovery failed',
+        JSON.stringify({ code: 'USER_CANCELED' }),
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('exports seed phrase when credentials are available', async () => {
       mockGetPassword.mockResolvedValue({ password: 'test-password' });
       mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));

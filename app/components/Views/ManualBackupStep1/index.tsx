@@ -176,7 +176,7 @@ const ManualBackupStep1 = () => {
           'ManualBackupStep1: SRP recovery failed',
           exportError instanceof Error
             ? exportError.message
-            : String(exportError),
+            : JSON.stringify(exportError),
         );
       }
 
