@@ -4,6 +4,7 @@ import TimeframeSelector from './TimeframeSelector';
 import { ChartTimeframe } from './PredictGameChart.types';
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const React = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
   return {
     Box: ({
@@ -32,7 +33,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       disabled?: boolean;
     }) => (
       <View testID="filter-button-group" {...props}>
-        {children}
+        {React.Children.map(children, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(child, {
+                onPress: () => !disabled && onChange?.(child.props.value),
+              })
+            : child,
+        )}
       </View>
     ),
     FilterButton: ({
@@ -56,6 +63,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       </Pressable>
     ),
     FilterButtonSize: { Sm: 'sm' },
+    FilterButtonVariant: { Secondary: 'secondary' },
   };
 });
 
