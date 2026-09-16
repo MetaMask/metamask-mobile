@@ -826,9 +826,6 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () =>
 interface MockTradeScreenProps {
   liquidationPrice?: string;
   liquidationPercentage?: string;
-  payWithName: string;
-  payWithBalance: string;
-  showPayWith: boolean;
   feePercentage?: string;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;
@@ -1461,7 +1458,6 @@ describe('PerpsOrderView', () => {
     expect(getMockTradeScreenProps()).toEqual(
       expect.objectContaining({
         liquidationPercentage: undefined,
-        payWithName: 'perps.adjust_margin.perps_balance',
         feePercentage: undefined,
       }),
     );

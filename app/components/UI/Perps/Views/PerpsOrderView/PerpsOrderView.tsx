@@ -1787,10 +1787,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
 
-  const handlePayWithPress = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [navigation]);
-
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
       setMaxSlippage(valueBps);
@@ -1924,15 +1920,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
-    const payWithName = isPayTokenPerpsBalance
-      ? strings('perps.adjust_margin.perps_balance')
-      : (payToken?.symbol ?? '');
-    const payWithBalance = formatPerpsFiat(
-      isPayTokenPerpsBalance
-        ? (account?.totalBalance ?? '0')
-        : payTokenBalanceUsd,
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    );
     const submitDisabled =
       !orderValidation.isValid ||
       isPlacingOrder ||
@@ -2051,9 +2038,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : undefined
               }
               liquidationPercentage={liquidationPercentage}
-              payWithName={payWithName}
-              payWithBalance={payWithBalance}
-              showPayWith={isPayRowVisible}
               feePercentage={feePercentage}
               isSubmitting={isPlacingOrder}
               isSubmitDisabled={submitDisabled}
@@ -2068,7 +2052,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPercentagePress={handlePercentagePress}
               onMaxPress={handleMaxPress}
               onDonePress={handleDonePress}
-              onPayWithPress={handlePayWithPress}
               onSubmit={() => handlePlaceOrder()}
             />
           ),

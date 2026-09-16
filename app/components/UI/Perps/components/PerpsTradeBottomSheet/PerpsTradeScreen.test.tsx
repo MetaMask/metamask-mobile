@@ -47,9 +47,6 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   isInputFocused: false,
   liquidationPrice: '$68.292',
   liquidationPercentage: '30.05%',
-  payWithName: 'Perps balance',
-  payWithBalance: '$1,285.82',
-  showPayWith: true,
   feePercentage: '0.143',
   isSubmitting: false,
   isSubmitDisabled: false,
@@ -63,7 +60,6 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onPercentagePress: jest.fn(),
   onMaxPress: jest.fn(),
   onDonePress: jest.fn(),
-  onPayWithPress: jest.fn(),
   onSubmit: jest.fn(),
 };
 
@@ -95,14 +91,7 @@ describe('PerpsTradeScreen errors', () => {
 
   it('wires primary Trade actions to the sheet and order handlers', () => {
     const onSubmit = jest.fn();
-    const onPayWithPress = jest.fn();
-    render(
-      <PerpsTradeScreen
-        {...defaultProps}
-        onPayWithPress={onPayWithPress}
-        onSubmit={onSubmit}
-      />,
-    );
+    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON),
@@ -113,11 +102,6 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LEVERAGE_ROW),
     );
     expect(mockNavigateTo).toHaveBeenCalledWith('leverage');
-
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
-    );
-    expect(onPayWithPress).toHaveBeenCalledTimes(1);
 
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW),
@@ -140,14 +124,6 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('hides Pay With when token payments are unavailable', () => {
-    render(<PerpsTradeScreen {...defaultProps} showPayWith={false} />);
-
-    expect(
-      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     ).not.toBeOnTheScreen();
   });
 

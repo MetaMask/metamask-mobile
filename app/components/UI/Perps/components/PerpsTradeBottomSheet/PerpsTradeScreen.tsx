@@ -55,9 +55,6 @@ interface PerpsTradeScreenProps {
   isInputFocused: boolean;
   liquidationPrice?: string;
   liquidationPercentage?: string;
-  payWithName: string;
-  payWithBalance: string;
-  showPayWith: boolean;
   feePercentage?: string;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
@@ -72,7 +69,6 @@ interface PerpsTradeScreenProps {
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
-  onPayWithPress: () => void;
   onSubmit: () => void;
 }
 
@@ -179,9 +175,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isInputFocused,
   liquidationPrice,
   liquidationPercentage,
-  payWithName,
-  payWithBalance,
-  showPayWith,
   feePercentage,
   isSubmitting,
   isSubmitDisabled,
@@ -196,7 +189,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onPercentagePress,
   onMaxPress,
   onDonePress,
-  onPayWithPress,
   onSubmit,
 }) => {
   const { close, navigateTo, title, banner } = usePerpsTradeSheet();
@@ -205,7 +197,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
     direction === 'long'
       ? strings('perps.order.button.long', { asset })
       : strings('perps.order.button.short', { asset });
-  const payWithLabel = `${payWithName} (${payWithBalance})`;
 
   return (
     <Box accessible={false}>
@@ -413,30 +404,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               endIconColor={IconColor.IconDefault}
               onPress={() => navigateTo('leverage')}
             />
-            {showPayWith ? (
-              <ActionRow
-                testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
-                label={strings('confirm.label.pay_with')}
-                accessibilityLabel={`${strings(
-                  'confirm.label.pay_with',
-                )}, ${payWithLabel}`}
-                value={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {payWithName}{' '}
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      ({payWithBalance})
-                    </Text>
-                  </Text>
-                }
-                onPress={onPayWithPress}
-              />
-            ) : null}
             <ActionRow
               testID={PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW}
               label={strings('perps.order.liquidation_price')}

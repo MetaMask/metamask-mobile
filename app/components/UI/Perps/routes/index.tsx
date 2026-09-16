@@ -64,20 +64,21 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
+import { ConfirmationContextProvider } from '../../../Views/confirmations/context/confirmation-context';
+import { AlertsContextProvider } from '../../../Views/confirmations/context/alert-system-context';
+import { QRHardwareContextProvider } from '../../../Views/confirmations/context/qr-hardware-context';
+import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/components/confirmation-asset-polling-provider/confirmation-asset-polling-provider';
+import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
+import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
 
-/* eslint-disable react-native/no-color-literals -- React Native has no semantic token for transparent route content. */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  transparent: {
-    backgroundColor: 'transparent',
-  },
 });
-/* eslint-enable react-native/no-color-literals */
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
@@ -106,6 +107,18 @@ export function getRedesignedConfirmationsHeaderOptions(
   };
 }
 
+const PerpsConfirmationAlerts = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
+  );
+};
+
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
@@ -113,6 +126,20 @@ const PerpsConfirmScreen = () => {
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
+
+  if (params?.useBottomSheet) {
+    return (
+      <ConfirmationContextProvider>
+        <ConfirmationAssetPollingProvider>
+          <PerpsConfirmationAlerts>
+            <QRHardwareContextProvider>
+              <ConfirmationInfo />
+            </QRHardwareContextProvider>
+          </PerpsConfirmationAlerts>
+        </ConfirmationAssetPollingProvider>
+      </ConfirmationContextProvider>
+    );
+  }
 
   // When showPerpsHeader is false (deposit-and-trade / long-short flow), Confirm internally
   // calls navigation.setOptions({ headerShown: true }) for full-screen confirmations, which
@@ -136,13 +163,7 @@ const PerpsConfirmScreen = () => {
 
   return (
     <NavigationContext.Provider value={noHeaderNavigation}>
-      <Confirm
-        disableSafeArea
-        contentOnly={params?.useBottomSheet}
-        fullscreenStyle={
-          params?.useBottomSheet ? styles.transparent : undefined
-        }
-      />
+      <Confirm disableSafeArea />
     </NavigationContext.Provider>
   );
 };
