@@ -12,10 +12,10 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     expect(result.current.openTab).toBeNull();
-    expect(result.current.applied.feed).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.trending).toEqual(DEFAULT_FILTERS);
     expect(result.current.applied.liveTrades).toEqual(DEFAULT_FILTERS);
     expect(result.current.applied.leaderboard).toEqual(DEFAULT_FILTERS);
-    expect(result.current.hasActiveFilters('feed')).toBe(false);
+    expect(result.current.hasActiveFilters('trending')).toBe(false);
     expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
@@ -24,10 +24,10 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
 
-    expect(result.current.openTab).toBe('feed');
+    expect(result.current.openTab).toBe('trending');
     expect(result.current.draft).toEqual(DEFAULT_FILTERS);
     expect(result.current.hasDraftChanges).toBe(false);
   });
@@ -36,7 +36,7 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
     act(() => {
       result.current.updateDraft({ type: 'tokens' });
@@ -45,10 +45,10 @@ describe('useSocialShellFilters', () => {
       result.current.applyFilters();
     });
 
-    expect(result.current.applied.feed.type).toBe('tokens');
+    expect(result.current.applied.trending.type).toBe('tokens');
     expect(result.current.applied.liveTrades.type).toBe('all');
     expect(result.current.applied.leaderboard.type).toBe('all');
-    expect(result.current.hasActiveFilters('feed')).toBe(true);
+    expect(result.current.hasActiveFilters('trending')).toBe(true);
     expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
   });
 
@@ -91,7 +91,7 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
     act(() => {
       result.current.updateDraft({ network: 'solana' });
@@ -108,7 +108,7 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
     act(() => {
       result.current.updateDraft({ network: 'robinhood' });
@@ -127,7 +127,7 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
     act(() => {
       result.current.updateDraft({ type: 'all', network: 'all' });
@@ -136,14 +136,14 @@ describe('useSocialShellFilters', () => {
       result.current.applyFilters();
     });
 
-    expect(result.current.getApiParams('feed').chains).toEqual(ALL_CHAINS);
+    expect(result.current.getApiParams('trending').chains).toEqual(ALL_CHAINS);
   });
 
   it('getApiParams narrows chains to the selected network when not all', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
     act(() => {
       result.current.updateDraft({ type: 'tokens', network: 'solana' });
@@ -152,7 +152,7 @@ describe('useSocialShellFilters', () => {
       result.current.applyFilters();
     });
 
-    expect(result.current.getApiParams('feed').chains).toEqual(['solana']);
+    expect(result.current.getApiParams('trending').chains).toEqual(['solana']);
   });
 
   it('getApiParams uses the spot chain set for tokens type', () => {
@@ -177,7 +177,7 @@ describe('useSocialShellFilters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('feed');
+      result.current.openSheet('trending');
     });
     const draftBefore = result.current.draft.marketCap;
     act(() => {
