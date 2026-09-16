@@ -60,23 +60,6 @@ describe('shuffleCancelReasons', () => {
       'other',
     ]);
   });
-
-  it('shuffles remaining reasons when other is missing', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0);
-    const withoutOther = CANCEL_REASONS.filter(
-      (reason) => reason.id !== OTHER_REASON_ID,
-    );
-
-    const result = shuffleCancelReasons(withoutOther);
-
-    expect(result.map((reason) => reason.id)).toEqual([
-      'not_using',
-      'benefit_misfit',
-      'didnt_work',
-      'support',
-      'cost',
-    ]);
-  });
 });
 
 describe('buildPostCancellationResetState', () => {

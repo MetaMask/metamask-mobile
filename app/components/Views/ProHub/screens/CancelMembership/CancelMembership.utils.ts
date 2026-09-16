@@ -12,9 +12,11 @@ import {
 export const shuffleCancelReasons = (
   reasons: CancelReason[],
 ): CancelReason[] => {
-  const rest = reasons.filter((reason) => reason.id !== OTHER_REASON_ID);
-  const other = reasons.filter((reason) => reason.id === OTHER_REASON_ID);
-  const shuffled = [...rest];
+  const shuffled = [...reasons];
+  const other = shuffled.splice(
+    shuffled.findIndex((reason) => reason.id === OTHER_REASON_ID),
+    1,
+  );
 
   for (let i = shuffled.length - 1; i > 0; i--) {
     // Display-order randomization only — no security or fairness guarantee needed.
