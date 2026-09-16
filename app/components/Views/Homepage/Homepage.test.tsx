@@ -316,7 +316,9 @@ interface UseHomeViewedEventParamsSnapshot {
 
 // Mock useHomeViewedEvent to avoid analytics side-effects in
 // Homepage-level tests — section-level analytics are covered by the hook tests.
-const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
+const mockUseHomeViewedEvent = jest.fn(
+  (_params: UseHomeViewedEventParamsSnapshot) => ({ onLayout: jest.fn() }),
+);
 jest.mock('./hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   // Reads the eligibility context the way the real hook does, so tests can
@@ -325,7 +327,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     const { usePerpsPriorityEligibility } = jest.requireActual<
       typeof import('./context/PerpsPriorityEligibilityContext')
     >('./context/PerpsPriorityEligibilityContext');
-    return (mockUseHomeViewedEvent as jest.Mock)({
+    return mockUseHomeViewedEvent({
       ...params,
       perpsPriorityEligible: usePerpsPriorityEligibility(),
     });
@@ -344,9 +346,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
 
 /** Returns mock useHomeViewedEvent calls with typed first argument. */
 function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
-  return mockUseHomeViewedEvent.mock.calls as unknown as [
-    UseHomeViewedEventParamsSnapshot,
-  ][];
+  return mockUseHomeViewedEvent.mock.calls;
 }
 
 let mockHomepageEarnSectionVisible = false;
