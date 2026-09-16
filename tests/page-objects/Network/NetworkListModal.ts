@@ -8,11 +8,7 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import {
-  type AppiumElement,
-  getDriver,
-  Utilities,
-} from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class NetworkListModal {
   get networkScroll(): Promise<AppiumElement> {
@@ -127,45 +123,18 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
-    // Android redesigned Enabled-networks sheet: system back is often a no-op
-    // (deeplink home hang). Gestures.swipe() on the title scrolls list content
-    // via scrollWithinContainer — dismiss with close control or a top-edge
-    // coordinate drag on the scroll container instead.
+    // Android system back is a no-op on the redesigned network sheet.
+    // Swipe the screen so the drag crosses ReusableModal's dismiss threshold.
     if (PlatformDetector.isAndroid()) {
-      await Utilities.executeWithRetry(
-        async () => {
-          const closeButton = Matchers.getElementByID('button-icon');
-          if (await Utilities.isElementVisible(closeButton, 2_000)) {
-            await Gestures.waitAndTap(closeButton, {
-              elemDescription: 'Close network selector sheet',
-            });
-          } else {
-            const sheet = await this.networkScroll;
-            const location = await sheet.unwrap().getLocation();
-            const size = await sheet.unwrap().getSize();
-            const centerX = Math.floor(location.x + size.width / 2);
-            const fromY = Math.floor(location.y + size.height * 0.05);
-            const toY = Math.floor(location.y + size.height * 0.9);
-            await getDriver().swipe({
-              direction: 'down',
-              percent: 0.85,
-              duration: 400,
-              from: { x: centerX, y: fromY },
-              to: { x: centerX, y: toY },
-            });
-          }
-
-          await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
-            timeout: 5_000,
-            description: 'Network selector dismissed',
-          });
-        },
-        {
-          timeout: 25_000,
-          interval: 1_000,
-          description: 'Dismiss Android network selector sheet',
-        },
-      );
+      await Gestures.swipeScreen({
+        scrollParams: { direction: 'down' },
+        percent: 0.85,
+        duration: 400,
+      });
+      await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+        timeout: 15_000,
+        description: 'Network selector dismissed',
+      });
       return;
     }
 
