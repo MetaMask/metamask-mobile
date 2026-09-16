@@ -138,7 +138,11 @@ const mockControllerTransactions: TransactionMeta[] = [];
 const mockBatchTransactionCounts: Record<string, number> = {};
 const mockTransactionPayData: Record<
   string,
-  { accountOverride?: string; quotes?: unknown[] }
+  {
+    accountOverride?: string;
+    quotes?: unknown[];
+    fiatPayment?: { selectedPaymentMethodId?: string };
+  }
 > = {};
 
 Object.defineProperty(Engine, 'context', {
@@ -451,6 +455,29 @@ describe('useMoneyTransactionStatus', () => {
 
       parent.status = TransactionStatus.submitted;
       statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not defer in-progress for fiat deposits with a hardware accountOverride', () => {
+      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+      const parentId = 'fiat-hw-override';
+      mockTransactionPayData[parentId] = {
+        accountOverride: '0xLedger',
+        fiatPayment: { selectedPaymentMethodId: 'apple-pay' },
+      };
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: parentId,
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+          metamaskPay: { fiat: { provider: 'apple-pay' } },
+        } as unknown as Partial<TransactionMeta>),
+      });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);

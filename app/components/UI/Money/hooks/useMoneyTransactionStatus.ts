@@ -117,12 +117,16 @@ function latestTransactionMeta(
   );
 }
 
+function getTransactionPayData(transactionId: string) {
+  return Engine.controllerMessenger.call('TransactionPayController:getState')
+    .transactionData[transactionId];
+}
+
 function getPayingAccountAddress(
   transactionMeta: TransactionMeta,
 ): string | undefined {
-  const accountOverride =
-    Engine.controllerMessenger.call('TransactionPayController:getState')
-      .transactionData[transactionMeta.id]?.accountOverride;
+  const accountOverride = getTransactionPayData(transactionMeta.id)
+    ?.accountOverride;
   return (
     (accountOverride as string | undefined) ??
     (transactionMeta.txParams?.from as string | undefined)
@@ -133,6 +137,17 @@ function shouldDeferInProgressForHardware(
   transactionMeta: TransactionMeta,
 ): boolean {
   if (!isMoneyDepositTx(transactionMeta)) {
+    return false;
+  }
+  // Fiat deposits never sign funding legs on-device, even when accountOverride
+  // still identifies a hardware wallet.
+  if (transactionMeta.metamaskPay?.fiat) {
+    return false;
+  }
+  const fiatPayment = getTransactionPayData(transactionMeta.id)?.fiatPayment as
+    | { selectedPaymentMethodId?: string }
+    | undefined;
+  if (fiatPayment?.selectedPaymentMethodId) {
     return false;
   }
   const payingAccount = getPayingAccountAddress(transactionMeta);
