@@ -291,6 +291,7 @@ export const LOCAL_MESSAGE_PATTERNS: {
     code: ErrorCode.DeviceDisconnected,
   },
   { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
+  { patterns: ['unresponsive'], code: ErrorCode.DeviceUnresponsive },
   {
     patterns: ['locked', 'unlock'],
     code: ErrorCode.AuthenticationDeviceLocked,

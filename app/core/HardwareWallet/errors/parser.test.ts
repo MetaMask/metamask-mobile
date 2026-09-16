@@ -375,6 +375,22 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.ConnectionTimeout);
     });
 
+    it('parses "Device unresponsive" timeout message', () => {
+      const error = new Error('Device unresponsive');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
+    });
+
+    it('parses "Device unresponsive during verification" timeout message', () => {
+      const error = new Error('Device unresponsive during verification');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
+    });
+
     it('parses scan timeout message containing "unlocked" as ConnectionTimeout, not AuthenticationDeviceLocked', () => {
       const error = new Error(
         'Scan timeout: No Ledger devices found. Make sure your Ledger is unlocked and Bluetooth is enabled on the device.',

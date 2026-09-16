@@ -70,6 +70,8 @@ const stubContext: Omit<HardwareWalletContextValue, 'connectionState'> & {
     jest.fn() as HardwareWalletContextValue['setPendingOperationAddress'],
   showHardwareWalletError:
     jest.fn() as HardwareWalletContextValue['showHardwareWalletError'],
+  cancelConnectionFlow:
+    jest.fn() as HardwareWalletContextValue['cancelConnectionFlow'],
   showAwaitingConfirmation:
     jest.fn() as HardwareWalletContextValue['showAwaitingConfirmation'],
   hideAwaitingConfirmation:

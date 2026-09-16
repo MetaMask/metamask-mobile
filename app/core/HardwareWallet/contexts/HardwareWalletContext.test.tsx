@@ -30,6 +30,7 @@ const createMockContextValue = (
   setTargetWalletType: noop,
   setPendingOperationAddress: noop,
   showHardwareWalletError: noop,
+  cancelConnectionFlow: noop,
   showAwaitingConfirmation: noop,
   hideAwaitingConfirmation: noop,
   qr: {

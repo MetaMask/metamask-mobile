@@ -38,6 +38,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
 const mockSetTargetWalletType = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
+const mockCancelConnectionFlow = jest.fn();
 
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
@@ -162,6 +163,7 @@ const defaultHardwareWalletValues = {
   setTargetWalletType: mockSetTargetWalletType,
   setPendingOperationAddress: jest.fn(),
   showHardwareWalletError: mockShowHardwareWalletError,
+  cancelConnectionFlow: mockCancelConnectionFlow,
   showAwaitingConfirmation: mockShowAwaitingConfirmation,
   hideAwaitingConfirmation: mockHideAwaitingConfirmation,
   qr: {
@@ -259,6 +261,50 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(mockedGoBack).toHaveBeenCalled();
       });
+    });
+
+    it('calls cancelConnectionFlow exactly once on unmount', async () => {
+      const { unmount } = renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(mockCancelConnectionFlow).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockCancelConnectionFlow).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate back when unmount cancels the pending readiness flow', async () => {
+      // Mirrors production wiring: on unmount, cancelConnectionFlow
+      // (closeFlow) settles the pending ensureDeviceReady promise with
+      // `false`. The stale init continuation must not treat that as a
+      // user cancel and pop an extra screen.
+      let resolveReady: ((value: boolean) => void) | undefined;
+      mockEnsureDeviceReady.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveReady = resolve;
+        }),
+      );
+      mockCancelConnectionFlow.mockImplementation(() => {
+        resolveReady?.(false);
+      });
+
+      const { unmount } = renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      unmount();
+
+      await act(async () => {
+        resolveReady?.(false);
+      });
+
+      expect(mockedGoBack).not.toHaveBeenCalled();
     });
   });
 
