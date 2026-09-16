@@ -3,7 +3,6 @@ import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { SocialV1FeedItem } from '../types';
 import CopyTradeButton from './CopyTradeButton';
-import PositionCardChart from './PositionCardChart';
 import PositionCardComment from './PositionCardComment';
 import PositionCardHeader from './PositionCardHeader';
 import PositionCardShell from './PositionCardShell';
@@ -11,7 +10,6 @@ import PositionCardStats, {
   type PositionCardStatRow,
 } from './PositionCardStats';
 import {
-  getSocialFeedPositionCardChartTestId,
   getSocialFeedPositionCardCommentTestId,
   getSocialFeedPositionCardCopyTradeTestId,
   getSocialFeedPositionCardStatTestId,
@@ -43,7 +41,6 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   item,
 }) => {
   const commentTestID = getSocialFeedPositionCardCommentTestId(item.id);
-  const chartTestID = getSocialFeedPositionCardChartTestId(item.id);
 
   if (item.variant === 'perpsOpen') {
     const stats: PositionCardStatRow[] = [
@@ -73,7 +70,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         testID={getSocialFeedPositionCardTestId(item.id)}
       >
         <PositionCardComment comment={item.comment} testID={commentTestID} />
-        <PositionCardShell tone="muted">
+        <PositionCardShell>
           <PositionCardHeader
             layout="open"
             avatar={item.asset.avatar}
@@ -84,13 +81,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
             pnlLabel={item.pnlLabel}
             isPnlPositive={item.isPnlPositive}
           />
-          <PositionCardChart
-            showChart={item.showChart}
-            series={item.chartSeries}
-            isPnlPositive={item.isPnlPositive}
-            testID={chartTestID}
-          />
-          <PositionCardStats rows={stats} />
+          <PositionCardStats rows={stats} cardId={item.id} />
           <CopyTradeButton
             testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
           />
@@ -141,7 +132,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         testID={getSocialFeedPositionCardTestId(item.id)}
       >
         <PositionCardComment comment={item.comment} testID={commentTestID} />
-        <PositionCardShell tone="success">
+        <PositionCardShell>
           <PositionCardHeader
             layout="closed"
             avatar={item.asset.avatar}
@@ -152,13 +143,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
             pnlLabel={item.pnlLabel}
             isPnlPositive={item.isPnlPositive}
           />
-          <PositionCardChart
-            showChart={item.showChart}
-            series={item.chartSeries}
-            isPnlPositive={item.isPnlPositive}
-            testID={chartTestID}
-          />
-          <PositionCardStats rows={stats} />
+          <PositionCardStats rows={stats} cardId={item.id} />
         </PositionCardShell>
       </Box>
     );
@@ -167,7 +152,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   return (
     <Box testID={getSocialFeedPositionCardTestId(item.id)}>
       <PositionCardComment comment={item.comment} testID={commentTestID} />
-      <PositionCardShell tone="muted">
+      <PositionCardShell>
         <PositionCardHeader
           layout="compact"
           avatar={item.asset.avatar}
