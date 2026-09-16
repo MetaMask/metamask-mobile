@@ -459,7 +459,7 @@ export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
     flagKey: HEADER_NAV_BAR_AB_KEY,
     validVariants: Object.values(HeaderNavBarVariant),
-    eventNames: [EVENT_NAME.HOME_VIEWED],
+    eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACCOUNT_LIST_VIEWED],
   };
 
 // ─── Perps section priority on wallet home (TAT-3597) ────────────────────────

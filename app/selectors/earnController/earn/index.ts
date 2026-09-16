@@ -37,7 +37,10 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
-import { selectMoneyDepositEligibleAssets } from '../../../components/UI/Money/selectors/depositTokens';
+import {
+  selectMoneyDepositAssetsMeetingMinimumBalance,
+  selectMoneyDepositBlockedTokens,
+} from '../../../components/UI/Money/selectors/depositTokens';
 import { selectAssetsBySelectedAccountGroup } from '../../assets/assets-list';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
@@ -383,7 +386,7 @@ const selectEarnTokens = createDeepEqualSelector(
           for (const market of lendingMarketsForToken) {
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              apr: String(market.netSupplyRate.toFixed(1)),
+              apr: String(market.netSupplyRate),
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,
@@ -534,7 +537,8 @@ export const selectEarnAssetCatalogueInputs = createSelector(
   [
     selectEarnTokens,
     selectAllLendingMarkets,
-    selectMoneyDepositEligibleAssets,
+    selectMoneyDepositAssetsMeetingMinimumBalance,
+    selectMoneyDepositBlockedTokens,
     selectAssetsBySelectedAccountGroup,
     pooledStakingSelectors.selectEligibility,
     selectPooledStakingEnabledFlag,
@@ -544,7 +548,8 @@ export const selectEarnAssetCatalogueInputs = createSelector(
   (
     earnTokensData,
     lendingMarkets,
-    moneyDepositAssets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
     assetsByChain,
     isEarnEligible,
     isPooledStakingEnabled,
@@ -554,7 +559,8 @@ export const selectEarnAssetCatalogueInputs = createSelector(
     earnTokens: earnTokensData.earnTokens,
     earnOutputTokens: earnTokensData.earnOutputTokens,
     lendingMarkets,
-    moneyDepositAssets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
     assets: Object.values(assetsByChain).flat(),
     isEarnEligible,
     isPooledStakingEnabled,

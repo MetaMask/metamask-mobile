@@ -352,17 +352,21 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
-  it('does not attach the Perps screen-vs-bottom-sheet assignment to unrelated Perps events', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    ).build();
+  it.each([
+    MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    MetaMetricsEvents.PERPS_UI_INTERACTION,
+  ])(
+    'does not attach the Perps screen-vs-bottom-sheet assignment to broad %s events',
+    (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
 
-    const result = enrichWithABTests(event, {
-      [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
-    });
+      const result = enrichWithABTests(event, {
+        [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
+      });
 
-    expect(result.properties.active_ab_tests).toBeUndefined();
-  });
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    },
+  );
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(

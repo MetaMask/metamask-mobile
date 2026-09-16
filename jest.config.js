@@ -14,6 +14,8 @@ process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
 process.env.KYC_API_URL = 'https://kyc-api.example.com';
+process.env.IDOS_ENCLAVE_URL = 'https://enclave.example.com';
+process.env.IDOS_RELAY_URL = 'https://relay.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -63,8 +65,29 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@expo(nent)?/.*',
   '@noble/.*',
   '@nktkas/hyperliquid',
+  '@metamask/assets-controller',
+  '@metamask/assets-controllers',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  '@metamask/address-book-controller',
+  '@metamask/bridge-controller',
+  '@metamask/bridge-status-controller',
+  '@metamask/client-controller',
+  '@metamask/config-registry-controller',
+  '@metamask/controller-utils',
+  '@metamask/core-backend',
+  '@metamask/gas-fee-controller',
+  '@metamask/kyc-controller',
+  '@metamask/multichain-network-controller',
+  '@metamask/network-enablement-controller',
+  '@metamask/phishing-controller',
+  '@metamask/polling-controller',
+  '@metamask/preferences-controller',
+  '@metamask/profile-metrics-controller',
+  '@metamask/profile-sync-controller',
+  '@metamask/ramps-controller',
+  '@metamask/sentinel-api-service',
+  '@signinwithethereum',
   '@metamask/design-system-twrnc-preset',
   '@metamask/design-system-react-native',
   '@metamask/messenger',
@@ -73,6 +96,10 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
   '@metamask/smart-transactions-controller',
+  '@metamask/transaction-pay-controller',
+  // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
+  // which cannot hoist onto the CJS v11 the rest of the repo resolves.
+  '@metamask/utils',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
   '@sumsub/react-native-mobilesdk-module',

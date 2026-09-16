@@ -34,7 +34,6 @@ const SRPQuizIntroduction = ({
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      paddingTop={8}
       paddingHorizontal={4}
       paddingBottom={6}
       twClassName="flex-1 w-full"
@@ -43,6 +42,7 @@ const SRPQuizIntroduction = ({
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-1"
       >
         <Image
           source={SecurityQuizLockImage}
@@ -51,7 +51,7 @@ const SRPQuizIntroduction = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-6"
+          twClassName="mt-6 text-center"
         >
           {strings('multichain_accounts.reveal_srp.description')}
         </Text>
