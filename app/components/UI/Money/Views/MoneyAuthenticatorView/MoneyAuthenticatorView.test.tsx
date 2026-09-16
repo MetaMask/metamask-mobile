@@ -21,6 +21,7 @@ let mockEntryPoint: 'finish_setup' | 'security' = 'security';
 let mockIsSocialLogin = false;
 let mockInitialStep: 'setup' | 'verify' | undefined;
 let mockVerificationAction: MoneySecurityVerificationAction | undefined;
+let mockFallbackToMethodChooser = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -33,6 +34,7 @@ jest.mock('@react-navigation/native', () => ({
       entryPoint: mockEntryPoint,
       initialStep: mockInitialStep,
       verificationAction: mockVerificationAction,
+      fallbackToMethodChooser: mockFallbackToMethodChooser,
     },
   }),
 }));
@@ -91,6 +93,7 @@ describe('MoneyAuthenticatorView', () => {
     mockIsSocialLogin = false;
     mockInitialStep = undefined;
     mockVerificationAction = undefined;
+    mockFallbackToMethodChooser = false;
   });
 
   afterEach(() => {
@@ -255,6 +258,33 @@ describe('MoneyAuthenticatorView', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          expect.objectContaining({
+            label: 'Transaction needs to be verified before sending funds.',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('opens the fallback method chooser after default authenticator cancellation', () => {
+    mockInitialStep = 'verify';
+    mockVerificationAction = { type: 'verify-transaction' };
+    mockFallbackToMethodChooser = true;
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: { type: 'verify-transaction' },
+        showMethodChooser: true,
+      },
+    });
   });
 
   it('does not offer social login from the SRP finish-setup entry point', () => {

@@ -52,6 +52,10 @@ const styles = StyleSheet.create({
   method: {
     minHeight: 56,
   },
+  divider: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
   codeInputContainer: {
     position: 'relative',
     height: 64,
@@ -78,23 +82,41 @@ interface MethodButtonProps {
   label: string;
   onPress: () => void;
   testID: string;
+  isPrimary?: boolean;
 }
 
-const MethodButton = ({ icon, label, onPress, testID }: MethodButtonProps) => (
+const MethodButton = ({
+  icon,
+  label,
+  onPress,
+  testID,
+  isPrimary = false,
+}: MethodButtonProps) => (
   <Pressable
     onPress={onPress}
     testID={testID}
     accessibilityRole="button"
     accessibilityLabel={label}
+    accessibilityState={{ selected: isPrimary }}
   >
     <Box
       style={styles.method}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="rounded-xl bg-muted px-4 gap-3"
+      twClassName={`rounded-xl px-4 gap-3 ${
+        isPrimary ? 'bg-primary-default' : 'bg-muted'
+      }`}
     >
-      <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      <Icon
+        name={icon}
+        size={IconSize.Md}
+        color={isPrimary ? IconColor.PrimaryInverse : IconColor.IconDefault}
+      />
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={isPrimary ? TextColor.PrimaryInverse : TextColor.TextDefault}
+      >
         {label}
       </Text>
     </Box>
@@ -114,6 +136,7 @@ const MoneySecurityVerificationSheet = () => {
   const { themeAppearance } = useTheme();
   const { deletePasskey, passkeyCount } = useMoneyFinishSetup();
   const {
+    defaultVerificationMethod,
     isAuthenticatorAdded,
     isSmsAdded,
     removeAuthenticator,
@@ -145,19 +168,48 @@ const MoneySecurityVerificationSheet = () => {
     return methods;
   }, [isAuthenticatorAdded, isSmsAdded, passkeyCount, route.params]);
 
-  const isSoleAuthenticatorMethod =
-    availableMethods.length === 1 && availableMethods[0] === 'authenticator';
+  const isTransactionVerification =
+    route.params.action.type === 'verify-transaction';
+  const configuredDefaultMethod: VerificationMethod =
+    defaultVerificationMethod === 'passkeys'
+      ? 'passkey'
+      : defaultVerificationMethod;
+  const resolvedDefaultMethod = availableMethods.includes(
+    configuredDefaultMethod,
+  )
+    ? configuredDefaultMethod
+    : availableMethods[0];
 
   const [selectedMethod, setSelectedMethod] =
     useState<VerificationMethod | null>(
-      availableMethods.length === 1 && !isSoleAuthenticatorMethod
-        ? availableMethods[0]
-        : null,
+      route.params.showMethodChooser && availableMethods.length > 1
+        ? null
+        : isTransactionVerification
+          ? resolvedDefaultMethod
+          : availableMethods.length === 1
+            ? availableMethods[0]
+            : null,
     );
 
+  const showTransactionVerificationError = useCallback(() => {
+    showSuccessToast(
+      strings('money.security.transaction_verification_required'),
+      'error',
+    );
+  }, [showSuccessToast]);
+
   const closeSheet = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    sheetRef.current?.onCloseBottomSheet(
+      isTransactionVerification ? showTransactionVerificationError : undefined,
+    );
+  }, [isTransactionVerification, showTransactionVerificationError]);
+
+  const handleSheetGoBack = useCallback(() => {
+    if (isTransactionVerification) {
+      showTransactionVerificationError();
+    }
+    navigation.goBack();
+  }, [isTransactionVerification, navigation, showTransactionVerificationError]);
 
   const completeAction = useCallback(() => {
     if (hasCompletedRef.current) {
@@ -219,24 +271,60 @@ const MoneySecurityVerificationSheet = () => {
     setIsCodeInvalid(false);
   }, []);
 
+  const handleTransactionMethodDismiss = useCallback(() => {
+    if (availableMethods.length > 1) {
+      handleBack();
+      showTransactionVerificationError();
+      return;
+    }
+    closeSheet();
+  }, [
+    availableMethods.length,
+    closeSheet,
+    handleBack,
+    showTransactionVerificationError,
+  ]);
+
   const handleAuthenticatorMethod = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
         entryPoint: 'security',
         initialStep: 'verify',
         verificationAction: route.params.action,
+        ...(isTransactionVerification
+          ? { fallbackToMethodChooser: availableMethods.length > 1 }
+          : {}),
       });
     });
-  }, [navigation, route.params.action]);
+  }, [
+    availableMethods.length,
+    isTransactionVerification,
+    navigation,
+    route.params.action,
+  ]);
 
   useEffect(() => {
-    if (!isSoleAuthenticatorMethod || hasAutoRoutedAuthenticatorRef.current) {
+    if (
+      selectedMethod !== 'authenticator' ||
+      hasAutoRoutedAuthenticatorRef.current
+    ) {
       return;
     }
 
     hasAutoRoutedAuthenticatorRef.current = true;
     handleAuthenticatorMethod();
-  }, [handleAuthenticatorMethod, isSoleAuthenticatorMethod]);
+  }, [handleAuthenticatorMethod, selectedMethod]);
+
+  const selectMethod = useCallback(
+    (method: VerificationMethod) => {
+      if (method === 'authenticator') {
+        handleAuthenticatorMethod();
+        return;
+      }
+      setSelectedMethod(method);
+    },
+    [handleAuthenticatorMethod],
+  );
 
   const handleCodeChange = useCallback((value: string) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
@@ -269,64 +357,141 @@ const MoneySecurityVerificationSheet = () => {
     return () => clearTimeout(timer);
   }, [code, completeAction, selectedMethod]);
 
+  const getMethodIcon = (method: VerificationMethod) => {
+    switch (method) {
+      case 'passkey':
+        return IconName.Key;
+      case 'authenticator':
+        return IconName.QrCode;
+      case 'sms':
+        return IconName.Mobile;
+    }
+  };
+
+  const getMethodLabel = (method: VerificationMethod) => {
+    switch (method) {
+      case 'passkey':
+        return strings('money.security.verify_with_passkey');
+      case 'authenticator':
+        return strings('money.security.verify_with_authenticator');
+      case 'sms':
+        return strings('money.security.verify_with_sms');
+    }
+  };
+
+  const getMethodTestId = (method: VerificationMethod) => {
+    switch (method) {
+      case 'passkey':
+        return MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD;
+      case 'authenticator':
+        return MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD;
+      case 'sms':
+        return MoneySecurityVerificationSheetTestIds.SMS_METHOD;
+    }
+  };
+
+  const renderMethodButton = (
+    method: VerificationMethod,
+    isPrimary = false,
+  ) => (
+    <MethodButton
+      key={method}
+      icon={getMethodIcon(method)}
+      label={getMethodLabel(method)}
+      onPress={() => selectMethod(method)}
+      testID={getMethodTestId(method)}
+      isPrimary={isPrimary}
+    />
+  );
+
+  const alternativeMethods = availableMethods.filter(
+    (method) => method !== resolvedDefaultMethod,
+  );
   const codeDescription = strings('money.security.sms_code_description');
 
   return (
     <BottomSheet
       ref={sheetRef}
-      goBack={() => navigation.goBack()}
+      goBack={handleSheetGoBack}
       testID={MoneySecurityVerificationSheetTestIds.CONTAINER}
     >
       <BottomSheetHeader
         onBack={
-          selectedMethod && availableMethods.length > 1 ? handleBack : undefined
+          selectedMethod && availableMethods.length > 1
+            ? isTransactionVerification
+              ? handleTransactionMethodDismiss
+              : handleBack
+            : undefined
         }
-        onClose={closeSheet}
+        onClose={
+          isTransactionVerification && selectedMethod
+            ? handleTransactionMethodDismiss
+            : closeSheet
+        }
       >
         {strings('money.security.verification_title')}
       </BottomSheetHeader>
       <Box style={styles.content}>
-        {isSoleAuthenticatorMethod ? null : !selectedMethod ? (
-          <>
-            {availableMethods.length > 1 && (
+        {selectedMethod === 'authenticator' ? null : !selectedMethod ? (
+          isTransactionVerification ? (
+            <>
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
                 {strings('money.security.verification_description')}
               </Text>
-            )}
-            <Box
-              twClassName={availableMethods.length > 1 ? 'mt-6 gap-3' : 'gap-3'}
-            >
-              {availableMethods.includes('passkey') && (
-                <MethodButton
-                  icon={IconName.Key}
-                  label={strings('money.security.verify_with_passkey')}
-                  onPress={() => setSelectedMethod('passkey')}
-                  testID={MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD}
-                />
+              <Box twClassName="mt-6 gap-3">
+                {resolvedDefaultMethod &&
+                  renderMethodButton(resolvedDefaultMethod, true)}
+                {alternativeMethods.length > 0 && (
+                  <>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={3}
+                    >
+                      <Box
+                        style={styles.divider}
+                        twClassName="bg-border-muted"
+                      />
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings('money.security.verification_or')}
+                      </Text>
+                      <Box
+                        style={styles.divider}
+                        twClassName="bg-border-muted"
+                      />
+                    </Box>
+                    {alternativeMethods.map((method) =>
+                      renderMethodButton(method),
+                    )}
+                  </>
+                )}
+              </Box>
+            </>
+          ) : (
+            <>
+              {availableMethods.length > 1 && (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('money.security.verification_description')}
+                </Text>
               )}
-              {availableMethods.includes('authenticator') && (
-                <MethodButton
-                  icon={IconName.QrCode}
-                  label={strings('money.security.verify_with_authenticator')}
-                  onPress={handleAuthenticatorMethod}
-                  testID={
-                    MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD
-                  }
-                />
-              )}
-              {availableMethods.includes('sms') && (
-                <MethodButton
-                  icon={IconName.Mobile}
-                  label={strings('money.security.verify_with_sms')}
-                  onPress={() => setSelectedMethod('sms')}
-                  testID={MoneySecurityVerificationSheetTestIds.SMS_METHOD}
-                />
-              )}
-            </Box>
-          </>
+              <Box
+                twClassName={
+                  availableMethods.length > 1 ? 'mt-6 gap-3' : 'gap-3'
+                }
+              >
+                {availableMethods.map((method) => renderMethodButton(method))}
+              </Box>
+            </>
+          )
         ) : selectedMethod === 'passkey' ? (
           <>
             <Box alignItems={BoxAlignItems.Center} twClassName="gap-4">

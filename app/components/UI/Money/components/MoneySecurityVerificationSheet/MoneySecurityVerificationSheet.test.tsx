@@ -21,6 +21,9 @@ let mockAction: MoneySecurityVerificationAction = {
 let mockPasskeyCount = 1;
 let mockIsAuthenticatorAdded = true;
 let mockIsSmsAdded = false;
+let mockShowMethodChooser = false;
+let mockDefaultVerificationMethod: 'passkeys' | 'authenticator' | 'sms' =
+  'passkeys';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -28,7 +31,12 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     navigate: mockNavigate,
   }),
-  useRoute: () => ({ params: { action: mockAction } }),
+  useRoute: () => ({
+    params: {
+      action: mockAction,
+      showMethodChooser: mockShowMethodChooser,
+    },
+  }),
 }));
 
 jest.mock('../../hooks/useMoneyFinishSetup', () => ({
@@ -42,6 +50,7 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     isAuthenticatorAdded: mockIsAuthenticatorAdded,
     isSmsAdded: mockIsSmsAdded,
+    defaultVerificationMethod: mockDefaultVerificationMethod,
     removeAuthenticator: mockRemoveAuthenticator,
     removeSms: mockRemoveSms,
     setTransactionVerificationEnabled: mockSetTransactionVerificationEnabled,
@@ -60,7 +69,7 @@ jest.mock('../../utils/completePrototypeMoneySend', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { Pressable, View } = jest.requireActual('react-native');
 
   return {
     ...actual,
@@ -75,6 +84,21 @@ jest.mock('@metamask/design-system-react-native', () => {
         return <View testID={testID}>{children}</View>;
       },
     ),
+    BottomSheetHeader: ({
+      children,
+      onBack,
+      onClose,
+    }: {
+      children: React.ReactNode;
+      onBack?: () => void;
+      onClose?: () => void;
+    }) => (
+      <View>
+        {children}
+        {onBack && <Pressable testID="mock-header-back" onPress={onBack} />}
+        {onClose && <Pressable testID="mock-header-close" onPress={onClose} />}
+      </View>
+    ),
   };
 });
 
@@ -86,6 +110,8 @@ describe('MoneySecurityVerificationSheet', () => {
     mockPasskeyCount = 1;
     mockIsAuthenticatorAdded = true;
     mockIsSmsAdded = false;
+    mockShowMethodChooser = false;
+    mockDefaultVerificationMethod = 'passkeys';
   });
 
   afterEach(() => {
@@ -183,5 +209,69 @@ describe('MoneySecurityVerificationSheet', () => {
       expect.objectContaining({ navigate: mockNavigate }),
       mockShowSuccessToast,
     );
+  });
+
+  it('launches the configured transaction method before showing the chooser', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockIsSmsAdded = true;
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    expect(
+      getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneySecurityVerificationSheetTestIds.SMS_METHOD),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the default method as primary after the initial method is dismissed', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockIsSmsAdded = true;
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    fireEvent.press(getByTestId('mock-header-close'));
+
+    expect(getByText('or')).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD),
+    ).toHaveProp('accessibilityState', { selected: true });
+    expect(
+      getByTestId(MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD),
+    ).toHaveProp('accessibilityState', { selected: false });
+    expect(
+      getByTestId(MoneySecurityVerificationSheetTestIds.SMS_METHOD),
+    ).toHaveProp('accessibilityState', { selected: false });
+    expect(mockShowSuccessToast).toHaveBeenCalledWith(
+      'Transaction needs to be verified before sending funds.',
+      'error',
+    );
+  });
+
+  it('opens directly into the only available transaction method', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockPasskeyCount = 0;
+    mockIsAuthenticatorAdded = false;
+    mockIsSmsAdded = true;
+    const { getByTestId, queryByText } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    expect(
+      getByTestId(MoneySecurityVerificationSheetTestIds.CODE_INPUT),
+    ).toBeOnTheScreen();
+    expect(queryByText('or')).not.toBeOnTheScreen();
+    expect(
+      queryByText('Choose a security method to continue.'),
+    ).not.toBeOnTheScreen();
   });
 });

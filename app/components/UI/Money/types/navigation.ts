@@ -72,6 +72,7 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddPasskeySheet: { returnToMoneyHome?: boolean } | undefined;
   MoneySecurityVerificationSheet: {
     action: MoneySecurityVerificationAction;
+    showMethodChooser?: boolean;
   };
   MoneySecurityInfoSheet:
     | {
@@ -110,6 +111,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
       entryPoint: MoneyAuthenticatorEntryPoint;
       initialStep?: 'setup' | 'verify';
       verificationAction?: MoneySecurityVerificationAction;
+      fallbackToMethodChooser?: boolean;
     };
     MoneyAuthenticatorDetails: undefined;
     MoneySmsSetup: { returnToMoneyHome?: boolean } | undefined;

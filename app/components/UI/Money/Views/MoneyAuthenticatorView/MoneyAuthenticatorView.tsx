@@ -126,10 +126,53 @@ const MoneyAuthenticatorView = () => {
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
 
+  const handleCodeChange = useCallback((value: string) => {
+    setCode(value.replace(/\D/g, '').slice(0, 6));
+    setIsCodeInvalid(false);
+  }, []);
+
+  const focusCodeInput = useCallback(() => {
+    codeInputRef.current?.focus();
+  }, []);
+
+  const showSuccessToast = useCallback(
+    (label: string, variant: 'success' | 'error' = 'success') => {
+      const isError = variant === 'error';
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: isError ? ComponentIconName.Danger : ComponentIconName.Check,
+        iconColor: isError ? colors.error.default : colors.success.default,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label,
+            isBold: true,
+          },
+        ],
+      });
+    },
+    [colors.error.default, colors.success.default, toastRef],
+  );
+
   const handleBack = useCallback(() => {
     if (step === 'verify') {
       if (route.params.verificationAction) {
         if (route.params.verificationAction.type === 'verify-transaction') {
+          showSuccessToast(
+            strings('money.security.transaction_verification_required'),
+            'error',
+          );
+          if (route.params.fallbackToMethodChooser) {
+            navigation.goBack();
+            navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+              screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+              params: {
+                action: route.params.verificationAction,
+                showMethodChooser: true,
+              },
+            });
+            return;
+          }
           navigation.goBack();
           return;
         }
@@ -141,34 +184,13 @@ const MoneyAuthenticatorView = () => {
       return;
     }
     navigation.goBack();
-  }, [navigation, route.params.verificationAction, step]);
-
-  const handleCodeChange = useCallback((value: string) => {
-    setCode(value.replace(/\D/g, '').slice(0, 6));
-    setIsCodeInvalid(false);
-  }, []);
-
-  const focusCodeInput = useCallback(() => {
-    codeInputRef.current?.focus();
-  }, []);
-
-  const showSuccessToast = useCallback(
-    (label: string) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: ComponentIconName.Check,
-        iconColor: colors.success.default,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label,
-            isBold: true,
-          },
-        ],
-      });
-    },
-    [colors.success.default, toastRef],
-  );
+  }, [
+    navigation,
+    route.params.fallbackToMethodChooser,
+    route.params.verificationAction,
+    showSuccessToast,
+    step,
+  ]);
 
   const handleCopyKey = useCallback(async () => {
     await ClipboardManager.setString(MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT);
