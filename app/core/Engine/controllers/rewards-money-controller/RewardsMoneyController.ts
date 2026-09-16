@@ -4,7 +4,6 @@ import Logger from '../../../../util/Logger';
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
 import {
   defaultRewardsMoneyControllerState,
-  emptyProfileCache,
   getRewardsMoneyControllerDefaultState,
 } from './defaultState';
 import {
@@ -42,11 +41,6 @@ export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
-
-const REFERRAL_ME_CACHE_KEY = 'me';
-const REFERRAL_CODES_CACHE_KEY = 'codes';
-const REFERRAL_FUNNEL_CACHE_KEY = 'funnel';
-const CLAIM_HISTORY_CACHE_KEY = 'me';
 
 const metadata: StateMetadata<RewardsMoneyControllerState> = {
   referralMe: {
@@ -129,6 +123,11 @@ export function ledgerScopeKey(
   return `${originTypeScopeKey(originTypes)}|claims:${includeClaims ? '1' : '0'}`;
 }
 
+/** Composite cache key: Hydra profileId, optionally plus a scope suffix. */
+export function profileCacheKey(profileId: string, scope?: string): string {
+  return scope ? `${profileId}:${scope}` : profileId;
+}
+
 const MESSENGER_EXPOSED_METHODS = [
   'getReferralMe',
   'getReferralFunnel',
@@ -138,7 +137,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getEarningsLedger',
   'getClaimHistory',
   'getClaimById',
-  'clearProfileCache',
   'isRewardsMoneyFeatureEnabled',
   'resetState',
   'getRewardsMoneyEnvUrl',
@@ -184,45 +182,20 @@ export class RewardsMoneyController extends BaseController<
       this,
       MESSENGER_EXPOSED_METHODS,
     );
-    this.#initializeAuthSubscriptions();
   }
 
   /**
-   * Drop persisted money caches when the Hydra session ends or the profile id
-   * changes, so wrapWithCache cannot serve another user's referral/earnings.
+   * Hydra profile id for the primary session — same identity the bearer token
+   * authenticates as. Throws when no session profile is available.
    */
-  #initializeAuthSubscriptions(): void {
-    this.messenger.subscribe(
-      'AuthenticationController:stateChange',
-      (state) => {
-        if (!state.isSignedIn) {
-          this.clearProfileCache();
-        }
-      },
+  async #getProfileId(): Promise<string> {
+    const profile = await this.messenger.call(
+      'AuthenticationController:getSessionProfile',
     );
-
-    this.messenger.subscribe(
-      'AuthenticationController:profileSignIn',
-      (info) => {
-        if (info.profileIdChanged) {
-          this.clearProfileCache();
-        }
-      },
-    );
-
-    // Cold start / upgrade: persisted buckets can outlive a prior sign-out if
-    // we were not yet subscribed. Always invalidate when already unsigned —
-    // cheaper than maintaining a parallel "has cache" field list.
-    try {
-      const signedIn = this.messenger.call(
-        'AuthenticationController:isSignedIn',
-      );
-      if (!signedIn) {
-        this.clearProfileCache();
-      }
-    } catch {
-      // Auth messenger may be unavailable in isolated unit tests.
+    if (!profile?.profileId) {
+      throw new Error('No Hydra profile available for Rewards Money');
     }
+    return profile.profileId;
   }
 
   isRewardsMoneyFeatureEnabled(): boolean {
@@ -231,19 +204,6 @@ export class RewardsMoneyController extends BaseController<
 
   resetState(): void {
     this.update(() => getRewardsMoneyControllerDefaultState());
-  }
-
-  /**
-   * Drop every profile-scoped cache bucket. Called on env URL change, Hydra
-   * sign-out, and Hydra profile-id change (`AuthenticationController:profileSignIn`
-   * when `profileIdChanged` is true). Also exposed on the messenger for callers
-   * that need an explicit flush. Preserves device/build config such as
-   * `rewardsMoneyEnvUrl`.
-   */
-  clearProfileCache(): void {
-    this.update((draft) => {
-      Object.assign(draft, emptyProfileCache());
-    });
   }
 
   getRewardsMoneyEnvUrl(): string {
@@ -266,11 +226,15 @@ export class RewardsMoneyController extends BaseController<
     if (!this.canChangeRewardsMoneyEnvUrl()) {
       return;
     }
-    this.update((state) => {
-      state.rewardsMoneyEnvUrl = url;
+    // Flush profile caches so pages are not served from the previous API host.
+    // Env URL itself is device/build config and is written below.
+    const { rewardsMoneyEnvUrl: _ignored, ...emptyCaches } =
+      getRewardsMoneyControllerDefaultState();
+    this.update((draft) => {
+      Object.assign(draft, emptyCaches);
+      draft.rewardsMoneyEnvUrl = url;
     });
     this.messenger.call('RewardsMoneyDataService:setRewardsMoneyEnvUrl', url);
-    this.clearProfileCache();
   }
 
   async getReferralMe(params: GetReferralMeDto = {}): Promise<ReferralMeDto> {
@@ -278,21 +242,22 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
+    const profileId = await this.#getProfileId();
     const fetchFresh = () =>
       this.messenger.call('RewardsMoneyDataService:getReferralMe');
 
     if (params.forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeReferralMe(fresh);
+      this.#writeReferralMe(profileId, fresh);
       return fresh;
     }
 
     return wrapWithCache<ReferralMeDto>({
-      key: REFERRAL_ME_CACHE_KEY,
+      key: profileId,
       ttl: REFERRAL_ME_CACHE_THRESHOLD_MS,
-      readCache: () => this.state.referralMe ?? undefined,
+      readCache: (key) => this.state.referralMe[key],
       fetchFresh,
-      writeCache: (_key, payload) => this.#writeReferralMe(payload),
+      writeCache: (key, payload) => this.#writeReferralMe(key, payload),
     });
   }
 
@@ -303,21 +268,22 @@ export class RewardsMoneyController extends BaseController<
       return { enrolled: 0, earning_generating: 0 };
     }
 
+    const profileId = await this.#getProfileId();
     const fetchFresh = () =>
       this.messenger.call('RewardsMoneyDataService:getReferralFunnel');
 
     if (params.forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeReferralFunnel(fresh);
+      this.#writeReferralFunnel(profileId, fresh);
       return fresh;
     }
 
     return wrapWithCache<ReferralFunnelDto>({
-      key: REFERRAL_FUNNEL_CACHE_KEY,
+      key: profileId,
       ttl: REFERRAL_FUNNEL_CACHE_THRESHOLD_MS,
-      readCache: () => this.state.referralFunnel ?? undefined,
+      readCache: (key) => this.state.referralFunnel[key],
       fetchFresh,
-      writeCache: (_key, payload) => this.#writeReferralFunnel(payload),
+      writeCache: (key, payload) => this.#writeReferralFunnel(key, payload),
     });
   }
 
@@ -328,21 +294,22 @@ export class RewardsMoneyController extends BaseController<
       return { codes: [] };
     }
 
+    const profileId = await this.#getProfileId();
     const fetchFresh = () =>
       this.messenger.call('RewardsMoneyDataService:getReferralCodes');
 
     if (params.forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeReferralCodes(fresh);
+      this.#writeReferralCodes(profileId, fresh);
       return fresh;
     }
 
     return wrapWithCache<OwnReferralCodesDto>({
-      key: REFERRAL_CODES_CACHE_KEY,
+      key: profileId,
       ttl: REFERRAL_CODES_CACHE_THRESHOLD_MS,
-      readCache: () => this.state.referralCodes ?? undefined,
+      readCache: (key) => this.state.referralCodes[key],
       fetchFresh,
-      writeCache: (_key, payload) => this.#writeReferralCodes(payload),
+      writeCache: (key, payload) => this.#writeReferralCodes(key, payload),
     });
   }
 
@@ -365,7 +332,8 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const { originTypes, forceFresh } = params;
-    const key = originTypeScopeKey(originTypes);
+    const profileId = await this.#getProfileId();
+    const key = profileCacheKey(profileId, originTypeScopeKey(originTypes));
     const fetchFresh = () =>
       this.messenger.call(
         'RewardsMoneyDataService:getEarningsSummary',
@@ -408,7 +376,11 @@ export class RewardsMoneyController extends BaseController<
       );
     }
 
-    const key = ledgerScopeKey(originTypes, includeClaims);
+    const profileId = await this.#getProfileId();
+    const key = profileCacheKey(
+      profileId,
+      ledgerScopeKey(originTypes, includeClaims),
+    );
     const fetchFresh = () =>
       this.messenger.call(
         'RewardsMoneyDataService:getEarningsLedger',
@@ -450,21 +422,23 @@ export class RewardsMoneyController extends BaseController<
       );
     }
 
+    const profileId = await this.#getProfileId();
     const fetchFresh = () =>
       this.messenger.call('RewardsMoneyDataService:getClaimHistory', null);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeClaimHistoryFirstPage(fresh);
+      this.#writeClaimHistoryFirstPage(profileId, fresh);
       return fresh;
     }
 
     return wrapWithCache<ClaimHistoryPageDto>({
-      key: CLAIM_HISTORY_CACHE_KEY,
+      key: profileId,
       ttl: CLAIM_HISTORY_CACHE_THRESHOLD_MS,
-      readCache: () => this.state.claimHistoryFirstPage ?? undefined,
+      readCache: (key) => this.state.claimHistoryFirstPage[key],
       fetchFresh,
-      writeCache: (_key, payload) => this.#writeClaimHistoryFirstPage(payload),
+      writeCache: (key, payload) =>
+        this.#writeClaimHistoryFirstPage(key, payload),
     });
   }
 
@@ -474,17 +448,19 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const { claimId, forceFresh } = params;
+    const profileId = await this.#getProfileId();
+    const key = profileCacheKey(profileId, claimId);
     const fetchFresh = () =>
       this.messenger.call('RewardsMoneyDataService:getClaimById', claimId);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeClaimById(claimId, fresh);
+      this.#writeClaimById(key, fresh);
       return fresh;
     }
 
     return wrapWithCache<ClaimDto>({
-      key: claimId,
+      key,
       ttl: CLAIM_BY_ID_CACHE_THRESHOLD_MS,
       readCache: (cacheKey) => this.state.claimById[cacheKey],
       fetchFresh,
@@ -493,10 +469,10 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
-  #writeReferralMe(payload: ReferralMeDto): void {
+  #writeReferralMe(profileId: string, payload: ReferralMeDto): void {
     try {
       this.update((draft) => {
-        draft.referralMe = { payload, lastFetched: Date.now() };
+        draft.referralMe[profileId] = { payload, lastFetched: Date.now() };
       });
     } catch (error) {
       Logger.log(
@@ -506,15 +482,15 @@ export class RewardsMoneyController extends BaseController<
     }
   }
 
-  #writeReferralFunnel(payload: ReferralFunnelDto): void {
+  #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {
     this.update((draft) => {
-      draft.referralFunnel = { payload, lastFetched: Date.now() };
+      draft.referralFunnel[profileId] = { payload, lastFetched: Date.now() };
     });
   }
 
-  #writeReferralCodes(payload: OwnReferralCodesDto): void {
+  #writeReferralCodes(profileId: string, payload: OwnReferralCodesDto): void {
     this.update((draft) => {
-      draft.referralCodes = { payload, lastFetched: Date.now() };
+      draft.referralCodes[profileId] = { payload, lastFetched: Date.now() };
     });
   }
 
@@ -536,15 +512,21 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
-  #writeClaimHistoryFirstPage(payload: ClaimHistoryPageDto): void {
+  #writeClaimHistoryFirstPage(
+    profileId: string,
+    payload: ClaimHistoryPageDto,
+  ): void {
     this.update((draft) => {
-      draft.claimHistoryFirstPage = { payload, lastFetched: Date.now() };
+      draft.claimHistoryFirstPage[profileId] = {
+        payload,
+        lastFetched: Date.now(),
+      };
     });
   }
 
-  #writeClaimById(claimId: string, payload: ClaimDto): void {
+  #writeClaimById(key: string, payload: ClaimDto): void {
     this.update((draft) => {
-      draft.claimById[claimId] = { payload, lastFetched: Date.now() };
+      draft.claimById[key] = { payload, lastFetched: Date.now() };
 
       const keys = Object.keys(draft.claimById);
       if (keys.length <= CLAIM_BY_ID_CACHE_MAX_ENTRIES) {

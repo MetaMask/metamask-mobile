@@ -4,6 +4,7 @@ import {
   getRewardsMoneyControllerDefaultState,
   originTypeScopeKey,
   ledgerScopeKey,
+  profileCacheKey,
   REFERRAL_ME_CACHE_THRESHOLD_MS,
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
@@ -144,6 +145,22 @@ const mockClaim: ClaimDto = {
   updated_at: '2026-01-01T00:00:00.000Z',
 };
 
+const PROFILE_A = 'profile-a';
+const PROFILE_B = 'profile-b';
+
+const sessionProfile = (profileId: string) =>
+  Promise.resolve({
+    profileId,
+    identifierId: 'id',
+    canonicalProfileId: profileId,
+    metaMetricsId: 'mm',
+  });
+
+const dataServiceCalls = (mock: jest.MockedFunction<any>) =>
+  mock.mock.calls.filter((call: unknown[]) =>
+    String(call[0]).startsWith('RewardsMoneyDataService:'),
+  );
+
 describe('originTypeScopeKey', () => {
   it('returns all for empty or missing', () => {
     expect(originTypeScopeKey()).toBe('all');
@@ -188,10 +205,9 @@ describe('RewardsMoneyController', () => {
       unsubscribe: jest.fn(),
     } as unknown as jest.Mocked<RewardsMoneyControllerMessenger>;
 
-    // Avoid clearing seeded cache during construct (unsigned cold-start path).
     mockMessenger.call.mockImplementation((action, ..._args): any => {
-      if (action === 'AuthenticationController:isSignedIn') {
-        return true;
+      if (action === 'AuthenticationController:getSessionProfile') {
+        return sessionProfile(PROFILE_A);
       }
       return undefined;
     });
@@ -201,11 +217,10 @@ describe('RewardsMoneyController', () => {
       isDisabled,
     });
 
-    // Drop the construct-time isSignedIn call so per-test call counts stay clean.
     mockMessenger.call.mockClear();
     mockMessenger.call.mockImplementation((action, ..._args): any => {
-      if (action === 'AuthenticationController:isSignedIn') {
-        return true;
+      if (action === 'AuthenticationController:getSessionProfile') {
+        return sessionProfile(PROFILE_A);
       }
       return undefined;
     });
@@ -233,113 +248,61 @@ describe('RewardsMoneyController', () => {
           'getEarningsLedger',
           'getClaimHistory',
           'getClaimById',
-          'clearProfileCache',
           'isRewardsMoneyFeatureEnabled',
           'setRewardsMoneyEnvUrl',
         ]),
       );
     });
+  });
 
-    it('subscribes to Hydra auth events', () => {
-      expect(mockMessenger.subscribe).toHaveBeenCalledWith(
-        'AuthenticationController:stateChange',
-        expect.any(Function),
-      );
-      expect(mockMessenger.subscribe).toHaveBeenCalledWith(
-        'AuthenticationController:profileSignIn',
-        expect.any(Function),
-      );
-    });
-
-    it('clears persisted cache on construct when already signed out', () => {
+  describe('profile-keyed cache isolation', () => {
+    it('keeps a write under the profile that started the read', async () => {
+      let resolveFetch: ((value: ReferralMeDto) => void) | undefined;
       mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'AuthenticationController:isSignedIn') {
-          return false;
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return new Promise<ReferralMeDto>((resolve) => {
+            resolveFetch = resolve;
+          });
         }
         return undefined;
       });
 
-      controller = new RewardsMoneyController({
-        messenger: mockMessenger,
-        isDisabled,
-        state: {
-          referralMe: { payload: mockReferralMe, lastFetched: Date.now() },
-        },
-      });
+      const pending = controller.getReferralMe({ forceFresh: true });
+      // getSessionProfile then getReferralMe — flush until the deferred is set.
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(resolveFetch).toBeDefined();
 
-      expect(controller.state.referralMe).toBeNull();
-    });
-  });
-
-  describe('auth cache invalidation', () => {
-    const getHandler = (event: string) => {
-      const calls = mockMessenger.subscribe.mock.calls.filter(
-        (entry) => entry[0] === event,
-      );
-      return calls[calls.length - 1]?.[1] as
-        | ((payload: unknown) => void)
-        | undefined;
-    };
-
-    beforeEach(() => {
-      controller = new RewardsMoneyController({
-        messenger: mockMessenger,
-        isDisabled,
-        state: {
-          referralMe: { payload: mockReferralMe, lastFetched: Date.now() },
-          earningsSummary: {
-            all: { payload: mockSummary, lastFetched: Date.now() },
-          },
-        },
-      });
-    });
-
-    it('invalidates all buckets when Hydra session signs out', () => {
-      const onStateChange = getHandler('AuthenticationController:stateChange');
-      expect(onStateChange).toBeDefined();
-
-      onStateChange?.({ isSignedIn: false });
-
-      expect(controller.state.referralMe).toBeNull();
-      expect(controller.state.earningsSummary).toEqual({});
-    });
-
-    it('does not invalidate when stateChange keeps the session signed in', () => {
-      const onStateChange = getHandler('AuthenticationController:stateChange');
-
-      onStateChange?.({ isSignedIn: true });
-
-      expect(controller.state.referralMe?.payload).toEqual(mockReferralMe);
-    });
-
-    it('invalidates when profileSignIn reports a profile id change', () => {
-      const onProfileSignIn = getHandler(
-        'AuthenticationController:profileSignIn',
-      );
-      expect(onProfileSignIn).toBeDefined();
-
-      onProfileSignIn?.({
-        profileId: 'profile-b',
-        profileAliases: [],
-        profileIdChanged: true,
-      });
-
-      expect(controller.state.referralMe).toBeNull();
-      expect(controller.state.earningsSummary).toEqual({});
-    });
-
-    it('does not invalidate when profileSignIn keeps the same profile id', () => {
-      const onProfileSignIn = getHandler(
-        'AuthenticationController:profileSignIn',
+      resolveFetch?.(mockReferralMe);
+      await expect(pending).resolves.toEqual(mockReferralMe);
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
+        mockReferralMe,
       );
 
-      onProfileSignIn?.({
-        profileId: 'profile-a',
-        profileAliases: [],
-        profileIdChanged: false,
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_B);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return Promise.resolve({
+            ...mockReferralMe,
+            role: 'NONE',
+            variant: 'NONE',
+          });
+        }
+        return undefined;
       });
 
-      expect(controller.state.referralMe?.payload).toEqual(mockReferralMe);
+      const forB = await controller.getReferralMe();
+      expect(forB.role).toBe('NONE');
+      expect(controller.state.referralMe[PROFILE_B]?.payload.role).toBe('NONE');
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
+        mockReferralMe,
+      );
     });
   });
 
@@ -351,11 +314,13 @@ describe('RewardsMoneyController', () => {
         isDisabled,
         state: {
           referralMe: {
-            payload: mockReferralMe,
-            lastFetched: Date.now(),
+            [PROFILE_A]: { payload: mockReferralMe, lastFetched: Date.now() },
           },
           earningsSummary: {
-            all: { payload: mockSummary, lastFetched: Date.now() },
+            [`${PROFILE_A}:all`]: {
+              payload: mockSummary,
+              lastFetched: Date.now(),
+            },
           },
         },
       });
@@ -410,39 +375,65 @@ describe('RewardsMoneyController', () => {
   });
 
   describe('caching', () => {
+    const withProfileAndData = (dataAction: string, value: unknown) => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === dataAction) {
+          return Promise.resolve(value);
+        }
+        return undefined;
+      });
+    };
+
     it('caches getReferralMe within TTL', async () => {
-      mockMessenger.call.mockResolvedValue(mockReferralMe);
+      withProfileAndData(
+        'RewardsMoneyDataService:getReferralMe',
+        mockReferralMe,
+      );
 
       const first = await controller.getReferralMe();
       const second = await controller.getReferralMe();
 
       expect(first).toEqual(mockReferralMe);
       expect(second).toEqual(mockReferralMe);
-      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
-      expect(controller.state.referralMe?.payload).toEqual(mockReferralMe);
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(1);
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
+        mockReferralMe,
+      );
     });
 
     it('refetches getReferralMe after TTL', async () => {
-      mockMessenger.call.mockResolvedValue(mockReferralMe);
+      withProfileAndData(
+        'RewardsMoneyDataService:getReferralMe',
+        mockReferralMe,
+      );
 
       await controller.getReferralMe();
       jest.advanceTimersByTime(REFERRAL_ME_CACHE_THRESHOLD_MS + 1);
       await controller.getReferralMe();
 
-      expect(mockMessenger.call).toHaveBeenCalledTimes(2);
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
     });
 
     it('forceFresh bypasses TTL', async () => {
-      mockMessenger.call.mockResolvedValue(mockReferralMe);
+      withProfileAndData(
+        'RewardsMoneyDataService:getReferralMe',
+        mockReferralMe,
+      );
 
       await controller.getReferralMe();
       await controller.getReferralMe({ forceFresh: true });
 
-      expect(mockMessenger.call).toHaveBeenCalledTimes(2);
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
     });
 
     it('caches earnings summary by origin-type scope', async () => {
-      mockMessenger.call.mockResolvedValue(mockSummary);
+      withProfileAndData(
+        'RewardsMoneyDataService:getEarningsSummary',
+        mockSummary,
+      );
 
       await controller.getEarningsSummary({
         originTypes: ['SWAPS_FEE_CASHBACK', 'PERPS_FEE_CASHBACK'],
@@ -451,21 +442,29 @@ describe('RewardsMoneyController', () => {
         originTypes: ['PERPS_FEE_CASHBACK', 'SWAPS_FEE_CASHBACK'],
       });
 
-      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
-      const key = originTypeScopeKey([
-        'SWAPS_FEE_CASHBACK',
-        'PERPS_FEE_CASHBACK',
-      ]);
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(1);
+      const key = profileCacheKey(
+        PROFILE_A,
+        originTypeScopeKey(['SWAPS_FEE_CASHBACK', 'PERPS_FEE_CASHBACK']),
+      );
       expect(controller.state.earningsSummary[key]?.payload).toEqual(
         mockSummary,
       );
     });
 
     it('does not persist ledger cursor pages', async () => {
-      mockMessenger.call.mockResolvedValue({
-        ...mockLedgerPage,
-        cursor: 'next',
-        has_more: true,
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getEarningsLedger') {
+          return Promise.resolve({
+            ...mockLedgerPage,
+            cursor: 'next',
+            has_more: true,
+          });
+        }
+        return undefined;
       });
 
       await controller.getEarningsLedger({ cursor: 'page-2' });
@@ -481,19 +480,23 @@ describe('RewardsMoneyController', () => {
     });
 
     it('caches ledger first page under the unified-history key', async () => {
-      mockMessenger.call.mockResolvedValue(mockLedgerPage);
+      withProfileAndData(
+        'RewardsMoneyDataService:getEarningsLedger',
+        mockLedgerPage,
+      );
 
       await controller.getEarningsLedger();
       await controller.getEarningsLedger();
 
-      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
-      expect(
-        controller.state.earningsLedgerFirstPage['all|claims:1']?.payload,
-      ).toEqual(mockLedgerPage);
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(1);
+      const key = profileCacheKey(PROFILE_A, ledgerScopeKey(undefined, true));
+      expect(controller.state.earningsLedgerFirstPage[key]?.payload).toEqual(
+        mockLedgerPage,
+      );
     });
 
     it('caches accrual-only ledger separately when includeClaims is false', async () => {
-      mockMessenger.call.mockResolvedValue({
+      withProfileAndData('RewardsMoneyDataService:getEarningsLedger', {
         ...mockLedgerPage,
         results: mockLedgerPage.results.filter((row) => row.type === 'earning'),
       });
@@ -507,22 +510,28 @@ describe('RewardsMoneyController', () => {
         undefined,
         false,
       );
+      const key = profileCacheKey(PROFILE_A, ledgerScopeKey(undefined, false));
       expect(
-        controller.state.earningsLedgerFirstPage['all|claims:0']?.payload
-          .results,
+        controller.state.earningsLedgerFirstPage[key]?.payload.results,
       ).toHaveLength(1);
     });
 
     it('does not persist claim history cursor pages', async () => {
-      mockMessenger.call.mockResolvedValue(mockClaimHistory);
+      withProfileAndData(
+        'RewardsMoneyDataService:getClaimHistory',
+        mockClaimHistory,
+      );
 
       await controller.getClaimHistory({ cursor: 'page-2' });
 
-      expect(controller.state.claimHistoryFirstPage).toBeNull();
+      expect(controller.state.claimHistoryFirstPage).toEqual({});
     });
 
     it('caches claim by id and caps the map', async () => {
       mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
         if (action === 'RewardsMoneyDataService:getClaimById') {
           const claimId = args[0] as string;
           return Promise.resolve({ ...mockClaim, id: claimId });
@@ -540,74 +549,31 @@ describe('RewardsMoneyController', () => {
       ).toBeLessThanOrEqual(20);
     });
 
-    it('clearProfileCache clears all seven buckets', async () => {
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        switch (action) {
-          case 'AuthenticationController:isSignedIn':
-            return true;
-          case 'RewardsMoneyDataService:getReferralMe':
-            return mockReferralMe;
-          case 'RewardsMoneyDataService:getReferralFunnel':
-            return mockFunnel;
-          case 'RewardsMoneyDataService:getReferralCodes':
-            return mockCodes;
-          case 'RewardsMoneyDataService:getEarningsSummary':
-            return mockSummary;
-          case 'RewardsMoneyDataService:getEarningsLedger':
-            return mockLedgerPage;
-          case 'RewardsMoneyDataService:getClaimHistory':
-            return mockClaimHistory;
-          case 'RewardsMoneyDataService:getClaimById':
-            return mockClaim;
-          default:
-            return undefined;
-        }
-      });
-
-      controller = new RewardsMoneyController({
-        messenger: mockMessenger,
-        isDisabled,
-        state: {
-          rewardsMoneyEnvUrl: 'https://custom.example',
-        },
-      });
-
-      await controller.getReferralMe();
-      await controller.getReferralFunnel();
-      await controller.getReferralCodes();
-      await controller.getEarningsSummary();
-      await controller.getEarningsLedger();
-      await controller.getClaimHistory();
-      await controller.getClaimById({ claimId: 'claim-1' });
-
-      controller.clearProfileCache();
-
-      expect(controller.state.referralMe).toBeNull();
-      expect(controller.state.referralCodes).toBeNull();
-      expect(controller.state.referralFunnel).toBeNull();
-      expect(controller.state.earningsSummary).toEqual({});
-      expect(controller.state.earningsLedgerFirstPage).toEqual({});
-      expect(controller.state.claimHistoryFirstPage).toBeNull();
-      expect(controller.state.claimById).toEqual({});
-      expect(controller.state.rewardsMoneyEnvUrl).toBe(
-        'https://custom.example',
-      );
-    });
-
     it('refetches earnings summary after money TTL', async () => {
-      mockMessenger.call.mockResolvedValue(mockSummary);
+      withProfileAndData(
+        'RewardsMoneyDataService:getEarningsSummary',
+        mockSummary,
+      );
 
       await controller.getEarningsSummary();
       jest.advanceTimersByTime(EARNINGS_SUMMARY_CACHE_THRESHOLD_MS + 1);
       await controller.getEarningsSummary();
 
-      expect(mockMessenger.call).toHaveBeenCalledTimes(2);
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
     });
   });
 
   describe('validateReferralCode', () => {
     it('forwards to data service when enabled', async () => {
-      mockMessenger.call.mockResolvedValue({ success: true });
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:validateReferralCode') {
+          return Promise.resolve({ success: true });
+        }
+        return undefined;
+      });
 
       await expect(controller.validateReferralCode('ABC')).resolves.toEqual({
         success: true,
@@ -622,6 +588,9 @@ describe('RewardsMoneyController', () => {
   describe('env URL', () => {
     it('persists override and invalidates cache when canChange is true', async () => {
       mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
         if (action === 'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl') {
           return true;
         }
@@ -635,7 +604,9 @@ describe('RewardsMoneyController', () => {
         messenger: mockMessenger,
         isDisabled,
         state: {
-          referralMe: { payload: mockReferralMe, lastFetched: Date.now() },
+          referralMe: {
+            [PROFILE_A]: { payload: mockReferralMe, lastFetched: Date.now() },
+          },
         } as Partial<RewardsMoneyControllerState>,
       });
 
@@ -644,7 +615,7 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.rewardsMoneyEnvUrl).toBe(
         'https://custom.example',
       );
-      expect(controller.state.referralMe).toBeNull();
+      expect(controller.state.referralMe).toEqual({});
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsMoneyDataService:setRewardsMoneyEnvUrl',
         'https://custom.example',
@@ -664,7 +635,7 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.rewardsMoneyEnvUrl).toBeNull();
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsMoneyDataService:setRewardsMoneyEnvUrl',
-        expect.any(String),
+        expect.anything(),
       );
     });
   });
@@ -675,14 +646,17 @@ describe('RewardsMoneyController', () => {
         messenger: mockMessenger,
         isDisabled,
         state: {
-          referralMe: { payload: mockReferralMe, lastFetched: Date.now() },
+          referralMe: {
+            [PROFILE_A]: { payload: mockReferralMe, lastFetched: Date.now() },
+          },
           rewardsMoneyEnvUrl: 'https://custom.example',
-        },
+        } as Partial<RewardsMoneyControllerState>,
       });
 
       controller.resetState();
 
       expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
+      expect(controller.state.rewardsMoneyEnvUrl).toBeNull();
     });
   });
 });

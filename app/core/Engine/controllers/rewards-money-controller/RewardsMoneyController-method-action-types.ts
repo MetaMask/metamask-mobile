@@ -15,18 +15,6 @@ export type RewardsMoneyControllerResetStateAction = {
   handler: RewardsMoneyController['resetState'];
 };
 
-/**
- * Drop every profile-scoped cache bucket. Called on env URL change, Hydra
- * sign-out, and Hydra profile-id change (`AuthenticationController:profileSignIn`
- * when `profileIdChanged` is true). Also exposed on the messenger for callers
- * that need an explicit flush. Preserves device/build config such as
- * `rewardsMoneyEnvUrl`.
- */
-export type RewardsMoneyControllerClearProfileCacheAction = {
-  type: `RewardsMoneyController:clearProfileCache`;
-  handler: RewardsMoneyController['clearProfileCache'];
-};
-
 export type RewardsMoneyControllerGetRewardsMoneyEnvUrlAction = {
   type: `RewardsMoneyController:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyController['getRewardsMoneyEnvUrl'];
@@ -93,7 +81,6 @@ export type RewardsMoneyControllerGetClaimByIdAction = {
 export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction
   | RewardsMoneyControllerResetStateAction
-  | RewardsMoneyControllerClearProfileCacheAction
   | RewardsMoneyControllerGetRewardsMoneyEnvUrlAction
   | RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction

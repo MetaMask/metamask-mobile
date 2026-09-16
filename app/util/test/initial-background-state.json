@@ -938,12 +938,12 @@
     "rewardsEnvUrl": null
   },
   "RewardsMoneyController": {
-    "referralMe": null,
-    "referralCodes": null,
-    "referralFunnel": null,
+    "referralMe": {},
+    "referralCodes": {},
+    "referralFunnel": {},
     "earningsSummary": {},
     "earningsLedgerFirstPage": {},
-    "claimHistoryFirstPage": null,
+    "claimHistoryFirstPage": {},
     "claimById": {},
     "rewardsMoneyEnvUrl": null
   },

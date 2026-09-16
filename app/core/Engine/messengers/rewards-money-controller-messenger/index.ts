@@ -43,17 +43,12 @@ type AllowedActions =
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceGetDefaultRewardsMoneyEnvUrlAction
-  | AuthenticationController.AuthenticationControllerIsSignedInAction;
-
-// Don't reexport as per guidelines
-type AllowedEvents =
-  | AuthenticationController.AuthenticationControllerStateChangeEvent
-  | AuthenticationController.AuthenticationControllerProfileSignInEvent;
+  | AuthenticationController.AuthenticationControllerGetSessionProfileAction;
 
 export type RewardsMoneyControllerMessenger = Messenger<
   typeof name,
   RewardsMoneyControllerActions | AllowedActions,
-  RewardsMoneyControllerEvents | AllowedEvents
+  RewardsMoneyControllerEvents
 >;
 
 export function getRewardsMoneyControllerMessenger(
@@ -91,12 +86,9 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:setRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:getDefaultRewardsMoneyEnvUrl',
-      'AuthenticationController:isSignedIn',
+      'AuthenticationController:getSessionProfile',
     ],
-    events: [
-      'AuthenticationController:stateChange',
-      'AuthenticationController:profileSignIn',
-    ],
+    events: [],
   } as Parameters<RootMessenger['delegate']>[0]);
 
   return messenger;

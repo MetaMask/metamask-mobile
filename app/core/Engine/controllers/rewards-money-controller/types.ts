@@ -315,17 +315,28 @@ export type CacheEntry<T> = {
 /** Soft cap on claim-by-id cache entries so the map cannot grow without bound. */
 export const CLAIM_BY_ID_CACHE_MAX_ENTRIES = 20;
 
+/**
+ * Persisted Rewards Money state.
+ *
+ * Profile-scoped caches are keyed by Hydra `profileId` (and a scope suffix
+ * where needed), matching RewardsController's `subscriptionId`-keyed maps so a
+ * late write for profile A cannot be read as profile B.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsMoneyControllerState = {
-  referralMe: CacheEntry<ReferralMeDto> | null;
-  referralCodes: CacheEntry<OwnReferralCodesDto> | null;
-  referralFunnel: CacheEntry<ReferralFunnelDto> | null;
-  /** Keyed by the origin-type scope. */
+  /** Keyed by Hydra profileId. */
+  referralMe: Record<string, CacheEntry<ReferralMeDto>>;
+  /** Keyed by Hydra profileId. */
+  referralCodes: Record<string, CacheEntry<OwnReferralCodesDto>>;
+  /** Keyed by Hydra profileId. */
+  referralFunnel: Record<string, CacheEntry<ReferralFunnelDto>>;
+  /** Keyed by `${profileId}:${originTypeScope}`. */
   earningsSummary: Record<string, CacheEntry<EarningsSummaryDto>>;
-  /** Page 1 only. Later pages are merged by the caller. */
+  /** Page 1 only. Keyed by `${profileId}:${ledgerScope}`. */
   earningsLedgerFirstPage: Record<string, CacheEntry<EarningsLedgerPageDto>>;
-  claimHistoryFirstPage: CacheEntry<ClaimHistoryPageDto> | null;
-  /** Keyed by claim UUID. */
+  /** Keyed by Hydra profileId. */
+  claimHistoryFirstPage: Record<string, CacheEntry<ClaimHistoryPageDto>>;
+  /** Keyed by `${profileId}:${claimId}`. */
   claimById: Record<string, CacheEntry<ClaimDto>>;
   /** Persisted env URL override (non-production builds only). */
   rewardsMoneyEnvUrl: string | null;
