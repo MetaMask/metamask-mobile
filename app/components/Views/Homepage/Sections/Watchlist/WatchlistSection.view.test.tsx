@@ -14,7 +14,10 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/watchlist';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
-import { getTrendingTokenRowItemTestId } from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowItemTestId,
+  getTrendingTokenRowAddButtonTestId,
+} from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import { WatchlistFullScreenViewSelectorsIDs } from '../../../../UI/Assets/watchlist/Views/WatchlistFullScreenView/WatchlistFullScreenView.testIds';
 import { WatchlistEmptyCTATestIds } from '../../../../UI/Assets/watchlist/components/WatchlistEmptyCTA/WatchlistEmptyCTA.testIds';
 import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/components/WatchlistStarButton.testIds';
@@ -109,6 +112,60 @@ describeForPlatforms('WatchlistSection', () => {
     );
 
     await findByTestId(WatchlistEmptyCTATestIds.CONTAINER);
+  });
+
+  it('shows perps-style suggested tokens with add buttons in the empty state', async () => {
+    setupWatchlistStorageMock(EMPTY_BLOB);
+
+    const { findByText, findByTestId } = renderWatchlistSectionWithRoutes();
+
+    expect(
+      await findByText(strings('token_watchlist.home_empty_subtitle')),
+    ).toBeOnTheScreen();
+
+    // The suggested query hydrates the curated defaults; the token API mock
+    // only serves ETH from those IDs, so exactly one suggested row renders.
+    const suggestedRow = await findByTestId(getRowTestId('eip155:1/slip44:60'));
+    expect(suggestedRow).toBeOnTheScreen();
+    expect(
+      await findByTestId(
+        getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('adds a suggested token to the watchlist from the empty state', async () => {
+    setupWatchlistStorageMock(EMPTY_BLOB);
+    const putScope = setupWatchlistStoragePutMock();
+
+    const { findByTestId, queryByTestId } = renderWatchlistSectionWithRoutes();
+
+    const addButton = await findByTestId(
+      getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+    );
+
+    await act(async () => {
+      fireEvent.press(addButton);
+    });
+
+    await waitFor(() => expect(putScope.isDone()).toBe(true), {
+      timeout: 5000,
+    });
+
+    // The add flips the section from the empty state to watchlist mode: the
+    // suggested + button disappears and the added token renders as a row.
+    await waitFor(
+      () =>
+        expect(
+          queryByTestId(
+            getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+          ),
+        ).toBeNull(),
+      { timeout: 5000 },
+    );
+    expect(
+      await findByTestId(getRowTestId('eip155:1/slip44:60')),
+    ).toBeOnTheScreen();
   });
 });
 

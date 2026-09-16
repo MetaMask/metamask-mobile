@@ -1,5 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowAddButtonTestId,
+  getTrendingTokenRowItemTestId,
+} from './TrendingTokenRowItem.testIds';
 import { Pressable, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Text, {
@@ -12,6 +15,9 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   Icon,
   IconName,
   IconSize,
@@ -87,6 +93,8 @@ interface TrendingTokenRowItemProps {
   testIdInstanceKey?: string;
   /** When provided, shows a circular Quick Trade button on the right of the row. */
   onQuickTrade?: (token: TrendingAsset) => void;
+  /** When provided, shows a perps-style add-to-watchlist (+) button on the right of the row. */
+  onAddPress?: (token: TrendingAsset) => void;
 }
 
 /**
@@ -140,6 +148,7 @@ const TrendingTokenRowItem = ({
   onCardPress,
   testIdInstanceKey,
   onQuickTrade,
+  onAddPress,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -264,6 +273,15 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
+      {onAddPress && (
+        <ButtonIcon
+          iconName={IconName.Add}
+          size={ButtonIconSize.Md}
+          variant={ButtonIconVariant.Filled}
+          onPress={() => onAddPress(token)}
+          testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
+        />
+      )}
       {onQuickTrade && (
         <Pressable
           onPress={(e) => {
