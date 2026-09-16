@@ -1876,10 +1876,6 @@
         "current_price": "Τρέχουσα τιμή",
         "liquidation_price": "Τιμή ρευστοποίησης",
         "liquidation_distance": "Απόσταση ρευστοποίησης",
-        "liquidation_warning": "Η θέση σας θα ρευστοποιηθεί αν η τιμή {{direction}} κατά {{percentage}}",
-        "drops": "πέσει",
-        "rises": "ανεβεί",
-        "set_leverage": "Ορισμός μόχλευσης {{leverage}}x",
         "price_unavailable": "Οι πληροφορίες τιμών δεν είναι διαθέσιμες"
       },
       "type": {

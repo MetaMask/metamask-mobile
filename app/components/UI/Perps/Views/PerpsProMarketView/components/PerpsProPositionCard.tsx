@@ -59,12 +59,6 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-const ACTION_BUTTON_CLASS_NAME = 'flex-1';
-const ACTION_BUTTON_TEXT_PROPS = {
-  variant: TextVariant.BodySm,
-  fontWeight: FontWeight.Medium,
-};
-
 interface KeyValueItemProps {
   label: string;
   value: string;
@@ -457,9 +451,8 @@ const PerpsProPositionCard = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
-            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Close}
-            twClassName={ACTION_BUTTON_CLASS_NAME}
+            twClassName="flex-1"
             onPress={() => onClose?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_CLOSE}
           >
@@ -468,9 +461,8 @@ const PerpsProPositionCard = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Refresh}
-            twClassName={ACTION_BUTTON_CLASS_NAME}
+            twClassName="flex-1"
             onPress={() => onReverse?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
           >
@@ -481,7 +473,6 @@ const PerpsProPositionCard = ({
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
             iconProps={{ size: IconSize.Md }}
-            twClassName="rounded-md"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
             accessibilityLabel={strings('perps.pro_positions_panel.card.share')}

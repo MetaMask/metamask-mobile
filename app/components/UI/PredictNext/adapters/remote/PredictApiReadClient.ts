@@ -1,5 +1,6 @@
 import type {
   FetchFeedParams,
+  FetchPortfolioPageParams,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -14,6 +15,16 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
   fetchBalance(
     venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchFeed(
@@ -98,6 +109,31 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   ): Promise<unknown> {
     return this.#getAuthenticated(
       ['v1', 'venues', venueId, 'balance'],
+      undefined,
+      options,
+    );
+  }
+
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#getAuthenticated(
+      ['v1', 'venues', venueId, 'positions'],
+      params,
+      options,
+    );
+  }
+
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#getAuthenticated(
+      ['v1', 'venues', venueId, 'activity'],
+      params,
       options,
     );
   }
@@ -142,6 +178,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #getAuthenticated(
     segments: readonly string[],
+    params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
     // A missing or failing token provider is an authentication failure, not a
@@ -150,7 +187,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     if (!token?.trim()) {
       throw new PredictHttpError(401);
     }
-    return this.#get(segments, undefined, options, token);
+    return this.#get(segments, params, options, token);
   }
 
   async #get(
