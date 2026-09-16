@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -33,6 +34,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../constants/moneySendPrototype';
 
 type TransferAction = 'withdraw' | 'perps' | 'predict';
 
@@ -60,6 +62,13 @@ const MoneyTransferSheet = () => {
     null,
   );
 
+  const openPrototypeTransactionVerification = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: { action: { type: 'verify-transaction' } },
+    });
+  }, [navigation]);
+
   // Close the sheet (which pops the modal) and kick off the transfer in one
   // atomic step, so the confirmation slides straight over the sheet rather than
   // flashing back to Money home in between. We resolve the initiator here rather
@@ -80,10 +89,21 @@ const MoneyTransferSheet = () => {
             error,
             '[MoneyTransferSheet] Transfer initiation failed',
           );
+          if (
+            MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED &&
+            action === 'withdraw'
+          ) {
+            openPrototypeTransactionVerification();
+          }
         });
       });
     },
-    [initiateWithdrawal, initiatePerpsDeposit, initiatePredictDeposit],
+    [
+      initiateWithdrawal,
+      initiatePerpsDeposit,
+      initiatePredictDeposit,
+      openPrototypeTransactionVerification,
+    ],
   );
 
   // A leftover unapproved transaction would be picked up by the confirmation

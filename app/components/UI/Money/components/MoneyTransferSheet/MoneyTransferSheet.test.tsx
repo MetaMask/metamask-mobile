@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyTransferSheet from './MoneyTransferSheet';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
@@ -10,6 +10,7 @@ import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pa
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
 import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -38,6 +39,7 @@ const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountWithdrawal: jest.fn(),
@@ -72,6 +74,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -172,6 +175,24 @@ describe('MoneyTransferSheet', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
     expect(global.alert).not.toHaveBeenCalled();
+  });
+
+  it('opens prototype verification when live withdrawal setup fails', async () => {
+    mockInitiateWithdrawal.mockRejectedValueOnce(
+      new Error('Missing vault config'),
+    );
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+    );
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+        params: { action: { type: 'verify-transaction' } },
+      }),
+    );
   });
 
   it('disables the "Perps account" option when flag is disabled', () => {
