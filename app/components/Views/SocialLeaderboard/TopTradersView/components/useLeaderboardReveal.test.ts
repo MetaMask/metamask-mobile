@@ -249,23 +249,64 @@ describe('useLeaderboardReveal', () => {
     expect(mockWriteSnapshot).not.toHaveBeenCalled();
   });
 
-  it('re-reads the snapshot when the ranking changes', () => {
+  it('passes fresh rows straight through after a sort change', () => {
+    jest.useFakeTimers();
+    try {
+      mockReadSnapshot.mockReturnValue([buildTrader('a', 1)]);
+      const { result, rerender } = renderReveal();
+      expect(result.current.isShowingSnapshot).toBe(true);
+
+      // The user asked for a different ranking, so its result must not be held
+      // back behind a stored order for the ranking they just left.
+      const fresh = [buildTrader('z', 1)];
+      rerender({
+        freshTraders: fresh,
+        hasFetched: true,
+        keyParts: { ...KEY_PARTS, sort: 'winRate' },
+        enabled: true,
+        hydrateRow,
+      });
+
+      expect(result.current.isShowingSnapshot).toBe(false);
+      expect(result.current.rows).toEqual(fresh);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not re-read a snapshot for the newly chosen ranking', () => {
     mockReadSnapshot.mockReturnValue([buildTrader('a', 1)]);
     const { rerender } = renderReveal();
     expect(mockReadSnapshot).toHaveBeenCalledTimes(1);
 
     rerender({
-      freshTraders: [],
-      hasFetched: false,
-      keyParts: { ...KEY_PARTS, sort: 'winRate' },
+      freshTraders: [buildTrader('z', 1)],
+      hasFetched: true,
+      keyParts: { ...KEY_PARTS, timeframe: '30d' },
       enabled: true,
       hydrateRow,
     });
 
-    expect(mockReadSnapshot).toHaveBeenLastCalledWith({
-      ...KEY_PARTS,
-      sort: 'winRate',
+    // Timeframe is remapped in place with no refetch, so the correct order is
+    // already on screen; reading a stored one could only move it backwards.
+    expect(mockReadSnapshot).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps persisting under the ranking the user switched to', () => {
+    mockReadSnapshot.mockReturnValue([buildTrader('a', 1)]);
+    const { rerender } = renderReveal();
+
+    const fresh = [buildTrader('z', 1)];
+    const nextKeyParts = { ...KEY_PARTS, sort: 'winRate' };
+    rerender({
+      freshTraders: fresh,
+      hasFetched: true,
+      keyParts: nextKeyParts,
+      enabled: true,
+      hydrateRow,
     });
+
+    expect(mockWriteSnapshot).toHaveBeenCalledWith(nextKeyParts, fresh);
   });
 
   it('reveals without waiting when the query returns nothing', () => {

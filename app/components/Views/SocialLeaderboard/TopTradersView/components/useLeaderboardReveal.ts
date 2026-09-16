@@ -78,29 +78,31 @@ export const useLeaderboardReveal = <T extends TopTrader>({
   const prefersReducedMotion = useReducedMotion();
   const snapshotKey = `${keyParts.type}:${keyParts.sort}:${keyParts.timeframe}`;
 
-  // Read synchronously during the first render for this ranking so the very
-  // first commit already has rows; an effect-based read would paint a skeleton
-  // for a frame first.
-  const [snapshot, setSnapshot] = useState<TopTrader[] | null>(() =>
+  // Read synchronously during the first render so the very first commit already
+  // has rows; an effect-based read would paint a skeleton for a frame first.
+  const [snapshot] = useState<TopTrader[] | null>(() =>
     enabled && !prefersReducedMotion ? readSnapshot(keyParts) : null,
   );
 
   const [hasRevealed, setHasRevealed] = useState(false);
-  const revealedKeyRef = useRef(snapshotKey);
 
-  // Changing sort/timeframe is a different ranking with its own snapshot, so
-  // the reveal budget resets — but the user asked for this change, so the new
-  // snapshot only stands in until the query answers.
-  useEffect(() => {
-    if (revealedKeyRef.current === snapshotKey) return;
-    revealedKeyRef.current = snapshotKey;
-    setSnapshot(
-      enabled && !prefersReducedMotion ? readSnapshot(keyParts) : null,
-    );
-    setHasRevealed(false);
-  }, [snapshotKey, enabled, prefersReducedMotion, keyParts]);
+  /**
+   * The reveal belongs to the ranking the screen opened on.
+   *
+   * Switching sort or timeframe is the user asking for a different ranking
+   * *now*, so from that point on the query result goes straight to the screen.
+   * Re-arming the reveal would flash the new ranking, snap back to a stored
+   * one, then dwell before showing what they just asked for — and timeframe is
+   * remapped in place with no refetch, so the correct order is already there.
+   *
+   * Derived rather than reset in an effect, so the first render after a switch
+   * already passes through and there is no intermediate commit to flash.
+   */
+  const openingKeyRef = useRef(snapshotKey);
+  const isOpeningRanking = openingKeyRef.current === snapshotKey;
 
-  const isShowingSnapshot = Boolean(snapshot) && !hasRevealed;
+  const isShowingSnapshot =
+    Boolean(snapshot) && !hasRevealed && isOpeningRanking;
 
   // Hold the fresh order until the remembered one has had its moment. Reduced
   // motion skips the wait entirely — there is no animation to make room for.
