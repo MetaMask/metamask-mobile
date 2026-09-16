@@ -1170,15 +1170,26 @@
     "sort_filter": {
       "title": "Sort by",
       "pnl": "P&L",
+      "profit": "Profit",
+      "volume": "Volume",
       "roi": "P&L %",
       "win_rate": "Win rate"
+    },
+    "cohort_filter": {
+      "title": "Trader cohort"
     },
     "feed": {
       "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed",
+        "trending": "Trending",
+        "following": "Following",
         "live_trades": "Live trades"
+      },
+      "live_stream": {
+        "paused": "Paused",
+        "live": "Live"
       },
       "following": "Following",
       "all": "All",
