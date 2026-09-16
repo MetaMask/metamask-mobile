@@ -273,9 +273,9 @@ const MoneySecurityVerificationSheet = () => {
           });
         break;
       case 'verify-transaction':
-        destination = () =>
-          completePrototypeMoneySend(navigation, showSuccessToast);
-        break;
+        navigation.goBack();
+        completePrototypeMoneySend(navigation, showSuccessToast);
+        return;
     }
 
     sheetRef.current?.onCloseBottomSheet(destination);

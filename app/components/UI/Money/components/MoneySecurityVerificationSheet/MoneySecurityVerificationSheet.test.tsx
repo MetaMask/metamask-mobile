@@ -207,6 +207,8 @@ describe('MoneySecurityVerificationSheet', () => {
       expect.objectContaining({ navigate: mockNavigate }),
       mockShowSuccessToast,
     );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockCloseBottomSheet).not.toHaveBeenCalled();
   });
 
   it('launches the configured transaction method before showing the chooser', () => {
