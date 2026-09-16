@@ -1001,6 +1001,13 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  MyProfileView: undefined;
+  ManageProfileView: undefined;
+  ManageProfileTextEditorView: {
+    field: 'displayName' | 'handle' | 'bio' | 'socials';
+  };
+  ManageProfileTradingActivityView: undefined;
+  ManageProfileLinkedAccountView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

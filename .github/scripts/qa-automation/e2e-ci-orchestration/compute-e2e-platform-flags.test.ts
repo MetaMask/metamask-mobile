@@ -10,7 +10,7 @@ describe('computeE2EPlatformFlags', () => {
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
-    ignorableCount: 0,
+    e2eIgnorableCount: 0,
     e2eTestFilesCount: 1,
     e2eTestOrIgnorableCount: 1,
     e2eWorkflowsCount: 0,
@@ -26,12 +26,23 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
       useMainBuildsForTestOnlyPrs: true,
       runSmartE2ESelection: true,
       message: expect.stringContaining('test-only'),
     });
+  });
+
+  it('does not classify inconsistent filter counts as test-only changes', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      e2eTestOrIgnorableCount: 2,
+    });
+
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
+    expect(result.ios).toBe(false);
+    expect(result.message).toContain('E2E for both platforms');
   });
 
   it('uses the current source for app code changes', () => {
@@ -46,7 +57,7 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
     expect(result.android).toBe(true);
-    expect(result.ios).toBe(true);
+    expect(result.ios).toBe(false);
     expect(result.changedSpecFiles).toBe(
       'tests/smoke-appium/wallet/foo.spec.ts',
     );
@@ -56,7 +67,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       e2eTestFilesCount: 0,
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestOrIgnorableCount: 1,
       changedSpecFiles: '',
     });
@@ -175,7 +186,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
   });
 
-  it('selects iOS only for iOS-only path filters outside request-only branches', () => {
+  it('suppresses iOS for iOS-only path filters on any PR target', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'feature/1',
@@ -187,10 +198,11 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result).toMatchObject({
       android: false,
-      ios: true,
-      e2eNeeded: true,
-      runSmartE2ESelection: true,
+      ios: false,
+      e2eNeeded: false,
+      runSmartE2ESelection: false,
     });
+    expect(result.message).toContain('iOS not requested for this PR');
   });
 
   it('runs both platforms for E2E test-only pushes', () => {
@@ -239,11 +251,28 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
+  it('selects iOS only for iOS-only pushes', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      iosCount: 1,
+      iosOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
+
   it('skips ignorable-only pushes to main or release/*', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
     });
@@ -260,7 +289,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'schedule',
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
     });
@@ -272,7 +301,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('drops iOS from both-platform selection for PRs targeting main', () => {
+  it('drops iOS from both-platform selection for PRs', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'main',
@@ -293,7 +322,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.message).toContain('iOS not requested for this PR');
   });
 
-  it('drops iOS from test-only selection for PRs targeting main', () => {
+  it('drops iOS from test-only selection for PRs', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'main',
@@ -307,7 +336,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('leaves no E2E to run when an iOS-only PR targets main', () => {
+  it('leaves no E2E to run when an iOS-only PR has no request label', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'main',
@@ -326,7 +355,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('suppresses iOS for cherry-pick PRs targeting release/* without a request', () => {
+  it('suppresses iOS for any PR target without a request', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'release/1.0.0',
@@ -346,7 +375,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.message).toContain('iOS not requested for this PR');
   });
 
-  it('keys the main-PR iOS suppression off the event, not the ref', () => {
+  it('keys iOS suppression off the event, not the target branch', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
@@ -375,7 +404,7 @@ describe('applyE2ELabelOverrides', () => {
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
-    ignorableCount: 0,
+    e2eIgnorableCount: 0,
     e2eTestFilesCount: 0,
     e2eTestOrIgnorableCount: 0,
     e2eWorkflowsCount: 0,
@@ -425,7 +454,7 @@ describe('applyE2ELabelOverrides', () => {
     });
   });
 
-  it('opts into iOS build via skip-smart-e2e-selection when path filters selected iOS', () => {
+  it('keeps iOS disabled with skip-smart-e2e-selection when path filters selected iOS', () => {
     const baseFlags = computeE2EPlatformFlags({
       ...androidOnlyPathFiltersFor('main'),
       iosCount: 1,
@@ -440,13 +469,13 @@ describe('applyE2ELabelOverrides', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
       message: expect.stringContaining('skip-smart-e2e-selection'),
     });
   });
 
-  it('widens skip-smart-e2e-selection to both platforms on an iOS-only PR', () => {
+  it('selects Android only with skip-smart-e2e-selection on an iOS-only PR', () => {
     const baseFlags = computeE2EPlatformFlags({
       ...androidOnlyPathFiltersFor('feature/1'),
       androidCount: 0,
@@ -464,12 +493,12 @@ describe('applyE2ELabelOverrides', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
     });
   });
 
-  it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
+  it('keeps Android only with skip-smart-e2e-selection on an Android-only PR', () => {
     const baseFlags = computeE2EPlatformFlags(androidOnlyPathFiltersFor('main'));
 
     const result = applyE2ELabelOverrides(baseFlags, {
@@ -478,8 +507,19 @@ describe('applyE2ELabelOverrides', () => {
       skipSmartSelection: true,
     });
 
-    expect(result).toMatchObject({ android: true, ios: true, e2eNeeded: true });
+    expect(result).toMatchObject({ android: true, ios: false, e2eNeeded: true });
     expect(result.message).toContain('skip-smart-e2e-selection');
+  });
+
+  it('selects both platforms when both request labels are applied', () => {
+    const baseFlags = computeE2EPlatformFlags(androidOnlyPathFiltersFor('main'));
+
+    const result = applyE2ELabelOverrides(baseFlags, {
+      ...overrideInput,
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({ android: true, ios: true, e2eNeeded: true });
   });
 
   it('restores Smart E2E selection when a label revives an iOS-only PR into main', () => {
@@ -535,7 +575,7 @@ describe('applyE2ELabelOverrides', () => {
       isFork: false,
       shouldSkipE2E: false,
       allChangesCount: 1,
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
       e2eWorkflowsCount: 0,
@@ -577,7 +617,7 @@ describe('resolveE2EPlatformRequirements', () => {
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
-    ignorableCount: 0,
+    e2eIgnorableCount: 0,
     e2eTestFilesCount: 0,
     e2eTestOrIgnorableCount: 0,
     e2eWorkflowsCount: 0,
@@ -587,7 +627,7 @@ describe('resolveE2EPlatformRequirements', () => {
     iosOrIgnorableCount: 0,
   };
 
-  it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
+  it('keeps Android only with skip-smart-e2e-selection on an Android-only PR', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: androidOnlyPathFilters,
       labelOverrideInput: eligibleLabelInput,
@@ -596,13 +636,13 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
       useMainBuildsForTestOnlyPrs: false,
     });
   });
 
-  it('enables the iOS platform on a main PR via skip-smart-e2e-selection', () => {
+  it('keeps iOS disabled on a main PR via skip-smart-e2e-selection', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
@@ -617,7 +657,7 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
     });
   });
 
@@ -639,7 +679,7 @@ describe('resolveE2EPlatformRequirements', () => {
     });
   });
 
-  it('enables the iOS platform on release/* PRs when skip-smart-e2e-selection is applied', () => {
+  it('keeps iOS disabled on release/* PRs when skip-smart-e2e-selection is applied', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
@@ -658,7 +698,7 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
     });
   });
 
@@ -700,7 +740,7 @@ describe('resolveE2EPlatformRequirements', () => {
         ...androidOnlyPathFilters,
         androidCount: 0,
         androidOrIgnorableCount: 0,
-        ignorableCount: 1,
+        e2eIgnorableCount: 1,
         e2eTestOrIgnorableCount: 1,
       },
       labelOverrideInput: {

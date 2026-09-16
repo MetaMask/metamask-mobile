@@ -1876,10 +1876,6 @@
         "current_price": "Текущая цена",
         "liquidation_price": "Цена ликвидации",
         "liquidation_distance": "Расстояние ликвидации",
-        "liquidation_warning": "Ваша позиция будет ликвидирована, если цена {{direction}} на {{percentage}}",
-        "drops": "упадет",
-        "rises": "вырастет",
-        "set_leverage": "Установить {{leverage}}x",
         "price_unavailable": "Информация о цене недоступна"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "Изучайте dApps, токены и NFT в разных сетях на MetaMask Portfolio",
     "all_sports": "Популярные виды спорта",
     "basketball": "Баскетбол",
-    "football": "Американский футбол",
     "soccer": "Футбол",
     "tennis": "Теннис",
     "f1": "Формула 1",

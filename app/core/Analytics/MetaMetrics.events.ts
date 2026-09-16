@@ -240,6 +240,7 @@ enum EVENT_NAME {
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
   BASIC_FUNCTIONALITY_ENABLED = 'Basic Functionality Enabled',
   BASIC_FUNCTIONALITY_DISABLED = 'Basic Functionality Disabled',
+  BASIC_FUNCTIONALITY_MIGRATED = 'Basic Functionality Migrated',
 
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
@@ -1170,6 +1171,9 @@ const events = {
   ),
   BASIC_FUNCTIONALITY_DISABLED: generateOpt(
     EVENT_NAME.BASIC_FUNCTIONALITY_DISABLED,
+  ),
+  BASIC_FUNCTIONALITY_MIGRATED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_MIGRATED,
   ),
   // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
