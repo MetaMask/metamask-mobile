@@ -5804,7 +5804,7 @@
       "only_numbers_allowed": "数字のみ入力できます",
       "negative_values_not_allowed": "負の値は入力できません",
       "max_base_fee_must_be_greater_than_priority_fee": "最大基本料金は優先手数料よりも高く設定する必要があります",
-      "gas_limit_too_low": "ガスリミットの上限は21000よりも高く設定する必要があります",
+      "gas_limit_too_high": "ガスリミットがサポートされている最大値を超えています",
       "priority_fee_too_high": "優先手数料は最大基本料金よりも低く設定する必要があります",
       "no_zero_value": "{{field}}は0よりも大きな数値である必要があります",
       "speed": "速度",

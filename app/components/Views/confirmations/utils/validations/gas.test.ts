@@ -7,33 +7,53 @@ import {
 
 describe('gas-validations', () => {
   describe('validateGas', () => {
-    it('return error message when gas is empty', () => {
-      expect(validateGas('')).toBe('Gas limit is required');
+    const maximumGasLimit =
+      '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+
+    it('returns an error message for empty gas', () => {
+      const result = validateGas('');
+
+      expect(result).toBe('Gas limit is required');
     });
 
-    it('return error message when gas is not a number', () => {
-      expect(validateGas('abc')).toBe('Only numbers are allowed');
+    it('returns an error message for nonnumeric gas', () => {
+      const result = validateGas('abc');
+
+      expect(result).toBe('Only numbers are allowed');
     });
 
-    it('return error message when gas is zero', () => {
-      expect(validateGas('0')).toBe('Gas limit must be greater than 0');
+    it('returns an error message for zero gas', () => {
+      const result = validateGas('0');
+
+      expect(result).toBe('Gas limit must be greater than 0');
     });
 
-    it('return error message when gas is negative', () => {
-      expect(validateGas('-1')).toBe('Only numbers are allowed');
+    it('returns an error message for negative gas', () => {
+      const result = validateGas('-1');
+
+      expect(result).toBe('Only numbers are allowed');
     });
 
-    it('return error message when gas is less than 21000', () => {
-      expect(validateGas('20000')).toBe('Gas limit must be greater than 21000');
+    it('returns an error message for fractional gas', () => {
+      const result = validateGas('12000.5');
+
+      expect(result).toBe('Only whole numbers are allowed');
     });
 
-    it('return error message when gas is not an integer', () => {
-      expect(validateGas('21000.5')).toBe('Only whole numbers are allowed');
+    it.each([
+      ['an upgraded-node response', '12000'],
+      ['a legacy-node response', '21000'],
+      ['the maximum representable value', maximumGasLimit],
+    ])('returns false for %s', (_description, gas) => {
+      const result = validateGas(gas);
+
+      expect(result).toBe(false);
     });
 
-    it('return false when gas is valid', () => {
-      expect(validateGas('21000')).toBe(false);
-      expect(validateGas('30000')).toBe(false);
+    it('returns an error message above the representable range', () => {
+      const result = validateGas((BigInt(maximumGasLimit) + 1n).toString());
+
+      expect(result).toBe('Gas limit exceeds the maximum supported value');
     });
   });
 

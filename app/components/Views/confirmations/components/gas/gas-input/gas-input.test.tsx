@@ -4,12 +4,7 @@ import { noop } from 'lodash';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
-import { validateGas } from '../../../utils/validations/gas';
 import { GasInput } from './gas-input';
-
-jest.mock('../../../utils/validations/gas', () => ({
-  validateGas: jest.fn(),
-}));
 
 describe('GasInput', () => {
   it('renders the gas title and input', () => {
@@ -25,19 +20,38 @@ describe('GasInput', () => {
     expect(getByTestId('gas-input')).toHaveProp('value', '26190');
   });
 
-  it('calls onChange when input value changes', () => {
+  it('accepts a positive integer gas limit below 21000', () => {
     const mockOnChange = jest.fn();
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <GasInput onChange={mockOnChange} onErrorChange={noop} />,
       {
         state: transferTransactionStateMock,
       },
     );
 
-    const input = getByTestId('gas-input');
-    fireEvent.changeText(input, '30000');
+    fireEvent.changeText(getByTestId('gas-input'), '12000');
 
-    expect(mockOnChange).toHaveBeenCalledWith('0x7530');
-    expect(validateGas).toHaveBeenCalledWith('30000');
+    expect(mockOnChange).toHaveBeenCalledWith('0x2ee0');
+    expect(queryByTestId('gas-error')).not.toBeOnTheScreen();
+  });
+
+  it('displays an error above the representable gas range', () => {
+    const maximumGasLimit =
+      '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+    const { getByTestId } = renderWithProvider(
+      <GasInput onChange={noop} onErrorChange={noop} />,
+      {
+        state: transferTransactionStateMock,
+      },
+    );
+
+    fireEvent.changeText(
+      getByTestId('gas-input'),
+      (BigInt(maximumGasLimit) + 1n).toString(),
+    );
+
+    expect(getByTestId('gas-error')).toHaveTextContent(
+      'Gas limit exceeds the maximum supported value',
+    );
   });
 });

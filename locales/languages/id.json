@@ -5804,7 +5804,7 @@
       "only_numbers_allowed": "Hanya angka yang diizinkan",
       "negative_values_not_allowed": "Nilai negatif tidak diizinkan",
       "max_base_fee_must_be_greater_than_priority_fee": "Biaya dasar maks harus lebih besar dari biaya prioritas",
-      "gas_limit_too_low": "Batas gas harus lebih besar dari 21000",
+      "gas_limit_too_high": "Batas gas melebihi nilai maksimum yang didukung",
       "priority_fee_too_high": "Biaya prioritas harus kurang dari biaya dasar maks",
       "no_zero_value": "{{field}} harus lebih besar dari 0",
       "speed": "Kecepatan",

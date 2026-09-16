@@ -1,6 +1,10 @@
 import { strings } from '../../../../../../locales/i18n';
 import { normalizeGasInput } from '../gas';
 
+const MAX_GAS_LIMIT = BigInt(
+  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+);
+
 export const validateGas = (value: string): string | boolean => {
   const field = strings('transactions.gas_modal.gas_limit');
   return (
@@ -8,7 +12,7 @@ export const validateGas = (value: string): string | boolean => {
     validateValueIsNumber(value) ||
     validateValueIsInteger(value) ||
     validateValueIsPositive(value, field) ||
-    validateGasLimitValueIsGreaterThanMinimum(value)
+    validateGasLimitIsRepresentable(value)
   );
 };
 
@@ -114,13 +118,11 @@ function validateValueIsPositive(
   return strings('transactions.gas_modal.negative_values_not_allowed');
 }
 
-function validateGasLimitValueIsGreaterThanMinimum(
-  value: string,
-): string | boolean {
-  if (parseFloat(value) >= 21000) {
+function validateGasLimitIsRepresentable(value: string): string | boolean {
+  if (BigInt(value) <= MAX_GAS_LIMIT) {
     return false;
   }
-  return strings('transactions.gas_modal.gas_limit_too_low');
+  return strings('transactions.gas_modal.gas_limit_too_high');
 }
 
 function validateValueIsInteger(value: string): string | boolean {

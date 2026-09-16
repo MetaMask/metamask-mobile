@@ -5804,7 +5804,7 @@
       "only_numbers_allowed": "Yalnızca sayılara izin verilir",
       "negative_values_not_allowed": "Negatif değerlere izin verilmez",
       "max_base_fee_must_be_greater_than_priority_fee": "Maks. baz ücret öncelik ücretinden büyük olmalıdır",
-      "gas_limit_too_low": "Gaz limiti 21000 üzerinde olmalıdır",
+      "gas_limit_too_high": "Gaz limiti desteklenen maksimum değeri aşıyor",
       "priority_fee_too_high": "Öncelik ücreti maks. baz ücretten küçük olmalıdır",
       "no_zero_value": "{{field}}, 0'dan büyük olmalıdır",
       "speed": "Hız",
