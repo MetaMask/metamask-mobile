@@ -227,7 +227,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
     );
   });
 
-  it('renders unselected FilterButtons with a muted 1px outline', () => {
+  it('outlines FilterButtons per the design for each state', () => {
     const { getByTestId } = renderSheet({ currency: 'base' });
 
     const selectedStyle = StyleSheet.flatten(
@@ -239,7 +239,10 @@ describe('PerpsProOrderBookConfigSheet', () => {
 
     expect(unselectedStyle.borderWidth).toBe(1);
     expect(unselectedStyle.borderColor).toBe(mockTheme.colors.border.muted);
-    expect(selectedStyle.borderColor).not.toBe(mockTheme.colors.border.muted);
+
+    expect(selectedStyle.borderWidth).toBe(1);
+    expect(selectedStyle.borderColor).toBe(mockTheme.colors.border.default);
+    expect(selectedStyle.backgroundColor).toBeTruthy();
   });
 
   it('renders the order-book layout options with the current side selected', () => {
