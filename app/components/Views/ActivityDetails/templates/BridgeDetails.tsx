@@ -17,6 +17,8 @@ import {
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
 import { useLocalTransactionMeta } from '../hooks/useLocalTransactionMeta';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useKeyringTransaction } from '../../ActivityList/hooks/useKeyringTransaction';
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
@@ -31,6 +33,7 @@ export function BridgeDetails({
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const transactionMeta = useLocalTransactionMeta(item.hash);
+  const keyringTransaction = useKeyringTransaction(item.hash);
   const bridgeHistoryItem = getBridgeHistoryItem(
     item,
     bridgeHistory,
@@ -40,7 +43,10 @@ export function BridgeDetails({
     item.data.destinationToken,
   );
   const destinationHash = getBridgeDestinationTxHash(bridgeHistoryItem);
-  const explorerSheetTx = getBridgeExplorerSheetTx(item, transactionMeta);
+  const explorerSheetTx = getBridgeExplorerSheetTx(
+    transactionMeta,
+    keyringTransaction,
+  );
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,

@@ -27,14 +27,14 @@ export function getBridgeDestinationTxHash(
  * local transaction.
  */
 export function getBridgeExplorerSheetTx(
-  item: Extract<ActivityListItem, { type: 'bridge' }>,
   transactionMeta?: TransactionMeta,
+  keyringTransaction?: Transaction,
 ): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
   if (transactionMeta) {
     return { evmTxMeta: transactionMeta };
   }
-  if (item.raw?.type === 'keyringTransaction') {
-    return { multiChainTx: item.raw.data };
+  if (keyringTransaction) {
+    return { multiChainTx: keyringTransaction };
   }
   return {};
 }
