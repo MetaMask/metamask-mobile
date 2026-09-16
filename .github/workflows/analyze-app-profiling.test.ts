@@ -8,11 +8,13 @@ type WorkflowStep = {
   name?: string;
   env?: Record<string, string>;
   run?: string;
+  if?: string;
 };
 
 type Workflow = {
   on: {
-    schedule: { cron: string }[];
+    schedule?: { cron: string }[];
+    pull_request?: unknown;
     workflow_dispatch: { inputs: Record<string, unknown> };
   };
   jobs: Record<
@@ -28,22 +30,13 @@ const loadWorkflow = () =>
   yaml.load(fs.readFileSync(WORKFLOW_PATH, 'utf8')) as Workflow;
 
 describe('Analyze App Profiling triggers', () => {
-  it('runs once each day at 08:00 UTC', () => {
+  it('runs only on manual dispatch', () => {
     const workflow = loadWorkflow();
 
-    const schedules = workflow.on.schedule;
-
-    expect(schedules).toStrictEqual([{ cron: '0 8 * * *' }]);
-    expect(workflow.jobs.analyze.if).toContain(
-      "github.event_name == 'schedule'",
-    );
-  });
-
-  it('does not run on pull requests', () => {
-    const workflow = loadWorkflow();
-
+    expect(workflow.on).not.toHaveProperty('schedule');
     expect(workflow.on).not.toHaveProperty('pull_request');
-    expect(workflow.jobs.analyze.if).not.toContain('pull_request');
+    expect(workflow.on.workflow_dispatch).toBeDefined();
+    expect(workflow.jobs.analyze.if).toBeUndefined();
   });
 
   it('keeps the manual workflow trigger and its inputs', () => {
@@ -58,19 +51,6 @@ describe('Analyze App Profiling triggers', () => {
     expect(inputs).toHaveProperty('post_to_slack');
   });
 
-  it('analyzes the preceding 24 hours for a scheduled run', () => {
-    const workflow = loadWorkflow();
-    const analysisStep = workflow.jobs.analyze.steps.find(
-      (step) => step.name === 'Analyze app profiling',
-    );
-
-    const command = analysisStep?.run ?? '';
-
-    expect(analysisStep?.env?.EVENT_NAME).toBe('${{ github.event_name }}');
-    expect(command).toContain('if [ \"${EVENT_NAME}\" = \"schedule\" ]; then');
-    expect(command).toContain('ARGS+=(--lookback-hours 24)');
-  });
-
   it('keeps manual lookback and run-id selection', () => {
     const workflow = loadWorkflow();
     const analysisStep = workflow.jobs.analyze.steps.find(
@@ -79,9 +59,20 @@ describe('Analyze App Profiling triggers', () => {
 
     const command = analysisStep?.run ?? '';
 
-    expect(command).toContain('elif [ -n \"${LOOKBACK_HOURS}\" ]; then');
+    expect(command).not.toContain('schedule');
+    expect(command).toContain('if [ -n \"${LOOKBACK_HOURS}\" ]; then');
     expect(command).toContain('ARGS+=(--lookback-hours \"${LOOKBACK_HOURS}\")');
     expect(command).toContain('elif [ -n \"${RUN_ID}\" ]; then');
     expect(command).toContain('ARGS+=(--run \"${RUN_ID}\")');
+  });
+
+  it('posts Slack only when the dispatch checkbox is on', () => {
+    const workflow = loadWorkflow();
+    const slackStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Post Slack summary',
+    );
+
+    expect(slackStep?.if).toContain('inputs.post_to_slack');
+    expect(slackStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
   });
 });

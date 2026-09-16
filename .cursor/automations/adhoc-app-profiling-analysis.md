@@ -9,18 +9,16 @@ are explicitly out of scope.
 
 This is complementary to:
 
-- GitHub workflow `Analyze App Profiling` (daily 24-hour report at 08:00 UTC,
-  plus Actions → workflow_dispatch)
+- GitHub workflow `Analyze App Profiling` (Actions → workflow_dispatch only)
 - Weekly rollup in `weekly-app-profiling-report.md` (7-day merged-PR averages)
 
 Note: `workflow_dispatch` is only offered for workflows already on the default
-branch. After it lands on `main`, run it from Actions or wait for the daily
-schedule. Until then, use the local command below.
+branch. After it lands on `main`, run it from Actions. Until then, use the
+local command below.
 
 ## Suggested trigger
 
-- Cadence: ad-hoc only. The GitHub workflow owns the daily schedule; do not
-  create a second scheduled automation that would duplicate the personal DM.
+- Cadence: ad-hoc only. Do not add a GitHub or Cursor schedule for this.
 - Repo: `MetaMask/metamask-mobile`
 - Model: high-reasoning model preferred
 

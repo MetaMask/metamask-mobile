@@ -10,22 +10,17 @@
 # reporting per-run medians and how often each frame stayed hot. One run samples
 # a scenario once, which cannot separate a reproducible hotspot from noise.
 #
-# Runs once daily over the preceding 24 hours and can also be dispatched
-# manually for a run, scenario, or custom lookback. Does not replace the
-# 6-hour performance suite or the weekly rollup automation.
+# Manual only: dispatch from Actions → Analyze App Profiling for a run,
+# scenario, or custom lookback. Does not replace the 6-hour performance
+# suite or the weekly rollup automation.
 #
 # NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
-# on the default branch. After this lands on `main`, run it from Actions →
-# Analyze App Profiling, or wait for the daily 08:00 UTC schedule. It does not
-# run on pull requests.
+# on the default branch. After this lands on `main`, run it from Actions.
+# It does not run on a schedule or on pull requests.
 
 name: Analyze App Profiling
 
 on:
-  schedule:
-    # Analyze the preceding 24 hours once daily, after the 06:00 UTC
-    # performance run has normally completed.
-    - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
       run_id:
@@ -59,17 +54,12 @@ permissions:
   actions: read
 
 concurrency:
-  # Manual dispatches stay independent by run id. A scheduled run that is
-  # still in progress when the next day's cron fires is cancelled.
-  group: analyze-app-profiling-${{ github.event_name == 'schedule' && 'daily' || github.run_id }}
+  group: analyze-app-profiling-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
   analyze:
     name: Analyze per-scenario profiling
-    if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -91,7 +81,6 @@ jobs:
           LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
           SCENARIO: ${{ inputs.scenario }}
           SKIP_AI: ${{ inputs.skip_ai }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
@@ -100,9 +89,7 @@ jobs:
             --out-dir /tmp/analyze-app-profiling
             --repo "${GITHUB_REPOSITORY}"
           )
-          if [ "${EVENT_NAME}" = "schedule" ]; then
-            ARGS+=(--lookback-hours 24)
-          elif [ -n "${LOOKBACK_HOURS}" ]; then
+          if [ -n "${LOOKBACK_HOURS}" ]; then
             ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")
           elif [ -n "${RUN_ID}" ]; then
             ARGS+=(--run "${RUN_ID}")
@@ -134,11 +121,7 @@ jobs:
           retention-days: 30
 
       - name: Post Slack summary
-        # Scheduled runs always post to the personal DM. Dispatch runs honour
-        # the checkbox.
-        if: >-
-          ${{ success() &&
-          (github.event_name != 'workflow_dispatch' || inputs.post_to_slack) }}
+        if: ${{ success() && inputs.post_to_slack }}
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
