@@ -633,6 +633,7 @@
     "@google/generative-ai": "^0.24.1",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
+    "@margelo/hermes-profile-transformer": "^0.0.10",
     "@metamask/auto-changelog": "^6.2.0",
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/browser-playground": "0.8.1",
