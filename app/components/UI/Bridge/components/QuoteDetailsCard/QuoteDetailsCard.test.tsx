@@ -17,11 +17,6 @@ import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import type { GaslessFeeAsset } from '../../utils/getGaslessFeeAsset';
 
-/**
- * Unit fallback: QuoteDetailsCard is a nested card, not a screen. Fee, impact,
- * and rewards rows depend on quote context that CV would need the full
- * BridgeQuoteDataProvider and quote fetch to drive.
- */
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
   () => 'mocked-riv-file',
@@ -482,11 +477,14 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays the redesigned gasless fee with its fee asset', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    const originalImpl =
+      mockModule.useBridgeQuoteDataContext.getMockImplementation();
     const feeAsset = mockQuotes[0].quote.feeData.metabridge[0].asset;
 
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       ...originalImpl(),
       activeQuote: {
         ...mockQuotes[0],
@@ -523,7 +521,7 @@ describe('QuoteDetailsCard', () => {
       getByText(strings('bridge.network_fee_info_title')),
     ).toBeOnTheScreen();
 
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+    mockModule.useBridgeQuoteDataContext.mockImplementation(originalImpl);
   });
 
   it('displays "Included" fee when gasIncluded is true', () => {

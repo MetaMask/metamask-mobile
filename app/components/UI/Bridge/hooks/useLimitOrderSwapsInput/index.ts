@@ -126,40 +126,6 @@ export const useLimitOrderSwapInputs = () => {
     sourceToken?.chainId,
   );
 
-  // // Gas sponsorship only covers trades that stay on a single sponsored chain.
-  // const isQuoteSponsored =
-  //   Boolean(sourceToken?.chainId) &&
-  //   sourceToken?.chainId === destToken?.chainId &&
-  //   isSourceNetworkGasSponsored;
-
-  // const combinedSwapQuoteData = useSwapQuotes();
-  // const updateQuoteParams = combinedSwapQuoteData?.debouncedUpdateQuoteParams;
-
-  // // A limit order can't be signed by a hardware wallet on any chain, so no
-  // // quote is ever requested for one. The inputs stay interactive and
-  // // `HardwareWalletUnsupportedBanner` explains why no quote appears. Gating
-  // // here rather than in useSwapQuotes keeps hardware wallets working
-  // // for Market orders, which share that hook but not this one.
-  // const isHardwareWallet = useIsHardwareWalletForBridge();
-
-  // // Both pickers are restricted to EVM chains, so no destination address is
-  // // needed: that is only required for bridges involving a non-EVM chain.
-  // const hasValidBridgeInputs =
-  //   !isHardwareWallet &&
-  //   sourceAmount !== undefined &&
-  //   sourceAmount !== '.' &&
-  //   Boolean(sourceToken?.decimals) &&
-  //   Boolean(destToken);
-
-  // useEffect(() => {
-  //   if (hasValidBridgeInputs && updateQuoteParams) {
-  //     updateQuoteParams();
-  //   }
-  //   return () => {
-  //     updateQuoteParams?.cancel();
-  //   };
-  // }, [hasValidBridgeInputs, updateQuoteParams]);
-
   const handleSourceMaxPress = useCallback(() => {
     if (!latestSourceBalance?.displayBalance) {
       return;
