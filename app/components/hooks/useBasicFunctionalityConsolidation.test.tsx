@@ -144,6 +144,20 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
   });
 
+  it('runs migration as soon as the rollout flag turns on', () => {
+    setSelectorValues({ isFlagEnabled: false, isConsolidated: false });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+
+    setSelectorValues({ isFlagEnabled: true, isConsolidated: false });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
   it('skips the migration for a wallet created during this session', () => {
     // Wallet creation flips `completedOnboarding` before the cohort is enrolled,
     // so a session that started pre-onboarding must never migrate.
@@ -168,6 +182,21 @@ describe('useBasicFunctionalityConsolidation', () => {
     });
   });
 
+  it('opens the bottom sheet as soon as it is scheduled', () => {
+    setSelectorValues({ shouldShowBottomSheet: false });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowBottomSheet: true });
+    rerender(undefined);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
+    });
+  });
+
   it('shows a persistent migration toast titled for the settings change', () => {
     setSelectorValues({ shouldShowToast: true });
 
@@ -179,6 +208,19 @@ describe('useBasicFunctionalityConsolidation', () => {
         hasNoTimeout: true,
       }),
     );
+  });
+
+  it('shows the toast as soon as it is scheduled', () => {
+    setSelectorValues({ shouldShowToast: false });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockToast).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowToast: true });
+    rerender(undefined);
+
+    expect(mockToast).toHaveBeenCalledTimes(1);
   });
 
   it('shows a pending migration toast after the rollout is disabled', () => {

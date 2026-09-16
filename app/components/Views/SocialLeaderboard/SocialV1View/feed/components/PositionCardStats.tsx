@@ -9,6 +9,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { getSocialFeedPositionCardSectionDividerTestId } from './SocialFeedPositionCard.testIds';
 
 export interface PositionCardStatRow {
   key: string;
@@ -20,9 +21,13 @@ export interface PositionCardStatRow {
 
 export interface PositionCardStatsProps {
   rows: PositionCardStatRow[];
+  cardId: string;
 }
 
-const PositionCardStats: React.FC<PositionCardStatsProps> = ({ rows }) => {
+const PositionCardStats: React.FC<PositionCardStatsProps> = ({
+  rows,
+  cardId,
+}) => {
   const visibleRows = rows.filter((row) => Boolean(row.value));
 
   if (visibleRows.length === 0) {
@@ -31,6 +36,10 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({ rows }) => {
 
   return (
     <Box twClassName="gap-2">
+      <Box
+        twClassName="-mx-3 h-px bg-border-muted"
+        testID={getSocialFeedPositionCardSectionDividerTestId(cardId)}
+      />
       {visibleRows.map((row) => (
         <Box
           key={row.key}
