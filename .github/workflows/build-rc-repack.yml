@@ -8,8 +8,8 @@
 # re-signs. The result is uploaded under the same artifact names build.yml uses, so
 # upload-to-testflight.yml and the next donor lookup work unchanged.
 #
-# The caller only routes here when a donor exists AND the release PR carries the
-# 'repack-rc-enabled' label. Everything else takes auto-rc-ota-build-core.yml as before.
+# The caller only routes here when a donor exists AND the release PR does not carry
+# 'repack-rc-disabled'. Everything else takes auto-rc-ota-build-core.yml as before.
 #
 # Inputs and outputs deliberately mirror auto-rc-ota-build-core.yml so the two are
 # interchangeable from the caller's point of view.

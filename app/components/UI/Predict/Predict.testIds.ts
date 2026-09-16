@@ -353,6 +353,12 @@ export const PredictUnavailableSelectorsIDs = {
   BUTTON_TEXT: enContent.predict.unavailable.button,
 } as const;
 
+export const PredictConnectionErrorSelectorsIDs = {
+  TITLE_TEXT: enContent.predict.error.title,
+  DESCRIPTION_TEXT: enContent.predict.error.description,
+  RETRY_TEXT: enContent.predict.error.retry,
+} as const;
+
 // ========================================
 // PREDICT ACTIVITY DETAILS SELECTORS
 // ========================================

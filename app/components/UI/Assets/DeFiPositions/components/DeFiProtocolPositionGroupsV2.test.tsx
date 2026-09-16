@@ -10,6 +10,18 @@ const mockInitialState = {
   },
 };
 
+const eurState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'eur' as const,
+      },
+    },
+  },
+};
+
 const mockProtocolPositionGroup: DeFiProtocolPositionGroup = {
   protocolId: 'Aave V3',
   productName: 'Aave V3',
@@ -80,6 +92,20 @@ describe('DeFiProtocolPositionGroupsV2', () => {
     expect(await findByText('staked')).toBeOnTheScreen();
     expect(await findByText('$4,000.00')).toBeOnTheScreen();
     expect(await findByText('2 stETH')).toBeOnTheScreen();
+  });
+
+  it('renders market values in the selected fiat currency', async () => {
+    const { findByText } = renderWithProvider(
+      <DeFiProtocolPositionGroupsV2
+        protocolPositionGroup={mockProtocolPositionGroup}
+        networkIconAvatar={10}
+        privacyMode={false}
+      />,
+      { state: eurState },
+    );
+
+    expect(await findByText('€100.50')).toBeOnTheScreen();
+    expect(await findByText('€4,000.00')).toBeOnTheScreen();
   });
 
   it('hides market values in privacy mode', async () => {

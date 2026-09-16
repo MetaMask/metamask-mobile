@@ -11,19 +11,6 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
-import {
-  QrSyncOperations,
-  QrSyncSurfaces,
-  QrSyncTelemetrySources,
-  reportQrSyncFailure,
-} from '../../../core/QrSync/qrSyncTelemetry';
-
-jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
-  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
-  reportQrSyncFailure: jest.fn(),
-}));
-
-const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -275,37 +262,9 @@ describe('AddDeviceToWallet', () => {
           initialScreen: 'Scanner',
           disableTabber: true,
           origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-          onScanSuccess: expect.any(Function),
         }),
       );
-    });
-
-    it('reports scan submit failures to Sentry', async () => {
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('scan submit failed'),
-      );
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const onScanSuccess = mockNavigate.mock.calls[0][1].onScanSuccess as (
-        data: { content?: string },
-        content?: string,
-      ) => void;
-      onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
-
-      await waitFor(() => {
-        expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-          expect.any(Error),
-          {
-            surface: QrSyncSurfaces.SCANNER,
-            operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-            source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
-          },
-        );
-      });
+      expect(mockNavigate.mock.calls[0][1].onScanSuccess).toBeUndefined();
     });
   });
 

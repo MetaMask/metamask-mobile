@@ -642,13 +642,14 @@ describe('Engine', () => {
           cacheTimestamp: 123,
         },
       });
-      const subscribeCallback = jest.mocked(store.subscribe).mock
-        .calls[0][0] as () => void;
+      const subscribeCallbacks = jest
+        .mocked(store.subscribe)
+        .mock.calls.map(([callback]) => callback as () => void);
       const controller = engine.context.RemoteFeatureFlagController;
       const disableSpy = jest.spyOn(controller, 'disable');
 
       jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
-      subscribeCallback();
+      subscribeCallbacks.forEach((callback) => callback());
 
       expect(disableSpy).toHaveBeenCalled();
       expect(controller.state).toEqual(

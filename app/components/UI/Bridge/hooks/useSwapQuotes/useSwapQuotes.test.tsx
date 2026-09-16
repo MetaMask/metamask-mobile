@@ -1,5 +1,5 @@
 import React from 'react';
-import { SwapQuotesProvider } from './SwapQuotesContext';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { useSwapQuotes } from './index';
 import {
   mockContext,
@@ -16,9 +16,29 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { TraceName } from '../../../../../util/trace';
 import { runQuoteDataCases } from '../useBridgeQuoteData/runQuoteDataCases';
 import type { BigNumber } from 'ethers';
+import type { DebounceSettings } from 'lodash';
+
+jest.mock('lodash', () => {
+  const actual = jest.requireActual<typeof import('lodash')>('lodash');
+
+  return {
+    ...actual,
+    debounce: ((
+      fn: (...args: unknown[]) => unknown,
+      wait?: number,
+      options?: DebounceSettings,
+    ) => {
+      const debounced = actual.debounce(fn, wait, options);
+      const flush = debounced.flush.bind(debounced);
+
+      debounced.flush = (() => flush() ?? fn()) as typeof debounced.flush;
+
+      return debounced;
+    }) as typeof actual.debounce,
+  };
+});
 
 const mockDispatch = jest.fn();
 
@@ -108,10 +128,14 @@ const mockDebounceMs = 300;
 
 const Wrapper = ({
   children,
+  quoteRequestIndex,
+  quoteRequestCount,
   ...options
 }: {
   children: React.ReactNode;
   latestSourceAtomicBalance?: BigNumber;
+  quoteRequestIndex?: number;
+  quoteRequestCount?: number;
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -122,9 +146,11 @@ const Wrapper = ({
 
   return (
     <SwapQuotesProvider
+      isActive
       featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
-      traceName={TraceName.SwapQuoteFetch}
       debounceWait={mockDebounceMs}
+      quoteRequestIndex={quoteRequestIndex}
+      quoteRequestCount={quoteRequestCount}
       quoteParams={{
         srcAmount: sourceAmount,
         srcToken: sourceToken,
@@ -142,13 +168,27 @@ const Wrapper = ({
   );
 };
 
+describe('useSwapQuotes', () => {
+  it('throws an error if used outside of SwapQuotesProvider', () => {
+    expect(() => renderHook(() => useSwapQuotes())).toThrow(
+      'useSwapQuotes must be used within SwapQuotesProvider',
+    );
+  });
+});
+
 runQuoteRequestCases({
   name: 'useQuoteRequest',
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
-    renderHook(() => useSwapQuotes().debouncedUpdateQuoteParams, {
-      wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
-    }),
+    renderHook(
+      () => {
+        const { debouncedUpdateQuoteParams } = useSwapQuotes();
+        return debouncedUpdateQuoteParams;
+      },
+      {
+        wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
+      },
+    ),
 });
 
 runQuoteDataCases({

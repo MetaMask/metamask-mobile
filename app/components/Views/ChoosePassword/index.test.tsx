@@ -42,6 +42,13 @@ jest.mock('../../../util/password', () => ({
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
   trace: jest.fn(),

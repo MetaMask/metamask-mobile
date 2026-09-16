@@ -20,6 +20,7 @@ import {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignPrizePoolDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
@@ -273,6 +274,12 @@ export interface RewardsState {
   // Predict The Pitch portfolio positions
   predictThePitchPositions: Record<string, PredictThePitchPositionsDto>;
 
+  // Perps Trading Campaign prize pool (keyed by campaignId)
+  perpsTradingCampaignPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<PerpsTradingCampaignPrizePoolDto>
+  >;
+
   // Predict The Pitch prize pool (keyed by campaignId)
   predictThePitchPrizePools: Record<
     string,
@@ -435,6 +442,7 @@ export const initialState: RewardsState = {
   perpsTradingCampaignLeaderboards: {},
   perpsTradingCampaignLeaderboardPositions: {},
   perpsTradingCampaignVolumes: {},
+  perpsTradingCampaignPrizePools: {},
   predictThePitchLeaderboards: {},
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
@@ -566,6 +574,7 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDeposits = {};
       state.perpsTradingCampaignLeaderboards = {};
       state.perpsTradingCampaignVolumes = {};
+      state.perpsTradingCampaignPrizePools = {};
       state.predictThePitchLeaderboards = {};
       state.predictThePitchLeaderboardPositions = {};
       state.predictThePitchPositions = {};
@@ -1211,6 +1220,45 @@ const rewardsSlice = createSlice({
       }
     },
 
+    // Perps Trading Campaign prize pool reducers
+    setPerpsTradingCampaignPrizePool: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: PerpsTradingCampaignPrizePoolDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
+    },
+    setPerpsTradingCampaignPrizePoolLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setPerpsTradingCampaignPrizePoolError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
     // Predict The Pitch prize pool reducers
     setPredictThePitchPrizePool: (
       state,
@@ -1700,6 +1748,9 @@ export const {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
+  setPerpsTradingCampaignPrizePool,
+  setPerpsTradingCampaignPrizePoolLoading,
+  setPerpsTradingCampaignPrizePoolError,
   setPredictThePitchLeaderboard,
   setPredictThePitchLeaderboardLoading,
   setPredictThePitchLeaderboardError,

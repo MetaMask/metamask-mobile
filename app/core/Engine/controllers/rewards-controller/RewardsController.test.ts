@@ -17750,6 +17750,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -17792,6 +17793,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -17839,6 +17841,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -23349,6 +23352,94 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
+    });
+  });
+
+  describe('getPerpsTradingCampaignPrizePool', () => {
+    const PERPS_CAMPAIGN_ID = 'perps-campaign-prize-1';
+    const mockPerpsPrizePool = {
+      totalVolumeUsd: 7500000,
+      unlockedPoolUsd: 15000,
+      thresholdsUsd: [0, 5000000],
+      poolScheduleUsd: [10000, 15000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    };
+
+    let perpsMessenger: jest.Mocked<RewardsControllerMessenger>;
+
+    beforeEach(() => {
+      perpsMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('fetches, caches in state, and serves the cached value within the TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsMessenger.call.mockResolvedValueOnce(mockPerpsPrizePool);
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual(mockPerpsPrizePool);
+
+      expect(perpsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsTradingCampaignPrizePool',
+        PERPS_CAMPAIGN_ID,
+      );
+      expect(
+        ctrl.state.perpsTradingCampaignPrizePool[PERPS_CAMPAIGN_ID],
+      ).toMatchObject(mockPerpsPrizePool);
+
+      perpsMessenger.call.mockClear();
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual(mockPerpsPrizePool);
+      expect(perpsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty prize pool without calling the API when rewards are disabled', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual({
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        computedAt: null,
+      });
+      expect(perpsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('clears the cached prize pool on resetState', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsMessenger.call.mockResolvedValueOnce(mockPerpsPrizePool);
+      await ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID);
+
+      ctrl.resetState();
+
+      expect(ctrl.state.perpsTradingCampaignPrizePool).toEqual({});
     });
   });
 

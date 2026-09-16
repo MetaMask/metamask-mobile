@@ -14,6 +14,7 @@ import {
   resolveAndroidBootMode,
   writeGoldenSnapshotFingerprint,
 } from './AndroidGoldenSnapshot.ts';
+import { androidAdbServerPorts } from '../providers/emulator/android/androidDevicePool.ts';
 
 export {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
@@ -47,6 +48,8 @@ const DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS = 90_000;
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 const ANDROID_NETWORK_PING_HOST = '8.8.8.8';
+const ADB_SERVER_DISCOVERY_TIMEOUT_MS = 60_000;
+const ADB_SERVER_DISCOVERY_POLL_MS = 1_000;
 
 /** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
 export const ANDROID_E2E_PACKAGES_TO_DISABLE = [
@@ -223,6 +226,56 @@ async function ensureAdbServer(): Promise<void> {
   await enqueueAdb(async () => {
     await execAsync('adb start-server');
   });
+}
+
+/**
+ * Give every pool worker its own host adb server so a `protocol fault` on one
+ * server cannot restart the daemon shared by the rest of the shard. Every adb
+ * server still discovers every emulator (adb always scans upward from 5555),
+ * so isolation comes from which server a worker talks to, not from what each
+ * server can see. Workers always select their device with `-s`.
+ */
+async function ensureAndroidPoolAdbServers(serials: string[]): Promise<void> {
+  const ports = androidAdbServerPorts({
+    ANDROID_DEVICE_POOL: serials.join(','),
+  });
+  await Promise.all(
+    ports.map(async (port, index) => {
+      const serial = serials[index];
+      await enqueueAdb(async () => {
+        await execAsync(`adb -P ${port} start-server`);
+      });
+      await waitForAdbServerToSeeSerial(port, serial);
+      logger.info(`adb server on port ${port} is serving ${serial}.`);
+    }),
+  );
+}
+
+async function waitForAdbServerToSeeSerial(
+  port: number,
+  serial: string,
+): Promise<void> {
+  const deadline = Date.now() + ADB_SERVER_DISCOVERY_TIMEOUT_MS;
+  let lastSeen = '';
+  while (Date.now() < deadline) {
+    const devices = await enqueueAdb(async () => {
+      const { stdout } = await execAsync(`adb -P ${port} devices`);
+      return parseAdbDevices(stdout);
+    });
+    lastSeen = devices.map((adbDevice) => adbDevice.serial).join(',') || 'none';
+    if (
+      devices.some(
+        (adbDevice) =>
+          adbDevice.serial === serial && adbDevice.state === 'device',
+      )
+    ) {
+      return;
+    }
+    await sleep(ADB_SERVER_DISCOVERY_POLL_MS);
+  }
+  throw new Error(
+    `adb server on port ${port} never saw ${serial} within ${ADB_SERVER_DISCOVERY_TIMEOUT_MS / 1000}s (saw: ${lastSeen}).`,
+  );
 }
 
 async function listAdbDevices(): Promise<AdbDevice[]> {
@@ -865,6 +918,7 @@ export async function startAndroidEmulatorPool(
       return serial;
     },
   );
+  await ensureAndroidPoolAdbServers(serials);
   logger.info(
     `Android emulator pool ready in ${Date.now() - bootStartedAt}ms: ${serials.join(',')}.`,
   );

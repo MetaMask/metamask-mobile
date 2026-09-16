@@ -6,6 +6,10 @@ import React, {
   useCallback,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -107,7 +111,6 @@ import {
 import { useABTest } from '../../../../../../hooks/useABTest';
 import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../../reducers';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
 import {
@@ -206,6 +209,7 @@ const BridgeMarketViewContent = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -497,6 +501,7 @@ const BridgeMarketViewContent = ({
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Source,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const handleFlipTokensPress = useCallback(() => {
@@ -509,6 +514,7 @@ const BridgeMarketViewContent = ({
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const getContentMode = () => {

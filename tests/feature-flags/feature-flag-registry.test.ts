@@ -12,10 +12,10 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
-    it('registers Chase as version-gated and default-off', () => {
+    it('registers Chase as in-prod, version-gated and default-off', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
         name: 'perpsMobileChase',
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
           minimumVersion: '8.10.0',
@@ -58,7 +58,7 @@ describe('Feature Flag Registry', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileScale).toMatchObject({
         name: 'perpsMobileScale',
         type: FeatureFlagType.Remote,
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
           minimumVersion: '8.10.0',
@@ -67,13 +67,13 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('registers the Pro position-modify margin preview as version-gated and default-off', () => {
+    it('registers the Pro position-modify margin preview as in-prod, version-gated and default-off', () => {
       expect(
         FEATURE_FLAG_REGISTRY.perpsPositionModifyPreviewEnabled,
       ).toMatchObject({
         name: 'perpsPositionModifyPreviewEnabled',
         type: FeatureFlagType.Remote,
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
           minimumVersion: '8.11.0',

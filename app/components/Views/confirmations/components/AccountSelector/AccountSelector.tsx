@@ -33,10 +33,8 @@ import { AccountSection } from '../../../../../component-library/components-temp
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import {
-  selectAccountGroupsByWallet,
-  selectAccountToGroupMap,
-} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 
@@ -69,7 +67,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
+  const accountGroupsByWallet = useSelector(selectVisibleAccountGroupsByWallet);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getIsAccountSupported = useCallback(
