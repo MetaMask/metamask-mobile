@@ -137,6 +137,7 @@ import {
   predictMarketDataServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
+import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -391,6 +392,7 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
+        RecurringOrdersDataService: recurringOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -691,6 +693,8 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      RecurringOrdersDataService:
+        messengerClientsByName.RecurringOrdersDataService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,

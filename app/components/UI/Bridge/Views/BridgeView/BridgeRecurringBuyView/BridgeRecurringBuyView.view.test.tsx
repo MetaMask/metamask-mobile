@@ -51,6 +51,10 @@ import {
   formatPriceRangeLabel,
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
+import {
+  clearRecurringOrdersDataServiceMock,
+  setupRecurringOrdersDataServiceMock,
+} from '../../../../../../../tests/component-view/api-mocking/recurringOrders';
 
 const errorColor = lightTheme.colors.error.default;
 const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -418,6 +422,14 @@ async function selectPriceRangeSourceToken(
 }
 
 describeForPlatforms('BridgeRecurringBuyView', () => {
+  beforeEach(() => {
+    setupRecurringOrdersDataServiceMock();
+  });
+
+  afterEach(() => {
+    clearRecurringOrdersDataServiceMock();
+  });
+
   it('shows default every 1 hour and repeat 10 after opening the recurring tab', async () => {
     const renderResult = renderBridgeView();
 

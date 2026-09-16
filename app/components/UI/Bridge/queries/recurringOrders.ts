@@ -1,20 +1,33 @@
-import type { CaipChainId } from '@metamask/utils';
-import type { RecurringOrderStatus } from '../api/recurringOrders.types';
+import type { GetRecurringOrdersQuery } from '../api/recurringOrders.types';
 
-interface RecurringOrdersListKeyParams {
-  walletAddress: string;
-  status: readonly RecurringOrderStatus[];
-  chainId?: CaipChainId;
-}
+export const RECURRING_ORDERS_STALE_TIME = 5 * 60 * 1000;
+export const RECURRING_ORDERS_PAGE_LIMIT = 20;
 
-export const recurringOrdersKeys = {
-  all: () => ['bridge', 'recurring-orders'] as const,
-  lists: () => [...recurringOrdersKeys.all(), 'list'] as const,
-  list: ({ walletAddress, status, chainId }: RecurringOrdersListKeyParams) =>
-    [
-      ...recurringOrdersKeys.lists(),
-      walletAddress.toLowerCase(),
-      [...status],
-      chainId,
-    ] as const,
+export type RecurringOrdersQueryParams = Omit<
+  GetRecurringOrdersQuery,
+  'cursor'
+>;
+
+export const recurringOrdersQueries = {
+  getRecurringOrders: ({
+    walletAddress,
+    status,
+    chainId,
+    limit,
+  }: RecurringOrdersQueryParams) => {
+    const params: RecurringOrdersQueryParams = {
+      walletAddress: walletAddress.toLowerCase(),
+      ...(status ? { status: [...status] } : {}),
+      ...(chainId ? { chainId } : {}),
+      ...(limit === undefined ? {} : { limit }),
+    };
+
+    return {
+      queryKey: [
+        'RecurringOrdersDataService:getRecurringOrders',
+        params,
+      ] as const,
+      staleTime: RECURRING_ORDERS_STALE_TIME,
+    };
+  },
 };

@@ -5,6 +5,10 @@ import {
   renderBridgeViewWithRecurringOrderDetails,
   renderRecurringOrderDetailsView,
 } from '../../../../../../tests/component-view/renderers/bridge';
+import {
+  clearRecurringOrdersDataServiceMock,
+  setupRecurringOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/recurringOrders';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from '../BridgeView/BridgeView.testIds';
 import {
@@ -45,6 +49,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   const showToast = jest.fn();
 
   beforeEach(() => {
+    setupRecurringOrdersDataServiceMock();
     showToast.mockClear();
     ToastService.toastRef = {
       current: {
@@ -55,6 +60,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   });
 
   afterEach(() => {
+    clearRecurringOrdersDataServiceMock();
     ToastService.resetForTesting();
   });
 

@@ -1,10 +1,13 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@metamask/react-data-query';
 import type { CaipChainId } from '@metamask/utils';
-import { getRecurringOrders } from '../api/recurringOrders';
-import type { RecurringOrderStatus } from '../api/recurringOrders.types';
-import { recurringOrdersKeys } from '../queries/recurringOrders';
-
-const RECURRING_ORDERS_PAGE_LIMIT = 20;
+import type {
+  GetRecurringOrdersResponse,
+  RecurringOrderStatus,
+} from '../api/recurringOrders.types';
+import {
+  RECURRING_ORDERS_PAGE_LIMIT,
+  recurringOrdersQueries,
+} from '../queries/recurringOrders';
 
 interface UseRecurringOrdersParams {
   walletAddress?: string;
@@ -19,20 +22,14 @@ export function useRecurringOrders({
   chainId,
   enabled = true,
 }: UseRecurringOrdersParams) {
-  const query = useInfiniteQuery({
-    queryKey: recurringOrdersKeys.list({
-      walletAddress: walletAddress ?? '',
-      status,
-      chainId,
-    }),
-    queryFn: ({ pageParam }) =>
-      getRecurringOrders({
-        walletAddress: walletAddress ?? '',
-        status,
-        chainId,
-        limit: RECURRING_ORDERS_PAGE_LIMIT,
-        cursor: pageParam,
-      }),
+  const descriptor = recurringOrdersQueries.getRecurringOrders({
+    walletAddress: walletAddress ?? '',
+    status,
+    chainId,
+    limit: RECURRING_ORDERS_PAGE_LIMIT,
+  });
+  const query = useInfiniteQuery<GetRecurringOrdersResponse>({
+    queryKey: descriptor.queryKey,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
     enabled: enabled && Boolean(walletAddress),
