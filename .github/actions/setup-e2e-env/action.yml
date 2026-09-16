@@ -30,9 +30,9 @@ inputs:
     required: false
     default: '3.2.9'
   xcode-version:
-    description: 'Xcode version to select (e.g., 26.3). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
+    description: 'Xcode version to select (e.g., 26.4). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
     required: false
-    default: '26.3'
+    default: '26.4'
   jdk-version:
     description: JDK version to use (only for Android)
     required: false
