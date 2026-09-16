@@ -6,7 +6,10 @@ import {
 } from './useTrendingRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
-import { getTrendingTokens, type TrendingAsset } from '@metamask/assets-controllers';
+import {
+  getTrendingTokens,
+  type TrendingAsset,
+} from '@metamask/assets-controllers';
 import { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { ImageSourcePropType } from 'react-native';
@@ -55,9 +58,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('returns trending tokens results when fetch succeeds', async () => {
-    const spyGetTrendingTokens = jest.mocked(
-      getTrendingTokens,
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockResults: TrendingAsset[] = [
       {
         assetId: 'eip155:1/erc20:0x123',
@@ -98,9 +99,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('sets isLoading to true during fetch', async () => {
-    const spyGetTrendingTokens = jest.mocked(
-      getTrendingTokens,
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     let resolvePromise: ((value: unknown[]) => void) | undefined;
     const pendingPromise = new Promise<unknown[]>((resolve) => {
       resolvePromise = resolve;
@@ -132,9 +131,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('sets error state when fetch fails', async () => {
-    const spyGetTrendingTokens = jest.mocked(
-      getTrendingTokens,
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockError = new Error('Failed to fetch trending tokens');
     spyGetTrendingTokens.mockRejectedValue(mockError);
 
@@ -155,9 +152,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('allows manual retry after error using fetch function', async () => {
-    const spyGetTrendingTokens = jest.mocked(
-      getTrendingTokens,
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockError = new Error('Failed to fetch trending tokens');
     const mockResults: TrendingAsset[] = [
       {
@@ -205,9 +200,7 @@ describe('useTrendingRequest', () => {
   ])(
     'uses default popular networks when chainIds is $description',
     async ({ options }) => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       const mockResults: TrendingAsset[] = [
         {
           assetId: 'eip155:1/erc20:0x123',
@@ -244,9 +237,7 @@ describe('useTrendingRequest', () => {
   );
 
   it('uses provided chainIds when available instead of default networks', async () => {
-    const spyGetTrendingTokens = jest.mocked(
-      getTrendingTokens,
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockResults: TrendingAsset[] = [];
     spyGetTrendingTokens.mockResolvedValue(mockResults as never);
 
@@ -274,9 +265,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('handles stale results when multiple requests are triggered', async () => {
-    const spyGetTrendingTokens = jest.mocked(
-      getTrendingTokens,
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockResults1: TrendingAsset[] = [
       {
         assetId: 'eip155:1/erc20:0x123',
@@ -344,9 +333,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('polls at 5 minute intervals, silently updates results, and cleans up on unmount', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       const initialResults: TrendingAsset[] = [
         {
           assetId: 'eip155:1/erc20:0x123',
@@ -418,9 +405,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('does not start polling when initial load fails', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       const mockError = new Error('Failed to fetch trending tokens');
       spyGetTrendingTokens.mockRejectedValue(mockError);
 
@@ -592,9 +577,7 @@ describe('useTrendingRequest', () => {
 
   describe('per-network threshold integration', () => {
     it('uses per-network liquidity and volume threshold when single chainId provided - Ethereum', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       renderHookWithProvider(() =>
@@ -618,9 +601,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('uses per-network liquidity and volume threshold when single chainId provided - SEI', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       renderHookWithProvider(() =>
@@ -644,9 +625,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('uses per-network liquidity and volume threshold when single chainId provided - Monad', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       renderHookWithProvider(() =>
@@ -670,9 +649,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('uses multi-chain baseline when multiple chains provided', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       const chainIds: CaipChainId[] = [
@@ -702,9 +679,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('allows overriding per-network thresholds with provided values', async () => {
-      const spyGetTrendingTokens = jest.mocked(
-        getTrendingTokens,
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       const customMinLiquidity = 999999;
