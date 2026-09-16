@@ -2,7 +2,7 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type {
   PerpsNavigationParamList,
@@ -69,6 +69,7 @@ import { AlertsContextProvider } from '../../../Views/confirmations/context/aler
 import { QRHardwareContextProvider } from '../../../Views/confirmations/context/qr-hardware-context';
 import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/components/confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
@@ -119,13 +120,31 @@ const PerpsConfirmationAlerts = ({
   );
 };
 
+export const shouldRenderPerpsConfirmationLoader = (
+  useBottomSheet: boolean | undefined,
+  approvalRequest: unknown,
+) => Boolean(useBottomSheet && !approvalRequest);
+
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+  const { approvalRequest } = useApprovalRequest();
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
+
+  useEffect(() => {
+    if (params?.useBottomSheet) {
+      navigation.setOptions({ gestureEnabled: Boolean(approvalRequest) });
+    }
+  }, [approvalRequest, navigation, params?.useBottomSheet]);
+
+  if (
+    shouldRenderPerpsConfirmationLoader(params?.useBottomSheet, approvalRequest)
+  ) {
+    return <Confirm />;
+  }
 
   if (params?.useBottomSheet) {
     return (
