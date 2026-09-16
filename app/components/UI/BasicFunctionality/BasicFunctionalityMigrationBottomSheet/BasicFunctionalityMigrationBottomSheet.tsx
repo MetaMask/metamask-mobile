@@ -79,7 +79,7 @@ const BasicFunctionalityMigrationBottomSheet = () => {
       testID="basic-functionality-migration-bottom-sheet"
     >
       <ScrollView>
-        <Box twClassName="items-center gap-4 px-6 pt-4 pb-6">
+        <Box twClassName="items-center gap-4 px-6 pt-11 pb-6">
           <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
           <Text variant={TextVariant.HeadingSm}>
             {strings('basic_functionality_migration.social_title')}
