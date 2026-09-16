@@ -1,4 +1,9 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { KnownCaipNamespace, toCaipChainId, type Hex } from '@metamask/utils';
 import { getClaimPayoutFromReceipt } from '../../../components/UI/Earn/utils/musd';
 import {
@@ -322,6 +327,7 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'claim',
         data: {
+          from,
           ...(fees ? { fees } : {}),
         },
       };
@@ -330,6 +336,8 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'unstake',
         data: {
+          from,
+          to,
           ...(fees ? { fees } : {}),
         },
       };
@@ -348,6 +356,7 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'lendingWithdrawal',
         data: {
+          from,
           ...(fees ? { fees } : {}),
         },
       };
@@ -413,6 +422,8 @@ function enrichLocalActivityKind(
         ? 'predictionsAddFunds'
         : 'predictionsWithdrawFunds',
       data: {
+        from,
+        to,
         token: fundsTx
           ? getPredictFundsToken(
               fundsTx,
@@ -471,6 +482,8 @@ function enrichStakingDeposit(
     ...activity,
     type: 'stake',
     data: {
+      from: transactionGroup.initialTransaction.txParams.from ?? '',
+      to: transactionGroup.initialTransaction.txParams.to ?? '',
       token: getNativeTokenAmount(
         transactionGroup,
         'out',
@@ -712,4 +725,95 @@ export function prepareLocalTransactionGroup(
   );
 
   return fees ? { ...transactionGroup, fees } : transactionGroup;
+}
+
+const bridgeFailStatuses = [
+  TransactionStatus.failed,
+  TransactionStatus.dropped,
+  TransactionStatus.rejected,
+] as string[];
+
+// A bridge is two txs: this one (source) and one on the dest chain.
+// Success when the dest tx hash is set; failed if this source tx failed.
+export function getBridgeActivityStatus(
+  tx: TransactionMeta,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
+) {
+  if (tx.type !== TransactionType.bridge || !bridgeHistoryItem) {
+    return undefined;
+  }
+
+  if (bridgeHistoryItem.status?.destChain?.txHash) {
+    return 'success';
+  }
+
+  if (bridgeFailStatuses.includes(tx.status)) {
+    return 'failed';
+  }
+
+  return undefined;
+}
+
+function tokenFromQuoteAsset(
+  direction: TokenAmount['direction'],
+  asset: { symbol?: string; decimals?: number; assetId?: string } | undefined,
+  amount: string | undefined,
+) {
+  if (!asset?.symbol) {
+    return undefined;
+  }
+  return {
+    direction,
+    symbol: asset.symbol,
+    ...(amount ? { amount } : {}),
+    ...(asset.decimals === undefined ? {} : { decimals: asset.decimals }),
+    ...(asset.assetId ? { assetId: asset.assetId } : {}),
+  };
+}
+
+// Quote first (has amounts). If none, use symbols from pre-unified-swap txs.
+export function getSwapTokenEnrichment(
+  tx: TransactionMeta,
+  nativeSymbol: string | undefined,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
+) {
+  const quote = bridgeHistoryItem?.quote;
+  const quoteSourceToken = tokenFromQuoteAsset(
+    'out',
+    quote?.srcAsset,
+    quote?.srcTokenAmount,
+  );
+  const quoteDestinationToken = tokenFromQuoteAsset(
+    'in',
+    quote?.destAsset,
+    quote?.destTokenAmount ?? quote?.minDestTokenAmount,
+  );
+
+  const {
+    sourceTokenSymbol,
+    destinationTokenSymbol,
+    destinationTokenAddress,
+    swapMetaData,
+  } = tx as TransactionMeta & {
+    sourceTokenSymbol?: string;
+    destinationTokenSymbol?: string;
+    destinationTokenAddress?: string;
+    swapMetaData?: { token_from?: string; token_to?: string };
+  };
+  const srcSymbol = sourceTokenSymbol ?? swapMetaData?.token_from;
+  const dstSymbol = destinationTokenSymbol ?? swapMetaData?.token_to;
+  const effectiveSrcSymbol =
+    srcSymbol ??
+    (destinationTokenAddress && nativeSymbol ? nativeSymbol : undefined);
+
+  return {
+    sourceToken:
+      quoteSourceToken ??
+      (effectiveSrcSymbol
+        ? { direction: 'out' as const, symbol: effectiveSrcSymbol }
+        : undefined),
+    destinationToken:
+      quoteDestinationToken ??
+      (dstSymbol ? { direction: 'in' as const, symbol: dstSymbol } : undefined),
+  };
 }

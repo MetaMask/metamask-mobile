@@ -48,6 +48,7 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getPredictMarketDataServiceMessenger } from './predict-market-data-service-messenger';
+import { getPredictLiveDataServiceMessenger } from './predict-live-data-service-messenger';
 import {
   getPredictPortfolioServiceInitMessenger,
   getPredictPortfolioServiceMessenger,
@@ -358,6 +359,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictMarketDataService: {
     getMessenger: getPredictMarketDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  PredictLiveDataService: {
+    getMessenger: getPredictLiveDataServiceMessenger,
     getInitMessenger: noop,
   },
   PredictPortfolioService: {

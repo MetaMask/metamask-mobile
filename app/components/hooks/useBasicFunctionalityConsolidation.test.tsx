@@ -25,11 +25,29 @@ import {
   dismissBasicFunctionalityMigrationNotification,
 } from '../../actions/settings';
 import {
+  BasicFunctionalityMixedToastAction,
   selectCompletedOnboardingSafely,
   useBasicFunctionalityConsolidation,
 } from './useBasicFunctionalityConsolidation';
+import { MetaMetricsEvents } from '../../core/Analytics';
 
 const mockDispatch = jest.fn(() => Promise.resolve());
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ mockEvent: true });
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('./useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockNavigate = jest.fn();
 const mockConsolidateAction = jest.fn();
 const mockDismissAction = { type: 'DISMISS_BFT_MIGRATION' };
@@ -283,6 +301,67 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
+    });
+  });
+
+  it('tracks viewed when the mixed toast is shown', () => {
+    setSelectorValues({
+      shouldShowToast: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: 'bf_mixed_toast',
+      action: BasicFunctionalityMixedToastAction.VIEWED,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
+  });
+
+  it('tracks open settings when the toast settings link is pressed', () => {
+    setSelectorValues({
+      shouldShowToast: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    mockTrackEvent.mockClear();
+    mockAddProperties.mockClear();
+    mockCreateEventBuilder.mockClear();
+
+    const { getByText } = render(mockToast.mock.calls[0][0].description);
+    fireEvent.press(
+      getByText(strings('basic_functionality_migration.settings_link')),
+    );
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: 'bf_mixed_toast',
+      action: BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
+    });
+  });
+
+  it('tracks dismiss when the toast is closed without opening settings', () => {
+    setSelectorValues({
+      shouldShowToast: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    const toastCall = mockToast.mock.calls[0][0];
+    mockTrackEvent.mockClear();
+    mockAddProperties.mockClear();
+    mockCreateEventBuilder.mockClear();
+
+    act(() => {
+      toastCall.onClose();
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: 'bf_mixed_toast',
+      action: BasicFunctionalityMixedToastAction.DISMISS,
     });
   });
 });
