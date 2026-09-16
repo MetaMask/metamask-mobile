@@ -187,8 +187,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@22.0.0-preview-56ced5c22",
-    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@28.0.2-preview-56ced5c22",
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
@@ -375,7 +373,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-metrics-controller": "^5.1.0",
     "@metamask/profile-sync-controller": "^32.1.1",
-    "@metamask/ramps-controller": "^20.2.0",
+    "@metamask/ramps-controller": "^23.0.0",
     "@metamask/react-data-query": "^1.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
@@ -411,7 +409,7 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^69.8.1",
-    "@metamask/transaction-pay-controller": "^28.0.2",
+    "@metamask/transaction-pay-controller": "^29.0.0",
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.12.1",
     "@metamask/wallet": "^12.0.3",
