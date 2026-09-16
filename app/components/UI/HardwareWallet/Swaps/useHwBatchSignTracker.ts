@@ -73,9 +73,14 @@ import {
 } from './hw-batch-sign/tracking-strategy';
 
 /**
- * TransactionController records a device-side reject as `failed` (approval
- * was already accepted; signing then failed), not `rejected`. Reconstruct an
- * Error so {@link isDeviceUserRejection} can parse the stored message/name.
+ * A device-side rejection lands as `failed` (the approval was already
+ * accepted, then signing threw), not `rejected`. TransactionController
+ * stores the error as a plain `{ name, message }` snapshot
+ * (normalizeTxError), not an Error instance. We re-wrap it because
+ * {@link isDeviceUserRejection} applies `excludedMessages` only to real
+ * Errors — without the wrap, 'Batch cancelled' would skip the exclusion and
+ * match the parser's 'cancelled' substring pattern (Rejected instead of
+ * Failed).
  */
 function isDeviceRejectionFromFailedTx(error?: {
   message?: string;
