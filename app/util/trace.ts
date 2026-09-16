@@ -276,6 +276,8 @@ export enum TraceName {
   PredictNextEventView = 'PredictNext Event View',
   PredictNextPortfolioView = 'PredictNext Portfolio View',
   PredictNextGetBalance = 'PredictNext Get Balance',
+  PredictNextGetPositions = 'PredictNext Get Positions',
+  PredictNextGetActivity = 'PredictNext Get Activity',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',

@@ -1095,11 +1095,14 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
 } as const;
 
 export const PerpsLeverageBottomSheetSelectorsIDs = {
-  SLIDER: 'perps-leverage-slider',
-  SLIDER_INCOMING: 'perps-leverage-slider-incoming',
-  SLIDER_INCOMING_WRAP: 'perps-leverage-slider-incoming-wrap',
-  HELP_TEXT: 'perps-leverage-help-text',
-  QUICK_SELECT: 'leverage-quick-select',
+  PICKER: 'perps-leverage-picker',
+  PICKER_ITEM: 'perps-leverage-picker-item',
+  CURRENT_PRICE_VALUE: 'perps-leverage-current-price-value',
+  LIQUIDATION_PRICE_VALUE: 'perps-leverage-liquidation-price-value',
+  LIQUIDATION_PRICE_SKELETON: 'perps-leverage-liquidation-price-skeleton',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-leverage-liquidation-distance-value',
+  LIQUIDATION_TREND_ICON: 'perps-leverage-liquidation-trend-icon',
+  SET_BUTTON: 'perps-leverage-set-button',
 } as const;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {

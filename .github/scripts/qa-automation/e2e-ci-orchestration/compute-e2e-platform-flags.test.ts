@@ -251,6 +251,23 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
+  it('selects iOS only for iOS-only pushes', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      iosCount: 1,
+      iosOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
+
   it('skips ignorable-only pushes to main or release/*', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
@@ -437,7 +454,7 @@ describe('applyE2ELabelOverrides', () => {
     });
   });
 
-  it('opts into iOS build via skip-smart-e2e-selection when path filters selected iOS', () => {
+  it('keeps iOS disabled with skip-smart-e2e-selection when path filters selected iOS', () => {
     const baseFlags = computeE2EPlatformFlags({
       ...androidOnlyPathFiltersFor('main'),
       iosCount: 1,
@@ -452,13 +469,13 @@ describe('applyE2ELabelOverrides', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
       message: expect.stringContaining('skip-smart-e2e-selection'),
     });
   });
 
-  it('widens skip-smart-e2e-selection to both platforms on an iOS-only PR', () => {
+  it('selects Android only with skip-smart-e2e-selection on an iOS-only PR', () => {
     const baseFlags = computeE2EPlatformFlags({
       ...androidOnlyPathFiltersFor('feature/1'),
       androidCount: 0,
@@ -476,12 +493,12 @@ describe('applyE2ELabelOverrides', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
     });
   });
 
-  it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
+  it('keeps Android only with skip-smart-e2e-selection on an Android-only PR', () => {
     const baseFlags = computeE2EPlatformFlags(androidOnlyPathFiltersFor('main'));
 
     const result = applyE2ELabelOverrides(baseFlags, {
@@ -490,8 +507,19 @@ describe('applyE2ELabelOverrides', () => {
       skipSmartSelection: true,
     });
 
-    expect(result).toMatchObject({ android: true, ios: true, e2eNeeded: true });
+    expect(result).toMatchObject({ android: true, ios: false, e2eNeeded: true });
     expect(result.message).toContain('skip-smart-e2e-selection');
+  });
+
+  it('selects both platforms when both request labels are applied', () => {
+    const baseFlags = computeE2EPlatformFlags(androidOnlyPathFiltersFor('main'));
+
+    const result = applyE2ELabelOverrides(baseFlags, {
+      ...overrideInput,
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({ android: true, ios: true, e2eNeeded: true });
   });
 
   it('restores Smart E2E selection when a label revives an iOS-only PR into main', () => {
@@ -599,7 +627,7 @@ describe('resolveE2EPlatformRequirements', () => {
     iosOrIgnorableCount: 0,
   };
 
-  it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
+  it('keeps Android only with skip-smart-e2e-selection on an Android-only PR', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: androidOnlyPathFilters,
       labelOverrideInput: eligibleLabelInput,
@@ -608,13 +636,13 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
       useMainBuildsForTestOnlyPrs: false,
     });
   });
 
-  it('enables the iOS platform on a main PR via skip-smart-e2e-selection', () => {
+  it('keeps iOS disabled on a main PR via skip-smart-e2e-selection', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
@@ -629,7 +657,7 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
     });
   });
 
@@ -651,7 +679,7 @@ describe('resolveE2EPlatformRequirements', () => {
     });
   });
 
-  it('enables the iOS platform on release/* PRs when skip-smart-e2e-selection is applied', () => {
+  it('keeps iOS disabled on release/* PRs when skip-smart-e2e-selection is applied', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
@@ -670,7 +698,7 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
     });
   });
 

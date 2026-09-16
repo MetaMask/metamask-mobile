@@ -10,6 +10,7 @@ import type {
   PredictFeedId,
   PredictMarket,
   PredictOutcome,
+  PredictSignedAmount,
   PredictTimestamp,
 } from '../../../app/components/UI/PredictNext/types';
 
@@ -355,6 +356,69 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+export const makePredictNextPosition = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  venueId: 'kalshi',
+  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+  side: 'yes' as const,
+  shares: '75.00',
+  marketExposure: '41.25',
+  realizedPnl: '-2.50' as PredictSignedAmount,
+  updatedAt: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
+  context: {
+    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
+    eventTitle: 'Lakers vs Celtics',
+    marketQuestion: 'Will the Lakers win?',
+    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
+    outcomeLabel: 'Lakers',
+  },
+  ...overrides,
+});
+
+export const makePredictNextFill = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  type: 'fill' as const,
+  id: 'fill-1',
+  venueId: 'kalshi',
+  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+  outcomeSide: 'yes' as const,
+  shares: '75.00',
+  price: '0.55' as PredictDecimal,
+  fee: '0.10',
+  timestamp: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
+  context: {
+    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
+    eventTitle: 'Lakers vs Celtics',
+    marketQuestion: 'Will the Lakers win?',
+    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
+    outcomeLabel: 'Lakers',
+  },
+  ...overrides,
+});
+
+export const makePredictNextSettlement = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  type: 'settlement' as const,
+  id: 'KXNBAGAME-20MAY01-LALBOS-LAL:2026-05-21T00:00:00.000Z',
+  venueId: 'kalshi',
+  marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL' as PredictEntityId,
+  result: 'yes' as const,
+  side: 'yes' as const,
+  shares: '10.00',
+  proceeds: '10.00',
+  costBasis: '5.20',
+  timestamp: '2026-05-21T00:00:00.000Z' as PredictTimestamp,
+  context: {
+    eventId: 'KXNBAGAME-20MAY01-LALBOS' as PredictEntityId,
+    eventTitle: 'Lakers vs Celtics',
+    marketQuestion: 'Will the Lakers win?',
+  },
+  ...overrides,
+});
+
 /** Delivers a live Game update to every listener the screen registered. */
 export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) => {
   const listeners = (
@@ -370,10 +434,14 @@ export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
   details,
+  positions,
+  activity,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
+  positions?: readonly unknown[] | Error;
+  activity?: readonly unknown[] | Error;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
@@ -388,6 +456,24 @@ export const configurePredictNextFeeds = ({
           currency: 'USD',
           available: '123.125',
         });
+      }
+
+      if (action === 'PredictPortfolioService:getPositions') {
+        return positions instanceof Error
+          ? Promise.reject(positions)
+          : Promise.resolve({
+              venueId: 'kalshi',
+              positions: positions ?? [],
+            });
+      }
+
+      if (action === 'PredictPortfolioService:getActivity') {
+        return activity instanceof Error
+          ? Promise.reject(activity)
+          : Promise.resolve({
+              venueId: 'kalshi',
+              activity: activity ?? [],
+            });
       }
 
       if (action === 'PredictMarketDataService:getEvent') {
