@@ -88,16 +88,16 @@ describe('MoneySecurityVerificationSheet', () => {
 
   it('verifies in a bottom sheet with a remaining passkey', () => {
     mockAction = { type: 'remove-authenticator' };
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByText } = renderWithProvider(
       <MoneySecurityVerificationSheet />,
     );
 
     expect(
       getByTestId(MoneySecurityVerificationSheetTestIds.CONTAINER),
     ).toBeOnTheScreen();
-    fireEvent.press(
-      getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD),
-    );
+    expect(
+      queryByText('Choose a security method to continue.'),
+    ).not.toBeOnTheScreen();
     fireEvent.press(
       getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON),
     );
@@ -156,9 +156,6 @@ describe('MoneySecurityVerificationSheet', () => {
       <MoneySecurityVerificationSheet />,
     );
 
-    fireEvent.press(
-      getByTestId(MoneySecurityVerificationSheetTestIds.SMS_METHOD),
-    );
     fireEvent.changeText(
       getByTestId(MoneySecurityVerificationSheetTestIds.CODE_INPUT),
       '000000',

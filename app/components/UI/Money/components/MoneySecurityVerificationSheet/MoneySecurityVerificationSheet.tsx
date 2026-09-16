@@ -144,7 +144,11 @@ const MoneySecurityVerificationSheet = () => {
   }, [isAuthenticatorAdded, isSmsAdded, passkeyCount, route.params]);
 
   const [selectedMethod, setSelectedMethod] =
-    useState<VerificationMethod | null>(null);
+    useState<VerificationMethod | null>(
+      availableMethods.length === 1 && availableMethods[0] !== 'authenticator'
+        ? availableMethods[0]
+        : null,
+    );
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -256,7 +260,9 @@ const MoneySecurityVerificationSheet = () => {
       testID={MoneySecurityVerificationSheetTestIds.CONTAINER}
     >
       <BottomSheetHeader
-        onBack={selectedMethod ? handleBack : undefined}
+        onBack={
+          selectedMethod && availableMethods.length > 1 ? handleBack : undefined
+        }
         onClose={closeSheet}
       >
         {strings('money.security.verification_title')}
@@ -264,13 +270,17 @@ const MoneySecurityVerificationSheet = () => {
       <Box style={styles.content}>
         {!selectedMethod ? (
           <>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+            {availableMethods.length > 1 && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.security.verification_description')}
+              </Text>
+            )}
+            <Box
+              twClassName={availableMethods.length > 1 ? 'mt-6 gap-3' : 'gap-3'}
             >
-              {strings('money.security.verification_description')}
-            </Text>
-            <Box twClassName="mt-6 gap-3">
               {availableMethods.includes('passkey') && (
                 <MethodButton
                   icon={IconName.Key}
