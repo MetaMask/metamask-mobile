@@ -3,7 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { getTransactionPayAmountCalls } from './update-pay-amount';
+import { getTransactionPayAmountCalls } from './transaction-pay-amount';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,

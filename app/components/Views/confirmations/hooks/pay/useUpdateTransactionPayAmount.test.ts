@@ -2,7 +2,6 @@ import { merge } from 'lodash';
 import { act } from '@testing-library/react-native';
 import {
   TransactionMeta,
-  TransactionType,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -15,15 +14,10 @@ import {
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
-import { getTransactionPayAmountCalls } from '../../external/types/update-pay-amount';
-import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
-import {
-  useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
-} from './useTransactionPayData';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('@metamask/transaction-controller', () => ({
@@ -37,14 +31,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../external/types/update-pay-amount');
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    selectMoneyAccountDepositQuotePipelineEnabled: jest.fn(),
-  }),
-);
-jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent');
+jest.mock('../../external/types/transaction-pay-amount');
 jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('./useTransactionPayData');
@@ -115,15 +102,6 @@ describe('useUpdateTransactionPayAmount', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const useTransactionPayFiatPaymentMock = jest.mocked(
-    useTransactionPayFiatPayment,
-  );
-  const selectMoneyAccountDepositQuotePipelineEnabledMock = jest.mocked(
-    selectMoneyAccountDepositQuotePipelineEnabled,
-  );
-  const getMoneyAccountDepositIntentMock = jest.mocked(
-    getMoneyAccountDepositIntent,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -141,9 +119,6 @@ describe('useUpdateTransactionPayAmount', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue([
       { decimals: 6 } as TransactionPayRequiredToken,
     ]);
-    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
-    selectMoneyAccountDepositQuotePipelineEnabledMock.mockReturnValue(false);
-    getMoneyAccountDepositIntentMock.mockReturnValue(undefined);
   });
 
   describe('updateTransactionPayAmount', () => {
@@ -359,66 +334,6 @@ describe('useUpdateTransactionPayAmount', () => {
         result.current.updateTransactionPayAmount(AMOUNT_MOCK),
       ).rejects.toThrow('Money Account Deposit: rpc failure');
       expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('isAmountPrefetchEnabled', () => {
-    const depositMeta = { type: TransactionType.moneyAccountDeposit };
-
-    it('is true for a generic crypto deposit when the flag is enabled', () => {
-      selectMoneyAccountDepositQuotePipelineEnabledMock.mockReturnValue(true);
-
-      const { result } = runHook({ transactionMeta: depositMeta });
-
-      expect(result.current.isAmountPrefetchEnabled).toBe(true);
-    });
-
-    it('is true for an explicit convert intent', () => {
-      selectMoneyAccountDepositQuotePipelineEnabledMock.mockReturnValue(true);
-      getMoneyAccountDepositIntentMock.mockReturnValue('convert');
-
-      const { result } = runHook({ transactionMeta: depositMeta });
-
-      expect(result.current.isAmountPrefetchEnabled).toBe(true);
-    });
-
-    it.each(['addMusd', 'card'] as const)(
-      'is false for the %s intent',
-      (depositIntent) => {
-        selectMoneyAccountDepositQuotePipelineEnabledMock.mockReturnValue(true);
-        getMoneyAccountDepositIntentMock.mockReturnValue(depositIntent);
-
-        const { result } = runHook({ transactionMeta: depositMeta });
-
-        expect(result.current.isAmountPrefetchEnabled).toBe(false);
-      },
-    );
-
-    it('is false when a fiat payment method is selected', () => {
-      selectMoneyAccountDepositQuotePipelineEnabledMock.mockReturnValue(true);
-      useTransactionPayFiatPaymentMock.mockReturnValue({
-        selectedPaymentMethodId: 'credit-debit-card',
-      });
-
-      const { result } = runHook({ transactionMeta: depositMeta });
-
-      expect(result.current.isAmountPrefetchEnabled).toBe(false);
-    });
-
-    it('is false when the flag is disabled', () => {
-      const { result } = runHook({ transactionMeta: depositMeta });
-
-      expect(result.current.isAmountPrefetchEnabled).toBe(false);
-    });
-
-    it('is false for transaction types other than deposit', () => {
-      selectMoneyAccountDepositQuotePipelineEnabledMock.mockReturnValue(true);
-
-      const { result } = runHook({
-        transactionMeta: { type: TransactionType.moneyAccountWithdraw },
-      });
-
-      expect(result.current.isAmountPrefetchEnabled).toBe(false);
     });
   });
 });

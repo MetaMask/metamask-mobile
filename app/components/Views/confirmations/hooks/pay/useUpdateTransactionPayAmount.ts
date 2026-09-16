@@ -1,60 +1,24 @@
 import { useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
-import {
-  TransactionType,
-  hasTransactionType,
-  updateEIP7702BatchData,
-} from '@metamask/transaction-controller';
+import { updateEIP7702BatchData } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
-import { getTransactionPayAmountCalls } from '../../external/types/update-pay-amount';
+import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
-import {
-  useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
-} from './useTransactionPayData';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const fiatPayment = useTransactionPayFiatPayment();
   const accountOverride = useTransactionAccountOverride();
-  const isQuotePipelineEnabled = useSelector(
-    selectMoneyAccountDepositQuotePipelineEnabled,
-  );
   const latestAmountRef = useRef<string | undefined>(undefined);
 
   const decimals = requiredTokens?.[0]?.decimals;
-
-  const isMoneyAccountDeposit = Boolean(
-    transactionMeta &&
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountDeposit,
-      ]),
-  );
-
-  const depositIntent =
-    isMoneyAccountDeposit && transactionMeta
-      ? getMoneyAccountDepositIntent(transactionMeta.batchId)
-      : undefined;
-
-  // Prefetch only generic/convert crypto deposits. addMusd uses the Relay
-  // max/gas-station path and card uses the multi-stage fiat path, so both keep
-  // committing on Continue until validated separately.
-  const isAmountPrefetchEnabled = Boolean(
-    isQuotePipelineEnabled &&
-      isMoneyAccountDeposit &&
-      (depositIntent === undefined || depositIntent === 'convert') &&
-      !fiatPayment?.selectedPaymentMethodId,
-  );
 
   const updateTransactionPayAmount = useCallback(
     async (amountHuman: string): Promise<boolean> => {
@@ -105,7 +69,6 @@ export function useUpdateTransactionPayAmount() {
   );
 
   return {
-    isAmountPrefetchEnabled,
     updateTransactionPayAmount,
   };
 }

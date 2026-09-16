@@ -9,6 +9,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
+import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -141,8 +142,8 @@ export function useTransactionCustomAmount({
     setPrefetchedQuotePayTokenKey(undefined);
   }, [payToken?.address, payToken?.chainId]);
 
-  const { isAmountPrefetchEnabled, updateTransactionPayAmount } =
-    useUpdateTransactionPayAmount();
+  const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
+  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
   const depositPrefill = useDepositPrefillAmount({ autoSelectFiatPayment });
 
