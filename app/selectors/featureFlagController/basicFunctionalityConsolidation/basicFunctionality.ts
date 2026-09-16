@@ -10,6 +10,7 @@ import {
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 import { selectOnboardingAccountType } from '../../onboarding';
+import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
 import {
   BFT_CHILD_PREFERENCES,
   isBasicFunctionalitySocialLoginUser,
@@ -42,15 +43,30 @@ type BftChildPreferenceValues = Record<BftChildPreference, boolean>;
 /**
  * Remote rollout flag for consolidated Basic Functionality (version-gated).
  * Default OFF in production; acts as kill-switch when disabled.
+ *
+ * Wallets with Basic Functionality off cannot read LaunchDarkly, so they use
+ * the build flag. Mixed and social-login wallets in that cohort may land ON;
+ * keep them on the build-flag rollout after that so child toggles stay
+ * consolidated until LaunchDarkly is reachable or the build flag is turned off.
  */
 export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  selectBasicFunctionalityEnabled,
+  selectIsBasicFunctionalityConsolidatedEnabled,
+  (remoteFeatureFlags, basicFunctionalityEnabled, isPersistedConsolidated) => {
+    if (!basicFunctionalityEnabled) {
+      return isBftcConsolidationBuildEnabled();
+    }
+
     const remoteFlag = remoteFeatureFlags?.[
       MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME
     ] as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    if (validatedVersionGatedFeatureFlag(remoteFlag) === true) {
+      return true;
+    }
+
+    return isBftcConsolidationBuildEnabled() && isPersistedConsolidated;
   },
 );
 
