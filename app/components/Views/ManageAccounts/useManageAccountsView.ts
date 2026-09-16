@@ -62,7 +62,7 @@ const isPrivateKeyWallet = (wallet: AccountWalletObject): boolean =>
  * Determines the row variant (trailing actions) for a wallet.
  * - Entropy / HD: Hide toggle only.
  * - Hardware: Hide toggle only (hardware accounts are hidden, not removed,
- *   from this screen).
+ * from this screen).
  * - Imported private key: Remove action only.
  * - Snap / unknown: No trailing action.
  *
