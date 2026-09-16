@@ -1,11 +1,11 @@
 import React from 'react';
-import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   BridgeQuoteDataProvider,
   useBridgeQuoteDataContext,
 } from './BridgeQuoteDataContext';
 import { runQuoteProviderCases } from './runQuoteProviderCases';
+import { FeatureId } from '@metamask/bridge-controller';
 
 // `@metamask/bridge-controller` is ESM-only; Babel compiles its re-exports to
 // non-configurable getters that `jest.spyOn` cannot redefine. Re-exporting the
@@ -51,6 +51,14 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
 const Consumer = () => {
   useBridgeQuoteDataContext();
   return null;
@@ -62,9 +70,7 @@ runQuoteProviderCases({
     'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
   renderProvider: (state) =>
     renderWithProvider(
-      <BridgeQuoteDataProvider
-        latestSourceAtomicBalance={BigNumber.from('1000000000')}
-      >
+      <BridgeQuoteDataProvider>
         <Consumer />
         <Consumer />
         <Consumer />
@@ -74,4 +80,6 @@ runQuoteProviderCases({
       { state },
     ),
   renderWithoutProvider: () => renderWithProvider(<Consumer />),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+  quoteParams: {},
 });

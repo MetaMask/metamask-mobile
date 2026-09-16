@@ -72,6 +72,8 @@ export type BridgeModalsNavigationParamList = {
     | undefined;
   BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
+  SwapsLimitOrderDefaultCostToleranceModal: undefined;
+  SwapsLimitOrderCustomCostToleranceModal: undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
   RecurringIntervalModal: undefined;
   RecurringRepeatInfoModal: undefined;
