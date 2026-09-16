@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
-import { VBA_KYC_VENDOR } from '../constants';
+import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 
 export type { KycDisclaimer };
 
@@ -20,9 +20,8 @@ const FETCH_TIMEOUT_MS = 10_000;
  * VBA KYC flow via {@link Engine.context.KycController.initialize} then
  * {@link Engine.context.KycController.loadDisclaimers}.
  *
- * This is vendor T&Cs only — not the idOS relay / SumSub session catalog
- * (`fetchDisclaimersCatalog` / session disclaimers). Those are a separate controller
- * path and must not be fetched here.
+ * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
+ * Identity (`useKycSessionDisclaimers` → `KycController.fetchSessionDisclaimers`).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
@@ -66,6 +65,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     const controllerLoad = (async () => {
       await Engine.context.KycController.initialize({
         vendor: VBA_KYC_VENDOR,
+        product: VBA_KYC_PRODUCT,
       });
       await Engine.context.KycController.loadDisclaimers({ country });
     })();

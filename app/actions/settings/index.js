@@ -120,9 +120,25 @@ export function consolidateBasicFunctionality() {
     const { landingState, notification } =
       getBasicFunctionalityConsolidationPlan(preferenceState, isSocialLogin);
 
+    // Aligned wallets already match the landing state across BF and every
+    // child preference, so nothing is rewritten. Analytics only covers the
+    // unaligned mixed / unaligned social upgrades that actually change state.
+    const isAligned =
+      preferenceState.basicFunctionalityEnabled === landingState &&
+      BFT_CHILD_PREFERENCES.every(
+        (preference) => preferenceState[preference] === landingState,
+      );
+
+    const Engine = require('../../core/Engine').default;
+    await Engine.context.MultichainAccountService.setBasicFunctionality(
+      landingState,
+    );
+
     syncConsolidatedBasicFunctionalityPreferences(landingState);
-    dispatch(setBasicFunctionality(landingState));
+    // Persist cohort membership before flipping BF so mixed/social wallets that
+    // land ON keep the build-flag rollout instead of briefly reading LD as off.
     dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    dispatch(setBasicFunctionality(landingState));
     dispatch(
       setBasicFunctionalityMigrationNotification(
         state.settings?.basicFunctionalityMigrationNotificationDismissed
@@ -131,15 +147,23 @@ export function consolidateBasicFunctionality() {
       ),
     );
 
-    const Engine = require('../../core/Engine').default;
-    Engine.context.MultichainAccountService.setBasicFunctionality(
-      landingState,
-    ).catch((error) => {
-      console.error(
-        'Failed to set consolidated basic functionality on MultichainAccountService:',
-        error,
+    if (!isAligned) {
+      const { analytics } = require('../../util/analytics/analytics');
+      const {
+        AnalyticsEventBuilder,
+      } = require('../../util/analytics/AnalyticsEventBuilder');
+      const { MetaMetricsEvents } = require('../../core/Analytics');
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.BASIC_FUNCTIONALITY_MIGRATED,
+        )
+          .addProperties({
+            routed_bf_state: landingState ? 'on' : 'off',
+            is_social_login: isSocialLogin,
+          })
+          .build(),
       );
-    });
+    }
   };
 }
 
@@ -147,17 +171,60 @@ export function consolidateBasicFunctionality() {
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch, getState) => {
     const {
-      selectIsBasicFunctionalityConsolidationEnabled,
+      selectMobileUxBftcConsolidationFlagEnabled,
+      selectIsSocialLoginBasicFunctionalityLocked,
     } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
     const {
       syncConsolidatedBasicFunctionalityPreferences,
     } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
 
-    // Evaluate consolidation eligibility before flipping BF. Silent-migration
-    // users are eligible via consistent all-on/all-off state; flipping BF first
-    // would make children look mixed and skip sync.
+    const state = getState();
+
+    // The UI disables this toggle for social-login wallets, but enforce the
+    // invariant in the action as well so non-UI callers cannot turn it off.
+    if (
+      !basicFunctionalityEnabled &&
+      selectIsSocialLoginBasicFunctionalityLocked(state)
+    ) {
+      return;
+    }
+
+    // Evaluate the rollout before flipping BF. A mixed legacy wallet may invoke
+    // this through Backup & Sync before its background migration completes; in
+    // that case the persisted cohort marker is still false, but the user action
+    // must still update BF and every consolidated child as one logical change.
     const shouldSyncConsolidatedPreferences =
-      selectIsBasicFunctionalityConsolidationEnabled(getState());
+      selectMobileUxBftcConsolidationFlagEnabled(state);
+
+    const Engine = require('../../core/Engine').default;
+    const { UserStorageController } = Engine.context;
+    const isBackupAndSyncEnabled =
+      state.engine?.backgroundState?.UserStorageController
+        ?.isBackupAndSyncEnabled === true;
+    if (
+      !basicFunctionalityEnabled &&
+      isBackupAndSyncEnabled &&
+      UserStorageController
+    ) {
+      const {
+        BACKUPANDSYNC_FEATURES,
+      } = require('@metamask/profile-sync-controller/user-storage');
+      // Backup & Sync depends on BF, so clear its master toggle here instead of
+      // waiting for the Backup & Sync screen to mount. Turning BF off is a
+      // privacy action and must still succeed if this fails; that screen's own
+      // effect retries the cleanup.
+      try {
+        await UserStorageController.setIsBackupAndSyncFeatureEnabled(
+          BACKUPANDSYNC_FEATURES.main,
+          false,
+        );
+      } catch (error) {
+        console.error(
+          'Failed to disable Backup & Sync while turning off basic functionality:',
+          error,
+        );
+      }
+    }
 
     // Persist cohort membership before flipping BF so the UI does not briefly
     // re-show granular toggles while children are still mixed.
@@ -171,7 +238,6 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
       syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
     }
 
-    const Engine = require('../../core/Engine').default;
     Engine.context.MultichainAccountService.setBasicFunctionality(
       basicFunctionalityEnabled,
     ).catch((error) => {
@@ -215,6 +281,13 @@ export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
   return {
     type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
     preferredCandlePeriod,
+  };
+}
+
+export function setPerpsMarketListPreferences(preferences) {
+  return {
+    type: 'SET_PERPS_MARKET_LIST_PREFERENCES',
+    preferences,
   };
 }
 

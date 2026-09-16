@@ -12,9 +12,10 @@ import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypa
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import {
+  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
   getSwapsLimitOrderExpirationLabel,
 } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -42,11 +43,6 @@ jest.mock(
 
 jest.mock('../../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useInsufficientBalance', () => ({
-  __esModule: true,
-  default: jest.fn(() => false),
 }));
 
 jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
@@ -109,17 +105,21 @@ jest.mock('./BridgeLimitOrderFooterView', () => ({
 
 jest.mock('../../../components/SwapsInputs', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, TextInput } = jest.requireActual('react-native');
+  const { View, Text, TextInput } = jest.requireActual('react-native');
 
   return {
     SwapsInputs: ({
       sourceTokenAreaTestID,
       destTokenAreaTestID,
+      destTokenAmount,
       onSourceInputPress,
+      onFlipPress,
     }: {
       sourceTokenAreaTestID?: string;
       destTokenAreaTestID?: string;
+      destTokenAmount?: string;
       onSourceInputPress?: () => void;
+      onFlipPress?: () => void;
     }) => (
       <View>
         <TextInput
@@ -129,6 +129,8 @@ jest.mock('../../../components/SwapsInputs', () => {
         <View testID={sourceTokenAreaTestID} />
         <View testID={destTokenAreaTestID} />
         <TextInput testID="limit-dest-token-area-input" />
+        <Text testID="limit-dest-token-amount">{destTokenAmount}</Text>
+        <View testID="limit-flip-tokens" onTouchEnd={onFlipPress} />
       </View>
     ),
   };
@@ -206,13 +208,13 @@ jest.mock('../../../components/LimitOrderDetails', () => {
   return {
     __esModule: true,
     default: ({
-      slippage,
-      onPricePress,
+      costTolerance,
+      onCostTolerancePress,
       expiration,
       onExpirationPress,
     }: {
-      slippage: string;
-      onPricePress: () => void;
+      costTolerance: string;
+      onCostTolerancePress: () => void;
       expiration: string;
       onExpirationPress: () => void;
     }) => (
@@ -223,8 +225,11 @@ jest.mock('../../../components/LimitOrderDetails', () => {
         >
           <Text>{expiration}</Text>
         </View>
-        <View testID="limit-order-details-price-row" onTouchEnd={onPricePress}>
-          <Text>{slippage}</Text>
+        <View
+          testID="limit-order-details-cost-tolerance-row"
+          onTouchEnd={onCostTolerancePress}
+        >
+          <Text>{costTolerance}</Text>
         </View>
       </View>
     ),
@@ -246,6 +251,7 @@ const mockHandleCustomPress = jest.fn();
 const mockFocusCustomPercent = jest.fn();
 const mockFocusAmount = jest.fn();
 const mockFocusLimitPrice = jest.fn();
+const mockHandleFlipTokensPress = jest.fn();
 
 let mockIsAmountFocused = false;
 let mockIsCustomPercentFocused = false;
@@ -254,11 +260,9 @@ let mockSourceAmount = '';
 function buildSwapInputsMock() {
   return {
     destToken: mockDestToken,
-    // Limit orders do not quote a destination amount.
-    destTokenAmount: '',
     enabledChainIds: ['eip155:1'] as CaipChainId[],
     handleDestTokenPress: jest.fn(),
-    handleFlipTokensPress: jest.fn(),
+    handleFlipTokensPress: mockHandleFlipTokensPress,
     handleSourceMaxPress: jest.fn(),
     handleSourcePresetAmountSelect: jest.fn(),
     handleSourceTokenPress: jest.fn(),
@@ -290,6 +294,7 @@ function buildSwapInputsMock() {
 function buildPriceAdjustMock() {
   return {
     commitCustomPercent: mockCommitCustomPercent,
+    counterFiatRate: undefined,
     counterToken: mockSourceToken,
     customValue: '',
     handleCustomPress: mockHandleCustomPress,
@@ -302,6 +307,8 @@ function buildPriceAdjustMock() {
     executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
     marketComparison: undefined,
+    isTriggerPriceNearMarket: false,
+    priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
@@ -375,7 +382,6 @@ describe('BridgeLimitOrderView', () => {
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
-    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
   });
 
   it('renders the limit order container and source token input', () => {
@@ -390,6 +396,51 @@ describe('BridgeLimitOrderView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the destination amount the source amount buys at the limit price', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '3000',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    // 2 * 3000 = 6000, minus the 0.875% quote fee.
+    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('5947.5');
+  });
+
+  it('renders a zero destination amount before a source amount is entered', () => {
+    mockSourceAmount = '';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('0');
+  });
+
+  it('flips the tokens with the destination amount as the new source amount', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '3000',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-flip-tokens'), 'touchEnd');
+
+    expect(mockHandleFlipTokensPress).toHaveBeenCalledWith('5947.5');
+  });
+
+  it('flips the tokens without an amount when the destination amount is zero', () => {
+    mockSourceAmount = '';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-flip-tokens'), 'touchEnd');
+
+    expect(mockHandleFlipTokensPress).toHaveBeenCalledWith(undefined);
   });
 
   it('does not render recurring You get copy on the dest token row', () => {
@@ -458,19 +509,6 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(true);
-
-    const { getByTestId } = renderLimitOrderView();
-
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
-  });
-
-  it('disables the keypad confirm button when source balance is too low', () => {
-    mockIsAmountFocused = true;
-    mockSourceAmount = '2';
-    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
 
     const { getByTestId } = renderLimitOrderView();
 
@@ -586,29 +624,36 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays 2% when slippage is not set', () => {
+  it('displays 2% when the cost tolerance is not set', () => {
     const { getByText } = renderLimitOrderView();
 
     expect(getByText('2%')).toBeOnTheScreen();
   });
 
-  it('displays the selected slippage percent from state', () => {
-    const { getByText } = renderLimitOrderView({ slippage: '2' });
+  it('resets cost tolerance to the default when navigating to the limit orders screen', () => {
+    const { getByText, store } = renderLimitOrderView({
+      limitOrderCostTolerance: '3',
+    });
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(
+      getByText(`${LIMIT_ORDER_DEFAULT_COST_TOLERANCE}%`),
+    ).toBeOnTheScreen();
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe(
+      LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+    );
   });
 
-  it('navigates to the swap default slippage modal when the slippage row is pressed', () => {
+  it('navigates to the limit order default cost tolerance modal when the cost tolerance row is pressed', () => {
     const { getByTestId } = renderLimitOrderView();
 
-    fireEvent(getByTestId('limit-order-details-price-row'), 'touchEnd');
+    fireEvent(
+      getByTestId('limit-order-details-cost-tolerance-row'),
+      'touchEnd',
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: mockSourceToken.chainId,
-        destChainId: mockDestToken.chainId,
-      },
+      screen:
+        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
     });
   });
 
