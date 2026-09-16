@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import LiveTradesView from './LiveTradesView';
@@ -55,6 +56,26 @@ describe('LiveTradesView', () => {
     );
 
     expect(onOpenFilters).toHaveBeenCalledTimes(1);
+  });
+
+  it('highlights the filter icon when filters are active', () => {
+    const { rerender } = renderWithProvider(
+      <LiveTradesView isFilterActive={false} />,
+    );
+
+    const inactiveStyle = StyleSheet.flatten(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON).props.style,
+    );
+
+    rerender(<LiveTradesView isFilterActive />);
+
+    const activeStyle = StyleSheet.flatten(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON).props.style,
+    );
+
+    expect(activeStyle?.backgroundColor).not.toBe(
+      inactiveStyle?.backgroundColor,
+    );
   });
 
   it('toggles from Paused back to Live on a second press', () => {

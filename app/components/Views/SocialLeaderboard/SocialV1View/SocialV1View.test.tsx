@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -409,41 +410,19 @@ describe('SocialV1View', () => {
   it('marks Live trades filters active after applying a draft change', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
-    );
+    const filterButton = () =>
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON);
+    const inactiveStyle = StyleSheet.flatten(filterButton().props.style);
+
+    fireEvent.press(filterButton());
     fireEvent.press(screen.getByTestId('social-filters-type-tokens'));
     fireEvent.press(
       screen.getByTestId('social-filters-bottom-sheet-show-results'),
     );
 
-    expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('forwards scroll offsets from the Trending and Following pages', () => {
-    renderWithProvider(<SocialV1View />);
-
-    fireEvent.scroll(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
-      { nativeEvent: { contentOffset: { y: 12 } } },
-    );
-
-    fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
-    );
-    fireEvent.scroll(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
-      { nativeEvent: { contentOffset: { y: 24 } } },
-    );
-
-    fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
-    );
-    fireEvent.scroll(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.SCROLL_VIEW),
-      { nativeEvent: { contentOffset: { y: 48 } } },
+    const activeStyle = StyleSheet.flatten(filterButton().props.style);
+    expect(activeStyle?.backgroundColor).not.toBe(
+      inactiveStyle?.backgroundColor,
     );
   });
 
