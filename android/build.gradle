@@ -21,7 +21,7 @@ buildscript {
 	dependencies {
 		classpath("com.android.tools.build:gradle")
     	classpath("com.facebook.react:react-native-gradle-plugin")
-		classpath("io.sentry:sentry-android-gradle-plugin:4.2.0")
+		classpath("io.sentry:sentry-android-gradle-plugin:6.21.0")
     	classpath("com.google.gms:google-services:4.4.2")
 	    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
 	}
