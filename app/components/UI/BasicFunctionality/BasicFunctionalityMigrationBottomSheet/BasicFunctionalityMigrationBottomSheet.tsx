@@ -16,7 +16,10 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetFooter from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import { dismissBasicFunctionalityMigrationNotification } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -76,7 +79,7 @@ const BasicFunctionalityMigrationBottomSheet = () => {
       testID="basic-functionality-migration-bottom-sheet"
     >
       <ScrollView>
-        <Box twClassName="items-center gap-4 px-6 pb-6">
+        <Box twClassName="items-center gap-4 px-6 pt-4 pb-6">
           <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
           <Text variant={TextVariant.HeadingSm}>
             {strings('basic_functionality_migration.social_title')}
@@ -119,6 +122,7 @@ const BasicFunctionalityMigrationBottomSheet = () => {
         buttonPropsArray={[
           {
             variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
             label: strings('basic_functionality_migration.accept_and_close'),
             onPress: handleAccept,
             testID: 'basic-functionality-migration-accept',
