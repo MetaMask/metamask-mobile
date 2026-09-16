@@ -64,6 +64,12 @@ import {
   SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import {
+  applySeedlessUnlockRecovery,
+  asSeedlessPasswordChangeController,
+  hasPasswordChangeLifecycleApi,
+  isPasswordSyncStatusOutdated,
+} from './seedlessPasswordChangeCoordinator';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
@@ -830,13 +836,20 @@ class AuthenticationService {
             // the onboarding journey when a parent context is supplied.
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
+          } else if (await applySeedlessUnlockRecovery(passwordToUse)) {
+            // Core #10148 lifecycle: recover interrupted password change / another-device sync
+            authPreference = await this.componentAuthenticationType(
+              true,
+              false,
+            );
+            fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
               skipCache: false,
               captureSentryError: true,
             })
           ) {
-            // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+            // 10.1.1 path: seedless password is outdated, sync then unlock
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
             authPreference = await this.componentAuthenticationType(
@@ -1547,11 +1560,24 @@ class AuthenticationService {
       return false;
     }
     try {
-      const isSeedlessPasswordOutdated =
-        await SeedlessOnboardingController.checkIsPasswordOutdated({
+      const lifecycleController = asSeedlessPasswordChangeController(
+        SeedlessOnboardingController,
+      );
+      if (hasPasswordChangeLifecycleApi(lifecycleController)) {
+        const status = await lifecycleController.resolvePasswordSyncState?.({
           skipCache,
         });
-      return isSeedlessPasswordOutdated;
+        if (status === undefined) {
+          return false;
+        }
+        return isPasswordSyncStatusOutdated(status);
+      }
+
+      const isSeedlessPasswordOutdated =
+        await lifecycleController.checkIsPasswordOutdated?.({
+          skipCache,
+        });
+      return Boolean(isSeedlessPasswordOutdated);
     } catch (error) {
       if (captureSentryError) {
         Logger.error(
