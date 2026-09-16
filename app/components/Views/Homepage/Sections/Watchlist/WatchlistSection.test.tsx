@@ -49,6 +49,14 @@ jest.mock(
   }),
 );
 
+let mockWatchlistAssetIds: string[] = [];
+jest.mock(
+  '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistAssetIds',
+  () => ({
+    useTokenWatchlistAssetIds: () => mockWatchlistAssetIds,
+  }),
+);
+
 const mockMutate = jest.fn();
 jest.mock(
   '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations',
@@ -191,6 +199,7 @@ describe('WatchlistSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
+    mockWatchlistAssetIds = [];
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -242,30 +251,83 @@ describe('WatchlistSection', () => {
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
-  it('renders suggested tokens with add buttons when the watchlist is empty', () => {
+  it('renders up to 5 suggested tokens with add buttons when the watchlist is empty', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
       refetch: jest.fn(),
     });
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [makeSuggestedToken('bitcoin'), makeSuggestedToken('ethereum')],
+      data: [
+        makeSuggestedToken('bitcoin'),
+        makeSuggestedToken('ethereum'),
+        makeSuggestedToken('solana'),
+        makeSuggestedToken('bnb'),
+        makeSuggestedToken('pepe'),
+        makeSuggestedToken('doge'),
+      ],
       isLoading: false,
     });
 
-    const { getByTestId, getByText } = render(
+    const { getByTestId, queryByTestId } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(getByTestId('watchlist-empty-state')).toBeOnTheScreen();
-    expect(getByTestId('watchlist-empty-subtitle')).toBeOnTheScreen();
-    expect(
-      getByText('Tap + to add a token to your watchlist.'),
-    ).toBeOnTheScreen();
+    // Empty watchlist renders the suggested rows silently — no sub-header,
+    // no helper copy (mirrors the perps watchlist after #36358).
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    // 5 - 0 watched = 5 suggestions; the 6th pool token is dropped.
     expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
     expect(getByTestId('row-ethereum')).toBeOnTheScreen();
+    expect(getByTestId('row-solana')).toBeOnTheScreen();
+    expect(getByTestId('row-bnb')).toBeOnTheScreen();
+    expect(getByTestId('row-pepe')).toBeOnTheScreen();
+    expect(queryByTestId('row-doge')).not.toBeOnTheScreen();
     expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-add-ethereum')).toBeOnTheScreen();
+    expect(getByTestId('row-add-pepe')).toBeOnTheScreen();
+  });
+
+  it('renders the Suggested sub-header and 5-2=3 suggestions when the watchlist has 2 items', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [makeWatchlistToken('eth'), makeWatchlistToken('btc')],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mockWatchlistAssetIds = ['eip155:1/erc20:0xeth', 'eip155:1/erc20:0xbtc'];
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [
+        // Already-watched tokens come back in the pool and must be filtered.
+        makeSuggestedToken('eth'),
+        makeSuggestedToken('btc'),
+        makeSuggestedToken('bitcoin'),
+        makeSuggestedToken('ethereum'),
+        makeSuggestedToken('solana'),
+        makeSuggestedToken('bnb'),
+      ],
+      isLoading: false,
+    });
+
+    const { getByTestId, getByText, queryByTestId } = render(
+      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    // Watchlist rows render first (newest-first)…
+    expect(getByTestId('row-btc')).toBeOnTheScreen();
+    expect(getByTestId('row-eth')).toBeOnTheScreen();
+    // …then the labelled suggested section: 5 - 2 watched = 3 suggestions.
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
+    expect(getByText('Suggested')).toBeOnTheScreen();
+    expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
+    expect(getByTestId('row-ethereum')).toBeOnTheScreen();
+    expect(getByTestId('row-solana')).toBeOnTheScreen();
+    expect(queryByTestId('row-bnb')).not.toBeOnTheScreen();
+    // Watched tokens carry no add button.
+    expect(queryByTestId('row-add-btc')).not.toBeOnTheScreen();
+    expect(queryByTestId('row-add-eth')).not.toBeOnTheScreen();
+    expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
+    expect(getByTestId('row-add-solana')).toBeOnTheScreen();
   });
 
   it('adds a suggested token to the watchlist when its add button is pressed', () => {
@@ -303,10 +365,11 @@ describe('WatchlistSection', () => {
       isLoading: true,
     });
 
-    const { getAllByTestId } = render(
+    const { getAllByTestId, getByTestId } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
+    expect(getByTestId('watchlist-suggested-skeleton')).toBeOnTheScreen();
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
@@ -328,7 +391,7 @@ describe('WatchlistSection', () => {
     expect(getByTestId('watchlist-empty-fallback')).toBeOnTheScreen();
     expect(getByTestId('watchlist-empty-icon')).toBeOnTheScreen();
     expect(getByText('You have no watchlist items yet')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-empty-state')).not.toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
     expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 

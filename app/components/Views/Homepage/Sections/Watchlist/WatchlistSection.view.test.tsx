@@ -12,6 +12,7 @@ import {
   mockWatchlistAssetIds,
   mockWatchlistTokensResponse,
 } from '../../../../../../tests/component-view/api-mocking/watchlist';
+import { clearAllNockMocks } from '../../../../../../tests/component-view/api-mocking/nockHelpers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
@@ -101,8 +102,8 @@ describeForPlatforms('WatchlistSection', () => {
 
     const { getByTestId, findByTestId } = renderWatchlistSectionWithRoutes();
 
-    // Empty state = hint subtitle + suggested rows with add buttons below
-    // the header (matching the perps watchlist structure).
+    // Empty state = suggested rows with add buttons below the header,
+    // rendered silently (matching the perps watchlist structure).
     expect(
       await findByTestId(
         getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
@@ -116,30 +117,131 @@ describeForPlatforms('WatchlistSection', () => {
     await findByTestId(WatchlistEmptyCTATestIds.CONTAINER);
   });
 
-  it('shows the add hint and suggested tokens with + buttons in the empty state', async () => {
+  it('shows suggested tokens with star buttons and no helper copy in the empty state', async () => {
     setupWatchlistStorageMock(EMPTY_BLOB);
 
-    const { findByTestId, getByTestId, getByText } =
+    const { findByTestId, getByTestId, queryByTestId } =
       renderWatchlistSectionWithRoutes();
 
     // The suggested query hydrates the curated defaults; the token API mock
     // only serves ETH from those IDs, so exactly one suggested row renders.
     const suggestedRow = await findByTestId(getRowTestId('eip155:1/slip44:60'));
     expect(suggestedRow).toBeOnTheScreen();
-    // Perps-style hint subtitle above the suggested rows.
-    expect(getByTestId('watchlist-empty-subtitle')).toBeOnTheScreen();
-    expect(
-      getByText('Tap + to add a token to your watchlist.'),
-    ).toBeOnTheScreen();
+    // Perps flow: the suggested section renders silently when the watchlist
+    // is empty — no sub-header, no hint copy.
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
     const addButton = await findByTestId(
       getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
     );
     expect(addButton).toBeOnTheScreen();
-    // The + button exposes an accessibility label, matching perps.
+    // The star button exposes an accessibility label, matching perps.
     expect(
       getByTestId(getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'))
         .props.accessibilityLabel,
     ).toBe('Add to watchlist');
+  });
+
+  it('shows the Suggested sub-header and 5-2=3 suggestions when 2 tokens are watched', async () => {
+    // Watch UNI + USDC; serve the curated default pool (ETH, BTC, SOL, BNB)
+    // from the token API so 5 - 2 = 3 suggestions remain.
+    setupWatchlistStorageMock({
+      assets: [...mockWatchlistAssetIds].slice(1),
+      version: 1,
+    });
+    // Replace the default beforeEach interceptors (they stack, so clear first).
+    clearAllNockMocks();
+    setupWatchlistTokenApiMock([
+      ...mockWatchlistTokensResponse,
+      {
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        decimals: 18,
+        marketData: {
+          price: '90000.00',
+          pricePercentChange1d: '1.10',
+          marketCap: 900_000_000_000,
+          totalVolume: 20_000_000_000,
+        },
+      },
+      {
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        symbol: 'SOL',
+        name: 'Solana',
+        decimals: 18,
+        marketData: {
+          price: '150.00',
+          pricePercentChange1d: '-2.00',
+          marketCap: 80_000_000_000,
+          totalVolume: 4_000_000_000,
+        },
+      },
+      {
+        assetId: 'eip155:56/slip44:714',
+        symbol: 'BNB',
+        name: 'BNB',
+        decimals: 18,
+        marketData: {
+          price: '600.00',
+          pricePercentChange1d: '0.50',
+          marketCap: 90_000_000_000,
+          totalVolume: 2_000_000_000,
+        },
+      },
+    ]);
+
+    const { findByTestId, getByTestId, getByText, queryByTestId } =
+      renderWatchlistSectionWithRoutes();
+
+    // The two watched tokens render as watchlist rows (no add buttons)…
+    expect(
+      await findByTestId(
+        getRowTestId(
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        getRowTestId(
+          'eip155:1/erc20:0x1f9840a85d8aBE325823995344D8762464388D4',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    // …and the suggested section is labelled and count-capped: 5 - 2 = 3.
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
+    expect(getByText('Suggested')).toBeOnTheScreen();
+    expect(
+      getByTestId(getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        getTrendingTokenRowAddButtonTestId(
+          'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        getTrendingTokenRowAddButtonTestId(
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    // BNB is the 4th suggestion — dropped by the 5 - 2 cap.
+    expect(
+      queryByTestId(getTrendingTokenRowAddButtonTestId('eip155:56/slip44:714')),
+    ).not.toBeOnTheScreen();
+    // Watched tokens are not re-suggested.
+    expect(
+      queryByTestId(
+        getTrendingTokenRowAddButtonTestId(
+          'eip155:1/erc20:0x1f9840a85d8aBE325823995344D8762464388D4',
+        ),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('adds a suggested token to the watchlist from the empty state', async () => {
@@ -161,7 +263,7 @@ describeForPlatforms('WatchlistSection', () => {
     });
 
     // The add flips the section from the empty state to watchlist mode: the
-    // suggested + button disappears and the added token renders as a row.
+    // suggested star button disappears and the added token renders as a row.
     await waitFor(
       () =>
         expect(
