@@ -1,7 +1,6 @@
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_TWAP_UI_CONFIG } from '../../../constants/perpsConfig';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
 import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
@@ -89,24 +88,6 @@ export const usePerpsProTwapManagement = ({
     allActiveOrders.length > 0 ||
     error !== null ||
     (isTabSelected && isLoading);
-  DevLogger.log(
-    '[PR-TAT-3969] TWAP_TAB_STATE: ' +
-      JSON.stringify({
-        isTwapPlacementEnabled,
-        active: allActiveOrders.length,
-        historical: allHistoricalOrders.length,
-        total: twapOrders.length,
-        error,
-        isTabSelected,
-        isLoading,
-        shouldShowTab,
-      }),
-  );
-  if (!isTwapPlacementEnabled && shouldShowTab) {
-    DevLogger.log(
-      '[PR-TAT-3969] BUG_MARKER: TWAP tab stays visible while the TWAP rollout is disabled',
-    );
-  }
   const terminatingOrder = useMemo(() => {
     if (
       !terminatingSelection ||
