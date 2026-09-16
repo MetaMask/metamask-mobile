@@ -16,7 +16,7 @@ on:
     # from 06:00 through 23:00 UTC on weekdays.
     - cron: '0 6-23 * * 1-5'
     # Run iOS E2E twice per day on Saturday and Sunday.
-    - cron: '0 9,17 * * 0,6'
+    - cron: '0 12,20 * * 0,6'
   workflow_call:
     inputs:
       runner_provider:
