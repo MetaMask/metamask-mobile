@@ -44,8 +44,8 @@ export type { ShareAddressQRParams } from './sheets/ShareAddressQR/ShareAddressQ
 /** Delete account parameters */
 export interface DeleteAccountParams extends AccountParams {}
 
-/** Remove hardware account parameters */
-export interface RemoveHardwareAccountParams extends AccountParams {
+/** Remove account parameters */
+export interface RemoveAccountParams extends AccountParams {
   accountGroup?: AccountGroupObject;
 }
 

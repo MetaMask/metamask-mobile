@@ -24,20 +24,10 @@ const ManageAccounts = () => {
     onAddAccount,
     avatarAccountType,
   } = useManageAccountsView({
-    navigateToDeleteAccount: useCallback(
-      (account: InternalAccount) => {
-        navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
-          params: { account },
-        });
-      },
-      [navigation],
-    ),
-    navigateToRemoveHardwareAccount: useCallback(
+    navigateToRemoveAccount: useCallback(
       (account: InternalAccount, accountGroup: AccountGroupObject) => {
         navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-          screen:
-            Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REMOVE_HARDWARE_ACCOUNT,
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REMOVE_ACCOUNT,
           params: { account, accountGroup },
         });
       },

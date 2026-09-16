@@ -4,7 +4,7 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { forgetLedger, getDeviceId } from '../../core/Ledger/Ledger';
 import { forgetQrDevice, withQrKeyring } from '../../core/QrKeyring/QrKeyring';
 import { removeAccountsFromPermissions } from '../../core/Permissions';
-import { removeHardwareAccount } from './removeHardwareAccount';
+import { removeAccount } from './removeAccount';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -76,7 +76,7 @@ const setKeyrings = (keyrings: { type: string; accounts: string[] }[]) => {
   } as unknown as typeof Engine.context.KeyringController.state;
 };
 
-describe('removeHardwareAccount', () => {
+describe('removeAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetAccounts.mockResolvedValue([REMAINING_ADDRESS]);
@@ -91,7 +91,7 @@ describe('removeHardwareAccount', () => {
   });
 
   it('clears permissions and removes the account from the keyring', async () => {
-    await removeHardwareAccount({
+    await removeAccount({
       address: HARDWARE_ADDRESS,
       keyringType: ExtendedKeyringTypes.ledger,
     });
@@ -100,6 +100,25 @@ describe('removeHardwareAccount', () => {
       toHex(HARDWARE_ADDRESS),
     ]);
     expect(mockRemoveAccount).toHaveBeenCalledWith(toHex(HARDWARE_ADDRESS));
+  });
+
+  it('removes an imported private-key account without forgetting any device', async () => {
+    setKeyrings([
+      { type: ExtendedKeyringTypes.simple, accounts: [HARDWARE_ADDRESS] },
+    ]);
+
+    const result = await removeAccount({
+      address: HARDWARE_ADDRESS,
+      keyringType: ExtendedKeyringTypes.simple,
+    });
+
+    expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+      toHex(HARDWARE_ADDRESS),
+    ]);
+    expect(mockRemoveAccount).toHaveBeenCalledWith(toHex(HARDWARE_ADDRESS));
+    expect(mockForgetLedger).not.toHaveBeenCalled();
+    expect(mockForgetQrDevice).not.toHaveBeenCalled();
+    expect(result.forgotDevice).toBeUndefined();
   });
 
   it.each([
@@ -117,7 +136,7 @@ describe('removeHardwareAccount', () => {
   ])('$description', async ({ selectedAddress, expectedReselect }) => {
     mockSelectedAccount(selectedAddress);
 
-    const result = await removeHardwareAccount({
+    const result = await removeAccount({
       address: HARDWARE_ADDRESS,
       keyringType: ExtendedKeyringTypes.ledger,
     });
@@ -175,7 +194,7 @@ describe('removeHardwareAccount', () => {
     }) => {
       setKeyrings(keyrings);
 
-      const result = await removeHardwareAccount({
+      const result = await removeAccount({
         address: HARDWARE_ADDRESS,
         keyringType,
       });

@@ -8,11 +8,11 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { removeHardwareAccount } from '../../../../../util/accounts/removeHardwareAccount';
-import RemoveHardwareAccount from './RemoveHardwareAccount';
-import { RemoveHardwareAccountSelectors } from './RemoveHardwareAccount.testIds';
+import { removeAccount } from '../../../../../util/accounts/removeAccount';
+import RemoveAccount from './RemoveAccount';
+import { RemoveAccountSelectors } from './RemoveAccount.testIds';
 
-jest.mock('../../../../../util/accounts/removeHardwareAccount');
+jest.mock('../../../../../util/accounts/removeAccount');
 
 jest.mock('@metamask/design-system-react-native', () => ({
   ...jest.requireActual('@metamask/design-system-react-native'),
@@ -21,7 +21,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.mocked(useRoute);
-const mockRemoveHardwareAccount = jest.mocked(removeHardwareAccount);
+const mockRemoveAccount = jest.mocked(removeAccount);
 const mockToast = jest.mocked(toast);
 
 const mockAccount = createMockInternalAccount(
@@ -47,12 +47,12 @@ jest.mock('@react-navigation/native', () => ({
 
 const render = () =>
   renderWithProvider(
-    <RemoveHardwareAccount />,
+    <RemoveAccount />,
     // The sheet reads everything it needs from route params.
     {},
   );
 
-describe('RemoveHardwareAccount', () => {
+describe('RemoveAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRoute.mockReturnValue({
@@ -63,12 +63,8 @@ describe('RemoveHardwareAccount', () => {
   it('renders the warning title, description, and both buttons', () => {
     const { getByTestId, getByText } = render();
 
-    expect(
-      getByTestId(RemoveHardwareAccountSelectors.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(RemoveHardwareAccountSelectors.WARNING),
-    ).toBeOnTheScreen();
+    expect(getByTestId(RemoveAccountSelectors.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(RemoveAccountSelectors.WARNING)).toBeOnTheScreen();
     expect(
       getByText(
         strings('accounts.remove_account_title_with_account_name', {
@@ -78,10 +74,10 @@ describe('RemoveHardwareAccount', () => {
     ).toBeTruthy();
     expect(getByText(strings('accounts.remove_account_warning'))).toBeTruthy();
     expect(
-      getByTestId(RemoveHardwareAccountSelectors.CANCEL_BUTTON),
+      getByTestId(RemoveAccountSelectors.CANCEL_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(RemoveHardwareAccountSelectors.REMOVE_BUTTON),
+      getByTestId(RemoveAccountSelectors.REMOVE_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -95,38 +91,72 @@ describe('RemoveHardwareAccount', () => {
   it('navigates back when cancel is pressed', () => {
     const { getByTestId } = render();
 
-    fireEvent.press(getByTestId(RemoveHardwareAccountSelectors.CANCEL_BUTTON));
+    fireEvent.press(getByTestId(RemoveAccountSelectors.CANCEL_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockRemoveHardwareAccount).not.toHaveBeenCalled();
+    expect(mockRemoveAccount).not.toHaveBeenCalled();
   });
 
   it('closes and removes the hardware account when remove is pressed', async () => {
-    mockRemoveHardwareAccount.mockResolvedValue({
+    mockRemoveAccount.mockResolvedValue({
       didReselectAccount: false,
     });
 
     const { getByTestId } = render();
 
-    fireEvent.press(getByTestId(RemoveHardwareAccountSelectors.REMOVE_BUTTON));
+    fireEvent.press(getByTestId(RemoveAccountSelectors.REMOVE_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     await waitFor(() => {
-      expect(mockRemoveHardwareAccount).toHaveBeenCalledWith({
+      expect(mockRemoveAccount).toHaveBeenCalledWith({
         address: mockAccount.address,
         keyringType: mockAccount.metadata.keyring.type,
       });
     });
   });
 
-  it('shows a success toast with the account group name after removal', async () => {
-    mockRemoveHardwareAccount.mockResolvedValue({
+  it('closes and removes an imported private-key account when remove is pressed', async () => {
+    const importedAccount = createMockInternalAccount(
+      '0xdef',
+      'Imported 1',
+      KeyringTypes.simple,
+      EthAccountType.Eoa,
+    );
+    mockUseRoute.mockReturnValue({
+      params: {
+        account: importedAccount,
+        accountGroup: createMockAccountGroup(
+          'keyring:imported/0',
+          'Imported Account Group',
+          [importedAccount.id],
+        ),
+      },
+    } as never);
+    mockRemoveAccount.mockResolvedValue({
       didReselectAccount: false,
     });
 
     const { getByTestId } = render();
 
-    fireEvent.press(getByTestId(RemoveHardwareAccountSelectors.REMOVE_BUTTON));
+    fireEvent.press(getByTestId(RemoveAccountSelectors.REMOVE_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockRemoveAccount).toHaveBeenCalledWith({
+        address: importedAccount.address,
+        keyringType: KeyringTypes.simple,
+      });
+    });
+  });
+
+  it('shows a success toast with the account group name after removal', async () => {
+    mockRemoveAccount.mockResolvedValue({
+      didReselectAccount: false,
+    });
+
+    const { getByTestId } = render();
+
+    fireEvent.press(getByTestId(RemoveAccountSelectors.REMOVE_BUTTON));
 
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledTimes(1);
@@ -142,7 +172,7 @@ describe('RemoveHardwareAccount', () => {
   it('does not show a toast when cancel is pressed', () => {
     const { getByTestId } = render();
 
-    fireEvent.press(getByTestId(RemoveHardwareAccountSelectors.CANCEL_BUTTON));
+    fireEvent.press(getByTestId(RemoveAccountSelectors.CANCEL_BUTTON));
 
     expect(mockToast).not.toHaveBeenCalled();
   });

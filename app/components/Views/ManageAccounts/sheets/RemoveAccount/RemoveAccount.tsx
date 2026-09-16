@@ -17,35 +17,35 @@ import {
   ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { removeHardwareAccount } from '../../../../../util/accounts/removeHardwareAccount';
-import { RemoveHardwareAccountSelectors } from './RemoveHardwareAccount.testIds';
+import { removeAccount } from '../../../../../util/accounts/removeAccount';
+import { RemoveAccountSelectors } from './RemoveAccount.testIds';
 
 /**
- * Navigation params for the remove-hardware-account confirmation sheet.
+ * Navigation params for the remove-account confirmation sheet.
  */
 interface RootNavigationParamList extends ParamListBase {
-  RemoveHardwareAccount: {
+  RemoveAccount: {
     account: InternalAccount;
     accountGroup?: AccountGroupObject;
   };
 }
 
-type RemoveHardwareAccountRouteProp = RouteProp<
+type RemoveAccountRouteProp = RouteProp<
   RootNavigationParamList,
-  'RemoveHardwareAccount'
+  'RemoveAccount'
 >;
 
 /**
- * Confirmation bottom sheet shown when the user taps remove on a hardware
- * wallet account in Manage Accounts. Confirms before the account (and its
- * device, when it is the last one on the keyring) is removed.
+ * Confirmation bottom sheet shown when the user taps remove on an account row
+ * in Manage Accounts. Today it is reached for removable (imported private key)
+ * accounts. Confirms before the account is removed.
  *
  * Design: Account management Figma — "BottomSheet" alert dialog
  * (`TitleAlert` header region, optional content, vertical danger/secondary
  * footer buttons).
  */
-const RemoveHardwareAccount = () => {
-  const route = useRoute<RemoveHardwareAccountRouteProp>();
+const RemoveAccount = () => {
+  const route = useRoute<RemoveAccountRouteProp>();
   const navigation = useNavigation();
   const { account, accountGroup } = route.params;
 
@@ -55,7 +55,7 @@ const RemoveHardwareAccount = () => {
 
   const handleRemove = useCallback(async () => {
     handleClose();
-    await removeHardwareAccount({
+    await removeAccount({
       address: account.address,
       keyringType: account.metadata.keyring.type,
     });
@@ -77,7 +77,7 @@ const RemoveHardwareAccount = () => {
     size: ButtonSize.Lg,
     isFullWidth: true,
     onPress: handleClose,
-    testID: RemoveHardwareAccountSelectors.CANCEL_BUTTON,
+    testID: RemoveAccountSelectors.CANCEL_BUTTON,
   };
 
   const removeButtonProps = {
@@ -86,13 +86,13 @@ const RemoveHardwareAccount = () => {
     isFullWidth: true,
     isDanger: true,
     onPress: handleRemove,
-    testID: RemoveHardwareAccountSelectors.REMOVE_BUTTON,
+    testID: RemoveAccountSelectors.REMOVE_BUTTON,
   };
 
   return (
     <BottomSheet
       onClose={handleClose}
-      testID={RemoveHardwareAccountSelectors.CONTAINER}
+      testID={RemoveAccountSelectors.CONTAINER}
     >
       <TitleAlert
         severity="danger"
@@ -101,7 +101,7 @@ const RemoveHardwareAccount = () => {
         })}
         description={strings('accounts.remove_account_warning')}
         twClassName="px-4 pt-2 pb-4"
-        testID={RemoveHardwareAccountSelectors.WARNING}
+        testID={RemoveAccountSelectors.WARNING}
       />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Vertical}
@@ -112,4 +112,4 @@ const RemoveHardwareAccount = () => {
   );
 };
 
-export default RemoveHardwareAccount;
+export default RemoveAccount;

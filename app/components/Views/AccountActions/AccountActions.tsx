@@ -44,7 +44,7 @@ import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
-import { removeHardwareAccount } from '../../../util/accounts/removeHardwareAccount';
+import { removeAccount } from '../../../util/accounts/removeAccount';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -259,7 +259,7 @@ const AccountActions = () => {
       }
 
       sheetRef.current?.onCloseBottomSheet(async () => {
-        const result = await removeHardwareAccount({
+        const result = await removeAccount({
           address: selectedAddress,
           keyringType: keyring.type,
         });
