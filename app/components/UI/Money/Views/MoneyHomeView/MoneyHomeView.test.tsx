@@ -73,6 +73,7 @@ const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockRefetchInterest = jest.fn();
 const mockTrackEvent = jest.fn();
+let mockMoneySendPrototypeEnabled = false;
 const mockBuild = jest.fn(() => ({ name: 'built-event' }));
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
@@ -93,6 +94,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../constants/moneySendPrototype', () => ({
+  get MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED() {
+    return mockMoneySendPrototypeEnabled;
+  },
+}));
 
 const mockDepositTokens = [
   {
@@ -458,6 +465,7 @@ describe('MoneyHomeView', () => {
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
 
   beforeEach(() => {
+    mockMoneySendPrototypeEnabled = false;
     jest.clearAllMocks();
     global.alert = jest.fn();
 
@@ -1240,6 +1248,28 @@ describe('MoneyHomeView', () => {
       );
 
       expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('opens the Transfer sheet without a balance in prototype mode', () => {
+      mockMoneySendPrototypeEnabled = true;
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        isBalanceLoading: false,
+        isBalanceFetchError: false,
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const transferButton = getByTestId(
+        MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+      );
+
+      fireEvent.press(transferButton);
+
+      expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      });
     });
 
     it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {

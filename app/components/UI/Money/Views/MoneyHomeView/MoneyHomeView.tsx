@@ -115,6 +115,7 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
+import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../constants/moneySendPrototype';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -976,7 +977,9 @@ const MoneyHomeView = () => {
           }}
           transfer={{
             onPress: handleTransferPress,
-            disabled: !hasSpendableBalance,
+            disabled:
+              !hasSpendableBalance &&
+              !MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED,
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
