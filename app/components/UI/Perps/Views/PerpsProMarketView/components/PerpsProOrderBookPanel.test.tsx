@@ -729,42 +729,50 @@ describe('PerpsProOrderBookPanel', () => {
       .width;
 
   // TAT-3966: the bar has to measure whatever the value column is showing.
-  // In the fixture the deepest bid (size 2.0, total 3.5) and the widest single
-  // level are different rows, so the two modes cannot produce the same bars.
+  // The ask rows are the ones that can tell the two apart. Asks render
+  // reversed, so ask-row-0 is the fixture's deeper ask (size 1.8, total 3.0)
+  // and ask-row-1 the shallower one (size 1.2, total 1.2). Both differ under
+  // the two numerators, so swapping either the numerator or the denominator
+  // moves these numbers. The bid rows cannot: bid-0 has size === total, and
+  // bid-1 is 100% either way.
   it('sizes the depth bar from the cumulative total when listing by total', () => {
     mockOrderBookMetric = 'total';
     const view = renderLadder('right');
 
-    // bid-0 carries total 1.5 of the ladder's 3.5 maximum.
-    expect(getDepthBarWidth(view, `${testID}-bid-row-0`)).toBe(
-      `${(1.5 / 3.5) * 100}%`,
+    // Cumulative totals 3.0 and 1.2 against the ladder's 3.5 maximum total.
+    expect(getDepthBarWidth(view, `${testID}-ask-row-0`)).toBe(
+      `${(3.0 / 3.5) * 100}%`,
     );
-    expect(getDepthBarWidth(view, `${testID}-bid-row-1`)).toBe('100%');
+    expect(getDepthBarWidth(view, `${testID}-ask-row-1`)).toBe(
+      `${(1.2 / 3.5) * 100}%`,
+    );
   });
 
   it('sizes the depth bar from the level size when listing by size', () => {
     mockOrderBookMetric = 'size';
     const view = renderLadder('right');
 
-    // bid-0 carries size 1.5 of the ladder's largest single size, 2.0 — not the
-    // 1.5/3.5 its cumulative total would give.
-    expect(getDepthBarWidth(view, `${testID}-bid-row-0`)).toBe(
-      `${(1.5 / 2.0) * 100}%`,
+    // Own sizes 1.8 and 1.2 against the largest single size, 2.0 — not the
+    // 3.0/3.5 and 1.2/3.5 their cumulative totals would give.
+    expect(getDepthBarWidth(view, `${testID}-ask-row-0`)).toBe(
+      `${(1.8 / 2.0) * 100}%`,
     );
-    expect(getDepthBarWidth(view, `${testID}-bid-row-1`)).toBe('100%');
+    expect(getDepthBarWidth(view, `${testID}-ask-row-1`)).toBe(
+      `${(1.2 / 2.0) * 100}%`,
+    );
   });
 
   it('draws different bars for the same level in each listing mode', () => {
     mockOrderBookMetric = 'total';
     const byTotal = getDepthBarWidth(
       renderLadder('right'),
-      `${testID}-bid-row-0`,
+      `${testID}-ask-row-0`,
     );
 
     mockOrderBookMetric = 'size';
     const bySize = getDepthBarWidth(
       renderLadder('right'),
-      `${testID}-bid-row-0`,
+      `${testID}-ask-row-0`,
     );
 
     expect(bySize).not.toBe(byTotal);
