@@ -87,7 +87,6 @@ import PerpsTradeBottomSheet, {
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
   PerpsTradeLeverageScreen,
-  PerpsTradePayWithScreen,
   PerpsTradeSettingsScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
@@ -224,10 +223,7 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   settings: 1,
   leverage: 1,
-  payWith: 1,
 };
-
-const TRADE_SHEET_SCREENS_WITHOUT_BOTTOM_CTA = ['payWith'] as const;
 
 /**
  * PerpsOrderViewContentBase
@@ -1791,6 +1787,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
 
+  const handlePayWithPress = useCallback(() => {
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
+  }, [navigation]);
+
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
       setMaxSlippage(valueBps);
@@ -2024,7 +2024,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         onClose={() => navigation.goBack()}
         rootScreen="trade"
         screenDepth={TRADE_SHEET_SCREEN_DEPTH}
-        screensWithoutBottomCta={TRADE_SHEET_SCREENS_WITHOUT_BOTTOM_CTA}
         screens={{
           trade: (
             <PerpsTradeScreen
@@ -2068,6 +2067,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPercentagePress={handlePercentagePress}
               onMaxPress={handleMaxPress}
               onDonePress={handleDonePress}
+              onPayWithPress={handlePayWithPress}
               onSubmit={() => handlePlaceOrder()}
             />
           ),
@@ -2084,7 +2084,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               orderType={orderForm.type}
             />
           ),
-          payWith: <PerpsTradePayWithScreen />,
           settings: (
             <PerpsTradeSettingsScreen
               currentValueBps={maxSlippageBps}

@@ -71,6 +71,7 @@ interface PerpsTradeScreenProps {
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
+  onPayWithPress: () => void;
   onSubmit: () => void;
 }
 
@@ -193,6 +194,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onPercentagePress,
   onMaxPress,
   onDonePress,
+  onPayWithPress,
   onSubmit,
 }) => {
   const { close, navigateTo, title, banner } = usePerpsTradeSheet();
@@ -429,7 +431,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   </Text>
                 </Text>
               }
-              onPress={() => navigateTo('payWith')}
+              onPress={onPayWithPress}
             />
             <ActionRow
               testID={PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW}

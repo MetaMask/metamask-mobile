@@ -19,40 +19,16 @@ import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = PayWithBottomSheetIDs.BOTTOM_SHEET;
 
-interface PayWithScreenContentProps {
-  onBack?: () => void;
-  onClose?: () => void;
-}
-
-export function PayWithScreenContent({
-  onBack,
-  onClose,
-}: PayWithScreenContentProps) {
+export function PayWithBottomSheet() {
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation<AppNavigationProp>();
   const { sections } = usePayWithSections();
   const transactionMeta = useTransactionMetadataRequest();
+  useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const title = isWithdraw
     ? strings('confirm.pay_with_bottom_sheet.receive_title')
     : strings('confirm.pay_with_bottom_sheet.title');
-
-  return (
-    <>
-      <BottomSheetHeader onBack={onBack} onClose={onClose}>
-        <Text variant={TextVariant.HeadingSm}>{title}</Text>
-      </BottomSheetHeader>
-      <ScrollView testID={`${PAY_WITH_BOTTOM_SHEET_TEST_ID}-scroll`}>
-        {sections.map((section) => (
-          <PayWithSection key={section.id} config={section} />
-        ))}
-      </ScrollView>
-    </>
-  );
-}
-
-export function PayWithBottomSheet() {
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<AppNavigationProp>();
-  useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -69,7 +45,14 @@ export function PayWithBottomSheet() {
       testID={PAY_WITH_BOTTOM_SHEET_TEST_ID}
       keyboardAvoidingViewEnabled={false}
     >
-      <PayWithScreenContent onClose={handleClose} />
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingSm}>{title}</Text>
+      </BottomSheetHeader>
+      <ScrollView testID={`${PAY_WITH_BOTTOM_SHEET_TEST_ID}-scroll`}>
+        {sections.map((section) => (
+          <PayWithSection key={section.id} config={section} />
+        ))}
+      </ScrollView>
     </BottomSheet>
   );
 }

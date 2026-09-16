@@ -61,6 +61,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onPercentagePress: jest.fn(),
   onMaxPress: jest.fn(),
   onDonePress: jest.fn(),
+  onPayWithPress: jest.fn(),
   onSubmit: jest.fn(),
 };
 
@@ -92,7 +93,14 @@ describe('PerpsTradeScreen errors', () => {
 
   it('wires primary Trade actions to the sheet and order handlers', () => {
     const onSubmit = jest.fn();
-    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
+    const onPayWithPress = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        onPayWithPress={onPayWithPress}
+        onSubmit={onSubmit}
+      />,
+    );
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON),
@@ -107,7 +115,7 @@ describe('PerpsTradeScreen errors', () => {
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
-    expect(mockNavigateTo).toHaveBeenCalledWith('payWith');
+    expect(onPayWithPress).toHaveBeenCalledTimes(1);
 
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW),

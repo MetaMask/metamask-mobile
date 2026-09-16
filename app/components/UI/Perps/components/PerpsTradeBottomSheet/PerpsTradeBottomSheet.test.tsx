@@ -16,9 +16,7 @@ const tradeSheetConfig = {
     trade: 0,
     leverage: 1,
     settings: 1,
-    payWith: 1,
   },
-  screensWithoutBottomCta: ['payWith'] as const,
 };
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -130,7 +128,6 @@ describe('PerpsTradeBottomSheet', () => {
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
           settings: <Text>Settings</Text>,
-          payWith: <Text>Pay with</Text>,
         }}
       />,
     );
@@ -154,7 +151,6 @@ describe('PerpsTradeBottomSheet', () => {
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
           settings: <Text>Settings</Text>,
-          payWith: <Text>Pay with</Text>,
         }}
       />,
     );
@@ -177,7 +173,6 @@ describe('PerpsTradeBottomSheet', () => {
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
           settings: <Text>Settings</Text>,
-          payWith: <Text>Pay with</Text>,
         }}
       />,
     );
@@ -208,7 +203,6 @@ describe('PerpsTradeBottomSheet', () => {
           trade: <CloseTestScreen />,
           leverage: null,
           settings: null,
-          payWith: null,
         }}
       />,
     );
@@ -228,7 +222,6 @@ describe('PerpsTradeBottomSheet', () => {
           trade: <TradeTestScreen />,
           leverage: null,
           settings: null,
-          payWith: null,
         }}
       />,
     );
@@ -250,7 +243,6 @@ describe('PerpsTradeBottomSheet', () => {
           trade: <TitleBannerScreen />,
           leverage: null,
           settings: null,
-          payWith: null,
         }}
       />,
     );
@@ -268,7 +260,6 @@ describe('PerpsTradeBottomSheet', () => {
         onClose={jest.fn()}
         rootScreen="root"
         screenDepth={{ root: 0, details: 1 }}
-        screensWithoutBottomCta={['details']}
         screens={{
           root: <CustomRootScreen />,
           details: <Text>Custom details</Text>,

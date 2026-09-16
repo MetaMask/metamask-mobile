@@ -22,15 +22,10 @@ import Animated, {
   type SharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimationDuration } from '@metamask/design-tokens';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
-export type PerpsTradeSheetScreen =
-  | 'trade'
-  | 'settings'
-  | 'leverage'
-  | 'payWith';
+export type PerpsTradeSheetScreen = 'trade' | 'settings' | 'leverage';
 
 type ScreenDirection = 1 | -1;
 const SCREEN_SLIDE_OFFSET = 24;
@@ -132,7 +127,6 @@ export interface PerpsTradeBottomSheetProps<Screen extends string> {
   screens: Record<Screen, React.ReactNode>;
   rootScreen: Screen;
   screenDepth: Record<Screen, number>;
-  screensWithoutBottomCta?: readonly Screen[];
   /** Optional heading shown on the root screen. */
   title?: string;
   /** Optional banner rendered directly below `title` on the root screen. */
@@ -146,10 +140,8 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   screens,
   rootScreen,
   screenDepth,
-  screensWithoutBottomCta = [],
 }: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
-  const { bottom: bottomInset } = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isReady, setIsReady] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -206,7 +198,6 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     [activeScreen, rootScreen],
   );
   const isHeightLocked = activeScreen !== rootScreen && rootHeight !== null;
-  const hasBottomCta = !screensWithoutBottomCta.includes(activeScreen);
 
   const close = useCallback(() => {
     setIsClosing(true);
@@ -238,16 +229,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
             testID={PerpsTradeSheetSelectorsIDs.CONTENT}
             onLayout={handleContentLayout}
             twClassName="overflow-hidden"
-            style={
-              isHeightLocked
-                ? {
-                    height: hasBottomCta
-                      ? rootHeight
-                      : rootHeight + bottomInset,
-                    ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
-                  }
-                : undefined
-            }
+            style={isHeightLocked ? { height: rootHeight } : undefined}
           >
             <Animated.View
               key={activeScreen}

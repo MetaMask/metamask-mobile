@@ -7,7 +7,6 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 
 interface UseDismissOnPaymentChangeOptions {
   dismissOnPayTokenChange?: boolean;
-  onDismiss?: () => void;
 }
 
 /**
@@ -23,7 +22,6 @@ interface UseDismissOnPaymentChangeOptions {
  */
 export function useDismissOnPaymentChange({
   dismissOnPayTokenChange = true,
-  onDismiss,
 }: UseDismissOnPaymentChangeOptions = {}): void {
   const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
@@ -57,12 +55,6 @@ export function useDismissOnPaymentChange({
       return;
     }
 
-    if (onDismiss) {
-      isDismissingRef.current = true;
-      onDismiss();
-      return;
-    }
-
     if (!navigation.isFocused()) {
       isDismissingRef.current = true;
       return;
@@ -70,11 +62,5 @@ export function useDismissOnPaymentChange({
 
     isDismissingRef.current = true;
     navigation.goBack();
-  }, [
-    dismissOnPayTokenChange,
-    navigation,
-    onDismiss,
-    payToken,
-    selectedPaymentMethodId,
-  ]);
+  }, [dismissOnPayTokenChange, navigation, payToken, selectedPaymentMethodId]);
 }
