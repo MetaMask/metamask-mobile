@@ -47,7 +47,18 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
-import { getPredictNextControllerMessenger } from './predict-next-controller-messenger';
+import {
+  getPredictMarketDataServiceMessenger,
+  getPredictMarketDataServiceInitMessenger,
+} from './predict-market-data-service-messenger';
+import {
+  getPredictLiveDataServiceMessenger,
+  getPredictLiveDataServiceInitMessenger,
+} from './predict-live-data-service-messenger';
+import {
+  getPredictPortfolioServiceInitMessenger,
+  getPredictPortfolioServiceMessenger,
+} from './predict-portfolio-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -352,9 +363,17 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictControllerMessenger,
     getInitMessenger: noop,
   },
-  PredictNextController: {
-    getMessenger: getPredictNextControllerMessenger,
-    getInitMessenger: noop,
+  PredictMarketDataService: {
+    getMessenger: getPredictMarketDataServiceMessenger,
+    getInitMessenger: getPredictMarketDataServiceInitMessenger,
+  },
+  PredictLiveDataService: {
+    getMessenger: getPredictLiveDataServiceMessenger,
+    getInitMessenger: getPredictLiveDataServiceInitMessenger,
+  },
+  PredictPortfolioService: {
+    getMessenger: getPredictPortfolioServiceMessenger,
+    getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,

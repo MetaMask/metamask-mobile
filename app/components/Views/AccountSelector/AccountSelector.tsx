@@ -47,6 +47,11 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
+  SearchInteractedSource,
+  SearchInteractionType,
+  buildSearchInteractedProperties,
+} from '../../../core/Analytics/events/navigation';
+import {
   TraceName,
   TraceOperation,
   endTrace,
@@ -192,6 +197,30 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigation.navigate(Routes.SHEET.ADD_WALLET);
   }, [navigation]);
 
+  const trackSearchInteracted = useCallback(
+    (interactionType: SearchInteractionType) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SEARCH_INTERACTED)
+          .addProperties(
+            buildSearchInteractedProperties(
+              SearchInteractedSource.AccountList,
+              interactionType,
+            ),
+          )
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+  const handleSearchFocus = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Focused),
+    [trackSearchInteracted],
+  );
+  const handleSearchSettled = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Searched),
+    [trackSearchInteracted],
+  );
+
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
@@ -206,6 +235,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
+            onSearchFocus={handleSearchFocus}
+            onSearchSettled={handleSearchSettled}
           />
         ) : null}
         {!disableAddAccountButton && (
@@ -224,6 +255,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
+      handleSearchFocus,
+      handleSearchSettled,
     ],
   );
 

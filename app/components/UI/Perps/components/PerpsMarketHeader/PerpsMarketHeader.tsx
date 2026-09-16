@@ -2,7 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -250,52 +249,38 @@ const PerpsMarketHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="gap-2"
       >
         {onWalletPress ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="size-10"
-          >
-            <ButtonIcon
-              iconName={IconName.Wallet}
-              size={ButtonIconSize.Md}
-              onPress={handleWalletPress}
-              accessibilityLabel={strings('perps.market_details.wallet')}
-              testID={testIDs.walletButton}
-            />
-          </Box>
+          <ButtonIcon
+            iconName={IconName.Wallet}
+            size={ButtonIconSize.Md}
+            onPress={handleWalletPress}
+            accessibilityLabel={strings('perps.market_details.wallet')}
+            testID={testIDs.walletButton}
+          />
         ) : null}
         {onFavoritePress ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="size-10"
-          >
-            <ButtonIcon
-              iconName={isFavorite ? IconName.StarFilled : IconName.Star}
-              size={ButtonIconSize.Md}
-              onPress={handleFavoritePress}
-              accessibilityLabel={strings(
-                isFavorite
-                  ? 'perps.market_details.remove_from_watchlist'
-                  : 'perps.market_details.add_to_watchlist',
-              )}
-              testID={testIDs.favoriteButton}
-            />
-          </Box>
+          <ButtonIcon
+            iconName={isFavorite ? IconName.StarFilled : IconName.Star}
+            size={ButtonIconSize.Md}
+            onPress={handleFavoritePress}
+            accessibilityLabel={strings(
+              isFavorite
+                ? 'perps.market_details.remove_from_watchlist'
+                : 'perps.market_details.add_to_watchlist',
+            )}
+            testID={testIDs.favoriteButton}
+          />
         ) : null}
         {onModeChange && mode ? (
-          <Box justifyContent={BoxJustifyContent.Center} twClassName="h-10">
-            <PerpsModeToggle
-              mode={mode}
-              variant="active"
-              onChange={onModeChange}
-              enableHaptics={shouldEnableModeHaptics}
-              source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
-            />
-          </Box>
+          <PerpsModeToggle
+            mode={mode}
+            variant="active"
+            onChange={onModeChange}
+            enableHaptics={shouldEnableModeHaptics}
+            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+          />
         ) : null}
       </Box>
     ) : null);

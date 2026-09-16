@@ -31,9 +31,6 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
   const fetchUnlockedRewards = useCallback(async (): Promise<void> => {
     // Don't fetch if no subscriptionId or if current tier is base tier.
     if (!subscriptionId || !seasonId || !currentTier?.pointsNeeded) {
-      dispatch(setUnlockedRewards(null));
-      dispatch(setUnlockedRewardLoading(false));
-      dispatch(setUnlockedRewardError(false));
       return;
     }
 
@@ -44,8 +41,20 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
     try {
       isLoadingRef.current = true;
 
-      dispatch(setUnlockedRewardLoading(true));
-      dispatch(setUnlockedRewardError(false));
+      dispatch(
+        setUnlockedRewardLoading({
+          subscriptionId,
+          seasonId,
+          loading: true,
+        }),
+      );
+      dispatch(
+        setUnlockedRewardError({
+          subscriptionId,
+          seasonId,
+          error: false,
+        }),
+      );
 
       const unlockedRewardsData = await Engine.controllerMessenger.call(
         'RewardsController:getUnlockedRewards',
@@ -53,14 +62,32 @@ export const useUnlockedRewards = (): UseUnlockedRewardsReturn => {
         subscriptionId,
       );
 
-      dispatch(setUnlockedRewards(unlockedRewardsData));
+      dispatch(
+        setUnlockedRewards({
+          subscriptionId,
+          seasonId,
+          rewards: unlockedRewardsData,
+        }),
+      );
     } catch {
       // Keep existing data on error to prevent UI flash
-      dispatch(setUnlockedRewardError(true));
+      dispatch(
+        setUnlockedRewardError({
+          subscriptionId,
+          seasonId,
+          error: true,
+        }),
+      );
       console.error('Error fetching unlocked rewards');
     } finally {
       isLoadingRef.current = false;
-      dispatch(setUnlockedRewardLoading(false));
+      dispatch(
+        setUnlockedRewardLoading({
+          subscriptionId,
+          seasonId,
+          loading: false,
+        }),
+      );
     }
   }, [currentTier?.pointsNeeded, dispatch, seasonId, subscriptionId]);
 
