@@ -14,9 +14,8 @@ This is complementary to:
 - Weekly rollup in `weekly-app-profiling-report.md` (7-day merged-PR averages)
 
 Note: `workflow_dispatch` is only offered for workflows already on the default
-branch. Before `Analyze App Profiling` lands on `main`, run it either with the
-local command below or by adding the `run-app-profiling-analysis` label to its
-PR.
+branch. After it lands on `main`, run it from Actions or wait for the daily
+schedule. Until then, use the local command below.
 
 ## Suggested trigger
 

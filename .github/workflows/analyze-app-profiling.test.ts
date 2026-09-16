@@ -39,6 +39,13 @@ describe('Analyze App Profiling triggers', () => {
     );
   });
 
+  it('does not run on pull requests', () => {
+    const workflow = loadWorkflow();
+
+    expect(workflow.on).not.toHaveProperty('pull_request');
+    expect(workflow.jobs.analyze.if).not.toContain('pull_request');
+  });
+
   it('keeps the manual workflow trigger and its inputs', () => {
     const workflow = loadWorkflow();
 
