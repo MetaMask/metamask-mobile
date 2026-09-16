@@ -146,6 +146,7 @@ const MoneySecurityVerificationSheet = () => {
   const showSuccessToast = useMoneySecurityToast();
   const codeInputRef = useRef<TextInput>(null);
   const hasCompletedRef = useRef(false);
+  const isRoutingToMethodRef = useRef(false);
   const hasAutoRoutedAuthenticatorRef = useRef(false);
   const hasAutoRoutedSmsRef = useRef(false);
   const [code, setCode] = useState('');
@@ -206,6 +207,10 @@ const MoneySecurityVerificationSheet = () => {
   }, [isTransactionVerification, showTransactionVerificationError]);
 
   const handleSheetGoBack = useCallback(() => {
+    if (isRoutingToMethodRef.current || hasCompletedRef.current) {
+      navigation.goBack();
+      return;
+    }
     if (isTransactionVerification) {
       if (selectedMethod && availableMethods.length > 1) {
         navigation.goBack();
@@ -300,6 +305,7 @@ const MoneySecurityVerificationSheet = () => {
 
   const handleAuthenticatorMethod = useCallback(
     (showCloseButton = false) => {
+      isRoutingToMethodRef.current = true;
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
           entryPoint: 'security',
@@ -324,6 +330,7 @@ const MoneySecurityVerificationSheet = () => {
 
   const handleSmsMethod = useCallback(
     (showCloseButton = false) => {
+      isRoutingToMethodRef.current = true;
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.MONEY.SMS_SETUP, {
           initialStep: 'verify',

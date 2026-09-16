@@ -266,6 +266,7 @@ describe('MoneySecurityVerificationSheet', () => {
       fallbackToMethodChooser: true,
       showCloseButton: false,
     });
+    fireEvent.press(getByTestId('mock-sheet-dismiss'));
     expect(mockShowSuccessToast).not.toHaveBeenCalled();
   });
 
@@ -303,6 +304,28 @@ describe('MoneySecurityVerificationSheet', () => {
       'Transaction needs to be verified before sending funds.',
       'error',
     );
+  });
+
+  it('does not show the error while routing from the chooser to SMS', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockIsSmsAdded = true;
+    mockShowMethodChooser = true;
+    const { getByTestId } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    fireEvent.press(
+      getByTestId(MoneySecurityVerificationSheetTestIds.SMS_METHOD),
+    );
+    fireEvent.press(getByTestId('mock-sheet-dismiss'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SMS_SETUP, {
+      initialStep: 'verify',
+      verificationAction: { type: 'verify-transaction' },
+      fallbackToMethodChooser: true,
+      showCloseButton: false,
+    });
+    expect(mockShowSuccessToast).not.toHaveBeenCalled();
   });
 
   it('opens directly into the only available transaction method', () => {
