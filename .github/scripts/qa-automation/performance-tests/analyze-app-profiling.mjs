@@ -628,16 +628,29 @@ function loadProfile(
   skillAnalyzerPath,
   { analysisPath = filePath, sourcemapPath = null } = {},
 ) {
-  const stat = fs.statSync(filePath);
   const metadata = parseProfileFileName(filePath);
-  if (stat.size > MAX_PROFILE_BYTES) {
+  let descriptor;
+  try {
+    descriptor = fs.openSync(filePath, 'r');
+  } catch (error) {
     return {
       ...metadata,
       skipped: true,
-      reason: `file too large (${(stat.size / 1024 / 1024).toFixed(1)} MB)`,
+      reason: `unreadable: ${error.message}`,
     };
   }
   try {
+    // Sizing and reading go through the same descriptor, so the guard cannot
+    // measure one file and the read then consume another.
+    const { size } = fs.fstatSync(descriptor);
+    if (size > MAX_PROFILE_BYTES) {
+      return {
+        ...metadata,
+        skipped: true,
+        reason: `file too large (${(size / 1024 / 1024).toFixed(1)} MB)`,
+      };
+    }
+    const contents = fs.readFileSync(descriptor, 'utf8');
     return {
       ...metadata,
       skipped: false,
@@ -647,7 +660,7 @@ function loadProfile(
       skillAudit: runSkillAnalyzer(analysisPath, skillAnalyzerPath, {
         symbolicated: Boolean(sourcemapPath),
       }),
-      ...summarizeHermesProfile(JSON.parse(fs.readFileSync(filePath, 'utf8'))),
+      ...summarizeHermesProfile(JSON.parse(contents)),
     };
   } catch (error) {
     return {
@@ -655,6 +668,8 @@ function loadProfile(
       skipped: true,
       reason: `unreadable: ${error.message}`,
     };
+  } finally {
+    fs.closeSync(descriptor);
   }
 }
 
