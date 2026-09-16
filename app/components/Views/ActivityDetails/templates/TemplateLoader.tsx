@@ -5,7 +5,6 @@ import {
 } from '../../../../util/activity-adapters';
 import { ApprovalDetails } from './ApprovalDetails';
 import { BridgeDetails } from './BridgeDetails';
-import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
 import { DepositDetails } from './DepositDetails';
@@ -58,7 +57,6 @@ export function TemplateLoader({
     case 'contractInteraction':
       return <ContractInteractionDetails item={item} />;
     case 'claimMusdBonus':
-      return <ClaimMusdBonusDetails item={item} />;
     case 'claim':
     case 'stake':
     case 'unstake':

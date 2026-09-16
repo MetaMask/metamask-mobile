@@ -1,11 +1,11 @@
 # Builds a main-e2e RELEASE APK that includes arm64-v8a native libs, so the
 # CI-equivalent binary can be installed on Apple Silicon (arm64) emulators to
-# reproduce CI E2E failures locally. Runs 4x/day; skips when main has not moved.
+# reproduce CI E2E failures locally. Runs on weekdays; skips when main has not moved.
 name: Build Android arm64 E2E (scheduled)
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # 00:00, 06:00, 12:00, 18:00 UTC — 4x/day
+    - cron: '0 8 * * 1-5' # 08:00 UTC, Monday-Friday
   workflow_dispatch: {}
 
 permissions:

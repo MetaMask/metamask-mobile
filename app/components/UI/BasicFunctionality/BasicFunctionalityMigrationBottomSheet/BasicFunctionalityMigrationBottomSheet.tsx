@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import {
@@ -19,18 +19,51 @@ import BottomSheetFooter from '../../../../component-library/components/BottomSh
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { dismissBasicFunctionalityMigrationNotification } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 export const BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK =
   'https://metamask.io/news/updating-metamask-analytics';
 export const BASIC_FUNCTIONALITY_MIGRATION_PRIVACY_NOTICE_LINK =
   'https://consensys.io/privacy-notice';
 
+export const SOCIAL_BF_PRIVACY_NOTICE_NAME = 'social_bf_privacy_notice';
+
+export enum BasicFunctionalitySocialPrivacyNoticeAction {
+  VIEWED = 'viewed',
+  ACCEPT_AND_CLOSE = 'accept and close',
+}
+
 const BasicFunctionalityMigrationBottomSheet = () => {
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const trackSocialPrivacyNotice = useCallback(
+    (action: BasicFunctionalitySocialPrivacyNoticeAction) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED)
+          .addProperties({
+            name: SOCIAL_BF_PRIVACY_NOTICE_NAME,
+            action,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
+  useEffect(() => {
+    trackSocialPrivacyNotice(
+      BasicFunctionalitySocialPrivacyNoticeAction.VIEWED,
+    );
+  }, [trackSocialPrivacyNotice]);
 
   const handleAccept = () => {
+    trackSocialPrivacyNotice(
+      BasicFunctionalitySocialPrivacyNoticeAction.ACCEPT_AND_CLOSE,
+    );
     sheetRef.current?.onCloseBottomSheet(() => {
       dispatch(dismissBasicFunctionalityMigrationNotification());
     });
