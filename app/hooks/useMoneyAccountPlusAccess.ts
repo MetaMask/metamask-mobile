@@ -1,13 +1,9 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  ensureResolved,
   getSnapshot,
-  refresh,
-  reset,
   subscribe,
 } from '../core/Subscription/entitlementResolution';
-import { selectSelectedInternalAccountId } from '../selectors/accountsController';
 import { selectIsSignedIn } from '../selectors/identity';
 import { selectIsUnlocked } from '../selectors/keyringController';
 import {
@@ -15,6 +11,7 @@ import {
   selectIsMoneyAccountPlusSubscriber,
 } from '../selectors/subscriptionController';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
+import { useResolveMoneyAccountPlusEntitlements } from './useResolveMoneyAccountPlusEntitlements';
 
 /**
  * Who may see which Money Account Plus surface.
@@ -46,41 +43,13 @@ export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
-  const selectedAccountId = useSelector(selectSelectedInternalAccountId);
   const isSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
   const hasEntitlement = useSelector(selectHasAnyMoneyAccountPlusEntitlement);
   const resolutionStatus = useSyncExternalStore(subscribe, getSnapshot);
 
+  useResolveMoneyAccountPlusEntitlements();
+
   const canResolve = isProSubscriptionEnabled && isSignedIn && isUnlocked;
-  const previousAccountIdRef = useRef(selectedAccountId);
-
-  // Entitlements are per-user, so a locked or signed-out session must not
-  // leave a resolved status behind for whoever signs in next.
-  useEffect(() => {
-    if (!isSignedIn || !isUnlocked) {
-      reset();
-    }
-  }, [isSignedIn, isUnlocked]);
-
-  useEffect(() => {
-    if (!canResolve) {
-      return;
-    }
-
-    const previousAccountId = previousAccountIdRef.current;
-    previousAccountIdRef.current = selectedAccountId;
-
-    if (previousAccountId !== selectedAccountId) {
-      refresh().catch(() => {
-        // Status is already recorded as `error` by the store.
-      });
-      return;
-    }
-
-    ensureResolved().catch(() => {
-      // Status is already recorded as `error` by the store.
-    });
-  }, [canResolve, selectedAccountId]);
 
   if (!isProSubscriptionEnabled) {
     return MoneyAccountPlusAccess.Disabled;

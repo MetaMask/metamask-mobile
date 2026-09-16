@@ -111,6 +111,7 @@ import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -134,6 +135,12 @@ const MoneyHomeView = () => {
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
+
+  // Pro entry point: keep subscription state fresh only while the Pro flow is
+  // enabled so we do not generate API traffic for users without the flow.
+  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const isProSubscriber = useIsProSubscriber();
+  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
@@ -159,12 +166,6 @@ const MoneyHomeView = () => {
     useMoneyAccountInterest();
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
-
-  // Keeps subscription state and Plus entitlements fresh while Money is
-  // mounted, so the header CTA reacts to subscribe, cancel, and token refresh
-  // without the user reopening the screen.
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -396,16 +397,13 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
-      source: 'money_header',
-    });
-  }, [navigation]);
-
-  const handleProHubPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.ROOT, {
-      source: 'money_header',
-    });
-  }, [navigation]);
+    navigation.navigate(
+      isProSubscriber ? Routes.PRO_HUB.ROOT : Routes.PRO_SUBSCRIPTION.ROOT,
+      {
+        source: 'money_header',
+      },
+    );
+  }, [navigation, isProSubscriber]);
 
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.
@@ -426,7 +424,6 @@ const MoneyHomeView = () => {
     ? {
         onMenuPress: handleMenuPress,
         onGetProPress: handleGetProPress,
-        onProHubPress: handleProHubPress,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
@@ -434,7 +431,6 @@ const MoneyHomeView = () => {
     : {
         onMenuPress: handleMenuPress,
         onGetProPress: handleGetProPress,
-        onProHubPress: handleProHubPress,
       };
 
   const handleAddPress = useCallback(

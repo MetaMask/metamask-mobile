@@ -92,10 +92,11 @@ describe('entitlementResolution', () => {
       expect(getSnapshot()).toBe('resolved');
     });
 
-    it('joins an in-flight request instead of issuing a second one', async () => {
+    it('issues a new fetch even when ensureResolved is already in flight', async () => {
       await Promise.all([ensureResolved(), refresh()]);
 
-      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+      expect(getSnapshot()).toBe('resolved');
     });
   });
 

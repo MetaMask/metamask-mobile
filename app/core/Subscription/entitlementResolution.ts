@@ -97,13 +97,14 @@ export const ensureResolved = async (): Promise<void> => {
  * Re-resolves entitlements after an event that can change them, such as
  * subscribing, cancelling, or switching accounts.
  *
+ * Always issues a new fetch. Joining an in-flight `ensureResolved` would
+ * return the pre-mutation snapshot and could bounce a new subscriber out of
+ * the hub.
+ *
  * @returns A promise that settles when entitlements have been re-resolved.
  */
 export const refresh = async (): Promise<void> => {
-  if (store.inFlight) {
-    return await store.inFlight;
-  }
-
+  store.generation += 1;
   store.inFlight = fetchEntitlements();
   return await store.inFlight;
 };

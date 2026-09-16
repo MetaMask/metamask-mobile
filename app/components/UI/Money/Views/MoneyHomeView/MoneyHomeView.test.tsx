@@ -9,7 +9,6 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
-import { MoneyAccountPlusAccess } from '../../../../../hooks/useMoneyAccountPlusAccess';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
@@ -209,14 +208,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-// Plus entitlement resolution has its own coverage; here we only drive the
-// header CTA so this suite stays focused on Money home behavior.
-const mockUseMoneyAccountPlusAccess = jest.fn();
-jest.mock('../../../../../hooks/useMoneyAccountPlusAccess', () => ({
-  ...jest.requireActual('../../../../../hooks/useMoneyAccountPlusAccess'),
-  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
-}));
-
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
   default: {
@@ -282,6 +273,11 @@ const mockUseProSubscriptionEnabled = jest.fn(() => ({
 }));
 jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+}));
+
+const mockUseIsProSubscriber = jest.fn(() => false);
+jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
+  useIsProSubscriber: () => mockUseIsProSubscriber(),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -519,10 +515,6 @@ describe('MoneyHomeView', () => {
       isActive: false,
     });
     mockUseIsProSubscriber.mockReturnValue(false);
-
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Disabled,
-    );
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -1457,34 +1449,6 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
-    });
-  });
-
-  describe('Pro header CTA', () => {
-    it('opens the subscription upsell for an eligible non-subscriber', () => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Eligible,
-      );
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
-        source: 'money_header',
-      });
-    });
-
-    it('opens the Pro Hub for an entitled subscriber', () => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.PRO_HUB_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-        source: 'money_header',
-      });
     });
   });
 
@@ -2683,6 +2647,7 @@ describe('MoneyHomeView', () => {
         variantName: 'treatment',
         isActive: true,
       });
+      mockUseIsProSubscriber.mockReturnValue(false);
     });
 
     it('starts subscription polling while the Pro flow is enabled', () => {
@@ -2704,6 +2669,28 @@ describe('MoneyHomeView', () => {
 
       expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
         enabled: false,
+      });
+    });
+
+    it('navigates to the subscription flow when the user is not subscribed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'money_header',
+      });
+    });
+
+    it('navigates to the Pro hub when the user is already subscribed', () => {
+      mockUseIsProSubscriber.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'money_header',
       });
     });
   });

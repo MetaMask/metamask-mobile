@@ -11,10 +11,8 @@ import {
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
-import {
-  MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
-} from '../../../../../hooks/useMoneyAccountPlusAccess';
+import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -22,15 +20,11 @@ interface MoneyHeaderCommonProps {
    */
   onMenuPress: () => void;
   /**
-   * Handler for the "Join Pro" button.
-   * Only fired for users eligible to subscribe.
+   * Handler for the Pro button. Opens the Pro subscription flow, or the Pro hub
+   * when the user is already subscribed.
+   * Only fired when the Pro subscription flow flag is enabled.
    */
   onGetProPress: () => void;
-  /**
-   * Handler for the "Pro" button.
-   * Only fired for users entitled to Money Account Plus.
-   */
-  onProHubPress: () => void;
 }
 
 /**
@@ -56,8 +50,13 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, onGetProPress, onProHubPress } = props;
-  const proAccess = useMoneyAccountPlusAccess();
+  const { onMenuPress, onGetProPress } = props;
+  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const isProSubscriber = useIsProSubscriber();
+
+  const proLabel = isProSubscriber
+    ? strings('pro_subscription.pro')
+    : strings('pro_subscription.join_pro');
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -66,37 +65,19 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     testID: MoneyHeaderTestIds.MENU_BUTTON,
   };
 
-  let proButton: React.ReactNode;
-  if (proAccess === MoneyAccountPlusAccess.Eligible) {
-    proButton = (
+  // "Get Pro" is a text button, so it can only go in the end accessory, which
+  // takes the menu with it — the header slots the two ButtonIcon paths and the
+  // accessory as alternatives rather than siblings.
+  const endAccessory = isProSubscriptionEnabled ? (
+    <Box twClassName="flex-row items-center gap-1">
       <Button
         size={ButtonSize.Md}
         onPress={onGetProPress}
         testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-        accessibilityLabel={strings('pro_subscription.join_pro')}
+        accessibilityLabel={proLabel}
       >
-        {strings('pro_subscription.join_pro')}
+        {proLabel}
       </Button>
-    );
-  } else if (proAccess === MoneyAccountPlusAccess.Subscriber) {
-    proButton = (
-      <Button
-        size={ButtonSize.Md}
-        onPress={onProHubPress}
-        testID={MoneyHeaderTestIds.PRO_HUB_BUTTON}
-        accessibilityLabel={strings('pro_subscription.view_pro')}
-      >
-        {strings('pro_subscription.view_pro')}
-      </Button>
-    );
-  }
-
-  // The Pro button is a text button, so it can only go in the end accessory,
-  // which takes the menu with it — the header slots the two ButtonIcon paths
-  // and the accessory as alternatives rather than siblings.
-  const endAccessory = proButton ? (
-    <Box twClassName="flex-row items-center gap-1">
-      {proButton}
       <ButtonIcon {...menuButtonProps} />
     </Box>
   ) : undefined;
