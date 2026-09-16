@@ -67,6 +67,7 @@ const PerpsModeSelectionView: React.FC = () => {
 
   const hasSelectedRef = useRef(false);
   const dismissEmittedRef = useRef(false);
+  const continuedAsPreselectedRef = useRef(false);
   const openedAtRef = useRef(Date.now());
 
   const emitDismissIfNeeded = useCallback(() => {
@@ -82,23 +83,6 @@ const PerpsModeSelectionView: React.FC = () => {
       entry,
     });
   }, [entry, source, track]);
-
-  // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
-  // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
-  useEffect(() => {
-    openedAtRef.current = Date.now();
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
-      emitDismissIfNeeded();
-    });
-    return unsubscribe;
-  }, [emitDismissIfNeeded, navigation]);
-
-  const handleClose = useCallback(() => {
-    // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;
-    // emit here so dismiss is recorded even if navigation teardown is odd.
-    emitDismissIfNeeded();
-    navigation.goBack();
-  }, [emitDismissIfNeeded, navigation]);
 
   const continueAfterSelection = useCallback(
     (mode: PerpsMode) => {
@@ -153,6 +137,40 @@ const PerpsModeSelectionView: React.FC = () => {
     },
     [entry, isProModeEnabled, lastViewedMarketSymbol, navigation, source],
   );
+
+  const continueAsPreselectedIfNeeded = useCallback(() => {
+    if (
+      entry !== 'trade' ||
+      hasSelectedRef.current ||
+      continuedAsPreselectedRef.current
+    ) {
+      return;
+    }
+    continuedAsPreselectedRef.current = true;
+    markPerpsModeSelectionCompleted().catch(() => undefined);
+    requestAnimationFrame(() => {
+      continueAfterSelection(selectedMode);
+    });
+  }, [continueAfterSelection, entry, selectedMode]);
+
+  // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
+  // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
+  useEffect(() => {
+    openedAtRef.current = Date.now();
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      emitDismissIfNeeded();
+      continueAsPreselectedIfNeeded();
+    });
+    return unsubscribe;
+  }, [continueAsPreselectedIfNeeded, emitDismissIfNeeded, navigation]);
+
+  const handleClose = useCallback(() => {
+    // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;
+    // emit here so dismiss is recorded even if navigation teardown is odd.
+    emitDismissIfNeeded();
+    continueAsPreselectedIfNeeded();
+    navigation.goBack();
+  }, [continueAsPreselectedIfNeeded, emitDismissIfNeeded, navigation]);
 
   const handleSelect = useCallback(
     async (mode: PerpsMode) => {
