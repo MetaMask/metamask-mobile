@@ -189,8 +189,12 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    // Keyed so a Perps/Tokens reorder moves the sections instead of
+    // remounting them, which would reset in-section state such as token-list
+    // scroll and re-fire section_viewed within the same visit.
     const tokensSection = (
       <TokensSection
+        key="tokens"
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
         totalSectionsLoaded={totalSectionsLoaded}
@@ -198,6 +202,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     );
     const perpsSection = isPerpsEnabled ? (
       <HomepagePerpsHomeSlot
+        key="perps"
         ref={perpsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
         totalSectionsLoaded={totalSectionsLoaded}
