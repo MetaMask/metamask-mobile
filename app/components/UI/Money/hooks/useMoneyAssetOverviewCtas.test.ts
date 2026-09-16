@@ -24,19 +24,6 @@ import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 
-jest.mock('../../../../selectors/earnController/earn', () => {
-  const actual = jest.requireActual<
-    typeof import('../../../../selectors/earnController/earn')
-  >('../../../../selectors/earnController/earn');
-
-  return {
-    ...actual,
-    earnSelectors: {
-      ...actual.earnSelectors,
-      selectIsAaveOutputToken: jest.fn(),
-    },
-  };
-});
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -61,8 +48,9 @@ const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
 const mockUseMoneyOnboardingNavigation = jest.mocked(
   useMoneyOnboardingNavigation,
 );
-const mockSelectIsAaveOutputToken = jest.mocked(
-  earnSelectors.selectIsAaveOutputToken,
+const mockSelectIsAaveOutputToken = jest.spyOn(
+  earnSelectors,
+  'selectIsAaveOutputToken',
 );
 const mockSelectorState = {} as RootState;
 
@@ -180,6 +168,7 @@ describe('useMoneyAssetOverviewCtas', () => {
 
   it('hides the footer CTA for an aToken without a subsidized Money deposit route', () => {
     setupSelectors(EMPTY_RELAY_CONFIG);
+
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
@@ -193,6 +182,7 @@ describe('useMoneyAssetOverviewCtas', () => {
 
   it('hides the footer CTA when the Earn selector excludes the asset', () => {
     setupSelectors(RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC, false);
+
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset: {
@@ -210,6 +200,7 @@ describe('useMoneyAssetOverviewCtas', () => {
 
   it('keeps the balance CTA visible when the footer route is not subsidized', () => {
     setupSelectors(EMPTY_RELAY_CONFIG);
+
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
