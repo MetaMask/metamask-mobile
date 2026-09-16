@@ -12,7 +12,13 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
 import { RootState } from '../../../../../reducers';
-import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
+import {
+  selectTransactionPayIsMaxAmountByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../../selectors/transactionPayController';
+import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+import { getAtomicHintForMoneyDeposit } from '../../utils/transaction-pay';
+import { isMoneyDepositFeeSubsidized } from '../../../../../components/UI/Money/utils/isMoneyDepositFeeSubsidized';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
@@ -34,6 +40,13 @@ export function useTransactionPayToken(): {
   const primaryRequiredToken = (requiredTokens ?? []).find(
     (token) => !token.skipIfBalance,
   );
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
+  const isMaxAmount = useSelector((state: RootState) =>
+    selectTransactionPayIsMaxAmountByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
 
   const isNative =
     payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);
@@ -59,6 +72,21 @@ export function useTransactionPayToken(): {
         });
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
+      }
+
+      if (isMoneyAccountDeposit) {
+        TransactionPayController.setTransactionConfig(
+          transactionId as string,
+          (config) => {
+            config.atomic = getAtomicHintForMoneyDeposit({
+              isMaxAmount: isMaxAmount ?? false,
+              isSubsidized: isMoneyDepositFeeSubsidized(
+                relayFixedSpread,
+                newPayToken,
+              ),
+            });
+          },
+        );
       }
 
       // perps deposits only use relay, so doesn't need gasFeeToken update
@@ -93,6 +121,9 @@ export function useTransactionPayToken(): {
       transactionMeta,
       primaryRequiredToken?.chainId,
       primaryRequiredToken?.address,
+      isMoneyAccountDeposit,
+      isMaxAmount,
+      relayFixedSpread,
     ],
   );
 

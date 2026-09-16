@@ -13,6 +13,7 @@ import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -1634,8 +1635,37 @@ describe('useTransactionCustomAmount', () => {
       expect(config.atomic).toBe(false);
     });
 
-    it('clears atomic when Max is unset via non-100% selection', async () => {
+    it('sets atomic to false when Max is unset on an unsubsidized deposit', async () => {
       useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.atomic === false;
+      });
+      expect(atomicCall).toBeDefined();
+    });
+
+    it('clears atomic when Max is unset on a subsidized deposit', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: MUSD_TOKEN_ADDRESS,
+          balanceUsd: '1234.56',
+          balanceFiat: '1234.56',
+          balanceHuman: '1234',
+          balanceRaw: '1234000000',
+          chainId: CHAIN_IDS.MONAD,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
         transactionMeta: depositTransactionMeta,
@@ -1653,7 +1683,7 @@ describe('useTransactionCustomAmount', () => {
       expect(atomicCall).toBeDefined();
     });
 
-    it('clears atomic when Max is unset via manual amount input', async () => {
+    it('sets atomic to false when Max is unset via manual amount input', async () => {
       useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
       const { result } = runHook({
@@ -1665,9 +1695,9 @@ describe('useTransactionCustomAmount', () => {
       });
 
       const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
-        const cfg: Record<string, unknown> = { atomic: false };
+        const cfg: Record<string, unknown> = {};
         call[1](cfg);
-        return cfg.atomic === undefined;
+        return cfg.atomic === false;
       });
       expect(atomicCall).toBeDefined();
     });

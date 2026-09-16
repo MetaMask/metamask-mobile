@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+import { isMoneyDepositFeeSubsidized } from '../../../../../components/UI/Money/utils/isMoneyDepositFeeSubsidized';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -10,7 +13,10 @@ import {
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getAtomicHintForMoneyDeposit,
+  getTokenAddress,
+} from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import {
@@ -128,6 +134,7 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
   }`;
@@ -291,11 +298,16 @@ export function useTransactionCustomAmount({
         config.isMaxAmount = value;
 
         if (isMoneyAccountDeposit) {
-          config.atomic = value ? false : undefined;
+          config.atomic = getAtomicHintForMoneyDeposit({
+            isMaxAmount: value,
+            isSubsidized:
+              payToken &&
+              isMoneyDepositFeeSubsidized(relayFixedSpread, payToken),
+          });
         }
       });
     },
-    [isMoneyAccountDeposit, transactionId],
+    [isMoneyAccountDeposit, payToken, relayFixedSpread, transactionId],
   );
 
   const updatePendingAmount = useCallback(

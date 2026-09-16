@@ -402,3 +402,30 @@ export function formatAmountForDisplay(amountFiat: string): string {
 
   return value.isFinite() ? value.toFixed(2, BigNumber.ROUND_DOWN) : amountFiat;
 }
+
+/**
+ * Resolves the `atomic` hint for a Money Account deposit from the max flag
+ * and the route subsidy expectation.
+ *
+ * Max deposits always use `false`: the pay controller promotes subsidized
+ * max deposits to atomic internally, so the request must arrive non-atomic.
+ * Non-max deposits leave `atomic` unset when the route is subsidized and set
+ * `false` otherwise, sending those straight down the sponsored second-leg
+ * path instead of attempting an atomic quote the user would pay gas for.
+ *
+ * This is a hint, not a command: the controller verifies actual subsidy from
+ * the Relay response and adjusts (promote/demote) regardless of its value.
+ */
+export function getAtomicHintForMoneyDeposit({
+  isMaxAmount,
+  isSubsidized,
+}: {
+  isMaxAmount: boolean;
+  isSubsidized?: boolean;
+}): boolean | undefined {
+  if (isMaxAmount || !isSubsidized) {
+    return false;
+  }
+
+  return undefined;
+}

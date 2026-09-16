@@ -6,6 +6,7 @@ import {
 import {
   applyMoneyAccountOverride,
   formatAmountForDisplay,
+  getAtomicHintForMoneyDeposit,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
   getRequiredBalance,
@@ -1072,5 +1073,39 @@ describe('Transaction Pay Utils', () => {
     it('returns the input unchanged when it is not a parseable number', () => {
       expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
     });
+  });
+});
+
+describe('getAtomicHintForMoneyDeposit', () => {
+  it('returns false for max deposits regardless of subsidy', () => {
+    expect(
+      getAtomicHintForMoneyDeposit({ isMaxAmount: true, isSubsidized: true }),
+    ).toBe(false);
+    expect(
+      getAtomicHintForMoneyDeposit({ isMaxAmount: true, isSubsidized: false }),
+    ).toBe(false);
+    expect(getAtomicHintForMoneyDeposit({ isMaxAmount: true })).toBe(false);
+  });
+
+  it('returns undefined for subsidized non-max deposits', () => {
+    expect(
+      getAtomicHintForMoneyDeposit({
+        isMaxAmount: false,
+        isSubsidized: true,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns false for unsubsidized non-max deposits', () => {
+    expect(
+      getAtomicHintForMoneyDeposit({
+        isMaxAmount: false,
+        isSubsidized: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false when subsidy state is unknown', () => {
+    expect(getAtomicHintForMoneyDeposit({ isMaxAmount: false })).toBe(false);
   });
 });

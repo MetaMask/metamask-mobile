@@ -9,7 +9,11 @@ import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import {
   TransactionPaymentToken,
   TransactionPayRequiredToken,
@@ -22,6 +26,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
       updatePaymentToken: jest.fn(),
+      setTransactionConfig: jest.fn(),
     },
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(),
@@ -68,10 +73,12 @@ function runHook({
   payToken,
   type,
   requiredTokens,
+  isMaxAmount,
 }: {
   payToken?: TransactionPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
+  isMaxAmount?: boolean;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -79,6 +86,7 @@ function runHook({
     transactionData: {
       [TRANSACTION_ID_MOCK]: {
         isLoading: false,
+        isMaxAmount,
         paymentToken: payToken,
         tokens: requiredTokens ?? [],
       },
@@ -145,6 +153,91 @@ describe('useTransactionPayToken', () => {
       transactionId: TRANSACTION_ID_MOCK,
       tokenAddress: PAY_TOKEN_MOCK.address,
       chainId: PAY_TOKEN_MOCK.chainId,
+    });
+  });
+
+  describe('atomic hint for Money Account deposits', () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+
+    const getAtomicConfig = () => {
+      const call = setTransactionConfigMock.mock.calls.find(([, callback]) => {
+        const cfg: Record<string, unknown> = {};
+        (callback as (config: Record<string, unknown>) => void)(cfg);
+        return Object.hasOwn(cfg, 'atomic');
+      });
+      if (!call) {
+        return undefined;
+      }
+      const cfg: Record<string, unknown> = {};
+      (call[1] as (config: Record<string, unknown>) => void)(cfg);
+      return cfg.atomic;
+    };
+
+    it('sets atomic to false for an unsubsidized deposit token', async () => {
+      const { result } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      result.current.setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      await flushPromises();
+
+      expect(getAtomicConfig()).toBe(false);
+    });
+
+    it('leaves atomic unset for a subsidized deposit token', async () => {
+      const { result } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      result.current.setPayToken({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD as unknown as ChainId,
+      });
+
+      await flushPromises();
+
+      expect(getAtomicConfig()).toBeUndefined();
+    });
+
+    it('sets atomic to false for max deposits regardless of subsidy', async () => {
+      const { result } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+        isMaxAmount: true,
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD as unknown as ChainId,
+        } as TransactionPaymentToken,
+      });
+
+      result.current.setPayToken({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD as unknown as ChainId,
+      });
+
+      await flushPromises();
+
+      expect(getAtomicConfig()).toBe(false);
+    });
+
+    it('does not touch atomic for non-deposit transactions', async () => {
+      const { result } = runHook();
+
+      result.current.setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      await flushPromises();
+
+      expect(getAtomicConfig()).toBeUndefined();
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
   });
 
