@@ -386,7 +386,7 @@ const selectEarnTokens = createDeepEqualSelector(
           for (const market of lendingMarketsForToken) {
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              apr: String(market.netSupplyRate.toFixed(1)),
+              apr: String(market.netSupplyRate),
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,

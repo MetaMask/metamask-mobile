@@ -457,7 +457,7 @@ describe('useEarnAssetCatalogue', () => {
     ]);
     expect(usdc?.experiences.map(({ rate }) => rate.type)).toEqual([
       'APY',
-      'APY',
+      'APR',
     ]);
     expect(
       usdc?.experiences.map(({ isFeeSubsidized }) => isFeeSubsidized),

@@ -455,6 +455,21 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       });
     });
 
+    it('builds iOS only for an iOS-only push', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        ...bothPlatformsPR,
+        ANDROID_COUNT: '0',
+        ANDROID_OR_IGNORABLE_COUNT: '0',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
+    });
+
     it('skips ignorable-only pushes to main or release/*', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
