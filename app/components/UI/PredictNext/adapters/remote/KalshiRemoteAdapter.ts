@@ -1,4 +1,8 @@
-import { parsePredictBalance } from '../../contracts/v1/portfolio';
+import {
+  parsePredictActivityPage,
+  parsePredictBalance,
+  parsePredictPositionsPage,
+} from '../../contracts/v1/portfolio';
 import {
   parsePredictEvent,
   parsePredictFeed,
@@ -55,6 +59,46 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchBalance(this.venueId, options);
           const result = parsePredictBalance(value);
           if (result.venueId !== this.venueId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      fetchPositions: async (params, options) => {
+        try {
+          const value = await client.fetchPositions(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictPositionsPage(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.positions.some(
+              (position) => position.venueId !== this.venueId,
+            )
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      fetchActivity: async (params, options) => {
+        try {
+          const value = await client.fetchActivity(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictActivityPage(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.activity.some((entry) => entry.venueId !== this.venueId)
+          ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

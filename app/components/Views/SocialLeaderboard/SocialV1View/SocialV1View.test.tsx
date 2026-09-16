@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getSubnavPillTestId } from '../shell/SubnavPills';
+import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
@@ -72,6 +73,16 @@ jest.mock('react-native-pager-view', () => {
 jest.mock('../../../../util/haptics', () => ({
   playSelection: () => mockPlaySelection(),
 }));
+
+jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'top-traders-view' }),
+  };
+});
 
 jest.mock(
   '../../../../util/notifications/services/NotificationService',
@@ -151,7 +162,7 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
   });
 
-  it('renders each tab subnav over an empty scroll surface', () => {
+  it('renders every tab subnav', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
@@ -166,6 +177,18 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(getSubnavPillTestId('topTraders')),
     ).toBeOnTheScreen();
+  });
+
+  it('mounts the leaderboard list once the Leaderboard tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
 
   it('renders the three mocked position cards on Feed', () => {
@@ -188,10 +211,17 @@ describe('SocialV1View', () => {
     );
   });
 
-  it('renders placeholder header actions that do not navigate', () => {
+  it('opens My Profile from the avatar', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+  });
+
+  it('keeps the remaining placeholder header actions inactive', () => {
+    renderWithProvider(<SocialV1View />);
+
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.HEART_BUTTON));
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 

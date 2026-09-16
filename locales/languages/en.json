@@ -1332,6 +1332,7 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "win_rate_tag": "{{winRate}} WR",
     "mute": {
       "on_accessibility_label": "Notifications on. Tap to mute this trader",
       "muted_accessibility_label": "Muted. Tap to turn notifications back on",
@@ -1359,6 +1360,43 @@
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }
+    },
+    "my_profile": {
+      "avatar_accessibility_label": "Your profile avatar",
+      "open_profile": "Open my profile",
+      "followers": "followers",
+      "following": "following",
+      "edit_profile": "Edit profile",
+      "share_profile": "Share profile",
+      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
+      "posts": "Posts",
+      "first_trade_prompt": "First trade?",
+      "empty_title": "Your feed starts here",
+      "empty_description": "Share a trade and it'll show up here for your followers",
+      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "share_first_trade": "Share your first trade",
+      "retry": "Try again"
+    },
+    "manage_profile": {
+      "title": "Manage profile",
+      "about": "About",
+      "privacy": "Privacy",
+      "display_name": "Display name",
+      "handle": "Handle",
+      "bio": "Bio",
+      "socials": "Socials",
+      "trading_activity": "Trading activity",
+      "trading_activity_on": "On",
+      "linked_social_account": "Linked social account",
+      "save": "Save",
+      "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
+      "socials_helper": "Your X handle appears on posts and your profile.",
+      "show_trading_activity": "Show trading activity",
+      "show_trading_activity_subtitle": "Public and available to copy",
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+      "trading_activity_info": "More information about trading activity",
+      "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
+      "avatar_accessibility_label": "Your profile avatar"
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -1578,7 +1616,7 @@
         "view_transaction": "View transaction"
       },
       "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
+      "success_amount_added": "{{amount}} was added to Perps",
       "funds_are_ready_to_trade": "Funds are ready to trade",
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
@@ -1958,15 +1996,12 @@
       },
       "leverage_modal": {
         "title": "Leverage",
+        "set": "Set",
         "confirm": "Confirm",
         "entry_price": "Entry price",
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x",
         "price_unavailable": "Price information unavailable"
       },
       "type": {
@@ -2254,6 +2289,9 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
+      "gain_roe_placeholder": "% Gain",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
       "trigger_price_must_be_positive": "Trigger price must be greater than zero",
@@ -2351,10 +2389,10 @@
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
         "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range",
-        "marginModeInvalid": "Margin mode is invalid",
-        "marginModeUnsupported": "This margin mode isn't available on this market",
-        "marginModePositionOpen": "Can't change margin mode while a position is open",
-        "marginModeOrderOpen": "Can't change margin mode while an order is open"
+        "marginModeInvalid": "Choose a valid margin mode.",
+        "marginModeUnsupported": "The selected margin mode is not available for this market.",
+        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
+        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode."
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -2543,6 +2581,14 @@
       "liquidation_price": {
         "title": "Liquidation price",
         "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "cross_liquidation_price": {
+        "title": "Cross liquidation price",
+        "content": "This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance."
+      },
+      "cross_no_liquidation_price": {
+        "title": "No liquidation price",
+        "content": "At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance."
       },
       "liquidation_distance": {
         "title": "Liquidation distance",
@@ -2786,6 +2832,12 @@
       "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
       "cross_title": "Cross",
       "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
+    "cross_position": {
+      "badge": "Cross",
+      "margin_used": "Position margin used",
+      "no_liquidation_price": "No liquidation price",
+      "liquidation_info": "About cross liquidation price"
     },
     "crossMargin": {
       "title": "Cross margin not supported",
@@ -3078,17 +3130,29 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "home_title": "Predictions",
     "portfolio": {
-      "title": "Positions",
+      "title": "Portfolio",
       "positions": "Positions",
+      "activity_empty": {
+        "title": "No activity yet",
+        "description": "Your fills and settlements will appear here."
+      },
+      "load_failed": "Couldn't load.",
+      "load_failed_retry": "Try again",
+      "outcome_shares": "{{outcome}} · {{shares}} shares",
       "active_positions": "Active positions",
-      "history": "History",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
       "empty": {
         "title": "No positions yet",
         "description": "Your active and resolved positions will appear here.",
         "browse_markets": "Browse markets"
+      },
+      "activity": "History",
+      "activity_rows": {
+        "settled": "Settled",
+        "shares_at_price": "{{shares}} @ {{price}}"
       }
     }
   },
@@ -9051,6 +9115,9 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "order_created_toast_title": "Order created",
+      "order_created_toast_body": "We'll let you know when it's filled.",
+      "order_canceled_toast_title": "Order canceled",
       "paying_all_orders": "Paying (all orders)",
       "paying_per_order": "Paying (per order)",
       "receiving": "Receiving",
@@ -9195,6 +9262,8 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
+    "gas_fee_deduction": "-{{fee}} for gas",
     "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
