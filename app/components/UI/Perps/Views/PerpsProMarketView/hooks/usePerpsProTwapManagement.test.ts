@@ -68,6 +68,56 @@ describe('usePerpsProTwapManagement', () => {
     });
   });
 
+  it('keeps the tab available while the rollout is enabled', () => {
+    // Arrange & Act
+    const { result } = renderHook(() => usePerpsProTwapManagement(options));
+
+    // Assert
+    expect(result.current.shouldShowTab).toBe(true);
+  });
+
+  it.each([
+    [
+      'a schedule is still running',
+      { twapOrders: [activeOrder], isLoading: false, error: null },
+    ],
+    [
+      'the schedule read failed',
+      { twapOrders: [], isLoading: false, error: 'venue down' },
+    ],
+    [
+      'the schedule read is still in flight',
+      { twapOrders: [], isLoading: true, error: null },
+    ],
+  ])('hides the tab with the rollout disabled while %s', (_case, readState) => {
+    // Arrange
+    mockUsePerpsTwapOrders.mockReturnValue({
+      ...readState,
+      refresh: mockRefresh,
+      isRefreshing: false,
+    });
+
+    // Act
+    const { result } = renderHook(() =>
+      usePerpsProTwapManagement({ ...options, isTwapPlacementEnabled: false }),
+    );
+
+    // Assert
+    expect(result.current.shouldShowTab).toBe(false);
+  });
+
+  it('reads no schedules while the rollout is disabled', () => {
+    // Arrange & Act
+    renderHook(() =>
+      usePerpsProTwapManagement({ ...options, isTwapPlacementEnabled: false }),
+    );
+
+    // Assert
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ skipInitialFetch: true }),
+    );
+  });
+
   it('reopens termination when a selected schedule returns after reconnect loading', () => {
     // Arrange
     const firstOpen = jest.fn();
