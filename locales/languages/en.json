@@ -1923,7 +1923,7 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
-        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
         "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
@@ -9105,7 +9105,7 @@
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
-      "edit_slippage": "Edit slippage"
+      "edit_cost_tolerance": "Edit cost tolerance"
     },
     "recurring": {
       "you_get": "You get",
@@ -9384,6 +9384,10 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
+    "cost_tolerance": "Cost Tolerance",
+    "default_cost_tolerance_description": "Your transaction won't go through if the price changes more than the cost tolerance percent.",
+    "exceeding_lower_cost_tolerance_error": "Enter a cost tolerance greater than {{value}}%",
+    "exceeding_upper_cost_tolerance_error": "Enter a cost tolerance lower than {{value}}%",
     "confirm": "Confirm",
     "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
