@@ -178,8 +178,8 @@ const CardTransactionDetails = () => {
   const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
 
   const networkFeeLabel = useMemo(
-    () => formatNetworkFeeLabel(transaction?.feeAmount),
-    [transaction?.feeAmount],
+    () => formatNetworkFeeLabel(transaction?.feeAmount, heroToken.symbol),
+    [transaction?.feeAmount, heroToken.symbol],
   );
   const displayTransactionId = transaction?.reference ?? transaction?.id;
 

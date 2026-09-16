@@ -267,7 +267,10 @@ function MoneyDeclinedCardDetailsContent({
       merchant={transaction.merchant}
       declineSource={transaction}
       transactionId={transaction.reference ?? transaction.id}
-      networkFeeLabel={formatNetworkFeeLabel(transaction.feeAmount)}
+      networkFeeLabel={formatNetworkFeeLabel(
+        transaction.feeAmount,
+        MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      )}
       statusLabel={formatCardTransactionStatus(transaction.status)}
       statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
       amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
@@ -297,7 +300,10 @@ function MoneySettledCardDetailsContent({
       merchant={enrichment?.merchant}
       declineSource={enrichment}
       transactionId={enrichment?.reference}
-      networkFeeLabel={formatNetworkFeeLabel(enrichment?.feeAmount)}
+      networkFeeLabel={formatNetworkFeeLabel(
+        enrichment?.feeAmount,
+        MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      )}
       statusLabel={strings('money.api_activity_details.completed')}
       statusColor={TextColor.SuccessDefault}
       amountColor={

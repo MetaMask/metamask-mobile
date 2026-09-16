@@ -264,7 +264,8 @@ describe('CardTransactionDetails', () => {
     const { getByText } = render(<CardTransactionDetails />);
 
     expect(getByText('card.transactions.network_fee')).toBeOnTheScreen();
-    expect(getByText('0.02 USDC')).toBeOnTheScreen();
+    // No funding source / primary token → hero falls back to mUSD.
+    expect(getByText('0.02 mUSD')).toBeOnTheScreen();
   });
 
   it('renders <0.01 when the fee is below the minimum displayable amount', () => {
@@ -277,7 +278,21 @@ describe('CardTransactionDetails', () => {
 
     const { getByText } = render(<CardTransactionDetails />);
 
-    expect(getByText('<0.01 USDC')).toBeOnTheScreen();
+    expect(getByText('<0.01 mUSD')).toBeOnTheScreen();
+  });
+
+  it('labels the Network fee with the funding source currency when present', () => {
+    mockRouteParams = {
+      transactionId: 'tx-1',
+      transaction: createTransaction({
+        feeAmount: { value: '0.02', currency: 'USD' },
+        fundingSources: [{ currency: 'USDC' }],
+      }),
+    };
+
+    const { getByText } = render(<CardTransactionDetails />);
+
+    expect(getByText('0.02 USDC')).toBeOnTheScreen();
   });
 
   it('does not render the Network fee row when feeAmount is absent', () => {

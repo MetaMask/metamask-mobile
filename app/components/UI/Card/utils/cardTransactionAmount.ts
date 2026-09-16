@@ -4,18 +4,20 @@ import type { CardTransactionAmount } from '../../../../core/Engine/controllers/
 
 export function formatNetworkFeeLabel(
   feeAmount?: CardTransactionAmount,
+  assetSymbol?: string,
 ): string | undefined {
   if (!feeAmount) {
     return undefined;
   }
+  const symbol = assetSymbol || feeAmount.currency;
   const num = parseFloat(feeAmount.value);
   if (!Number.isFinite(num)) {
-    return `${feeAmount.value} ${feeAmount.currency}`;
+    return `${feeAmount.value} ${symbol}`;
   }
   if (num < 0.01) {
-    return `<0.01 ${feeAmount.currency}`;
+    return `<0.01 ${symbol}`;
   }
-  return `${num.toFixed(2)} ${feeAmount.currency}`;
+  return `${num.toFixed(2)} ${symbol}`;
 }
 
 export function formatCardAmount(

@@ -114,4 +114,19 @@ describe('formatNetworkFeeLabel', () => {
 
     expect(result).toBe('n/a USDC');
   });
+
+  it('uses the assetSymbol override when provided', () => {
+    const result = formatNetworkFeeLabel(
+      { value: '0.02', currency: 'USD' },
+      'mUSD',
+    );
+
+    expect(result).toBe('0.02 mUSD');
+  });
+
+  it('falls back to feeAmount.currency when assetSymbol is omitted', () => {
+    const result = formatNetworkFeeLabel({ value: '0.02', currency: 'USDC' });
+
+    expect(result).toBe('0.02 USDC');
+  });
 });
