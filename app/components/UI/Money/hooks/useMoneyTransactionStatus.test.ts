@@ -1817,7 +1817,7 @@ describe('useMoneyTransactionStatus', () => {
       return parent;
     };
 
-    const seedLeg = (id: string, batchId?: string) => {
+    const seedLeg = (id: string, batchId?: TransactionMeta['batchId']) => {
       const leg = buildTxMeta({
         id,
         type: TransactionType.simpleSend,
