@@ -89,6 +89,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   // Bumped whenever the current connection intent is abandoned (disconnect,
   // suspend) so an in-flight token fetch cannot resurrect a socket.
   #connectEpoch = 0;
+  // True only for the in-flight token fetch of the current epoch.
   #connecting = false;
   #reconnectAttempts = 0;
   #reconnectTimer?: TimerId;
@@ -184,7 +185,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   disconnect(): void {
-    this.#connectEpoch += 1;
+    this.#abandonConnect();
     this.#cancelReconnect();
     this.#cancelLinger();
     this.#watchCounts.clear();
@@ -219,9 +220,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
   };
 
+  #abandonConnect(): void {
+    this.#connectEpoch += 1;
+    this.#connecting = false;
+  }
+
   #suspend(): void {
     this.#suspended = true;
-    this.#connectEpoch += 1;
+    this.#abandonConnect();
     this.#cancelReconnect();
     this.#cancelLinger();
     this.#welcomed = false;
@@ -264,11 +270,15 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.#getBearerToken()
       .catch(() => undefined)
       .then((token) => {
+        // A later disconnect/suspend already owns connecting. Clearing it
+        // here would let a stale fetch unblock a duplicate connect.
+        if (epoch !== this.#connectEpoch) {
+          return;
+        }
         this.#connecting = false;
         // The connection intent may have been abandoned or satisfied while
         // the token was being resolved.
         if (
-          epoch !== this.#connectEpoch ||
           this.#protocolRejected ||
           this.#suspended ||
           this.#isSocketLive() ||

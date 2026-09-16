@@ -208,6 +208,45 @@ describe('PredictLiveDataClient', () => {
     expect(MockWebSocket.instances).toHaveLength(0);
   });
 
+  it('connects on foreground after backgrounding during an in-flight token fetch', async () => {
+    let resolveFirstToken: (value: string | undefined) => void = () =>
+      undefined;
+    const getBearerToken = jest
+      .fn<Promise<string | undefined>, []>()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstToken = resolve;
+          }),
+      )
+      .mockResolvedValue('fresh-token');
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState, getBearerToken);
+
+    client.subscribe(venueId, [eventId]);
+    appState.change('background');
+    appState.change('active');
+    await flushConnect();
+    resolveFirstToken('stale-token');
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(MockWebSocket.instances[0].url).toBe(
+      'ws://localhost:3333/v1/stream/live-data?token=fresh-token',
+    );
+  });
+
+  it('opens a socket when subscribe follows disconnect during an in-flight token fetch', async () => {
+    const client = createClient();
+
+    client.subscribe(venueId, [eventId]);
+    client.disconnect();
+    client.subscribe(venueId, [eventId]);
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
   it('logs an unauthorized close and reconnects with a fresh token', async () => {
     const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient();
