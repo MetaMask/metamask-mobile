@@ -12,6 +12,66 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const { View, Text, Pressable, ScrollView } = require('react-native');
+
+  const FilterButtonGroupContext = React.createContext<{
+    onChange?: (value: string) => void;
+    value?: string;
+  }>({});
+
+  const FilterButtonGroup = ({
+    children,
+    value,
+    onChange,
+    testID,
+  }: {
+    children: React.ReactNode;
+    value: string;
+    onChange: (value: string) => void;
+    testID?: string;
+  }) => (
+    <FilterButtonGroupContext.Provider value={{ value, onChange }}>
+      <ScrollView testID={testID} horizontal>
+        {children}
+      </ScrollView>
+    </FilterButtonGroupContext.Provider>
+  );
+
+  const FilterButton = ({
+    children,
+    value,
+    testID,
+    startAccessory,
+  }: {
+    children: React.ReactNode;
+    value: string;
+    testID?: string;
+    startAccessory?: React.ReactNode;
+  }) => {
+    const ctx = React.useContext(FilterButtonGroupContext);
+    return (
+      <Pressable
+        testID={testID}
+        onPress={() => ctx.onChange?.(value)}
+        accessibilityState={{ selected: ctx.value === value }}
+      >
+        <View>
+          {startAccessory}
+          <Text>{children}</Text>
+        </View>
+      </Pressable>
+    );
+  };
+
+  return { FilterButtonGroup, FilterButton };
+});
+
+jest.mock('expo-image', () => ({
+  Image: 'Image',
+}));
+
 const mockImageSource = {
   uri: 'https://example.com/eth.png',
 } as ImageSourcePropType;

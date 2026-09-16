@@ -1,5 +1,10 @@
-import React, { memo, useMemo } from 'react';
-import PredictChipList from '../../Predict/components/PredictChipList/PredictChipList';
+import React, { memo } from 'react';
+import { Image } from 'expo-image';
+import {
+  FilterButton,
+  FilterButtonGroup,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { ChainOption } from '../hooks/useChainDisplayInfos';
 
 export interface QuickBuyPayWithChainFilterProps {
@@ -20,27 +25,40 @@ const QuickBuyPayWithChainFilter: React.FC<QuickBuyPayWithChainFilterProps> = ({
   onSelect,
   testID = 'quick-buy-pay-with-chain-filter',
 }) => {
-  const chips = useMemo(
-    () =>
-      chains.map((chain) => ({
-        key: getChainChipKey(chain.chainId),
-        label: chain.name,
-        imageSource: chain.imageSource,
-      })),
-    [chains],
-  );
+  const tw = useTailwind();
+
+  if (chains.length === 0) {
+    return null;
+  }
 
   return (
-    <PredictChipList
-      chips={chips}
-      activeChipKey={getChainChipKey(selectedChainId)}
-      onChipSelect={(key) => onSelect(key === 'all' ? null : key)}
+    <FilterButtonGroup
+      value={getChainChipKey(selectedChainId)}
+      onChange={(key) => onSelect(key === 'all' ? null : key)}
+      twClassName="px-4 gap-2 pb-3"
       testID={testID}
-      containerTwClassName="pb-3"
-      chipTwClassName="rounded-lg px-3 py-1.5"
-      getChipTestId={getChainFilterTestId}
-      useGestureHandlerScrollView
-    />
+    >
+      {chains.map((chain) => {
+        const key = getChainChipKey(chain.chainId);
+        return (
+          <FilterButton
+            key={key}
+            value={key}
+            startAccessory={
+              chain.imageSource ? (
+                <Image
+                  source={chain.imageSource}
+                  style={tw.style('size-4 rounded')}
+                />
+              ) : undefined
+            }
+            testID={getChainFilterTestId(key)}
+          >
+            {chain.name}
+          </FilterButton>
+        );
+      })}
+    </FilterButtonGroup>
   );
 };
 
