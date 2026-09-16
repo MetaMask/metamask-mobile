@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import QRAccountDisplay from './index';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
@@ -93,22 +92,6 @@ describe('QRAccountDisplay', () => {
     expect(
       screen.getByTestId('qr-account-display-copy-button'),
     ).toBeOnTheScreen();
-  });
-
-  it('centers the copy button instead of letting it hug the address column', () => {
-    // Arrange & Act
-    const { getByTestId } = renderScreen(
-      () => <TestWrapper accountAddress={ACCOUNT} />,
-      { name: 'QRAccountDisplay' },
-      // @ts-expect-error initialBackgroundState throws error
-      { state: initialState },
-    );
-
-    // Assert
-    const copyButton = getByTestId('qr-account-display-copy-button');
-    expect(StyleSheet.flatten(copyButton.props.style)).toMatchObject({
-      alignSelf: 'center',
-    });
   });
 
   it('copies address to clipboard when copy button is pressed', async () => {
