@@ -21,6 +21,7 @@ import type {
 import {
   KALSHI_VENUE_ID,
   type PredictEntityId,
+  type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
@@ -127,7 +128,8 @@ describe('Predict service initialization', () => {
       venueId: KALSHI_VENUE_ID,
       eventId: 'event-1' as PredictEntityId,
       type: 'football_game',
-      details: { status: 'live' },
+      status: 'in_progress' as const,
+      observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
     };
 
     const { controller } = predictLiveDataServiceInit(request);
