@@ -62,20 +62,20 @@ disclaimer stating this is a testing experiment and not a production alert.
 2. From the repo root, run (latest scheduled successful run on main):
 
    ```bash
-   node tests/scripts/analyze-app-profiling.mjs --skip-ai --out-dir /tmp/analyze-app-profiling
+   node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs --skip-ai --out-dir /tmp/analyze-app-profiling
    ```
 
    To target a specific run or scenario:
 
    ```bash
-   node tests/scripts/analyze-app-profiling.mjs --run <id> --scenario "Cold Start Login" --skip-ai --out-dir /tmp/analyze-app-profiling
+   node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs --run <id> --scenario "Cold Start Login" --skip-ai --out-dir /tmp/analyze-app-profiling
    ```
 
    To cover every scheduled run in a window instead of a single capture, which
    is what separates a repeated hotspot from one noisy run:
 
    ```bash
-   node tests/scripts/analyze-app-profiling.mjs --lookback-hours 24 --skip-ai --out-dir /tmp/analyze-app-profiling
+   node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs --lookback-hours 24 --skip-ai --out-dir /tmp/analyze-app-profiling
    ```
 
    Window mode writes the same `report.{json,md}` and `slack.md` names, plus a
@@ -128,6 +128,6 @@ disclaimer stating this is a testing experiment and not a production alert.
 ## Manual dry-run
 
 ```bash
-node tests/scripts/analyze-app-profiling.mjs --skip-ai --out-dir /tmp/analyze-app-profiling
+node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs --skip-ai --out-dir /tmp/analyze-app-profiling
 # Inspect /tmp/analyze-app-profiling/{report.md,report.json,scenarios,ai-briefing.md}
 ```

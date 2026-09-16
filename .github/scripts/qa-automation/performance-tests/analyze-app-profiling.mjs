@@ -14,12 +14,11 @@
  * same project + scenario base name are grouped into one scenario report.
  *
  * Usage:
- *   node tests/scripts/analyze-app-profiling.mjs
- *   node tests/scripts/analyze-app-profiling.mjs --run 123456789
- *   node tests/scripts/analyze-app-profiling.mjs --lookback-hours 24
- *   node tests/scripts/analyze-app-profiling.mjs --scenario "Cold Start"
- *   node tests/scripts/analyze-app-profiling.mjs \
- *     --current-dir ./downloaded-test-results --skip-ai
+ *   node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs
+ *   … --run 123456789
+ *   … --lookback-hours 24
+ *   … --scenario "Cold Start"
+ *   … --current-dir ./downloaded-test-results --skip-ai
  *
  * A single run samples each scenario once, so one capture cannot tell a
  * reproducible hotspot from a one-off spike. `--lookback-hours` analyzes every
@@ -161,7 +160,7 @@ function parseArgs(argv) {
 
 function printHelp() {
   console.log(`Usage:
-  node tests/scripts/analyze-app-profiling.mjs [options]
+  node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs [options]
 
 Options:
   --run <id>             Performance workflow run id

@@ -85,7 +85,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
           ARGS=(
-            node tests/scripts/analyze-app-profiling.mjs
+            node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs
             --out-dir /tmp/analyze-app-profiling
             --repo "${GITHUB_REPOSITORY}"
           )
@@ -131,5 +131,5 @@ jobs:
           SLACK_TARGET: UEYQL2PEV
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          node tests/scripts/post-app-profiling-slack.mjs \
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
             /tmp/analyze-app-profiling/slack.md

@@ -9,7 +9,8 @@
  * bot's own DM with that user first.
  *
  * Usage:
- *   node tests/scripts/post-app-profiling-slack.mjs <path-to-markdown>
+ *   node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+ *     <path-to-markdown>
  *
  * Environment:
  *   SLACK_BOT_TOKEN   required

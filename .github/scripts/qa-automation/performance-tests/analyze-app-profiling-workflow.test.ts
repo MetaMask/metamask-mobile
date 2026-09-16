@@ -2,7 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 
-const WORKFLOW_PATH = path.join(__dirname, 'analyze-app-profiling.yml');
+const WORKFLOW_PATH = path.join(
+  __dirname,
+  '../../../workflows/analyze-app-profiling.yml',
+);
 
 type WorkflowStep = {
   name?: string;

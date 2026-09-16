@@ -4,7 +4,7 @@ import path from 'path';
 
 const WORKFLOW_PATH = path.join(
   __dirname,
-  'build-android-upload-to-browserstack.yml',
+  '../../../workflows/build-android-upload-to-browserstack.yml',
 );
 
 type WorkflowStep = {
