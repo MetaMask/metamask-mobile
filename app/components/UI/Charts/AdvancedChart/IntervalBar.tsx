@@ -1,19 +1,16 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  Text,
-  TextVariant,
-  FontWeight,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
 } from '@metamask/design-system-react-native';
 import { ChartType } from './AdvancedChart.types';
 import ChartTypeToggle from './ChartTypeToggle';
 import { TOKEN_OVERVIEW_CHART_INTERVALS } from '../../AssetOverview/Price/tokenOverviewChart.constants';
-
-const PILL_BASE = 'flex-row items-center justify-center rounded-xl px-2 py-1';
 
 interface IntervalBarProps {
   selectedInterval: string;
@@ -28,8 +25,6 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
   chartType,
   onChartTypeSelect,
 }) => {
-  const tw = useTailwind();
-
   const normalised = selectedInterval.toLowerCase();
 
   return (
@@ -38,41 +33,22 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="w-full px-4"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+      <FilterButtonGroup
+        value={normalised}
+        onChange={(value) => onIntervalSelect?.(value.toUpperCase())}
+        variant={FilterButtonVariant.Primary}
         twClassName="flex-1 gap-1"
       >
-        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval) => {
-          const isSelected = normalised === interval;
-          return (
-            <Pressable
-              key={interval}
-              style={({ pressed }) =>
-                tw.style(
-                  PILL_BASE,
-                  isSelected && 'bg-muted',
-                  pressed && 'opacity-70',
-                )
-              }
-              onPress={() => onIntervalSelect?.(interval.toUpperCase())}
-              accessibilityRole="button"
-              accessibilityLabel={interval}
-              accessibilityState={{ selected: isSelected }}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={isSelected ? FontWeight.Bold : FontWeight.Medium}
-                twClassName={
-                  isSelected ? 'text-text-default' : 'text-text-alternative'
-                }
-              >
-                {interval}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </Box>
+        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval) => (
+          <FilterButton
+            key={interval}
+            value={interval}
+            size={FilterButtonSize.Sm}
+          >
+            {interval}
+          </FilterButton>
+        ))}
+      </FilterButtonGroup>
 
       <ChartTypeToggle
         chartType={chartType}

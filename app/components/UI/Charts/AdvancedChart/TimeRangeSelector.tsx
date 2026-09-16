@@ -3,11 +3,12 @@ import { Dimensions, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  FontWeight,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
   Icon,
   IconName,
   IconSize,
@@ -42,9 +43,9 @@ export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
-/** Padding 4px 16px with fully rounded pill corners. */
-const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
+/** Pill button style for the single chart-type toggle icon button. */
+const CHART_TYPE_BUTTON_BASE =
+  'min-w-0 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
 
 /** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
 const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
@@ -115,52 +116,28 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full flex-1 rounded-full"
+          twClassName="w-full flex-1"
         >
-          {ranges.map((range) => {
-            const isSelected = selected === range;
-            return (
-              <Pressable
+          <FilterButtonGroup
+            value={selected}
+            onChange={(value) => onSelect(value as TimeRange)}
+            variant={FilterButtonVariant.Primary}
+            twClassName="flex-1"
+          >
+            {ranges.map((range) => (
+              <FilterButton
                 key={range}
-                style={({ pressed }) =>
-                  tw.style(
-                    SEGMENT_BUTTON_BASE,
-                    isSelected &&
-                      (selectedColor
-                        ? { backgroundColor: selectedColor }
-                        : 'bg-muted'),
-                    pressed && 'opacity-70',
-                  )
-                }
-                onPress={() => onSelect(range)}
+                value={range}
+                size={FilterButtonSize.Sm}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  twClassName={
-                    isSelected
-                      ? selectedColor
-                        ? 'text-success-inverse'
-                        : 'text-text-default'
-                      : selectedColor
-                        ? undefined
-                        : 'text-text-alternative'
-                  }
-                  style={
-                    !isSelected && selectedColor
-                      ? { color: selectedColor }
-                      : undefined
-                  }
-                >
-                  {range}
-                </Text>
-              </Pressable>
-            );
-          })}
+                {range}
+              </FilterButton>
+            ))}
+          </FilterButtonGroup>
           {onChartTypeToggle ? (
             <Pressable
               style={({ pressed }) =>
-                tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
+                tw.style(CHART_TYPE_BUTTON_BASE, pressed && 'opacity-70')
               }
               onPress={onChartTypeToggle}
               accessibilityRole="button"
