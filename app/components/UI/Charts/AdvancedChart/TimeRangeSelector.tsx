@@ -116,14 +116,13 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full flex-1 rounded-full"
+          twClassName="w-full gap-2"
         >
           <SegmentedControl
             value={selected}
             onChange={(value) => onSelect(value as TimeRange)}
             size={SegmentedControlSize.Sm}
-            isFullWidth
-            twClassName="flex-1"
+            twClassName="flex-1 rounded-full"
           >
             {ranges.map((range) => (
               <FilterButton

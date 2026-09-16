@@ -1,48 +1,44 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import styleSheet from './ChartNavigationButton.styles';
+import {
+  FilterButton,
+  FilterButtonSize,
+  FilterButtonVariant,
+  type FilterButtonProps,
+} from '@metamask/design-system-react-native';
 
-interface ChartNavigationButtonProps {
-  onPress: () => void;
+interface ChartNavigationButtonProps
+  extends Omit<FilterButtonProps, 'children' | 'size' | 'value'> {
+  onPress?: () => void;
   label: string;
-  selected: boolean;
+  selected?: boolean;
   /** Override background color for the selected state (A/B test). */
   selectedColor?: string;
+  disabled?: boolean;
 }
 
-const ChartNavigationButton = ({
+const ChartNavigationButton: React.FC<ChartNavigationButtonProps> = ({
   onPress,
   label,
   selected,
   selectedColor,
-}: ChartNavigationButtonProps) => {
-  const { styles } = useStyles(styleSheet, { selected, selectedColor });
-
-  const getTextColor = () => {
-    if (selected && selectedColor) {
-      return TextColor.Inverse;
-    }
-    if (!selected && selectedColor) {
-      return selectedColor;
-    }
-    return selected ? TextColor.Default : TextColor.Alternative;
-  };
-
+  disabled = false,
+  ...props
+}) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text
-        variant={TextVariant.BodySM}
-        style={styles.label}
-        color={getTextColor()}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
+    <FilterButton
+      {...props}
+      value={label}
+      size={FilterButtonSize.Sm}
+      variant={FilterButtonVariant.Secondary}
+      onPress={onPress}
+      isDisabled={disabled}
+      twClassName={
+        selectedColor && selected ? `bg-[${selectedColor}]` : undefined
+      }
+    >
+      {label}
+    </FilterButton>
   );
 };
+
 export default ChartNavigationButton;

@@ -8,7 +8,13 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+} from '@metamask/design-system-react-native';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -17,7 +23,6 @@ import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConf
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import ChartNavigationButton from '../ChartNavigationButton';
 import { useSelector } from 'react-redux';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import {
@@ -174,19 +179,29 @@ const PriceLegacy = ({
         onTimePeriodChange && (
           <View style={styles.intervalBarContainer}>
             <Box twClassName="w-full px-4">
-              <View style={styles.chartNavigationWrapper}>
+              <FilterButtonGroup
+                value={timePeriod}
+                onChange={(value) => onTimePeriodChange(value as TimePeriod)}
+                variant={FilterButtonVariant.Secondary}
+                twClassName="w-full"
+              >
                 {chartNavigationButtons.map((label) => (
-                  <ChartNavigationButton
+                  <FilterButton
                     key={label}
-                    label={strings(
+                    value={label}
+                    size={FilterButtonSize.Sm}
+                    twClassName={`flex-1 ${
+                      initialAmbientColor && timePeriod === label
+                        ? `bg-[${initialAmbientColor}]`
+                        : ''
+                    }`}
+                  >
+                    {strings(
                       `asset_overview.chart_time_period_navigation.${label}`,
                     )}
-                    onPress={() => onTimePeriodChange(label)}
-                    selected={timePeriod === label}
-                    selectedColor={initialAmbientColor}
-                  />
+                  </FilterButton>
                 ))}
-              </View>
+              </FilterButtonGroup>
             </Box>
           </View>
         )}
@@ -213,19 +228,29 @@ const PriceLegacy = ({
         onTimePeriodChange && (
           <View style={styles.timeRangeContainer}>
             <Box twClassName="w-full px-4">
-              <View style={styles.chartNavigationWrapper}>
+              <FilterButtonGroup
+                value={timePeriod}
+                onChange={(value) => onTimePeriodChange(value as TimePeriod)}
+                variant={FilterButtonVariant.Secondary}
+                twClassName="w-full"
+              >
                 {chartNavigationButtons.map((label) => (
-                  <ChartNavigationButton
+                  <FilterButton
                     key={label}
-                    label={strings(
+                    value={label}
+                    size={FilterButtonSize.Sm}
+                    twClassName={`flex-1 ${
+                      initialAmbientColor && timePeriod === label
+                        ? `bg-[${initialAmbientColor}]`
+                        : ''
+                    }`}
+                  >
+                    {strings(
                       `asset_overview.chart_time_period_navigation.${label}`,
                     )}
-                    onPress={() => onTimePeriodChange(label)}
-                    selected={timePeriod === label}
-                    selectedColor={initialAmbientColor}
-                  />
+                  </FilterButton>
                 ))}
-              </View>
+              </FilterButtonGroup>
             </Box>
           </View>
         )}

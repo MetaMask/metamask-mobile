@@ -3,16 +3,8 @@ import { render, fireEvent } from '@testing-library/react-native';
 import TimeframeSelector from './TimeframeSelector';
 import { ChartTimeframe } from './PredictGameChart.types';
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (...classes: (string | boolean | undefined)[]) => ({
-      testStyle: classes.filter(Boolean).join(' '),
-    }),
-  }),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
   return {
     Box: ({
       children,
@@ -27,22 +19,43 @@ jest.mock('@metamask/design-system-react-native', () => {
       </View>
     ),
     BoxFlexDirection: { Row: 'row' },
-    Text: ({
+    FilterButtonGroup: ({
       children,
-      variant,
-      color,
+      value,
+      onChange,
+      disabled,
       ...props
     }: {
       children?: React.ReactNode;
-      variant?: string;
-      color?: string;
+      value?: string;
+      onChange?: (value: string) => void;
+      disabled?: boolean;
     }) => (
-      <Text testID="text" {...props}>
+      <View testID="filter-button-group" {...props}>
         {children}
-      </Text>
+      </View>
     ),
-    TextVariant: { BodySm: 'body-sm' },
-    TextColor: { TextDefault: 'text-default', TextAlternative: 'text-alt' },
+    FilterButton: ({
+      children,
+      value,
+      onPress,
+      size,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      value?: string;
+      onPress?: () => void;
+      size?: string;
+    }) => (
+      <Pressable
+        testID={`filter-button-${value}`}
+        onPress={onPress}
+        {...props}
+      >
+        <Text>{children}</Text>
+      </Pressable>
+    ),
+    FilterButtonSize: { Sm: 'sm' },
   };
 });
 
