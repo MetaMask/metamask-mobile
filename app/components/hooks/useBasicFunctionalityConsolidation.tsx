@@ -55,6 +55,8 @@ export function useBasicFunctionalityConsolidation(): void {
   const isRunning = useRef(false);
   const hasPresentedBottomSheet = useRef(false);
   const hasPresentedToast = useRef(false);
+  const isHidingToastWithoutAck = useRef(false);
+  const hasAcknowledgedToast = useRef(false);
 
   const trackMixedToastNotice = useCallback(
     (action: BasicFunctionalityMixedToastAction) => {
@@ -149,18 +151,30 @@ export function useBasicFunctionalityConsolidation(): void {
     if (!shouldShowToast || !isUnlocked) {
       // Hide the overlay without acknowledging the notice. The DS Toaster sits
       // in FullWindowOverlay above native-stack screens, so leaving it up would
-      // keep the Settings link tappable on the lock screen.
+      // keep the Settings link tappable on the lock screen. Swipe and
+      // toast.dismiss() share closeToast() and do not call onClose, so this
+      // flag is only needed if that wiring changes.
       if (hasPresentedToast.current) {
+        isHidingToastWithoutAck.current = true;
         toast.dismiss();
+        isHidingToastWithoutAck.current = false;
       }
       hasPresentedToast.current = false;
+      hasAcknowledgedToast.current = false;
       return;
     }
     if (hasPresentedToast.current) {
       return;
     }
 
-    const dismissNotification = () => {
+    const acknowledgeToast = (
+      action: BasicFunctionalityMixedToastAction.DISMISS,
+    ) => {
+      if (isHidingToastWithoutAck.current || hasAcknowledgedToast.current) {
+        return;
+      }
+      hasAcknowledgedToast.current = true;
+      trackMixedToastNotice(action);
       dispatch(dismissBasicFunctionalityMigrationNotification());
     };
 
@@ -194,8 +208,7 @@ export function useBasicFunctionalityConsolidation(): void {
             // button.
             twClassName="-my-1 -mr-2"
             onPress={() => {
-              trackMixedToastNotice(BasicFunctionalityMixedToastAction.DISMISS);
-              dismissNotification();
+              acknowledgeToast(BasicFunctionalityMixedToastAction.DISMISS);
               toast.dismiss();
             }}
           />
@@ -215,10 +228,13 @@ export function useBasicFunctionalityConsolidation(): void {
           <TextButton
             variant={TextVariant.BodySm}
             onPress={() => {
-              trackMixedToastNotice(
-                BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
-              );
-              dismissNotification();
+              if (!hasAcknowledgedToast.current) {
+                hasAcknowledgedToast.current = true;
+                trackMixedToastNotice(
+                  BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
+                );
+                dispatch(dismissBasicFunctionalityMigrationNotification());
+              }
               toast.dismiss();
               NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
                 screen: Routes.SETTINGS.SECURITY_SETTINGS,
@@ -229,6 +245,13 @@ export function useBasicFunctionalityConsolidation(): void {
           </TextButton>
         </Text>
       ),
+      // Today's Toaster only invokes this from its own close button, which we
+      // hide. Swipe and toast.dismiss() use closeToast() and skip it. Keep the
+      // handler so a later Toaster that forwards those paths still acknowledges,
+      // without treating a lock-screen hide as dismiss.
+      onClose: () => {
+        acknowledgeToast(BasicFunctionalityMixedToastAction.DISMISS);
+      },
     });
   }, [
     basicFunctionalityEnabled,

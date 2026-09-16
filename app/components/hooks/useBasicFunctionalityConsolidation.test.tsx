@@ -288,6 +288,18 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockToast.dismiss).toHaveBeenCalled();
   });
 
+  it('acknowledges the notice when the toaster calls onClose', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    act(() => {
+      mockToast.mock.calls[0][0].onClose();
+    });
+
+    expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
+  });
+
   it('describes Basic Functionality as enabled when the wallet lands on', () => {
     setSelectorValues({ shouldShowToast: true });
 
