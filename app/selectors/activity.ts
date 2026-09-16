@@ -20,11 +20,13 @@ import { selectTransactionPayTransactionData } from './transactionPayController'
 import { findBridgeHistoryItem } from '../util/bridge/findBridgeHistoryItem';
 import { isHardwareAccount } from '../util/address';
 import {
+  createActivityTokenNormalizer,
   enrichLocalActivity,
   getBridgeActivityStatus,
   getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
   type ActivityListItem,
+  type KnownTokensByChainAndAccount,
 } from '../util/activity-adapters';
 
 const selectCaipChainId = (_state: RootState, caipChainId: CaipChainId) =>
@@ -157,6 +159,12 @@ export const selectLocalActivityItems = createSelector(
       string,
       Record<Hex, { symbol?: string; decimals?: number; address: string }[]>
     >;
+    // A decoded transfer amount is raw base units; when neither the tx metadata
+    // nor the contract token metadata supplies decimals, resolve them from the
+    // user's tokens rather than render the amount unscaled (TMCU-1303).
+    const normalizeTokens = createActivityTokenNormalizer(
+      allTokens as KnownTokensByChainAndAccount,
+    );
 
     return transactionGroups.map((baseGroup) => {
       const { primaryTransaction: tx } = baseGroup;
@@ -199,11 +207,13 @@ export const selectLocalActivityItems = createSelector(
         isHardwareWalletAccount,
       });
 
-      return enrichLocalActivity(
-        mapLocalTransaction(
-          prepared as Parameters<typeof mapLocalTransaction>[0],
-        ) as ActivityListItem,
-        prepared,
+      return normalizeTokens(
+        enrichLocalActivity(
+          mapLocalTransaction(
+            prepared as Parameters<typeof mapLocalTransaction>[0],
+          ) as ActivityListItem,
+          prepared,
+        ),
       );
     });
   },

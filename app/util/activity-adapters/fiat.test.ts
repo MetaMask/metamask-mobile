@@ -64,6 +64,42 @@ describe('activity adapter fiat helpers', () => {
     ).toBeUndefined();
   });
 
+  it('omits an EVM mapper amount whose decimals are unknown rather than treating it as atomic', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '167121100',
+        direction: 'out',
+        symbol: 'USDT',
+        assetType: 'erc20',
+      }),
+    ).toBeUndefined();
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1000000000000000',
+        direction: 'out',
+        assetType: 'native',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('keeps amounts from sources that omit decimals on already-human values', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '30',
+        direction: 'in',
+        symbol: 'USDC',
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      }),
+    ).toBe('30');
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1.5',
+        direction: 'out',
+        symbol: 'SOL',
+      }),
+    ).toBe('1.5');
+  });
+
   it('returns no prefix for incoming amounts when plus is disabled', () => {
     expect(getDisplaySignPrefix('in', { showPlus: false })).toBe('');
   });

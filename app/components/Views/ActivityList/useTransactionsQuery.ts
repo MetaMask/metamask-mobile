@@ -6,6 +6,8 @@ import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllConfiguredEvmCaipNetworks } from '../../../selectors/networkController';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import type { KnownTokensByChainAndAccount } from '../../../util/activity-adapters';
 import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectExcludedActivityTransactionHashes } from '../../../selectors/transactionController';
@@ -22,6 +24,11 @@ export const useTransactionsQuery = () => {
   // Predict enabling Polygon) never collapses the Activity feed to one network.
   const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
+  // The API omits `decimal` on value transfers it has not enriched yet, so the
+  // user's imported tokens supply the scale instead (TMCU-1303).
+  const knownTokens = useSelector(
+    selectAllTokens,
+  ) as KnownTokensByChainAndAccount;
   const accountAddresses = evmAddress
     ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
     : [];
@@ -34,8 +41,13 @@ export const useTransactionsQuery = () => {
     });
 
   const selectFn = useMemo(
-    () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
-    [evmAddress, excludedTxHashes],
+    () =>
+      selectApiEvmTransactions({
+        address: evmAddress,
+        excludedTxHashes,
+        knownTokens,
+      }),
+    [evmAddress, excludedTxHashes, knownTokens],
   );
 
   // @ts-expect-error apiClient returns v5 types, repo still in v4

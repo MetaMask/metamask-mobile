@@ -17,8 +17,10 @@ import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
   type ActivityListItem,
+  type KnownTokensByChainAndAccount,
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
+  createActivityTokenNormalizer,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
@@ -148,6 +150,7 @@ export function shouldSkipTransaction(
 function transformApiTransactions(
   address: string,
   transactions: V1TransactionByHashResponse[],
+  normalizeTokens: (item: ActivityListItem) => ActivityListItem,
   excludedTxHashes?: Set<string>,
 ): ActivityListItem[] {
   const items: ActivityListItem[] = [];
@@ -161,7 +164,7 @@ function transformApiTransactions(
       ...mapApiTransaction({ subjectAddress, transaction: tx }),
       raw: { type: 'apiEvmTransaction' as const, data: tx },
     } as ActivityListItem;
-    items.push(classifyPooledStakingActivity(tx, activity));
+    items.push(normalizeTokens(classifyPooledStakingActivity(tx, activity)));
   }
 
   return items;
@@ -170,15 +173,28 @@ function transformApiTransactions(
 export function selectApiEvmTransactions({
   address,
   excludedTxHashes,
+  knownTokens,
 }: {
   address: string;
   excludedTxHashes?: Set<string>;
+  /**
+   * TokensController `allTokens`, used to resolve decimals the Accounts API
+   * did not enrich onto a value transfer (TMCU-1303).
+   */
+  knownTokens?: KnownTokensByChainAndAccount;
 }) {
+  const normalizeTokens = createActivityTokenNormalizer(knownTokens);
+
   return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformApiTransactions(address, page.data, excludedTxHashes),
+      data: transformApiTransactions(
+        address,
+        page.data,
+        normalizeTokens,
+        excludedTxHashes,
+      ),
     })),
   });
 }

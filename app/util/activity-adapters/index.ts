@@ -48,6 +48,10 @@ export {
 } from './fiat';
 export { formatTokenDisplayAmount } from './token-display';
 export {
+  createActivityTokenNormalizer,
+  type KnownTokensByChainAndAccount,
+} from './token-decimals';
+export {
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,

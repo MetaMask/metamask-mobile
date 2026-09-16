@@ -8,6 +8,10 @@ import {
 } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
+  getHumanReadableTokenAmount,
+  type TokenAmount,
+} from '../../../../util/activity-adapters';
+import {
   isBridgeHistoryForEvmTransaction,
   mapNonEvmTransactions,
   mergeTransactionsByTime,
@@ -446,6 +450,58 @@ describe('ActivityList transformations', () => {
             symbol: 'ETH',
           },
         },
+      });
+    });
+
+    describe('when the API omits a value transfer decimal (TMCU-1303)', () => {
+      const usdtArbitrum = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9';
+      const unenrichedUsdtSend = buildTransaction({
+        hash: '0xunenriched',
+        chainId: 42161,
+        to: usdtArbitrum,
+        transactionCategory: 'CONTRACT_CALL',
+        valueTransfers: [
+          {
+            amount: '167121100',
+            contractAddress: usdtArbitrum,
+            from: address,
+            to: otherAddress,
+            transferType: 'erc20',
+          },
+        ],
+      } as Partial<V1TransactionByHashResponse>);
+
+      it('scales the amount with the decimals from the imported token', () => {
+        const result = selectApiEvmTransactions({
+          address,
+          knownTokens: {
+            '0xa4b1': {
+              [address]: [
+                {
+                  address: usdtArbitrum.toLowerCase(),
+                  symbol: 'USDT',
+                  decimals: 6,
+                },
+              ],
+            },
+          },
+        })(buildData([unenrichedUsdtSend]));
+
+        expect(result.pages[0].data[0].data).toMatchObject({
+          token: { amount: '167121100', decimals: 6, symbol: 'USDT' },
+        });
+      });
+
+      it('renders no amount when the token is unknown, instead of an inflated one', () => {
+        const result = selectApiEvmTransactions({ address })(
+          buildData([unenrichedUsdtSend]),
+        );
+
+        const { token } = result.pages[0].data[0].data as {
+          token: TokenAmount;
+        };
+        expect(token.decimals).toBeUndefined();
+        expect(getHumanReadableTokenAmount(token)).toBeUndefined();
       });
     });
 
