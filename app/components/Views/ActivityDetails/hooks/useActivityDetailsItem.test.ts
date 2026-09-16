@@ -10,7 +10,10 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { selectSelectedAccountGroupInternalAccounts , selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectSelectedAccountGroupInternalAccounts,
+  selectSelectedAccountGroupEvmInternalAccount,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
