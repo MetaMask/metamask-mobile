@@ -1,14 +1,23 @@
+import type {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { rejectPendingTransactions } from './rejectPendingTransactions';
 
 export const completePrototypeMoneySend = (
-  navigation: AppNavigationProp,
+  _navigation: AppNavigationProp,
   showSuccessToast: (label: string) => void,
+  rootNavigation: Pick<
+    NavigationContainerRef<ParamListBase>,
+    'reset'
+  > = NavigationService.navigation,
 ) => {
   rejectPendingTransactions();
-  navigation.reset({
+  rootNavigation.reset({
     index: 0,
     routes: [
       {

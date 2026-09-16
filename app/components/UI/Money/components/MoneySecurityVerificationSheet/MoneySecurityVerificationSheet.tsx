@@ -152,6 +152,7 @@ const MoneySecurityVerificationSheet = () => {
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
   const [isVerifyingPasskey, setIsVerifyingPasskey] = useState(false);
+  const [isCompletingTransaction, setIsCompletingTransaction] = useState(false);
 
   const availableMethods = useMemo(() => {
     const methods: VerificationMethod[] = [];
@@ -276,7 +277,12 @@ const MoneySecurityVerificationSheet = () => {
         {
           const parentNavigation =
             navigation.getParent<AppNavigationProp>() ?? navigation;
-          completePrototypeMoneySend(parentNavigation, showSuccessToast);
+          setIsCompletingTransaction(true);
+          setTimeout(
+            () =>
+              completePrototypeMoneySend(parentNavigation, showSuccessToast),
+            50,
+          );
         }
         return;
     }
@@ -472,6 +478,10 @@ const MoneySecurityVerificationSheet = () => {
     (method) => method !== resolvedDefaultMethod,
   );
   const codeDescription = strings('money.security.sms_code_description');
+
+  if (isCompletingTransaction) {
+    return null;
+  }
 
   return (
     <BottomSheet

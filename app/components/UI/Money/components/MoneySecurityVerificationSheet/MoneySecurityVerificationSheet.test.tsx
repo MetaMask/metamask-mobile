@@ -166,7 +166,7 @@ describe('MoneySecurityVerificationSheet', () => {
   });
 
   it('opens full-page authenticator verification from the sheet', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneySecurityVerificationSheet />,
     );
 
@@ -201,7 +201,7 @@ describe('MoneySecurityVerificationSheet', () => {
   it('completes a prototype transaction after passkey verification', () => {
     mockAction = { type: 'verify-transaction' };
     mockIsAuthenticatorAdded = false;
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneySecurityVerificationSheet />,
     );
 
@@ -209,6 +209,10 @@ describe('MoneySecurityVerificationSheet', () => {
       getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON),
     );
     act(() => jest.advanceTimersByTime(700));
+    expect(
+      queryByTestId(MoneySecurityVerificationSheetTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
+    act(() => jest.advanceTimersByTime(50));
 
     expect(mockCompletePrototypeMoneySend).toHaveBeenCalledWith(
       expect.objectContaining({ reset: mockParentReset }),
