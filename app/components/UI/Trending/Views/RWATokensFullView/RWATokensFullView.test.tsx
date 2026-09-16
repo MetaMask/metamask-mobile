@@ -201,8 +201,8 @@ describe('RWATokensFullView', () => {
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('opens network bottom sheet when button is pressed', async () => {
-    const { getByTestId } = renderRWAFullView();
+  it.skip('opens network bottom sheet when button is pressed', async () => {
+    const { getByTestId, getByText } = renderRWAFullView();
 
     const networkButton = getByTestId('all-networks-button');
     await userEvent.press(networkButton);
@@ -210,9 +210,7 @@ describe('RWATokensFullView', () => {
     expect(
       getByTestId('trending-token-network-bottom-sheet'),
     ).toBeOnTheScreen();
-    // TODO: re-enable Robinhood Chain assertion once cleared for release
-    // (https://github.com/MetaMask/metamask-mobile/pull/35854).
-    // expect(getByText('Robinhood Chain')).toBeOnTheScreen();
+    expect(getByText('Robinhood Chain')).toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {

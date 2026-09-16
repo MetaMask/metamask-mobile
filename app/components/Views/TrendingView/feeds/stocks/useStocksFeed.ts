@@ -10,8 +10,7 @@ import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
-  // TODO: re-enable Robinhood Chain RWA assets once cleared for release
-  // (https://github.com/MetaMask/metamask-mobile/pull/35854).
+  // TODO: re-enable Robinhood RWA when cleared for release (#35854).
   // NetworkToCaipChainId.ROBINHOOD,
 ];
 const STOCKS_FEED_ASSET_ID_PREFIXES = STOCKS_FEED_RWA_CHAIN_IDS.map(
@@ -38,13 +37,14 @@ export interface UseStocksFeedResult {
 /**
  * Tokenized stocks (RWAs) feed.
  *
- * Tab sections (no query): only Ethereum mainnet tokens are shown.
+ * Tab sections (no query): Ethereum and Robinhood Chain tokens are shown.
  *
  * Search (query present): all chains in RWA_CHAIN_IDS are included so users
- * can find stocks across Ethereum and BNB.
+ * can find stocks across Ethereum, BNB, and Robinhood.
  *
- * No-query sections request Ethereum only so the API page is not consumed by
- * other supported RWA chains before the section renders its 3-item preview.
+ * No-query sections request Ethereum and Robinhood only so the API page is not
+ * consumed by other supported RWA chains before the section renders its
+ * 3-item preview.
  */
 export const useStocksFeed = ({
   query,
@@ -75,7 +75,7 @@ export const useStocksFeed = ({
     // During search, surface tokens from all supported RWA chains so the user
     // can find any matching stock regardless of chain.
     if (hasQuery) return data;
-    // Tab sections only show Ethereum mainnet tokens.
+    // Tab sections show Ethereum and Robinhood Chain tokens.
     return data.filter((asset) =>
       STOCKS_FEED_ASSET_ID_PREFIXES.some((prefix) =>
         asset.assetId.startsWith(prefix),

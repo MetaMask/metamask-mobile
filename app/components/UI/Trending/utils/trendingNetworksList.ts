@@ -168,8 +168,7 @@ export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
     [
       NetworkToCaipChainId.ETHEREUM,
       NetworkToCaipChainId.BNB,
-      // TODO: re-enable Robinhood Chain RWA assets once cleared for release
-      // (https://github.com/MetaMask/metamask-mobile/pull/35854).
+      // TODO: re-enable Robinhood RWA when cleared for release (#35854).
       // NetworkToCaipChainId.ROBINHOOD,
     ].includes(n.caipChainId as NetworkToCaipChainId),
   );
