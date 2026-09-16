@@ -13,9 +13,6 @@ interface SocialV1FeedItemBase {
   asset: SocialV1FeedAsset;
   /** Author comment. Presence selects the detailed (big) card. */
   comment?: string;
-  /** Optional in-card sparkline; traders can attach a chart to a position post. */
-  showChart?: boolean;
-  chartSeries?: number[];
   valueLabel: string;
   pnlLabel: string;
   isPnlPositive: boolean;
