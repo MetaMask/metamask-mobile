@@ -153,6 +153,9 @@ export const PredictHome = () => {
         marketId: market.id,
         side: outcome.side,
         outcomeLabel: outcome.label,
+        eventTitle: event.title,
+        eventImageUrl: event.imageUrl,
+        askPrice: outcome.askPrice,
       });
     },
     [openOrderFlow],

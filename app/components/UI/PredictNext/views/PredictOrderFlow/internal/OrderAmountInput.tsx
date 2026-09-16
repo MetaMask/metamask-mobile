@@ -6,7 +6,6 @@ import {
   ButtonSize,
   ButtonVariant,
   Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,7 +20,7 @@ interface OrderAmountInputProps {
   onAmountChange: (amount: string) => void;
 }
 
-/** USD amount entry with legacy-referenced quick amount chips. */
+/** USD amount entry: one big centered figure with quick amount chips. */
 export const OrderAmountInput = ({
   amount,
   onAmountChange,
@@ -30,15 +29,17 @@ export const OrderAmountInput = ({
   const { colors, themeAppearance } = useTheme();
 
   return (
-    <Box twClassName="gap-4">
+    <Box twClassName="gap-2">
       <Box
         twClassName="flex-row items-center justify-center gap-1"
         testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
       >
-        <Text variant={TextVariant.HeadingLg}>$</Text>
+        <Text twClassName="text-[54px] font-semibold leading-[60px] text-default">
+          $
+        </Text>
         <TextInput
           style={tw.style(
-            'text-center text-[32px] font-bold text-default h-12 min-w-0 flex-1',
+            'h-16 min-w-0 flex-1 text-center text-[54px] font-semibold leading-[60px] text-default',
           )}
           value={amount}
           onChangeText={onAmountChange}
@@ -64,12 +65,6 @@ export const OrderAmountInput = ({
           </Button>
         ))}
       </View>
-      <Text
-        variant={TextVariant.BodyXs}
-        twClassName="text-center text-alternative"
-      >
-        {strings('predict_next.order_preview.max_spend_hint')}
-      </Text>
     </Box>
   );
 };

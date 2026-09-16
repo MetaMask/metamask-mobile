@@ -368,9 +368,12 @@ export const PredictEventScreen = () => {
         marketId: quote.market.id,
         side: quote.outcome.side,
         outcomeLabel: quote.outcome.label,
+        eventTitle: liveEvent?.title ?? '',
+        eventImageUrl: liveEvent?.imageUrl,
+        askPrice: quote.outcome.askPrice,
       });
     },
-    [openOrderFlow, venueId],
+    [liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
   );
   const handleMarketOrder = useCallback(
     (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
@@ -379,9 +382,12 @@ export const PredictEventScreen = () => {
         marketId: market.id,
         side: outcome.side,
         outcomeLabel: outcome.label,
+        eventTitle: liveEvent?.title ?? '',
+        eventImageUrl: liveEvent?.imageUrl,
+        askPrice: outcome.askPrice,
       });
     },
-    [openOrderFlow, venueId],
+    [liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
   );
   const renderMarket = useCallback(
     (projection: MarketGroupProjection) => {

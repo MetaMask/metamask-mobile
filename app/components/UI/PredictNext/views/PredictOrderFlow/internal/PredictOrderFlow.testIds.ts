@@ -1,5 +1,7 @@
 export const PredictOrderFlowTestIds = {
   SHEET: 'predict-order-flow-sheet',
+  OUTCOME_LABEL: 'predict-order-flow-outcome-label',
+  TO_WIN: 'predict-order-flow-to-win',
   AMOUNT_INPUT: 'predict-order-flow-amount-input',
   QUICK_AMOUNT: (amount: string) => `predict-order-flow-quick-${amount}`,
   QUOTE: 'predict-order-flow-quote',
@@ -10,6 +12,10 @@ export const PredictOrderFlowTestIds = {
   FEE: 'predict-order-flow-fee',
   FEE_COMPONENT: (label: string) => `predict-order-flow-fee-${label}`,
   TOTAL_DEBIT: 'predict-order-flow-total-debit',
+  PAY_WITH: 'predict-order-flow-pay-with',
+  TOTAL: 'predict-order-flow-total',
+  TOTAL_INFO: 'predict-order-flow-total-info',
+  BREAKDOWN: 'predict-order-flow-breakdown',
   EXPIRED: 'predict-order-flow-expired',
   REFRESH: 'predict-order-flow-refresh',
   ERROR: 'predict-order-flow-error',

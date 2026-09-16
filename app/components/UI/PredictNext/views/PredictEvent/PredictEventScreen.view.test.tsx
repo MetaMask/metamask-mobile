@@ -1388,7 +1388,13 @@ describe('PredictEventScreen', () => {
     );
 
     expect(view.getByTestId(PredictEventScreenTestIds.VIEW)).toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledTimes(serviceCallCount);
+    // Opening the Order Flow reads the venue Balance (cached across the two
+    // opens); pressing Outcomes may request nothing else from the services.
+    const newCalls = messengerCall.mock.calls.slice(serviceCallCount);
+    expect(newCalls.length).toBeGreaterThan(0);
+    for (const [action] of newCalls) {
+      expect(action).toBe('PredictPortfolioService:getBalance');
+    }
   });
 
   it('uses the standard header for Sports metadata without a Game', async () => {

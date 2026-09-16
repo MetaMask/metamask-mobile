@@ -8,23 +8,32 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createUIQueryClient } from '@metamask/react-data-query';
+import type { Json } from '@metamask/utils';
 import { Text, Button } from '@metamask/design-system-react-native';
 
+import Engine from '../../../../../core/Engine';
+import { DATA_SERVICES } from '../../../../../constants/data-services';
 import {
   PredictOrderFlowProvider,
   usePredictOrderFlow,
 } from './PredictOrderFlowProvider';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
-import { KALSHI_VENUE_ID, type PredictEntityId } from '../../types';
+import {
+  KALSHI_VENUE_ID,
+  type PredictDecimal,
+  type PredictEntityId,
+} from '../../types';
 
 const PROBE_BUTTON = 'order-flow-probe-open';
-const PREDICT_API_ORIGIN = 'https://predict.api.test';
 
 /**
  * Component-view tests may only mock Engine; the Order Flow's transport is
  * exercised for real against this global fetch stub.
  */
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
 interface FetchReply {
   status?: number;
@@ -50,6 +59,51 @@ const previewCalls = (): { url: string; body: unknown }[] =>
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
 
+const dataServiceMessenger = {
+  call: async (method: string, ...params: Json[]) =>
+    (
+      Engine.controllerMessenger.call as unknown as (
+        method: string,
+        ...params: Json[]
+      ) => Promise<void | Json>
+    )(method, ...params),
+  subscribe: () => undefined,
+  unsubscribe: () => undefined,
+};
+
+/**
+ * Mirrors the app's messenger-backed query client; the shared renderer in
+ * tests/component-view/render.tsx wires the same boundary around screens.
+ */
+const QueryClientBoundary = ({ children }: { children: React.ReactNode }) => {
+  const [queryClient] = React.useState(() =>
+    createUIQueryClient(DATA_SERVICES, dataServiceMessenger, {
+      defaultOptions: { queries: { retry: false } },
+    }),
+  );
+  React.useEffect(
+    () => () => {
+      queryClient.clear();
+    },
+    [queryClient],
+  );
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
+const stubBalance = () =>
+  messengerCall.mockImplementation((action: string) => {
+    if (action === 'PredictPortfolioService:getBalance') {
+      return Promise.resolve({
+        venueId: 'kalshi',
+        currency: 'USD',
+        available: '123.12',
+      });
+    }
+    return Promise.resolve(undefined);
+  });
+
 const Probe = () => {
   const { openOrderFlow } = usePredictOrderFlow();
   return (
@@ -61,6 +115,9 @@ const Probe = () => {
           marketId: 'KXTEST-26-A' as PredictEntityId,
           side: 'yes',
           outcomeLabel: 'Buffalo Bills',
+          eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
+          eventImageUrl: 'https://predict.example/bills.png',
+          askPrice: '0.53' as PredictDecimal,
         })
       }
     >
@@ -71,9 +128,11 @@ const Probe = () => {
 
 const renderProbe = () =>
   render(
-    <PredictOrderFlowProvider>
-      <Probe />
-    </PredictOrderFlowProvider>,
+    <QueryClientBoundary>
+      <PredictOrderFlowProvider>
+        <Probe />
+      </PredictOrderFlowProvider>
+    </QueryClientBoundary>,
   );
 
 const makePreview = (overrides: Record<string, unknown> = {}) => ({
@@ -122,6 +181,7 @@ describe('PredictOrderFlow', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     fetchMock.mockClear();
+    stubBalance();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
   });
 
@@ -140,12 +200,65 @@ describe('PredictOrderFlow', () => {
       jest.advanceTimersByTime(600);
     });
 
-  it('requests a quote for the entered amount and renders the distinct canonical values', async () => {
+  /** Opens the breakdown sheet once a live quote is behind the info affordance. */
+  const openBreakdown = async () => {
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
+      ).toBeOnTheScreen(),
+    );
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
+  };
+
+  it('renders the event snapshot with the outcome priced in cents', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    openSheet();
+
+    expect(
+      screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent('Buffalo Bills · 53¢');
+
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent('Buffalo Bills · 46.5¢'),
+    );
+  });
+
+  it('shows the Predict balance on the Pay with row', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    openSheet();
+    await flushDebounce();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+      ).toHaveTextContent('Predict balance ($123.12)'),
+    );
+  });
+
+  it('requests a quote for the entered amount and renders the distinct canonical values in the breakdown', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     openSheet();
     typeAmount('20');
     await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+    );
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
+      '$20.86',
+    );
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
 
     const quote = screen.getByTestId(PredictOrderFlowTestIds.QUOTE);
     expect(
@@ -171,7 +284,6 @@ describe('PredictOrderFlow', () => {
     expect(
       within(quote).getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
     ).toHaveTextContent('$20.86');
-    expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled();
   });
 
   it('sends the exact intent with the authenticated request', async () => {
@@ -182,9 +294,7 @@ describe('PredictOrderFlow', () => {
     await flushDebounce();
 
     await waitFor(() =>
-      expect(
-        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
-      ).not.toBeNull(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
     );
 
     const calls = previewCalls();
@@ -196,7 +306,7 @@ describe('PredictOrderFlow', () => {
     });
   });
 
-  it('keeps the Approve control disabled until a live quote arrives', async () => {
+  it('keeps the Confirm control disabled until a live quote arrives', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     openSheet();
@@ -218,23 +328,24 @@ describe('PredictOrderFlow', () => {
     await flushDebounce();
     await waitFor(() =>
       expect(
-        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
-      ).not.toBeNull(),
+        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
+      ).toBeOnTheScreen(),
     );
     expect(previewCalls()).toHaveLength(1);
 
     typeAmount('50');
-    // The changed amount invalidates the previous quote immediately: its
-    // rows are gone while the fresh quote loads.
-    expect(
-      screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toBeNull();
+    // The changed amount invalidates the previous quote immediately: the
+    // Total falls back to the entered amount while the fresh quote loads.
+    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
+      '$50.00',
+    );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_INFO)).toBeNull();
 
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   });
 
-  it('keeps Approve disabled while a fresh quote loads for the changed amount', async () => {
+  it('keeps Confirm disabled while a fresh quote loads for the changed amount', async () => {
     stubEchoingPreview();
 
     openSheet();
@@ -281,9 +392,9 @@ describe('PredictOrderFlow', () => {
     });
 
     expect(previewCalls()).toHaveLength(1);
-    expect(
-      screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toBeNull();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
+      '$0.50',
+    );
     expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
     expect(screen.getByText(/Enter at least \$1/)).toBeOnTheScreen();
   });
@@ -296,9 +407,7 @@ describe('PredictOrderFlow', () => {
     await flushDebounce();
 
     await waitFor(() =>
-      expect(
-        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
-      ).not.toBeNull(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
     );
     expect(previewCalls()[0]?.body).toEqual({
       marketId: 'KXTEST-26-A',
@@ -320,8 +429,8 @@ describe('PredictOrderFlow', () => {
     await flushDebounce();
     await waitFor(() =>
       expect(
-        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
-      ).not.toBeNull(),
+        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
+      ).toBeOnTheScreen(),
     );
   });
 
@@ -336,8 +445,8 @@ describe('PredictOrderFlow', () => {
 
     await waitFor(() =>
       expect(
-        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
-      ).not.toBeNull(),
+        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
+      ).toBeOnTheScreen(),
     );
   });
 

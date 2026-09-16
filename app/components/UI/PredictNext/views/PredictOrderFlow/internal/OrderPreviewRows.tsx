@@ -9,12 +9,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictOrderPreview } from '../../../types';
+import { formatUsd } from '../../../utils/formatUsd';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
-
-/** Formats a canonical amount as USD, keeping the sign before the dollar. */
-const formatUsd = (value: string): string =>
-  value.startsWith('-') ? `-$${value.slice(1)}` : `$${value}`;
 
 const QuoteRow = ({
   label,
