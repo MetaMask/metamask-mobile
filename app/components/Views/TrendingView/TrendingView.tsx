@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -15,14 +14,7 @@ import {
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  IconName,
-  Icon,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
@@ -40,7 +32,6 @@ import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import BrowserTabsButton from './components/BrowserTabsButton/BrowserTabsButton';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
-import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
 import RwasTab from './tabs/RwasTab';
@@ -232,7 +223,6 @@ export const ExploreFeed: React.FC = () => {
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
-  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -334,26 +324,11 @@ export const ExploreFeed: React.FC = () => {
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
 
-          {isHeaderRefreshEnabled && browserTabsCount > 0 ? (
-            <BrowserTabsButton
-              tabCount={browserTabsCount}
-              onPress={handleBrowserPress}
-              testID="trending-view-browser-button"
-            />
-          ) : (
-            <TouchableOpacity
-              onPress={handleBrowserPress}
-              testID="trending-view-browser-button"
-            >
-              {browserTabsCount > 0 ? (
-                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
-                </Box>
-              ) : (
-                <Icon name={IconName.Explore} size={IconSize.Xl} />
-              )}
-            </TouchableOpacity>
-          )}
+          <BrowserTabsButton
+            tabCount={browserTabsCount}
+            onPress={handleBrowserPress}
+            testID="trending-view-browser-button"
+          />
         </Box>
 
         {!isBasicFunctionalityEnabled ? (
