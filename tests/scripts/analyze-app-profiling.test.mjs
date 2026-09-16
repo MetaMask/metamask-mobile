@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import sourceMap from 'source-map';
 import {
   parseArgs,
   resolveLatestRun,
@@ -13,6 +14,7 @@ import {
   sourcemapVariant,
   profileSourcemapVariant,
   selectSourcemap,
+  convertProfile,
   findSkillAnalyzer,
   runSkillAnalyzer,
   parseProfileFileName,
@@ -27,6 +29,8 @@ import {
   buildWindowMarkdown,
   buildWindowSlack,
 } from './analyze-app-profiling.mjs';
+
+const { SourceMapGenerator } = sourceMap;
 
 function profile(fileName, overrides = {}) {
   const parsed = parseProfileFileName(fileName);
@@ -200,6 +204,53 @@ test('selectSourcemap rejects ambiguous matching maps', () => {
       ],
     ),
     null,
+  );
+});
+
+test('convertProfile symbolicates locally without React Native CLI config', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'profile-convert-'));
+  const profilePath = path.join(root, 'sample.cpuprofile');
+  const sourcemapPath = path.join(root, 'index.android.bundle.map');
+  const outputDirectory = path.join(root, 'output');
+  fs.writeFileSync(
+    profilePath,
+    JSON.stringify({
+      samples: [
+        { sf: 2, ts: '1000', pid: 1, tid: 1 },
+        { sf: 2, ts: '2000', pid: 1, tid: 1 },
+      ],
+      stackFrames: {
+        1: { name: '[root]', category: 'root' },
+        2: {
+          name: 'minified',
+          category: 'JavaScript',
+          parent: 1,
+          funcVirtAddr: '0',
+          offset: '0',
+        },
+      },
+    }),
+  );
+  const map = new SourceMapGenerator({ file: 'index.bundle' });
+  map.addMapping({
+    generated: { line: 1, column: 1 },
+    original: { line: 42, column: 0 },
+    source: 'app/example.ts',
+    name: 'renderExample',
+  });
+  fs.writeFileSync(sourcemapPath, map.toString());
+
+  const convertedPath = await convertProfile(
+    profilePath,
+    sourcemapPath,
+    outputDirectory,
+  );
+  const converted = fs.readFileSync(convertedPath, 'utf8');
+  assert.match(converted, /app\/example\.ts/);
+  assert.match(converted, /renderExample/);
+  assert.equal(
+    fs.existsSync(path.join(outputDirectory, 'sample-prepared.cpuprofile')),
+    false,
   );
 });
 
