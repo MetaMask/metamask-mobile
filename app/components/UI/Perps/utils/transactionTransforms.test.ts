@@ -289,6 +289,54 @@ describe('transactionTransforms', () => {
         expect(result[0].direction).toBe('Long > Short');
       });
 
+      it('takes the opening position size from the largest fill when timestamps tie', () => {
+        // A book sweep fills in one millisecond, and HyperLiquid returns history newest
+        // first, so the later slice arrives before the one that opened the order.
+        const newestFill = createFill({
+          orderId: 'flip-order-3',
+          direction: 'Long > Short',
+          size: '13.23',
+          startPosition: '7.66',
+          timestamp: 1700000000000,
+        });
+
+        const oldestFill = createFill({
+          orderId: 'flip-order-3',
+          direction: 'Long > Short',
+          size: '30',
+          startPosition: '37.66',
+          timestamp: 1700000000000, // Same millisecond
+        });
+
+        const result = aggregateFillsByOrder([newestFill, oldestFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('37.66');
+      });
+
+      it('keeps a negative opening position signed when timestamps tie', () => {
+        const newestFill = createFill({
+          orderId: 'adl-order-1',
+          direction: 'Auto-Deleveraging',
+          size: '2',
+          startPosition: '-3',
+          timestamp: 1700000000000,
+        });
+
+        const oldestFill = createFill({
+          orderId: 'adl-order-1',
+          direction: 'Auto-Deleveraging',
+          size: '5',
+          startPosition: '-8',
+          timestamp: 1700000000000, // Same millisecond
+        });
+
+        const result = aggregateFillsByOrder([newestFill, oldestFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('-8');
+      });
+
       it('does not aggregate fills of different orders opening the same market', () => {
         const fill1 = createFill({
           orderId: 'open-order-3',
@@ -786,6 +834,36 @@ describe('transactionTransforms', () => {
       expect(result[0].fill?.size).toBe('5.57');
       expect(result[0].fill?.amount).toBe('+$40.00');
       expect(result[0].title).toBe('Flipped long > short');
+    });
+
+    it('sizes a tied-timestamp flip from the position the order started at', () => {
+      // Same 43.23 flip as above, but both fills land in one millisecond and arrive
+      // newest first. The leftover short must still read 5.57, not |7.66 - 43.23|.
+      const newestFill: OrderFill = {
+        ...mockFill,
+        orderId: 'flip-order-4',
+        direction: 'Long > Short',
+        size: '13.23',
+        startPosition: '7.66',
+        pnl: '20.00',
+        fee: '6.00',
+        timestamp: 1700000000000,
+      };
+
+      const oldestFill: OrderFill = {
+        ...newestFill,
+        size: '30',
+        startPosition: '37.66',
+        pnl: '30.00',
+        fee: '4.00',
+        timestamp: 1700000000000,
+      };
+
+      const result = transformFillsToTransactions([newestFill, oldestFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('43.23 ETH');
+      expect(result[0].fill?.size).toBe('5.57');
     });
 
     it('should handle empty fills array', () => {

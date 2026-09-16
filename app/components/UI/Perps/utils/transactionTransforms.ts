@@ -92,7 +92,8 @@ function getDirectionForAggregation(
  * - Fees are summed
  * - Price is calculated as VWAP (Volume Weighted Average Price)
  * - Latest fill's orderId, timestamp and metadata are preserved
- * - startPosition comes from the earliest fill, so it still describes the position before the order
+ * - startPosition is the largest position any of the fills saw, which is the position the order
+ * started from, and is picked by magnitude so tied fill timestamps cannot scramble it
  * - detailedOrderType (Stop Loss, Take Profit) is preserved from any grouped fill
  * - liquidation info is preserved from any grouped fill
  *
@@ -192,8 +193,7 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
     }
 
     // Aggregate multiple fills. The latest fill stands in for the completed order, so the
-    // row keeps its place in a history sorted newest first; the earliest fill is the one
-    // that still describes the position the order started from.
+    // row keeps its place in a history sorted newest first.
     const fillsOldestFirst = [...groupedFills].sort(
       (a, b) => a.timestamp - b.timestamp,
     );
@@ -231,9 +231,21 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
         aggregatedLiquidation = fill.liquidation;
       }
 
-      // Use the startPosition from the earliest fill (position before any of these fills)
-      if (fill.startPosition && !aggregatedStartPosition) {
-        aggregatedStartPosition = fill.startPosition;
+      // The position the order started from is the largest one any of its fills saw: a close
+      // or a flip walks an existing position down, so every later fill starts from less of
+      // it. Picking by magnitude instead of by position in the list keeps this correct when
+      // fills share a millisecond, which is what a single book sweep produces. Keep the
+      // original signed value - auto-deleveraging reads its sign for the long/short label.
+      if (fill.startPosition) {
+        const startPosition = BigNumber(fill.startPosition).absoluteValue();
+        if (
+          aggregatedStartPosition === undefined ||
+          startPosition.isGreaterThan(
+            BigNumber(aggregatedStartPosition).absoluteValue(),
+          )
+        ) {
+          aggregatedStartPosition = fill.startPosition;
+        }
       }
     }
 
