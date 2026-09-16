@@ -1297,6 +1297,40 @@ describe('BrowserTab', () => {
       expect(previousBridge?.onDisconnect).not.toHaveBeenCalled();
     });
 
+    it('rebuilds the bridge on same-origin URL bar navigation because the WebView remounts', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+
+      const previousBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(previousBridge).toBeDefined();
+      previousBridge?.onDisconnect.mockClear();
+      const mountsBefore = webViewMountCount;
+
+      fireEvent.press(screen.getByTestId('browser-url-display-text'));
+      const urlInput = screen.getByTestId('browser-modal-url-input');
+      fireEvent(urlInput, 'submitEditing', {
+        nativeEvent: { text: sameOriginNextUrl },
+      });
+
+      await waitFor(() => {
+        expect(webViewMountCount).toBeGreaterThan(mountsBefore);
+      });
+
+      const remountedWebView = screen.getByTestId('browser-webview');
+      await startLoad(remountedWebView, sameOriginNextUrl);
+
+      expect(previousBridge?.onDisconnect).toHaveBeenCalled();
+      expect(mockBackgroundBridgeInstances.at(-1)).not.toBe(previousBridge);
+    });
+
     it('keeps the bridge and forwards provider messages when onLoadStart is a blank remount URL', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,

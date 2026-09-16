@@ -236,6 +236,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
     const loadingUrlRef = useRef('');
     const loadStartIdRef = useRef(0);
+    const lastBoundWebViewKeyRef = useRef<number | null>(null);
+    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
     const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
@@ -739,8 +741,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           isMainFrame,
         });
         backgroundBridgeRef.current = newBridge;
+        lastBoundWebViewKeyRef.current = webViewReloadKey;
       },
-      [navigation, tabId, teardownBackgroundBridge],
+      [navigation, tabId, teardownBackgroundBridge, webViewReloadKey],
     );
 
     const sendActiveAccount = useCallback(
@@ -923,7 +926,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * on iOS (RNCWebView's iOS `loadUrl` command is a no-op; Android uses
      * native `loadUrl`). Remount matches Explore's fresh-tab loadRequest path.
      */
-    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const navigateWebViewToUrl = useCallback((url: string) => {
       const sanitizedUrl = sanitizeUrlInput(url);
       if (!sanitizedUrl) {
@@ -1290,10 +1292,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Bind the destination-origin bridge as soon as the load is allowed
         // so the incoming page can use the provider before commit. Skip when
-        // the current bridge already matches this origin (same-origin loads).
+        // the current bridge already matches this origin on the same WebView.
+        // URL-bar navigations remount the WebView; the previous Port is dead
+        // and must be rebuilt even when the origin is unchanged.
         if (canBindProvider && urlOrigin) {
           const existingBridge = backgroundBridgeRef.current;
-          if (!existingBridge || !isSameOrigin(existingBridge.url, urlOrigin)) {
+          const webViewRemounted =
+            lastBoundWebViewKeyRef.current !== webViewReloadKey;
+          if (
+            !existingBridge ||
+            !isSameOrigin(existingBridge.url, urlOrigin) ||
+            webViewRemounted
+          ) {
             initializeBackgroundBridge(urlOrigin, true);
           }
         }
@@ -1304,6 +1314,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         handleNotAllowedUrl,
         teardownBackgroundBridge,
         initializeBackgroundBridge,
+        webViewReloadKey,
       ],
     );
 
