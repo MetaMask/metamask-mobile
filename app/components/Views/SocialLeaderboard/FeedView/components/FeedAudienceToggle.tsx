@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    borderRadius: 12,
+    borderRadius: 999,
   },
   labelWrap: {
     position: 'relative',
