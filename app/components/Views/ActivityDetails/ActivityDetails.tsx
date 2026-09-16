@@ -35,8 +35,6 @@ import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
 import { useLocalTransactionMeta } from './hooks/useLocalTransactionMeta';
-/* eslint-disable-next-line import-x/no-restricted-paths */
-import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
@@ -50,7 +48,8 @@ function ActivityDetailsProviders({ children }: { children: ReactNode }) {
 
 function ActivityDetailsScreen() {
   const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
-  const activityItem = useActivityDetailsItem(txIdentifier, chainId);
+  const { item: activityItem, isFetching: isActivityFetching } =
+    useActivityDetailsItem(txIdentifier, chainId);
   const { item: perpsItem, isLoading: isPerpsLoading } = usePerpsDetailsItem(
     txIdentifier,
     chainId,
@@ -58,10 +57,9 @@ function ActivityDetailsScreen() {
   const { item: predictItem, isLoading: isPredictLoading } =
     usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
   const item = perpsItem ?? activityItem ?? predictItem;
-  const isLoading = isPerpsLoading || isPredictLoading;
-  const { data: evmTransactions, isFetching } = useTransactionsQuery();
-  const waitingForApi = !item && evmTransactions === undefined && isFetching;
-  const waiting = Boolean(isLoading || waitingForApi);
+  const waiting = Boolean(
+    isPerpsLoading || isPredictLoading || (!item && isActivityFetching),
+  );
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
