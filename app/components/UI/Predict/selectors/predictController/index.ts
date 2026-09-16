@@ -45,7 +45,18 @@ const selectPredictClaimablePositionsByAddress = createSelector(
     selectPredictClaimablePositions,
     (_state: RootState, address: string) => address,
   ],
-  (claimablePositions, address) => claimablePositions[address] || [],
+  (claimablePositions, address) => {
+    if (claimablePositions[address]) {
+      return claimablePositions[address];
+    }
+    // Controller keys by signer address; confirmation reads by
+    // `txParams.from`, which TransactionController lowercases.
+    const normalizedAddress = address.toLowerCase();
+    const matchedAddress = Object.keys(claimablePositions).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+    return matchedAddress ? claimablePositions[matchedAddress] : [];
+  },
   weakMapMemoizeOptions,
 );
 

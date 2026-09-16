@@ -1223,6 +1223,13 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
+            // A pending claim was prepared from the current snapshot; the
+            // confirmation footer, `beforeSign` and `confirmClaim` all read it
+            // back. A concurrent refetch (or a transient empty response) must
+            // not clobber it mid-flight (PRED-1321).
+            if (this.findPendingClaimAddress(selectedAddress)) {
+              return;
+            }
             if (params.claimable === true) {
               state.claimablePositions[selectedAddress] = [...positions];
             } else if (params.claimable === undefined) {
@@ -2469,10 +2476,21 @@ export class PredictController extends BaseController<
         };
       }
 
-      // Get claimable positions from state
-      const claimablePositions = this.state.claimablePositions[signer.address];
+      // The confirmation footer only renders Confirm for WON/REDEEMABLE
+      // positions. Require at least one before opening the confirmation, and
+      // refresh once before deciding there is nothing to claim: controller
+      // state is not persisted, so the map can be empty or stale even though
+      // the CTA that brought us here was correct (PRED-1321).
+      let claimablePositions = this.state.claimablePositions[signer.address];
 
-      if (!claimablePositions || claimablePositions.length === 0) {
+      if (!claimablePositions?.some(isActionableClaimablePosition)) {
+        claimablePositions = await this.getPositions({
+          address: signer.address,
+          claimable: true,
+        });
+      }
+
+      if (!claimablePositions?.some(isActionableClaimablePosition)) {
         throw new Error('No claimable positions found');
       }
 
@@ -4475,6 +4493,13 @@ export class PredictController extends BaseController<
     });
   }
 
+  private findPendingClaimAddress(address: string): string | undefined {
+    const normalizedAddress = address.toLowerCase();
+    return Object.keys(this.state.pendingClaims).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+  }
+
   private getPendingClaimContext(transactionMeta: TransactionMeta):
     | {
         senderAddress: string;
@@ -4497,10 +4522,7 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    const normalizedAddress = senderAddress.toLowerCase();
-    const matchedAddress = Object.keys(this.state.pendingClaims).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
-    );
+    const matchedAddress = this.findPendingClaimAddress(senderAddress);
 
     if (!matchedAddress) {
       return undefined;
