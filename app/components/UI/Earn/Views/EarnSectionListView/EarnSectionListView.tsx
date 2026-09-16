@@ -646,7 +646,6 @@ const EarnSectionListView = () => {
         showsVerticalScrollIndicator={false}
         testID={EARN_SECTION_LIST_TEST_IDS.LIST}
         maintainVisibleContentPosition={{ disabled: true }}
-        style={{ paddingBottom: insets.bottom }}
       />
     </Box>
   );

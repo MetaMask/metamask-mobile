@@ -10,25 +10,35 @@ import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import useInsufficientBalance from '../useInsufficientBalance';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { FeatureId } from '@metamask/bridge-controller';
+import { useBridgeSession } from '../useBridgeSession';
+import type { buildGenericQuoteRequest } from '../../providers/SwapQuotesProvider/utils';
+import { BigNumber } from 'ethers';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
-const mockUseIsInsufficientBalance =
-  useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
-
-const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
-  typeof useValidateBridgeTx
->;
+const mockUseIsInsufficientBalance = jest.mocked(useInsufficientBalance);
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+const mockUseValidateBridgeTx = jest.mocked(useValidateBridgeTx);
 const mockValidateBridgeTx = jest.fn();
+const mockUseBridgeSession = jest.mocked(useBridgeSession);
 
 export const runQuoteProviderCases = ({
   name,
   missingProviderError,
+  throwsOnMissingProvider = true,
   renderProvider,
   renderWithoutProvider,
+  featureId,
+  quoteParams,
 }: {
   name: string;
   missingProviderError: string;
+  throwsOnMissingProvider?: boolean;
   renderProvider: (state: DeepPartial<RootState>) => void;
   renderWithoutProvider: () => void;
+  featureId: FeatureId;
+  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
 }) =>
   describe(name, () => {
     beforeEach(() => {
@@ -45,6 +55,7 @@ export const runQuoteProviderCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
+      mockUseSwapsFeatureId.mockReturnValue(featureId);
       jest
         .spyOn(bridgeController, 'selectBridgeQuotes')
         .mockImplementation(() => ({
@@ -73,6 +84,17 @@ export const runQuoteProviderCases = ({
           refreshRate: 5000,
           maxRefreshCount: 10,
         }));
+      mockUseBridgeSession.mockReturnValue({
+        selectedTab: BridgeTabKey.Market,
+        renderedTab: BridgeTabKey.Market,
+        setSelectedTab: jest.fn(),
+        setRenderedTab: jest.fn(),
+        quoteParams,
+        latestSourceBalance: {
+          atomicBalance: BigNumber.from('1000000000'),
+          displayBalance: '123',
+        },
+      });
     });
 
     afterEach(() => {
@@ -109,11 +131,16 @@ export const runQuoteProviderCases = ({
       });
     });
 
-    it('throws when used outside BridgeQuoteDataProvider', () => {
+    it(`${throwsOnMissingProvider ? 'throws' : 'does not throw'} when used outside its quote provider`, () => {
       jest.spyOn(console, 'error').mockImplementation();
 
       const renderOutsideProvider = () => renderWithoutProvider();
 
-      expect(renderOutsideProvider).toThrow(missingProviderError);
+      if (throwsOnMissingProvider) {
+        expect(renderOutsideProvider).toThrow(missingProviderError);
+        return;
+      }
+
+      expect(renderOutsideProvider).not.toThrow();
     });
   });

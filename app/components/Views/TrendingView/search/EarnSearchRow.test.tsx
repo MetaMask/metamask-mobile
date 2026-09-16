@@ -201,7 +201,7 @@ describe('EarnSearchRow', () => {
         eligible_strategy_count: 1,
         eligible_strategy_types: ['stablecoin_lending'],
         asset_has_balance: false,
-        rate_percentage: 4.25,
+        rate_percentage: 4.3,
         is_fee_subsidized: true,
         redirect_target: 'token_details',
       }),
