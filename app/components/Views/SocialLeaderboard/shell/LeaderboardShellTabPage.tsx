@@ -73,6 +73,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
           RowComponent={SocialV1TraderRow}
           SkeletonComponent={SocialV1TraderRowSkeleton}
           rowHeight={SOCIAL_V1_TRADER_ROW_HEIGHT}
+          animateReorder
           onScroll={onScroll}
           pageRef={pageRef}
         />

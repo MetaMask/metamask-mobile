@@ -27,8 +27,7 @@ import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
-
-export const DEBOUNCE_WAIT = 300;
+import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;

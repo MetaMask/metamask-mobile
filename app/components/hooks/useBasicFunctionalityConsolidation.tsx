@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Text,
@@ -28,15 +28,43 @@ import {
 } from '../../selectors/settings';
 import { strings } from '../../../locales/i18n';
 import useThunkDispatch from './useThunkDispatch';
+import { useAnalytics } from './useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../core/Analytics';
+
+const BF_MIXED_TOAST_NOTICE_NAME = 'bf_mixed_toast';
+
+export enum BasicFunctionalityMixedToastAction {
+  VIEWED = 'viewed',
+  OPEN_SETTINGS = 'open settings',
+  DISMISS = 'dismiss',
+}
 
 export const selectCompletedOnboardingSafely = (state: RootState) =>
   state.onboarding?.completedOnboarding === true;
 
 export function useBasicFunctionalityConsolidation(): void {
   const dispatch = useThunkDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isRunning = useRef(false);
   const hasPresentedBottomSheet = useRef(false);
   const hasPresentedToast = useRef(false);
+  const toastCtaAction = useRef<BasicFunctionalityMixedToastAction | null>(
+    null,
+  );
+
+  const trackMixedToastNotice = useCallback(
+    (action: BasicFunctionalityMixedToastAction) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED)
+          .addProperties({
+            name: BF_MIXED_TOAST_NOTICE_NAME,
+            action,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
 
   const isFlagEnabled = useSelector(selectMobileUxBftcConsolidationFlagEnabled);
   const isConsolidated = useSelector(
@@ -133,6 +161,8 @@ export function useBasicFunctionalityConsolidation(): void {
     };
 
     hasPresentedToast.current = true;
+    toastCtaAction.current = null;
+    trackMixedToastNotice(BasicFunctionalityMixedToastAction.VIEWED);
     toast({
       hasNoTimeout: true,
       title: strings('basic_functionality_migration.title'),
@@ -150,6 +180,11 @@ export function useBasicFunctionalityConsolidation(): void {
           <TextButton
             variant={TextVariant.BodySm}
             onPress={() => {
+              toastCtaAction.current =
+                BasicFunctionalityMixedToastAction.OPEN_SETTINGS;
+              trackMixedToastNotice(
+                BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
+              );
               dismissNotification();
               toast.dismiss();
               NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -161,7 +196,24 @@ export function useBasicFunctionalityConsolidation(): void {
           </TextButton>
         </Text>
       ),
-      onClose: dismissNotification,
+      onClose: () => {
+        // Opening Settings also dismisses the toast; only count a plain close
+        // as dismiss so we do not double-fire against the CTA action.
+        if (
+          toastCtaAction.current !==
+          BasicFunctionalityMixedToastAction.OPEN_SETTINGS
+        ) {
+          trackMixedToastNotice(BasicFunctionalityMixedToastAction.DISMISS);
+        }
+        toastCtaAction.current = null;
+        dismissNotification();
+      },
     });
-  }, [basicFunctionalityEnabled, dispatch, isUnlocked, shouldShowToast]);
+  }, [
+    basicFunctionalityEnabled,
+    dispatch,
+    isUnlocked,
+    shouldShowToast,
+    trackMixedToastNotice,
+  ]);
 }
