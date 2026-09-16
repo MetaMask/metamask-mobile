@@ -5381,6 +5381,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  /**
+   * Gates RewardsMoneyController consumer reads. Remote flag exists in
+   * LaunchDarkly; default remains off until rollout enables it.
+   */
+  rewardsMoneyControllerEnabled: {
+    name: 'rewardsMoneyControllerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rewardsReferralCodeEnabled: {
     name: 'rewardsReferralCodeEnabled',
     type: FeatureFlagType.Remote,
