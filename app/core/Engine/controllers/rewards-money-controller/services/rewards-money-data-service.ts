@@ -334,9 +334,12 @@ export class RewardsMoneyDataService {
     originTypes?: EarningOriginType[],
     cursor?: string | null,
     limit: number = EARNINGS_LEDGER_PAGE_SIZE,
+    includeClaims: boolean = true,
   ): Promise<EarningsLedgerPageDto> {
     const params = new URLSearchParams();
     params.append('limit', String(limit));
+    // Not encoded in the cursor — must be sent on every page of a walk.
+    params.append('include_claims', includeClaims ? 'true' : 'false');
 
     if (cursor) {
       params.append('cursor', cursor);

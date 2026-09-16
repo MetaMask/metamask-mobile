@@ -3,6 +3,7 @@ import {
   RewardsMoneyController,
   getRewardsMoneyControllerDefaultState,
   originTypeScopeKey,
+  ledgerScopeKey,
   REFERRAL_ME_CACHE_THRESHOLD_MS,
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
@@ -82,7 +83,34 @@ const mockSummary: EarningsSummaryDto = {
 };
 
 const mockLedgerPage: EarningsLedgerPageDto = {
-  results: [],
+  results: [
+    {
+      type: 'earning',
+      id: 'earn-1',
+      earning_origin_type: 'SWAPS_FEE_CASHBACK',
+      musd_amount: '10',
+      fee_amount_usd: '1',
+      entry_count: 1,
+      transaction_hash: null,
+      chain_id: null,
+      ledger_timestamp: '2026-09-10T00:00:00.000Z',
+      claim_status: 'UNCLAIMED',
+      claim_expires_at: null,
+      swaps_source: null,
+      perps_source: null,
+    },
+    {
+      type: 'claim',
+      id: 'claim-settled-1',
+      route: 'REFERRAL_TRADE_FEE_CASHBACK',
+      gross_amount: '50',
+      net_amount: '50',
+      withholding_rate_bps: 0,
+      status: 'SETTLED',
+      ledger_timestamp: '2026-09-08T14:22:00.000Z',
+      settled_at: '2026-09-08T15:00:00.000Z',
+    },
+  ],
   has_more: false,
   cursor: null,
   window: null,
@@ -126,6 +154,16 @@ describe('originTypeScopeKey', () => {
     expect(
       originTypeScopeKey(['PERPS_FEE_CASHBACK', 'SWAPS_FEE_CASHBACK']),
     ).toBe(originTypeScopeKey(['SWAPS_FEE_CASHBACK', 'PERPS_FEE_CASHBACK']));
+  });
+});
+
+describe('ledgerScopeKey', () => {
+  it('includes the includeClaims flag so cache buckets do not collide', () => {
+    expect(ledgerScopeKey(undefined, true)).toBe('all|claims:1');
+    expect(ledgerScopeKey(undefined, false)).toBe('all|claims:0');
+    expect(ledgerScopeKey(['SWAPS_FEE_CASHBACK'], true)).toBe(
+      'SWAPS_FEE_CASHBACK|claims:1',
+    );
   });
 });
 
@@ -437,19 +475,42 @@ describe('RewardsMoneyController', () => {
         'RewardsMoneyDataService:getEarningsLedger',
         undefined,
         'page-2',
+        undefined,
+        true,
       );
     });
 
-    it('caches ledger first page', async () => {
+    it('caches ledger first page under the unified-history key', async () => {
       mockMessenger.call.mockResolvedValue(mockLedgerPage);
 
       await controller.getEarningsLedger();
       await controller.getEarningsLedger();
 
       expect(mockMessenger.call).toHaveBeenCalledTimes(1);
-      expect(controller.state.earningsLedgerFirstPage.all?.payload).toEqual(
-        mockLedgerPage,
+      expect(
+        controller.state.earningsLedgerFirstPage['all|claims:1']?.payload,
+      ).toEqual(mockLedgerPage);
+    });
+
+    it('caches accrual-only ledger separately when includeClaims is false', async () => {
+      mockMessenger.call.mockResolvedValue({
+        ...mockLedgerPage,
+        results: mockLedgerPage.results.filter((row) => row.type === 'earning'),
+      });
+
+      await controller.getEarningsLedger({ includeClaims: false });
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getEarningsLedger',
+        undefined,
+        null,
+        undefined,
+        false,
       );
+      expect(
+        controller.state.earningsLedgerFirstPage['all|claims:0']?.payload
+          .results,
+      ).toHaveLength(1);
     });
 
     it('does not persist claim history cursor pages', async () => {

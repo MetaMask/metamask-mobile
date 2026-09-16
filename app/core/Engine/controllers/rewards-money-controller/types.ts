@@ -179,7 +179,8 @@ export type LedgerPerpsSourceView = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type LedgerEntryDto = {
+export type LedgerEarningEntryDto = {
+  type: 'earning';
   id: string;
   earning_origin_type: EarningOriginType;
   musd_amount: string;
@@ -194,6 +195,26 @@ export type LedgerEntryDto = {
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
 };
+
+/**
+ * Settled payout row from `GET /earnings/ledger?include_claims=true`.
+ * In-flight claims stay on `GET /earnings/claim/me` — they are not in this feed.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type LedgerClaimEntryDto = {
+  type: 'claim';
+  id: string;
+  route: string;
+  gross_amount: string;
+  net_amount: string;
+  withholding_rate_bps: number;
+  status: string;
+  ledger_timestamp: string;
+  settled_at: string | null;
+};
+
+/** Discriminated ledger row; branch on `type`. */
+export type LedgerEntryDto = LedgerEarningEntryDto | LedgerClaimEntryDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarningsLedgerPageDto = {
@@ -265,6 +286,12 @@ export interface GetEarningsLedgerDto {
   originTypes?: EarningOriginType[];
   cursor?: string | null;
   forceFresh?: boolean;
+  /**
+   * Interleave settled payouts with accruals (server `include_claims`).
+   * Defaults to true — the Earnings history surface wants the unified feed.
+   * Pass false only for accrual-only consumers.
+   */
+  includeClaims?: boolean;
 }
 
 export interface GetClaimHistoryDto {

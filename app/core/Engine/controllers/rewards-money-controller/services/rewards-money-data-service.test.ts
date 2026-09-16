@@ -350,6 +350,7 @@ describe('RewardsMoneyDataService', () => {
       const [url] = mockFetch.mock.calls[0];
       expect(url).toContain('earning_origin_type=SWAPS_FEE_CASHBACK');
       expect(url).toContain('limit=20');
+      expect(url).toContain('include_claims=true');
       expect(url).not.toContain('cursor=');
     });
 
@@ -367,7 +368,24 @@ describe('RewardsMoneyDataService', () => {
 
       const [url] = mockFetch.mock.calls[0];
       expect(url).toContain('cursor=cursor-1');
+      expect(url).toContain('include_claims=true');
       expect(url).not.toContain('earning_origin_type');
+    });
+
+    it('can request accrual-only ledger pages', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({
+          results: [],
+          has_more: false,
+          cursor: null,
+          window: null,
+        }),
+      );
+
+      await service.getEarningsLedger(undefined, null, 20, false);
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('include_claims=false');
     });
 
     it('throws when earnings ledger fails', async () => {

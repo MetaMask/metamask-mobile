@@ -118,6 +118,17 @@ export function originTypeScopeKey(originTypes?: EarningOriginType[]): string {
   return [...originTypes].sort(compareOriginTypes).join(',');
 }
 
+/**
+ * Cache key for ledger first pages. `include_claims` is not in the server
+ * cursor, so with/without claims must not share a bucket.
+ */
+export function ledgerScopeKey(
+  originTypes?: EarningOriginType[],
+  includeClaims: boolean = true,
+): string {
+  return `${originTypeScopeKey(originTypes)}|claims:${includeClaims ? '1' : '0'}`;
+}
+
 const MESSENGER_EXPOSED_METHODS = [
   'getReferralMe',
   'getReferralFunnel',
@@ -138,7 +149,8 @@ const MESSENGER_EXPOSED_METHODS = [
 
 /**
  * Controller for the Rewards Money consumer surface: bootstrap referral reads,
- * scoped earnings summary and ledger, and claim history reads.
+ * scoped earnings summary, unified ledger history (`include_claims` by default),
+ * and claim detail / in-flight claim-history reads.
  */
 export class RewardsMoneyController extends BaseController<
   typeof controllerName,
@@ -384,21 +396,26 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const { originTypes, cursor, forceFresh } = params;
+    const includeClaims = params.includeClaims ?? true;
 
     if (cursor) {
       return this.messenger.call(
         'RewardsMoneyDataService:getEarningsLedger',
         originTypes,
         cursor,
+        undefined,
+        includeClaims,
       );
     }
 
-    const key = originTypeScopeKey(originTypes);
+    const key = ledgerScopeKey(originTypes, includeClaims);
     const fetchFresh = () =>
       this.messenger.call(
         'RewardsMoneyDataService:getEarningsLedger',
         originTypes,
         null,
+        undefined,
+        includeClaims,
       );
 
     if (forceFresh) {
