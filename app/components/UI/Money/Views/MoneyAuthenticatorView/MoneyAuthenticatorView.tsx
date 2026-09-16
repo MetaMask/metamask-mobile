@@ -127,12 +127,16 @@ const MoneyAuthenticatorView = () => {
 
   const handleBack = useCallback(() => {
     if (step === 'verify') {
+      if (route.params.verificationAction) {
+        navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+        return;
+      }
       setStep('setup');
       setIsCodeInvalid(false);
       return;
     }
     navigation.goBack();
-  }, [navigation, step]);
+  }, [navigation, route.params.verificationAction, step]);
 
   const handleCodeChange = useCallback((value: string) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));

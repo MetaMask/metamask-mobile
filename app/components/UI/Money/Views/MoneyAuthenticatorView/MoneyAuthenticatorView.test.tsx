@@ -209,6 +209,19 @@ describe('MoneyAuthenticatorView', () => {
     expect(mockAddAuthenticator).not.toHaveBeenCalled();
   });
 
+  it('returns to 2-step verification from security-action verification', () => {
+    mockInitialStep = 'verify';
+    mockVerificationAction = {
+      type: 'disable-transaction-verification',
+    };
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.BACK_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY);
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('does not offer social login from the SRP finish-setup entry point', () => {
     mockEntryPoint = 'finish_setup';
     const { queryByTestId, queryByText } = renderView();
