@@ -94,9 +94,9 @@ interface OptionFilterButtonProps {
 /**
  * `FilterButton` never sets `accessibilityState`, so it is passed here.
  *
- * `rounded-xl` pins the 12px radius the design specifies. MMDS 0.47.0 turned
- * `ButtonBase` into a full pill, so without this override the chips render
- * fully rounded.
+ * The design specifies a 12px radius and a 14px label, which the installed
+ * MMDS renders differently: `ButtonBase` became a full pill in 0.47.0, and
+ * size `Md` maps the label to `BodyMd`. Both are pinned back here.
  */
 const OptionFilterButton = ({
   label,
@@ -110,6 +110,7 @@ const OptionFilterButton = ({
     size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
+    textProps={{ variant: TextVariant.BodySm }}
     twClassName={`flex-1 rounded-xl ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
@@ -312,7 +313,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.listed_by')}
               </Text>
@@ -362,7 +363,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.group_by')}
               </Text>
@@ -393,7 +394,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.layout')}
               </Text>

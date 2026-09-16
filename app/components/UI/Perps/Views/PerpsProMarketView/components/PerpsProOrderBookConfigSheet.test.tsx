@@ -203,6 +203,30 @@ describe('PerpsProOrderBookConfigSheet', () => {
     }
   });
 
+  it('renders chip labels at the design text size', () => {
+    const { getByText } = renderSheet();
+
+    const labelFontSize = (label: string) =>
+      StyleSheet.flatten(getByText(label).props.style).fontSize;
+
+    expect(labelFontSize('BTC')).toBe(14);
+    expect(labelFontSize('USD')).toBe(14);
+    expect(labelFontSize('Total')).toBe(14);
+  });
+
+  it('renders section titles in the default text colour', () => {
+    const { getByText } = renderSheet();
+
+    const titleColor = (label: string) =>
+      StyleSheet.flatten(getByText(label).props.style).color;
+
+    expect(titleColor('Listed by')).toBe(mockTheme.colors.text.default);
+    expect(titleColor('Group by')).toBe(mockTheme.colors.text.default);
+    expect(titleColor('Listed by')).not.toBe(
+      mockTheme.colors.text.alternative,
+    );
+  });
+
   it('renders unselected FilterButtons with a muted 1px outline', () => {
     const { getByTestId } = renderSheet({ currency: 'base' });
 
