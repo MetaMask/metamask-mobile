@@ -5,26 +5,31 @@ export type PlanId = 'annual' | 'monthly';
 
 export interface PlanOption {
   /** Unique key — matches the `membership.plans` i18n namespace segment. */
-  id: string;
+  id: PlanId;
   /** i18n key passed to `strings()` for the plan label. */
   label: string;
-  /** i18n key passed to `strings()` for the plan price. */
+  /** i18n key passed to `strings()` for the plan price. Supports `{{price}}`. */
   price: string;
-  /** i18n key passed to `strings()` for the plan sub price. */
-  subPrice?: string;
-  /** i18n key passed to `strings()` for the plan savings badge. */
-  savingsBadge?: string;
   /** i18n key passed to `strings()` for the CTA button label. */
   ctaLabel: string;
 }
+
+/**
+ * Copy shown on the annual card only, and only when the annual plan actually
+ * saves money against twelve monthly payments.
+ */
+export const ANNUAL_SAVINGS_COPY = {
+  /** i18n key for the equivalent monthly price. Supports `{{price}}`. */
+  subPrice: 'pro_subscription.plans.annual.sub_price',
+  /** i18n key for the savings badge. */
+  savingsBadge: 'pro_subscription.plans.annual.badge',
+};
 
 export const PLANS: PlanOption[] = [
   {
     id: 'annual',
     label: 'pro_subscription.plans.annual.label',
     price: 'pro_subscription.plans.annual.price',
-    subPrice: 'pro_subscription.plans.annual.sub_price',
-    savingsBadge: 'pro_subscription.plans.annual.badge',
     ctaLabel: 'pro_subscription.plans.annual.cta',
   },
   {

@@ -12,6 +12,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -19,7 +20,8 @@ interface MoneyHeaderCommonProps {
    */
   onMenuPress: () => void;
   /**
-   * Handler for the "Get Pro" button.
+   * Handler for the Pro button. Opens the Pro subscription flow, or the Pro hub
+   * when the user is already subscribed.
    * Only fired when the Pro subscription flow flag is enabled.
    */
   onGetProPress: () => void;
@@ -50,6 +52,11 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
 const MoneyHeader = (props: MoneyHeaderProps) => {
   const { onMenuPress, onGetProPress } = props;
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const isProSubscriber = useIsProSubscriber();
+
+  const proLabel = isProSubscriber
+    ? strings('pro_subscription.pro')
+    : strings('pro_subscription.join_pro');
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -67,9 +74,9 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
         size={ButtonSize.Md}
         onPress={onGetProPress}
         testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-        accessibilityLabel={strings('pro_subscription.join_pro')}
+        accessibilityLabel={proLabel}
       >
-        {strings('pro_subscription.join_pro')}
+        {proLabel}
       </Button>
       <ButtonIcon {...menuButtonProps} />
     </Box>
