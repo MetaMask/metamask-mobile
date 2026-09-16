@@ -33,8 +33,14 @@
 
 import { spawnSync } from 'child_process';
 import fs from 'fs';
+import { createRequire } from 'module';
 import os from 'os';
 import path from 'path';
+
+const require = createRequire(import.meta.url);
+const transformerModule = require('@margelo/hermes-profile-transformer');
+const transformHermesProfile =
+  transformerModule.default || transformerModule;
 
 const DEFAULT_REPO = 'MetaMask/metamask-mobile';
 const DEFAULT_WORKFLOW = 'run-performance-e2e-manual.yml';
@@ -318,45 +324,48 @@ function selectSourcemap(profilePath, sourcemaps) {
   return matches.length === 1 ? matches[0] : null;
 }
 
-function convertProfile(profilePath, sourcemapPath, outputDirectory) {
+async function convertProfile(profilePath, sourcemapPath, outputDirectory) {
   fs.mkdirSync(outputDirectory, { recursive: true });
-  const profilerCli = path.join(
-    process.cwd(),
-    'node_modules/react-native-release-profiler/lib/commonjs/cli.js',
-  );
-  if (!fs.existsSync(profilerCli)) {
-    throw new Error(
-      'react-native-release-profiler CLI not found; install project dependencies first',
-    );
-  }
-  const result = spawnSync(
-    process.execPath,
-    [
-      profilerCli,
-      '--local',
-      path.resolve(profilePath),
-      '--sourcemap-path',
-      path.resolve(sourcemapPath),
-    ],
-    {
-      cwd: outputDirectory,
-      encoding: 'utf8',
-      maxBuffer: 32 * 1024 * 1024,
-    },
-  );
-  if (result.status !== 0) {
-    throw new Error(
-      (result.stderr ||
-        result.stdout ||
-        `profile conversion failed for ${profilePath}`).trim(),
-    );
-  }
   const convertedPath = path.join(
     outputDirectory,
     `${path.basename(profilePath, '.cpuprofile')}-converted.json`,
   );
-  if (!fs.existsSync(convertedPath)) {
-    throw new Error(`profile converter did not create ${convertedPath}`);
+  const preparedProfilePath = path.join(
+    outputDirectory,
+    `${path.basename(profilePath, '.cpuprofile')}-prepared.cpuprofile`,
+  );
+
+  // react-native-release-profiler's CLI always invokes `react-native config`,
+  // even for --local with an explicit map. The analysis runner does not need a
+  // React Native project lookup, so use the same transformer directly.
+  const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+  for (const frame of Object.values(profile.stackFrames || {})) {
+    if (frame.funcVirtAddr != null && frame.offset != null) {
+      frame.line = '1';
+      frame.column = String(
+        Number.parseInt(frame.funcVirtAddr, 10) +
+          Number.parseInt(frame.offset, 10) +
+          1,
+      );
+      delete frame.funcVirtAddr;
+      delete frame.offset;
+    }
+  }
+  fs.writeFileSync(preparedProfilePath, JSON.stringify(profile));
+
+  try {
+    const events = await transformHermesProfile(
+      preparedProfilePath,
+      path.resolve(sourcemapPath),
+      'index.bundle',
+    );
+    // Avoid one giant JSON.stringify call for long captures.
+    const serialized = events
+      .map((event) => JSON.stringify(event, undefined, 4))
+      .join(',');
+    fs.writeFileSync(convertedPath, `[${serialized}]`, 'utf8');
+  } finally {
+    fs.rmSync(preparedProfilePath, { force: true });
   }
   return convertedPath;
 }
@@ -1615,7 +1624,7 @@ function downloadRunInputs({ runId, repo, workingDirectory }) {
   return { sourceDirectory, sourcemapDirectory };
 }
 
-function analyzeProfileDirectory({
+async function analyzeProfileDirectory({
   sourceDirectory,
   sourcemapDirectory,
   workingDirectory,
@@ -1631,10 +1640,12 @@ function analyzeProfileDirectory({
   console.log(`🗺️ Verified same-run Android sourcemaps: ${sourcemaps.length}`);
 
   const convertedDirectory = path.join(workingDirectory, 'symbolicated');
-  const profiles = files.map((filePath, index) => {
+  const profiles = [];
+  for (const [index, filePath] of files.entries()) {
     const sourcemapPath = selectSourcemap(filePath, sourcemaps);
     if (!sourcemapPath) {
-      return loadProfile(filePath, skillAnalyzerPath);
+      profiles.push(loadProfile(filePath, skillAnalyzerPath));
+      continue;
     }
     try {
       const profileOutputDirectory = path.join(
@@ -1643,24 +1654,26 @@ function analyzeProfileDirectory({
           path.basename(filePath, '.cpuprofile'),
         )}`,
       );
-      const analysisPath = convertProfile(
+      const analysisPath = await convertProfile(
         filePath,
         sourcemapPath,
         profileOutputDirectory,
       );
-      return loadProfile(filePath, skillAnalyzerPath, {
-        analysisPath,
-        sourcemapPath,
-      });
+      profiles.push(
+        loadProfile(filePath, skillAnalyzerPath, {
+          analysisPath,
+          sourcemapPath,
+        }),
+      );
     } catch (error) {
       console.warn(
         `⚠️ Symbolication failed for ${path.basename(filePath)}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
-      return loadProfile(filePath, skillAnalyzerPath);
+      profiles.push(loadProfile(filePath, skillAnalyzerPath));
     }
-  });
+  }
 
   const scenarios = groupProfiles(profiles, scenarioFilter);
   if (scenarios.length === 0) {
@@ -1673,7 +1686,7 @@ function analyzeProfileDirectory({
   return { profiles, scenarios };
 }
 
-function analyzeRun({
+async function analyzeRun({
   args,
   run = null,
   runId = null,
@@ -1689,7 +1702,7 @@ function analyzeRun({
         workingDirectory,
       });
 
-  const { profiles, scenarios } = analyzeProfileDirectory({
+  const { profiles, scenarios } = await analyzeProfileDirectory({
     sourceDirectory,
     sourcemapDirectory,
     workingDirectory,
@@ -1755,7 +1768,7 @@ async function main() {
     args.run = String(run.databaseId);
   }
 
-  const report = analyzeRun({
+  const report = await analyzeRun({
     args,
     run,
     runId: args.run,
@@ -1799,7 +1812,7 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     const runId = String(run.databaseId);
     console.log(`\n▶️ Run ${runId} (${run.createdAt})`);
     const runDirectory = path.join(outputDirectory, 'runs', runId);
-    const report = analyzeRun({
+    const report = await analyzeRun({
       args,
       run,
       runId,
