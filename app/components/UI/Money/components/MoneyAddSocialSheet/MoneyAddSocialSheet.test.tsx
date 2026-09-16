@@ -81,7 +81,7 @@ describe('MoneyAddSocialSheet', () => {
     expect(getByText('Set up wallet recovery')).toBeOnTheScreen();
     expect(
       getByText(
-        "This backs up your Secret Recovery Phrase so you can get back into your wallet without it. The backup is encrypted and split between your device, MetaMask, and a third party, and can't be disconnected later.",
+        "This backs up your Secret Recovery Phrases so you can get back into your wallet without them. The backup is encrypted and split between your device, MetaMask, and a third party, and can't be disconnected later.",
       ),
     ).toBeOnTheScreen();
 

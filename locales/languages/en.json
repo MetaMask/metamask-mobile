@@ -7874,7 +7874,7 @@
     "security": {
       "title": "2-step verification",
       "back": "Back",
-      "hero_description": "Use these methods to access your wallet on another device and verifying Money transactions",
+      "hero_description": "Use these to access your wallet from another device and verify Money account transactions.",
       "methods_title": "Security methods",
       "section_title": "Security methods",
       "recommended": "Recommended",
@@ -8013,7 +8013,7 @@
     },
     "social": {
       "add_title": "Set up wallet recovery",
-      "add_description": "This backs up your Secret Recovery Phrase so you can get back into your wallet without it. The backup is encrypted and split between your device, MetaMask, and a third party, and can't be disconnected later.",
+      "add_description": "This backs up your Secret Recovery Phrases so you can get back into your wallet without them. The backup is encrypted and split between your device, MetaMask, and a third party, and can't be disconnected later.",
       "continue_google": "Continue with Google",
       "continue_apple": "Continue with Apple",
       "continue_telegram": "Continue with Telegram",

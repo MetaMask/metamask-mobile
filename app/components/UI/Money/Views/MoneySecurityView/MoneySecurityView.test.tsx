@@ -415,7 +415,7 @@ describe('MoneySecurityView', () => {
     expect(queryByText('Protect your Money account')).not.toBeOnTheScreen();
     expect(
       getByText(
-        'Use these methods to access your wallet on another device and verifying Money transactions',
+        'Use these to access your wallet from another device and verify Money account transactions.',
       ),
     ).toBeOnTheScreen();
 
