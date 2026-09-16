@@ -9,7 +9,8 @@ are explicitly out of scope.
 
 This is complementary to:
 
-- GitHub workflow `Analyze App Profiling` (Actions → workflow_dispatch)
+- GitHub workflow `Analyze App Profiling` (daily 24-hour report at 08:00 UTC,
+  plus Actions → workflow_dispatch)
 - Weekly rollup in `weekly-app-profiling-report.md` (7-day merged-PR averages)
 
 Note: `workflow_dispatch` is only offered for workflows already on the default
@@ -19,7 +20,8 @@ PR.
 
 ## Suggested trigger
 
-- Cadence: ad-hoc (no schedule yet)
+- Cadence: ad-hoc only. The GitHub workflow owns the daily schedule; do not
+  create a second scheduled automation that would duplicate the personal DM.
 - Repo: `MetaMask/metamask-mobile`
 - Model: high-reasoning model preferred
 

@@ -10,8 +10,9 @@
 # reporting per-run medians and how often each frame stayed hot. One run samples
 # a scenario once, which cannot separate a reproducible hotspot from noise.
 #
-# Ad-hoc only for now. Does not replace the 6-hour performance suite or the
-# weekly rollup automation.
+# Runs once daily over the preceding 24 hours and can also be dispatched
+# manually for a run, scenario, or custom lookback. Does not replace the
+# 6-hour performance suite or the weekly rollup automation.
 #
 # NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
 # on the default branch, so this cannot be launched from a PR branch. The
@@ -23,6 +24,10 @@
 name: Analyze App Profiling
 
 on:
+  schedule:
+    # Analyze the preceding 24 hours once daily, after the 06:00 UTC
+    # performance run has normally completed.
+    - cron: '0 8 * * *'
   pull_request:
     types:
       - opened
@@ -79,6 +84,7 @@ jobs:
     # restricted to same-repo PRs where the secrets are available. Unrelated
     # labels must not re-trigger it, hence the label name check.
     if: >-
+      github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       (!github.event.pull_request.head.repo.fork &&
        (github.event.action != 'labeled' ||
@@ -104,6 +110,7 @@ jobs:
           LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
           SCENARIO: ${{ inputs.scenario }}
           SKIP_AI: ${{ inputs.skip_ai }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
@@ -112,7 +119,9 @@ jobs:
             --out-dir /tmp/analyze-app-profiling
             --repo "${GITHUB_REPOSITORY}"
           )
-          if [ -n "${LOOKBACK_HOURS}" ]; then
+          if [ "${EVENT_NAME}" = "schedule" ]; then
+            ARGS+=(--lookback-hours 24)
+          elif [ -n "${LOOKBACK_HOURS}" ]; then
             ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")
           elif [ -n "${RUN_ID}" ]; then
             ARGS+=(--run "${RUN_ID}")
@@ -144,8 +153,8 @@ jobs:
           retention-days: 30
 
       - name: Post Slack summary
-        # Label runs always post: seeing the message arrive is the point of the
-        # pre-merge test. Dispatch runs honour the checkbox.
+        # Scheduled and label runs always post. Dispatch runs honour the
+        # checkbox.
         if: >-
           ${{ success() &&
           (github.event_name != 'workflow_dispatch' || inputs.post_to_slack) }}
