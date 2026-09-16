@@ -1282,6 +1282,23 @@ describe('ChoosePassword', () => {
         component.getByText(strings('choose_password.create_description')),
       ).toBeOnTheScreen();
     });
+
+    it('shows the iOS social-login description for OAuth users', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      expect(
+        component.getByText(
+          strings('choose_password.description_social_login_update_ios'),
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Marketing API', () => {
@@ -1325,7 +1342,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('keeps submit enabled while geolocation refresh completes', async () => {
+    it('disables submit with a loading state until geolocation refresh completes', async () => {
       store = mockStore(createInitialState(UNKNOWN_LOCATION));
       ReduxService.store = store as unknown as ReduxStore;
       let resolveGeolocation: (location: string) => void = () => undefined;
@@ -1361,13 +1378,17 @@ describe('ChoosePassword', () => {
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
-      expect(submitButton).toBeEnabled();
+      expect(submitButton).toBeDisabled();
+      expect(submitButton).toBeBusy();
 
       fireEvent.press(submitButton);
+      expect(mockNewWalletAndKeychain).not.toHaveBeenCalled();
 
       await act(async () => {
         resolveGeolocation('US');
       });
+
+      expect(submitButton).toBeEnabled();
 
       fireEvent.press(submitButton);
 

@@ -6,7 +6,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
+import { Platform, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
@@ -20,19 +20,19 @@ import {
   BoxJustifyContent,
   TextVariant,
   TextColor,
-  FontWeight,
   ButtonVariant,
   ButtonSize,
-  Label,
   TextField,
   IconName,
   ButtonIcon,
   ButtonIconSize,
-  Checkbox,
   HeaderStandard,
   TitleStandard,
   HelpText,
   HelpTextSeverity,
+  ListItemMultiSelect,
+  ListItemVariant,
+  TextButton,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -198,6 +198,7 @@ const ChoosePassword = () => {
   const [isGeolocationResolved, setIsGeolocationResolved] = useState(
     !isSocialLoginUser || hasKnownGeolocation,
   );
+  const isAwaitingGeolocation = isSocialLoginUser && !isGeolocationResolved;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -229,8 +230,8 @@ const ChoosePassword = () => {
     screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
     contentReady: true,
     isEmpty: false,
-    isLoading: isSocialLoginUser && !isGeolocationResolved,
-    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
+    isLoading: isAwaitingGeolocation,
+    fullyDisplayed: !isAwaitingGeolocation,
   });
 
   useNavigationPerformance({
@@ -866,38 +867,16 @@ const ChoosePassword = () => {
                 titleProps={{
                   testID: ChoosePasswordSelectorsIDs.TITLE_ID,
                 }}
-                bottomAccessory={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
-                  >
-                    {getOauth2LoginSuccess() ? (
-                      <>
-                        {Platform.OS === 'ios'
-                          ? strings(
-                              'choose_password.description_social_login_update_ios',
-                            )
-                          : strings(
-                              'choose_password.description_social_login_update',
-                            )}
-                        {Platform.OS === 'android' && (
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            color={TextColor.WarningDefault}
-                          >
-                            {' '}
-                            {strings(
-                              'choose_password.description_social_login_update_bold',
-                            )}
-                          </Text>
-                        )}
-                      </>
-                    ) : (
-                      strings('choose_password.create_description')
-                    )}
-                  </Text>
+                bottomLabel={
+                  getOauth2LoginSuccess()
+                    ? strings(
+                        'choose_password.description_social_login_update_ios',
+                      )
+                    : strings('choose_password.create_description')
                 }
+                bottomLabelProps={{
+                  testID: ChoosePasswordSelectorsIDs.DESCRIPTION_ID,
+                }}
               />
 
               <Box
@@ -905,13 +884,6 @@ const ChoosePassword = () => {
                 twClassName="relative"
                 gap={2}
               >
-                <Label
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
-                >
-                  {strings('choose_password.password')}
-                </Label>
                 <TextField
                   autoFocus
                   value={password}
@@ -967,13 +939,6 @@ const ChoosePassword = () => {
                 twClassName="relative"
                 gap={2}
               >
-                <Label
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
-                >
-                  {strings('choose_password.confirm_password')}
-                </Label>
                 <TextField
                   inputRef={confirmPasswordInputRef}
                   value={confirmPassword}
@@ -1023,54 +988,43 @@ const ChoosePassword = () => {
                 )}
               </Box>
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Start}
-                gap={2}
-                twClassName="mt-2 bg-section rounded-lg p-4"
-              >
-                <Checkbox
-                  onChange={setSelection}
-                  isSelected={marketingOptInChecked}
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  accessibilityLabel={
-                    ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                  }
-                />
-                <TouchableOpacity
-                  onPress={setSelection}
-                  testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
-                  style={tw.style(
-                    'flex-row items-start justify-start flex-wrap w-[90%] -mt-1.5',
-                  )}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextDefault}
-                  >
-                    {getOauth2LoginSuccess() ? (
-                      strings('choose_password.marketing_opt_in_description')
-                    ) : (
-                      <Text
+              <ListItemMultiSelect
+                variant={
+                  getOauth2LoginSuccess()
+                    ? ListItemVariant.MultiLine
+                    : ListItemVariant.TwoLines
+                }
+                isSelected={marketingOptInChecked}
+                onPress={setSelection}
+                testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: marketingOptInChecked }}
+                twClassName="mt-2 border border-muted rounded-xl"
+                titleProps={{
+                  variant: TextVariant.BodySm,
+                  testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
+                }}
+                title={
+                  getOauth2LoginSuccess() ? (
+                    strings('choose_password.marketing_opt_in_description')
+                  ) : (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextDefault}
+                      testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                    >
+                      {strings('choose_password.loose_password_description')}{' '}
+                      <TextButton
                         variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
+                        onPress={learnMore}
+                        testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
                       >
-                        {strings('choose_password.loose_password_description')}
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.PrimaryDefault}
-                          onPress={learnMore}
-                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                        >
-                          {' '}
-                          {strings('reset_password.learn_more')}
-                        </Text>
-                      </Text>
-                    )}
-                  </Text>
-                </TouchableOpacity>
-              </Box>
+                        {strings('reset_password.learn_more')}
+                      </TextButton>
+                    </Text>
+                  )
+                }
+              />
               {isAcknowledgementInvalid && (
                 <HelpText severity={HelpTextSeverity.Danger}>
                   {strings('choose_password.acknowledgement_error')}
@@ -1087,6 +1041,7 @@ const ChoosePassword = () => {
                   variant={ButtonVariant.Primary}
                   onPress={onPressCreate}
                   isFullWidth
+                  isLoading={isAwaitingGeolocation}
                   size={ButtonSize.Lg}
                   testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 >
