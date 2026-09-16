@@ -329,6 +329,124 @@ describe('SocialV1View', () => {
     );
   });
 
+  it('tracks Trending tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    mockTrack.mockClear();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_trending',
+        tab_change_method: 'tap',
+      }),
+    );
+  });
+
+  it('tracks swipe tab changes via Follow Trading Interaction', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    mockTrack.mockClear();
+
+    const pager = screen.getByTestId(SocialV1ViewSelectorsIDs.PAGER);
+    act(() => {
+      pager.props.onPageSelected({ nativeEvent: { position: 0 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_trending',
+        tab_change_method: 'swipe',
+      }),
+    );
+  });
+
+  it('does not mislabel a swipe as tap after tapping the already-active tab', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+    mockTrack.mockClear();
+
+    const pager = screen.getByTestId(SocialV1ViewSelectorsIDs.PAGER);
+    act(() => {
+      pager.props.onPageSelected({ nativeEvent: { position: 1 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_following',
+        tab_change_method: 'swipe',
+      }),
+    );
+  });
+
+  it('renders the animated header title', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.HEADER_TITLE),
+    ).toHaveTextContent('homepage.sections.top_traders');
+  });
+
+  it('marks Live trades filters active after applying a draft change', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    );
+    fireEvent.press(screen.getByTestId('social-filters-type-tokens'));
+    fireEvent.press(
+      screen.getByTestId('social-filters-bottom-sheet-show-results'),
+    );
+
+    expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('forwards scroll offsets from the Trending and Following pages', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 12 } } },
+    );
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 24 } } },
+    );
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+    fireEvent.scroll(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.SCROLL_VIEW),
+      { nativeEvent: { contentOffset: { y: 48 } } },
+    );
+  });
+
   it('plays a selection haptic when switching to a different tab', () => {
     renderWithProvider(<SocialV1View />);
 
