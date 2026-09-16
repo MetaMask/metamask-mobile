@@ -12,6 +12,7 @@ import {
   FilterButtonSize,
   SegmentedControl,
   SegmentedControlSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
@@ -127,12 +128,12 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             {ranges.map((range) => {
               const isSelected = selected === range;
               const hasCustomColor = selectedColor && isSelected;
-              const textColorClass = hasCustomColor
+              const textColor = hasCustomColor
                 ? selectedColor.includes('success') ||
                   selectedColor === '#02C84B'
-                  ? 'text-success-inverse'
-                  : 'text-warning-inverse'
-                : '';
+                  ? TextColor.SuccessInverse
+                  : TextColor.WarningInverse
+                : undefined;
 
               return (
                 <FilterButton
@@ -142,9 +143,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                   twClassName={`flex-1 ${
                     hasCustomColor ? `bg-[${selectedColor}]` : ''
                   }`}
-                  textProps={{
-                    twClassName: textColorClass || undefined,
-                  }}
+                  textProps={textColor ? { color: textColor } : undefined}
                 >
                   {range}
                 </FilterButton>

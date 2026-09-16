@@ -14,6 +14,7 @@ import {
   FilterButtonGroup,
   FilterButtonSize,
   FilterButtonVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
@@ -188,12 +189,12 @@ const PriceLegacy = ({
                 {chartNavigationButtons.map((label) => {
                   const isSelected = timePeriod === label;
                   const hasCustomColor = initialAmbientColor && isSelected;
-                  const textColorClass = hasCustomColor
+                  const textColor = hasCustomColor
                     ? initialAmbientColor.includes('success') ||
                       initialAmbientColor === LIGHT_MODE_SUCCESS_GREEN
-                      ? 'text-success-inverse'
-                      : 'text-warning-inverse'
-                    : '';
+                      ? TextColor.SuccessInverse
+                      : TextColor.WarningInverse
+                    : undefined;
 
                   return (
                     <FilterButton
@@ -203,9 +204,7 @@ const PriceLegacy = ({
                       twClassName={`flex-1 ${
                         hasCustomColor ? `bg-[${initialAmbientColor}]` : ''
                       }`}
-                      textProps={{
-                        twClassName: textColorClass || undefined,
-                      }}
+                      textProps={textColor ? { color: textColor } : undefined}
                     >
                       {strings(
                         `asset_overview.chart_time_period_navigation.${label}`,
@@ -249,12 +248,12 @@ const PriceLegacy = ({
                 {chartNavigationButtons.map((label) => {
                   const isSelected = timePeriod === label;
                   const hasCustomColor = initialAmbientColor && isSelected;
-                  const textColorClass = hasCustomColor
+                  const textColor = hasCustomColor
                     ? initialAmbientColor.includes('success') ||
                       initialAmbientColor === LIGHT_MODE_SUCCESS_GREEN
-                      ? 'text-success-inverse'
-                      : 'text-warning-inverse'
-                    : '';
+                      ? TextColor.SuccessInverse
+                      : TextColor.WarningInverse
+                    : undefined;
 
                   return (
                     <FilterButton
@@ -264,9 +263,7 @@ const PriceLegacy = ({
                       twClassName={`flex-1 ${
                         hasCustomColor ? `bg-[${initialAmbientColor}]` : ''
                       }`}
-                      textProps={{
-                        twClassName: textColorClass || undefined,
-                      }}
+                      textProps={textColor ? { color: textColor } : undefined}
                     >
                       {strings(
                         `asset_overview.chart_time_period_navigation.${label}`,
