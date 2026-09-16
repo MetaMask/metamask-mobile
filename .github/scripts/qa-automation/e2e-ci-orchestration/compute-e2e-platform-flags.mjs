@@ -9,6 +9,7 @@
 function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
+    githubRefName = '',
     prBaseRef = '',
     isFork,
     shouldSkipE2E,
@@ -31,6 +32,8 @@ function computeE2EPlatformFlags(input) {
 
   const isStableTarget =
     githubEventName === 'pull_request' && prBaseRef === 'stable';
+  const isMainBranchPush =
+    githubEventName === 'push' && githubRefName === 'main';
 
   // PRs do not build iOS from path filters alone. Labels opt back in — see
   // applyE2ELabelOverrides.
@@ -82,6 +85,11 @@ function computeE2EPlatformFlags(input) {
     android = true;
     ios = true;
     changed = changedSpecFiles;
+  }
+
+  if (isMainBranchPush && ios) {
+    ios = false;
+    message = `${message} — iOS not selected for pushes to main`;
   }
 
   if (isIOSOptInRequiredForPullRequest && ios) {
