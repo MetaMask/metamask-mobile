@@ -37,6 +37,8 @@ interface MembershipBannerProps {
   testID: string;
 }
 
+const formatPercent = (value: number): string => `${value}%`;
+
 const MembershipBanner = ({ testID }: MembershipBannerProps) => (
   <Card
     twClassName="w-full bg-background-section rounded-xl p-4 border-0"
@@ -171,13 +173,17 @@ const ProHub = () => {
             <Box twClassName="gap-y-4">
               <StatRow
                 iconName={IconName.TrendUp}
-                label={strings('pro_hub.money_balance')}
+                label={strings('pro_hub.money_balance', {
+                  apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
+                })}
                 value={MOCK_PRO_HUB_STATS.moneyBalance}
                 testID={ProHubTestIds.MONEY_BALANCE_ROW}
               />
               <StatRow
                 iconName={IconName.Card}
-                label={strings('pro_hub.musd_back')}
+                label={strings('pro_hub.musd_back', {
+                  rate: formatPercent(MOCK_PRO_HUB_STATS.musdBackRate),
+                })}
                 value={MOCK_PRO_HUB_STATS.musdBack}
                 testID={ProHubTestIds.MUSD_BACK_ROW}
               />
