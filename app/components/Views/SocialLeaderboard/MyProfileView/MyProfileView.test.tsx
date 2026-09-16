@@ -5,14 +5,16 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
 }));
 
 jest.mock('./hooks/useMyProfile', () => ({
@@ -142,6 +144,16 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.INSIGHTS_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('opens Manage profile from Edit profile', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MANAGE_PROFILE);
   });
 
   it('retries after profile loading fails', () => {

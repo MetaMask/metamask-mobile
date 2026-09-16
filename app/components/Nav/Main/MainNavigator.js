@@ -175,6 +175,10 @@ import {
   SocialV0View,
   SocialV1View,
   MyProfileView,
+  ManageProfileView,
+  ManageProfileTextEditorView,
+  ManageProfileTradingActivityView,
+  ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -1432,18 +1436,38 @@ const MainNavigator = () => {
         />
       )}
       {isSocialV1Enabled && (
-        <NativeStack.Screen
-          name={Routes.SOCIAL.V1}
-          component={SocialV1View}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
-        />
-      )}
-      {isSocialV1Enabled && (
-        <NativeStack.Screen
-          name={Routes.SOCIAL.MY_PROFILE}
-          component={MyProfileView}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
-        />
+        <>
+          <NativeStack.Screen
+            name={Routes.SOCIAL.V1}
+            component={SocialV1View}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MY_PROFILE}
+            component={MyProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE}
+            component={ManageProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
+            component={ManageProfileTextEditorView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY}
+            component={ManageProfileTradingActivityView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
+            component={ManageProfileLinkedAccountView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+        </>
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
