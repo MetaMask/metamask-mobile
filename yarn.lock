@@ -12261,7 +12261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^27.1.2":
+"@metamask/transaction-pay-controller@npm:27.1.2":
   version: 27.1.2
   resolution: "@metamask/transaction-pay-controller@npm:27.1.2"
   dependencies:
@@ -12287,6 +12287,35 @@ __metadata:
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
   checksum: 10/5e9a324cc8d8e3bbd9b15a92ab1c7142480bd4e068584f004b42afea6f5530881da411c85605e23e30f8ec49b01889b2fec9ae118e2a61d5dea48595bc0eb82d
+  languageName: node
+  linkType: hard
+
+"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A27.1.2#~/.yarn/patches/@metamask-transaction-pay-controller-npm-27.1.2-predict-deposit-order-exact-output.patch":
+  version: 27.1.2
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A27.1.2#~/.yarn/patches/@metamask-transaction-pay-controller-npm-27.1.2-predict-deposit-order-exact-output.patch::version=27.1.2&hash=2614c1"
+  dependencies:
+    "@ethersproject/abi": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/assets-controller": "npm:^15.1.0"
+    "@metamask/assets-controllers": "npm:^111.2.0"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/gas-fee-controller": "npm:^26.3.2"
+    "@metamask/keyring-controller": "npm:^27.1.1"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^36.0.0"
+    "@metamask/ramps-controller": "npm:^20.3.0"
+    "@metamask/remote-feature-flag-controller": "npm:^6.1.1"
+    "@metamask/sentinel-api-service": "npm:^1.0.1"
+    "@metamask/transaction-controller": "npm:^69.8.1"
+    "@metamask/utils": "npm:^11.12.0"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.1"
+    immer: "npm:^9.0.6"
+    lodash: "npm:^4.17.21"
+  checksum: 10/8f71392914dca44628186b73b12fe030a4896044af37f178c91b3ae7f5809bc95a710dac74bfbb04cd05034dd4187657e8f23c296a9a4cabc01368af9fbb7442
   languageName: node
   linkType: hard
 
@@ -39733,7 +39762,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^69.8.1"
-    "@metamask/transaction-pay-controller": "npm:^27.1.2"
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A27.1.2#~/.yarn/patches/@metamask-transaction-pay-controller-npm-27.1.2-predict-deposit-order-exact-output.patch"
     "@metamask/tron-wallet-snap": "npm:^3.2.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^12.0.3"
