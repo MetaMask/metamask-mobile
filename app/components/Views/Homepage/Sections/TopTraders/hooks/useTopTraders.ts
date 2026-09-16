@@ -125,6 +125,7 @@ export const useTopTraders = (
         is30d ? entry.winRate30d : entry.winRate7d,
       ),
       pnlPerChain: entry.pnlPerChain ?? {},
+      followerCount: entry.followerCount ?? 0,
       isFollowing: isFollowing(entry.profileId),
     }));
   }, [data, isFollowing, timeframe]);

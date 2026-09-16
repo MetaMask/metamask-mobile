@@ -1,25 +1,11 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
-import Device from '../../../../../../util/device';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
 
   return StyleSheet.create({
-    modalContainer: {
-      backgroundColor: theme.colors.background.elevated1,
-      borderWidth: 1,
-      borderColor: colors.border.alternative,
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
-      alignItems: 'center',
-      paddingLeft: 16,
-      paddingRight: 16,
-      paddingTop: 16,
-    },
     content: {
       padding: 16,
       backgroundColor: theme.colors.error.muted,

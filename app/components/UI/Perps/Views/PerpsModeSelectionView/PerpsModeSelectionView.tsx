@@ -31,6 +31,7 @@ import {
   dropPerpsHomeFromStackHistory,
   resolvePerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams,
+  withHomeDroppedFromHistory,
 } from '../../utils/perpsModeSwitch';
 
 type ModeSelectionRoute = RouteProp<
@@ -94,10 +95,10 @@ const PerpsModeSelectionView: React.FC = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
+              params: withHomeDroppedFromHistory({
                 market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source,
-              },
+              }),
             },
           ],
         });

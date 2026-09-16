@@ -146,6 +146,21 @@ class ActivitiesView {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
   }
 
+  get backButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.BACK_BUTTON);
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Activity screen back button',
+      timeout: 5_000,
+    });
+    await Assertions.expectElementToNotBeVisible(this.redesignedScreen, {
+      description: 'Activity screen should close',
+      timeout: 5_000,
+    });
+  }
+
   /**
    * Selects redesigned Activity network filter by CAIP (needs tmcuActivityRedesignEnabled).
    */

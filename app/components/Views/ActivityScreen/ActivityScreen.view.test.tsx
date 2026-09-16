@@ -506,10 +506,12 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
+    // Wait for Transactions empty copy — the list shows a spinner until the EVM
+    // query settles, so the empty-state testID is not mounted yet.
+    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
-    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(addFundsLabel));
 
@@ -526,15 +528,23 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { findByTestId, findByText } = renderActivityScreenViewWithRoutes({
-      state: emptyActivityStateFunded().build(),
-      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    const { getAllByText, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state: emptyActivityStateFunded().build(),
+        extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
     });
 
+    expect(await findByText(fundedDescription)).toBeOnTheScreen();
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
-    expect(await findByText(fundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(swapTokensLabel));
 
