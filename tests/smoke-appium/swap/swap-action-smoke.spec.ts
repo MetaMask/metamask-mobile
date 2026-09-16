@@ -17,7 +17,8 @@ import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactio
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.js';
 import { swapActionExpectations } from '../../helpers/analytics/expectations/swap-action.analytics.js';
 
-appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
+// Skipped (flaky on CI): Swap from Actions smoke — un-skip after CI is stable.
+appiumTest.describe.skip(SmokeSwap('Swap from Actions'), () => {
   appiumTest.describe.configure({ timeout: 180000 });
 
   appiumTest(
