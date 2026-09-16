@@ -12,9 +12,9 @@ on:
       - stable
   merge_group:
   schedule:
-    # Scheduled workflows run from the default main branch. Run iOS E2E hourly
-    # from 06:00 through 23:00 UTC on weekdays.
-    - cron: '0 6-23 * * 1-5'
+    # Scheduled workflows run from the default main branch. Run iOS E2E every
+    # two hours from 06:00 through 22:00 UTC on weekdays.
+    - cron: '0 6-22/2 * * 1-5'
     # Run iOS E2E twice per day on Saturday and Sunday.
     - cron: '0 12,20 * * 0,6'
   workflow_call:
@@ -56,7 +56,7 @@ on:
 
 concurrency:
   # Scheduled runs must not share the main-branch SHA group. A schedule that
-  # takes longer than the hourly cadence would otherwise replace the previous
+  # takes longer than the two-hour cadence would otherwise replace the previous
   # pending run when the next schedule is created.
   group: >-
     ${{ github.workflow }}-${{
