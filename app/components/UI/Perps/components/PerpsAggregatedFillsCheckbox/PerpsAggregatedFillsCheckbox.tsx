@@ -1,11 +1,13 @@
 import React from 'react';
 import {
-  Checkbox,
-  FontWeight,
-  TextColor,
-  TextVariant,
+  Box,
+  ButtonBase,
+  ButtonBaseSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 
 export interface PerpsAggregatedFillsCheckboxProps {
@@ -15,36 +17,41 @@ export interface PerpsAggregatedFillsCheckboxProps {
 }
 
 /**
- * MMDS checkbox that toggles same-block fill aggregation on Perps activity
- * lists. Checked (aggregated) is the default, matching Hyperliquid.
- *
- * Styled to match the `ButtonBase` filter chips it sits next to: same pill
- * (`bg-muted`, `rounded-full`), same 40px height and 16px horizontal padding,
- * same `BodyMd`/`Medium` label, and the same 4px gap the chips put between
- * their label and chevron.
+ * Pill control that toggles same-block fill aggregation on Perps activity
+ * lists. Its 16px checkbox matches the compact control specified in Figma,
+ * while ButtonBase provides the same pill and typography as adjacent filters.
  */
 const PerpsAggregatedFillsCheckbox: React.FC<
   PerpsAggregatedFillsCheckboxProps
-> = ({ isSelected, onChange, testID }) => {
-  const tw = useTailwind();
-
-  return (
-    <Checkbox
-      label={strings('perps.transactions.aggregated')}
-      labelProps={{
-        variant: TextVariant.BodyMd,
-        fontWeight: FontWeight.Medium,
-        color: TextColor.TextDefault,
-        // Checkbox hardcodes a 12px label offset in its own twClassName, and
-        // `style` is the only prop applied after it.
-        style: tw.style('ml-1'),
-      }}
-      twClassName="h-10 self-start rounded-full bg-muted px-4"
-      isSelected={isSelected}
-      onChange={onChange}
-      testID={testID}
-    />
-  );
-};
+> = ({ isSelected, onChange, testID }) => (
+  <ButtonBase
+    size={ButtonBaseSize.Md}
+    startAccessory={
+      <Box
+        testID={testID ? `${testID}-box` : undefined}
+        twClassName={`size-4 shrink-0 items-center justify-center rounded border ${
+          isSelected ? 'border-icon-default bg-icon-default' : 'border-default'
+        }`}
+      >
+        {isSelected ? (
+          <Icon
+            testID={testID ? `${testID}-check-icon` : undefined}
+            name={IconName.Check}
+            size={IconSize.Sm}
+            color={IconColor.IconInverse}
+          />
+        ) : null}
+      </Box>
+    }
+    contentWrapperProps={{ style: { gap: 6 } }}
+    twClassName="pl-4"
+    accessibilityRole="checkbox"
+    accessibilityState={{ checked: isSelected }}
+    onPress={() => onChange(!isSelected)}
+    testID={testID}
+  >
+    {strings('perps.transactions.aggregated')}
+  </ButtonBase>
+);
 
 export default PerpsAggregatedFillsCheckbox;

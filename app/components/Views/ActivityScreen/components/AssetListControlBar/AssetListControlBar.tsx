@@ -4,13 +4,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   ButtonBase,
   ButtonBaseSize,
-  Checkbox,
-  FontWeight,
   IconName,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import PerpsAggregatedFillsCheckbox from '../../../../UI/Perps/components/PerpsAggregatedFillsCheckbox';
 
 /**
  * Describes a single filter chip: its label, press handler, and the testID to
@@ -66,37 +62,6 @@ const FilterChip: React.FC<{
 );
 
 /**
- * The Aggregated checkbox, styled as a chip so it matches the `FilterChip`s it
- * sits beside: same pill (`bg-muted`, `rounded-full`), same 40px height and
- * 16px horizontal padding, same `BodyMd`/`Medium` label, and the same 4px gap
- * the chips put between their label and chevron.
- */
-const CheckboxChip: React.FC<{
-  toggle: AggregatedToggleDescriptor;
-  suppressTestID: boolean;
-}> = ({ toggle, suppressTestID }) => {
-  const tw = useTailwind();
-
-  return (
-    <Checkbox
-      label={strings('activity_view.aggregated')}
-      labelProps={{
-        variant: TextVariant.BodyMd,
-        fontWeight: FontWeight.Medium,
-        color: TextColor.TextDefault,
-        // Checkbox hardcodes a 12px label offset in its own twClassName, and
-        // `style` is the only prop applied after it.
-        style: tw.style('ml-1'),
-      }}
-      twClassName="h-10 self-start rounded-full bg-muted px-4"
-      isSelected={toggle.isSelected}
-      onChange={toggle.onChange}
-      testID={suppressTestID ? undefined : toggle.testID}
-    />
-  );
-};
-
-/**
  * Horizontally-scrollable filter chip row for the Activity screen — mirrors
  * the extension's `AssetListControlBar` pattern. Pure presentational: the
  * parent screen owns filter state, label resolution, and opens filter sheets
@@ -124,9 +89,10 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
         <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
       ) : null}
       {aggregatedToggle ? (
-        <CheckboxChip
-          toggle={aggregatedToggle}
-          suppressTestID={suppressTestIDs}
+        <PerpsAggregatedFillsCheckbox
+          isSelected={aggregatedToggle.isSelected}
+          onChange={aggregatedToggle.onChange}
+          testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
         />
       ) : null}
     </ScrollView>
