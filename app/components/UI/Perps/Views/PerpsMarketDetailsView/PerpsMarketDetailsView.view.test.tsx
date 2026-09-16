@@ -25,10 +25,13 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import {
+  createPerpsControllerStateHarness,
+  getModifyActionLabels,
+} from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { updateBgState } from '../../../../../core/redux/slices/engine';
+import EngineService from '../../../../../core/EngineService';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -67,20 +70,6 @@ function renderEligibleNoPositionPerpsDetails(
     ...params,
   });
 }
-
-const syncPerpsControllerState = (
-  store: ReturnType<typeof renderPerpsMarketDetailsView>['store'],
-  nextState: Record<string, unknown>,
-) => {
-  const engineWithState = Engine as unknown as {
-    state?: Record<string, unknown>;
-  };
-  engineWithState.state = {
-    ...(engineWithState.state ?? {}),
-    PerpsController: nextState,
-  };
-  store.dispatch(updateBgState({ key: 'PerpsController' }));
-};
 
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {
@@ -504,6 +493,21 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Header and chart actions', () => {
+    const cleanupCallbacks: (() => void)[] = [];
+
+    afterEach(() => {
+      while (cleanupCallbacks.length > 0) {
+        cleanupCallbacks.pop()?.();
+      }
+
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      toggleWatchlistMarket.mockReset().mockResolvedValue(undefined);
+      getWatchlistMarkets.mockReset().mockReturnValue([]);
+    });
+
     it('renders back button and fullscreen chart button', async () => {
       renderEligibleNoPositionPerpsDetails();
 
@@ -576,6 +580,8 @@ describe('PerpsMarketDetailsView', () => {
     it('switches from removing to adding after the watchlist state updates', async () => {
       let watchlist = ['ETH'];
       const toggleStates: boolean[] = [];
+      const persistResolvers: (() => void)[] = [];
+      const persistPromises: Promise<void>[] = [];
       const toggleWatchlistMarket = Engine.context.PerpsController
         .toggleWatchlistMarket as jest.Mock;
       const getWatchlistMarkets = Engine.context.PerpsController
@@ -598,6 +604,12 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
       });
+      const stateHarness = createPerpsControllerStateHarness(store);
+      cleanupCallbacks.push(stateHarness.cleanup);
+      const flushStateSpy = jest
+        .spyOn(EngineService, 'flushState')
+        .mockImplementation(stateHarness.flush);
+      cleanupCallbacks.push(() => flushStateSpy.mockRestore());
 
       toggleWatchlistMarket.mockImplementation((symbol: string) => {
         toggleStates.push(watchlist.includes(symbol));
@@ -605,8 +617,7 @@ describe('PerpsMarketDetailsView', () => {
           ? watchlist.filter((marketSymbol) => marketSymbol !== symbol)
           : [...watchlist, symbol];
 
-        syncPerpsControllerState(store, {
-          isEligible: true,
+        stateHarness.stage({
           isTestnet: false,
           watchlistMarkets: {
             testnet: [],
@@ -614,18 +625,30 @@ describe('PerpsMarketDetailsView', () => {
           },
         });
 
-        return Promise.resolve();
+        const persistPromise = new Promise<void>((resolve) => {
+          persistResolvers.push(resolve);
+        });
+        persistPromises.push(persistPromise);
+        return persistPromise;
       });
 
       const favoriteButton = await screen.findByTestId(
         PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
       );
-      expect(screen.getByLabelText('Remove from watchlist')).toBeOnTheScreen();
+      expect(
+        screen.getByLabelText(
+          strings('perps.market_details.remove_from_watchlist'),
+        ),
+      ).toBeOnTheScreen();
 
       fireEvent.press(favoriteButton);
 
       await waitFor(() => {
-        expect(screen.getByLabelText('Add to watchlist')).toBeOnTheScreen();
+        expect(
+          screen.getByLabelText(
+            strings('perps.market_details.add_to_watchlist'),
+          ),
+        ).toBeOnTheScreen();
       });
       expect(toggleStates).toEqual([true]);
 
@@ -636,9 +659,99 @@ describe('PerpsMarketDetailsView', () => {
       await waitFor(() => {
         expect(toggleStates).toEqual([true, false]);
         expect(
-          screen.getByLabelText('Remove from watchlist'),
+          screen.getByLabelText(
+            strings('perps.market_details.remove_from_watchlist'),
+          ),
         ).toBeOnTheScreen();
       });
+
+      await act(async () => {
+        persistResolvers.forEach((resolve) => resolve());
+        await Promise.all(persistPromises);
+      });
+    });
+
+    it('restores the filled star after watchlist persistence reverts', async () => {
+      let watchlist = ['ETH'];
+      let resolvePersist: () => void = () => undefined;
+      let persistPromise: Promise<void> = Promise.resolve();
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockImplementation(() => watchlist);
+
+      const { store } = renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                isEligible: true,
+                isTestnet: false,
+                watchlistMarkets: {
+                  testnet: [],
+                  mainnet: ['ETH'],
+                },
+              },
+            },
+          },
+        },
+      });
+      const stateHarness = createPerpsControllerStateHarness(store);
+      cleanupCallbacks.push(stateHarness.cleanup);
+      const flushStateSpy = jest
+        .spyOn(EngineService, 'flushState')
+        .mockImplementation(stateHarness.flush);
+      cleanupCallbacks.push(() => flushStateSpy.mockRestore());
+
+      toggleWatchlistMarket.mockImplementation(() => {
+        watchlist = [];
+        stateHarness.stage({
+          isTestnet: false,
+          watchlistMarkets: {
+            testnet: [],
+            mainnet: watchlist,
+          },
+        });
+        persistPromise = new Promise<void>((resolve) => {
+          resolvePersist = () => {
+            watchlist = ['ETH'];
+            stateHarness.stage({
+              isTestnet: false,
+              watchlistMarkets: {
+                testnet: [],
+                mainnet: watchlist,
+              },
+            });
+            resolve();
+          };
+        });
+        return persistPromise;
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByLabelText(
+          strings('perps.market_details.add_to_watchlist'),
+        ),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolvePersist();
+        await persistPromise;
+      });
+
+      expect(
+        await screen.findByLabelText(
+          strings('perps.market_details.remove_from_watchlist'),
+        ),
+      ).toBeOnTheScreen();
+      expect(flushStateSpy).toHaveBeenCalledTimes(2);
     });
 
     it('shows Lite header actions without the Pro wallet button', async () => {

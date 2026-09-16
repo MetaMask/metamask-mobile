@@ -13,6 +13,28 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import usePerpsToasts from './usePerpsToasts';
 import { WATCHLIST_LIMIT } from '../utils/marketUtils';
 
+/**
+ * Delivers pending controller state before the default 250 ms batch window can
+ * leave the watchlist button stale. Redux delivery is best-effort and must not
+ * turn a successful controller update into a failed watchlist action.
+ */
+const flushEngineState = (): void => {
+  try {
+    EngineService.flushState();
+  } catch (error) {
+    Logger.error(
+      ensureError(error, 'usePerpsWatchlistActions.flushEngineState'),
+      {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsWatchlistActions',
+          action: 'flush_engine_state',
+        },
+      },
+    );
+  }
+};
+
 interface UsePerpsWatchlistActionsResult {
   /**
    * Adds a market to the watchlist.
@@ -55,10 +77,9 @@ export const usePerpsWatchlistActions = (
 
         // Not awaited: the controller applies its local update synchronously
         // and only then persists to AUS. Awaiting the network write delayed the
-        // toast and its haptic by the round-trip. Failures surface through the
-        // rejection handler below, matching useEnableMarketingConsent.
+        // toast and its haptic by the round-trip. The controller handles AUS
+        // failures by reverting its optimistic update before resolving.
         const persisted = controller.toggleWatchlistMarket(symbol);
-        EngineService.flushState();
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (watchlistAfter.includes(symbol)) {
@@ -74,8 +95,9 @@ export const usePerpsWatchlistActions = (
           showToast(PerpsToastOptions.watchlist.added(symbol));
         }
 
+        flushEngineState();
         await persisted.finally(() => {
-          EngineService.flushState();
+          flushEngineState();
         });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
@@ -102,7 +124,6 @@ export const usePerpsWatchlistActions = (
         const controller = Engine.context.PerpsController;
         // Not awaited before the toast — see addToWatchlist.
         const persisted = controller.toggleWatchlistMarket(symbol);
-        EngineService.flushState();
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (!watchlistAfter.includes(symbol)) {
@@ -118,8 +139,9 @@ export const usePerpsWatchlistActions = (
           showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
 
+        flushEngineState();
         await persisted.finally(() => {
-          EngineService.flushState();
+          flushEngineState();
         });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
@@ -134,8 +156,6 @@ export const usePerpsWatchlistActions = (
           },
         });
 
-        // The removed toast has already shown against optimistic state, so it
-        // has to be corrected once the controller reverts the star.
         showToast(PerpsToastOptions.watchlist.removeError);
       }
     },
