@@ -27,7 +27,7 @@ export const OrderAmountInput = ({
   onAmountChange,
 }: OrderAmountInputProps) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
 
   return (
     <Box twClassName="gap-4">
@@ -45,7 +45,7 @@ export const OrderAmountInput = ({
           keyboardType="decimal-pad"
           placeholder="0"
           placeholderTextColor={colors.text.alternative}
-          keyboardAppearance="dark"
+          keyboardAppearance={themeAppearance}
           accessible
           accessibilityLabel={strings('predict_next.order_preview.amount')}
         />

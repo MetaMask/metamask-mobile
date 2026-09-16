@@ -5,14 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
+// The gesture-handler ScrollView participates in the sheet's own pan
+// gestures; the react-native one can refuse to scroll inside a
+// gesture-handler BottomSheet on Android.
 import {
-  ActivityIndicator,
-  Modal,
+  GestureHandlerRootView,
   ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+} from 'react-native-gesture-handler';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -109,33 +109,47 @@ export const PredictOrderFlowSheet = ({
     requestIdRef.current += 1;
   }, [intent]);
 
-  // Digits with at most one dot and two decimals, at most 9 integer digits.
+  // Digits with at most one dot and two decimals, at most 9 integer digits,
+  // in canonical form: no leading zeros ('05' becomes '5', matching the
+  // backend amount contract) and a bare leading dot gets a zero ('.5'
+  // becomes '0.5').
   const sanitizeAmount = useCallback((next: string) => {
     const cleaned = next.replace(/[^0-9.]/gu, '');
     const dotIndex = cleaned.indexOf('.');
+    const whole = (dotIndex === -1 ? cleaned : cleaned.slice(0, dotIndex))
+      .slice(0, 9)
+      .replace(/^0+(?=\d)/u, '');
     if (dotIndex === -1) {
-      return cleaned.slice(0, 9);
+      return whole;
     }
-    return `${cleaned.slice(0, dotIndex).slice(0, 9)}.${cleaned
+    const decimals = cleaned
       .slice(dotIndex + 1)
       .replace(/\./gu, '')
-      .slice(0, 2)}`;
+      .slice(0, 2);
+    return `${whole.length > 0 ? whole : '0'}.${decimals}`;
   }, []);
 
-  const isQuoteable =
-    amount.length > 0 &&
-    Number(amount) >= MINIMUM_AMOUNT &&
-    /^\d{1,9}(\.\d{1,2})?$/u.test(amount);
+  const isQuotable =
+    /^\d{1,9}(\.\d{1,2})?$/u.test(amount) && Number(amount) >= MINIMUM_AMOUNT;
 
-  // Re-quote whenever the amount changes; stale responses are discarded.
+  // A dot with a zero whole part can never grow past the minimum ($0.99 at
+  // best), so that input is settled below the minimum. Anything else
+  // non-quotable is partial input still being typed and must not read as an
+  // error.
+  const isBelowMinimum = /^0\./u.test(amount);
+
+  // Re-quote whenever the amount changes; stale responses are discarded. The
+  // request id is bumped before the quotable check so an in-flight quote is
+  // also discarded when the amount stops being quotable.
   useEffect(() => {
-    if (!isQuoteable) {
+    requestIdRef.current += 1;
+    if (!isQuotable) {
       setIsQuoting(false);
       setPreview(null);
       setQuoteError(null);
       return;
     }
-    const requestId = ++requestIdRef.current;
+    const requestId = requestIdRef.current;
     setIsQuoting(true);
     setQuoteError(null);
     const timeout = setTimeout(() => {
@@ -167,7 +181,7 @@ export const PredictOrderFlowSheet = ({
     }, QUOTE_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
-  }, [amount, intent, isQuoteable, quoteNonce, service]);
+  }, [amount, intent, isQuotable, quoteNonce, service]);
 
   // Flip the live preview to expired the moment its expiry passes.
   useEffect(() => {
@@ -183,7 +197,10 @@ export const PredictOrderFlowSheet = ({
   }, [preview, now]);
 
   const isExpired = preview !== null && service.isExpired(preview, now);
-  const canApprove = phase === 'input' && preview !== null && !isExpired;
+  // A fresh quote loading for the changed amount hides the previous preview:
+  // Approve must wait for the quote the user can actually see.
+  const canApprove =
+    phase === 'input' && preview !== null && !isQuoting && !isExpired;
 
   const handleRefresh = useCallback(() => {
     // Re-quote the unchanged intent by restarting the quote effect.
@@ -208,8 +225,8 @@ export const PredictOrderFlowSheet = ({
   }, [canApprove, intent.venueId, preview, service]);
 
   const quoteContent = useMemo(() => {
-    if (!isQuoteable) {
-      return amount.length > 0 ? (
+    if (!isQuotable) {
+      return isBelowMinimum ? (
         <Text
           variant={TextVariant.BodySm}
           twClassName="text-center text-error-default"
@@ -279,11 +296,11 @@ export const PredictOrderFlowSheet = ({
     }
     return null;
   }, [
-    amount.length,
     handleRefresh,
+    isBelowMinimum,
     isExpired,
     isQuoting,
-    isQuoteable,
+    isQuotable,
     preview,
     quoteError,
   ]);

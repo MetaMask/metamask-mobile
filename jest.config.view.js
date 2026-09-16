@@ -7,12 +7,6 @@ const baseConfig = require('./jest.config.js');
 // (`babel-plugin-transform-inline-environment-variables` in babel.config.js),
 // so `process.env.X` reads in app code are substituted with whatever value the
 // var has when babel runs — runtime mutation from `mocks.ts` or
-// The Predict Order Flow transport bakes its base URL at first compile via
-// babel's inline-environment-variables plugin. Provide a deterministic origin
-// for every run (CI included); component-view tests stub global fetch.
-process.env.MM_PREDICT_API_URL =
-  process.env.MM_PREDICT_API_URL || 'https://predict.api.test';
-
 // `setupFilesAfterEnv` is too late. Setting `HAS_TEST_OVERRIDES=true` here, at
 // config-load time before babel compiles any test file, opts view tests into
 // the same `hasTestOverrides` shortcut smoke tests already use; this avoids mocking the
@@ -25,6 +19,12 @@ process.env.MM_PREDICT_API_URL =
 // point view tests can seed the flag through Redux state like every other
 // feature already does.
 process.env.HAS_TEST_OVERRIDES = 'true';
+
+// The Predict Order Flow transport bakes its base URL at first compile via
+// babel's inline-environment-variables plugin. Provide a deterministic origin
+// for every run (CI included); component-view tests stub global fetch.
+process.env.MM_PREDICT_API_URL =
+  process.env.MM_PREDICT_API_URL || 'https://predict.api.test';
 
 module.exports = {
   ...baseConfig,

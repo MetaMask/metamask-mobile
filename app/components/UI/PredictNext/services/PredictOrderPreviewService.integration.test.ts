@@ -140,4 +140,38 @@ describe('PredictNext Order Preview request', () => {
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
+
+  it('binds the requested amount: a mismatched echo fails validation', async () => {
+    const harness = buildPredictNextIntegrationHarness((url, init) =>
+      String(url).endsWith('/orders/preview') && init?.method === 'POST'
+        ? {
+            body: { ...previewResponse, requestedAmount: '50.00' },
+          }
+        : { status: 404 },
+    );
+
+    await expect(
+      buildService(harness).requestQuote({
+        marketId: 'KXTEST-26-A' as never,
+        side: 'yes',
+        amount: '20.00' as never,
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+  });
+
+  it('accepts an amount echo that differs only in trailing zeros', async () => {
+    const harness = buildPredictNextIntegrationHarness((url, init) =>
+      String(url).endsWith('/orders/preview') && init?.method === 'POST'
+        ? { body: previewResponse }
+        : { status: 404 },
+    );
+
+    const result = await buildService(harness).requestQuote({
+      marketId: 'KXTEST-26-A' as never,
+      side: 'yes',
+      amount: '20' as never,
+    });
+
+    expect(result.previewId).toBe(previewResponse.previewId);
+  });
 });

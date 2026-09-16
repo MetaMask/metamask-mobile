@@ -8,6 +8,7 @@ export enum PredictErrorCode {
   GEO_BLOCKED = 'GEO_BLOCKED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
   SERVICE_DEGRADED = 'SERVICE_DEGRADED',
+  MARKET_NOT_FOUND = 'MARKET_NOT_FOUND',
   MARKET_NOT_TRADEABLE = 'MARKET_NOT_TRADEABLE',
   QUOTE_UNAVAILABLE = 'QUOTE_UNAVAILABLE',
   BALANCE_UNAVAILABLE = 'BALANCE_UNAVAILABLE',
@@ -76,6 +77,11 @@ export const predictErrorRegistry: Record<
     category: 'degraded',
     message: 'Prediction data may be temporarily out of date.',
     recoverable: true,
+  },
+  [PredictErrorCode.MARKET_NOT_FOUND]: {
+    category: 'action_failed',
+    message: 'This prediction market could not be found.',
+    recoverable: false,
   },
   [PredictErrorCode.MARKET_NOT_TRADEABLE]: {
     category: 'action_failed',

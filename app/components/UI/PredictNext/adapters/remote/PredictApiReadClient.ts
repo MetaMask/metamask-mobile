@@ -264,14 +264,14 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     if (!token?.trim()) {
       throw new PredictHttpError(401);
     }
-    return this.#post(segments, body, options, token);
+    return this.#post(segments, body, token, options);
   }
 
   async #post(
     segments: readonly string[],
     body: FetchOrderPreviewParams,
+    bearerToken: string,
     options?: PredictReadOptions,
-    bearerToken?: string,
   ): Promise<unknown> {
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
@@ -285,7 +285,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         'Content-Type': 'application/json',
         'x-metamask-clientproduct': 'metamask-mobile',
         'x-metamask-clientversion': this.#clientVersion,
-        ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+        Authorization: `Bearer ${bearerToken}`,
       },
       body: JSON.stringify(body),
       signal: options?.signal,

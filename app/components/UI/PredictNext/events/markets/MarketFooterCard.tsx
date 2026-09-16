@@ -14,6 +14,7 @@ import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictTeam } from '../../types';
 import type { GameSelectionQuote } from '../game';
 import { formatAskPrice } from '../shared/formatting';
+import { isOutcomeTradeable } from '../shared/tradeable';
 import { MarketFooterCardTestIds } from './MarketFooterCard.testIds';
 
 export interface MarketFooterCardProps {
@@ -21,7 +22,7 @@ export interface MarketFooterCardProps {
   awayQuote: GameSelectionQuote;
   homeQuote: GameSelectionQuote;
   drawQuote?: GameSelectionQuote;
-  /** Starts the Order flow for the Yes side of the quote's Outcome. */
+  /** Starts the Order flow for the Yes Outcome of the quote's winner Market. */
   onOrder: (quote: GameSelectionQuote) => void;
 }
 
@@ -45,8 +46,15 @@ const FooterButton = ({
   textColor?: string;
   onOrder: (quote: GameSelectionQuote) => void;
 }) => {
-  const price = formatAskPrice(quote.outcome.askPrice);
+  // The quote's Outcome carries the Game Selection tag for the dual-line
+  // chart and may be the No side; a Team control displays and trades the Yes
+  // side of the winner Market.
+  const tradingOutcome =
+    quote.market.outcomes.find((outcome) => outcome.side === 'yes') ??
+    quote.outcome;
+  const price = formatAskPrice(tradingOutcome.askPrice);
   const displayLabel = price ? `${label} · ${price}` : label;
+  const isTradeable = isOutcomeTradeable(quote.market, tradingOutcome);
 
   return (
     <Button
@@ -56,10 +64,10 @@ const FooterButton = ({
           ? `${accessibilityName}, ${price}`
           : `${accessibilityName}, ${strings('predict.market.footer_price_unavailable')}`
       }
-      accessibilityState={{ disabled: false }}
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      onPress={() => onOrder(quote)}
+      isDisabled={!isTradeable}
+      onPress={() => onOrder({ market: quote.market, outcome: tradingOutcome })}
       style={[{ backgroundColor }]}
       twClassName="h-12 min-w-0 flex-1 rounded-xl px-2"
     >

@@ -12,7 +12,9 @@ import type { PredictOrderPreview } from '../../../types';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
-const formatUsd = (value: string): string => `$${value}`;
+/** Formats a canonical amount as USD, keeping the sign before the dollar. */
+const formatUsd = (value: string): string =>
+  value.startsWith('-') ? `-$${value.slice(1)}` : `$${value}`;
 
 const QuoteRow = ({
   label,

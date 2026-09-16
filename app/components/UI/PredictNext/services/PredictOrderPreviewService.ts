@@ -51,11 +51,6 @@ export class PredictOrderPreviewService {
     params: PredictOrderPreviewParams,
     options?: { signal?: AbortSignal },
   ): Promise<PredictOrderPreview> {
-    if (params.marketId.length === 0) {
-      throw PredictError.from(PredictErrorCode.INVALID_RESPONSE, {
-        message: 'Order intent is missing a market.',
-      });
-    }
     // Never cache or retry: the quote reflects liquidity at request time and
     // the result is bound to an expiring previewId.
     return withPredictNextTrace(

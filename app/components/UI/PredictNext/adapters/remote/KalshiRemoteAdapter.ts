@@ -24,7 +24,7 @@ import {
 
 /** Backend canonical preview error codes → client error codes. */
 const PREVIEW_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
-  market_not_found: PredictErrorCode.MARKET_NOT_TRADEABLE,
+  market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
   market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
   balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
@@ -34,6 +34,15 @@ const PREVIEW_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
 
 const isAbortError = (error: unknown): error is Error =>
   error instanceof Error && error.name === 'AbortError';
+
+/**
+ * Compares two canonical decimal amounts by value: the backend echoes the
+ * requested amount normalized to two decimals, so '20' and '20.00' are the
+ * same amount and a naive string compare would reject valid echoes.
+ */
+const isSameAmount = (left: string, right: string): boolean =>
+  left.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '') ===
+  right.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '');
 
 const mapError = (error: unknown): never => {
   if (isAbortError(error) || error instanceof PredictError) {
@@ -93,7 +102,8 @@ export class KalshiRemoteAdapter {
           if (
             result.venueId !== this.venueId ||
             result.marketId !== params.marketId ||
-            result.side !== params.side
+            result.side !== params.side ||
+            !isSameAmount(result.requestedAmount, params.amount)
           ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

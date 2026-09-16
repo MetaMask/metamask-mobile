@@ -103,6 +103,21 @@ const typeAmount = (amount: string) => {
   fireEvent.changeText(textInput, amount);
 };
 
+/**
+ * Stubs a Preview whose requestedAmount echoes the request body, as the
+ * backend does (normalized to two decimals). The adapter rejects a Preview
+ * bound to a different amount than the requested one.
+ */
+const stubEchoingPreview = () =>
+  stubFetch((_url, init) => {
+    const body = JSON.parse(String(init?.body)) as { amount: string };
+    return {
+      body: makePreview({
+        requestedAmount: Number(body.amount).toFixed(2),
+      }),
+    };
+  });
+
 describe('PredictOrderFlow', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -196,7 +211,7 @@ describe('PredictOrderFlow', () => {
   });
 
   it('re-quotes and discards the old preview when the amount changes', async () => {
-    stubFetch(() => ({ body: makePreview() }));
+    stubEchoingPreview();
 
     openSheet();
     typeAmount('20');
@@ -219,8 +234,99 @@ describe('PredictOrderFlow', () => {
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   });
 
+  it('keeps Approve disabled while a fresh quote loads for the changed amount', async () => {
+    stubEchoingPreview();
+
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+    );
+
+    typeAmount('50');
+    // The previous preview is hidden while the fresh quote loads: it must
+    // not stay approvable underneath the spinner.
+    expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
+
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+    );
+    expect(previewCalls()).toHaveLength(2);
+  });
+
+  it('discards an in-flight quote when the amount stops being quotable', async () => {
+    // Hold the response so the quote is still in flight when the amount
+    // changes; the stale response must never repopulate the preview.
+    let resolveQuote: (reply: FetchReply) => void = () => undefined;
+    fetchMock.mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveQuote = (reply) =>
+            resolve({
+              ok: true,
+              status: 200,
+              json: async () => reply.body,
+            } as Response);
+        }),
+    );
+
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+    typeAmount('0.50');
+    await act(async () => {
+      resolveQuote({ body: makePreview() });
+    });
+
+    expect(previewCalls()).toHaveLength(1);
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
+    ).toBeNull();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
+    expect(screen.getByText(/Enter at least \$1/)).toBeOnTheScreen();
+  });
+
+  it('canonicalizes the amount before quoting: no leading zeros reach the API', async () => {
+    stubEchoingPreview();
+
+    openSheet();
+    typeAmount('05');
+    await flushDebounce();
+
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
+      ).not.toBeNull(),
+    );
+    expect(previewCalls()[0]?.body).toEqual({
+      marketId: 'KXTEST-26-A',
+      side: 'yes',
+      amount: '5',
+    });
+  });
+
+  it('treats partial input as typing, not as a minimum error', async () => {
+    stubEchoingPreview();
+
+    openSheet();
+    typeAmount('1.');
+
+    expect(screen.queryByText(/Enter at least \$1/)).toBeNull();
+    expect(previewCalls()).toHaveLength(0);
+
+    typeAmount('1.50');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.QUOTE),
+      ).not.toBeNull(),
+    );
+  });
+
   it('fills quick amounts and quotes them', async () => {
-    stubFetch(() => ({ body: makePreview() }));
+    stubEchoingPreview();
 
     openSheet();
     fireEvent.press(
