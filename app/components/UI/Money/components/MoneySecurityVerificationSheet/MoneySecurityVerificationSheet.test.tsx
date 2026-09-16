@@ -191,24 +191,6 @@ describe('MoneySecurityVerificationSheet', () => {
     });
   });
 
-  it('rejects the demo invalid code', () => {
-    mockPasskeyCount = 0;
-    mockIsAuthenticatorAdded = false;
-    mockIsSmsAdded = true;
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneySecurityVerificationSheet />,
-    );
-
-    fireEvent.changeText(
-      getByTestId(MoneySecurityVerificationSheetTestIds.CODE_INPUT),
-      '000000',
-    );
-    act(() => jest.advanceTimersByTime(250));
-
-    expect(getByText('This code is not correct. Try again.')).toBeOnTheScreen();
-    expect(mockSetTransactionVerificationEnabled).not.toHaveBeenCalled();
-  });
-
   it('completes a prototype transaction after passkey verification', () => {
     mockAction = { type: 'verify-transaction' };
     mockIsAuthenticatorAdded = false;
@@ -272,10 +254,19 @@ describe('MoneySecurityVerificationSheet', () => {
     expect(
       getByTestId(MoneySecurityVerificationSheetTestIds.SMS_METHOD),
     ).toHaveProp('accessibilityState', { selected: false });
-    expect(mockShowSuccessToast).toHaveBeenCalledWith(
-      'Transaction needs to be verified before sending funds.',
-      'error',
+
+    fireEvent.press(
+      getByTestId(MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD),
     );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.AUTHENTICATOR, {
+      entryPoint: 'security',
+      initialStep: 'verify',
+      verificationAction: { type: 'verify-transaction' },
+      fallbackToMethodChooser: true,
+      showCloseButton: false,
+    });
+    expect(mockShowSuccessToast).not.toHaveBeenCalled();
   });
 
   it('opens the fallback chooser when the initial method sheet is dismissed', () => {
@@ -295,6 +286,23 @@ describe('MoneySecurityVerificationSheet', () => {
         showMethodChooser: true,
       },
     });
+    expect(mockShowSuccessToast).not.toHaveBeenCalled();
+  });
+
+  it('shows the error after the fallback chooser is dismissed', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockIsSmsAdded = true;
+    mockShowMethodChooser = true;
+    const { getByTestId } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    fireEvent.press(getByTestId('mock-header-close'));
+
+    expect(mockShowSuccessToast).toHaveBeenCalledWith(
+      'Transaction needs to be verified before sending funds.',
+      'error',
+    );
   });
 
   it('opens directly into the only available transaction method', () => {
@@ -302,16 +310,14 @@ describe('MoneySecurityVerificationSheet', () => {
     mockPasskeyCount = 0;
     mockIsAuthenticatorAdded = false;
     mockIsSmsAdded = true;
-    const { getByTestId, queryByText } = renderWithProvider(
-      <MoneySecurityVerificationSheet />,
-    );
+    renderWithProvider(<MoneySecurityVerificationSheet />);
 
-    expect(
-      getByTestId(MoneySecurityVerificationSheetTestIds.CODE_INPUT),
-    ).toBeOnTheScreen();
-    expect(queryByText('or')).not.toBeOnTheScreen();
-    expect(
-      queryByText('Choose a security method to continue.'),
-    ).not.toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SMS_SETUP, {
+      initialStep: 'verify',
+      verificationAction: { type: 'verify-transaction' },
+      fallbackToMethodChooser: false,
+      showCloseButton: true,
+    });
+    expect(mockShowSuccessToast).not.toHaveBeenCalled();
   });
 });

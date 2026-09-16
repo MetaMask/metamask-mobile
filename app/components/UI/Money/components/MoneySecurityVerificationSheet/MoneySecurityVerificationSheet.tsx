@@ -147,6 +147,7 @@ const MoneySecurityVerificationSheet = () => {
   const codeInputRef = useRef<TextInput>(null);
   const hasCompletedRef = useRef(false);
   const hasAutoRoutedAuthenticatorRef = useRef(false);
+  const hasAutoRoutedSmsRef = useRef(false);
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
   const [isVerifyingPasskey, setIsVerifyingPasskey] = useState(false);
@@ -206,7 +207,6 @@ const MoneySecurityVerificationSheet = () => {
 
   const handleSheetGoBack = useCallback(() => {
     if (isTransactionVerification) {
-      showTransactionVerificationError();
       if (selectedMethod && availableMethods.length > 1) {
         navigation.goBack();
         navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -218,6 +218,7 @@ const MoneySecurityVerificationSheet = () => {
         });
         return;
       }
+      showTransactionVerificationError();
     }
     navigation.goBack();
   }, [
@@ -292,34 +293,57 @@ const MoneySecurityVerificationSheet = () => {
   const handleTransactionMethodDismiss = useCallback(() => {
     if (availableMethods.length > 1) {
       handleBack();
-      showTransactionVerificationError();
       return;
     }
     closeSheet();
-  }, [
-    availableMethods.length,
-    closeSheet,
-    handleBack,
-    showTransactionVerificationError,
-  ]);
+  }, [availableMethods.length, closeSheet, handleBack]);
 
-  const handleAuthenticatorMethod = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
-        entryPoint: 'security',
-        initialStep: 'verify',
-        verificationAction: route.params.action,
-        ...(isTransactionVerification
-          ? { fallbackToMethodChooser: availableMethods.length > 1 }
-          : {}),
+  const handleAuthenticatorMethod = useCallback(
+    (showCloseButton = false) => {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
+          entryPoint: 'security',
+          initialStep: 'verify',
+          verificationAction: route.params.action,
+          ...(isTransactionVerification
+            ? {
+                fallbackToMethodChooser: availableMethods.length > 1,
+                showCloseButton,
+              }
+            : {}),
+        });
       });
-    });
-  }, [
-    availableMethods.length,
-    isTransactionVerification,
-    navigation,
-    route.params.action,
-  ]);
+    },
+    [
+      availableMethods.length,
+      isTransactionVerification,
+      navigation,
+      route.params.action,
+    ],
+  );
+
+  const handleSmsMethod = useCallback(
+    (showCloseButton = false) => {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.MONEY.SMS_SETUP, {
+          initialStep: 'verify',
+          verificationAction: route.params.action,
+          ...(isTransactionVerification
+            ? {
+                fallbackToMethodChooser: availableMethods.length > 1,
+                showCloseButton,
+              }
+            : {}),
+        });
+      });
+    },
+    [
+      availableMethods.length,
+      isTransactionVerification,
+      navigation,
+      route.params.action,
+    ],
+  );
 
   useEffect(() => {
     if (
@@ -330,8 +354,16 @@ const MoneySecurityVerificationSheet = () => {
     }
 
     hasAutoRoutedAuthenticatorRef.current = true;
-    handleAuthenticatorMethod();
+    handleAuthenticatorMethod(true);
   }, [handleAuthenticatorMethod, selectedMethod]);
+
+  useEffect(() => {
+    if (selectedMethod !== 'sms' || hasAutoRoutedSmsRef.current) {
+      return;
+    }
+    hasAutoRoutedSmsRef.current = true;
+    handleSmsMethod(true);
+  }, [handleSmsMethod, selectedMethod]);
 
   const selectMethod = useCallback(
     (method: VerificationMethod) => {
@@ -339,9 +371,13 @@ const MoneySecurityVerificationSheet = () => {
         handleAuthenticatorMethod();
         return;
       }
+      if (method === 'sms') {
+        handleSmsMethod();
+        return;
+      }
       setSelectedMethod(method);
     },
-    [handleAuthenticatorMethod],
+    [handleAuthenticatorMethod, handleSmsMethod],
   );
 
   const handleCodeChange = useCallback((value: string) => {
@@ -450,7 +486,8 @@ const MoneySecurityVerificationSheet = () => {
         {strings('money.security.verification_title')}
       </BottomSheetHeader>
       <Box style={styles.content}>
-        {selectedMethod === 'authenticator' ? null : !selectedMethod ? (
+        {selectedMethod === 'authenticator' ||
+        selectedMethod === 'sms' ? null : !selectedMethod ? (
           isTransactionVerification ? (
             <>
               <Text

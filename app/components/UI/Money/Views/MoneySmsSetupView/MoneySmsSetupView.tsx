@@ -43,6 +43,7 @@ import type { MoneyNavigationParamList } from '../../types/navigation';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
 import { useMoneySecurityToast } from '../../hooks/useMoneySecurityToast';
+import { completePrototypeMoneySend } from '../../utils/completePrototypeMoneySend';
 import { MoneySmsSetupViewTestIds } from './MoneySmsSetupView.testIds';
 
 type SmsSetupStep = 'phone' | 'verify';
@@ -88,19 +89,56 @@ const MoneySmsSetupView = () => {
     useRoute<RouteProp<MoneyNavigationParamList, 'MoneySmsSetup'>>();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
-  const { markTaskComplete } = useMoneyFinishSetup();
-  const { addSms } = useMoneySecurityMethods();
+  const { deletePasskey, markTaskComplete } = useMoneyFinishSetup();
+  const {
+    addSms,
+    removeAuthenticator,
+    removeSms,
+    setTransactionVerificationEnabled,
+    smsPhoneNumber,
+  } = useMoneySecurityMethods();
   const showSuccessToast = useMoneySecurityToast();
   const codeInputRef = useRef<TextInput>(null);
-  const [step, setStep] = useState<SmsSetupStep>('phone');
+  const [step, setStep] = useState<SmsSetupStep>(
+    route.params?.initialStep ?? 'phone',
+  );
+  const verificationAction = route.params?.verificationAction;
+  const isSecurityVerification = Boolean(verificationAction);
+  const isTransactionVerification =
+    verificationAction?.type === 'verify-transaction';
   const [phoneNumber, setPhoneNumber] = useState('');
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
   const phoneDigits = getMoneySmsLocalDigits(phoneNumber);
-  const fullPhoneNumber = `+1${phoneDigits}`;
+  const fullPhoneNumber = isSecurityVerification
+    ? smsPhoneNumber
+    : `+1${phoneDigits}`;
   const isPhoneValid = phoneDigits.length === 10;
 
   const handleBack = useCallback(() => {
+    if (verificationAction) {
+      if (isTransactionVerification && route.params?.fallbackToMethodChooser) {
+        navigation.goBack();
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+          params: {
+            action: verificationAction,
+            showMethodChooser: true,
+          },
+        });
+        return;
+      }
+      if (isTransactionVerification) {
+        showSuccessToast(
+          strings('money.security.transaction_verification_required'),
+          'error',
+        );
+        navigation.goBack();
+      } else {
+        navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+      }
+      return;
+    }
     if (step === 'verify') {
       setCode('');
       setIsCodeInvalid(false);
@@ -108,7 +146,14 @@ const MoneySmsSetupView = () => {
       return;
     }
     navigation.goBack();
-  }, [navigation, step]);
+  }, [
+    isTransactionVerification,
+    navigation,
+    route.params,
+    showSuccessToast,
+    step,
+    verificationAction,
+  ]);
 
   const handlePhoneChange = useCallback((value: string) => {
     setPhoneNumber(formatMoneySmsPhoneNumber(value));
@@ -137,6 +182,36 @@ const MoneySmsSetupView = () => {
   }, [focusCodeInput, showSuccessToast]);
 
   const completeSetup = useCallback(() => {
+    if (verificationAction) {
+      switch (verificationAction.type) {
+        case 'disable-transaction-verification':
+          setTransactionVerificationEnabled(false);
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+          return;
+        case 'delete-passkey':
+          deletePasskey(verificationAction.passkeyIndex);
+          navigation.navigate(Routes.MONEY.PASSKEYS, {
+            entryPoint: 'security',
+          });
+          showSuccessToast(strings('money.passkey_details.removed_toast'));
+          return;
+        case 'remove-authenticator':
+          removeAuthenticator();
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
+            successToast: strings('money.authenticator_details.removed_toast'),
+          });
+          return;
+        case 'remove-sms':
+          removeSms();
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
+            successToast: strings('money.sms_details.removed_toast'),
+          });
+          return;
+        case 'verify-transaction':
+          completePrototypeMoneySend(navigation, showSuccessToast);
+          return;
+      }
+    }
     addSms(fullPhoneNumber);
     markTaskComplete('recovery_method');
     const successToast = strings('money.sms_setup.success_toast');
@@ -151,11 +226,16 @@ const MoneySmsSetupView = () => {
     }
   }, [
     addSms,
+    deletePasskey,
     fullPhoneNumber,
     markTaskComplete,
     navigation,
+    removeAuthenticator,
+    removeSms,
     route.params?.returnToMoneyHome,
+    setTransactionVerificationEnabled,
     showSuccessToast,
+    verificationAction,
   ]);
 
   useEffect(() => {
@@ -187,13 +267,17 @@ const MoneySmsSetupView = () => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="px-1 py-2"
       >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBack}
-          accessibilityLabel={strings('money.security.back')}
-          testID={MoneySmsSetupViewTestIds.BACK_BUTTON}
-        />
+        {isTransactionVerification && route.params?.showCloseButton ? (
+          <Box style={styles.headerSpacer} />
+        ) : (
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            onPress={handleBack}
+            accessibilityLabel={strings('navigation.back')}
+            testID={MoneySmsSetupViewTestIds.BACK_BUTTON}
+          />
+        )}
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {strings(
             step === 'phone'
@@ -201,7 +285,17 @@ const MoneySmsSetupView = () => {
               : 'money.sms_setup.verify_title',
           )}
         </Text>
-        <Box style={styles.headerSpacer} />
+        {isTransactionVerification && route.params?.showCloseButton ? (
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={handleBack}
+            accessibilityLabel={strings('navigation.close')}
+            testID={MoneySmsSetupViewTestIds.BACK_BUTTON}
+          />
+        ) : (
+          <Box style={styles.headerSpacer} />
+        )}
       </Box>
 
       <KeyboardAvoidingView

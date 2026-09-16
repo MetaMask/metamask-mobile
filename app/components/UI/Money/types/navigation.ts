@@ -112,9 +112,18 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
       initialStep?: 'setup' | 'verify';
       verificationAction?: MoneySecurityVerificationAction;
       fallbackToMethodChooser?: boolean;
+      showCloseButton?: boolean;
     };
     MoneyAuthenticatorDetails: undefined;
-    MoneySmsSetup: { returnToMoneyHome?: boolean } | undefined;
+    MoneySmsSetup:
+      | {
+          returnToMoneyHome?: boolean;
+          initialStep?: 'phone' | 'verify';
+          verificationAction?: MoneySecurityVerificationAction;
+          fallbackToMethodChooser?: boolean;
+          showCloseButton?: boolean;
+        }
+      | undefined;
     MoneySmsDetails: undefined;
     MoneySocialDetails: undefined;
     MoneyTransactionDetails: { transactionId: string };

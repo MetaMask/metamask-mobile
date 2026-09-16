@@ -160,10 +160,6 @@ const MoneyAuthenticatorView = () => {
     if (step === 'verify') {
       if (route.params.verificationAction) {
         if (route.params.verificationAction.type === 'verify-transaction') {
-          showSuccessToast(
-            strings('money.security.transaction_verification_required'),
-            'error',
-          );
           if (route.params.fallbackToMethodChooser) {
             navigation.goBack();
             navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -175,6 +171,10 @@ const MoneyAuthenticatorView = () => {
             });
             return;
           }
+          showSuccessToast(
+            strings('money.security.transaction_verification_required'),
+            'error',
+          );
           navigation.goBack();
           return;
         }
@@ -298,21 +298,29 @@ const MoneyAuthenticatorView = () => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="px-1 py-2"
       >
-        <ButtonIcon
-          iconName={
-            isTransactionVerification ? IconName.Close : IconName.ArrowLeft
-          }
-          size={ButtonIconSize.Md}
-          onPress={handleBack}
-          accessibilityLabel={strings(
-            isTransactionVerification ? 'navigation.close' : 'navigation.back',
-          )}
-          testID={MoneyAuthenticatorViewTestIds.BACK_BUTTON}
-        />
+        {isTransactionVerification && route.params.showCloseButton ? (
+          <Box style={styles.headerSpacer} />
+        ) : (
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            onPress={handleBack}
+            accessibilityLabel={strings('navigation.back')}
+            testID={MoneyAuthenticatorViewTestIds.BACK_BUTTON}
+          />
+        )}
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {strings('money.authenticator.header')}
         </Text>
-        {step === 'setup' ? (
+        {isTransactionVerification && route.params.showCloseButton ? (
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={handleBack}
+            accessibilityLabel={strings('navigation.close')}
+            testID={MoneyAuthenticatorViewTestIds.BACK_BUTTON}
+          />
+        ) : step === 'setup' ? (
           <ButtonIcon
             iconName={IconName.QrCode}
             size={ButtonIconSize.Md}

@@ -4,13 +4,25 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import MoneySmsSetupView from './MoneySmsSetupView';
 import { MoneySmsSetupViewTestIds } from './MoneySmsSetupView.testIds';
+import type { MoneySecurityVerificationAction } from '../../types/navigation';
+import { completePrototypeMoneySend } from '../../utils/completePrototypeMoneySend';
 
 const mockAddSms = jest.fn();
+const mockDeletePasskey = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockMarkTaskComplete = jest.fn();
+const mockRemoveAuthenticator = jest.fn();
+const mockRemoveSms = jest.fn();
+const mockSetTransactionVerificationEnabled = jest.fn();
 const mockShowToast = jest.fn();
-let mockReturnToMoneyHome = false;
+let mockRouteParams: {
+  returnToMoneyHome?: boolean;
+  initialStep?: 'phone' | 'verify';
+  verificationAction?: MoneySecurityVerificationAction;
+  fallbackToMethodChooser?: boolean;
+  showCloseButton?: boolean;
+} = {};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -19,18 +31,23 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
   useRoute: () => ({
-    params: { returnToMoneyHome: mockReturnToMoneyHome },
+    params: mockRouteParams,
   }),
 }));
 
 jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     addSms: mockAddSms,
+    removeAuthenticator: mockRemoveAuthenticator,
+    removeSms: mockRemoveSms,
+    setTransactionVerificationEnabled: mockSetTransactionVerificationEnabled,
+    smsPhoneNumber: '+15555550182',
   }),
 }));
 
 jest.mock('../../hooks/useMoneyFinishSetup', () => ({
   useMoneyFinishSetup: () => ({
+    deletePasskey: mockDeletePasskey,
     markTaskComplete: mockMarkTaskComplete,
   }),
 }));
@@ -39,13 +56,15 @@ jest.mock('../../hooks/useMoneySecurityToast', () => ({
   useMoneySecurityToast: () => mockShowToast,
 }));
 
+jest.mock('../../utils/completePrototypeMoneySend');
+
 const renderView = () => renderWithProvider(<MoneySmsSetupView />);
 
 describe('MoneySmsSetupView', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
-    mockReturnToMoneyHome = false;
+    mockRouteParams = {};
   });
 
   afterEach(() => {
@@ -104,7 +123,7 @@ describe('MoneySmsSetupView', () => {
     expect(mockAddSms).toHaveBeenCalledWith('+14155550123');
     expect(mockMarkTaskComplete).toHaveBeenCalledWith('recovery_method');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY, {
-      successToast: 'SMS added',
+      successToast: 'SMS verification added',
     });
     expect(mockGoBack).not.toHaveBeenCalled();
   });
@@ -133,7 +152,7 @@ describe('MoneySmsSetupView', () => {
   });
 
   it('returns to Money home after finish-setup SMS recovery is added', () => {
-    mockReturnToMoneyHome = true;
+    mockRouteParams = { returnToMoneyHome: true };
     const { getByTestId } = renderView();
 
     fireEvent.changeText(
@@ -154,6 +173,72 @@ describe('MoneySmsSetupView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
 
     act(() => jest.advanceTimersByTime(300));
-    expect(mockShowToast).toHaveBeenCalledWith('SMS added');
+    expect(mockShowToast).toHaveBeenCalledWith('SMS verification added');
+  });
+
+  it('shows transaction SMS verification as a full screen with a top-right close button', () => {
+    mockRouteParams = {
+      initialStep: 'verify',
+      verificationAction: { type: 'verify-transaction' },
+      showCloseButton: true,
+    };
+    const { getByTestId, queryByTestId } = renderView();
+
+    expect(getByTestId(MoneySmsSetupViewTestIds.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(MoneySmsSetupViewTestIds.BACK_BUTTON)).toHaveProp(
+      'accessibilityLabel',
+      'Close',
+    );
+    expect(
+      queryByTestId(MoneySmsSetupViewTestIds.PHONE_INPUT),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.BACK_BUTTON));
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      'Transaction needs to be verified before sending funds.',
+      'error',
+    );
+  });
+
+  it('returns selected SMS verification to the method chooser without a toast', () => {
+    mockRouteParams = {
+      initialStep: 'verify',
+      verificationAction: { type: 'verify-transaction' },
+      fallbackToMethodChooser: true,
+    };
+    const { getByTestId } = renderView();
+
+    const backButton = getByTestId(MoneySmsSetupViewTestIds.BACK_BUTTON);
+    expect(backButton).toHaveProp('accessibilityLabel', 'Back');
+    fireEvent.press(backButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: { type: 'verify-transaction' },
+        showMethodChooser: true,
+      },
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('completes transaction verification from the full-screen SMS page', () => {
+    mockRouteParams = {
+      initialStep: 'verify',
+      verificationAction: { type: 'verify-transaction' },
+    };
+    const { getByTestId } = renderView();
+
+    fireEvent.changeText(
+      getByTestId(MoneySmsSetupViewTestIds.CODE_INPUT),
+      '123456',
+    );
+    act(() => jest.advanceTimersByTime(250));
+
+    expect(completePrototypeMoneySend).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      mockShowToast,
+    );
   });
 });

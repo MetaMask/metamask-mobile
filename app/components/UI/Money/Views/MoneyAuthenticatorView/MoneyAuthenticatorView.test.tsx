@@ -22,6 +22,7 @@ let mockIsSocialLogin = false;
 let mockInitialStep: 'setup' | 'verify' | undefined;
 let mockVerificationAction: MoneySecurityVerificationAction | undefined;
 let mockFallbackToMethodChooser = false;
+let mockShowCloseButton = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -35,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
       initialStep: mockInitialStep,
       verificationAction: mockVerificationAction,
       fallbackToMethodChooser: mockFallbackToMethodChooser,
+      showCloseButton: mockShowCloseButton,
     },
   }),
 }));
@@ -94,6 +96,7 @@ describe('MoneyAuthenticatorView', () => {
     mockInitialStep = undefined;
     mockVerificationAction = undefined;
     mockFallbackToMethodChooser = false;
+    mockShowCloseButton = false;
   });
 
   afterEach(() => {
@@ -235,6 +238,7 @@ describe('MoneyAuthenticatorView', () => {
     jest.useFakeTimers();
     mockInitialStep = 'verify';
     mockVerificationAction = { type: 'verify-transaction' };
+    mockShowCloseButton = true;
     const { getByTestId } = renderView();
 
     fireEvent.changeText(
@@ -252,6 +256,7 @@ describe('MoneyAuthenticatorView', () => {
   it('returns to the send confirmation from transaction verification', () => {
     mockInitialStep = 'verify';
     mockVerificationAction = { type: 'verify-transaction' };
+    mockShowCloseButton = true;
     const { getByTestId } = renderView();
 
     const closeButton = getByTestId(MoneyAuthenticatorViewTestIds.BACK_BUTTON);
@@ -287,6 +292,7 @@ describe('MoneyAuthenticatorView', () => {
         showMethodChooser: true,
       },
     });
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('does not offer social login from the SRP finish-setup entry point', () => {
