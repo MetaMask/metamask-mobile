@@ -90,6 +90,23 @@ const shouldContinueLoop = (generation: number, loopId: number): boolean =>
   store.queuedRefresh &&
   store.fetchLoopId === loopId;
 
+/**
+ * Runs the controller fetch, reporting failure instead of throwing so the loop
+ * applies the same supersede checks to success and failure alike.
+ */
+const requestSubscriptions = async (): Promise<boolean> => {
+  try {
+    await Engine.context.SubscriptionController.getSubscriptions();
+    return true;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      '[entitlementResolution] Failed to resolve subscription entitlements',
+    );
+    return false;
+  }
+};
+
 const fetchEntitlements = async (loopId: number): Promise<void> => {
   while (true) {
     const generation = store.generation;
@@ -97,27 +114,16 @@ const fetchEntitlements = async (loopId: number): Promise<void> => {
     store.queuedRefresh = false;
     setStatus('loading');
 
-    try {
-      await Engine.context.SubscriptionController.getSubscriptions();
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[entitlementResolution] Failed to resolve subscription entitlements',
-      );
-      if (shouldContinueLoop(generation, loopId)) {
-        continue;
-      }
-      if (wasSuperseded(generation)) {
-        return;
-      }
-      setStatus('error');
-      return;
-    }
+    const succeeded = await requestSubscriptions();
 
     if (shouldContinueLoop(generation, loopId)) {
       continue;
     }
     if (wasSuperseded(generation)) {
+      return;
+    }
+    if (!succeeded) {
+      setStatus('error');
       return;
     }
 
