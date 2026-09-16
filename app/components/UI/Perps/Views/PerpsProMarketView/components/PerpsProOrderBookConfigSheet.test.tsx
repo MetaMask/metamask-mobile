@@ -222,9 +222,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
 
     expect(titleColor('Listed by')).toBe(mockTheme.colors.text.default);
     expect(titleColor('Group by')).toBe(mockTheme.colors.text.default);
-    expect(titleColor('Listed by')).not.toBe(
-      mockTheme.colors.text.alternative,
-    );
+    expect(titleColor('Listed by')).not.toBe(mockTheme.colors.text.alternative);
   });
 
   it('outlines only the unselected FilterButtons', () => {
