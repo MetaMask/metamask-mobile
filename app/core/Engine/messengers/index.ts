@@ -5,7 +5,6 @@ import {
 } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
-import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
@@ -33,9 +32,6 @@ import {
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger/multichain-assets-rates-controller-messenger';
-import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
-import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -83,20 +79,6 @@ import {
   getAssetsControllerMessenger,
   getAssetsControllerInitMessenger,
 } from './assets-controller';
-import {
-  getTokensControllerInitMessenger,
-  getTokensControllerMessenger,
-} from './tokens-controller-messenger';
-import {
-  getTokenDetectionControllerInitMessenger,
-  getTokenDetectionControllerMessenger,
-} from './token-detection-controller-messenger';
-import {
-  getTokenBalancesControllerInitMessenger,
-  getTokenBalancesControllerMessenger,
-} from './token-balances-controller-messenger';
-import { getTokenRatesControllerMessenger } from './token-rates-controller-messenger';
-import { getAccountTrackerControllerMessenger } from './account-tracker-controller-messenger';
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
 import {
@@ -173,10 +155,6 @@ import {
  * The messenger factories for the messenger clients that have been modularized.
  */
 export const MESSENGER_FACTORIES = {
-  AccountTrackerController: {
-    getMessenger: getAccountTrackerControllerMessenger,
-    getInitMessenger: noop,
-  },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: getAccountTreeControllerInitMessenger,
@@ -213,17 +191,9 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
   },
-  TokensController: {
-    getMessenger: getTokensControllerMessenger,
-    getInitMessenger: getTokensControllerInitMessenger,
-  },
   TransactionPayController: {
     getMessenger: getTransactionPayControllerMessenger,
     getInitMessenger: getTransactionPayControllerInitMessenger,
-  },
-  CurrencyRateController: {
-    getMessenger: getCurrencyRateControllerMessenger,
-    getInitMessenger: noop,
   },
   MultichainNetworkController: {
     getMessenger: getMultichainNetworkControllerMessenger,
@@ -304,18 +274,6 @@ export const MESSENGER_FACTORIES = {
   },
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainAssetsController: {
-    getMessenger: getMultichainAssetsControllerMessenger,
-    getInitMessenger: noop,
-  },
-  MultichainAssetsRatesController: {
-    getMessenger: getMultichainAssetsRatesControllerMessenger,
-    getInitMessenger: noop,
-  },
-  MultichainBalancesController: {
-    getMessenger: getMultichainBalancesControllerMessenger,
-    getInitMessenger: noop,
-  },
   MultichainRoutingService: {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
@@ -409,18 +367,6 @@ export const MESSENGER_FACTORIES = {
   },
   TransakService: {
     getMessenger: getTransakServiceMessenger,
-    getInitMessenger: noop,
-  },
-  TokenBalancesController: {
-    getMessenger: getTokenBalancesControllerMessenger,
-    getInitMessenger: getTokenBalancesControllerInitMessenger,
-  },
-  TokenDetectionController: {
-    getMessenger: getTokenDetectionControllerMessenger,
-    getInitMessenger: getTokenDetectionControllerInitMessenger,
-  },
-  TokenRatesController: {
-    getMessenger: getTokenRatesControllerMessenger,
     getInitMessenger: noop,
   },
   TokenSearchDiscoveryDataController: {

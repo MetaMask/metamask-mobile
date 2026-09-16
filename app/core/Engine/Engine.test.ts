@@ -139,22 +139,17 @@ describe('Engine', () => {
 
   it('should expose an API', () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, {});
-    expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
-    expect(engine.context).toHaveProperty('TokenDetectionController');
+    expect(engine.context).toHaveProperty('AssetsController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
-    expect(engine.context).toHaveProperty('CurrencyRateController');
     expect(engine.context).toHaveProperty('KeyringController');
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
     expect(engine.context).toHaveProperty('PreferencesController');
     expect(engine.context).toHaveProperty('RemoteFeatureFlagController');
     expect(engine.context).toHaveProperty('SignatureController');
-    expect(engine.context).toHaveProperty('TokenBalancesController');
-    expect(engine.context).toHaveProperty('TokenRatesController');
-    expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('LoggingController');
     expect(engine.context).toHaveProperty('TransactionController');
     expect(engine.context).toHaveProperty('SmartTransactionsController');
@@ -163,7 +158,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NotificationServicesController');
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
-    expect(engine.context).toHaveProperty('MultichainBalancesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -1196,89 +1190,11 @@ describe('Engine', () => {
     );
   });
 
-  describe('BridgeStatusController:destinationTransactionCompleted', () => {
-    const EVM_CAIP_ASSET = 'eip155:10/slip44:60';
-    const NON_EVM_CAIP_ASSET =
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const getBridgeStatusMessenger = (engine: any) =>
-      engine.context.BridgeStatusController.messenger;
-
-    it('refreshes tokens, balances, account tracker, and incoming transactions for EVM destination chain', () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId = 'optimism-network-client';
-
-      const detectTokensSpy = jest
-        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
-        .mockImplementation(() => Promise.resolve());
-      const updateBalancesSpy = jest
-        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
-        .mockImplementation(() => Promise.resolve());
-      const findNetworkClientIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValue(mockNetworkClientId);
-      const refreshSpy = jest
-        .spyOn(engine.context.AccountTrackerController, 'refresh')
-        .mockImplementation(() => Promise.resolve());
-      getBridgeStatusMessenger(engine).publish(
-        'BridgeStatusController:destinationTransactionCompleted',
-        EVM_CAIP_ASSET,
-      );
-
-      expect(detectTokensSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
-      expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
-      expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
-      expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
-    });
-
-    it('does not refresh anything for non-EVM destination chains', () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const detectTokensSpy = jest
-        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
-        .mockImplementation(() => Promise.resolve());
-      const updateBalancesSpy = jest
-        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
-        .mockImplementation(() => Promise.resolve());
-      const refreshSpy = jest
-        .spyOn(engine.context.AccountTrackerController, 'refresh')
-        .mockImplementation(() => Promise.resolve());
-      getBridgeStatusMessenger(engine).publish(
-        'BridgeStatusController:destinationTransactionCompleted',
-        NON_EVM_CAIP_ASSET,
-      );
-
-      expect(detectTokensSpy).not.toHaveBeenCalled();
-      expect(updateBalancesSpy).not.toHaveBeenCalled();
-      expect(refreshSpy).not.toHaveBeenCalled();
-    });
-
-    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      jest
-        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
-        .mockImplementation(() => Promise.resolve());
-      jest
-        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
-        .mockImplementation(() => Promise.resolve());
-      jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockImplementation(() => {
-          throw new Error('Unknown chain');
-        });
-      const refreshSpy = jest
-        .spyOn(engine.context.AccountTrackerController, 'refresh')
-        .mockImplementation(() => Promise.resolve());
-      getBridgeStatusMessenger(engine).publish(
-        'BridgeStatusController:destinationTransactionCompleted',
-        EVM_CAIP_ASSET,
-      );
-
-      expect(refreshSpy).not.toHaveBeenCalled();
-    });
-  });
+  // NOTE: The `BridgeStatusController:destinationTransactionCompleted`
+  // subscription (previously in Engine.ts) was removed as part of the
+  // legacy asset controller removal. AssetsController is now the sole
+  // source of truth for asset data and refreshes itself internally, so
+  // there is no longer an Engine-level handler to test here.
 
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
