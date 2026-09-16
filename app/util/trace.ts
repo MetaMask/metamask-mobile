@@ -39,6 +39,7 @@ export enum TraceName {
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  UiSlotsLoad = 'UI Slots Load',
   DeeplinkProcessed = 'Deeplink Processed',
   DeeplinkNavigated = 'Deeplink Navigated',
   DeeplinkSignatureVerify = 'Deeplink Signature Verify',
@@ -273,6 +274,10 @@ export enum TraceName {
   PredictNextHomeView = 'PredictNext Home View',
   PredictNextFeedView = 'PredictNext Feed View',
   PredictNextEventView = 'PredictNext Event View',
+  PredictNextPortfolioView = 'PredictNext Portfolio View',
+  PredictNextGetBalance = 'PredictNext Get Balance',
+  PredictNextGetPositions = 'PredictNext Get Positions',
+  PredictNextGetActivity = 'PredictNext Get Activity',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
@@ -286,6 +291,10 @@ export enum TraceName {
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
   MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
+  WhatsHappeningFetch = "What's Happening Fetch",
+  WhatsHappeningFrontPageFetch = "What's Happening Front Page Fetch",
+  WhatsHappeningCarouselLoad = "What's Happening Carousel Load",
+  WhatsHappeningViewLoad = "What's Happening View Load",
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
@@ -373,6 +382,8 @@ export enum TraceOperation {
   MarketInsightsFetch = 'market_insights.fetch',
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
+  WhatsHappeningFetch = 'whats_happening.fetch',
+  WhatsHappeningLoad = 'whats_happening.load',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
   // Money Home Performance

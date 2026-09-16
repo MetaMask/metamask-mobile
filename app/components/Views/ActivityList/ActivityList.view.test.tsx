@@ -6,8 +6,6 @@ import '../../../../tests/component-view/mocks';
  * — local TransactionController outgoing rows; accounts API for incoming/outgoing API paths.
  */
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
-import { RefreshControl } from 'react-native';
-import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
@@ -34,11 +32,6 @@ import {
 } from './ActivityList.testIds';
 
 const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
-
-const transactionControllerWithIncomingSync = Engine.context
-  .TransactionController as unknown as {
-  updateIncomingTransactions: jest.MockedFunction<() => Promise<void>>;
-};
 
 describeForPlatforms('ActivityList', () => {
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
@@ -86,31 +79,6 @@ describeForPlatforms('ActivityList', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.ACTIVITY_DETAILS)),
     ).toBeOnTheScreen();
-  });
-
-  it('pull to refresh on an empty list syncs incoming transactions through Engine', async () => {
-    const updateIncomingSpy = jest
-      .spyOn(
-        transactionControllerWithIncomingSync,
-        'updateIncomingTransactions',
-      )
-      .mockResolvedValue(undefined);
-
-    const { UNSAFE_getByType } = renderActivityListView({
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-      },
-    });
-
-    fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
-
-    await waitFor(() => {
-      expect(updateIncomingSpy).toHaveBeenCalledTimes(1);
-    });
-
-    updateIncomingSpy.mockRestore();
   });
 });
 

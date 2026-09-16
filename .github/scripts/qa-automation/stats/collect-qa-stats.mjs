@@ -1072,14 +1072,14 @@ async function collectPerformanceTestCounts() {
 // ---------------------------------------------------------------------------
 // Feature flag E2E coverage
 // Delegates to tests/feature-flags/feature-flag-coverage-report.ts (single source of truth).
-// Requires `yarn install` in the workflow so ts-node is available.
+// Requires `yarn install` in the workflow so tsx is available.
 // ---------------------------------------------------------------------------
 
 const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
 
 async function collectFeatureFlagCoverage() {
-  console.log('[feature_flags] running coverage report via ts-node...');
-  execSync('yarn ts-node tests/feature-flags/feature-flag-coverage-report.ts', { stdio: 'pipe' });
+  console.log('[feature_flags] running coverage report via tsx...');
+  execSync('yarn test:e2e:feature-flag:coverage', { stdio: 'pipe' });
 
   const report = JSON.parse(await readFile(FF_REPORT_PATH, 'utf8'));
   const { summary } = report;

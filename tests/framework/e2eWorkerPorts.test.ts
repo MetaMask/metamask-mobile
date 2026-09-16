@@ -3,6 +3,7 @@ import {
   chromeCdpForwardPort,
   hostListenPortForDevicePort,
   isIosAppiumSmokeEnv,
+  localDappBrowserUrl,
   metamaskWebViewCdpForwardPort,
   resolveE2eWorkerIndex,
   resolveWorkerAdbServerPort,
@@ -63,6 +64,35 @@ describe('e2eWorkerPorts', () => {
       });
 
       expect(hostPort).toBe(8194);
+    });
+  });
+
+  describe('localDappBrowserUrl', () => {
+    it('keeps the device-facing port on Android worker 1 (adb reverse)', () => {
+      expect(
+        localDappBrowserUrl(8093, {
+          E2E_WORKER_INDEX: '1',
+          ANDROID_DEVICE_POOL_SIZE: '2',
+        }),
+      ).toBe('http://localhost:8093');
+    });
+
+    it('uses the host listen port on iOS worker 1 (no adb reverse)', () => {
+      expect(
+        localDappBrowserUrl(8093, {
+          E2E_WORKER_INDEX: '1',
+          IOS_SIMULATOR_UDID: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        }),
+      ).toBe('http://localhost:8193');
+    });
+
+    it('keeps the device port on iOS worker 0', () => {
+      expect(
+        localDappBrowserUrl(8093, {
+          E2E_WORKER_INDEX: '0',
+          IOS_SIMULATOR_UDID: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        }),
+      ).toBe('http://localhost:8093');
     });
   });
 

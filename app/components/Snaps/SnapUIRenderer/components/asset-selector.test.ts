@@ -111,9 +111,58 @@ describe('SnapUIAssetSelector', () => {
           '8c33fc18-6c52-44b1-b8fa-550b934a05ef': {
             address: '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
             id: '8c33fc18-6c52-44b1-b8fa-550b934a05ef',
+            type: 'solana:data-account',
           },
         },
       },
+    },
+    AssetsController: {
+      selectedCurrency: 'usd',
+      assetsInfo: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:105': {
+          type: 'native',
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+        },
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+          {
+            type: 'spl',
+            symbol: 'USDC',
+            name: 'USDC',
+            decimals: 9,
+            image:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+          },
+      },
+      assetsBalance: {
+        '8c33fc18-6c52-44b1-b8fa-550b934a05ef': {
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:105': {
+            amount: '1',
+          },
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+            { amount: '2' },
+        },
+      },
+      assetsPrice: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:105': {
+          assetPriceType: 'fungible',
+          price: 151.36,
+          usdPrice: 151.36,
+          lastUpdated: 1745405595549,
+        },
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+          {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1745405595549,
+          },
+      },
+      customAssets: {},
+      assetPreferences: {},
     },
     MultichainNetworkController: {
       multichainNetworkConfigurationsByChainId: {

@@ -4,13 +4,13 @@ import {
   ListItem,
   SensitiveText,
   SensitiveTextLength,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon';
 import { deriveEarnAssetDisplayData } from '../../../../UI/Earn/utils/earnAssets';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
-import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 import { EarnSearchAssetRowTestIds } from './EarnSearchAssetRow.testIds';
 
 interface EarnSearchAssetRowProps {
@@ -32,19 +32,15 @@ const EarnSearchAssetRow = ({
   privacyMode = false,
 }: EarnSearchAssetRowProps) => {
   const { asset } = item;
-  const {
-    metadata,
-    hasSubsidizedFee,
-    hasMinDepositAmount,
-    fiatBalance,
-    highestRateCopy,
-  } = deriveEarnAssetDisplayData(asset);
+  const { metadata, hasMinDepositAmount, fiatBalance, highestRateCopy } =
+    deriveEarnAssetDisplayData(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
   const description = hasMinDepositAmount ? (
     <SensitiveText
       variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
       testID={EarnSearchAssetRowTestIds.BALANCE}
@@ -52,7 +48,9 @@ const EarnSearchAssetRow = ({
       {fiatBalance}
     </SensitiveText>
   ) : (
-    metadata.symbol
+    <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+      {metadata.symbol}
+    </Text>
   );
 
   return (
@@ -64,7 +62,6 @@ const EarnSearchAssetRow = ({
       testID={EarnSearchAssetRowTestIds.ROW}
       avatar={<EarnAssetIcon asset={asset} />}
       title={metadata.name}
-      titleEndAccessory={hasSubsidizedFee ? <EarnNoFeeTag /> : undefined}
       titleProps={{
         numberOfLines: 1,
       }}
@@ -77,7 +74,7 @@ const EarnSearchAssetRow = ({
         color: TextColor.SuccessDefault,
         numberOfLines: 1,
         variant: TextVariant.BodyMd,
-        fontWeight: FontWeight.Regular,
+        fontWeight: FontWeight.Medium,
       }}
       twClassName="py-2 min-h-0"
     />

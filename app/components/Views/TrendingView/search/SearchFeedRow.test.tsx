@@ -45,6 +45,25 @@ jest.mock('./analytics', () => ({
 }));
 
 const mockOnQuickTrade = jest.fn();
+const mockEarnSearchRow = jest.fn(
+  ({
+    item,
+  }: {
+    item: EarnSearchItem;
+    position: number;
+    resultCount?: number;
+  }) => (
+    <MockText
+      testID={
+        item.kind === 'money-account'
+          ? 'stub-earn-money-row'
+          : 'stub-earn-search-asset-row'
+      }
+    >
+      {item.id}
+    </MockText>
+  ),
+);
 
 jest.mock('../feeds/tokens/TokenRowItem', () => ({
   TokenSearchRowItem: ({
@@ -90,17 +109,11 @@ jest.mock('../feeds/sites/SiteRowItem', () => ({
 
 jest.mock('./EarnSearchRow', () => ({
   __esModule: true,
-  default: ({ item }: { item: EarnSearchItem }) => (
-    <MockText
-      testID={
-        item.kind === 'money-account'
-          ? 'stub-earn-money-row'
-          : 'stub-earn-search-asset-row'
-      }
-    >
-      {item.id}
-    </MockText>
-  ),
+  default: (props: {
+    item: EarnSearchItem;
+    position: number;
+    resultCount?: number;
+  }) => mockEarnSearchRow(props),
 }));
 
 jest.mock(
@@ -312,6 +325,48 @@ describe('SearchFeedRow', () => {
     expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ search_query: 'second' }),
     );
+  });
+
+  it('passes one-based position and Earn result count to Earn rows', () => {
+    const item = createEarnItem('eip155:1/erc20:usdc');
+
+    render(
+      <SearchFeedRow
+        feedId="earn"
+        item={item}
+        index={1}
+        resultCount={4}
+        searchQuery="usdc"
+        tabName="earn"
+      />,
+    );
+
+    expect(mockEarnSearchRow).toHaveBeenCalledWith({
+      item,
+      position: 2,
+      resultCount: 4,
+    });
+  });
+
+  it('omits Earn result count outside the Earn tab', () => {
+    const item = createEarnItem('eip155:1/erc20:usdc');
+
+    render(
+      <SearchFeedRow
+        feedId="earn"
+        item={item}
+        index={1}
+        resultCount={4}
+        searchQuery="usdc"
+        tabName="all"
+      />,
+    );
+
+    expect(mockEarnSearchRow).toHaveBeenCalledWith({
+      item,
+      position: 2,
+      resultCount: undefined,
+    });
   });
 });
 

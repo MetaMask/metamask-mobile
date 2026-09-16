@@ -15,6 +15,7 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { formatPerpsPrice } from '../../../../utils/formatUtils';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
@@ -189,8 +190,9 @@ let mockExistingPosition: {
 
 let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
 let mockIsAwaitingPositionModifyPreview = false;
+let mockIsPositionModifyPreviewEnabled = true;
 let mockPositionModifyPreviewParams:
-  | { providerId?: PerpsProviderType }
+  | { providerId?: PerpsProviderType; enabled?: boolean }
   | undefined;
 
 let mockIsAtCap = false;
@@ -316,8 +318,17 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsPositionModifyPreview: (params: {
     providerId?: PerpsProviderType;
+    enabled?: boolean;
   }) => {
     mockPositionModifyPreviewParams = params;
+    if (params.enabled === false) {
+      return {
+        preview: { status: 'none' as const },
+        isCalculating: false,
+        isAwaitingFirstPreview: false,
+        error: null,
+      };
+    }
     return {
       preview: mockPositionModifyPreview,
       isCalculating: mockIsAwaitingPositionModifyPreview,
@@ -417,8 +428,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: (selector: { isSelectedAccountSelector?: boolean }) =>
-    selector.isSelectedAccountSelector ? mockSelectedAddress : false,
+  useSelector: (selector: { isSelectedAccountSelector?: boolean }) => {
+    if (selector.isSelectedAccountSelector) {
+      return mockSelectedAddress;
+    }
+    const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
+      jest.requireActual('../../../../selectors/featureFlags');
+    if (selector === mockPreviewFlag) {
+      return mockIsPositionModifyPreviewEnabled;
+    }
+    return false;
+  },
 }));
 
 jest.mock('../../../../../../../selectors/accountsController', () => ({
@@ -561,6 +581,7 @@ describe('usePerpsProOrderForm', () => {
     mockPositionModifyPreview = { status: 'none' };
     mockPositionModifyPreviewParams = undefined;
     mockIsAwaitingPositionModifyPreview = false;
+    mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -676,6 +697,39 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.margin).toMatch(/\$1,000/);
       expect(result.current.summary.liquidationPrice).toMatch(/→/);
       expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
+    });
+
+    it('keeps single-value summary when the position-modify preview flag is off', () => {
+      mockIsPositionModifyPreviewEnabled = false;
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 48000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 1.002,
+          entryPrice: 50010,
+          leverage: 5,
+          margin: { available: true, value: 1015 },
+          liquidationPrice: { available: true, value: 47000 },
+        },
+      };
+
+      const { result } = renderProForm();
+
+      expect(mockPositionModifyPreviewParams?.enabled).toBe(false);
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
 
     it('keeps single-value summary when the controller returns no preview', () => {
@@ -943,6 +997,37 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.chaseReferencePrice).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
+    });
+
+    it('formats the chase reference price with market entry-price decimals', () => {
+      // Arrange
+      mockLivePrice = '77288.50';
+      mockSizeDecimals = 5;
+      mockMarketData = { szDecimals: 5, maxLeverage: 40 };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.chaseReferencePrice).toBe(
+        formatPerpsPrice(77288.5, { szDecimals: 5 }),
+      );
+    });
+
+    it('keeps sub-cent chase prices instead of collapsing them to a 2-decimal floor', () => {
+      // Arrange
+      mockLivePrice = '0.001234';
+      mockSizeDecimals = 0;
+      mockMarketData = { szDecimals: 0, maxLeverage: 50 };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.chaseReferencePrice).toBe(
+        formatPerpsPrice(0.001234, { szDecimals: 0 }),
+      );
+      expect(result.current.chaseReferencePrice).not.toMatch(/<\s*\$0\.01/u);
     });
 
     it('shows a failure message when market data loading fails', () => {
@@ -1219,6 +1304,32 @@ describe('usePerpsProOrderForm', () => {
         hours: '',
         minutes: '30',
       });
+    });
+
+    it('shows the size precision bound when a TWAP suborder rounds below it', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('0');
+        result.current.twap.onMinutesChange('0');
+      });
+
+      expect(result.current.summary.twapSummary?.sizePerSuborder).toBe(
+        '<0.001 BTC',
+      );
+    });
+
+    it('shows the TWAP size per suborder at the asset size precision', () => {
+      mockOrderForm.type = 'twap';
+      mockOrderForm.amount = '54000';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.twapSummary?.sizePerSuborder).toBe(
+        '0.010 BTC',
+      );
     });
 
     it('submits valid TWAP params with live mid price and Randomize', async () => {

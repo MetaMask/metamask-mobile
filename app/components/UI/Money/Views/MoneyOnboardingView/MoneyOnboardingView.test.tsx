@@ -36,6 +36,8 @@ let mockRouteParams:
           address: `0x${string}`;
           chainId: `0x${string}`;
         };
+        autoSelectFiatPayment?: boolean;
+        intent?: 'convert' | 'addMusd' | 'card';
       };
     }
   | undefined;
@@ -133,7 +135,9 @@ jest.mock('react-native-reanimated', () => {
 // Local wrapper around the global Nitro Rive mock so the RiveView `onError`
 // prop is observable; triggers/setters are driven via the global mock helpers.
 const mockRiveViewProps: {
-  current?: { onError?: (error: RiveError) => void };
+  current?: {
+    onError?: (error: RiveError) => void;
+  };
 } = {};
 
 jest.mock('@rive-app/react-native', () => {
@@ -151,6 +155,9 @@ jest.mock('@rive-app/react-native', () => {
 });
 
 const STEP_TRANSITION_MS = 300;
+const FORWARD_NAVIGATION_INPUT_LOCK_MS = 3200;
+const BACKWARD_NAVIGATION_INPUT_LOCK_MS = 1600;
+const FINAL_STEP_ANIMATION_MS = 3200;
 
 // Steps are reconstructed from `continue`/`back` view-model triggers (no
 // `onStateChanged` in Nitro): fire a trigger, then settle the transition timer.
@@ -169,16 +176,21 @@ const settleTransition = () => {
 const advanceStep = () => {
   fireTrigger('continue');
   settleTransition();
+  act(() => {
+    jest.advanceTimersByTime(
+      FORWARD_NAVIGATION_INPUT_LOCK_MS - STEP_TRANSITION_MS,
+    );
+  });
 };
 
 /** Fires `continue` up to the final step and settles the last transition. */
 const completeOnboarding = async () => {
-  fireTrigger('continue');
-  fireTrigger('continue');
-  fireTrigger('continue');
+  advanceStep();
+  advanceStep();
+  advanceStep();
   fireTrigger('continue');
   await act(async () => {
-    jest.advanceTimersByTime(STEP_TRANSITION_MS);
+    jest.advanceTimersByTime(STEP_TRANSITION_MS + FINAL_STEP_ANIMATION_MS);
   });
 };
 
@@ -387,6 +399,52 @@ describe('MoneyOnboardingView', () => {
       expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
 
+    it('keeps Rive input disabled until the navigation lock expires', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      const getRiveInputContainer = () =>
+        getByTestId(MoneyOnboardingViewTestIds.RIVE_INPUT_CONTAINER);
+
+      expect(getRiveInputContainer()?.props.pointerEvents).toBe('auto');
+
+      fireTrigger('continue');
+
+      expect(getRiveInputContainer()?.props.pointerEvents).toBe('none');
+
+      act(() => {
+        jest.advanceTimersByTime(FORWARD_NAVIGATION_INPUT_LOCK_MS - 1);
+      });
+
+      expect(getRiveInputContainer()?.props.pointerEvents).toBe('none');
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(getRiveInputContainer()?.props.pointerEvents).toBe('auto');
+    });
+
+    it('uses the shorter lock for backward navigation', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      const getRiveInputContainer = () =>
+        getByTestId(MoneyOnboardingViewTestIds.RIVE_INPUT_CONTAINER);
+      advanceStep();
+      advanceStep();
+
+      fireTrigger('back');
+
+      act(() => {
+        jest.advanceTimersByTime(BACKWARD_NAVIGATION_INPUT_LOCK_MS - 1);
+      });
+
+      expect(getRiveInputContainer()?.props.pointerEvents).toBe('none');
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(getRiveInputContainer()?.props.pointerEvents).toBe('auto');
+    });
+
     it('tracks the previous step again when the back trigger settles', () => {
       renderMoneyOnboardingView();
       advanceStep();
@@ -470,6 +528,50 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
+    it('waits for the final animation before completing onboarding', () => {
+      renderMoneyOnboardingView();
+      advanceStep();
+      advanceStep();
+      advanceStep();
+      mockTrackOnboardingEvent.mockClear();
+
+      fireTrigger('continue');
+      settleTransition();
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        }),
+      );
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(
+          FINAL_STEP_ANIMATION_MS - STEP_TRANSITION_MS - 1,
+        );
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
     it('dispatches setMoneyOnboardingSeen when the final step settles', async () => {
       renderMoneyOnboardingView();
 
@@ -509,6 +611,27 @@ describe('MoneyOnboardingView', () => {
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         }),
       );
+    });
+
+    it('preserves fiat deposit options after completing onboarding', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          autoSelectFiatPayment: true,
+          intent: 'card',
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: undefined,
+        autoSelectFiatPayment: true,
+        intent: 'card',
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+      });
     });
 
     it('logs error when post-onboarding deposit fails', async () => {

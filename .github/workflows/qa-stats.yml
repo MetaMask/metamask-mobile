@@ -27,14 +27,14 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Upload QA stats artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: qa-stats
           path: ./qa-stats.json
           if-no-files-found: error
 
       - name: Upload feature flag coverage report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: feature-flag-coverage-report
           path: ./tests/artifacts/feature-flag-coverage-report.json

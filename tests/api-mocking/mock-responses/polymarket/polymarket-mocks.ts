@@ -202,6 +202,25 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket geoblock endpoint returning a failed / incomplete check.
+ * Used to exercise degraded-access UI that must not be described as a
+ * geo-restriction. Registered at priority 1000 so it wins over the eligible
+ * geoblock mock that POLYMARKET_COMPLETE_MOCKS registers at the default 999.
+ */
+export const POLYMARKET_GEO_UNAVAILABLE_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: 'https://polymarket.com/api/geoblock',
+      responseCode: 500,
+      response: { error: 'geoblock unavailable' },
+    },
+    1000,
+  );
+};
+
+/**
  * Mock for Polymarket geoblock endpoint returning eligible region.
  * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
  */
@@ -1474,6 +1493,14 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
             },
       };
     });
+
+  // PredictHome Popular Today / feed chips fetch related tags for slug "all".
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/gamma-api\.polymarket\.com\/tags\/slug\/[^/]+\/related-tags\/tags/,
+    responseCode: 200,
+    response: [],
+  });
 
   // Also mock the search endpoint for market feeds
   await mockServer
