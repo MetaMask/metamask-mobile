@@ -1,4 +1,8 @@
-import { formatTwapDuration, formatTwapProgressPercent } from './twapFormat';
+import {
+  formatTwapDuration,
+  formatTwapElapsedClock,
+  formatTwapProgressPercent,
+} from './twapFormat';
 
 describe('formatTwapDuration', () => {
   it('omits zero-valued units', () => {
@@ -89,5 +93,56 @@ describe('formatTwapProgressPercent', () => {
 
     // Assert
     expect(result).toBe('0%');
+  });
+});
+
+describe('formatTwapElapsedClock', () => {
+  it('pads every unit to two digits', () => {
+    // Arrange / Act
+    const result = formatTwapElapsedClock(3_661_000);
+
+    // Assert
+    expect(result).toBe('01:01:01');
+  });
+
+  it('renders seconds so a running schedule visibly advances', () => {
+    // Arrange / Act
+    const result = formatTwapElapsedClock(28_000);
+
+    // Assert: the bug this guards is elapsed reported only in whole minutes
+    expect(result).toBe('00:00:28');
+  });
+
+  it('distinguishes consecutive seconds', () => {
+    // Arrange / Act
+    const earlier = formatTwapElapsedClock(28_000);
+    const later = formatTwapElapsedClock(29_000);
+
+    // Assert
+    expect(earlier).not.toBe(later);
+  });
+
+  it('floors sub-second remainders', () => {
+    // Arrange / Act
+    const result = formatTwapElapsedClock(28_999);
+
+    // Assert
+    expect(result).toBe('00:00:28');
+  });
+
+  it('renders a full-day schedule as 24 hours rather than wrapping to zero', () => {
+    // Arrange / Act
+    const result = formatTwapElapsedClock(86_400_000);
+
+    // Assert
+    expect(result).toBe('24:00:00');
+  });
+
+  it('clamps a negative duration to zero', () => {
+    // Arrange / Act
+    const result = formatTwapElapsedClock(-5_000);
+
+    // Assert
+    expect(result).toBe('00:00:00');
   });
 });

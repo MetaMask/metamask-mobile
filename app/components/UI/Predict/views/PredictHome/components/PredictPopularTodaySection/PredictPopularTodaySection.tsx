@@ -1,14 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextColor,
-  TextVariant,
-  FontWeight,
+  Button,
+  ButtonVariant,
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -189,59 +187,64 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
       />
 
       {isLoading ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <Box twClassName="gap-2">
-            {skeletonRows.map((row, rowIndex) => (
-              <Box
-                key={`popular-today-skeleton-row-${rowIndex}`}
-                twClassName="flex-row gap-2"
-              >
-                {row.map((index) => (
-                  <Skeleton
-                    key={`popular-today-skeleton-${index}`}
-                    width={104}
-                    height={40}
-                    style={tw.style('rounded-xl')}
-                    testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
-                  />
-                ))}
-              </Box>
-            ))}
-          </Box>
-        </ScrollView>
+        <Box twClassName="-mx-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4')}
+          >
+            <Box twClassName="gap-2">
+              {skeletonRows.map((row, rowIndex) => (
+                <Box
+                  key={`popular-today-skeleton-row-${rowIndex}`}
+                  twClassName="flex-row gap-2"
+                >
+                  {row.map((index) => (
+                    <Skeleton
+                      key={`popular-today-skeleton-${index}`}
+                      width={104}
+                      height={40}
+                      style={tw.style('rounded-xl')}
+                      testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
+                    />
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          </ScrollView>
+        </Box>
       ) : null}
 
       {!isLoading && chips.length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <Box twClassName="gap-2">
-            {chipRows.map((row, rowIndex) => (
-              <Box
-                key={`popular-today-row-${rowIndex}`}
-                testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
-                twClassName="flex-row gap-2"
-              >
-                {row.map(({ key, label, option }) => (
-                  <Pressable
-                    key={key}
-                    testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
-                    onPress={() => handleChipPress(option)}
-                    accessibilityRole="button"
-                    accessibilityLabel={label}
-                    style={tw.style('rounded-xl bg-muted px-4 py-2')}
-                  >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextDefault}
-                      fontWeight={FontWeight.Medium}
+        <Box twClassName="-mx-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4')}
+          >
+            <Box twClassName="gap-2">
+              {chipRows.map((row, rowIndex) => (
+                <Box
+                  key={`popular-today-row-${rowIndex}`}
+                  testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
+                  twClassName="flex-row gap-2"
+                >
+                  {row.map(({ key, label, option }) => (
+                    <Button
+                      key={key}
+                      testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
+                      onPress={() => handleChipPress(option)}
+                      accessibilityLabel={label}
+                      variant={ButtonVariant.Secondary}
                     >
                       {label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </Box>
-            ))}
-          </Box>
-        </ScrollView>
+                    </Button>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          </ScrollView>
+        </Box>
       ) : null}
     </Box>
   );

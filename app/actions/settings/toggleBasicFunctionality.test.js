@@ -332,10 +332,10 @@ describe('consolidateBasicFunctionality action', () => {
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
     ).toHaveBeenCalledWith(true);
-    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
-    expect(dispatch).toHaveBeenCalledWith(
+    expect(dispatch.mock.calls[0][0]).toEqual(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
+    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
     expect(dispatch).toHaveBeenCalledWith(
       setBasicFunctionalityMigrationNotification('toast'),
     );

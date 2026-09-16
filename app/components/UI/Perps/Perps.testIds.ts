@@ -92,6 +92,16 @@ export const PerpsPositionCardSelectorsIDs = {
   FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
+export const getPerpsCrossMarginTagSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `cross-margin-tag-${mode}-${symbol}`;
+
+export const getPerpsCrossLiquidationInfoSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `cross-liquidation-info-${mode}-${symbol}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -371,6 +381,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
   TAKE_PROFIT_ERROR: 'perps-tpsl-tp-error',
   STOP_LOSS_ERROR: 'perps-tpsl-sl-error',
+  TAKE_PROFIT_ROE_SIGN_BADGE: 'perps-tpsl-tp-roe-sign-badge',
+  STOP_LOSS_ROE_SIGN_BADGE: 'perps-tpsl-sl-roe-sign-badge',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -1001,6 +1013,17 @@ export const PerpsOrderViewSelectorsIDs = {
   SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
 
+export const PerpsTradeSheetSelectorsIDs = {
+  SHEET: 'perps-trade-sheet',
+  CONTENT: 'perps-trade-sheet-content',
+  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
+  CLOSE_BUTTON: 'perps-trade-sheet-close-button',
+  AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
+  LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
+  LIQUIDATION_ROW: 'perps-trade-sheet-liquidation-row',
+  PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
+};
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================
@@ -1095,11 +1118,14 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
 } as const;
 
 export const PerpsLeverageBottomSheetSelectorsIDs = {
-  SLIDER: 'perps-leverage-slider',
-  SLIDER_INCOMING: 'perps-leverage-slider-incoming',
-  SLIDER_INCOMING_WRAP: 'perps-leverage-slider-incoming-wrap',
-  HELP_TEXT: 'perps-leverage-help-text',
-  QUICK_SELECT: 'leverage-quick-select',
+  PICKER: 'perps-leverage-picker',
+  PICKER_ITEM: 'perps-leverage-picker-item',
+  CURRENT_PRICE_VALUE: 'perps-leverage-current-price-value',
+  LIQUIDATION_PRICE_VALUE: 'perps-leverage-liquidation-price-value',
+  LIQUIDATION_PRICE_SKELETON: 'perps-leverage-liquidation-price-skeleton',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-leverage-liquidation-distance-value',
+  LIQUIDATION_TREND_ICON: 'perps-leverage-liquidation-trend-icon',
+  SET_BUTTON: 'perps-leverage-set-button',
 } as const;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
@@ -1310,3 +1336,17 @@ export const PerpsTooltipViewSelectorsIDs = {
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
+
+// ========================================
+// PERPS TRADE ACTIVITY LIST SELECTORS
+// ========================================
+
+export const PerpsMarketTradesListSelectorsIDs = {
+  LIST: 'perps-market-trades-list',
+  ROW: (index: number) => `perps-market-trades-row-${index}`,
+} as const;
+
+export const PerpsRecentActivityListSelectorsIDs = {
+  LIST: 'perps-recent-activity-list',
+  ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;
