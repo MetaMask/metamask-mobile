@@ -84,7 +84,9 @@ describe('getTransactionPayControllerMessenger', () => {
     const delegatedActions = delegateSpy.mock.calls[0][0].actions;
     expect(delegatedActions).not.toContain('TransakService:getBuyQuote');
     expect(delegatedActions).not.toContain('RampsController:getQuotes');
-    expect(delegatedActions).not.toContain('RampsController:transakGetBuyQuote');
+    expect(delegatedActions).not.toContain(
+      'RampsController:transakGetBuyQuote',
+    );
   });
 });
 
