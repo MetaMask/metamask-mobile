@@ -5,8 +5,7 @@ import { MockEventsObject } from '../../../framework';
  * Match all environments so Appium smoke cleanup does not fail on unmocked
  * SocialService traffic when SOCIAL_API_URL points at dev-api.
  */
-const SOCIAL_HOST =
-  String.raw`https:\/\/social\.(?:dev-api|api|uat-api)\.cx\.metamask\.io`;
+const SOCIAL_HOST = String.raw`https:\/\/social\.(?:dev-api|api|uat-api)\.cx\.metamask\.io`;
 
 /** Empty leaderboard — valid for E2E that never open Social UI. */
 const EMPTY_LEADERBOARD = { traders: [] };
