@@ -116,12 +116,12 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-type MockBackgroundBridgeInstance = {
+interface MockBackgroundBridgeInstance {
   url: string;
   onDisconnect: jest.Mock;
   onMessage: jest.Mock;
   sendNotificationEip1193: jest.Mock;
-};
+}
 
 const mockBackgroundBridgeInstances: MockBackgroundBridgeInstance[] = [];
 
