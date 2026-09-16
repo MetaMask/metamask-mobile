@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import PerpsCard from './PerpsCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   defaultPerpsPositionMock,
   defaultPerpsOrderMock,
@@ -68,8 +69,10 @@ describe('PerpsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: privacy mode off
-    (useSelector as jest.Mock).mockReturnValue(false);
+    // Default: Cross margin flag on, privacy mode off
+    (useSelector as jest.Mock).mockImplementation(
+      (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
+    );
     // Set up default mock return value
     mockUsePerpsMarkets.mockReturnValue({
       markets: [
@@ -89,6 +92,32 @@ describe('PerpsCard', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+  });
+
+  it('labels Cross in compact position rows', () => {
+    const position = {
+      ...mockPosition,
+      leverage: { type: 'cross' as const, value: 3 },
+    };
+
+    const { getByTestId } = render(
+      <PerpsCard position={position} testID="compact" />,
+    );
+
+    expect(getByTestId('compact-margin-tag')).toBeOnTheScreen();
+  });
+
+  it('keeps isolated compact rows free of the Cross label', () => {
+    const position = {
+      ...mockPosition,
+      leverage: { type: 'isolated' as const, value: 3 },
+    };
+
+    const { queryByTestId } = render(
+      <PerpsCard position={position} testID="compact" />,
+    );
+
+    expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
   });
 
   describe('Navigation', () => {
