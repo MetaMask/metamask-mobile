@@ -32,7 +32,8 @@ import { SecurityDataType } from '../../types';
 import { SwapsBannersSelectorsIDs } from '../../components/SwapsBanners/SwapsBanners.testIds';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
-const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 2;
+// Session owns the source-token fetch. Confirm / quote request reuse it.
+const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 1;
 const QUOTE_MODAL_NATIVE_SOURCE_FETCHES = 1;
 
 const quotedBridgeControllerState = {
@@ -99,7 +100,7 @@ describeForPlatforms('Bridge native source balance fetches', () => {
     jest.restoreAllMocks();
   });
 
-  it('fetches native source balance twice when BridgeView mounts with a quote', async () => {
+  it('fetches native source balance once when BridgeView mounts with a quote', async () => {
     const { findByTestId } = renderBridgeView({
       deterministicFiat: true,
       overrides: {
