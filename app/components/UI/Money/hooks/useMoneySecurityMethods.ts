@@ -42,6 +42,11 @@ export const MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS: Record<
   sms: 'money.security.default_method_sms',
 };
 
+export const hasVerificationMethodsAfterRemoval = (
+  passkeyCount: number,
+  hasOtherMethod: boolean,
+) => passkeyCount > 0 || hasOtherMethod;
+
 const SOCIAL_LOGIN_ACCOUNT_TYPES = new Set<AccountType>([
   AccountType.MetamaskGoogle,
   AccountType.ImportedGoogle,
@@ -186,7 +191,12 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
         0,
       ),
     );
-  }, [dispatch]);
+    if (!hasVerificationMethodsAfterRemoval(passkeyCount, isSmsAdded)) {
+      dispatch(
+        setOnboardingStepperStep(STEPPER_IDS.MONEY_TRANSACTION_VERIFICATION, 0),
+      );
+    }
+  }, [dispatch, isSmsAdded, passkeyCount]);
 
   const addSms = useCallback(
     (phoneNumber: string) => {
@@ -213,11 +223,15 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
     dispatch(
       setOnboardingStepperStep(STEPPER_IDS.MONEY_SECURITY_SMS_CREATED_AT, 0),
     );
-    dispatch(
-      setOnboardingStepperStep(STEPPER_IDS.MONEY_TRANSACTION_VERIFICATION, 0),
-    );
+    if (
+      !hasVerificationMethodsAfterRemoval(passkeyCount, isAuthenticatorAdded)
+    ) {
+      dispatch(
+        setOnboardingStepperStep(STEPPER_IDS.MONEY_TRANSACTION_VERIFICATION, 0),
+      );
+    }
     dispatch(setMoneySmsPhoneNumber(''));
-  }, [dispatch]);
+  }, [dispatch, isAuthenticatorAdded, passkeyCount]);
 
   const setTransactionVerificationEnabled = useCallback(
     (enabled: boolean) => {
