@@ -14,3 +14,4 @@ export {
   type WatchlistUpdateListInput,
 } from './useTokenWatchlistMutations';
 export { useSuggestedWatchlistItemsQuery } from './useSuggestedWatchlistItemsQuery';
+export { useTokenWatchlistAssetIds } from './useTokenWatchlistAssetIds';
