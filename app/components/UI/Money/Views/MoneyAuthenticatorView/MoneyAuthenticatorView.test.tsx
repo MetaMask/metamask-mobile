@@ -16,6 +16,7 @@ const mockRemoveSms = jest.fn();
 const mockSetTransactionVerificationEnabled = jest.fn();
 const mockMarkTaskComplete = jest.fn();
 const mockShowToast = jest.fn();
+const mockCompletePrototypeMoneySend = jest.fn();
 let mockEntryPoint: 'finish_setup' | 'security' = 'security';
 let mockIsSocialLogin = false;
 let mockInitialStep: 'setup' | 'verify' | undefined;
@@ -60,6 +61,11 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
     removeSms: mockRemoveSms,
     setTransactionVerificationEnabled: mockSetTransactionVerificationEnabled,
   }),
+}));
+
+jest.mock('../../utils/completePrototypeMoneySend', () => ({
+  completePrototypeMoneySend: (...args: unknown[]) =>
+    mockCompletePrototypeMoneySend(...args),
 }));
 
 const renderView = () =>
@@ -220,6 +226,35 @@ describe('MoneyAuthenticatorView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY);
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('completes a prototype transaction from authenticator verification', () => {
+    jest.useFakeTimers();
+    mockInitialStep = 'verify';
+    mockVerificationAction = { type: 'verify-transaction' };
+    const { getByTestId } = renderView();
+
+    fireEvent.changeText(
+      getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
+      '123456',
+    );
+    act(() => jest.advanceTimersByTime(250));
+
+    expect(mockCompletePrototypeMoneySend).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      expect.any(Function),
+    );
+  });
+
+  it('returns to the send confirmation from transaction verification', () => {
+    mockInitialStep = 'verify';
+    mockVerificationAction = { type: 'verify-transaction' };
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does not offer social login from the SRP finish-setup entry point', () => {

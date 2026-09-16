@@ -39,6 +39,7 @@ import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
 import { useMoneySecurityToast } from '../../hooks/useMoneySecurityToast';
 import type { MoneyModalsNavigationParamList } from '../../types/navigation';
+import { completePrototypeMoneySend } from '../../utils/completePrototypeMoneySend';
 import { MoneySecurityVerificationSheetTestIds } from './MoneySecurityVerificationSheet.testIds';
 
 type VerificationMethod = 'passkey' | 'authenticator' | 'sms';
@@ -194,6 +195,10 @@ const MoneySecurityVerificationSheet = () => {
           navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
             successToast: strings('money.sms_details.removed_toast'),
           });
+        break;
+      case 'verify-transaction':
+        destination = () =>
+          completePrototypeMoneySend(navigation, showSuccessToast);
         break;
     }
 

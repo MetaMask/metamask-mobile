@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   TransactionType,
   hasTransactionType,
@@ -22,6 +23,12 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../../../../UI/Money/constants/moneySendPrototype';
+import { useMoneySecurityMethods } from '../../../../../UI/Money/hooks/useMoneySecurityMethods';
+import { useMoneySecurityToast } from '../../../../../UI/Money/hooks/useMoneySecurityToast';
+import { completePrototypeMoneySend } from '../../../../../UI/Money/utils/completePrototypeMoneySend';
 
 export function CustomAmountConfirmButton({
   alertTitle,
@@ -39,8 +46,28 @@ export function CustomAmountConfirmButton({
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
   const { onConfirm } = useConfirmActions();
+  const navigation = useNavigation<AppNavigationProp>();
+  const transaction = useTransactionMetadataRequest();
+  const { isTransactionVerificationEnabled } = useMoneySecurityMethods();
+  const showSuccessToast = useMoneySecurityToast();
+  const isPrototypeMoneySend =
+    MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED &&
+    hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw]);
 
   const handleConfirm = useCallback(async () => {
+    if (isPrototypeMoneySend) {
+      onContinue?.();
+      if (isTransactionVerificationEnabled) {
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+          params: { action: { type: 'verify-transaction' } },
+        });
+      } else {
+        completePrototypeMoneySend(navigation, showSuccessToast);
+      }
+      return;
+    }
+
     setIsConfirmationSubmitting(true);
     onContinue?.();
 
@@ -50,7 +77,15 @@ export function CustomAmountConfirmButton({
       setIsConfirmationSubmitting(false);
       throw error;
     }
-  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
+  }, [
+    isPrototypeMoneySend,
+    isTransactionVerificationEnabled,
+    navigation,
+    onConfirm,
+    onContinue,
+    setIsConfirmationSubmitting,
+    showSuccessToast,
+  ]);
 
   const disabled =
     isDisabled ||
@@ -58,7 +93,7 @@ export function CustomAmountConfirmButton({
     hasBlockingAlerts ||
     isHeadlessBuyInProgress;
 
-  const enabledButtonLabel = useButtonLabel();
+  const enabledButtonLabel = useButtonLabel(transaction);
 
   const buttonLabel =
     stage === CustomAmountStage.Loading
@@ -82,8 +117,9 @@ export function CustomAmountConfirmButton({
   );
 }
 
-function useButtonLabel() {
-  const transaction = useTransactionMetadataRequest();
+function useButtonLabel(
+  transaction: ReturnType<typeof useTransactionMetadataRequest>,
+) {
   const { payWithOption } = useParams<ConfirmationParams>({});
 
   if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {

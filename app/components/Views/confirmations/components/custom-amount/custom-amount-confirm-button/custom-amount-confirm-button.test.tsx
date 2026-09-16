@@ -17,12 +17,20 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert } from '../../../types/alerts';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useMoneySecurityMethods } from '../../../../../UI/Money/hooks/useMoneySecurityMethods';
+import { completePrototypeMoneySend } from '../../../../../UI/Money/utils/completePrototypeMoneySend';
 
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../UI/Money/hooks/useMoneySecurityMethods');
+jest.mock('../../../../../UI/Money/hooks/useMoneySecurityToast', () => ({
+  useMoneySecurityToast: () => jest.fn(),
+}));
+jest.mock('../../../../../UI/Money/utils/completePrototypeMoneySend');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -61,8 +69,14 @@ describe('CustomAmountConfirmButton', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useNavigationMock = jest.mocked(useNavigation);
   const useRouteMock = jest.mocked(useRoute);
+  const useMoneySecurityMethodsMock = jest.mocked(useMoneySecurityMethods);
+  const completePrototypeMoneySendMock = jest.mocked(
+    completePrototypeMoneySend,
+  );
   const setIsConfirmationSubmittingMock = jest.fn();
+  const navigateMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -72,6 +86,12 @@ describe('CustomAmountConfirmButton', () => {
       name: 'MockScreen',
       params: {},
     } as never);
+    useNavigationMock.mockReturnValue({
+      navigate: navigateMock,
+    } as never);
+    useMoneySecurityMethodsMock.mockReturnValue({
+      isTransactionVerificationEnabled: true,
+    } as ReturnType<typeof useMoneySecurityMethods>);
 
     useAlertsMock.mockReturnValue({
       alerts: [] as Alert[],
@@ -194,5 +214,51 @@ describe('CustomAmountConfirmButton', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('opens prototype transaction verification instead of submitting a Money withdrawal', async () => {
+    const onConfirmMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({});
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(onConfirmMock).not.toHaveBeenCalled();
+    expect(navigateMock).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: { action: { type: 'verify-transaction' } },
+    });
+  });
+
+  it('mocks completion without verification when 2-step verification is off', async () => {
+    useMoneySecurityMethodsMock.mockReturnValue({
+      isTransactionVerificationEnabled: false,
+    } as ReturnType<typeof useMoneySecurityMethods>);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({});
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(completePrototypeMoneySendMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -13,9 +13,16 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTokenAmount } from '../useTokenAmount';
 import BigNumber from 'bignumber.js';
 
+let mockPrototypeEnabled = false;
+
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../useTokenAmount');
+jest.mock('../../../../UI/Money/constants/moneySendPrototype', () => ({
+  get MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED() {
+    return mockPrototypeEnabled;
+  },
+}));
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
   return renderHookWithProvider(() =>
@@ -32,6 +39,7 @@ describe('useInsufficientMoneyAccountBalanceAlert', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockPrototypeEnabled = false;
 
     useTransactionMetadataRequestMock.mockReturnValue({
       txParams: { from: '0x0' },
@@ -57,6 +65,14 @@ describe('useInsufficientMoneyAccountBalanceAlert', () => {
         isBlocking: true,
       },
     ]);
+  });
+
+  it('bypasses the balance alert for the send verification prototype', () => {
+    mockPrototypeEnabled = true;
+
+    const { result } = runHook({ pendingAmount: '150' });
+
+    expect(result.current).toStrictEqual([]);
   });
 
   it('returns no alert when pending amount equals available balance', () => {

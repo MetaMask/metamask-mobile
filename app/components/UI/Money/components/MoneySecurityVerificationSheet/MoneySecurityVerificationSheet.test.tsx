@@ -12,6 +12,7 @@ const mockRemoveAuthenticator = jest.fn();
 const mockRemoveSms = jest.fn();
 const mockSetTransactionVerificationEnabled = jest.fn();
 const mockShowSuccessToast = jest.fn();
+const mockCompletePrototypeMoneySend = jest.fn();
 const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 
 let mockAction: MoneySecurityVerificationAction = {
@@ -49,6 +50,11 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
 
 jest.mock('../../hooks/useMoneySecurityToast', () => ({
   useMoneySecurityToast: () => mockShowSuccessToast,
+}));
+
+jest.mock('../../utils/completePrototypeMoneySend', () => ({
+  completePrototypeMoneySend: (...args: unknown[]) =>
+    mockCompletePrototypeMoneySend(...args),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -159,5 +165,23 @@ describe('MoneySecurityVerificationSheet', () => {
 
     expect(getByText('This code is not correct. Try again.')).toBeOnTheScreen();
     expect(mockSetTransactionVerificationEnabled).not.toHaveBeenCalled();
+  });
+
+  it('completes a prototype transaction after passkey verification', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockIsAuthenticatorAdded = false;
+    const { getByTestId } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    fireEvent.press(
+      getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON),
+    );
+    act(() => jest.advanceTimersByTime(700));
+
+    expect(mockCompletePrototypeMoneySend).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      mockShowSuccessToast,
+    );
   });
 });

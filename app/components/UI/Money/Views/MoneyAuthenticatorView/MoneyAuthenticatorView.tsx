@@ -51,6 +51,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
+import { completePrototypeMoneySend } from '../../utils/completePrototypeMoneySend';
 import {
   MONEY_AUTHENTICATOR_SETUP_KEY,
   MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT,
@@ -128,6 +129,10 @@ const MoneyAuthenticatorView = () => {
   const handleBack = useCallback(() => {
     if (step === 'verify') {
       if (route.params.verificationAction) {
+        if (route.params.verificationAction.type === 'verify-transaction') {
+          navigation.goBack();
+          return;
+        }
         navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
         return;
       }
@@ -196,6 +201,9 @@ const MoneyAuthenticatorView = () => {
           });
           return;
         case 'remove-authenticator':
+          return;
+        case 'verify-transaction':
+          completePrototypeMoneySend(navigation, showSuccessToast);
           return;
       }
     }

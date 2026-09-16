@@ -11,6 +11,7 @@ import {
 } from '@metamask/transaction-controller';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTokenAmount } from '../useTokenAmount';
+import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../../../UI/Money/constants/moneySendPrototype';
 
 export function useInsufficientMoneyAccountBalanceAlert({
   pendingAmount,
@@ -28,6 +29,7 @@ export function useInsufficientMoneyAccountBalanceAlert({
 
   const isInsufficient = useMemo(() => {
     if (!isMoneyAccountWithdraw) return false;
+    if (MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED) return false;
     if (withdrawableMusd === undefined) return false;
 
     return withdrawableMusd.isLessThan(amountHuman);

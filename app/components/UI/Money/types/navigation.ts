@@ -13,7 +13,8 @@ export type MoneySecurityVerificationAction =
   | { type: 'disable-transaction-verification' }
   | { type: 'delete-passkey'; passkeyIndex: number }
   | { type: 'remove-authenticator' }
-  | { type: 'remove-sms' };
+  | { type: 'remove-sms' }
+  | { type: 'verify-transaction' };
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;

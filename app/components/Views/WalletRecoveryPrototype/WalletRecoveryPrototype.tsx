@@ -83,13 +83,10 @@ type RecoveryStage =
   | 'sms'
   | 'authenticator'
   | 'srp'
-  | 'walletHome'
   | 'verifyMoney';
 
-type RecoveryKind = 'google' | 'srp';
 type VerificationPurpose = 'wallet' | 'money';
 type PasskeyState = 'ready' | 'signing' | 'done';
-type HomeTab = 'wallet' | 'money';
 
 interface WalletRecoveryPasskeyNativeModule {
   signIn: () => Promise<boolean>;
@@ -231,20 +228,6 @@ const styles = StyleSheet.create({
   recoveryDescription: {
     alignSelf: 'stretch',
     marginBottom: 16,
-  },
-  homeCard: {
-    borderRadius: 16,
-    padding: 16,
-  },
-  homeTabs: {
-    minHeight: 64,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
   },
   verifiedBadge: {
     width: 64,
@@ -481,10 +464,6 @@ const WalletRecoveryPrototype = () => {
     () => [inputStyle, styles.phraseInput],
     [inputStyle],
   );
-  const homeTabsStyle = useMemo(
-    () => [styles.homeTabs, { borderTopColor: colors.border.muted }],
-    [colors.border.muted],
-  );
   const existingSheetRef = useRef<BottomSheetRef>(null);
   const passkeySheetRef = useRef<BottomSheetRef>(null);
   const hasRequestedNativeWalletPasskeyRef = useRef(false);
@@ -497,12 +476,9 @@ const WalletRecoveryPrototype = () => {
     useState<VerificationPurpose>(
       initialStage === 'verifyMoney' ? 'money' : 'wallet',
     );
-  const [recoveryKind, setRecoveryKind] = useState<RecoveryKind | null>(null);
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [phrase, setPhrase] = useState('');
-  const [activeTab, setActiveTab] = useState<HomeTab>('wallet');
-  const [moneyVerified, setMoneyVerified] = useState(false);
 
   const clearTimers = useCallback(() => {
     for (const timer of timersRef.current) {
@@ -550,12 +526,9 @@ const WalletRecoveryPrototype = () => {
     setShowPasskeySheet(false);
     setPasskeyState('ready');
     setVerificationPurpose(initialStage === 'verifyMoney' ? 'money' : 'wallet');
-    setRecoveryKind(null);
     setPassword('');
     setCode('');
     setPhrase('');
-    setActiveTab('wallet');
-    setMoneyVerified(false);
     hasRequestedNativeWalletPasskeyRef.current = false;
   }, [clearTimers, initialStage]);
 
@@ -780,21 +753,8 @@ const WalletRecoveryPrototype = () => {
 
   const importPhrase = useCallback(() => {
     clearTimers();
-    setRecoveryKind('srp');
-    setActiveTab('wallet');
-    setMoneyVerified(false);
-    setStage('walletHome');
-  }, [clearTimers]);
-
-  const openMoneyTab = useCallback(() => {
-    clearTimers();
-    if (recoveryKind === 'srp' && !moneyVerified) {
-      setVerificationPurpose('money');
-      setStage('verifyMoney');
-      return;
-    }
-    setActiveTab('money');
-  }, [clearTimers, moneyVerified, recoveryKind]);
+    navigation.replace(Routes.ONBOARDING.HOME_NAV);
+  }, [clearTimers, navigation]);
 
   const renderWelcome = () => (
     <Box style={styles.screen}>
@@ -1124,193 +1084,6 @@ const WalletRecoveryPrototype = () => {
     </Box>
   );
 
-  const renderWalletHome = () => {
-    const isGoogle = recoveryKind === 'google';
-    const showingMoney = activeTab === 'money';
-    return (
-      <Box
-        style={styles.screen}
-        testID={WalletRecoveryPrototypeTestIds.WALLET_HOME}
-      >
-        <PrototypeHeader
-          title={strings(
-            showingMoney
-              ? 'wallet_recovery_prototype.money'
-              : 'wallet_recovery_prototype.wallet',
-          )}
-          onRefresh={resetFlow}
-        />
-        <ScrollView contentContainerStyle={styles.content}>
-          {showingMoney ? (
-            <Box alignItems={BoxAlignItems.Center} twClassName="mt-8">
-              <Box style={styles.verifiedBadge} twClassName="bg-success-muted">
-                <Icon
-                  name={IconName.SecurityTick}
-                  size={IconSize.Xl}
-                  color={IconColor.SuccessDefault}
-                />
-              </Box>
-              <Text
-                variant={TextVariant.HeadingLg}
-                fontWeight={FontWeight.Bold}
-                twClassName="mt-5"
-              >
-                {strings('wallet_recovery_prototype.money_account')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.SuccessDefault}
-                fontWeight={FontWeight.Medium}
-                twClassName="mt-2"
-                testID={WalletRecoveryPrototypeTestIds.MONEY_VERIFIED}
-              >
-                {strings('wallet_recovery_prototype.verified')}
-              </Text>
-              <Box style={styles.homeCard} twClassName="bg-muted w-full mt-8">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('wallet_recovery_prototype.available_balance')}
-                </Text>
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  fontWeight={FontWeight.Bold}
-                  twClassName="mt-2"
-                >
-                  $2,450.00
-                </Text>
-              </Box>
-            </Box>
-          ) : (
-            <>
-              {isGoogle && (
-                <Box
-                  style={styles.homeCard}
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={3}
-                  twClassName="bg-muted mt-4"
-                >
-                  <SocialLoginProviderIcon provider="google" />
-                  <Box twClassName="flex-1">
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('wallet_recovery_prototype.connected_google')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {GOOGLE_EMAIL}
-                    </Text>
-                  </Box>
-                  <Icon
-                    name={IconName.Check}
-                    size={IconSize.Md}
-                    color={IconColor.SuccessDefault}
-                  />
-                </Box>
-              )}
-              <Box style={styles.homeCard} twClassName="bg-muted mt-4">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('wallet_recovery_prototype.total_balance')}
-                </Text>
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  fontWeight={FontWeight.Bold}
-                  twClassName="mt-2"
-                >
-                  $8,420.35
-                </Text>
-              </Box>
-              <Text
-                variant={TextVariant.HeadingSm}
-                fontWeight={FontWeight.Bold}
-                twClassName="mt-7 mb-3"
-              >
-                {strings('wallet_recovery_prototype.security_methods')}
-              </Text>
-              <Box style={styles.homeCard} twClassName="bg-muted gap-3">
-                <Text variant={TextVariant.BodyMd}>
-                  ✓ {strings('wallet_recovery_prototype.passkey')}
-                </Text>
-                {isGoogle && (
-                  <Text variant={TextVariant.BodyMd}>
-                    ✓ {strings('wallet_recovery_prototype.sms_recovery')}
-                  </Text>
-                )}
-                <Text variant={TextVariant.BodyMd}>
-                  ✓ {strings('wallet_recovery_prototype.authenticator')}
-                </Text>
-              </Box>
-            </>
-          )}
-        </ScrollView>
-        <Box style={homeTabsStyle} flexDirection={BoxFlexDirection.Row}>
-          <Pressable
-            style={styles.tab}
-            onPress={() => setActiveTab('wallet')}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: !showingMoney }}
-          >
-            <Icon
-              name={IconName.Wallet}
-              size={IconSize.Md}
-              color={
-                showingMoney
-                  ? IconColor.IconAlternative
-                  : IconColor.PrimaryDefault
-              }
-            />
-            <Text
-              variant={TextVariant.BodyXs}
-              color={
-                showingMoney
-                  ? TextColor.TextAlternative
-                  : TextColor.PrimaryDefault
-              }
-            >
-              {strings('wallet_recovery_prototype.wallet')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={styles.tab}
-            onPress={openMoneyTab}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: showingMoney }}
-            testID={WalletRecoveryPrototypeTestIds.MONEY_TAB}
-          >
-            <Icon
-              name={IconName.MoneyBag}
-              size={IconSize.Md}
-              color={
-                showingMoney
-                  ? IconColor.PrimaryDefault
-                  : IconColor.IconAlternative
-              }
-            />
-            <Text
-              variant={TextVariant.BodyXs}
-              color={
-                showingMoney
-                  ? TextColor.PrimaryDefault
-                  : TextColor.TextAlternative
-              }
-            >
-              {strings('wallet_recovery_prototype.money')}
-            </Text>
-          </Pressable>
-        </Box>
-      </Box>
-    );
-  };
-
   const renderStage = () => {
     switch (stage) {
       case 'googlePicker':
@@ -1351,8 +1124,6 @@ const WalletRecoveryPrototype = () => {
         );
       case 'srp':
         return renderSrp();
-      case 'walletHome':
-        return renderWalletHome();
       case 'welcome':
       default:
         return renderWelcome();
