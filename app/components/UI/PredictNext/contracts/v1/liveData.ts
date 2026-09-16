@@ -4,12 +4,10 @@ import {
   mask,
   number,
   optional,
-  record,
   string,
   type Struct,
   type as structType,
   tuple,
-  unknown,
   union,
 } from '@metamask/superstruct';
 import { decimal, timestamp } from './primitives';
@@ -28,7 +26,8 @@ export type PredictLiveDataTopic = 'game' | 'market';
 /**
  * A streamed Game patch: identity plus the volatile half of `PredictGame`,
  * under `PredictGame`'s own field names. The static half (teams, logos,
- * colors) never changes mid-game and stays on the REST Event.
+ * colors) never changes mid-game and stays on the REST Event. Nothing
+ * venue-native travels here; every field is canonical.
  *
  * Every canonical field except `observedAt` is optional — absent means
  * "unchanged". `status` is a plain string here and narrowed at merge time so
@@ -43,8 +42,6 @@ export interface PredictGameLive {
   period?: string;
   clock?: string;
   observedAt: PredictTimestamp;
-  /** Venue-native extras with no canonical field (football `situation`, etc.). */
-  details?: Record<string, unknown>;
 }
 
 /** A streamed outcome: the canonical `PredictOutcome` minus `label`. */
@@ -126,7 +123,6 @@ const gameLive = structType({
   period: optional(string()),
   clock: optional(string()),
   observedAt: timestamp,
-  details: optional(record(string(), unknown())),
 });
 
 const quoteOutcome = structType({

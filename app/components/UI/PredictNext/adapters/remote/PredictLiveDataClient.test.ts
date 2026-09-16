@@ -318,7 +318,6 @@ describe('PredictLiveDataClient', () => {
       status: 'in_progress',
       score: { home: '7', away: '0' },
       observedAt: '2026-09-08T13:00:00.000Z',
-      details: { home_points: 7 },
     };
 
     socket.message({ type: 'game', game });
@@ -355,7 +354,6 @@ describe('PredictLiveDataClient', () => {
       status: 'in_progress',
       score: { home: '7', away: '0' },
       observedAt: '2026-09-08T13:00:00.000Z',
-      details: { home_points: 7 },
     };
 
     client.unsubscribe('game', venueId, [eventId]);
