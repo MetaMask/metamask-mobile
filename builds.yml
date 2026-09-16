@@ -45,6 +45,9 @@ _public_envs: &public_envs # Servers (production)
   # Set only to point a build at a custom Bridge API deployment.
   BRIDGE_USE_CUSTOM_BASE_URL: ''
   MM_BATCH_SELL_ENABLED: 'true'
+  # Carries the BFTC consolidation rollout for wallets with Basic Functionality
+  # off, which cannot read the LaunchDarkly flag.
+  MM_BFTC_CONSOLIDATION_ENABLED: 'true'
   RAMP_INTERNAL_BUILD: 'false'
   HAS_TEST_OVERRIDES: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
