@@ -276,7 +276,6 @@ const MoneySecurityVerificationSheet = () => {
         {
           const parentNavigation =
             navigation.getParent<AppNavigationProp>() ?? navigation;
-          parentNavigation.goBack();
           completePrototypeMoneySend(parentNavigation, showSuccessToast);
         }
         return;

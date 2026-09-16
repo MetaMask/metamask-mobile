@@ -8,9 +8,17 @@ export const completePrototypeMoneySend = (
   showSuccessToast: (label: string) => void,
 ) => {
   rejectPendingTransactions();
-  navigation.navigate(Routes.HOME_TABS, {
-    screen: Routes.MONEY.ROOT,
-    params: { screen: Routes.MONEY.HOME },
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: Routes.HOME_TABS,
+        params: {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+      },
+    ],
   });
   showSuccessToast(strings('money.toasts.withdraw_success_title'));
 };

@@ -10,16 +10,24 @@ jest.mock('./rejectPendingTransactions', () => ({
 describe('completePrototypeMoneySend', () => {
   it('clears the pending transaction and returns to Money home', () => {
     const navigation = {
-      navigate: jest.fn(),
+      reset: jest.fn(),
     } as unknown as AppNavigationProp;
     const showSuccessToast = jest.fn();
 
     completePrototypeMoneySend(navigation, showSuccessToast);
 
     expect(rejectPendingTransactions).toHaveBeenCalledTimes(1);
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+    expect(navigation.reset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: Routes.HOME_TABS,
+          params: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      ],
     });
     expect(showSuccessToast).toHaveBeenCalledWith('Transfer complete');
   });

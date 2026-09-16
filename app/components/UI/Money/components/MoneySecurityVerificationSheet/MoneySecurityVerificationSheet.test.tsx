@@ -9,6 +9,7 @@ import type { MoneySecurityVerificationAction } from '../../types/navigation';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
+const mockParentReset = jest.fn();
 const mockDeletePasskey = jest.fn();
 const mockRemoveAuthenticator = jest.fn();
 const mockRemoveSms = jest.fn();
@@ -33,6 +34,7 @@ jest.mock('@react-navigation/native', () => ({
     getParent: () => ({
       goBack: mockParentGoBack,
       navigate: mockNavigate,
+      reset: mockParentReset,
     }),
     goBack: mockGoBack,
     navigate: mockNavigate,
@@ -209,10 +211,10 @@ describe('MoneySecurityVerificationSheet', () => {
     act(() => jest.advanceTimersByTime(700));
 
     expect(mockCompletePrototypeMoneySend).toHaveBeenCalledWith(
-      expect.objectContaining({ navigate: mockNavigate }),
+      expect.objectContaining({ reset: mockParentReset }),
       mockShowSuccessToast,
     );
-    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockParentGoBack).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockCloseBottomSheet).not.toHaveBeenCalled();
   });
