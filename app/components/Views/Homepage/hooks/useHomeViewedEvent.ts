@@ -3,6 +3,7 @@ import type { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
+import { usePerpsPriorityEligibility } from '../context/PerpsPriorityEligibilityContext';
 
 export const HomeSectionNames = {
   TOKENS: 'tokens',
@@ -52,8 +53,6 @@ interface UseHomeViewedEventParams {
    * @default true
    */
   fireImmediateWhenNoView?: boolean;
-  /** Supplied only by the Perps section. */
-  isActivePerpsTrader?: boolean;
 }
 
 /**
@@ -80,8 +79,8 @@ const useHomeViewedEvent = ({
   onSectionViewed,
   isVisible,
   fireImmediateWhenNoView = true,
-  isActivePerpsTrader,
 }: UseHomeViewedEventParams) => {
+  const isActivePerpsTrader = usePerpsPriorityEligibility();
   const {
     subscribeToScroll,
     viewportHeight,
