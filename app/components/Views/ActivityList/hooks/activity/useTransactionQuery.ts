@@ -37,7 +37,6 @@ export function useTransactionQuery({
     },
   );
 
-  // @ts-expect-error apiClient returns v5 types, repo still in v4
   return useQuery({
     ...queryOptions,
     enabled: enabled && Boolean(numericChainId && txHash),

@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
+import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -391,7 +392,17 @@ describe('useActivityDetailsItem', () => {
         hash: '0xfetched',
         from: '0x1234567890abcdef1234567890abcdef12345678',
         to: '0x0000000000000000000000000000000000000001',
-      },
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '0',
+      } as V1TransactionByHashResponse,
       isFetching: false,
     });
 
