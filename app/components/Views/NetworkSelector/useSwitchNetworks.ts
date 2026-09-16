@@ -7,6 +7,7 @@ import {
   InfuraNetworkType,
   BUILT_IN_NETWORKS,
 } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipChainId,
@@ -18,6 +19,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -65,6 +67,9 @@ export function useSwitchNetworks({
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
+  );
+  const selectedAccountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -166,7 +171,7 @@ export function useSwitchNetworks({
 
       const {
         MultichainNetworkController,
-        AccountTrackerController,
+        AssetsController,
         SelectedNetworkController,
       } = Engine.context;
 
@@ -195,7 +200,15 @@ export function useSwitchNetworks({
         await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
-        AccountTrackerController.refresh([clientId]);
+        AssetsController.getAssets([...selectedAccountGroupAccounts], {
+          forceUpdate: true,
+          chainIds: [toEvmCaipChainId(networkConfiguration.chainId)],
+        }).catch((error) => {
+          Logger.error(
+            error as Error,
+            'Failed to refresh assets after network switch',
+          );
+        });
 
         dismissModal?.();
       }
@@ -225,6 +238,7 @@ export function useSwitchNetworks({
       parentSpan,
       dismissModal,
       closeRpcModal,
+      selectedAccountGroupAccounts,
     ],
   );
 
