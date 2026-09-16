@@ -36,7 +36,7 @@ export async function PERPS_WITHDRAW_MOCKS(mockServer: Mockttp) {
     smartTxHash: PERPS_WITHDRAW_TX_HASH,
     relayUuid: 'mocked-perps-withdraw-uuid-1234',
     destinationRecipient: DEFAULT_FIXTURE_ACCOUNT,
-    destinationChainId: 1,
+    destinationChainId: PERPS_SOURCE_CHAIN_ID,
     destinationTokenAddress: PERPS_MAINNET_ETH,
     destinationTokenSymbol: 'ETH',
     destinationTokenDecimals: 18,

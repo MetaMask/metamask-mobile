@@ -97,10 +97,10 @@ export async function PREDICT_WITHDRAW_MOCKS(mockServer: Mockttp) {
   const quote = buildRelayQuoteMock({
     srcChainId: 137,
     srcToken: PREDICT_PUSD_TOKEN,
-    dstChainId: 1,
-    dstToken: MAINNET_ETH_TOKEN,
+    dstChainId: 137,
+    dstToken: PREDICT_PUSD_TOKEN,
     amountIn: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
-    amountOut: PREDICT_WITHDRAW_ETH_OUT,
+    amountOut: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
     amountUsd: PREDICT_WITHDRAW_AMOUNT_USD,
     timeEstimate: 15,
     recipient: DEFAULT_FIXTURE_ACCOUNT,
