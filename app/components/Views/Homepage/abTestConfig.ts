@@ -1,4 +1,6 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
+import { TokenDetailsSource } from '../../UI/TokenDetails/constants/constants';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -510,7 +512,16 @@ export const PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
       EVENT_NAME.PERPS_UI_INTERACTION,
       EVENT_NAME.PERPS_TRADE_TRANSACTION,
       EVENT_NAME.ACTION_BUTTON_CLICKED,
-      // Token-row taps surface here as `source: mobile-token-list`.
       EVENT_NAME.TOKEN_DETAILS_OPENED,
     ],
+    // Both guardrails fire from surfaces this experiment does not touch
+    // (asset details, navbar, the token list page). Tagging those would not
+    // bias the comparison, since it tags both arms equally, but it dilutes the
+    // metric with traffic the section order cannot influence.
+    eventPropertyRequirements: {
+      [EVENT_NAME.ACTION_BUTTON_CLICKED]: { location: ActionLocation.HOME },
+      [EVENT_NAME.TOKEN_DETAILS_OPENED]: {
+        source: TokenDetailsSource.MobileTokenList,
+      },
+    },
   };

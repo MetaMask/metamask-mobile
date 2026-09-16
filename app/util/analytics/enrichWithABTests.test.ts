@@ -393,8 +393,6 @@ describe('enrichWithABTests', () => {
       [MetaMetricsEvents.HOME_VIEWED],
       [MetaMetricsEvents.PERPS_UI_INTERACTION],
       [MetaMetricsEvents.PERPS_TRADE_TRANSACTION],
-      [MetaMetricsEvents.ACTION_BUTTON_CLICKED],
-      [MetaMetricsEvents.TOKEN_DETAILS_OPENED],
     ])('enriches %s with the assigned variant', (eventName) => {
       const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
 
@@ -435,7 +433,9 @@ describe('enrichWithABTests', () => {
     it('carries the control variant so both arms are comparable', () => {
       const event = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.ACTION_BUTTON_CLICKED,
-      ).build();
+      )
+        .addProperties({ location: 'home' })
+        .build();
 
       const result = enrichWithABTests(event, {
         [PERPS_SECTION_PRIORITY_AB_KEY]: 'control',
@@ -445,6 +445,61 @@ describe('enrichWithABTests', () => {
         createActiveABTestAssignment(PERPS_SECTION_PRIORITY_AB_KEY, 'control'),
       ]);
     });
+
+    it('enriches a home action button so the guardrail can be split by variant', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      )
+        .addProperties({ location: 'home' })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          PERPS_SECTION_PRIORITY_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    });
+
+    // The experiment only reorders sections on wallet home, so guardrails
+    // fired from other surfaces would dilute the metric without biasing it.
+    it.each([['asset details'], ['navbar'], ['onboarding_checklist']])(
+      'does not enrich an action button clicked from %s',
+      (location) => {
+        const event = AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+        )
+          .addProperties({ location })
+          .build();
+
+        const result = enrichWithABTests(event, {
+          [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+        });
+
+        expect(result.properties.active_ab_tests).toBeUndefined();
+      },
+    );
+
+    it.each([['mobile-token-list-page'], ['search'], ['notification']])(
+      'does not enrich token details opened from %s',
+      (source) => {
+        const event = AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+        )
+          .addProperties({ source })
+          .build();
+
+        const result = enrichWithABTests(event, {
+          [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+        });
+
+        expect(result.properties.active_ab_tests).toBeUndefined();
+      },
+    );
 
     it('does not enrich events outside the mapping', () => {
       const event = AnalyticsEventBuilder.createEventBuilder(
