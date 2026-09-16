@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
+  IconName,
   Text,
   TextButton,
   TextColor,
@@ -48,9 +55,6 @@ export function useBasicFunctionalityConsolidation(): void {
   const isRunning = useRef(false);
   const hasPresentedBottomSheet = useRef(false);
   const hasPresentedToast = useRef(false);
-  const toastCtaAction = useRef<BasicFunctionalityMixedToastAction | null>(
-    null,
-  );
 
   const trackMixedToastNotice = useCallback(
     (action: BasicFunctionalityMixedToastAction) => {
@@ -161,11 +165,42 @@ export function useBasicFunctionalityConsolidation(): void {
     };
 
     hasPresentedToast.current = true;
-    toastCtaAction.current = null;
     trackMixedToastNotice(BasicFunctionalityMixedToastAction.VIEWED);
     toast({
       hasNoTimeout: true,
-      title: strings('basic_functionality_migration.title'),
+      // The design system close button occupies its own column for the whole
+      // toast height, which wraps every description line short of the edge.
+      // Render it beside the title instead so the description spans the width.
+      showCloseButton: false,
+      title: (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1"
+          >
+            {strings('basic_functionality_migration.title')}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            accessibilityLabel={strings('navigation.close')}
+            // The 32pt touch target would otherwise grow the title row and sit
+            // further in than the padding the toast reserves for its own close
+            // button.
+            twClassName="-my-1 -mr-2"
+            onPress={() => {
+              trackMixedToastNotice(BasicFunctionalityMixedToastAction.DISMISS);
+              dismissNotification();
+              toast.dismiss();
+            }}
+          />
+        </Box>
+      ),
       // A node rather than a string so the settings link flows inline with the
       // sentence instead of sitting below it as a separate action button.
       description: (
@@ -180,8 +215,6 @@ export function useBasicFunctionalityConsolidation(): void {
           <TextButton
             variant={TextVariant.BodySm}
             onPress={() => {
-              toastCtaAction.current =
-                BasicFunctionalityMixedToastAction.OPEN_SETTINGS;
               trackMixedToastNotice(
                 BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
               );
@@ -196,18 +229,6 @@ export function useBasicFunctionalityConsolidation(): void {
           </TextButton>
         </Text>
       ),
-      onClose: () => {
-        // Opening Settings also dismisses the toast; only count a plain close
-        // as dismiss so we do not double-fire against the CTA action.
-        if (
-          toastCtaAction.current !==
-          BasicFunctionalityMixedToastAction.OPEN_SETTINGS
-        ) {
-          trackMixedToastNotice(BasicFunctionalityMixedToastAction.DISMISS);
-        }
-        toastCtaAction.current = null;
-        dismissNotification();
-      },
     });
   }, [
     basicFunctionalityEnabled,
