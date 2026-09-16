@@ -54,7 +54,7 @@ describe('PerpsDiscoveryBanner', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders infinity icon', () => {
+  it('renders infinity avatar', () => {
     const { getByTestId } = render(<PerpsDiscoveryBanner {...defaultProps} />);
     expect(getByTestId('perps-discovery-banner-logo')).toBeOnTheScreen();
   });

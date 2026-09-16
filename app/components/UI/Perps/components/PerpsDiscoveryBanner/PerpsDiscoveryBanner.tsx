@@ -1,6 +1,9 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -65,18 +68,14 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={3}
         >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            backgroundColor={BoxBackgroundColor.BackgroundMuted}
-            twClassName="h-10 w-10 shrink-0 overflow-hidden rounded-full p-2"
-          >
-            <Icon
-              name={IconName.Infinity}
-              size={IconSize.Lg}
-              color={IconColor.IconAlternative}
-              testID={`${testID}-logo`}
-            />
-          </Box>
+          <AvatarIcon
+            iconName={IconName.Infinity}
+            severity={AvatarIconSeverity.Neutral}
+            size={AvatarIconSize.Lg}
+            iconProps={{ color: IconColor.IconDefault }}
+            twClassName="shrink-0"
+            testID={`${testID}-logo`}
+          />
           <Box twClassName="min-w-0 flex-1 gap-0.5">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('perps.discovery_banner.title', { symbol })}
