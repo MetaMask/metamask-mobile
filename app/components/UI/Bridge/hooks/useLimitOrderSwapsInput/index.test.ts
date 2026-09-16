@@ -499,7 +499,7 @@ describe('useLimitOrderSwapInputs', () => {
       mockDispatch.mockClear();
       selectorState.sourceToken = getNativeSourceToken('eip155:56');
 
-      rerender();
+      rerender(undefined);
 
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(
@@ -530,7 +530,7 @@ describe('useLimitOrderSwapInputs', () => {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       });
 
-      rerender();
+      rerender(undefined);
 
       expect(mockDispatch).not.toHaveBeenCalledWith(
         setDestToken(expect.anything()),
@@ -560,7 +560,7 @@ describe('useLimitOrderSwapInputs', () => {
       // route the stale cross-chain dest to it and must fall back to native.
       selectorState.sourceToken = mUsdToken;
 
-      rerender();
+      rerender(undefined);
 
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(getNativeSourceToken('eip155:1')),
@@ -568,9 +568,15 @@ describe('useLimitOrderSwapInputs', () => {
     });
 
     it('uses the new source chain default after a source network change between two non-Ethereum chains', () => {
+      const bnbDestToken = getDefaultDestToken('0x38');
+      const baseDestToken = getDefaultDestToken('0x2105');
+      if (!bnbDestToken || !baseDestToken) {
+        throw new Error('expected default dest tokens for BNB and Base');
+      }
+
       const selectorState: SelectorState = {
         sourceToken: getNativeSourceToken('eip155:56'),
-        destToken: getDefaultDestToken('0x38'),
+        destToken: bnbDestToken,
         sourceAmount: undefined,
       };
 
@@ -582,11 +588,9 @@ describe('useLimitOrderSwapInputs', () => {
       mockDispatch.mockClear();
       selectorState.sourceToken = getNativeSourceToken('eip155:8453');
 
-      rerender();
+      rerender(undefined);
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setDestToken(getDefaultDestToken('0x2105')),
-      );
+      expect(mockDispatch).toHaveBeenCalledWith(setDestToken(baseDestToken));
     });
   });
 });
