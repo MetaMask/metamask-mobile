@@ -49,6 +49,22 @@ describe('entitlementResolution', () => {
       expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
     });
 
+    it('does not refetch for the same account once resolved', async () => {
+      await ensureResolved('acct-a');
+      await ensureResolved('acct-a');
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetches when the account differs from the last resolved one', async () => {
+      await ensureResolved('acct-a');
+
+      await ensureResolved('acct-b');
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+      expect(getSnapshot()).toBe('resolved');
+    });
+
     it('shares one request between concurrent callers', async () => {
       await Promise.all([ensureResolved(), ensureResolved(), ensureResolved()]);
 
@@ -92,6 +108,16 @@ describe('entitlementResolution', () => {
       expect(getSnapshot()).toBe('resolved');
     });
 
+    it('keeps the current account after an unscoped refresh', async () => {
+      await ensureResolved('acct-a');
+
+      await refresh();
+      await ensureResolved('acct-a');
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+      expect(getSnapshot()).toBe('resolved');
+    });
+
     it('issues a new fetch even when ensureResolved is already in flight', async () => {
       await Promise.all([ensureResolved(), refresh()]);
 
@@ -109,6 +135,15 @@ describe('entitlementResolution', () => {
       expect(getSnapshot()).toBe('idle');
 
       await ensureResolved();
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+    });
+
+    it('forgets the resolved account so the same id refetches', async () => {
+      await ensureResolved('acct-a');
+
+      reset();
+      await ensureResolved('acct-a');
 
       expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
     });

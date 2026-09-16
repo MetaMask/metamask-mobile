@@ -29,6 +29,12 @@ interface EntitlementResolutionStore {
    * next user skip resolution entirely.
    */
   generation: number;
+  /**
+   * Account whose entitlements last resolved successfully. Kept on the
+   * singleton so a remount after an account switch still refetches instead of
+   * treating the previous account's status as current.
+   */
+  resolvedAccountId: string | undefined;
 }
 
 const store: EntitlementResolutionStore = {
@@ -36,6 +42,7 @@ const store: EntitlementResolutionStore = {
   listeners: new Set(),
   inFlight: undefined,
   generation: 0,
+  resolvedAccountId: undefined,
 };
 
 const emit = () => {
@@ -50,13 +57,16 @@ const setStatus = (status: EntitlementResolutionStatus) => {
   emit();
 };
 
-const fetchEntitlements = async (): Promise<void> => {
+const fetchEntitlements = async (accountId?: string): Promise<void> => {
   const generation = store.generation;
   setStatus('loading');
 
   try {
     await Engine.context.SubscriptionController.getSubscriptions();
     if (generation === store.generation) {
+      if (accountId !== undefined) {
+        store.resolvedAccountId = accountId;
+      }
       setStatus('resolved');
     }
   } catch (error) {
@@ -75,21 +85,28 @@ const fetchEntitlements = async (): Promise<void> => {
 };
 
 /**
- * Resolves entitlements once per session. Repeat calls while a request is in
- * flight share it, and calls after a successful resolution are a no-op.
+ * Resolves entitlements once per session and account. Repeat calls while a
+ * request is in flight share it. Calls after a successful resolution are a
+ * no-op unless `accountId` differs from the last resolved account.
  *
+ * @param accountId - Selected internal account id. When omitted, a resolved
+ * status is treated as current regardless of account.
  * @returns A promise that settles when entitlements have been resolved.
  */
-export const ensureResolved = async (): Promise<void> => {
+export const ensureResolved = async (accountId?: string): Promise<void> => {
   if (store.status === 'resolved') {
-    return;
+    if (accountId === undefined || store.resolvedAccountId === accountId) {
+      return;
+    }
+
+    return await refresh(accountId);
   }
 
   if (store.inFlight) {
     return await store.inFlight;
   }
 
-  store.inFlight = fetchEntitlements();
+  store.inFlight = fetchEntitlements(accountId);
   return await store.inFlight;
 };
 
@@ -101,11 +118,13 @@ export const ensureResolved = async (): Promise<void> => {
  * return the pre-mutation snapshot and could bounce a new subscriber out of
  * the hub.
  *
+ * @param accountId - Selected internal account id to record on success. Omit
+ * when the account has not changed (subscribe / cancel).
  * @returns A promise that settles when entitlements have been re-resolved.
  */
-export const refresh = async (): Promise<void> => {
+export const refresh = async (accountId?: string): Promise<void> => {
   store.generation += 1;
-  store.inFlight = fetchEntitlements();
+  store.inFlight = fetchEntitlements(accountId);
   return await store.inFlight;
 };
 
@@ -116,6 +135,7 @@ export const refresh = async (): Promise<void> => {
 export const reset = () => {
   store.generation += 1;
   store.inFlight = undefined;
+  store.resolvedAccountId = undefined;
   setStatus('idle');
 };
 
@@ -145,4 +165,5 @@ export const __resetForTest = () => {
   store.inFlight = undefined;
   store.listeners.clear();
   store.generation = 0;
+  store.resolvedAccountId = undefined;
 };

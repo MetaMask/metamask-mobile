@@ -1,8 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   ensureResolved,
-  refresh,
   reset,
 } from '../core/Subscription/entitlementResolution';
 import { selectSelectedInternalAccountId } from '../selectors/accountsController';
@@ -25,7 +24,6 @@ export function useResolveMoneyAccountPlusEntitlements(): void {
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const canResolve = isProSubscriptionEnabled && isSignedIn && isUnlocked;
-  const previousAccountIdRef = useRef(selectedAccountId);
 
   // Entitlements are per-user, so a locked or signed-out session must not
   // leave a resolved status behind for whoever signs in next.
@@ -40,17 +38,7 @@ export function useResolveMoneyAccountPlusEntitlements(): void {
       return;
     }
 
-    const previousAccountId = previousAccountIdRef.current;
-    previousAccountIdRef.current = selectedAccountId;
-
-    if (previousAccountId !== selectedAccountId) {
-      refresh().catch(() => {
-        // Status is already recorded as `error` by the store.
-      });
-      return;
-    }
-
-    ensureResolved().catch(() => {
+    ensureResolved(selectedAccountId).catch(() => {
       // Status is already recorded as `error` by the store.
     });
   }, [canResolve, selectedAccountId]);
