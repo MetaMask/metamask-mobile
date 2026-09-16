@@ -55,8 +55,11 @@ const MoneyRemoveAuthenticatorSheet = () => {
 
   const handleRemove = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.MONEY.SECURITY_VERIFICATION, {
-        action: { type: 'remove-authenticator' },
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+        params: {
+          action: { type: 'remove-authenticator' },
+        },
       });
     });
   }, [navigation]);

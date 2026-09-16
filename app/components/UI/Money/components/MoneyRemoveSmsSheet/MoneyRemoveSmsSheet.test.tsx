@@ -63,12 +63,12 @@ describe('MoneyRemoveSmsSheet', () => {
 
     fireEvent.press(getByTestId(MoneyRemoveSmsSheetTestIds.CONFIRM_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.SECURITY_VERIFICATION,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
         action: { type: 'remove-sms' },
       },
-    );
+    });
   });
 
   it('prevents removing the only security method', () => {

@@ -24,6 +24,7 @@ import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSh
 import MoneyFinishSetupSheet from '../components/MoneyFinishSetupSheet';
 import MoneyProtectWalletSheet from '../components/MoneyProtectWalletSheet';
 import MoneyAddPasskeySheet from '../components/MoneyAddPasskeySheet';
+import MoneySecurityVerificationSheet from '../components/MoneySecurityVerificationSheet';
 import MoneySecurityInfoSheet from '../components/MoneySecurityInfoSheet';
 import MoneyDeletePasskeySheet from '../components/MoneyDeletePasskeySheet';
 import MoneyRemoveAuthenticatorSheet from '../components/MoneyRemoveAuthenticatorSheet';
@@ -167,6 +168,11 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.ADD_PASSKEY_SHEET}
         component={MoneyAddPasskeySheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET}
+        component={MoneySecurityVerificationSheet}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

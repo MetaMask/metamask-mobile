@@ -67,12 +67,12 @@ describe('MoneyDeletePasskeySheet', () => {
     expect(getAllByText('Delete passkey')).toHaveLength(2);
     fireEvent.press(getByTestId(MoneyDeletePasskeySheetTestIds.CONFIRM_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.SECURITY_VERIFICATION,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
         action: { type: 'delete-passkey', passkeyIndex: 0 },
       },
-    );
+    });
   });
 
   it('prevents deleting the only security method', () => {

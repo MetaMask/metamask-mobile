@@ -111,8 +111,13 @@ const MoneyAuthenticatorView = () => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { markTaskComplete } = useMoneyFinishSetup();
-  const { addAuthenticator, isSocialLogin } = useMoneySecurityMethods();
+  const { deletePasskey, markTaskComplete } = useMoneyFinishSetup();
+  const {
+    addAuthenticator,
+    isSocialLogin,
+    removeSms,
+    setTransactionVerificationEnabled,
+  } = useMoneySecurityMethods();
   const codeInputRef = useRef<TextInput>(null);
   const [step, setStep] = useState<AuthenticatorStep>(
     route.params.initialStep ?? 'setup',
@@ -166,6 +171,31 @@ const MoneyAuthenticatorView = () => {
   }, [showSuccessToast]);
 
   const handleVerify = useCallback(() => {
+    const { verificationAction } = route.params;
+    if (verificationAction) {
+      switch (verificationAction.type) {
+        case 'disable-transaction-verification':
+          setTransactionVerificationEnabled(false);
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+          return;
+        case 'delete-passkey':
+          deletePasskey(verificationAction.passkeyIndex);
+          navigation.navigate(Routes.MONEY.PASSKEYS, {
+            entryPoint: 'security',
+          });
+          showSuccessToast(strings('money.passkey_details.removed_toast'));
+          return;
+        case 'remove-sms':
+          removeSms();
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
+            successToast: strings('money.sms_details.removed_toast'),
+          });
+          return;
+        case 'remove-authenticator':
+          return;
+      }
+    }
+
     addAuthenticator();
     markTaskComplete('recovery_method');
     const successToast = strings('money.authenticator.success_toast');
@@ -181,9 +211,12 @@ const MoneyAuthenticatorView = () => {
     }
   }, [
     addAuthenticator,
+    deletePasskey,
     markTaskComplete,
     navigation,
-    route.params.entryPoint,
+    route.params,
+    removeSms,
+    setTransactionVerificationEnabled,
     showSuccessToast,
   ]);
 

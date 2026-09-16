@@ -6,14 +6,20 @@ import ClipboardManager from '../../../../../core/ClipboardManager';
 import Routes from '../../../../../constants/navigation/Routes';
 import MoneyAuthenticatorView from './MoneyAuthenticatorView';
 import { MoneyAuthenticatorViewTestIds } from './MoneyAuthenticatorView.testIds';
+import type { MoneySecurityVerificationAction } from '../../types/navigation';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockAddAuthenticator = jest.fn();
+const mockDeletePasskey = jest.fn();
+const mockRemoveSms = jest.fn();
+const mockSetTransactionVerificationEnabled = jest.fn();
 const mockMarkTaskComplete = jest.fn();
 const mockShowToast = jest.fn();
 let mockEntryPoint: 'finish_setup' | 'security' = 'security';
 let mockIsSocialLogin = false;
+let mockInitialStep: 'setup' | 'verify' | undefined;
+let mockVerificationAction: MoneySecurityVerificationAction | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -22,7 +28,11 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
   useRoute: () => ({
-    params: { entryPoint: mockEntryPoint },
+    params: {
+      entryPoint: mockEntryPoint,
+      initialStep: mockInitialStep,
+      verificationAction: mockVerificationAction,
+    },
   }),
 }));
 
@@ -37,6 +47,7 @@ jest.mock('../../../../../core/ClipboardManager', () => ({
 
 jest.mock('../../hooks/useMoneyFinishSetup', () => ({
   useMoneyFinishSetup: () => ({
+    deletePasskey: mockDeletePasskey,
     markTaskComplete: mockMarkTaskComplete,
   }),
 }));
@@ -46,6 +57,8 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
     addAuthenticator: mockAddAuthenticator,
     isSocialAdded: false,
     isSocialLogin: mockIsSocialLogin,
+    removeSms: mockRemoveSms,
+    setTransactionVerificationEnabled: mockSetTransactionVerificationEnabled,
   }),
 }));
 
@@ -70,6 +83,8 @@ describe('MoneyAuthenticatorView', () => {
     jest.clearAllMocks();
     mockEntryPoint = 'security';
     mockIsSocialLogin = false;
+    mockInitialStep = undefined;
+    mockVerificationAction = undefined;
   });
 
   afterEach(() => {
@@ -173,6 +188,25 @@ describe('MoneyAuthenticatorView', () => {
     );
     expect(mockAddAuthenticator).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('completes a security action from full-page authenticator verification', () => {
+    jest.useFakeTimers();
+    mockInitialStep = 'verify';
+    mockVerificationAction = {
+      type: 'disable-transaction-verification',
+    };
+    const { getByTestId } = renderView();
+
+    fireEvent.changeText(
+      getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
+      '123456',
+    );
+    act(() => jest.advanceTimersByTime(250));
+
+    expect(mockSetTransactionVerificationEnabled).toHaveBeenCalledWith(false);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY);
+    expect(mockAddAuthenticator).not.toHaveBeenCalled();
   });
 
   it('does not offer social login from the SRP finish-setup entry point', () => {

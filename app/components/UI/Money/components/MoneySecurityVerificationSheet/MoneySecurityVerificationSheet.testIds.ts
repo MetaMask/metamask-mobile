@@ -1,5 +1,5 @@
-export const MoneySecurityVerificationViewTestIds = {
-  CONTAINER: 'money-security-verification',
+export const MoneySecurityVerificationSheetTestIds = {
+  CONTAINER: 'money-security-verification-sheet',
   PASSKEY_METHOD: 'money-security-verification-passkey',
   AUTHENTICATOR_METHOD: 'money-security-verification-authenticator',
   SMS_METHOD: 'money-security-verification-sms',

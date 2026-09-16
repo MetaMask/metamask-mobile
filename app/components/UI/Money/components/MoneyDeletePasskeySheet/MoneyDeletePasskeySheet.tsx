@@ -64,10 +64,13 @@ const MoneyDeletePasskeySheet = () => {
 
   const handleDelete = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.MONEY.SECURITY_VERIFICATION, {
-        action: {
-          type: 'delete-passkey',
-          passkeyIndex: route.params.passkeyIndex,
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+        params: {
+          action: {
+            type: 'delete-passkey',
+            passkeyIndex: route.params.passkeyIndex,
+          },
         },
       });
     });

@@ -77,12 +77,12 @@ describe('MoneySecurityInfoSheet', () => {
     fireEvent.press(getByText('Disable'));
 
     expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.SECURITY_VERIFICATION,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
         action: { type: 'disable-transaction-verification' },
       },
-    );
+    });
   });
 
   it('keeps transaction verification enabled when cancelled', () => {

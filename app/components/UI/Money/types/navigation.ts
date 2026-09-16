@@ -69,6 +69,9 @@ export type MoneyModalsNavigationParamList = {
   MoneyFinishSetupSheet: undefined;
   MoneyProtectWalletSheet: undefined;
   MoneyAddPasskeySheet: { returnToMoneyHome?: boolean } | undefined;
+  MoneySecurityVerificationSheet: {
+    action: MoneySecurityVerificationAction;
+  };
   MoneySecurityInfoSheet:
     | {
         defaultMethod?: string;
@@ -100,14 +103,12 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: undefined;
     MoneyManageSecurity: { successToast?: string } | undefined;
-    MoneySecurityVerification: {
-      action: MoneySecurityVerificationAction;
-    };
     MoneyPasskeys: { entryPoint: MoneyPasskeysEntryPoint };
     MoneyPasskeyDetails: { passkeyIndex: number };
     MoneyAuthenticator: {
       entryPoint: MoneyAuthenticatorEntryPoint;
       initialStep?: 'setup' | 'verify';
+      verificationAction?: MoneySecurityVerificationAction;
     };
     MoneyAuthenticatorDetails: undefined;
     MoneySmsSetup: { returnToMoneyHome?: boolean } | undefined;

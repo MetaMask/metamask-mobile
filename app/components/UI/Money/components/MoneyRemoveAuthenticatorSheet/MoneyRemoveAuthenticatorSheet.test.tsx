@@ -74,12 +74,12 @@ describe('MoneyRemoveAuthenticatorSheet', () => {
       getByTestId(MoneyRemoveAuthenticatorSheetTestIds.CONFIRM_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.SECURITY_VERIFICATION,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
         action: { type: 'remove-authenticator' },
       },
-    );
+    });
   });
 
   it('prevents removing the only security method', () => {
