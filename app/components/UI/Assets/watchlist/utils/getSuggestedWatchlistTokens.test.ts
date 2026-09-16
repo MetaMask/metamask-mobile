@@ -15,65 +15,104 @@ describe('getSuggestedWatchlistTokens', () => {
       isInWallet: false,
     }) as unknown as WatchlistTokenWithBalance;
 
-  const pool = ['a', 'b', 'c', 'd', 'e', 'f'].map(makeToken);
-  const poolIds = pool.map((token) => String(token.assetId));
+  const buildPool = (symbols: string[]): WatchlistTokenWithBalance[] =>
+    symbols.map(makeToken);
+  const buildWatchedIds = (
+    pool: WatchlistTokenWithBalance[],
+    watchedSymbols: string[],
+  ): string[] =>
+    pool
+      .filter((token) => watchedSymbols.includes(String(token.symbol)))
+      .map((token) => String(token.assetId));
 
-  it('shows the full limit of suggestions when the watchlist is empty', () => {
-    const result = getSuggestedWatchlistTokens(pool, []);
-    expect(result).toHaveLength(SUGGESTED_WATCHLIST_LIMIT);
-    expect(result.map((token) => token.symbol)).toEqual([
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-    ]);
+  const defaultPoolSymbols = ['a', 'b', 'c', 'd', 'e', 'f'];
+
+  interface SuggestedTokensTestCase {
+    description: string;
+    poolSymbols: string[];
+    watchedSymbols: string[];
+    expectedSymbols: string[];
+    limit?: number;
+    uppercaseWatchedIds?: boolean;
+  }
+
+  const testCases: SuggestedTokensTestCase[] = [
+    {
+      description:
+        'shows the full limit of suggestions when the watchlist is empty',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: [],
+      expectedSymbols: ['a', 'b', 'c', 'd', 'e'],
+    },
+    {
+      description:
+        'shows limit minus watchlist count suggestions (2 watched → 3)',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a', 'b'],
+      expectedSymbols: ['c', 'd', 'e'],
+    },
+    {
+      description: 'excludes already-watchlisted tokens from the suggestions',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['d'],
+      expectedSymbols: ['a', 'b', 'c', 'e'],
+    },
+    {
+      description: 'compares asset IDs case-insensitively',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a'],
+      expectedSymbols: ['b', 'c', 'd', 'e'],
+      uppercaseWatchedIds: true,
+    },
+    {
+      description:
+        'floors at one suggestion once the watchlist reaches the limit',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a', 'b', 'c', 'd', 'e'],
+      expectedSymbols: ['f'],
+    },
+    {
+      description:
+        'returns fewer suggestions when the pool is smaller than the target',
+      poolSymbols: ['a'],
+      watchedSymbols: [],
+      expectedSymbols: ['a'],
+    },
+    {
+      description:
+        'returns an empty list when every suggested token is watched',
+      poolSymbols: ['a', 'b'],
+      watchedSymbols: ['a', 'b'],
+      expectedSymbols: [],
+    },
+    {
+      description: 'honors a custom limit',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a'],
+      expectedSymbols: ['b', 'c'],
+      limit: 3,
+    },
+  ];
+
+  it.each(testCases)('$description', ({ ...testCase }) => {
+    const pool = buildPool(testCase.poolSymbols);
+    let watchedIds = buildWatchedIds(pool, testCase.watchedSymbols);
+    if (testCase.uppercaseWatchedIds) {
+      watchedIds = watchedIds.map((id) => id.toUpperCase());
+    }
+
+    const result = getSuggestedWatchlistTokens(
+      pool,
+      watchedIds,
+      testCase.limit,
+    );
+
+    expect(result.map((token) => token.symbol)).toEqual(
+      testCase.expectedSymbols,
+    );
   });
 
-  it('shows limit - watchlistCount suggestions (2 watched → 3)', () => {
-    const result = getSuggestedWatchlistTokens(pool, [poolIds[0], poolIds[1]]);
-    expect(result).toHaveLength(3);
-    expect(result.map((token) => token.symbol)).toEqual(['c', 'd', 'e']);
-  });
-
-  it('excludes already-watchlisted tokens from the suggestions', () => {
-    const result = getSuggestedWatchlistTokens(pool, [poolIds[3]]);
-    // 5 - 1 = 4 suggestions, skipping the watched token 'd'.
-    expect(result.map((token) => token.symbol)).toEqual(['a', 'b', 'c', 'e']);
-  });
-
-  it('compares asset IDs case-insensitively', () => {
-    const result = getSuggestedWatchlistTokens(pool, [
-      poolIds[0].toUpperCase(),
-    ]);
-    expect(result.map((token) => token.symbol)).toEqual(['b', 'c', 'd', 'e']);
-  });
-
-  it('floors at one suggestion once the watchlist reaches the limit', () => {
-    // Watch the limit (5) tokens — the 6th non-watched pool token still
-    // surfaces as a single suggestion.
-    const result = getSuggestedWatchlistTokens(pool, poolIds.slice(0, 5));
-    expect(result).toHaveLength(1);
-    expect(result[0]?.symbol).toBe('f');
-  });
-
-  it('returns fewer suggestions when the pool is smaller than the target', () => {
-    const result = getSuggestedWatchlistTokens([makeToken('a')], []);
-    expect(result).toHaveLength(1);
-  });
-
-  it('returns an empty list when every suggested token is watched', () => {
-    const smallPool = pool.slice(0, 2);
-    const result = getSuggestedWatchlistTokens(smallPool, [
-      poolIds[0],
-      poolIds[1],
-    ]);
-    expect(result).toHaveLength(0);
-  });
-
-  it('honors a custom limit', () => {
-    const result = getSuggestedWatchlistTokens(pool, [poolIds[0]], 3);
-    expect(result).toHaveLength(2);
-    expect(result.map((token) => token.symbol)).toEqual(['b', 'c']);
+  it('keeps the suggestion limit aligned with the perps watchlist flow', () => {
+    expect(SUGGESTED_WATCHLIST_LIMIT).toBe(5);
   });
 });
