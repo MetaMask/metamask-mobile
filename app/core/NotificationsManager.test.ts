@@ -227,12 +227,12 @@ describe('NotificationManager', () => {
       findNetworkClientIdByChainId: jest.fn(),
     };
 
-    const mockAccountTrackerController = {
-      refresh: jest.fn(),
+    const mockAssetsController = {
+      getAssets: jest.fn().mockResolvedValue(undefined),
     };
 
-    const mockTokenBalancesController = {
-      updateBalances: jest.fn(),
+    const mockAccountsController = {
+      getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
     };
 
     let showNotificationSpy: jest.SpyInstance;
@@ -241,9 +241,9 @@ describe('NotificationManager', () => {
       // Set up spies and mocks once before all tests
       Object.defineProperty(Engine, 'context', {
         value: {
-          AccountTrackerController: mockAccountTrackerController,
+          AssetsController: mockAssetsController,
+          AccountsController: mockAccountsController,
           NetworkController: mockNetworkController,
-          TokenBalancesController: mockTokenBalancesController,
           TransactionController: mockTransactionController,
         },
         writable: true,
@@ -467,6 +467,16 @@ describe('NotificationManager', () => {
             id: '0x123',
             nonce: expect.any(String),
           }),
+        }),
+      );
+
+      // The post-confirmation refresh must use a CAIP chain ID:
+      // AssetsController.getAssets expects `chainIds: CaipChainId[]`, not the
+      // transaction's raw hex chainId.
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [{ id: 'account-id' }],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
         }),
       );
     });
