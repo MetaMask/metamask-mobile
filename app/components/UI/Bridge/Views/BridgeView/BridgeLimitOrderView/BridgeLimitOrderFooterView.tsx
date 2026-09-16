@@ -18,14 +18,12 @@ interface Props {
   onCTAPress: () => void;
   ctaDisabled?: boolean;
   ctaLabel: string;
-  latestSourceBalance?: ReturnType<typeof useLatestBalance>;
 }
 
 export const BridgeLimitOrderFooterView = ({
   onCTAPress,
   ctaLabel,
   ctaDisabled,
-  latestSourceBalance,
 }: Props) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
@@ -54,7 +52,6 @@ export const BridgeLimitOrderFooterView = ({
         label={ctaLabel}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
         disabled={ctaDisabled}
-        latestSourceBalance={latestSourceBalance}
       />
     </Box>
   );

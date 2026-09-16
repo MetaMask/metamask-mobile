@@ -78,7 +78,7 @@ const PerpsProPositionsSideFilterSheet = ({
               key={option.id}
               title={strings(option.labelKey)}
               isSelected={isSelected}
-              showSelectedIcon
+              showSelectedIcon={false}
               startAccessory={
                 <ProPositionSideFilterIcon sideFilter={option.id} />
               }

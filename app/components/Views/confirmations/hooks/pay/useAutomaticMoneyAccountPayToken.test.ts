@@ -103,7 +103,12 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     } as never);
     selectMetaMaskPayFlagsMock.mockReturnValue({
       enableMoneyAccountTransactions: enabled
-        ? { perpsDeposit: true, predictDeposit: true }
+        ? {
+            perpsDeposit: true,
+            perpsDepositAndOrder: true,
+            predictDeposit: true,
+            predictDepositAndOrder: true,
+          }
         : {},
     } as never);
     useMoneyAccountBalanceMock.mockReturnValue({
@@ -137,7 +142,9 @@ describe('useAutomaticMoneyAccountPayToken', () => {
 
   it.each([
     ['perpsDeposit', TransactionType.perpsDeposit],
+    ['perpsDepositAndOrder', TransactionType.perpsDepositAndOrder],
     ['predictDeposit', TransactionType.predictDeposit],
+    ['predictDepositAndOrder', TransactionType.predictDepositAndOrder],
   ])(
     'selects money account for %s when it has a balance and the EOA has no tokens',
     (_label, type) => {

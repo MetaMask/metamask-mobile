@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Box,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -14,15 +13,14 @@ import TradeAllowanceRow from './TradeAllowanceRow';
 const MemberPricingOnTrades = () => (
   <Box twClassName="gap-y-6" testID={MemberPricingOnTradesTestIds.SECTION}>
     <Text
-      variant={TextVariant.HeadingMd}
-      fontWeight={FontWeight.Bold}
+      variant={TextVariant.SectionHeading}
       color={TextColor.TextDefault}
       testID={MemberPricingOnTradesTestIds.TITLE}
     >
       {strings('pro_hub.member_pricing.title')}
     </Text>
 
-    <Box twClassName="gap-y-6">
+    <Box twClassName="gap-y-3">
       {MOCK_TRADE_ALLOWANCES.map((item) => (
         <TradeAllowanceRow key={item.id} item={item} />
       ))}
