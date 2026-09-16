@@ -2,6 +2,7 @@ import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notifi
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsMetaMaskPushNotificationsEnabled,
+  selectMetaMaskPushNotificationToken,
   selectIsMetamaskNotificationsFeatureSeen,
   selectIsUpdatingMetamaskNotifications,
   selectIsFetchingMetamaskNotifications,
@@ -42,6 +43,12 @@ describe('Notification Selectors', () => {
   it('selectIsMetaMaskPushNotificationsEnabled returns correct value', () => {
     expect(selectIsMetaMaskPushNotificationsEnabled(mockState)).toEqual(
       MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isPushEnabled,
+    );
+  });
+
+  it('selectMetaMaskPushNotificationToken returns the FCM token', () => {
+    expect(selectMetaMaskPushNotificationToken(mockState)).toEqual(
+      MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.fcmToken,
     );
   });
 

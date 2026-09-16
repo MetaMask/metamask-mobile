@@ -48,6 +48,13 @@ describe('syncConsolidatedBasicFunctionalityPreferences', () => {
     expect(
       Engine.context.PreferencesController.setUseSafeChainsListValidation,
     ).toHaveBeenCalledWith(true);
+    expect(
+      jest.mocked(Engine.context.PreferencesController.setDisplayNftMedia).mock
+        .invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(Engine.context.PreferencesController.setUseNftDetection).mock
+        .invocationCallOrder[0],
+    );
   });
 
   it('does not sync IPFS gateway so it stays independent like extension', () => {
@@ -71,5 +78,18 @@ describe('syncConsolidatedBasicFunctionalityPreferences', () => {
     expect(
       Engine.context.PreferencesController.setSecurityAlertsEnabled,
     ).toHaveBeenCalledWith(false);
+    expect(
+      Engine.context.PreferencesController.setUseNftDetection,
+    ).toHaveBeenCalledWith(false);
+    expect(
+      Engine.context.PreferencesController.setDisplayNftMedia,
+    ).toHaveBeenCalledWith(false);
+    expect(
+      jest.mocked(Engine.context.PreferencesController.setUseNftDetection).mock
+        .invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(Engine.context.PreferencesController.setDisplayNftMedia).mock
+        .invocationCallOrder[0],
+    );
   });
 });

@@ -9,7 +9,7 @@
  *    (sequential per UDID; parallel across UDIDs in pool mode)
  * 5. Grant common simulator permissions + warm-launch MetaMask (once per simulator)
  * 6. Warm WDA via throwaway Appium session(s); leaves Appium running for tests
- *    (sequential across pool UDIDs to avoid shared-server races)
+ *    (parallel across pool UDIDs — each gets distinct wdaLocalPort/mjpegServerPort)
  *
  * Sets GITHUB_OUTPUT: ios-simulator-udid, ios-wda-preinstalled, ios-wda-bundle-id.
  * Pool mode also sets ios-device-pool and fails closed on WDA preparation.
@@ -39,7 +39,7 @@ import {
 } from './wda-lib.mjs';
 import {
   warmUpIosAppiumWda,
-  warmUpIosAppiumWdaSequentially,
+  warmUpIosAppiumWdaPool,
 } from './warm-up-ios-appium-wda.mjs';
 
 const simulatorName = process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';
@@ -150,7 +150,7 @@ const { iosWdaPreinstalled, iosWdaBundleIdBase } =
 
 if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
   if (poolSize > 1) {
-    await warmUpIosAppiumWdaSequentially({
+    await warmUpIosAppiumWdaPool({
       udids,
       wdaBundleIdBase: iosWdaBundleIdBase,
       simulatorName,

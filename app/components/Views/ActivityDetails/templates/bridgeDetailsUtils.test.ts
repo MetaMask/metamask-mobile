@@ -1,6 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
-import type { TransactionGroup } from '../../../../util/activity-adapters/adapters/transaction-group';
 import {
   getBridgeExplorerSheetTx,
   getBridgeHistoryItem,
@@ -30,50 +30,27 @@ describe('bridgeDetailsUtils', () => {
         },
       },
     } as BridgeHistoryItem;
-    const item: Extract<ActivityListItem, { type: 'bridge' }> = {
-      type: 'bridge',
-      chainId: 'eip155:1',
-      status: 'success',
-      timestamp: 1,
-      hash: '0xsourcehash',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          initialTransaction: {
-            id: 'bridge-tx-meta-id',
-          },
-          primaryTransaction: {
-            id: 'bridge-tx-meta-id',
-          },
-        } as TransactionGroup,
-      },
-      data: {},
-    };
+    const item = bridgeItem(undefined);
+    const transactionMeta = { id: 'bridge-tx-meta-id' } as TransactionMeta;
 
     expect(
-      getBridgeHistoryItem(item, {
-        'bridge-tx-meta-id': bridgeHistoryItem,
-      }),
+      getBridgeHistoryItem(
+        item,
+        {
+          'bridge-tx-meta-id': bridgeHistoryItem,
+        },
+        transactionMeta,
+      ),
     ).toBe(bridgeHistoryItem);
   });
 
   describe('getBridgeExplorerSheetTx', () => {
-    it('hands the sheet the initial transaction, matching the history lookup', () => {
-      const initialTransaction = {
-        id: 'initial',
-      } as TransactionGroup['initialTransaction'];
+    it('hands the sheet the looked-up local transaction', () => {
+      const transactionMeta = { id: 'initial' } as TransactionMeta;
 
       expect(
-        getBridgeExplorerSheetTx(
-          bridgeItem({
-            type: 'localTransaction',
-            data: {
-              initialTransaction,
-              primaryTransaction: { id: 'primary' },
-            } as TransactionGroup,
-          }),
-        ),
-      ).toEqual({ evmTxMeta: initialTransaction });
+        getBridgeExplorerSheetTx(bridgeItem(undefined), transactionMeta),
+      ).toEqual({ evmTxMeta: transactionMeta });
     });
 
     it('hands the sheet a non-EVM transaction as multiChainTx', () => {

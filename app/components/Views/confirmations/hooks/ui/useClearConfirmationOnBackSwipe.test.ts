@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import useClearConfirmationOnBackSwipe from './useClearConfirmationOnBackSwipe';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -11,8 +11,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../useConfirmActions', () => ({
-  useConfirmActions: jest.fn(),
+jest.mock('../useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
 }));
 
 jest.mock('../../../../../util/device', () => ({
@@ -42,7 +42,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
       goBack: jest.fn(),
     });
 
-    (useConfirmActions as jest.Mock).mockReturnValue({
+    (useConfirmReject as jest.Mock).mockReturnValue({
       onReject: mockOnReject,
     });
 

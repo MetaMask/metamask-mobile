@@ -4,6 +4,7 @@ import {
   makePredictNextMultiMarketEvent,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
+  publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { renderPredictEventScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
@@ -197,6 +198,7 @@ const resolveEventForRoute = (event: PredictEvent): void => {
 
 describe('PredictEventScreen', () => {
   beforeEach(() => {
+    messengerCall.mockReset();
     jest.clearAllMocks();
   });
 
@@ -222,6 +224,12 @@ describe('PredictEventScreen', () => {
   it('renders all standard Event header fields from the immutable Event', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
+
+    await waitFor(() =>
+      expect(
+        view.queryByTestId(PredictEventScreenTestIds.LOADING),
+      ).not.toBeOnTheScreen(),
+    );
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
@@ -334,14 +342,21 @@ describe('PredictEventScreen', () => {
   });
 
   it('retries Market history after an initial error', async () => {
-    messengerCall.mockImplementationOnce((action: string) =>
-      action === 'PredictMarketDataService:getEvent'
-        ? Promise.resolve(createEvent())
-        : Promise.resolve(undefined),
+    let historyAttempts = 0;
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string, range?: string) => {
+        if (action === 'PredictMarketDataService:getEvent') {
+          return Promise.resolve(createEvent());
+        }
+        if (action === 'PredictMarketDataService:getMarketHistory') {
+          historyAttempts += 1;
+          return historyAttempts === 1
+            ? Promise.reject(new Error('unsafe history detail'))
+            : Promise.resolve(createHistory(id, range));
+        }
+        return Promise.resolve(undefined);
+      },
     );
-    messengerCall
-      .mockRejectedValueOnce(new Error('unsafe history detail'))
-      .mockResolvedValueOnce(createHistory('market-1'));
     const view = renderPredictEventScreen(routeParams);
     const error = await view.findByTestId(PredictMarketHistoryTestIds.ERROR);
 
@@ -1485,6 +1500,54 @@ describe('PredictEventScreen', () => {
         PredictEventScreenTestIds.teamLogoFallback('home'),
       ),
     ).toHaveTextContent('CAR');
+  });
+
+  it('applies live Game updates to the Event header', async () => {
+    resolveEvent(createGameEvent());
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+
+    act(() => {
+      publishPredictNextGameLiveUpdate({
+        venueId,
+        eventId,
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 28,
+          home_points: 24,
+          quarter: 4,
+          clock: '01:12',
+        },
+      });
+    });
+
+    const header = view.getByTestId(PredictEventScreenTestIds.GAME_HEADER);
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamScore('away')),
+    ).toHaveTextContent('28');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamScore('home')),
+    ).toHaveTextContent('24');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
+    ).toHaveTextContent('Q4 · 01:12');
+  });
+
+  it('watches the Event for live Game updates and stops on unmount', async () => {
+    resolveEvent(createGameEvent());
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+
+    expectMessengerCalledWith('PredictLiveDataService:watchGames', venueId, [
+      eventId,
+    ]);
+
+    view.unmount();
+
+    expectMessengerCalledWith('PredictLiveDataService:unwatchGames', venueId, [
+      eventId,
+    ]);
   });
 
   it('renders a completed Game as final with its observed metadata', async () => {

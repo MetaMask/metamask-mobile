@@ -5,7 +5,6 @@ import type {
 import type { BridgeToken } from '../../types';
 
 export interface PriceRangeSheetProps {
-  isVisible: boolean;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   sourceFiatRate?: number;
@@ -14,6 +13,6 @@ export interface PriceRangeSheetProps {
   initialTokenSide?: PriceRangeTokenSide;
   initialMin?: string;
   initialMax?: string;
-  onClose: () => void;
   onConfirm: (priceRange?: RecurringPriceRange) => void;
+  goBack: () => void;
 }

@@ -779,16 +779,6 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 };
 
 /**
- * Fetch the visible first predict on us content from the public API.
- * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
- */
-export type RewardsControllerGetFirstPredictOnUsAction = {
-  type: `RewardsController:getFirstPredictOnUs`;
-  handler: RewardsController['getFirstPredictOnUs'];
-};
-
-/**
  * Invalidate referral details cache for a subscription
  * @param subscriptionId - The subscription ID to invalidate cache for
  */
@@ -930,6 +920,18 @@ export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
 };
 
 /**
+ * Get the perps trading campaign prize ladder and currently unlocked pool.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ * @param campaignId - The campaign ID to get the prize pool for.
+ * @returns The prize pool schedule and unlocked amount for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignPrizePoolAction = {
+  type: `RewardsController:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsController['getPerpsTradingCampaignPrizePool'];
+};
+
+/**
  * Union of all RewardsController action types.
  */
 export type RewardsControllerMethodActions =
@@ -1010,7 +1012,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
@@ -1024,4 +1025,5 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsControllerGetPerpsTradingCampaignVolumeAction;
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction
+  | RewardsControllerGetPerpsTradingCampaignPrizePoolAction;

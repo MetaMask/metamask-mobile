@@ -45,8 +45,6 @@ import {
   setInfuraAvailabilityNotBlocked,
 } from '../../../actions/infuraAvailability';
 
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import {
@@ -73,7 +71,6 @@ import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
-import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
@@ -93,12 +90,6 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { shouldShowNetworkListToast } from './utils';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../constants/navigation/clearStackNavigatorOptions';
-
-const NativeStack = createNativeStackNavigator();
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -494,27 +485,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.MAIN_FLOW}
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
-    >
-      <NativeStack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
-      <NativeStack.Screen
-        name={'ReviewModal'}
-        component={ReviewModal}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
-export default MainFlow;
+export default ConnectedMain;

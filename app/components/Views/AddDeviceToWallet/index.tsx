@@ -19,7 +19,6 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
   QRTabSwitcherScreens,
-  type ScanSuccess,
   // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
@@ -29,12 +28,6 @@ import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDevi
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
-import {
-  QrSyncOperations,
-  QrSyncSurfaces,
-  QrSyncTelemetrySources,
-  reportQrSyncFailure,
-} from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncIsBusy,
@@ -116,31 +109,6 @@ const AddDeviceToWallet = () => {
     enabled: !isScannerOpen,
   });
 
-  const submitQrPayload = useCallback(
-    async (qrPayload: string) => {
-      await messenger.call(
-        'QrSyncController:handleScannedQrPayload',
-        qrPayload,
-      );
-    },
-    [messenger],
-  );
-
-  const onScanSuccess = useCallback(
-    (data: ScanSuccess, content?: string) => {
-      const scannedQrPayload = content ?? data.content ?? '';
-
-      submitQrPayload(scannedQrPayload).catch((err: unknown) => {
-        reportQrSyncFailure(err, {
-          surface: QrSyncSurfaces.SCANNER,
-          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
-        });
-      });
-    },
-    [submitQrPayload],
-  );
-
   const openQRScanner = useCallback(() => {
     if (isSessionActive) {
       Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
@@ -148,13 +116,14 @@ const AddDeviceToWallet = () => {
       );
     }
 
+    // Do not pass a messenger-bound onScanSuccess. QRTabSwitcher submits the
+    // payload on its own live route messenger.
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Scanner,
       disableTabber: true,
       origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-      onScanSuccess,
     });
-  }, [messenger, navigation, onScanSuccess, isSessionActive]);
+  }, [messenger, navigation, isSessionActive]);
 
   if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
