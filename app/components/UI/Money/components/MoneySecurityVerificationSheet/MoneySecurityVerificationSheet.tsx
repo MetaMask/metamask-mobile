@@ -273,8 +273,12 @@ const MoneySecurityVerificationSheet = () => {
           });
         break;
       case 'verify-transaction':
-        navigation.goBack();
-        completePrototypeMoneySend(navigation, showSuccessToast);
+        {
+          const parentNavigation =
+            navigation.getParent<AppNavigationProp>() ?? navigation;
+          parentNavigation.goBack();
+          completePrototypeMoneySend(parentNavigation, showSuccessToast);
+        }
         return;
     }
 
