@@ -320,10 +320,19 @@ function selectSourcemap(profilePath, sourcemaps) {
 
 function convertProfile(profilePath, sourcemapPath, outputDirectory) {
   fs.mkdirSync(outputDirectory, { recursive: true });
+  const profilerCli = path.join(
+    process.cwd(),
+    'node_modules/react-native-release-profiler/lib/commonjs/cli.js',
+  );
+  if (!fs.existsSync(profilerCli)) {
+    throw new Error(
+      'react-native-release-profiler CLI not found; install project dependencies first',
+    );
+  }
   const result = spawnSync(
-    'yarn',
+    process.execPath,
     [
-      'react-native-release-profiler',
+      profilerCli,
       '--local',
       path.resolve(profilePath),
       '--sourcemap-path',
