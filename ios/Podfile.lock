@@ -2180,7 +2180,7 @@ PODS:
     - Yoga
   - react-native-in-app-review (4.3.3):
     - React-Core
-  - react-native-keyboard-controller (1.21.6):
+  - react-native-keyboard-controller (1.22.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2192,7 +2192,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.21.6)
+    - react-native-keyboard-controller/common (= 1.22.5)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2203,7 +2203,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.21.6):
+  - react-native-keyboard-controller/common (1.22.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4300,7 +4300,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: 68792987aef40e8aa72dc448d97e009d1f440c88
   react-native-gzip: 3701e08898ef5125e2c857f685bfc611cf81e546
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
-  react-native-keyboard-controller: 91fb57a926597b9d16c8438bc88f1142a169715c
+  react-native-keyboard-controller: ce68b0d160ca7a2314ce238bb1becb935b8de773
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ffda49ce01998ce9c48f87cb8413f67300abc206
   react-native-mobilesdk-module: cbf8b811c658f02325e0e41240a32af40a6fa791
