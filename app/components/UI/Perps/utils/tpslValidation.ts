@@ -432,7 +432,7 @@ export const calculatePriceForRoE = (
   // Prevent stop loss from exceeding maximum possible loss
   // Maximum theoretical loss is 100% * leverage (before liquidation)
   // But we'll cap it at 99% to avoid negative prices
-  if (!isProfit && Math.abs(roePercentage) >= leverage * 99) {
+  if (!isProfit && roePercentage <= -(leverage * 99)) {
     // Cap at 99% of max loss to prevent negative prices
     roePercentage = -(leverage * 99);
   }
@@ -588,11 +588,13 @@ export const safeParseRoEPercentage = (roePercent: string): string => {
  * Format RoE percentage for display based on focus state
  * @param value - The raw percentage value as string
  * @param isFocused - Whether the input is currently focused
+ * @param includeSign - When false, omit `+`/`-` (the Auto Close badge owns the sign)
  * @returns Formatted percentage string for display
  */
 export const formatRoEPercentageDisplay = (
   value: string,
   isFocused: boolean,
+  includeSign: boolean = true,
 ): string => {
   if (!value || value.trim() === '') {
     return '';
@@ -625,6 +627,10 @@ export const formatRoEPercentageDisplay = (
   const absValue = Math.abs(parsed);
   const formattedValue =
     absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+
+  if (!includeSign) {
+    return formattedValue;
+  }
 
   // Always show sign for display
   if (parsed >= 0) {

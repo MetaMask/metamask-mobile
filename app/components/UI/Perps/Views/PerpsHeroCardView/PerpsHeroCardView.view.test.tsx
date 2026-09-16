@@ -4,7 +4,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   defaultPositionForViews,
@@ -14,6 +14,8 @@ import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
+
+const TIMEOUT_MS = 5000;
 
 const longPosition = defaultPositionForViews;
 
@@ -110,5 +112,19 @@ describe('PerpsHeroCardView', () => {
     expect(
       await screen.findByText(strings('perps.pnl_hero_card.share_button')),
     ).toBeOnTheScreen();
+  });
+
+  it('pressing the share button does not throw', async () => {
+    renderPerpsHeroCardView({ initialParams: { position: longPosition } });
+
+    const shareButton = await screen.findByTestId(
+      PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+
+    // Share.open is guarded by a native captureRef call which is unavailable in
+    // the test environment.  Verify the press does not crash the component.
+    expect(() => fireEvent.press(shareButton)).not.toThrow();
   });
 });

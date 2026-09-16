@@ -12,7 +12,6 @@ import {
   Button,
   ButtonVariant,
   HeaderStandard,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -145,7 +144,6 @@ const SDKSessionsManager = () => {
     >
       <HeaderStandard
         title={strings('app_settings.manage_sdk_connections_title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={handleBack}
         includesTopInset
         testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}

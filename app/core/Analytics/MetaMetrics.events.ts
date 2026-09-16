@@ -219,6 +219,8 @@ enum EVENT_NAME {
 
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
+  ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
   BROWSER_OPENED = 'Browser Opened',
@@ -238,6 +240,7 @@ enum EVENT_NAME {
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
   BASIC_FUNCTIONALITY_ENABLED = 'Basic Functionality Enabled',
   BASIC_FUNCTIONALITY_DISABLED = 'Basic Functionality Disabled',
+  BASIC_FUNCTIONALITY_MIGRATED = 'Basic Functionality Migrated',
 
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
@@ -722,10 +725,6 @@ enum EVENT_NAME {
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
   REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED = 'Rewards Campaign Reminder Subscribed',
   REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
-  FIRST_PREDICTION_ON_US_VIEWED = 'First Prediction On Us Viewed',
-  FIRST_PREDICTION_ON_US_SKIPPED = 'First Prediction On Us Skipped',
-  FIRST_PREDICTION_ON_US_OUTCOME_OPENED = 'First Prediction On Us Outcome Opened',
-  FIRST_PREDICTION_ON_US_ORDER = 'First Prediction On Us Order',
 
   // Predict
   PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
@@ -1146,6 +1145,11 @@ const events = {
   ),
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
+  ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
+  // Bare form, for callers that supply `action` and `name` themselves; the
+  // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
+  NAVIGATION_DRAWER: generateOpt(EVENT_NAME.NAVIGATION_DRAWER),
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
   BROWSER_SEARCH_USED: generateOpt(EVENT_NAME.BROWSER_SEARCH_USED),
   BROWSER_NEW_TAB: generateOpt(EVENT_NAME.BROWSER_NEW_TAB),
@@ -1167,6 +1171,9 @@ const events = {
   ),
   BASIC_FUNCTIONALITY_DISABLED: generateOpt(
     EVENT_NAME.BASIC_FUNCTIONALITY_DISABLED,
+  ),
+  BASIC_FUNCTIONALITY_MIGRATED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_MIGRATED,
   ),
   // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
@@ -2061,18 +2068,6 @@ const events = {
     EVENT_NAME.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
   ),
   REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
-  FIRST_PREDICTION_ON_US_VIEWED: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_VIEWED,
-  ),
-  FIRST_PREDICTION_ON_US_SKIPPED: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_SKIPPED,
-  ),
-  FIRST_PREDICTION_ON_US_OUTCOME_OPENED: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_OUTCOME_OPENED,
-  ),
-  FIRST_PREDICTION_ON_US_ORDER: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_ORDER,
-  ),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   TRADE_CONSIDERED: generateOpt(EVENT_NAME.TRADE_CONSIDERED),
