@@ -1315,6 +1315,13 @@ describe('MainNavigator', () => {
 
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
+
+    const manageProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
+    );
+
+    expect(manageProfileScreen).toBeDefined();
+    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
   });
 
   it('omits Social V1 screens for the control variant', () => {
@@ -1357,6 +1364,14 @@ describe('MainNavigator', () => {
 
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+    );
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+    );
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 

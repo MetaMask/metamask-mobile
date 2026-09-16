@@ -28,7 +28,7 @@ const PhysicalCardBanner = ({ onPress }: PhysicalCardBannerProps) => (
     accessibilityLabel={strings('pro_hub.physical_card.title')}
     testID={ProHubTestIds.PHYSICAL_CARD_BANNER}
   >
-    <Card twClassName="w-full bg-background-section rounded-xl p-4 border border-border-default">
+    <Card twClassName="w-full bg-background-subsection border-0 rounded-xl p-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

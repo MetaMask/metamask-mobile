@@ -58,7 +58,13 @@ export const renderPredictPortfolioScreen = (
   renderScreenWithRoutes(
     PredictPortfolioScreen as unknown as React.ComponentType,
     { name: PredictNextRoutes.PORTFOLIO },
-    [{ name: PredictNextRoutes.HOME, Component: PredictHome }],
+    [
+      { name: PredictNextRoutes.HOME, Component: PredictHome },
+      {
+        name: PredictNextRoutes.EVENT,
+        Component: PredictEventScreen as unknown as React.ComponentType<object>,
+      },
+    ],
     { state: initialStatePredictNext(privacyMode).build() },
     { ...initialParams },
   );
