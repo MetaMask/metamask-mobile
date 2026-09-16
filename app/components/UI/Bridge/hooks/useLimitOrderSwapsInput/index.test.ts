@@ -454,6 +454,36 @@ describe('useLimitOrderSwapInputs', () => {
       );
     });
 
+    it('never collapses source and dest to the same asset on mount from a cross-chain market pair', () => {
+      // Regression test: entering Limit from a Market order pair whose
+      // source token happens to equal the source chain's default dest token
+      // (mUSD) previously raced with the mount-reset effect. Both effects
+      // fire in the same pass; the correction effect used to read the
+      // pre-reset closure values and dispatch a *second*, stale setDestToken
+      // call after the reset's own dispatch, landing on the same native
+      // token the reset had just set as the source - i.e. source === dest.
+      const selectorState: SelectorState = {
+        sourceToken: mUsdToken,
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      // The mount reset always re-anchors the source to native ETH...
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSourceToken(getNativeSourceToken('eip155:1')),
+      );
+      // ...and the dest must land on that chain's default (mUSD), never on
+      // the same native ETH token the source was just reset to.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
+      );
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setDestToken(getNativeSourceToken('eip155:1')),
+      );
+    });
+
     it('resets dest token when source network changes to a different chain than dest', () => {
       const selectorState: SelectorState = {
         sourceToken: getNativeSourceToken('eip155:1'),
@@ -507,31 +537,55 @@ describe('useLimitOrderSwapInputs', () => {
       );
     });
 
-    it('falls back to native token when source token matches the default dest token', () => {
+    it('falls back to native token when the new source token matches the source chain default dest token', () => {
+      // The mount-reset effect always re-anchors both tokens on the first
+      // render, so exercise the correction effect in isolation via a
+      // post-mount source change (mirroring the other tests here) rather
+      // than asserting on the mount render, where the reset effect's own
+      // dispatch would otherwise mask what this effect actually did.
       const selectorState: SelectorState = {
-        sourceToken: mUsdToken,
+        sourceToken: getNativeSourceToken('eip155:1'),
         destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
         sourceAmount: undefined,
       };
 
-      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      // User picks mUSD as the new source token, which is itself the
+      // configured default dest token for chain 1, so the correction can't
+      // route the stale cross-chain dest to it and must fall back to native.
+      selectorState.sourceToken = mUsdToken;
+
+      rerender();
 
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(getNativeSourceToken('eip155:1')),
       );
     });
 
-    it('uses the new source chain default after a cross-chain source network change', () => {
+    it('uses the new source chain default after a source network change between two non-Ethereum chains', () => {
       const selectorState: SelectorState = {
         sourceToken: getNativeSourceToken('eip155:56'),
-        destToken: mUsdToken,
+        destToken: getDefaultDestToken('0x38'),
         sourceAmount: undefined,
       };
 
-      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:8453');
+
+      rerender();
 
       expect(mockDispatch).toHaveBeenCalledWith(
-        setDestToken(getDefaultDestToken('0x38')),
+        setDestToken(getDefaultDestToken('0x2105')),
       );
     });
   });
