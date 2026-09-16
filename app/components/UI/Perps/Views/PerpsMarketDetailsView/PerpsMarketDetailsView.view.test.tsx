@@ -28,6 +28,7 @@ import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -54,7 +55,7 @@ const MORE_CANDLE_SHEET_BASE =
 function renderEligibleNoPositionPerpsDetails(
   params?: Partial<Parameters<typeof renderPerpsMarketDetailsView>[0]>,
 ) {
-  renderPerpsMarketDetailsView({
+  return renderPerpsMarketDetailsView({
     streamOverrides: { positions: [] },
     overrides: {
       engine: {
@@ -66,6 +67,20 @@ function renderEligibleNoPositionPerpsDetails(
     ...params,
   });
 }
+
+const syncPerpsControllerState = (
+  store: ReturnType<typeof renderPerpsMarketDetailsView>['store'],
+  nextState: Record<string, unknown>,
+) => {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  engineWithState.state = {
+    ...(engineWithState.state ?? {}),
+    PerpsController: nextState,
+  };
+  store.dispatch(updateBgState({ key: 'PerpsController' }));
+};
 
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {
@@ -555,6 +570,74 @@ describe('PerpsMarketDetailsView', () => {
 
       await waitFor(() => {
         expect(toggleWatchlistMarket).toHaveBeenCalledWith('ETH');
+      });
+    });
+
+    it('switches from removing to adding after the watchlist state updates', async () => {
+      let watchlist = ['ETH'];
+      const toggleStates: boolean[] = [];
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockImplementation(() => watchlist);
+
+      const { store } = renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                isEligible: true,
+                isTestnet: false,
+                watchlistMarkets: {
+                  testnet: [],
+                  mainnet: ['ETH'],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      toggleWatchlistMarket.mockImplementation((symbol: string) => {
+        toggleStates.push(watchlist.includes(symbol));
+        watchlist = watchlist.includes(symbol)
+          ? watchlist.filter((marketSymbol) => marketSymbol !== symbol)
+          : [...watchlist, symbol];
+
+        syncPerpsControllerState(store, {
+          isEligible: true,
+          isTestnet: false,
+          watchlistMarkets: {
+            testnet: [],
+            mainnet: watchlist,
+          },
+        });
+
+        return Promise.resolve();
+      });
+
+      const favoriteButton = await screen.findByTestId(
+        PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+      );
+      expect(screen.getByLabelText('Remove from watchlist')).toBeOnTheScreen();
+
+      fireEvent.press(favoriteButton);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Add to watchlist')).toBeOnTheScreen();
+      });
+      expect(toggleStates).toEqual([true]);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(toggleStates).toEqual([true, false]);
+        expect(
+          screen.getByLabelText('Remove from watchlist'),
+        ).toBeOnTheScreen();
       });
     });
 

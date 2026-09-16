@@ -1,5 +1,9 @@
 import React from 'react';
-import { Text } from '@metamask/design-system-react-native';
+import {
+  ButtonIcon,
+  IconName,
+  Text,
+} from '@metamask/design-system-react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -300,14 +304,33 @@ describe('PerpsMarketHeader', () => {
   });
 
   it('renders the filled star when the market is favorited', () => {
-    const { getByTestId } = renderHeader({
+    const { getByTestId, UNSAFE_getByType } = renderHeader({
       onFavoritePress: jest.fn(),
       isFavorite: true,
     });
 
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
-    ).toBeOnTheScreen();
+    const favoriteButton = getByTestId(
+      PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON,
+    );
+
+    expect(favoriteButton).toBeOnTheScreen();
+    expect(UNSAFE_getByType(ButtonIcon).props.iconName).toBe(
+      IconName.StarFilled,
+    );
+  });
+
+  it('renders the outline star when the market is not favorited', () => {
+    const { getByTestId, UNSAFE_getByType } = renderHeader({
+      onFavoritePress: jest.fn(),
+      isFavorite: false,
+    });
+
+    const favoriteButton = getByTestId(
+      PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON,
+    );
+
+    expect(favoriteButton).toBeOnTheScreen();
+    expect(UNSAFE_getByType(ButtonIcon).props.iconName).toBe(IconName.Star);
   });
 
   it('fires onModeChange from the active Pro mode pill without waiting for the shimmer', () => {

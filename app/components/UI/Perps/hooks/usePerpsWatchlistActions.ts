@@ -5,6 +5,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import EngineService from '../../../../core/EngineService';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -57,6 +58,7 @@ export const usePerpsWatchlistActions = (
         // toast and its haptic by the round-trip. Failures surface through the
         // rejection handler below, matching useEnableMarketingConsent.
         const persisted = controller.toggleWatchlistMarket(symbol);
+        EngineService.flushState();
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (watchlistAfter.includes(symbol)) {
@@ -72,7 +74,9 @@ export const usePerpsWatchlistActions = (
           showToast(PerpsToastOptions.watchlist.added(symbol));
         }
 
-        await persisted;
+        await persisted.finally(() => {
+          EngineService.flushState();
+        });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
           tags: {
@@ -98,6 +102,7 @@ export const usePerpsWatchlistActions = (
         const controller = Engine.context.PerpsController;
         // Not awaited before the toast — see addToWatchlist.
         const persisted = controller.toggleWatchlistMarket(symbol);
+        EngineService.flushState();
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (!watchlistAfter.includes(symbol)) {
@@ -113,7 +118,9 @@ export const usePerpsWatchlistActions = (
           showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
 
-        await persisted;
+        await persisted.finally(() => {
+          EngineService.flushState();
+        });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
           tags: {

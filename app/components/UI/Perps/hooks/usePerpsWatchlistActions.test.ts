@@ -12,6 +12,7 @@ import {
 
 const mockToggleWatchlistMarket = jest.fn();
 const mockGetWatchlistMarkets = jest.fn(() => ['BTC']);
+const mockFlushState = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -20,6 +21,13 @@ jest.mock('../../../../core/Engine', () => ({
         mockToggleWatchlistMarket(...args),
       getWatchlistMarkets: () => mockGetWatchlistMarkets(),
     },
+  },
+}));
+
+jest.mock('../../../../core/EngineService', () => ({
+  __esModule: true,
+  default: {
+    flushState: () => mockFlushState(),
   },
 }));
 
@@ -99,11 +107,14 @@ describe('usePerpsWatchlistActions', () => {
       });
 
       expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolvePersist();
         await pending;
       });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
     });
 
     it('shows the removed toast before the persist settles', async () => {
@@ -123,11 +134,28 @@ describe('usePerpsWatchlistActions', () => {
       });
 
       expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolvePersist();
         await pending;
       });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
+    });
+
+    it('flushes Redux state before and after a failed persistence attempt', async () => {
+      mockToggleWatchlistMarket.mockRejectedValueOnce(
+        new Error('persist failed'),
+      );
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      await act(async () => {
+        await result.current.removeFromWatchlist('BTC');
+      });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
     });
   });
 
