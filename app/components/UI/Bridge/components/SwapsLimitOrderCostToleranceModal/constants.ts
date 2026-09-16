@@ -2,7 +2,7 @@
  * Cost tolerance options in % offered on the default modal. Anything else is
  * entered through the custom modal.
  */
-export const COST_TOLERANCE_OPTIONS = ['0.5', '2', '3'] as const;
+export const COST_TOLERANCE_OPTIONS = ['0.5', '2', '3'];
 
 export const CUSTOM_COST_TOLERANCE_OPTION_ID = 'custom-cost-tolerance';
 
