@@ -208,6 +208,10 @@ jest.mock('../Engine', () => ({
       clearState: jest.fn(),
     },
 
+    KycController: {
+      clearState: jest.fn(),
+    },
+
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
@@ -4615,6 +4619,16 @@ describe('Authentication', () => {
       expect(analytics.identify).toHaveBeenCalledWith({
         canonical_profile_id: null,
       });
+    });
+
+    it('clears KYC state so the next wallet cannot reuse the previous email', async () => {
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert
+      expect(Engine.context.KycController.clearState).toHaveBeenCalledTimes(1);
     });
 
     it('calls vault backup clear before creating temporary wallet', async () => {
