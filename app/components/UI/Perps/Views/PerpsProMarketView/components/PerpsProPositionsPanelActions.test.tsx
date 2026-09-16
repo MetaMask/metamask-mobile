@@ -50,6 +50,10 @@ jest.mock('../../../hooks/usePerpsNavigation', () => ({
   }),
 }));
 
+jest.mock('../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => ({ useBottomSheet: true }),
+}));
+
 jest.mock('../../../hooks/usePerpsTrading', () => ({
   usePerpsTrading: () => ({
     cancelOrder: mockCancelOrder,
@@ -186,13 +190,18 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return function PerpsSelectAdjustMarginActionView({
       enableHaptics,
+      useBottomSheet,
     }: {
       enableHaptics?: boolean;
+      useBottomSheet?: boolean;
     }) {
       return (
         <View
           testID="perps-select-adjust-margin-action-view"
           accessibilityLabel={enableHaptics ? 'haptics-enabled' : 'haptics-off'}
+          accessibilityHint={
+            useBottomSheet ? 'bottom-sheet-treatment' : 'screen-control'
+          }
         />
       );
     };
@@ -748,6 +757,9 @@ describe('PerpsProPositionsPanel action callbacks', () => {
         screen.getByTestId('perps-select-adjust-margin-action-view'),
       ).toHaveProp('accessibilityLabel', 'haptics-enabled');
     });
+    expect(
+      screen.getByTestId('perps-select-adjust-margin-action-view'),
+    ).toHaveProp('accessibilityHint', 'bottom-sheet-treatment');
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 

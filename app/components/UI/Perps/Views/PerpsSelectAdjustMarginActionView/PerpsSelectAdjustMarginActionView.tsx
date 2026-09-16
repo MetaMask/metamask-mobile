@@ -26,6 +26,7 @@ interface PerpsSelectAdjustMarginActionViewProps {
   position?: Position;
   onClose?: () => void;
   enableHaptics?: boolean;
+  useBottomSheet?: boolean;
 }
 
 const PerpsSelectAdjustMarginActionView: React.FC<
@@ -35,6 +36,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
   enableHaptics = false,
+  useBottomSheet = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -86,10 +88,16 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
       switch (action) {
         case 'add_margin':
-          navigateToAdjustMargin(position, 'add', { enableHaptics });
+          navigateToAdjustMargin(position, 'add', {
+            enableHaptics,
+            useBottomSheet,
+          });
           break;
         case 'reduce_margin':
-          navigateToAdjustMargin(position, 'remove', { enableHaptics });
+          navigateToAdjustMargin(position, 'remove', {
+            enableHaptics,
+            useBottomSheet,
+          });
           break;
       }
 
@@ -99,6 +107,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
     [
       position,
       enableHaptics,
+      useBottomSheet,
       playImpact,
       sheetRef,
       handleClose,

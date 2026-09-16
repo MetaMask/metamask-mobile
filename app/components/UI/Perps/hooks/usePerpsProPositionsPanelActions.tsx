@@ -33,6 +33,7 @@ import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginA
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
+import { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -94,6 +95,7 @@ export const usePerpsProPositionsPanelActions =
     const { handleUpdateTPSL } = usePerpsTPSLUpdate();
     const { showToast, PerpsToastOptions } = usePerpsToasts();
     const { playImpact } = useHaptics();
+    const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
     const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
     const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
@@ -445,6 +447,7 @@ export const usePerpsProPositionsPanelActions =
                 position={adjustMarginPosition}
                 onClose={handleAdjustMarginSheetClose}
                 enableHaptics
+                useBottomSheet={useBottomSheet}
               />
             </PerpsProModalPortal>
           )}
@@ -475,6 +478,7 @@ export const usePerpsProPositionsPanelActions =
         reversePosition,
         showCancelAllSheet,
         showCloseAllSheet,
+        useBottomSheet,
       ],
     );
 

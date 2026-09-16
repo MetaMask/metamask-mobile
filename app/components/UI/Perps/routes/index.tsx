@@ -34,6 +34,7 @@ import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsAdjustMarginBottomSheet from '../components/PerpsAdjustMarginBottomSheet';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
@@ -145,6 +146,23 @@ const PerpsConfirmScreen = () => {
       />
     </NavigationContext.Provider>
   );
+};
+
+const PerpsAdjustMarginRouter = () => {
+  const { params } =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsAdjustMargin'>>();
+
+  if (params?.useBottomSheet && params.position && params.mode) {
+    return (
+      <PerpsAdjustMarginBottomSheet
+        position={params.position}
+        initialMode={params.mode}
+        enableHaptics={params.enableHaptics}
+      />
+    );
+  }
+
+  return <PerpsAdjustMarginView />;
 };
 
 const PerpsModalStack = () => {
@@ -403,11 +421,19 @@ const PerpsScreenStack = () => {
               {/* Adjust Margin View */}
               <Stack.Screen
                 name={Routes.PERPS.ADJUST_MARGIN}
-                component={PerpsAdjustMarginView}
-                options={{
-                  title: strings('perps.adjust_margin.title'),
-                  headerShown: false,
-                }}
+                component={PerpsAdjustMarginRouter}
+                options={({ route }) =>
+                  route.params?.useBottomSheet
+                    ? {
+                        ...clearNativeStackNavigatorOptions,
+                        ...transparentModalScreenOptions,
+                        title: '',
+                      }
+                    : {
+                        title: strings('perps.adjust_margin.title'),
+                        headerShown: false,
+                      }
+                }
               />
 
               {/* Order Details View */}

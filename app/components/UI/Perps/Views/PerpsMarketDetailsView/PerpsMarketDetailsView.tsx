@@ -285,8 +285,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
   // Use centralized navigation hook for all Perps navigation
-  const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
-    usePerpsNavigation();
+  const {
+    navigateToOrder,
+    navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+  } = usePerpsNavigation();
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   // Use position management hook for bottom sheet state and handlers
@@ -1424,10 +1428,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
-      // Navigate directly to PerpsAdjustMarginView with mode='add'
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
-        position: existingPosition,
-        mode: 'add',
+      navigateToAdjustMargin(existingPosition, 'add', {
+        useBottomSheet,
       });
 
       // Track the interaction - use ADD_MARGIN interaction type for banner clicks
@@ -1439,7 +1441,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
       });
     });
-  }, [gate, existingPosition, navigation, track, isEligible]);
+  }, [
+    gate,
+    existingPosition,
+    track,
+    isEligible,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   // Handler for "Set Stop Loss" from stop loss prompt banner
   const handleSetStopLossFromBanner = useCallback(() => {
@@ -2284,6 +2293,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           sheetRef={adjustMarginActionSheetRef}
           position={existingPosition ?? undefined}
           onClose={closeAdjustMarginSheet}
+          useBottomSheet={useBottomSheet}
         />
       )}
 
