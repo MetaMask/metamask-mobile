@@ -794,10 +794,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         titleRef.current = siteInfo.title;
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
-        // Initialize the background bridge only once the navigation has
-        // committed, so the bridge origin always matches the page actually
-        // rendered in the WebView.
-        initializeBackgroundBridge(hostName, true);
+        // Bind on commit unless the destination-origin bridge was already
+        // created when this navigation started. Recreating it here would
+        // disconnect in-flight provider traffic on permitted dapps.
+        const existingBridge = backgroundBridgeRef.current;
+        if (!existingBridge || !isSameOrigin(existingBridge.url, hostName)) {
+          initializeBackgroundBridge(hostName, true);
+        }
         // Send the active account after the bridge has been initialized for the
         // committed origin, so account data is delivered through a bridge whose
         // origin matches the rendered page.
@@ -1208,12 +1211,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
           if (dataParsed.name) {
-            // Ignore provider messages until the in-flight cross-origin
-            // navigation has committed and a matching bridge exists.
+            // Drop provider messages while the live bridge origin does not
+            // match the in-flight load. The destination-origin bridge is
+            // bound on allowed onLoadStart so permitted pages can talk
+            // before commit.
+            const bridgeUrl = backgroundBridgeRef.current?.url;
             if (
               loadingUrlRef.current &&
-              resolvedUrlRef.current &&
-              !isSameOrigin(loadingUrlRef.current, resolvedUrlRef.current)
+              bridgeUrl &&
+              !isSameOrigin(loadingUrlRef.current, bridgeUrl)
             ) {
               return;
             }
@@ -1239,8 +1245,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         loadingUrlRef.current = nativeEvent.url;
 
         // Disconnect the previous-origin bridge on cross-origin navigation
-        // start. Same-origin navigations keep it. Do not initialize here —
-        // that still happens on commit.
+        // start. Same-origin navigations keep it.
         if (
           backgroundBridgeRef.current &&
           resolvedUrlRef.current &&
@@ -1261,13 +1266,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        // The background bridge is intentionally not initialized here.
-        // `onLoadStart` fires before the navigation has committed, so the bridge
-        // is initialized and the active account sent only once the navigation
-        // has committed, in `handleSuccessfulPageResolution`.
+        // Bind the destination-origin bridge as soon as the load is allowed
+        // so the incoming page can use the provider before commit. Skip when
+        // the current bridge already matches this origin (same-origin loads).
+        if (urlOrigin) {
+          const existingBridge = backgroundBridgeRef.current;
+          if (!existingBridge || !isSameOrigin(existingBridge.url, urlOrigin)) {
+            initializeBackgroundBridge(urlOrigin, true);
+          }
+        }
         iconRef.current = undefined;
       },
-      [isAllowedUrl, handleNotAllowedUrl, teardownBackgroundBridge],
+      [
+        isAllowedUrl,
+        handleNotAllowedUrl,
+        teardownBackgroundBridge,
+        initializeBackgroundBridge,
+      ],
     );
 
     /**
@@ -1674,6 +1689,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             !isSameOrigin(url, resolvedUrlRef.current)
           ) {
             teardownBackgroundBridge();
+            const destinationOrigin = new URLParse(url).origin;
+            if (destinationOrigin) {
+              initializeBackgroundBridge(destinationOrigin, true);
+            }
           }
 
           // Sync the URL bar from the document; navigation events are not always
@@ -1708,7 +1727,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
         }
       },
-      [favicon, handleSuccessfulPageResolution, teardownBackgroundBridge],
+      [
+        favicon,
+        handleSuccessfulPageResolution,
+        teardownBackgroundBridge,
+        initializeBackgroundBridge,
+      ],
     );
 
     /*

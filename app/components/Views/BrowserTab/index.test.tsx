@@ -117,6 +117,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 type MockBackgroundBridgeInstance = {
+  url: string;
   onDisconnect: jest.Mock;
   onMessage: jest.Mock;
   sendNotificationEip1193: jest.Mock;
@@ -125,8 +126,9 @@ type MockBackgroundBridgeInstance = {
 const mockBackgroundBridgeInstances: MockBackgroundBridgeInstance[] = [];
 
 jest.mock('../../../core/BackgroundBridge/BackgroundBridge', () =>
-  jest.fn().mockImplementation(() => {
+  jest.fn().mockImplementation((opts: { url?: string } = {}) => {
     const instance = {
+      url: opts.url ?? '',
       onDisconnect: jest.fn(),
       onMessage: jest.fn(),
       sendNotificationEip1193: jest.fn(),
@@ -1229,7 +1231,7 @@ describe('BrowserTab', () => {
       });
     };
 
-    it('disconnects the previous bridge on cross-origin onLoadStart and does not forward provider messages while loading', async () => {
+    it('disconnects the previous bridge on cross-origin onLoadStart and does not forward provider messages to it', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
       });
@@ -1249,6 +1251,15 @@ describe('BrowserTab', () => {
 
       expect(previousBridge?.onDisconnect).toHaveBeenCalledTimes(1);
 
+      const destinationBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(destinationBridge).toBeDefined();
+      expect(destinationBridge).not.toBe(previousBridge);
+      expect(BackgroundBridge).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          url: 'https://example.org',
+        }),
+      );
+
       const onMessage = webView.props.onMessage as (event: {
         nativeEvent: { data: string };
       }) => void;
@@ -1263,9 +1274,6 @@ describe('BrowserTab', () => {
       });
 
       expect(previousBridge?.onMessage).not.toHaveBeenCalled();
-      mockBackgroundBridgeInstances.forEach((instance) => {
-        expect(instance.onMessage).not.toHaveBeenCalled();
-      });
     });
 
     it('does not disconnect the bridge on same-origin onLoadStart', async () => {
@@ -1307,8 +1315,9 @@ describe('BrowserTab', () => {
       mockInjectJavaScript.mockClear();
       const bridgeCountAfterCommit = mockBackgroundBridgeInstances.length;
 
-      const onNavigationStateChange = webView.props
-        .onNavigationStateChange as (event: Record<string, unknown>) => void;
+      const onNavigationStateChange = webView.props.onNavigationStateChange as (
+        event: Record<string, unknown>,
+      ) => void;
       const onMessage = webView.props.onMessage as (event: {
         nativeEvent: { data: string };
       }) => void;
