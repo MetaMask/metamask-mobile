@@ -1664,6 +1664,8 @@ describe('useTransactionCustomAmount', () => {
           balanceHuman: '1234',
           balanceRaw: '1234000000',
           chainId: CHAIN_IDS.MONAD,
+          decimals: 6,
+          symbol: 'mUSD',
         } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
