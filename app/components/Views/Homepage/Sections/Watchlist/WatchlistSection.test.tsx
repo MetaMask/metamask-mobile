@@ -92,19 +92,19 @@ jest.mock(
     const ReactActual = jest.requireActual('react');
     const Mock = ({
       token,
-      onAddPress,
+      endAction,
     }: {
       token: { name: string };
-      onAddPress?: () => void;
+      endAction?: { type: string; onPress: () => void };
     }) =>
       ReactActual.createElement(
         View,
         { testID: `row-${token.name}` },
         ReactActual.createElement(Text, null, token.name),
-        onAddPress
+        endAction?.type === 'watchlist'
           ? ReactActual.createElement(TouchableOpacity, {
               testID: `row-add-${token.name}`,
-              onPress: onAddPress,
+              onPress: () => endAction.onPress(),
             })
           : null,
       );
@@ -134,6 +134,21 @@ jest.mock(
     useTrendingTokenPress: () => ({ onPress: jest.fn() }),
   }),
 );
+
+jest.mock(
+  '../../../../../images/watchlist-empty-dark.svg',
+  () => 'WatchlistEmptyDark',
+);
+jest.mock(
+  '../../../../../images/watchlist-empty-light.svg',
+  () => 'WatchlistEmptyLight',
+);
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
+  Theme: { Dark: 'dark', Light: 'light' },
+  useTheme: () => 'light',
+}));
 
 jest.mock('../../../Wallet/WalletView.testIds', () => ({
   WalletViewSelectorsIDs: {
@@ -242,11 +257,11 @@ describe('WatchlistSection', () => {
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(getByTestId('watchlist-empty-state')).toBeDefined();
-    expect(getByTestId('row-bitcoin')).toBeDefined();
-    expect(getByTestId('row-ethereum')).toBeDefined();
-    expect(getByTestId('row-add-bitcoin')).toBeDefined();
-    expect(getByTestId('row-add-ethereum')).toBeDefined();
+    expect(getByTestId('watchlist-empty-state')).toBeOnTheScreen();
+    expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
+    expect(getByTestId('row-ethereum')).toBeOnTheScreen();
+    expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
+    expect(getByTestId('row-add-ethereum')).toBeOnTheScreen();
   });
 
   it('adds a suggested token to the watchlist when its add button is pressed', () => {
@@ -291,7 +306,7 @@ describe('WatchlistSection', () => {
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
-  it('renders nothing below the header when no suggested tokens are available', () => {
+  it('renders the static fallback below the header when no suggested tokens are available', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -302,12 +317,15 @@ describe('WatchlistSection', () => {
       isLoading: false,
     });
 
-    const { queryByTestId } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(queryByTestId('watchlist-empty-state')).toBeNull();
-    expect(queryByTestId('row-add-bitcoin')).toBeNull();
+    expect(getByTestId('watchlist-empty-fallback')).toBeOnTheScreen();
+    expect(getByTestId('watchlist-empty-icon')).toBeOnTheScreen();
+    expect(getByText('You have no watchlist items yet')).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-empty-state')).not.toBeOnTheScreen();
+    expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 
   it('renders up to 3 tokens when watchlist has items (newest first)', () => {
