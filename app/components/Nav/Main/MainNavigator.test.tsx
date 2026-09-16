@@ -11,6 +11,8 @@ import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import OfflineMode from '../../Views/OfflineMode';
+import { slideFromRightNativeOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -19,6 +21,7 @@ jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
     Screen: 'Screen',
+    Group: 'Group',
   }),
 }));
 
@@ -382,13 +385,11 @@ describe('MainNavigator', () => {
       name: string;
       component: React.ComponentType;
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -417,13 +418,11 @@ describe('MainNavigator', () => {
       name: string;
       component: { name: string };
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -453,13 +452,11 @@ describe('MainNavigator', () => {
           contentStyle?: unknown;
         };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -467,6 +464,28 @@ describe('MainNavigator', () => {
           options: child.props.options,
         })) as ScreenChild[];
     };
+
+    const groupedScreenNames = (group?: ReactTestInstance): string[] =>
+      (group?.children ?? [])
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'props' in child &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+    // Look the Group up by a route it owns rather than by position, so adding
+    // another Group to MainNavigator does not silently repoint these tests.
+    const findGroupContaining = (
+      root: ReactTestInstance,
+      screenName: string,
+    ): ReactTestInstance | undefined =>
+      root
+        .findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+        )
+        .find((group) => groupedScreenNames(group).includes(screenName));
 
     it('includes Home screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
@@ -516,6 +535,49 @@ describe('MainNavigator', () => {
       );
 
       expect(cashTokensScreen).toBeDefined();
+    });
+
+    it('shares slide-from-right options on one Group for wallet full views', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.WALLET.TOKENS_FULL_VIEW);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.WALLET.TOKENS_FULL_VIEW,
+        Routes.WALLET.DEFI_FULL_VIEW,
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        Routes.WALLET.WATCHLIST_FULL_VIEW,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the explore pushes', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.EXPLORE_SEARCH);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.EXPLORE_SEARCH,
+        Routes.SITES_FULL_VIEW,
+        Routes.WHATS_HAPPENING_DETAIL,
+      ]);
+    });
+
+    it('keeps BROWSER.HOME out of the explore group', () => {
+      // BROWSER.HOME is also registered as a hidden tab in HomeTabs, so it is a
+      // duplicate route name rather than an Explore sub-page.
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.BROWSER.HOME);
+
+      expect(group).toBeUndefined();
     });
 
     it('includes Bridge routes', () => {
@@ -644,13 +706,11 @@ describe('MainNavigator', () => {
         name: string;
         component: { name: string };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -892,13 +952,11 @@ describe('MainNavigator', () => {
           contentStyle?: unknown;
         };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -1282,13 +1340,11 @@ describe('MainNavigator', () => {
       name: string;
       component: { name: string };
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -1352,13 +1408,11 @@ describe('MainNavigator', () => {
       state: stateWithSocialV1Control,
     });
 
-    const screenNames = root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenNames = root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => child.props.name);
 
@@ -1404,13 +1458,11 @@ describe('MainNavigator', () => {
     const rootStackScreenNames = (container: {
       root: ReactTestInstance;
     }): string[] =>
-      container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => child.props.name);
 

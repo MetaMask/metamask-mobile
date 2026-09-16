@@ -1061,26 +1061,24 @@ const MainNavigator = () => {
           contentStyle: { backgroundColor: importedColors.transparent },
         }}
       />
-      <NativeStack.Screen
-        name={Routes.WALLET.TOKENS_FULL_VIEW}
-        component={TokensFullView}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.WALLET.DEFI_FULL_VIEW}
-        component={DeFiFullView}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
-        component={CashTokensFullView}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.WALLET.WATCHLIST_FULL_VIEW}
-        component={WatchlistFullScreenView}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
+      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <NativeStack.Screen
+          name={Routes.WALLET.TOKENS_FULL_VIEW}
+          component={TokensFullView}
+        />
+        <NativeStack.Screen
+          name={Routes.WALLET.DEFI_FULL_VIEW}
+          component={DeFiFullView}
+        />
+        <NativeStack.Screen
+          name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
+          component={CashTokensFullView}
+        />
+        <NativeStack.Screen
+          name={Routes.WALLET.WATCHLIST_FULL_VIEW}
+          component={WatchlistFullScreenView}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
       <NativeStack.Screen
         name="ConfirmAddAsset"
@@ -1485,28 +1483,25 @@ const MainNavigator = () => {
           }}
         />
       )}
-      <>
+      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
         <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
         <NativeStack.Screen
           name={Routes.WHATS_HAPPENING_DETAIL}
           component={WhatsHappeningDetailView}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
-        <NativeStack.Screen
-          name={Routes.BROWSER.HOME}
-          component={BrowserFlow}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
-        />
-      </>
+      </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.BROWSER.HOME}
+        component={BrowserFlow}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}
