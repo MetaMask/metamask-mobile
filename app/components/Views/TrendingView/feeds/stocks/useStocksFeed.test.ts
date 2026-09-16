@@ -27,9 +27,11 @@ const makeAsset = (assetId: string, symbol: string): TrendingAsset =>
 const ETH_OUSG = makeAsset('eip155:1/erc20:0xaaa', 'OUSG');
 const ETH_BUIDL = makeAsset('eip155:1/erc20:0xbbb', 'BUIDL');
 const BNB_OUSG = makeAsset('eip155:56/erc20:0xccc', 'bOUSG');
-const ROBINHOOD_AAPL = makeAsset('eip155:4663/erc20:0xddd', 'AAPL');
+// TODO: re-enable Robinhood RWA test coverage once cleared for release
+// (https://github.com/MetaMask/metamask-mobile/pull/35854).
+// const ROBINHOOD_AAPL = makeAsset('eip155:4663/erc20:0xddd', 'AAPL');
 
-const ALL_RWA_ASSETS = [ETH_OUSG, ETH_BUIDL, BNB_OUSG, ROBINHOOD_AAPL];
+const ALL_RWA_ASSETS = [ETH_OUSG, ETH_BUIDL, BNB_OUSG];
 
 const arrangeRwaTokens = (assets = ALL_RWA_ASSETS) => {
   mockUseRwaTokens.mockReturnValue({
@@ -51,10 +53,10 @@ describe('useStocksFeed', () => {
   });
 
   describe('no-query path (tab sections)', () => {
-    it('filters to Ethereum and Robinhood assets', () => {
+    it('filters to Ethereum assets', () => {
       const { result } = renderHook(() => useStocksFeed());
       const symbols = result.current.data.map((d) => d.symbol);
-      expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
+      expect(symbols).toEqual(['OUSG', 'BUIDL']);
       expect(symbols).not.toContain('bOUSG');
     });
 
@@ -65,12 +67,12 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('requests Ethereum and Robinhood from the RWA API', () => {
+    it('requests Ethereum from the RWA API', () => {
       renderHook(() => useStocksFeed());
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({
-          chainIds: ['eip155:1', 'eip155:4663'],
+          chainIds: ['eip155:1'],
           includeTokenSecurityData: false,
         }),
       );
@@ -100,7 +102,7 @@ describe('useStocksFeed', () => {
       const symbols = result.current.data.map((d) => d.symbol);
       expect(symbols).toContain('OUSG');
       expect(symbols).toContain('bOUSG');
-      expect(symbols).toContain('AAPL');
+      // expect(symbols).toContain('AAPL');
     });
 
     it('does not filter out BNB tokens when a query is present', () => {
@@ -139,12 +141,12 @@ describe('useStocksFeed', () => {
     it('treats a whitespace-only query like no query', () => {
       const { result } = renderHook(() => useStocksFeed({ query: '   ' }));
       const symbols = result.current.data.map((d) => d.symbol);
-      expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
+      expect(symbols).toEqual(['OUSG', 'BUIDL']);
       expect(symbols).not.toContain('bOUSG');
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({
           searchQuery: undefined,
-          chainIds: ['eip155:1', 'eip155:4663'],
+          chainIds: ['eip155:1'],
         }),
       );
     });
