@@ -824,8 +824,10 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () =>
 );
 
 interface MockTradeScreenProps {
-  liquidationPrice?: string;
-  liquidationPercentage?: string;
+  orderType: 'market' | 'limit';
+  limitPrice?: string;
+  autoCloseText: string;
+  margin: string;
   payWithName: string;
   payWithBalance: string;
   showPayWith: boolean;
@@ -835,6 +837,10 @@ interface MockTradeScreenProps {
   showAmountWarning: boolean;
   errorMessages: { key: string; message: React.ReactNode }[];
   onSliderValueChange: (value: number) => void;
+  onLimitPriceKeypadChange: (value: {
+    value: string;
+    valueAsNumber: number;
+  }) => void;
   onSubmit: () => void;
 }
 
@@ -1360,6 +1366,32 @@ describe('PerpsOrderView', () => {
     expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('ETH');
   });
 
+  it('keeps limit orders editable inside the Trade sheet', () => {
+    const setLimitPrice = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+        limitPrice: '3000',
+      },
+      setLimitPrice,
+    });
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() =>
+      getMockTradeScreenProps().onLimitPriceKeypadChange({
+        value: '2950',
+        valueAsNumber: 2950,
+      }),
+    );
+
+    expect(getMockTradeScreenProps().orderType).toBe('limit');
+    expect(getMockTradeScreenProps().limitPrice).toBe('3000');
+    expect(setLimitPrice).toHaveBeenCalledWith('2950');
+  });
+
   it('closes the Trade sheet back to its presenting market', () => {
     useTradeSheetRoute();
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1460,7 +1492,6 @@ describe('PerpsOrderView', () => {
 
     expect(getMockTradeScreenProps()).toEqual(
       expect.objectContaining({
-        liquidationPercentage: undefined,
         payWithName: 'perps.adjust_margin.perps_balance',
         feePercentage: undefined,
       }),

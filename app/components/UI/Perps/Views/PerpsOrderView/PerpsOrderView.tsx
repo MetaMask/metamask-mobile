@@ -156,6 +156,7 @@ import {
 } from '../../abTestConfig';
 import {
   formatPerpsFiat,
+  formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -420,32 +421,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
   }, [commitAmount, isDraggingSlider, liveDragAmount]);
 
-  // The Trade sheet currently supports market orders only. Clear restored
-  // advanced-order fields before they can silently affect an order that does
-  // not expose controls for editing them.
+  // The compact Trade sheet exposes market and limit orders only.
   useEffect(() => {
     if (
       useBottomSheet &&
-      (orderForm.type !== 'market' ||
-        orderForm.limitPrice ||
-        orderForm.takeProfitPrice ||
-        orderForm.stopLossPrice)
+      orderForm.type !== 'market' &&
+      orderForm.type !== 'limit'
     ) {
       updateOrderForm({
         type: 'market',
         limitPrice: undefined,
-        takeProfitPrice: undefined,
-        stopLossPrice: undefined,
       });
     }
-  }, [
-    orderForm.limitPrice,
-    orderForm.stopLossPrice,
-    orderForm.takeProfitPrice,
-    orderForm.type,
-    updateOrderForm,
-    useBottomSheet,
-  ]);
+  }, [orderForm.type, updateOrderForm, useBottomSheet]);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
@@ -522,6 +510,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isLimitPriceFocused, setIsLimitPriceFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
   // Max slippage from persisted controller state via hook so the component
@@ -1202,7 +1191,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: isInputFocused,
+    skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
   });
 
@@ -1280,6 +1269,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   ]);
 
   const handleAmountPress = () => {
+    setIsLimitPriceFocused(false);
     setIsInputFocused(true);
   };
 
@@ -1314,6 +1304,93 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const handleDonePress = () => {
     setIsInputFocused(false);
   };
+
+  const handleTradeSheetLimitPricePress = useCallback(() => {
+    setIsInputFocused(false);
+    setIsLimitPriceFocused(true);
+  }, []);
+
+  const handleTradeSheetLimitPriceChange = useCallback(
+    ({ value }: { value: string; valueAsNumber: number }) => {
+      const digitCount = (value.match(/\d/g) || []).length;
+      if (digitCount <= MAX_PERPS_INPUT_DIGITS) {
+        setLimitPrice(value || undefined);
+      }
+    },
+    [setLimitPrice],
+  );
+
+  const handleTradeSheetLimitPricePreset = useCallback(
+    (preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2') => {
+      const parsedLimitPrice = Number.parseFloat(orderForm.limitPrice ?? '');
+      const marketPrice = assetData.price;
+      const basePrice =
+        Number.isFinite(parsedLimitPrice) && parsedLimitPrice > 0
+          ? parsedLimitPrice
+          : marketPrice;
+      let nextPrice =
+        preset === 'book'
+          ? Number.parseFloat(
+              (orderForm.direction === 'long'
+                ? currentTopOfBook?.bestBid
+                : currentTopOfBook?.bestAsk) ?? '',
+            )
+          : marketPrice;
+
+      if (preset === 'percentage-1' || preset === 'percentage-2') {
+        const percentage = preset === 'percentage-1' ? 1 : 2;
+        const multiplier =
+          orderForm.direction === 'long'
+            ? 1 - percentage / 100
+            : 1 + percentage / 100;
+        nextPrice = new BigNumber(basePrice)
+          .multipliedBy(multiplier)
+          .toNumber();
+      }
+
+      if (!Number.isFinite(nextPrice) || nextPrice <= 0) {
+        return;
+      }
+
+      setLimitPrice(
+        formatWithSignificantDigits(
+          nextPrice,
+          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+        ).value.toString(),
+      );
+    },
+    [
+      assetData.price,
+      currentTopOfBook?.bestAsk,
+      currentTopOfBook?.bestBid,
+      orderForm.direction,
+      orderForm.limitPrice,
+      setLimitPrice,
+    ],
+  );
+
+  const handleTradeSheetLimitPriceDone = useCallback(() => {
+    setIsLimitPriceFocused(false);
+  }, []);
+
+  const handleTradeSheetOrderTypeSelect = useCallback(
+    (type: OrderType) => {
+      if (type !== 'market' && type !== 'limit') {
+        return;
+      }
+
+      setOrderType(type);
+      setIsOrderTypeVisible(false);
+      if (type === 'market') {
+        setLimitPrice(undefined);
+        setIsLimitPriceFocused(false);
+      } else if (!orderForm.limitPrice) {
+        setIsInputFocused(false);
+        setIsLimitPriceFocused(true);
+      }
+    },
+    [orderForm.limitPrice, setLimitPrice, setOrderType],
+  );
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
@@ -1908,18 +1985,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   if (useBottomSheet) {
-    const currentMarketPrice = assetData.price;
-    const numericLiquidationPrice = Number.parseFloat(liquidationPrice);
-    const liquidationPercentage =
-      currentMarketPrice > 0 &&
-      Number.isFinite(numericLiquidationPrice) &&
-      numericLiquidationPrice > 0
-        ? `${(
-            (Math.abs(currentMarketPrice - numericLiquidationPrice) /
-              currentMarketPrice) *
-            100
-          ).toFixed(2)}%`
-        : undefined;
     const totalFeeRate =
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
@@ -1933,6 +1998,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : payTokenBalanceUsd,
       { ranges: PRICE_RANGES_MINIMAL_VIEW },
     );
+    const marginDisplay =
+      marginRequired !== undefined && marginRequired !== null
+        ? formatPerpsFiat(marginRequired, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : PERPS_CONSTANTS.FallbackDataDisplay;
+    const tradeSheetOrderType = orderForm.type === 'limit' ? 'limit' : 'market';
     const submitDisabled =
       !orderValidation.isValid ||
       isPlacingOrder ||
@@ -2020,79 +2092,97 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ];
 
     return (
-      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
-        onClose={() => navigation.goBack()}
-        rootScreen="trade"
-        screenDepth={TRADE_SHEET_SCREEN_DEPTH}
-        screens={{
-          trade: (
-            <PerpsTradeScreen
-              asset={getPerpsDisplaySymbol(orderForm.asset)}
-              oiCapSymbol={orderForm.asset}
-              assetIconUrl={assetUrl}
-              direction={orderForm.direction}
-              leverage={orderForm.leverage}
-              amount={displayAmount}
-              tokenAmount={livePositionSize}
-              sliderMaximum={maxPossibleAmount}
-              isAmountDisabled={isAmountDisabled}
-              isAmountLoading={isLoadingAccount}
-              hasAmountError={spendableBalance > 0 && filteredErrors.length > 0}
-              showAmountWarning={!isLoadingAccount && spendableBalance === 0}
-              amountWarningMessage={strings(
-                'perps.order.validation.insufficient_funds_to_cover_trade',
-              )}
-              isInputFocused={isInputFocused}
-              liquidationPrice={
-                hasValidAmount
-                  ? formatPerpsFiat(liquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  : undefined
-              }
-              liquidationPercentage={liquidationPercentage}
-              payWithName={payWithName}
-              payWithBalance={payWithBalance}
-              showPayWith={isPayRowVisible}
-              feePercentage={feePercentage}
-              isSubmitting={isPlacingOrder}
-              isSubmitDisabled={submitDisabled}
-              submitLabel={placeOrderLabel}
-              errorMessages={bottomSheetErrors}
-              isAtOICap={isAtOICap}
-              showServiceInterruptionBanner={isServiceInterruptionBannerEnabled}
-              onAmountPress={handleAmountPress}
-              onSliderValueChange={handleSliderValueChange}
-              onSliderDragEnd={handleSliderDragEnd}
-              onKeypadChange={handleKeypadChange}
-              onPercentagePress={handlePercentagePress}
-              onMaxPress={handleMaxPress}
-              onDonePress={handleDonePress}
-              onPayWithPress={handlePayWithPress}
-              onSubmit={() => handlePlaceOrder()}
-            />
-          ),
-          leverage: (
-            <PerpsTradeLeverageScreen
-              onConfirm={handleLeverageConfirm}
-              leverage={orderForm.leverage}
-              minLeverage={1}
-              maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
-              currentPrice={assetData.price}
-              direction={orderForm.direction}
-              asset={orderForm.asset}
-              limitPrice={orderForm.limitPrice}
-              orderType={orderForm.type}
-            />
-          ),
-          settings: (
-            <PerpsTradeSettingsScreen
-              currentValueBps={maxSlippageBps}
-              onSave={handleSlippageSave}
-            />
-          ),
-        }}
-      />
+      <>
+        <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+          onClose={() => navigation.goBack()}
+          rootScreen="trade"
+          screenDepth={TRADE_SHEET_SCREEN_DEPTH}
+          screens={{
+            trade: (
+              <PerpsTradeScreen
+                asset={getPerpsDisplaySymbol(orderForm.asset)}
+                oiCapSymbol={orderForm.asset}
+                assetIconUrl={assetUrl}
+                direction={orderForm.direction}
+                leverage={orderForm.leverage}
+                orderType={tradeSheetOrderType}
+                limitPrice={orderForm.limitPrice}
+                autoCloseText={tpSlDisplayText}
+                margin={marginDisplay}
+                amount={displayAmount}
+                tokenAmount={livePositionSize}
+                sliderMaximum={maxPossibleAmount}
+                isAmountDisabled={isAmountDisabled}
+                isAmountLoading={isLoadingAccount}
+                hasAmountError={
+                  spendableBalance > 0 && filteredErrors.length > 0
+                }
+                showAmountWarning={!isLoadingAccount && spendableBalance === 0}
+                amountWarningMessage={strings(
+                  'perps.order.validation.insufficient_funds_to_cover_trade',
+                )}
+                isInputFocused={isInputFocused}
+                isLimitPriceFocused={isLimitPriceFocused}
+                payWithName={payWithName}
+                payWithBalance={payWithBalance}
+                showPayWith={isPayRowVisible}
+                feePercentage={feePercentage}
+                isSubmitting={isPlacingOrder}
+                isSubmitDisabled={submitDisabled}
+                submitLabel={placeOrderLabel}
+                errorMessages={bottomSheetErrors}
+                isAtOICap={isAtOICap}
+                showServiceInterruptionBanner={
+                  isServiceInterruptionBannerEnabled
+                }
+                onAmountPress={handleAmountPress}
+                onSliderValueChange={handleSliderValueChange}
+                onSliderDragEnd={handleSliderDragEnd}
+                onKeypadChange={handleKeypadChange}
+                onPercentagePress={handlePercentagePress}
+                onMaxPress={handleMaxPress}
+                onDonePress={handleDonePress}
+                onOrderTypePress={() => setIsOrderTypeVisible(true)}
+                onLimitPricePress={handleTradeSheetLimitPricePress}
+                onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
+                onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
+                onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
+                onAutoClosePress={handleTPSLPress}
+                onPayWithPress={handlePayWithPress}
+                onSubmit={() => handlePlaceOrder()}
+              />
+            ),
+            leverage: (
+              <PerpsTradeLeverageScreen
+                onConfirm={handleLeverageConfirm}
+                leverage={orderForm.leverage}
+                minLeverage={1}
+                maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
+                currentPrice={assetData.price}
+                direction={orderForm.direction}
+                asset={orderForm.asset}
+                limitPrice={orderForm.limitPrice}
+                orderType={orderForm.type}
+              />
+            ),
+            settings: (
+              <PerpsTradeSettingsScreen
+                currentValueBps={maxSlippageBps}
+                onSave={handleSlippageSave}
+              />
+            ),
+          }}
+        />
+        <PerpsOrderTypeBottomSheet
+          isVisible={isOrderTypeVisible}
+          onClose={() => setIsOrderTypeVisible(false)}
+          onSelect={handleTradeSheetOrderTypeSelect}
+          currentOrderType={tradeSheetOrderType}
+          availableOrderTypes={['market', 'limit']}
+          asset={orderForm.asset}
+          direction={orderForm.direction}
+        />
+      </>
     );
   }
 

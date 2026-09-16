@@ -7,9 +7,6 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonSize,
@@ -19,16 +16,21 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { OrderType } from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
-import { formatPerpsFiat } from '../../utils/formatUtils';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
@@ -44,6 +46,10 @@ interface PerpsTradeScreenProps {
   assetIconUrl?: string;
   direction: 'long' | 'short';
   leverage: number;
+  orderType: Extract<OrderType, 'market' | 'limit'>;
+  limitPrice?: string;
+  autoCloseText: string;
+  margin: string;
   amount: string;
   tokenAmount?: string;
   sliderMaximum: number;
@@ -53,8 +59,7 @@ interface PerpsTradeScreenProps {
   showAmountWarning: boolean;
   amountWarningMessage?: string;
   isInputFocused: boolean;
-  liquidationPrice?: string;
-  liquidationPercentage?: string;
+  isLimitPriceFocused: boolean;
   payWithName: string;
   payWithBalance: string;
   showPayWith: boolean;
@@ -72,6 +77,17 @@ interface PerpsTradeScreenProps {
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
+  onOrderTypePress: () => void;
+  onLimitPricePress: () => void;
+  onLimitPriceKeypadChange: (value: {
+    value: string;
+    valueAsNumber: number;
+  }) => void;
+  onLimitPricePresetPress: (
+    preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
+  ) => void;
+  onLimitPriceDonePress: () => void;
+  onAutoClosePress: () => void;
   onPayWithPress: () => void;
   onSubmit: () => void;
 }
@@ -85,6 +101,7 @@ interface ActionRowProps {
   label: string;
   accessibilityLabel: string;
   value: React.ReactNode;
+  labelEndAccessory?: React.ReactNode;
   onPress?: () => void;
   testID?: string;
   showInfo?: boolean;
@@ -98,6 +115,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
   label,
   accessibilityLabel,
   value,
+  labelEndAccessory,
   onPress,
   testID,
   showInfo,
@@ -124,6 +142,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {label}
         </Text>
+        {labelEndAccessory}
         {showInfo ? (
           <Icon
             name={IconName.Info}
@@ -147,7 +166,16 @@ const ActionRow: React.FC<ActionRowProps> = ({
   );
 
   if (!onPress) {
-    return <Box testID={testID}>{content}</Box>;
+    return (
+      <Box
+        testID={testID}
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel={accessibilityLabel}
+      >
+        {content}
+      </Box>
+    );
   }
 
   return (
@@ -168,6 +196,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   assetIconUrl,
   direction,
   leverage,
+  orderType,
+  limitPrice,
+  autoCloseText,
+  margin,
   amount,
   tokenAmount,
   sliderMaximum,
@@ -177,8 +209,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   showAmountWarning,
   amountWarningMessage,
   isInputFocused,
-  liquidationPrice,
-  liquidationPercentage,
+  isLimitPriceFocused,
   payWithName,
   payWithBalance,
   showPayWith,
@@ -196,16 +227,27 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onPercentagePress,
   onMaxPress,
   onDonePress,
+  onOrderTypePress,
+  onLimitPricePress,
+  onLimitPriceKeypadChange,
+  onLimitPricePresetPress,
+  onLimitPriceDonePress,
+  onAutoClosePress,
   onPayWithPress,
   onSubmit,
 }) => {
-  const { close, navigateTo, title, banner } = usePerpsTradeSheet();
+  const { navigateTo, title, banner } = usePerpsTradeSheet();
   const [showAssetValue, setShowAssetValue] = useState(false);
   const directionLabel =
     direction === 'long'
       ? strings('perps.order.button.long', { asset })
       : strings('perps.order.button.short', { asset });
   const payWithLabel = `${payWithName} (${payWithBalance})`;
+  const orderTypeLabel =
+    orderType === 'market'
+      ? strings('perps.order.market')
+      : strings('perps.order.limit');
+  const isEditing = isInputFocused || isLimitPriceFocused;
 
   return (
     <Box accessible={false}>
@@ -214,7 +256,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        paddingHorizontal={2}
+        paddingHorizontal={4}
         paddingVertical={4}
         gap={2}
         twClassName="h-16"
@@ -223,80 +265,34 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           accessible={false}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          paddingHorizontal={2}
-          twClassName="w-20"
+          gap={2}
+          twClassName="min-w-0 flex-1"
         >
           <AvatarToken
             name={asset}
             src={assetIconUrl ? { uri: assetIconUrl } : undefined}
             size={AvatarTokenSize.Md}
           />
+          <Text variant={TextVariant.HeadingSm} twClassName="shrink">
+            {directionLabel}
+          </Text>
+          <Tag severity={TagSeverity.Neutral}>{leverage}x</Tag>
         </Box>
-        <Box
-          accessible={false}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1"
-        >
-          <Box
-            accessible={false}
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-            twClassName={
-              direction === 'long'
-                ? 'rounded-lg bg-success-muted px-3 py-1'
-                : 'rounded-lg bg-error-muted px-3 py-1'
-            }
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={
-                direction === 'long'
-                  ? TextColor.SuccessDefault
-                  : TextColor.ErrorDefault
-              }
-            >
-              {directionLabel} {leverage}x
-            </Text>
-            <Icon
-              name={IconName.SwapHorizontal}
-              size={IconSize.Md}
-              color={
-                direction === 'long'
-                  ? IconColor.SuccessDefault
-                  : IconColor.ErrorDefault
-              }
-            />
-          </Box>
-        </Box>
-        <Box
-          accessible={false}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          gap={1}
-          twClassName="w-20"
-        >
-          <ButtonIcon
-            iconName={IconName.Setting}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Default}
-            accessibilityLabel={strings('perps.trade_sheet.settings')}
-            testID={PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON}
-            onPress={() => navigateTo('settings')}
-          />
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Default}
-            accessibilityLabel={strings('navigation.close')}
-            testID={PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON}
-            onPress={close}
-          />
-        </Box>
+        <SelectButton
+          testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          size={SelectButtonSize.Md}
+          placeholder={orderTypeLabel}
+          value={orderTypeLabel}
+          accessibilityLabel={strings(
+            'perps.trade_sheet.order_type_accessibility_label',
+            { orderType: orderTypeLabel },
+          )}
+          onPress={onOrderTypePress}
+          endAccessory={
+            <Icon name={IconName.SwapHorizontal} size={IconSize.Xs} />
+          }
+        />
       </Box>
 
       <PerpsTradeSheetTitleBanner title={title} banner={banner} />
@@ -408,80 +404,157 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   {leverage}x
                 </Text>
               }
-              endIconName={IconName.Edit}
-              endIconSize={IconSize.Sm}
-              endIconColor={IconColor.IconDefault}
               onPress={() => navigateTo('leverage')}
             />
-            {showPayWith ? (
+            {orderType === 'limit' ? (
               <ActionRow
-                testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
-                label={strings('confirm.label.pay_with')}
+                testID={PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_ROW}
+                label={strings('perps.order.limit_price')}
                 accessibilityLabel={`${strings(
-                  'confirm.label.pay_with',
-                )}, ${payWithLabel}`}
+                  'perps.order.limit_price',
+                )}, ${limitPrice || '0.00'}`}
                 value={
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
+                    color={
+                      limitPrice ? TextColor.TextDefault : TextColor.TextMuted
+                    }
                   >
-                    {payWithName}{' '}
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      ({payWithBalance})
-                    </Text>
+                    ${limitPrice || '0.00'}
                   </Text>
                 }
-                onPress={onPayWithPress}
+                showEndIcon={false}
+                onPress={onLimitPricePress}
               />
             ) : null}
-            <ActionRow
-              testID={PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW}
-              label={strings('perps.order.liquidation_price')}
-              accessibilityLabel={`${strings(
-                'perps.order.liquidation_price',
-              )}, ${liquidationPrice ?? '--'}${
-                liquidationPercentage ? `, ${liquidationPercentage}` : ''
-              }`}
-              value={
-                <>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {liquidationPrice ?? '--'}
-                  </Text>
-                  {liquidationPercentage ? (
+            {!isLimitPriceFocused ? (
+              <>
+                <ActionRow
+                  testID={PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW}
+                  label={strings('perps.auto_close.title')}
+                  accessibilityLabel={`${strings(
+                    'perps.auto_close.title',
+                  )}, ${autoCloseText}`}
+                  value={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {autoCloseText}
+                    </Text>
+                  }
+                  onPress={onAutoClosePress}
+                />
+                {showPayWith ? (
+                  <ActionRow
+                    testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
+                    label={strings('confirm.label.pay_with')}
+                    accessibilityLabel={`${strings(
+                      'confirm.label.pay_with',
+                    )}, ${payWithLabel}`}
+                    value={
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {payWithName}{' '}
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.TextAlternative}
+                        >
+                          ({payWithBalance})
+                        </Text>
+                      </Text>
+                    }
+                    onPress={onPayWithPress}
+                  />
+                ) : null}
+                <ActionRow
+                  testID={PerpsTradeSheetSelectorsIDs.MARGIN_ROW}
+                  label={strings('perps.order.margin')}
+                  accessibilityLabel={`${strings(
+                    'perps.order.margin',
+                  )}, ${strings('perps.margin_mode.isolated_title')}, ${margin}`}
+                  labelEndAccessory={
                     <>
+                      <Tag severity={TagSeverity.Neutral}>
+                        {strings('perps.margin_mode.isolated_title')}
+                      </Tag>
                       <Icon
-                        name={
-                          direction === 'long'
-                            ? IconName.TrendDown
-                            : IconName.TrendUp
-                        }
+                        name={IconName.Info}
                         size={IconSize.Sm}
                         color={IconColor.IconAlternative}
                       />
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                      >
-                        {liquidationPercentage}
-                      </Text>
                     </>
-                  ) : null}
-                </>
-              }
-              showInfo
-              showEndIcon={false}
+                  }
+                  value={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {margin}
+                    </Text>
+                  }
+                  showEndIcon={false}
+                />
+              </>
+            ) : null}
+          </Box>
+        ) : null}
+
+        {isLimitPriceFocused ? (
+          <Box accessible={false} paddingHorizontal={4} gap={3}>
+            <Box
+              accessible={false}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              {(
+                [
+                  ['mid', strings('perps.order.limit_price_modal.mid_price')],
+                  [
+                    'book',
+                    direction === 'long'
+                      ? strings('perps.order.limit_price_modal.bid_price')
+                      : strings('perps.order.limit_price_modal.ask_price'),
+                  ],
+                  ['percentage-1', direction === 'long' ? '-1%' : '+1%'],
+                  ['percentage-2', direction === 'long' ? '-2%' : '+2%'],
+                ] as const
+              ).map(([preset, label]) => (
+                <Button
+                  key={preset}
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  twClassName="flex-1"
+                  onPress={() => onLimitPricePresetPress(preset)}
+                >
+                  {label}
+                </Button>
+              ))}
+              <Button
+                testID={PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON}
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                twClassName="flex-1"
+                onPress={onLimitPriceDonePress}
+              >
+                {strings('perps.deposit.done_button')}
+              </Button>
+            </Box>
+            <Keypad
+              value={limitPrice || ''}
+              onChange={onLimitPriceKeypadChange}
+              currency="USD_PERPS"
+              decimals={5}
             />
           </Box>
         ) : null}
       </Box>
 
-      {!isInputFocused && (isAtOICap || showServiceInterruptionBanner) ? (
+      {!isEditing && (isAtOICap || showServiceInterruptionBanner) ? (
         <Box accessible={false} paddingHorizontal={4} paddingBottom={3} gap={2}>
           {isAtOICap ? (
             <PerpsOICapWarning symbol={oiCapSymbol} variant="banner" />
@@ -492,7 +565,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         </Box>
       ) : null}
 
-      {!isInputFocused && !isAtOICap ? (
+      {!isEditing && !isAtOICap ? (
         <Box
           accessible={false}
           paddingHorizontal={4}

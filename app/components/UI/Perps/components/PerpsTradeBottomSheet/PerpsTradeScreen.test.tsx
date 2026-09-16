@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
@@ -37,6 +36,9 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   oiCapSymbol: 'SOL',
   direction: 'long',
   leverage: 3,
+  orderType: 'market',
+  autoCloseText: 'TP Off, SL Off',
+  margin: '$3.41',
   amount: '10',
   tokenAmount: '0.11',
   sliderMaximum: 100,
@@ -45,8 +47,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   hasAmountError: false,
   showAmountWarning: false,
   isInputFocused: false,
-  liquidationPrice: '$68.292',
-  liquidationPercentage: '30.05%',
+  isLimitPriceFocused: false,
   payWithName: 'Perps balance',
   payWithBalance: '$1,285.82',
   showPayWith: true,
@@ -63,6 +64,12 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onPercentagePress: jest.fn(),
   onMaxPress: jest.fn(),
   onDonePress: jest.fn(),
+  onOrderTypePress: jest.fn(),
+  onLimitPricePress: jest.fn(),
+  onLimitPriceKeypadChange: jest.fn(),
+  onLimitPricePresetPress: jest.fn(),
+  onLimitPriceDonePress: jest.fn(),
+  onAutoClosePress: jest.fn(),
   onPayWithPress: jest.fn(),
   onSubmit: jest.fn(),
 };
@@ -96,18 +103,22 @@ describe('PerpsTradeScreen errors', () => {
   it('wires primary Trade actions to the sheet and order handlers', () => {
     const onSubmit = jest.fn();
     const onPayWithPress = jest.fn();
+    const onOrderTypePress = jest.fn();
+    const onAutoClosePress = jest.fn();
     render(
       <PerpsTradeScreen
         {...defaultProps}
+        onOrderTypePress={onOrderTypePress}
+        onAutoClosePress={onAutoClosePress}
         onPayWithPress={onPayWithPress}
         onSubmit={onSubmit}
       />,
     );
 
     fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON),
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON),
     );
-    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
+    expect(onOrderTypePress).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LEVERAGE_ROW),
@@ -119,20 +130,18 @@ describe('PerpsTradeScreen errors', () => {
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
 
-    expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW),
-    ).toBeOnTheScreen();
-    expect(mockNavigateTo).not.toHaveBeenCalledWith('orderSummary');
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    );
+    expect(onAutoClosePress).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
     );
     expect(onSubmit).toHaveBeenCalledTimes(1);
 
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText('Market order type')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Margin, Isolated, $3.41')).toBeOnTheScreen();
   });
 
   it('hides the order CTA while the market is at its OI cap', () => {
@@ -151,17 +160,41 @@ describe('PerpsTradeScreen errors', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it.each([
-    ['long', IconName.TrendDown],
-    ['short', IconName.TrendUp],
-  ] as const)(
-    'uses the correct liquidation trend for a %s trade',
-    (direction, iconName) => {
-      render(<PerpsTradeScreen {...defaultProps} direction={direction} />);
+  it('shows the limit price row for a limit order', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="98.50"
+      />,
+    );
 
-      expect(screen.UNSAFE_getByProps({ name: iconName })).toBeDefined();
-    },
-  );
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_ROW),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('$98.50')).toBeOnTheScreen();
+  });
+
+  it('shows the reused keypad while editing a limit price', () => {
+    const onLimitPriceDonePress = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        isLimitPriceFocused
+        onLimitPriceDonePress={onLimitPriceDonePress}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON),
+    );
+
+    expect(onLimitPriceDonePress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
 
   it('propagates an order execution error to the footer', () => {
     render(

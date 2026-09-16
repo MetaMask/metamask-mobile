@@ -1016,12 +1016,14 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
-  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
-  CLOSE_BUTTON: 'perps-trade-sheet-close-button',
+  ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
+  LIMIT_PRICE_ROW: 'perps-trade-sheet-limit-price-row',
+  AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
   PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
-  LIQUIDATION_ROW: 'perps-trade-sheet-liquidation-row',
+  MARGIN_ROW: 'perps-trade-sheet-margin-row',
+  KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
