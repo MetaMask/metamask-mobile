@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import sourceMap from 'source-map';
 import {
   parseArgs,
   resolveLatestRun,
@@ -29,8 +28,6 @@ import {
   buildWindowMarkdown,
   buildWindowSlack,
 } from './analyze-app-profiling.mjs';
-
-const { SourceMapGenerator } = sourceMap;
 
 function profile(fileName, overrides = {}) {
   const parsed = parseProfileFileName(fileName);
@@ -231,14 +228,17 @@ test('convertProfile symbolicates locally without React Native CLI config', asyn
       },
     }),
   );
-  const map = new SourceMapGenerator({ file: 'index.bundle' });
-  map.addMapping({
-    generated: { line: 1, column: 1 },
-    original: { line: 42, column: 0 },
-    source: 'app/example.ts',
-    name: 'renderExample',
-  });
-  fs.writeFileSync(sourcemapPath, map.toString());
+  fs.writeFileSync(
+    sourcemapPath,
+    JSON.stringify({
+      version: 3,
+      sources: ['app/example.ts'],
+      names: ['renderExample'],
+      // Generated line 1, column 1 → app/example.ts:42, name renderExample.
+      mappings: 'CAyCAA',
+      file: 'index.bundle',
+    }),
+  );
 
   const convertedPath = await convertProfile(
     profilePath,

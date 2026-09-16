@@ -33,12 +33,10 @@
 
 import { spawnSync } from 'child_process';
 import fs from 'fs';
-import { createRequire } from 'module';
 import os from 'os';
 import path from 'path';
+import transformerModule from '@margelo/hermes-profile-transformer';
 
-const require = createRequire(import.meta.url);
-const transformerModule = require('@margelo/hermes-profile-transformer');
 const transformHermesProfile =
   transformerModule.default || transformerModule;
 
