@@ -47,7 +47,14 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
-import { getPredictMarketDataServiceMessenger } from './predict-market-data-service-messenger';
+import {
+  getPredictMarketDataServiceMessenger,
+  getPredictMarketDataServiceInitMessenger,
+} from './predict-market-data-service-messenger';
+import {
+  getPredictLiveDataServiceMessenger,
+  getPredictLiveDataServiceInitMessenger,
+} from './predict-live-data-service-messenger';
 import {
   getPredictPortfolioServiceInitMessenger,
   getPredictPortfolioServiceMessenger,
@@ -358,7 +365,11 @@ export const MESSENGER_FACTORIES = {
   },
   PredictMarketDataService: {
     getMessenger: getPredictMarketDataServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getPredictMarketDataServiceInitMessenger,
+  },
+  PredictLiveDataService: {
+    getMessenger: getPredictLiveDataServiceMessenger,
+    getInitMessenger: getPredictLiveDataServiceInitMessenger,
   },
   PredictPortfolioService: {
     getMessenger: getPredictPortfolioServiceMessenger,

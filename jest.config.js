@@ -14,6 +14,8 @@ process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
 process.env.KYC_API_URL = 'https://kyc-api.example.com';
+process.env.IDOS_ENCLAVE_URL = 'https://enclave.example.com';
+process.env.IDOS_RELAY_URL = 'https://relay.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
