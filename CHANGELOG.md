@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Added suggested tokens to the empty token watchlist on the homepage so users can add tokens directly with a `+` button
-
 ## [8.11.0]
 
 ### Added

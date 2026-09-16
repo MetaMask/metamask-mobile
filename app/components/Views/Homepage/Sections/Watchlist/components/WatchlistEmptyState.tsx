@@ -2,9 +2,6 @@ import React, { useCallback } from 'react';
 import type { CaipAssetType } from '@metamask/utils';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
   toast,
   ToastSeverity,
 } from '@metamask/design-system-react-native';
@@ -69,16 +66,15 @@ const WatchlistEmptyState: React.FC = () => {
     );
   }
 
+  // No suggestions available — nothing to render below the section header,
+  // matching the perps watchlist structure (no helper copy in the empty state).
+  if (!suggestedTokens || suggestedTokens.length === 0) {
+    return null;
+  }
+
   return (
     <Box testID="watchlist-empty-state" gap={1}>
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextDefault}
-        testID="watchlist-empty-subtitle"
-      >
-        {strings('token_watchlist.home_empty_subtitle')}
-      </Text>
-      {suggestedTokens?.map((token) => (
+      {suggestedTokens.map((token) => (
         <TrendingTokenRowItem
           key={String(token.assetId)}
           token={mapWatchlistTokenToTrendingAsset(token)}

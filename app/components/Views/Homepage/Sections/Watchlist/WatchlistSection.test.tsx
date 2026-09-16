@@ -238,12 +238,11 @@ describe('WatchlistSection', () => {
       isLoading: false,
     });
 
-    const { getByTestId, getByText } = render(
+    const { getByTestId } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
     expect(getByTestId('watchlist-empty-state')).toBeDefined();
-    expect(getByText('Tap + to add a token to your watchlist.')).toBeDefined();
     expect(getByTestId('row-bitcoin')).toBeDefined();
     expect(getByTestId('row-ethereum')).toBeDefined();
     expect(getByTestId('row-add-bitcoin')).toBeDefined();
@@ -292,7 +291,7 @@ describe('WatchlistSection', () => {
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
-  it('renders only the empty subtitle when no suggested tokens are available', () => {
+  it('renders nothing below the header when no suggested tokens are available', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -303,12 +302,11 @@ describe('WatchlistSection', () => {
       isLoading: false,
     });
 
-    const { getByTestId, getByText, queryByTestId } = render(
+    const { queryByTestId } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(getByTestId('watchlist-empty-state')).toBeDefined();
-    expect(getByText('Tap + to add a token to your watchlist.')).toBeDefined();
+    expect(queryByTestId('watchlist-empty-state')).toBeNull();
     expect(queryByTestId('row-add-bitcoin')).toBeNull();
   });
 
