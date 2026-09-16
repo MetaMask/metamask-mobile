@@ -10,7 +10,6 @@ import {
   Alert,
   DeviceEventEmitter,
   Image,
-  InteractionManager,
   View,
   Linking,
 } from 'react-native';
@@ -620,12 +619,12 @@ const QRScanner = ({
                 .build(),
             );
             end();
-            InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
                 predefinedRecipient,
               });
-            });
+            }, 0);
             return;
           }
           ///: END:ONLY_INCLUDE_IF
@@ -667,12 +666,12 @@ const QRScanner = ({
 
             end();
 
-            InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
                 predefinedRecipient,
               });
-            });
+            }, 0);
 
             return;
           }
@@ -726,7 +725,7 @@ const QRScanner = ({
         ) {
           shouldReadBarCodeRef.current = false;
           data = {
-            private_key: content.length === 64 ? content : content.substr(2),
+            private_key: content.length === 64 ? content : content.substring(2),
           };
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -824,9 +823,9 @@ const QRScanner = ({
     }
 
     navigation.goBack();
-    InteractionManager.runAfterInteractions(() => {
+    setTimeout(() => {
       showCameraNotAuthorizedAlert();
-    });
+    }, 0);
   }, [
     hasPermission,
     isAddDeviceScanner,
@@ -850,11 +849,11 @@ const QRScanner = ({
   const onError = useCallback(
     (error: Error) => {
       navigation.goBack();
-      InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
         if (onScanError && error) {
           onScanError(error.message);
         }
-      });
+      }, 0);
     },
     [onScanError, navigation],
   );

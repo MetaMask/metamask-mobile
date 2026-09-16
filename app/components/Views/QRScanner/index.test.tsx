@@ -142,12 +142,6 @@ jest.mock('react-native/Libraries/Alert/Alert', () => {
   return { __esModule: true, default: alert, ...alert };
 });
 
-const { InteractionManager } = jest.requireActual('react-native');
-
-InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
-  callback(),
-);
-
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn().mockReturnValue(false),
 }));
@@ -1342,7 +1336,7 @@ describe('QrScanner', () => {
 
         expect(mockGoBack).toHaveBeenCalled();
 
-        // Wait for navigateToSendPage (happens in InteractionManager callback)
+        // Wait for navigateToSendPage (deferred with setTimeout)
         await waitFor(() => {
           expect(mockNavigateToSendPage).toHaveBeenCalledWith({
             location: 'qr_scanner',
