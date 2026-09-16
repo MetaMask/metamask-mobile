@@ -557,6 +557,7 @@ export type RootStackParamList = {
   RampGetPixKey: undefined;
   RampVbaVerifyIdentity: undefined;
   RampVbaKycEmail: undefined;
+  RampVbaKycPending: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;

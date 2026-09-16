@@ -9,6 +9,7 @@ import type {
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   VBA_KYC_COUNTRY_CODE,
@@ -24,6 +25,14 @@ interface UseKycEmailVerificationResult {
   goBack: () => void;
   startVerification: () => Promise<void>;
 }
+
+const navigateToPendingIfEligible = (navigation: AppNavigationProp): void => {
+  if (Engine.context.KycController.state.userStatus !== 'pending') {
+    return;
+  }
+
+  navigation.navigate(Routes.RAMP.VBA_KYC_PENDING);
+};
 
 const toAcceptedDisclaimerKeys = (
   documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
@@ -83,6 +92,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
       Logger.log('[VBA KYC] Sumsub SDK closed', {
         status: Engine.context.KycController.state.sumsub.status,
       });
+      navigateToPendingIfEligible(navigation);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -97,7 +107,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, trimmedEmail]);
+  }, [isVerifying, navigation, trimmedEmail]);
 
   return {
     email,
