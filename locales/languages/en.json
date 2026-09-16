@@ -2229,6 +2229,7 @@
       "cancel": "Cancel",
       "close": "Close",
       "sheet_position_summary": "{{direction}} {{asset}} {{leverage}}x",
+      "toggle_amount_display": "Toggle between fiat and token amount",
       "total_inc_pnl": "Total (inc. P&L)",
       "margin": "Margin",
       "includes_pnl": "includes P&L",

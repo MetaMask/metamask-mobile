@@ -1091,12 +1091,14 @@ export const PerpsClosePositionViewSelectorsIDs = {
 export const PerpsClosePositionBottomSheetSelectorsIDs = {
   CONTAINER: 'close-position-bottom-sheet',
   HEADER_TITLE: 'close-position-bottom-sheet-header-title',
+  AMOUNT_DISPLAY_TOGGLE: 'close-position-bottom-sheet-amount-display-toggle',
   ORDER_TYPE_CONTROL: 'close-position-bottom-sheet-order-type',
   ORDER_TYPE_MARKET: 'close-position-bottom-sheet-order-type-market',
   ORDER_TYPE_LIMIT: 'close-position-bottom-sheet-order-type-limit',
   LIMIT_PRICE_INPUT: 'close-position-bottom-sheet-limit-price-input',
   LIMIT_PRESET_MID: 'close-position-bottom-sheet-limit-preset-mid',
-  LIMIT_PRESET_TOP_OF_BOOK: 'close-position-bottom-sheet-limit-preset-top-of-book',
+  LIMIT_PRESET_TOP_OF_BOOK:
+    'close-position-bottom-sheet-limit-preset-top-of-book',
   LIMIT_PRESET_PERCENT: 'close-position-bottom-sheet-limit-preset-percent-',
   MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
   FEES_VALUE: 'close-position-bottom-sheet-fees-value',

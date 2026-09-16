@@ -93,6 +93,12 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   } = usePerpsClosePositionForm({ dismiss });
 
   const [isEditingLimitPrice, setIsEditingLimitPrice] = useState(false);
+  const [showTokenAmount, setShowTokenAmount] = useState(false);
+
+  const handleDisplayToggle = useCallback(
+    () => setShowTokenAmount((current) => !current),
+    [],
+  );
 
   const limitPriceInput = usePerpsLimitPriceInput({
     asset: position.symbol,
@@ -149,7 +155,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [navigation]);
 
   const leverage = livePosition.leverage?.value;
-  const tokenAmountLabel = `${formatPositionSize(liveCloseAmount, szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`;
 
   const feesValue = feeResults.isLoadingMetamaskFee ? (
     <ActivityIndicator size="small" color={theme.colors.icon.alternative} />
@@ -208,27 +213,25 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       </Box>
 
       {!isEditingLimitPrice && (
-        <>
-          <PerpsAmountDisplay
-            amount={displayUSDString}
-            showWarning={false}
-            onPress={handleAmountPress}
-            isActive={isInputFocused}
-            tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
-            hasError={filteredErrors.length > 0}
-            tokenSymbol={position.symbol}
-            showMaxAmount={false}
-          />
-
-          <Box twClassName="items-center px-4 pt-0 pb-2">
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {tokenAmountLabel}
-            </Text>
-          </Box>
-        </>
+        <PerpsAmountDisplay
+          variant="tradeSheet"
+          amount={displayUSDString}
+          showWarning={false}
+          onPress={handleAmountPress}
+          accessibilityLabel={strings('perps.close_position.select_amount')}
+          isActive={isInputFocused}
+          showTokenAmount={showTokenAmount}
+          tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+          hasError={filteredErrors.length > 0}
+          tokenSymbol={position.symbol}
+          onDisplayToggle={handleDisplayToggle}
+          displayToggleAccessibilityLabel={strings(
+            'perps.close_position.toggle_amount_display',
+          )}
+          displayToggleTestID={
+            PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE
+          }
+        />
       )}
 
       {!isKeypadVisible && (
@@ -258,7 +261,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             value={effectiveOrderType}
             onChange={handleOrderTypeChange}
             size={SegmentedControlSize.Sm}
-            testID={PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_CONTROL}
+            testID={
+              PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_CONTROL
+            }
           >
             <FilterButton
               value="market"
@@ -270,7 +275,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             </FilterButton>
             <FilterButton
               value="limit"
-              testID={PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT}
+              testID={
+                PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT
+              }
             >
               {strings('perps.order.limit')}
             </FilterButton>
@@ -349,9 +356,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
-                  testID={
-                    PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE
-                  }
+                  testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE}
                 >
                   {formatPerpsFiat(receiveAmount, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,

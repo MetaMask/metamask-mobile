@@ -1,9 +1,11 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsClosePositionBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import {
   defaultMinimumOrderAmountMock,
   defaultPerpsClosePositionMock,
@@ -87,7 +89,6 @@ jest.mock('../../../../Base/Keypad', () => {
   };
 });
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
-jest.mock('../../components/PerpsAmountDisplay');
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -112,19 +113,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     ),
   };
 });
-
-jest.mocked(jest.requireMock('../../components/PerpsAmountDisplay')).default = ({
-  onPress,
-  amount,
-}: {
-  onPress?: () => void;
-  amount?: string;
-}) =>
-  React.createElement(
-    TouchableOpacity,
-    { onPress, testID: 'perps-amount-display' },
-    React.createElement(Text, null, amount),
-  );
 
 const STATE_MOCK = createPerpsStateMock();
 
@@ -276,7 +264,9 @@ describe('PerpsClosePositionBottomSheet', () => {
     it('renders margin, fees and total rows', () => {
       const { getByTestId, getByText } = renderSheet();
 
-      expect(getByText(strings('perps.close_position.margin'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('perps.close_position.margin')),
+      ).toBeOnTheScreen();
       expect(getByText(strings('perps.close_position.fees'))).toBeOnTheScreen();
       expect(
         getByText(strings('perps.close_position.total_inc_pnl')),
@@ -315,11 +305,48 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveTextContent('(-$150)');
     });
 
+    it('renders the fiat/token display toggle', () => {
+      const { getByTestId } = renderSheet();
+
+      expect(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('swaps the primary amount between fiat and token when toggled', () => {
+      const { getByTestId } = renderSheet();
+
+      const amount = () =>
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
+      const fiatFirst = amount().props.children;
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      );
+      const tokenFirst = amount().props.children;
+
+      expect(tokenFirst).not.toBe(fiatFirst);
+      expect(String(tokenFirst)).toContain('ETH');
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      );
+      expect(amount().props.children).toBe(fiatFirst);
+    });
+
     it('renders the order type toggle when the limit order flag is enabled', () => {
       const { getByTestId } = renderSheet();
 
       expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET),
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET,
+        ),
       ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
@@ -346,7 +373,9 @@ describe('PerpsClosePositionBottomSheet', () => {
       );
 
       expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT),
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -357,7 +386,9 @@ describe('PerpsClosePositionBottomSheet', () => {
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
       );
       fireEvent.press(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET),
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET,
+        ),
       );
 
       expect(
@@ -442,7 +473,10 @@ describe('PerpsClosePositionBottomSheet', () => {
         expect(
           defaultPerpsClosePositionMock.handleClosePosition,
         ).toHaveBeenCalledWith(
-          expect.objectContaining({ orderType: 'market', limitPrice: undefined }),
+          expect.objectContaining({
+            orderType: 'market',
+            limitPrice: undefined,
+          }),
         );
       });
     });
