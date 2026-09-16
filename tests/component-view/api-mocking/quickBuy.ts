@@ -66,7 +66,10 @@ export function clearQuickBuyApiMocks(): void {
  * quote enrichment. Gas-included quotes read `txFee`; non-gasless quotes
  * read `network` + `relayer`. Without them the total stays a formatted zero.
  */
-export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
+export function createQuickBuyFetchedQuote(
+  srcTokenAmount: string,
+  extras?: { priceImpactAmount?: string; destAddress?: string },
+) {
   // v1→v2 conversion sets `src.amount` to srcTokenAmount + src-token txFee.
   // Echo the post-fee routing amount so `src.amount` still equals the request
   // and the confirm CTA can enable.
@@ -82,14 +85,21 @@ export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
       bridges: ['provider-1'],
       steps: [],
       srcAsset: QUICK_BUY_ETH_ASSET,
-      destAsset: {
-        address: USDC_DEST.address,
-        chainId: 1,
-        assetId: QUICK_BUY_USDC_ASSET_ID,
-        symbol: USDC_DEST.symbol,
-        decimals: USDC_DEST.decimals,
-        name: USDC_DEST.name,
-      },
+      destAsset:
+        extras?.destAddress &&
+        extras.destAddress.toLowerCase() !== USDC_DEST.address.toLowerCase()
+          ? {
+              ...QUICK_BUY_ETH_ASSET,
+              address: extras.destAddress,
+            }
+          : {
+              address: USDC_DEST.address,
+              chainId: 1,
+              assetId: QUICK_BUY_USDC_ASSET_ID,
+              symbol: USDC_DEST.symbol,
+              decimals: USDC_DEST.decimals,
+              name: USDC_DEST.name,
+            },
       feeData: {
         metabridge: {
           amount: '0',
@@ -116,6 +126,13 @@ export function createQuickBuyFetchedQuote(srcTokenAmount: string) {
       destTokenAmount: '10000000',
       minDestTokenAmount: '9900000',
       gasIncluded: true,
+      ...(extras?.priceImpactAmount
+        ? {
+            priceData: {
+              priceImpact: extras.priceImpactAmount,
+            },
+          }
+        : {}),
     },
     estimatedProcessingTimeInSeconds: 30,
     trade: {
