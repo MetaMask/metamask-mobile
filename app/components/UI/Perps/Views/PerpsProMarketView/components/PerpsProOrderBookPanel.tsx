@@ -33,7 +33,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
@@ -150,19 +149,6 @@ const OrderBookRow = ({
 }: OrderBookRowProps) => {
   const isMirrored = layout === 'left';
   const depthWidth = getDepthWidth(level, maxTotal);
-  if (metric === 'size') {
-    DevLogger.log(
-      `[TAT-3966] BUG_MARKER: listed-by=size but depth bar uses cumulative total ${JSON.stringify(
-        {
-          testID,
-          size: level.size,
-          total: level.total,
-          maxTotal,
-          depthWidth,
-        },
-      )}`,
-    );
-  }
   const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
