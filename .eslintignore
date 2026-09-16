@@ -16,5 +16,3 @@ CHANGELOG.md
 /tests/scripts/ai-e2e-tags-selector.ts
 tests/scripts/aggregate-performance-reports.mjs
 app/**/*-method-action-types.ts
-.claude
-.cursor
