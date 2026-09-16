@@ -140,6 +140,10 @@ export const useDeviceConnectionFlow = ({
       targetDeviceId: string,
     ): Promise<boolean> => {
       const isReady = await adapter.ensureDeviceReady(targetDeviceId);
+      if (!flowActiveRef.current) {
+        // closeFlow ran while we awaited — do not surface Ready / AppNotOpen.
+        return false;
+      }
       if (isReady) {
         adapter.markFlowComplete();
         // Resolve the blocking promise immediately when the adapter reports
@@ -248,7 +252,6 @@ export const useDeviceConnectionFlow = ({
         if (resolvePending) {
           pendingReadyResolveRef.current = null;
           connectionSuccessCallbackRef.current = null;
-          flowActiveRef.current = false;
           resolvePending(false);
         }
       }
@@ -290,7 +293,11 @@ export const useDeviceConnectionFlow = ({
         try {
           refs.abortControllerRef.current = new AbortController();
           const isReady = await tryEnsureReady(adapter, targetDeviceId);
+          if (!flowActiveRef.current) {
+            return false;
+          }
           if (isReady) {
+            flowActiveRef.current = false;
             return true;
           }
         } catch (error) {
@@ -311,9 +318,16 @@ export const useDeviceConnectionFlow = ({
         try {
           refs.abortControllerRef.current = new AbortController();
           const reconnected = await adapter.backgroundReconnect(targetDeviceId);
+          if (!flowActiveRef.current) {
+            return false;
+          }
           if (reconnected) {
             const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            if (!flowActiveRef.current) {
+              return false;
+            }
             if (isReady) {
+              flowActiveRef.current = false;
               return true;
             }
           }
@@ -324,12 +338,19 @@ export const useDeviceConnectionFlow = ({
         }
       }
 
+      if (!flowActiveRef.current) {
+        return false;
+      }
+
       // Avoid pre-gating scan mode on transport state. BLE state can be
       // briefly unknown/stale on startup and wrongly show "Bluetooth required"
       // before discovery starts.
       if (targetDeviceId) {
         const transportUnavailable =
           await checkTransportEnabledOrShowError(adapter);
+        if (!flowActiveRef.current) {
+          return false;
+        }
         if (transportUnavailable) {
           return createBlockingPromise();
         }
@@ -444,16 +465,24 @@ export const useDeviceConnectionFlow = ({
   ]);
 
   const closeFlow = useCallback(() => {
+    // Always disarm the flow gate — ensureDeviceReady arms flowActiveRef
+    // before createBlockingPromise, so a cancel during the already-connected
+    // tryEnsureReady wait must still block late AppNotOpen / Ready updates.
+    flowActiveRef.current = false;
+    refs.abortControllerRef.current?.abort();
+    refs.abortControllerRef.current = null;
+
     const resolvePending = pendingReadyResolveRef.current;
     if (resolvePending) {
       pendingReadyResolveRef.current = null;
       connectionSuccessCallbackRef.current = null;
-      flowActiveRef.current = false;
       resolvePending(false);
     }
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [setters, updateConnectionState, flowActiveRef]);
+    // refs is not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setters, updateConnectionState]);
 
   const handleConnectionSuccess = useCallback(() => {
     const callback = connectionSuccessCallbackRef.current;
