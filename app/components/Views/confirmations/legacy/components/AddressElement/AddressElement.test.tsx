@@ -11,10 +11,13 @@ import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import { RootState } from '../../../../../../reducers';
 import { EngineState } from '../../../../../../core/Engine';
-import * as ENSUtils from '../../../../../../util/ENSUtils';
 
 jest.unmock('react-redux');
-jest.mock('../../../../../../util/ENSUtils');
+jest.mock('../../../../../../util/ENSUtils', () => ({
+  getCachedENSName: jest.fn().mockReturnValue(undefined),
+  doENSReverseLookup: jest.fn().mockResolvedValue(undefined),
+  ENSCache: { cache: {} },
+}));
 
 const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
@@ -22,9 +25,6 @@ const mockedNetworkControllerState = mockNetworkState({
   nickname: 'Ethereum Mainnet',
   ticker: 'ETH',
 });
-
-(ENSUtils.getCachedENSName as jest.Mock).mockReturnValue(undefined);
-(ENSUtils.doENSReverseLookup as jest.Mock).mockResolvedValue(undefined);
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
