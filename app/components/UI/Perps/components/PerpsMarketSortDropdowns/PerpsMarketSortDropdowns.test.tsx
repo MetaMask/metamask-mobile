@@ -34,6 +34,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.sort.price_change': 'Price change',
       'perps.sort.funding_rate': 'Funding rate',
       'perps.sort.open_interest': 'Open interest',
+      'trending.24h': '24h',
     };
     return translations[key] || key;
   },
@@ -99,7 +100,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
       expect(
         screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();
@@ -113,7 +114,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Price change')).toBeOnTheScreen();
+      expect(screen.getByText('Price change (24h)')).toBeOnTheScreen();
     });
 
     it('displays funding rate label when selectedOptionId is fundingRate', () => {
@@ -124,7 +125,18 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Funding rate')).toBeOnTheScreen();
+      expect(screen.getByText('Funding rate (24h)')).toBeOnTheScreen();
+    });
+
+    it('displays open interest label when selectedOptionId is openInterest', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="openInterest"
+          onSortPress={mockOnSortPress}
+        />,
+      );
+
+      expect(screen.getByText('Open interest (24h)')).toBeOnTheScreen();
     });
   });
 
@@ -216,7 +228,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
 
       const newOnSortPress = jest.fn();
 
@@ -227,7 +239,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByText('Price change')).toBeOnTheScreen();
+      expect(screen.getByText('Price change (24h)')).toBeOnTheScreen();
 
       const sortButton = screen.getByTestId(
         'perps-market-sort-dropdowns-sort-field',
@@ -244,6 +256,7 @@ describe('PerpsMarketSortDropdowns', () => {
       const sortOptions: SortOptionId[] = [
         'volume',
         'priceChange',
+        'openInterest',
         'fundingRate',
       ];
 
@@ -284,7 +297,7 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(getByText('Volume')).toBeOnTheScreen();
+      expect(getByText('Volume (24h)')).toBeOnTheScreen();
 
       rerender(
         <PerpsMarketSortDropdowns
@@ -293,8 +306,8 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(queryByText('Volume')).toBeNull();
-      expect(getByText('Price change')).toBeOnTheScreen();
+      expect(queryByText('Volume (24h)')).toBeNull();
+      expect(getByText('Price change (24h)')).toBeOnTheScreen();
 
       expect(() => unmount()).not.toThrow();
     });

@@ -74,6 +74,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
     <>
       <SectionHeader
         title={strings('trending.crypto_perps_section')}
+        subtitle={strings('trending.last_24h')}
         onViewAll={() => onViewAll(perps.defaultSortOptionId)}
         testID="section-header-view-all-crypto_perps"
         tabName="Crypto"
@@ -104,6 +105,8 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
         onViewMore={() => onViewAll(perps.defaultSortOptionId)}
         testID="explore-crypto_perps-carousel"
         viewMoreTestID="crypto_perps-view-more-card"
+        contentContainerTwClassName="px-4 gap-3"
+        viewMoreTwClassName="w-[188px] flex-1"
       />
     </>
   );

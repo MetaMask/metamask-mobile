@@ -225,13 +225,16 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         >
           {formattedChange}
         </Text>
-        <Text
-          variant={changeVariant}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {strings('trending.24h')}
-        </Text>
+        {isLarge ? (
+          <Text
+            variant={changeVariant}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {strings('trending.24h')}
+          </Text>
+        ) : null}
       </View>
     </View>
   );

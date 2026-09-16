@@ -9,7 +9,6 @@ import {
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsLeverage } from '../PerpsLeverage';
 import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
@@ -98,7 +97,6 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
       valueLabel={market.price}
       changeLabel={changeLabel}
       changeTextColor={changeTextColor}
-      changeIntervalLabel={strings('trending.24h')}
     />
   );
 };

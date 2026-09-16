@@ -22,7 +22,6 @@ export interface ExplorePillProps {
   valueLabel?: string;
   changeLabel?: string;
   changeTextColor?: TextColor;
-  changeIntervalLabel?: string;
 }
 
 /**
@@ -38,7 +37,6 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   valueLabel,
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
-  changeIntervalLabel,
 }) => {
   const tw = useTailwind();
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
@@ -57,9 +55,10 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        paddingHorizontal={2}
         paddingVertical={2}
-        twClassName="rounded-full"
+        // Two-row pills are tall enough that `rounded-full` curves in where the
+        // value row ends, so they need extra room on the right to look even.
+        twClassName={`rounded-full pl-2 ${showMarketDetails ? 'pr-4' : 'pr-2'}`}
       >
         {leading}
         {showMarketDetails ? (
@@ -100,15 +99,6 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
                   numberOfLines={1}
                 >
                   {changeLabel}
-                </Text>
-              ) : null}
-              {showChange && changeIntervalLabel ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  numberOfLines={1}
-                >
-                  {changeIntervalLabel}
                 </Text>
               ) : null}
             </Box>

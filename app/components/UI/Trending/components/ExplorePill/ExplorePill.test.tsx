@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import ExplorePill from './ExplorePill';
@@ -20,6 +20,36 @@ describe('ExplorePill', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('gives two-row pills extra right padding and leaves one-row pills even', () => {
+    const surfacePadding = (
+      props: Partial<React.ComponentProps<typeof ExplorePill>>,
+    ) => {
+      const { toJSON } = render(
+        <ExplorePill
+          onPress={jest.fn()}
+          testID="pill"
+          leading={<Text>L</Text>}
+          title="BTC"
+          {...props}
+        />,
+      );
+      const surface = toJSON()?.children?.[0];
+      if (typeof surface !== 'object' || surface === null) {
+        throw new Error('Expected the pill surface to render');
+      }
+      return StyleSheet.flatten(surface.props.style);
+    };
+
+    expect(surfacePadding({ valueLabel: '$50,000' })).toMatchObject({
+      paddingLeft: 8,
+      paddingRight: 16,
+    });
+    expect(surfacePadding({})).toMatchObject({
+      paddingLeft: 8,
+      paddingRight: 8,
+    });
+  });
+
   it('renders title and optional change label when non-empty', () => {
     const { getByText, queryByText } = render(
       <ExplorePill
@@ -36,7 +66,7 @@ describe('ExplorePill', () => {
     expect(getByText('+1.00%')).toBeTruthy();
   });
 
-  it('renders two-row market details with a title accessory and interval', () => {
+  it('renders two-row market details with a title accessory and value', () => {
     const { getByText } = render(
       <ExplorePill
         onPress={jest.fn()}
@@ -46,7 +76,6 @@ describe('ExplorePill', () => {
         titleEndAccessory={<Text>40x</Text>}
         valueLabel="$50,000"
         changeLabel="+1.00%"
-        changeIntervalLabel="24h"
       />,
     );
 
@@ -54,7 +83,6 @@ describe('ExplorePill', () => {
     expect(getByText('40x')).toBeTruthy();
     expect(getByText('$50,000')).toBeTruthy();
     expect(getByText('+1.00%')).toBeTruthy();
-    expect(getByText('24h')).toBeTruthy();
   });
 
   it('does not render change line when changeLabel is undefined or empty', () => {
