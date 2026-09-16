@@ -73,12 +73,8 @@ describe('RemoveAccount', () => {
       ),
     ).toBeTruthy();
     expect(getByText(strings('accounts.remove_account_warning'))).toBeTruthy();
-    expect(
-      getByTestId(RemoveAccountSelectors.CANCEL_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(RemoveAccountSelectors.REMOVE_BUTTON),
-    ).toBeOnTheScreen();
+    expect(getByTestId(RemoveAccountSelectors.CANCEL_BUTTON)).toBeOnTheScreen();
+    expect(getByTestId(RemoveAccountSelectors.REMOVE_BUTTON)).toBeOnTheScreen();
   });
 
   it('uses the account group name in the title, not the internal account name', () => {

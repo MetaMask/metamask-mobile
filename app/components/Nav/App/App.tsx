@@ -1309,11 +1309,6 @@ const AppFlow = () => {
         }}
       >
         <NativeStack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
-          component={AccountSelector}
-        />
-        <NativeStack.Screen name={Routes.SHEET.ADD_WALLET} component={AddWallet} />
-        <NativeStack.Screen
           name={Routes.MANAGE_ACCOUNTS_VIEW}
           component={ManageAccounts}
           options={manageAccountsTransitionOptions}

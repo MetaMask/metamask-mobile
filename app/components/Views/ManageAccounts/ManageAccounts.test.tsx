@@ -12,7 +12,10 @@ import {
   createMockState,
   createMockWallet,
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { getManageAccountRowRemoveId, getManageAccountRowEyeToggleId } from './ManageAccounts.testIds';
+import {
+  getManageAccountRowRemoveId,
+  getManageAccountRowEyeToggleId,
+} from './ManageAccounts.testIds';
 import ManageAccounts from './ManageAccounts';
 import Engine from '../../../core/Engine';
 
@@ -127,7 +130,10 @@ describe('ManageAccounts', () => {
         );
       });
 
-      expect(mockSetAccountGroupHidden).toHaveBeenCalledWith('keyring:hw/0', true);
+      expect(mockSetAccountGroupHidden).toHaveBeenCalledWith(
+        'keyring:hw/0',
+        true,
+      );
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
