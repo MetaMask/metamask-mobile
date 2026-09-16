@@ -1,5 +1,5 @@
-import I18n from '../../../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../../../util/intl';
+import I18n from '../../../locales/i18n';
+import { getIntlNumberFormatter } from '../intl';
 
 /**
  * Formats a subscription amount as localized fiat using the device locale.
