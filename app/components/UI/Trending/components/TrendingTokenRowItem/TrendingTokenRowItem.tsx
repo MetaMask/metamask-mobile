@@ -91,11 +91,19 @@ interface TrendingTokenRowItemProps {
    * `testID` (and E2E selectors) unique per instance.
    */
   testIdInstanceKey?: string;
-  /** When provided, shows a circular Quick Trade button on the right of the row. */
-  onQuickTrade?: (token: TrendingAsset) => void;
-  /** When provided, shows an outline star button (add to watchlist) on the right of the row. */
-  onAddPress?: (token: TrendingAsset) => void;
+  /** Optional trailing action button rendered on the right of the row. */
+  endAction?: QuickActionButton;
 }
+
+/**
+ * Trailing action button variants for {@link TrendingTokenRowItem}.
+ *
+ * - `quick-trade`: circular Quick Trade button.
+ * - `watchlist`: outline star button (add to watchlist).
+ */
+export type QuickActionButton =
+  | { type: 'quick-trade'; onPress: (token: TrendingAsset) => void }
+  | { type: 'watchlist'; onPress: (token: TrendingAsset) => void };
 
 /**
  * Converts a TrendingAsset to Asset navigation params
@@ -147,8 +155,7 @@ const TrendingTokenRowItem = ({
   onPress,
   onCardPress,
   testIdInstanceKey,
-  onQuickTrade,
-  onAddPress,
+  endAction,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -273,20 +280,20 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
-      {onAddPress && (
+      {endAction?.type === 'watchlist' && (
         <ButtonIcon
           iconName={IconName.Star}
           size={ButtonIconSize.Md}
-          onPress={() => onAddPress(token)}
+          onPress={() => endAction.onPress(token)}
           accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
           testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
         />
       )}
-      {onQuickTrade && (
+      {endAction?.type === 'quick-trade' && (
         <Pressable
           onPress={(e) => {
             e?.stopPropagation?.();
-            onQuickTrade(token);
+            endAction.onPress(token);
           }}
           hitSlop={8}
           testID="quick-trade-button"

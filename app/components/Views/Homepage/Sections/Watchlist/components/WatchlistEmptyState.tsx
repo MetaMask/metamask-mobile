@@ -2,9 +2,17 @@ import React, { useCallback } from 'react';
 import type { CaipAssetType } from '@metamask/utils';
 import {
   Box,
+  BoxAlignItems,
+  Text,
+  TextColor,
+  TextVariant,
   toast,
   ToastSeverity,
 } from '@metamask/design-system-react-native';
+import {
+  Theme,
+  useTheme as useDesignSystemTheme,
+} from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -19,8 +27,71 @@ import {
 import type { WatchlistTokenWithBalance } from '../../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/constants';
 import { mapWatchlistTokenToTrendingAsset } from '../utils/mapWatchlistTokenToTrendingAsset';
+import WatchlistEmptyDarkIcon from '../../../../../../images/watchlist-empty-dark.svg';
+import WatchlistEmptyLightIcon from '../../../../../../images/watchlist-empty-light.svg';
 
 const SUGGESTED_SKELETON_COUNT = 3;
+
+interface SuggestedTokensListProps {
+  tokens: WatchlistTokenWithBalance[];
+  onAddPress: (token: WatchlistTokenWithBalance) => void;
+}
+
+/** Perps-style list-add mode: suggested rows with an outline star add button. */
+const SuggestedTokensList: React.FC<SuggestedTokensListProps> = ({
+  tokens,
+  onAddPress,
+}) => (
+  <Box testID="watchlist-empty-state" gap={1}>
+    {tokens.map((token) => (
+      <TrendingTokenRowItem
+        key={String(token.assetId)}
+        token={mapWatchlistTokenToTrendingAsset(token)}
+        tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+        endAction={{ type: 'watchlist', onPress: () => onAddPress(token) }}
+      />
+    ))}
+  </Box>
+);
+
+/** Static fallback when no suggested tokens are available. */
+const EmptyWatchlistFallback: React.FC = () => {
+  const designSystemTheme = useDesignSystemTheme();
+  const EmptyIcon =
+    designSystemTheme === Theme.Dark
+      ? WatchlistEmptyDarkIcon
+      : WatchlistEmptyLightIcon;
+
+  return (
+    <Box
+      testID="watchlist-empty-fallback"
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+      padding={4}
+    >
+      <EmptyIcon
+        name="watchlist-empty"
+        width={72}
+        height={78}
+        testID="watchlist-empty-icon"
+      />
+      <Text
+        variant={TextVariant.HeadingSm}
+        color={TextColor.TextDefault}
+        twClassName="text-center"
+      >
+        {strings('token_watchlist.home_empty_title')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {strings('token_watchlist.home_empty_subtitle')}
+      </Text>
+    </Box>
+  );
+};
 
 const WatchlistEmptyState: React.FC = () => {
   const { data: suggestedTokens, isLoading } =
@@ -66,24 +137,16 @@ const WatchlistEmptyState: React.FC = () => {
     );
   }
 
-  // No suggestions available — nothing to render below the section header,
-  // matching the perps watchlist structure (no helper copy in the empty state).
-  if (!suggestedTokens || suggestedTokens.length === 0) {
-    return null;
+  if (suggestedTokens && suggestedTokens.length > 0) {
+    return (
+      <SuggestedTokensList
+        tokens={suggestedTokens}
+        onAddPress={handleAddPress}
+      />
+    );
   }
 
-  return (
-    <Box testID="watchlist-empty-state" gap={1}>
-      {suggestedTokens.map((token) => (
-        <TrendingTokenRowItem
-          key={String(token.assetId)}
-          token={mapWatchlistTokenToTrendingAsset(token)}
-          tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-          onAddPress={() => handleAddPress(token)}
-        />
-      ))}
-    </Box>
-  );
+  return <EmptyWatchlistFallback />;
 };
 
 export default WatchlistEmptyState;
