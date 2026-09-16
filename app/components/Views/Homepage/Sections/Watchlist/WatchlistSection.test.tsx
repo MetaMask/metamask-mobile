@@ -132,7 +132,10 @@ jest.mock(
     const Mock = () =>
       ReactActual.createElement(View, { testID: 'trending-skeleton' });
     Mock.displayName = 'TrendingTokensSkeleton';
-    return Mock;
+    return {
+      __esModule: true,
+      default: ReactActual.memo(Mock),
+    };
   },
 );
 
@@ -165,13 +168,13 @@ jest.mock('../../../Wallet/WalletView.testIds', () => ({
   },
 }));
 
-const makeWatchlistToken = (name: string) => ({
+const makeToken = (name: string, isInWallet: boolean) => ({
   assetId: `eip155:1/erc20:0x${name}`,
   symbol: name.toUpperCase(),
   name,
   decimals: 18,
-  balance: '100',
-  isInWallet: true,
+  balance: isInWallet ? '100' : '0',
+  isInWallet,
   marketData: {
     price: 100,
     pricePercentChange24h: 1.5,
@@ -179,40 +182,32 @@ const makeWatchlistToken = (name: string) => ({
     totalVolume: 500_000,
   },
 });
-
-const makeSuggestedToken = (name: string) => ({
-  assetId: `eip155:1/erc20:0x${name}`,
-  symbol: name.toUpperCase(),
-  name,
-  decimals: 18,
-  balance: '0',
-  isInWallet: false,
-  marketData: {
-    price: 100,
-    pricePercentChange24h: 1.5,
-    marketCap: 1_000_000,
-    totalVolume: 500_000,
-  },
-});
+const makeWatchlistToken = (name: string) => makeToken(name, true);
+const makeSuggestedToken = (name: string) => makeToken(name, false);
+const makeSuggestedPool = (...names: string[]) =>
+  names.map((name) => makeToken(name, false));
 
 describe('WatchlistSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
     mockWatchlistAssetIds = [];
+    // Default query state: empty, loaded. Tests override as needed.
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [],
       isLoading: false,
     });
   });
 
-  it('keeps the shared performance hook on its legacy metadata contract', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
+  const renderSection = () =>
+    render(<WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />);
 
+  it('keeps the shared performance hook on its legacy metadata contract', () => {
     render(<WatchlistSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     expect(jest.mocked(useSectionPerformance)).toHaveBeenCalledWith({
@@ -226,15 +221,8 @@ describe('WatchlistSection', () => {
 
   it('returns null when feature flag is off', () => {
     mockIsWatchlistEnabled = false;
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
 
-    const { toJSON } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { toJSON } = renderSection();
     expect(toJSON()).toBeNull();
   });
 
@@ -245,33 +233,24 @@ describe('WatchlistSection', () => {
       refetch: jest.fn(),
     });
 
-    const { getAllByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getAllByTestId } = renderSection();
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
   it('renders up to 5 suggested tokens with add buttons when the watchlist is empty', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [
-        makeSuggestedToken('bitcoin'),
-        makeSuggestedToken('ethereum'),
-        makeSuggestedToken('solana'),
-        makeSuggestedToken('bnb'),
-        makeSuggestedToken('pepe'),
-        makeSuggestedToken('doge'),
-      ],
+      data: makeSuggestedPool(
+        'bitcoin',
+        'ethereum',
+        'solana',
+        'bnb',
+        'pepe',
+        'doge',
+      ),
       isLoading: false,
     });
 
-    const { getByTestId, queryByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getByTestId, queryByTestId } = renderSection();
 
     // Empty watchlist renders the suggested rows silently — no sub-header,
     // no helper copy (mirrors the perps watchlist after #36358).
@@ -296,21 +275,19 @@ describe('WatchlistSection', () => {
     });
     mockWatchlistAssetIds = ['eip155:1/erc20:0xeth', 'eip155:1/erc20:0xbtc'];
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [
+      data: makeSuggestedPool(
         // Already-watched tokens come back in the pool and must be filtered.
-        makeSuggestedToken('eth'),
-        makeSuggestedToken('btc'),
-        makeSuggestedToken('bitcoin'),
-        makeSuggestedToken('ethereum'),
-        makeSuggestedToken('solana'),
-        makeSuggestedToken('bnb'),
-      ],
+        'eth',
+        'btc',
+        'bitcoin',
+        'ethereum',
+        'solana',
+        'bnb',
+      ),
       isLoading: false,
     });
 
-    const { getByTestId, getByText, queryByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getByTestId, getByText, queryByTestId } = renderSection();
 
     // Watchlist rows render first (newest-first)…
     expect(getByTestId('row-btc')).toBeOnTheScreen();
@@ -331,19 +308,12 @@ describe('WatchlistSection', () => {
   });
 
   it('adds a suggested token to the watchlist when its add button is pressed', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [makeSuggestedToken('bitcoin')],
       isLoading: false,
     });
 
-    const { getByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getByTestId } = renderSection();
 
     fireEvent.press(getByTestId('row-add-bitcoin'));
 
@@ -355,38 +325,19 @@ describe('WatchlistSection', () => {
   });
 
   it('shows suggested-token skeletons while suggestions are loading', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
     });
 
-    const { getAllByTestId, getByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getAllByTestId, getByTestId } = renderSection();
 
     expect(getByTestId('watchlist-suggested-skeleton')).toBeOnTheScreen();
     expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
   });
 
   it('renders the static fallback below the header when no suggested tokens are available', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-    });
-
-    const { getByTestId, getByText, queryByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getByTestId, getByText, queryByTestId } = renderSection();
 
     expect(getByTestId('watchlist-empty-fallback')).toBeOnTheScreen();
     expect(getByTestId('watchlist-empty-icon')).toBeOnTheScreen();
@@ -407,9 +358,7 @@ describe('WatchlistSection', () => {
       refetch: jest.fn(),
     });
 
-    const { getByTestId, queryByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getByTestId, queryByTestId } = renderSection();
 
     // Storage appends newest last; section reverses so newest appears first.
     expect(getByTestId('row-doge')).toBeDefined();
@@ -419,29 +368,12 @@ describe('WatchlistSection', () => {
   });
 
   it('renders section header with watchlist testID', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-
-    const { getByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
-
+    const { getByTestId } = renderSection();
     expect(getByTestId('homepage-section-title-watchlist')).toBeDefined();
   });
 
   it('navigates to the watchlist full view when the section header is pressed', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-
-    const { getByTestId } = render(
-      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
-    );
+    const { getByTestId } = renderSection();
 
     fireEvent.press(getByTestId('homepage-section-title-watchlist'));
 
