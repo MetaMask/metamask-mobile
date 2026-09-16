@@ -13,7 +13,6 @@ import {
   buildEarnModuleNavigationContext,
   getEarnModuleAssetProperties,
 } from './earnModuleAnalytics';
-import { truncateNumber } from './number';
 
 jest.mock('./analytics', () => ({
   formatChainIdForAnalytics: jest.fn((chainId?: string | number) =>
@@ -35,16 +34,9 @@ jest.mock('./earnAssets/earnExperience', () => ({
   ),
 }));
 
-jest.mock('./number', () => ({
-  truncateNumber: jest.fn((value: string | number) =>
-    String(Math.trunc(Number(value) * 100) / 100),
-  ),
-}));
-
 const mockFormatChainIdForAnalytics = jest.mocked(formatChainIdForAnalytics);
 const mockHasEarnAssetBalance = jest.mocked(hasEarnAssetBalance);
 const mockGetEarnInputExperiences = jest.mocked(getEarnInputExperiences);
-const mockTruncateNumber = jest.mocked(truncateNumber);
 
 const createExperience = (
   type: EarnExperience['type'],
@@ -144,13 +136,12 @@ describe('getEarnModuleAssetProperties', () => {
       eligible_strategy_count: 1,
       eligible_strategy_types: ['money_account_deposit'],
       asset_has_balance: true,
-      rate_percentage: 4.25,
+      rate_percentage: 4.3,
       is_fee_subsidized: true,
     });
     expect(mockFormatChainIdForAnalytics).toHaveBeenCalledWith('0x1');
     expect(mockGetEarnInputExperiences).toHaveBeenCalledWith(asset.experiences);
     expect(mockHasEarnAssetBalance).toHaveBeenCalledWith(asset);
-    expect(mockTruncateNumber).toHaveBeenCalledWith(4.259);
   });
 
   it('returns untracked metadata without balance, rate, or fee properties for multiple strategies', () => {

@@ -25,6 +25,9 @@ jest.mock('react-redux', () => ({
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
     selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
   }),
 );
