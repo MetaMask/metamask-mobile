@@ -46,6 +46,12 @@ interface EntitlementResolutionStore {
    * order.
    */
   queuedRefresh: boolean;
+  /**
+   * Identity of the active fetch loop. `startFetch` assigns a new id; `reset`
+   * bumps it so an orphaned loop cannot treat a later `queuedRefresh` as its
+   * own follow-up and start a second `getSubscriptions` beside the new session.
+   */
+  fetchLoopId: number;
 }
 
 const store: EntitlementResolutionStore = {
@@ -56,6 +62,7 @@ const store: EntitlementResolutionStore = {
   resolvedAccountId: undefined,
   requestedAccountId: undefined,
   queuedRefresh: false,
+  fetchLoopId: 0,
 };
 
 const emit = () => {
@@ -73,7 +80,17 @@ const setStatus = (status: EntitlementResolutionStatus) => {
 const wasSuperseded = (generation: number): boolean =>
   generation !== store.generation || store.queuedRefresh;
 
-const fetchEntitlements = async (): Promise<void> => {
+/**
+ * Continue only when this loop is still the active one. After `reset` the
+ * orphaned loop's id no longer matches, so a later `queuedRefresh` belongs to
+ * the new session's loop — not to this discarded generation.
+ */
+const shouldContinueLoop = (generation: number, loopId: number): boolean =>
+  wasSuperseded(generation) &&
+  store.queuedRefresh &&
+  store.fetchLoopId === loopId;
+
+const fetchEntitlements = async (loopId: number): Promise<void> => {
   while (true) {
     const generation = store.generation;
     const accountId = store.requestedAccountId;
@@ -87,20 +104,20 @@ const fetchEntitlements = async (): Promise<void> => {
         error as Error,
         '[entitlementResolution] Failed to resolve subscription entitlements',
       );
+      if (shouldContinueLoop(generation, loopId)) {
+        continue;
+      }
       if (wasSuperseded(generation)) {
-        if (store.queuedRefresh) {
-          continue;
-        }
         return;
       }
       setStatus('error');
       return;
     }
 
+    if (shouldContinueLoop(generation, loopId)) {
+      continue;
+    }
     if (wasSuperseded(generation)) {
-      if (store.queuedRefresh) {
-        continue;
-      }
       return;
     }
 
@@ -113,7 +130,9 @@ const fetchEntitlements = async (): Promise<void> => {
 };
 
 const startFetch = (): Promise<void> => {
-  const run = fetchEntitlements().finally(() => {
+  store.fetchLoopId += 1;
+  const loopId = store.fetchLoopId;
+  const run = fetchEntitlements(loopId).finally(() => {
     if (store.inFlight === run) {
       store.inFlight = undefined;
     }
@@ -183,6 +202,7 @@ export const ensureResolved = async (accountId?: string): Promise<void> => {
  */
 export const reset = () => {
   store.generation += 1;
+  store.fetchLoopId += 1;
   store.inFlight = undefined;
   store.resolvedAccountId = undefined;
   store.requestedAccountId = undefined;
@@ -219,4 +239,5 @@ export const __resetForTest = () => {
   store.resolvedAccountId = undefined;
   store.requestedAccountId = undefined;
   store.queuedRefresh = false;
+  store.fetchLoopId = 0;
 };

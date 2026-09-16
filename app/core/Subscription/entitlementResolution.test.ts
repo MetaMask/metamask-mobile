@@ -225,6 +225,44 @@ describe('entitlementResolution', () => {
 
       expect(getSnapshot()).toBe('idle');
     });
+
+    it('does not restart an orphaned fetch when a later refresh queues work', async () => {
+      let resolveFirst: (value: never[]) => void = () => undefined;
+      let resolveSecond: (value: never[]) => void = () => undefined;
+      mockGetSubscriptions
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveFirst = resolve;
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveSecond = resolve;
+            }),
+        );
+
+      const pendingOrphan = ensureResolved();
+      reset();
+      const pendingEnsure = ensureResolved();
+      const pendingRefresh = refresh();
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+
+      resolveFirst([]);
+      await pendingOrphan;
+
+      // The discarded loop must not start a third overlapping getSubscriptions
+      // just because refresh set queuedRefresh for the new session.
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
+
+      resolveSecond([]);
+      await Promise.all([pendingEnsure, pendingRefresh]);
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(3);
+      expect(getSnapshot()).toBe('resolved');
+    });
   });
 
   describe('subscribe', () => {
