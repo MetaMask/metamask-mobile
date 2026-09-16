@@ -531,7 +531,6 @@ export const selectTransactionMetadataById = createSelector(
   (transactions, id) => transactions.find((tx) => tx.id === id),
 );
 
-/** The pending confirmation's transaction, or the gas-fee modal's override. */
 export const selectCurrentTransaction = createSelector(
   [
     (state: RootState) => state,
