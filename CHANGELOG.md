@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added support for `link.metamask.com` and `metamask.com` iOS Universal Links and Android App Links
+- Added `execution.metamask.com` to the in-app browser provider injection blocklist
+
+### Fixed
+
+- Fixed the in-app browser address bar so it matches the page shown after back/forward navigation (#35040)
 
 ## [8.10.2]
 

@@ -17,10 +17,14 @@ import PredictionsEmptyLightIcon from '../../../../../../images/predictions-ligh
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
 
 interface PortfolioEmptyStateProps {
+  title: string;
+  description: string;
   onBrowseMarkets: () => void;
 }
 
 export const PortfolioEmptyState = ({
+  title,
+  description,
   onBrowseMarkets,
 }: PortfolioEmptyStateProps) => {
   const theme = useDesignSystemTheme();
@@ -36,14 +40,14 @@ export const PortfolioEmptyState = ({
         <EmptyIcon name="predict-next-portfolio-empty" width={72} height={72} />
       </Box>
       <Text variant={TextVariant.HeadingSm} twClassName="mb-2 text-center">
-        {strings('predict_next.portfolio.empty.title')}
+        {title}
       </Text>
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         twClassName="mb-4 max-w-[220px] text-center"
       >
-        {strings('predict_next.portfolio.empty.description')}
+        {description}
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
