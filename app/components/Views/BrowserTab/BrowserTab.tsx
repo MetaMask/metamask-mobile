@@ -1694,6 +1694,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const { OnLoadEnd, OnLoadProgress, OnLoadStart } =
       WebViewNavigationEventName;
 
+    const rebindBridgeOnCrossOriginBackForward = useCallback(
+      (nextUrl: string) => {
+        if (
+          !isHttpPageUrl(nextUrl) ||
+          !backgroundBridgeRef.current ||
+          !resolvedUrlRef.current ||
+          isSameOrigin(nextUrl, resolvedUrlRef.current)
+        ) {
+          return;
+        }
+
+        teardownBackgroundBridge();
+        initializeBackgroundBridge(new URLParse(nextUrl).origin, true);
+      },
+      [teardownBackgroundBridge, initializeBackgroundBridge],
+    );
+
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
         const { canGoForward, canGoBack, navigationType, loading, url, title } =
@@ -1716,18 +1733,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
           // Disconnect the previous-origin bridge before the document-URL
           // handshake when back/forward lands on a different http(s) origin.
-          if (
-            isHttpPageUrl(url) &&
-            backgroundBridgeRef.current &&
-            resolvedUrlRef.current &&
-            !isSameOrigin(url, resolvedUrlRef.current)
-          ) {
-            teardownBackgroundBridge();
-            const destinationOrigin = new URLParse(url).origin;
-            if (destinationOrigin) {
-              initializeBackgroundBridge(destinationOrigin, true);
-            }
-          }
+          rebindBridgeOnCrossOriginBackForward(url);
 
           // Sync the URL bar from the document; navigation events are not always
           // aligned with window.location after back/forward transitions.
@@ -1764,8 +1770,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [
         favicon,
         handleSuccessfulPageResolution,
-        teardownBackgroundBridge,
-        initializeBackgroundBridge,
+        rebindBridgeOnCrossOriginBackForward,
       ],
     );
 
