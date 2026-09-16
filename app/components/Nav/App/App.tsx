@@ -197,8 +197,6 @@ import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
-import PerpsTutorialCarousel from '../../UI/Perps/components/PerpsTutorialCarousel/PerpsTutorialCarousel';
-import { usePerpsFirstTimeUser } from '../../UI/Perps/hooks/usePerpsFirstTimeUser';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -385,11 +383,6 @@ const OnboardingNav = () => {
         name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
         component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.PERPS.TUTORIAL}
-        component={PerpsTutorialCarousel}
-        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="AccountStatus"
@@ -1431,7 +1424,6 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-  const { resetFirstTimeUserState } = usePerpsFirstTimeUser();
 
   useOTAUpdates();
   useBasicFunctionalityConsolidation();
@@ -1450,9 +1442,7 @@ const App: React.FC = () => {
   useEffect(() => {
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
-    // Reset first-time user state to show perps tutorial
-    resetFirstTimeUserState();
-  }, [resetFirstTimeUserState]);
+  }, []);
 
   const firstLoad = useRef(true);
   // periodically check seedless password outdated when app UI is open
