@@ -6,13 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import {
-  Alert,
-  DeviceEventEmitter,
-  Image,
-  View,
-  Linking,
-} from 'react-native';
+import { Alert, DeviceEventEmitter, Image, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
