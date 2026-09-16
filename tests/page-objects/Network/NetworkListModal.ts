@@ -123,6 +123,21 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
+    // Android system back is a no-op on the redesigned network sheet.
+    // Swipe the screen so the drag crosses ReusableModal's dismiss threshold.
+    if (PlatformDetector.isAndroid()) {
+      await Gestures.swipeScreen({
+        scrollParams: { direction: 'down' },
+        percent: 0.85,
+        duration: 400,
+      });
+      await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+        timeout: 15_000,
+        description: 'Network selector dismissed',
+      });
+      return;
+    }
+
     await Gestures.swipe(this.selectNetwork, 'down', {
       speed: 'slow',
       percentage: 0.9,

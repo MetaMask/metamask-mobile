@@ -17,7 +17,10 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
-import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
+import type {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
@@ -53,6 +56,43 @@ export interface CardHomeDataError {
   code: string | null;
   statusCode: number | null;
   at: number;
+}
+
+export type CardRedeemWithdrawalStatus =
+  | 'submitting'
+  | 'monitoring'
+  | 'success'
+  | 'failed';
+
+export type CardRedeemWithdrawalErrorReason =
+  | 'no_polling_chain'
+  | 'submit_failed'
+  | 'tx_reverted'
+  | 'tx_timeout'
+  | 'in_progress'
+  | 'network'
+  | 'server_error'
+  | 'unknown';
+
+/** PII-free: state logs ship this field verbatim. */
+export interface CardRedeemWithdrawalError {
+  reason: CardRedeemWithdrawalErrorReason;
+  code: string | null;
+  statusCode: number | null;
+}
+
+/**
+ * In-flight / terminal redeem withdrawal. Not persisted — survives UI unmount
+ * via controller state so monitoring continues after navigating away.
+ * Typed as Record fields where needed for StateConstraint.
+ */
+export interface CardRedeemWithdrawal {
+  mode: 'credit' | 'cashback';
+  status: CardRedeemWithdrawalStatus;
+  txHash: string | null;
+  chainId: string | null;
+  submittedAt: number;
+  error: CardRedeemWithdrawalError | null;
 }
 
 export interface FetchCardHomeDataOptions {
@@ -98,6 +138,11 @@ export type CardControllerState = {
   cardHomeDataFetchedThisSession: boolean;
   /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
   moneyAccountCardLinkInProgress: boolean;
+  /**
+   * Active / last redeem withdrawal (credit / mUSD Back). Not persisted.
+   * Typed as Record<string, Json> for StateConstraint; cast at read sites.
+   */
+  redeemWithdrawal: Record<string, Json> | null;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -116,6 +161,7 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction;

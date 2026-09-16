@@ -1,7 +1,9 @@
 import {
+  androidAdbServerPorts,
   applyAndroidDevicePoolToWorker,
   assertAndroidDevicePoolMatchesWorkers,
   deviceForWorker,
+  isSharedAndroidAdbDaemon,
   parseAndroidDevicePool,
   resolveAndroidDevicePoolSize,
 } from './androidDevicePool.ts';
@@ -54,6 +56,38 @@ describe('androidDevicePool', () => {
       expect(resolveZero).toThrow(
         'Invalid ANDROID_DEVICE_POOL_SIZE "0". Expected a positive integer.',
       );
+    });
+  });
+
+  describe('isSharedAndroidAdbDaemon', () => {
+    it('returns false for the single-emulator default', () => {
+      const result = isSharedAndroidAdbDaemon({});
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the pool size is one', () => {
+      const result = isSharedAndroidAdbDaemon({
+        ANDROID_DEVICE_POOL_SIZE: '1',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true for an N=2 Android Appium pool', () => {
+      const result = isSharedAndroidAdbDaemon({
+        ANDROID_DEVICE_POOL_SIZE: '2',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for an N=3 Android Appium pool', () => {
+      const result = isSharedAndroidAdbDaemon({
+        ANDROID_DEVICE_POOL_SIZE: '3',
+      });
+
+      expect(result).toBe(true);
     });
   });
 
@@ -119,15 +153,40 @@ describe('androidDevicePool', () => {
         systemPort: 8200,
         chromedriverPort: 9100,
         mjpegServerPort: 7810,
+        adbServerPort: 5037,
       });
       expect(second).toEqual({
         serial: 'emulator-5556',
         systemPort: 8201,
         chromedriverPort: 9101,
         mjpegServerPort: 7811,
+        adbServerPort: 5038,
       });
       expect(first?.serial).not.toBe(second?.serial);
       expect(first?.systemPort).not.toBe(second?.systemPort);
+      expect(first?.adbServerPort).not.toBe(second?.adbServerPort);
+    });
+
+    it('gives each pooled worker its own adb server port', () => {
+      const result = androidAdbServerPorts({
+        ANDROID_DEVICE_POOL: 'emulator-5554,emulator-5556,emulator-5558',
+      });
+
+      expect(result).toEqual([5037, 5038, 5039]);
+    });
+
+    it('reports no dedicated adb servers outside pool mode', () => {
+      const result = androidAdbServerPorts({ ANDROID_DEVICE_POOL_SIZE: '1' });
+
+      expect(result).toEqual([]);
+    });
+
+    it('keeps worker zero on the default adb server port', () => {
+      const assignment = deviceForWorker(0, {
+        ANDROID_DEVICE_POOL: 'emulator-5554,emulator-5556,emulator-5558',
+      });
+
+      expect(assignment?.adbServerPort).toBe(5037);
     });
 
     it('rejects a worker index outside the configured pool', () => {
@@ -158,6 +217,7 @@ describe('androidDevicePool', () => {
         ANDROID_UIAUTOMATOR2_SYSTEM_PORT: '8201',
         ANDROID_CHROMEDRIVER_PORT: '9101',
         ANDROID_MJPEG_SERVER_PORT: '7811',
+        ANDROID_ADB_SERVER_PORT: '5038',
       });
     });
 

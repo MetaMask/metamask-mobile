@@ -1876,10 +1876,6 @@
         "current_price": "Preço atual",
         "liquidation_price": "Preço de liquidação",
         "liquidation_distance": "Distância de liquidação",
-        "liquidation_warning": "Sua posição será liquidada se o preço {{direction}} {{percentage}}",
-        "drops": "cair",
-        "rises": "subir",
-        "set_leverage": "Definir em {{leverage}}x",
         "price_unavailable": "Informações sobre preços indisponíveis"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "Explore dApps, tokens e NFTs em diversas blockchains no Portfólio da MetaMask",
     "all_sports": "Esportes populares",
     "basketball": "Basquetebol",
-    "football": "Futebol americano",
     "soccer": "Futebol",
     "tennis": "Tênis",
     "f1": "Fórmula 1",
@@ -11518,7 +11513,6 @@
       "title": "Sua assinatura",
       "plan": "Assinatura",
       "earned_this_month": "Ganhos este mês",
-      "saved_this_month": "Economia neste mês",
       "payment_details": "Detalhes do pagamento",
       "total": "Total",
       "paying_with": "Pagando com",

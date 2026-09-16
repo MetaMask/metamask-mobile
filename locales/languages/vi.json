@@ -1876,10 +1876,6 @@
         "current_price": "Giá hiện tại",
         "liquidation_price": "Giá thanh lý",
         "liquidation_distance": "Khoảng cách đến thanh lý",
-        "liquidation_warning": "Bạn sẽ bị thanh lý nếu giá {{direction}} {{percentage}}",
-        "drops": "giảm",
-        "rises": "tăng",
-        "set_leverage": "Đặt đòn bẩy {{leverage}}x",
         "price_unavailable": "Không có thông tin giá"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "Khám phá các dapp, token và NFT trên nhiều chuỗi khác nhau trong MetaMask Portfolio",
     "all_sports": "Môn thể thao phổ biến",
     "basketball": "Bóng rổ",
-    "football": "Bóng bầu dục",
     "soccer": "Bóng đá",
     "tennis": "Quần vợt",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "Gói thành viên của bạn",
       "plan": "Gói thành viên",
       "earned_this_month": "Đã sinh lời trong tháng này",
-      "saved_this_month": "Đã tiết kiệm trong tháng này",
       "payment_details": "Chi tiết thanh toán",
       "total": "Tổng cộng",
       "paying_with": "Thanh toán bằng",

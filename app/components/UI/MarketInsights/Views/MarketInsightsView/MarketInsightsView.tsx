@@ -65,6 +65,10 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import {
+  getMarketInsightsTraceEndData,
+  getMarketInsightsTraceId,
+} from '../../utils/marketInsightsPerformance';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
@@ -210,10 +214,21 @@ const MarketInsightsView: React.FC = () => {
   const isMarketInsightsEnabled = isPerps
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
+  const assetType = isPerps ? 'perps' : 'token';
+  const fullViewTraceId = getMarketInsightsTraceId(
+    assetIdentifier,
+    routeSource,
+    'full_view',
+  );
 
   const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
+    {
+      source: routeSource,
+      stage: 'full_view',
+      assetType,
+    },
   );
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -610,8 +625,6 @@ const MarketInsightsView: React.FC = () => {
       return;
     }
 
-    endTrace({ name: TraceName.MarketInsightsViewLoad });
-
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
         ...assetIdProperty,
@@ -631,6 +644,41 @@ const MarketInsightsView: React.FC = () => {
     createEventBuilder,
     routeSource,
   ]);
+
+  useEffect(() => {
+    if (reportAssetId !== assetIdentifier) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData('success'),
+    });
+  }, [assetIdentifier, fullViewTraceId, reportAssetId]);
+
+  useEffect(() => {
+    if (isLoading || report) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData(error ? 'error' : 'empty'),
+    });
+  }, [error, fullViewTraceId, isLoading, report]);
+
+  useEffect(
+    () => () => {
+      endTrace({
+        name: TraceName.MarketInsightsViewLoad,
+        id: fullViewTraceId,
+        data: getMarketInsightsTraceEndData('cancelled'),
+      });
+    },
+    [fullViewTraceId],
+  );
 
   if (showLoadingSkeleton && !report && !error) {
     return (

@@ -1876,10 +1876,6 @@
         "current_price": "वर्तमान प्राइस",
         "liquidation_price": "लिक्विडेशन प्राइस",
         "liquidation_distance": "लिक्विडेशन डिस्टेन्स",
-        "liquidation_warning": "यदि प्राइस {{percentage}} तक {{direction}} है तो आपकी पोजीशन लिक्विडेट कर दी जाएगी",
-        "drops": "गिरती है",
-        "rises": "बढ़ती है",
-        "set_leverage": "{{leverage}}x सेट करें",
         "price_unavailable": "कीमत की जानकारी उपलब्ध नहीं है"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "MetaMask पोर्टफोलियो पर विभिन्न चेन में dApps, टोकन्स और NFTs एक्सप्लोर करें",
     "all_sports": "लोकप्रिय खेल",
     "basketball": "बास्केटबाल",
-    "football": "फुटबॉल",
     "soccer": "सॉकर",
     "tennis": "टेनिस",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "आपकी मेंबरशिप",
       "plan": "मेंबरशिप",
       "earned_this_month": "इस महीने कमाया",
-      "saved_this_month": "इस महीने बचाया",
       "payment_details": "पेमेंट डिटेल्स",
       "total": "कुल",
       "paying_with": "के साथ भुगतान किया जा रहा है",

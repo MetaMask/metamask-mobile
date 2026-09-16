@@ -1,15 +1,15 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { PERPS_CONSTANTS, type TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
+  getPerpsProTwapMarketSelector,
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import { formatProOrderCardTimestamp } from '../../../utils/formatUtils';
-import { getTwapOrderProviderId } from '../../../utils/twapOrderUtils';
 import PerpsProTwapCard from './PerpsProTwapCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -82,11 +82,20 @@ describe('PerpsProTwapCard', () => {
     jest.mocked(useSelector).mockReturnValue(false);
   });
 
+  afterEach(() => {
+    // The elapsed clock tests install fake timers; leaving them installed would
+    // stall every later test in this file.
+    jest.useRealTimers();
+  });
+
   it('renders the schedule market and size', () => {
     // Arrange / Act
     render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
 
     // Assert
+    expect(
+      screen.getByTestId(getPerpsProTwapMarketSelector('BTC')),
+    ).toHaveTextContent('BTC');
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_MARKET)),
     ).toHaveTextContent('BTC');
@@ -127,28 +136,97 @@ describe('PerpsProTwapCard', () => {
     ).toHaveTextContent('25%');
   });
 
-  it('renders elapsed against total duration', () => {
-    // Arrange / Act
-    render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
+  it('renders elapsed against total duration as HH:MM:SS', () => {
+    // Arrange
+    const startedAt = 1_700_000_000_000;
+    jest.useFakeTimers();
+    jest.setSystemTime(startedAt + 600_000);
 
-    // Assert: 600_000ms elapsed is 10 minutes of a 30 minute schedule
+    // Act
+    render(<PerpsProTwapCard twapOrder={buildTwapOrder({ startedAt })} />);
+
+    // Assert: ten minutes into a thirty minute schedule
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED)),
-    ).toHaveTextContent('10 minutes / 30 minutes');
+    ).toHaveTextContent('00:10:00 / 00:30:00');
   });
 
-  it('renders zero elapsed rather than a bare separator', () => {
-    // Arrange / Act
+  it('advances the elapsed clock every second while the schedule is active', () => {
+    // Arrange
+    const startedAt = 1_700_000_000_000;
+    jest.useFakeTimers();
+    jest.setSystemTime(startedAt + 28_000);
+    render(<PerpsProTwapCard twapOrder={buildTwapOrder({ startedAt })} />);
+    const elapsed = screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED));
+    expect(elapsed).toHaveTextContent('00:00:28 / 00:30:00');
+
+    // Act: no new controller snapshot, only the clock moving on
+    act(() => {
+      jest.advanceTimersByTime(1_000);
+    });
+
+    // Assert
+    expect(elapsed).toHaveTextContent('00:00:29 / 00:30:00');
+  });
+
+  it('derives elapsed from the start time rather than the last snapshot value', () => {
+    // Arrange: the venue snapshot is stale, as it is between deliveries
+    const startedAt = 1_700_000_000_000;
+    jest.useFakeTimers();
+    jest.setSystemTime(startedAt + 95_000);
+
+    // Act
     render(
       <PerpsProTwapCard
-        twapOrder={buildTwapOrder({ elapsedTimeMilliseconds: 0 })}
+        twapOrder={buildTwapOrder({ startedAt, elapsedTimeMilliseconds: 0 })}
       />,
     );
 
     // Assert
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED)),
-    ).toHaveTextContent('0 minutes / 30 minutes');
+    ).toHaveTextContent('00:01:35 / 00:30:00');
+  });
+
+  it('holds a terminal schedule at the elapsed time the venue reported', () => {
+    // Arrange: a completed schedule must not keep counting toward its total
+    const startedAt = 1_700_000_000_000;
+    jest.useFakeTimers();
+    jest.setSystemTime(startedAt + 900_000);
+    render(
+      <PerpsProTwapCard
+        twapOrder={buildTwapOrder({
+          startedAt,
+          status: 'completed',
+          elapsedTimeMilliseconds: 600_000,
+        })}
+      />,
+    );
+    const elapsed = screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED));
+
+    // Act
+    act(() => {
+      jest.advanceTimersByTime(1_000);
+    });
+
+    // Assert
+    expect(elapsed).toHaveTextContent('00:10:00 / 00:30:00');
+  });
+
+  it('caps elapsed at the scheduled duration when the schedule overruns', () => {
+    // Arrange: a schedule left open past its runtime must not report more
+    // elapsed than total
+    const startedAt = 1_700_000_000_000;
+    jest.useFakeTimers();
+    jest.setSystemTime(startedAt + 3_600_000);
+
+    // Act
+    render(<PerpsProTwapCard twapOrder={buildTwapOrder({ startedAt })} />);
+
+    // Assert
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED)),
+    ).toHaveTextContent('00:30:00 / 00:30:00');
   });
 
   it('falls back when the venue has reported no average price', () => {
@@ -347,22 +425,10 @@ describe('PerpsProTwapCard', () => {
     expect(onTerminate).toHaveBeenCalledTimes(1);
     expect(onTerminate).toHaveBeenCalledWith(secondOrder);
     expect(
-      screen.getByTestId(
-        getPerpsProTwapValueSelector(
-          ids.TWAP_MARKET,
-          getTwapOrderProviderId(firstOrder),
-          firstOrder.orderId,
-        ),
-      ),
+      screen.getByTestId(getPerpsProTwapMarketSelector('BTC')),
     ).toHaveTextContent('BTC');
     expect(
-      screen.getByTestId(
-        getPerpsProTwapValueSelector(
-          ids.TWAP_MARKET,
-          getTwapOrderProviderId(secondOrder),
-          secondOrder.orderId,
-        ),
-      ),
+      screen.getByTestId(getPerpsProTwapMarketSelector('ETH')),
     ).toHaveTextContent('ETH');
   });
 

@@ -535,12 +535,29 @@ const mockUseMarketInsights = jest.fn(
     isLoading: false,
     error: null,
     timeAgo: '',
+    cacheState: 'cold',
   }),
 );
 
 jest.mock('../../../MarketInsights', () => ({
   useMarketInsights: (assetId: string | null | undefined, isEnabled: boolean) =>
     mockUseMarketInsights(assetId, isEnabled),
+  useMarketInsightsEntryTrace: () => 'perps:entry_card:BTC',
+  getMarketInsightsTraceId: (
+    assetIdentifier: string,
+    source: string,
+    stage: string,
+  ) => `${source}:${stage}:${assetIdentifier}`,
+  getMarketInsightsTraceTags: (
+    context: { source: string; stage: string; assetType: string },
+    cacheState: string,
+  ) => ({
+    feature: 'market_insights',
+    source: context.source,
+    stage: context.stage,
+    asset_type: context.assetType,
+    cache_state: cacheState,
+  }),
   MarketInsightsDisclaimerBottomSheet: ({
     onClose,
   }: {
@@ -641,6 +658,7 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockNavigateToHome,
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
@@ -678,6 +696,7 @@ jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
 jest.mock('../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockNavigateToHome,
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
@@ -5454,6 +5473,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         timeAgo: '5m ago',
+        cacheState: 'cold',
       });
     });
 
@@ -5530,6 +5550,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         timeAgo: '',
+        cacheState: 'cold',
       });
 
       renderWithProvider(
@@ -5559,6 +5580,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: true,
         error: null,
         timeAgo: '',
+        cacheState: 'cold',
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -5593,6 +5615,7 @@ describe('PerpsMarketDetailsView', () => {
         isLoading: false,
         error: null,
         timeAgo: '',
+        cacheState: 'cold',
       });
 
       const { queryByTestId } = renderWithProvider(

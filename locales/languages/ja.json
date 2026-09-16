@@ -1876,10 +1876,6 @@
         "current_price": "現在の価格",
         "liquidation_price": "清算価格",
         "liquidation_distance": "清算価格との距離",
-        "liquidation_warning": "価格が{{percentage}}{{direction}}すると清算されます",
-        "drops": "下落",
-        "rises": "上昇",
-        "set_leverage": "{{leverage}}倍に設定",
         "price_unavailable": "価格情報はご利用いただけません"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "MetaMask PortfolioでさまざまなチェーンのDApp、トークン、NFTを探索",
     "all_sports": "人気のスポーツ",
     "basketball": "バスケットボール",
-    "football": "フットボール",
     "soccer": "サッカー",
     "tennis": "テニス",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "メンバーシップ",
       "plan": "メンバーシップ",
       "earned_this_month": "今月の収益",
-      "saved_this_month": "今月の節約額",
       "payment_details": "支払いの詳細",
       "total": "合計",
       "paying_with": "支払方法",

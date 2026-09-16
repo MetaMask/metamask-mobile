@@ -187,7 +187,7 @@ Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Andr
 
 Appium smoke tests live in `tests/smoke-appium/`. Page objects use `Gestures`, `Assertions`, and `Matchers`. Specs use the Playwright fixture wrapper and login helper.
 
-**Running Appium smoke locally:** see [Appium smoke testing](./appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), commands (`yarn appium-smoke:ios`), and CI artifact download.
+**Running Appium smoke locally:** see [Appium smoke testing](../../tests/docs/appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), commands (`yarn appium-smoke:ios`), and CI artifact download.
 
 ```typescript
 // Appium: tests/smoke-appium/accounts/my-feature.spec.ts

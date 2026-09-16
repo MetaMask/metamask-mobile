@@ -1,6 +1,9 @@
-import React, { useCallback, useEffect } from 'react';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Modal, TouchableOpacity, View, ViewStyle } from 'react-native';
 import {
+  BottomSheet,
+  BottomSheetRef,
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -8,7 +11,6 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import BottomModal from '../../../components/UI/bottom-modal';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import Icon, {
   IconName,
@@ -231,6 +233,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = useStyles(styleSheet, {}).styles as Record<string, ViewStyle>;
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const {
     hideAlertModal,
     alertModalVisible,
@@ -247,17 +250,25 @@ const AlertModal: React.FC<AlertModalProps> = ({
     }
   }, [alertModalVisible, trackAlertRendered]);
 
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    hideAlertModal();
+  }, [hideAlertModal]);
+
   const handleAcknowledge = useCallback(() => {
     if (onAcknowledgeClick) {
       onAcknowledgeClick();
       return;
     }
-    hideAlertModal();
-  }, [hideAlertModal, onAcknowledgeClick]);
+    handleRequestClose();
+  }, [handleRequestClose, onAcknowledgeClick]);
 
   const handleClose = useCallback(() => {
-    hideAlertModal();
-  }, [hideAlertModal]);
+    handleRequestClose();
+  }, [handleRequestClose]);
 
   const handleCheckboxClick = useCallback(
     (selectedAlertKey: string, isConfirmed: boolean) => {
@@ -269,9 +280,9 @@ const AlertModal: React.FC<AlertModalProps> = ({
   const handleActionClick = useCallback(
     (callback: () => void) => {
       callback();
-      hideAlertModal();
+      handleRequestClose();
     },
-    [hideAlertModal],
+    [handleRequestClose],
   );
 
   const selectedAlert = fieldAlerts.find(
@@ -286,44 +297,56 @@ const AlertModal: React.FC<AlertModalProps> = ({
   const severityStyle = getSeverityStyle(selectedAlert.severity, colors);
 
   return (
-    <BottomModal onClose={hideAlertModal}>
-      <View style={styles.modalContainer}>
-        <Header
-          selectedAlert={selectedAlert}
-          iconColor={severityStyle.icon}
-          styles={styles}
-          headerAccessory={headerAccessory}
-        />
-        <View>
-          <Content
-            backgroundColor={severityStyle.background}
+    <Modal
+      visible
+      animationType="none"
+      transparent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleRequestClose}
+    >
+      <BottomSheet
+        ref={bottomSheetRef}
+        keyboardAvoidingViewEnabled={false}
+        onClose={handleSheetClosed}
+      >
+        <Box twClassName="flex flex-col px-4 pt-4">
+          <Header
             selectedAlert={selectedAlert}
+            iconColor={severityStyle.icon}
             styles={styles}
+            headerAccessory={headerAccessory}
           />
-          <AlertCheckbox
-            selectedAlert={selectedAlert}
+          <View>
+            <Content
+              backgroundColor={severityStyle.background}
+              selectedAlert={selectedAlert}
+              styles={styles}
+            />
+            <AlertCheckbox
+              selectedAlert={selectedAlert}
+              isConfirmed={isConfirmed}
+              onCheckboxClick={() =>
+                handleCheckboxClick(selectedAlert.key, isConfirmed)
+              }
+              styles={styles}
+            />
+          </View>
+          <Buttons
+            onClose={handleClose}
+            onAcknowledge={handleAcknowledge}
+            action={selectedAlert.action}
+            styles={styles}
+            onHandleActionClick={handleActionClick}
             isConfirmed={isConfirmed}
-            onCheckboxClick={() =>
-              handleCheckboxClick(selectedAlert.key, isConfirmed)
+            isDangerAlert={
+              selectedAlert.severity === Severity.Danger &&
+              !selectedAlert.isBlocking
             }
-            styles={styles}
+            isBlocking={selectedAlert.isBlocking ?? false}
           />
-        </View>
-        <Buttons
-          onClose={handleClose}
-          onAcknowledge={handleAcknowledge}
-          action={selectedAlert.action}
-          styles={styles}
-          onHandleActionClick={handleActionClick}
-          isConfirmed={isConfirmed}
-          isDangerAlert={
-            selectedAlert.severity === Severity.Danger &&
-            !selectedAlert.isBlocking
-          }
-          isBlocking={selectedAlert.isBlocking ?? false}
-        />
-      </View>
-    </BottomModal>
+        </Box>
+      </BottomSheet>
+    </Modal>
   );
 };
 

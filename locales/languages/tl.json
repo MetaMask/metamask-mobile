@@ -1876,10 +1876,6 @@
         "current_price": "Kasalukuyang presyo",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Layo sa liquidation",
-        "liquidation_warning": "Mali-liquidate ka kapag ang presyo ay {{direction}} ng {{percentage}}",
-        "drops": "bumaba",
-        "rises": "tumaas",
-        "set_leverage": "Itakda sa {{leverage}}x",
         "price_unavailable": "Hindi available ang impormasyon ng presyo"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "Tuklasin ang mga dApp, token, at NFT sa lahat ng chain sa MetaMask Portfolio",
     "all_sports": "Mga sikat na sport",
     "basketball": "Basketball",
-    "football": "Football",
     "soccer": "Soccer",
     "tennis": "Tennis",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "Ang membership mo",
       "plan": "Membership",
       "earned_this_month": "Kinita ngayong buwan",
-      "saved_this_month": "Natipid ngayong buwan",
       "payment_details": "Mga detalye ng pagbabayad",
       "total": "Kabuuan",
       "paying_with": "Nagbabayad gamit ang",

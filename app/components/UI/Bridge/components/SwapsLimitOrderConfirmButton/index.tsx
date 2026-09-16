@@ -4,6 +4,13 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
+import {
+  selectSourceAmount,
+  selectSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import type { useLatestBalance } from '../../hooks/useLatestBalance';
 
 interface Props {
   loading?: boolean;
@@ -23,7 +30,7 @@ export const SwapsLimitOrderConfirmButton = ({
   <Button
     variant={ButtonVariant.Primary}
     size={ButtonBaseSize.Lg}
-    isLoading={loading}
+    isLoading={Boolean(loading)}
     onPress={onPress}
     isFullWidth
     testID={testID}

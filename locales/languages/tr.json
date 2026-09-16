@@ -1876,10 +1876,6 @@
         "current_price": "Mevcut fiyat",
         "liquidation_price": "Likidasyon fiyatı",
         "liquidation_distance": "Likidasyon mesafesi",
-        "liquidation_warning": "Fiyat %{{percentage}} {{direction}} yaşarsa pozisyonunuz likidasyona uğrar",
-        "drops": "düşüş",
-        "rises": "yükseliş",
-        "set_leverage": "{{leverage}} kaldıraç ayarla",
         "price_unavailable": "Fiyat bilgisi mevcut değil"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "MetaMask Portfolio üzerindeki zincirler genelinde dapp'leri, tokenları ve NFT'leri keşfedin.",
     "all_sports": "Popüler sporlar",
     "basketball": "Basketbol",
-    "football": "Amerikan Futbolu",
     "soccer": "Futbol",
     "tennis": "Tenis",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "Üyeliğiniz",
       "plan": "Üyelik",
       "earned_this_month": "Bu ay kazanılan",
-      "saved_this_month": "Bu ay tasarruf edilen",
       "payment_details": "Ödeme bilgileri",
       "total": "Toplam",
       "paying_with": "Ödeme aracı",

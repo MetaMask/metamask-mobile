@@ -6,24 +6,10 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
-import {
-  QrSyncOperations,
-  QrSyncSurfaces,
-  QrSyncTelemetrySources,
-  reportQrSyncFailure,
-} from '../../../core/QrSync/qrSyncTelemetry';
-
-jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
-  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
-  reportQrSyncFailure: jest.fn(),
-}));
-
-const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -275,37 +261,9 @@ describe('AddDeviceToWallet', () => {
           initialScreen: 'Scanner',
           disableTabber: true,
           origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-          onScanSuccess: expect.any(Function),
         }),
       );
-    });
-
-    it('reports scan submit failures to Sentry', async () => {
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('scan submit failed'),
-      );
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const onScanSuccess = mockNavigate.mock.calls[0][1].onScanSuccess as (
-        data: { content?: string },
-        content?: string,
-      ) => void;
-      onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
-
-      await waitFor(() => {
-        expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-          expect.any(Error),
-          {
-            surface: QrSyncSurfaces.SCANNER,
-            operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-            source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
-          },
-        );
-      });
+      expect(mockNavigate.mock.calls[0][1].onScanSuccess).toBeUndefined();
     });
   });
 
@@ -366,14 +324,24 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        value: 'word1 word2 word3',
-        type: QrSyncSecretTypes.MNEMONIC,
-        isPrimary: true,
-      },
-    ];
+    const pendingSecretImports = {
+      version: 1 as const,
+      wallets: [
+        {
+          id: 'wallet:test' as `wallet:${string}`,
+          type: 'mnemonic' as const,
+          value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+          metadata: { name: 'Wallet 1' },
+          groups: [
+            {
+              id: 'wallet:test/0' as `wallet:${string}/${string}`,
+              groupIndex: 0,
+              metadata: { name: 'Account 1', pinned: false, hidden: false },
+            },
+          ],
+        },
+      ],
+    };
 
     it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({

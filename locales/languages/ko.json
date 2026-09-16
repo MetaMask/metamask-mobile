@@ -1876,10 +1876,6 @@
         "current_price": "현재가",
         "liquidation_price": "청산 가격",
         "liquidation_distance": "청산 가격과의 차이",
-        "liquidation_warning": "가격이 {{percentage}} {{direction}}하면 청산됩니다",
-        "drops": "하락",
-        "rises": "상승",
-        "set_leverage": "{{leverage}}배 설정",
         "price_unavailable": "가격 정보 확인 불가"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "MetaMask Portfolio에서 다양한 체인의 디앱, 토큰, NFT를 둘러보세요.",
     "all_sports": "인기 스포츠",
     "basketball": "농구",
-    "football": "풋볼",
     "soccer": "축구",
     "tennis": "테니스",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "내 멤버십",
       "plan": "멤버십",
       "earned_this_month": "이번 달 적립액",
-      "saved_this_month": "이번 달 절감액",
       "payment_details": "결제 세부 정보",
       "total": "총액",
       "paying_with": "결제 수단:",

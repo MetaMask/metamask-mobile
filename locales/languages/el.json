@@ -1876,10 +1876,6 @@
         "current_price": "Τρέχουσα τιμή",
         "liquidation_price": "Τιμή ρευστοποίησης",
         "liquidation_distance": "Απόσταση ρευστοποίησης",
-        "liquidation_warning": "Η θέση σας θα ρευστοποιηθεί αν η τιμή {{direction}} κατά {{percentage}}",
-        "drops": "πέσει",
-        "rises": "ανεβεί",
-        "set_leverage": "Ορισμός μόχλευσης {{leverage}}x",
         "price_unavailable": "Οι πληροφορίες τιμών δεν είναι διαθέσιμες"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "Εξερευνήστε αποκεντρωμένες εφαρμογές, tokens και NFT σε διαφορετικά δίκτυα μέσω του MetaMask Portfolio.",
     "all_sports": "Δημοφιλή αθλήματα",
     "basketball": "Μπάσκετ",
-    "football": "Ποδόσφαιρο",
     "soccer": "Αμερ. ποδόσφαιρο",
     "tennis": "Τένις",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "Η συνδρομή σας",
       "plan": "Συνδρομή",
       "earned_this_month": "Κερδίσατε αυτόν τον μήνα",
-      "saved_this_month": "Εξοικονομήσατε αυτόν τον μήνα",
       "payment_details": "Στοιχεία πληρωμής",
       "total": "Σύνολο",
       "paying_with": "Τρόπος πληρωμής",

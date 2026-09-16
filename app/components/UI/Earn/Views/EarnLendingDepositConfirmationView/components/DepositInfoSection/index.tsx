@@ -13,6 +13,7 @@ import InfoSection from '../../../../../../Views/confirmations/components/UI/inf
 import ContractTag from '../../../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../../../Tokens/types';
 import useEarnToken from '../../../../hooks/useEarnToken';
+import { formatEarnRatePercentage } from '../../../../utils';
 import styleSheet from './DepositInfoSection.styles';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import {
@@ -21,8 +22,9 @@ import {
   KEY_VALUE_ROW_VALUE_TEXT_PROPS,
   useKeyValueRowTooltip,
 } from '../../../../utils/keyValueRow';
+import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './DepositInfoSection.testIds';
 
-export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
+export { DEPOSIT_DETAILS_SECTION_TEST_ID } from './DepositInfoSection.testIds';
 
 export interface DepositInfoSectionProps {
   token: TokenI;
@@ -69,7 +71,9 @@ const DepositInfoSection = ({
               <Text>{strings('earn.tooltip_content.apr.part_two')}</Text>
             </View>,
           )}
-          value={`${earnToken?.experience?.apr}%`}
+          value={`${formatEarnRatePercentage(
+            earnToken?.experience?.apr ?? '0',
+          )}%`}
           valueTextProps={{
             fontWeight: FontWeight.Regular,
             color: TextColor.SuccessDefault,

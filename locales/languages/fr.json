@@ -1876,10 +1876,6 @@
         "current_price": "Prix actuel",
         "liquidation_price": "Prix de liquidation",
         "liquidation_distance": "Distance de liquidation",
-        "liquidation_warning": "Votre position sera liquidée si le prix {{direction}} de {{percentage}}",
-        "drops": "baisse",
-        "rises": "augmente",
-        "set_leverage": "Régler sur {{leverage}}x",
         "price_unavailable": "Informations sur les prix indisponibles"
       },
       "type": {
@@ -11170,7 +11166,6 @@
     "ecosystems_subtitle": "Découvrez les dApps, les jetons et les NFT disponibles sur les différentes chaînes sur MetaMask Portfolio",
     "all_sports": "Sports populaires",
     "basketball": "Basket-ball",
-    "football": "Football américain",
     "soccer": "Football",
     "tennis": "Tennis",
     "f1": "F1",
@@ -11518,7 +11513,6 @@
       "title": "Votre abonnement",
       "plan": "Abonnement",
       "earned_this_month": "Montant gagné ce mois-ci",
-      "saved_this_month": "Économies réalisées ce mois-ci",
       "payment_details": "Détails du paiement",
       "total": "Total",
       "paying_with": "Payer avec",
