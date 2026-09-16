@@ -367,13 +367,16 @@ const ManualBackupStep1 = () => {
               data={words}
               numColumns={3}
               keyExtractor={(_, index) => index.toString()}
+              columnWrapperStyle={tw.style('gap-2')}
+              contentContainerStyle={tw.style('gap-2')}
               renderItem={({ item, index }) => (
                 <TextField
                   value={item}
                   isReadOnly
+                  twClassName="flex-1"
                   startAccessory={
                     <Text
-                      variant={TextVariant.BodyMd}
+                      variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                       maxFontSizeMultiplier={1}
                     >
@@ -382,8 +385,6 @@ const ManualBackupStep1 = () => {
                   }
                   inputElement={
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                       minimumFontScale={0.7}
@@ -394,7 +395,6 @@ const ManualBackupStep1 = () => {
                       {item}
                     </Text>
                   }
-                  twClassName="flex-1 m-1 px-2 h-10 gap-1.5 bg-default"
                 />
               )}
             />
