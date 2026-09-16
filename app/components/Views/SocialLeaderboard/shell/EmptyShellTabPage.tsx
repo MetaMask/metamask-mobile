@@ -11,13 +11,13 @@ type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
 >['onScroll'];
 
-export type SocialFeedShellTab = 'forYou' | 'following';
+export type SocialFeedShellTab = 'trending' | 'following';
 
 export interface EmptyShellTabPageProps {
   tab: SocialFeedShellTab;
   /**
    * The pager mounts every page up front. Hold the mock list back until the
-   * tab is first opened so For you and Following don't duplicate testIDs.
+   * tab is first opened so Trending and Following don't duplicate testIDs.
    */
   isActive?: boolean;
   onScroll?: AnimatedScrollHandler;
@@ -27,7 +27,7 @@ export interface EmptyShellTabPageProps {
 }
 
 /**
- * Social Bundle V1 For you / Following page: mocked position cards until the
+ * Social Bundle V1 Trending / Following page: mocked position cards until the
  * API supplies post/comment fields.
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({

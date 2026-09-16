@@ -11,3 +11,6 @@ export const getSocialFeedPositionCardStatTestId = (
   id: string,
   statKey: string,
 ) => `social-v1-feed-card-stat-${id}-${statKey}`;
+
+export const getSocialFeedPositionCardSectionDividerTestId = (id: string) =>
+  `social-v1-feed-card-section-divider-${id}`;

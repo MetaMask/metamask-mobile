@@ -6,7 +6,7 @@ export const SocialV1ViewSelectorsIDs = {
   TABS: 'social-v1-view-tabs',
   PAGER: 'social-v1-view-pager',
   LEADERBOARD_PAGE: 'social-v1-view-leaderboard-page',
-  FOR_YOU_PAGE: 'social-v1-view-for-you-page',
+  TRENDING_PAGE: 'social-v1-view-trending-page',
   FOLLOWING_PAGE: 'social-v1-view-following-page',
   LIVE_TRADES_PAGE: 'social-v1-view-live-trades-page',
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',

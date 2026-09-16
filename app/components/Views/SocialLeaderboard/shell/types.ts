@@ -1,5 +1,5 @@
 export type SocialShellTab =
-  | 'forYou'
+  | 'trending'
   | 'following'
   | 'leaderboard'
   | 'liveTrades';

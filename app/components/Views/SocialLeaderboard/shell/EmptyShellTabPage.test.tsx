@@ -45,19 +45,19 @@ describe('EmptyShellTabPage', () => {
   it('keeps the mock feed mounted once the tab has been opened', () => {
     const { rerender } = renderWithProvider(
       <EmptyShellTabPage
-        tab="forYou"
+        tab="trending"
         isActive
-        containerTestID="for-you-page-content"
-        scrollTestID="for-you-page-scroll"
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
       />,
     );
 
     rerender(
       <EmptyShellTabPage
-        tab="forYou"
+        tab="trending"
         isActive={false}
-        containerTestID="for-you-page-content"
-        scrollTestID="for-you-page-scroll"
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
       />,
     );
 

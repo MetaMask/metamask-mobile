@@ -1,9 +1,9 @@
 import { SOCIAL_V1_TAB_ORDER, SOCIAL_SHELL_TAB_CONFIG } from './tabConfig';
 
 describe('SOCIAL_SHELL_TAB_CONFIG', () => {
-  it('orders the Social V1 tabs as For you, Following, Leaderboard, and Live trades', () => {
+  it('orders the Social V1 tabs as Trending, Following, Leaderboard, and Live trades', () => {
     expect(SOCIAL_V1_TAB_ORDER).toEqual([
-      'forYou',
+      'trending',
       'following',
       'leaderboard',
       'liveTrades',

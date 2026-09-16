@@ -146,12 +146,12 @@ describe('SocialV1View', () => {
     mockUseMyProfile.mockReturnValue({ profile: undefined });
   });
 
-  it('renders For you, Following, Leaderboard, and Live trades tabs', () => {
+  it('renders Trending, Following, Leaderboard, and Live trades tabs', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0-label`),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.for_you');
+    ).toHaveTextContent('social_leaderboard.feed.tabs.trending');
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.following');
@@ -181,7 +181,7 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
 
-  it('renders the three mocked position cards on For you', () => {
+  it('renders the three mocked position cards on Trending', () => {
     renderWithProvider(<SocialV1View />);
 
     MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {

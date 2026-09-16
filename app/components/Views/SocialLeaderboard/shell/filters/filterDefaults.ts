@@ -49,7 +49,7 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
   SocialShellTab,
   SocialShellFilters
 > = {
-  forYou: { ...DEFAULT_FILTERS },
+  trending: { ...DEFAULT_FILTERS },
   following: { ...DEFAULT_FILTERS },
   liveTrades: { ...DEFAULT_FILTERS },
   leaderboard: { ...DEFAULT_FILTERS },

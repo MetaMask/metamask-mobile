@@ -13,7 +13,7 @@ export interface LeaderboardShellTabPageProps {
    * Whether this page is the visible tab. The pager mounts every page up
    * front, so the list is held back until the tab is first opened — otherwise
    * opening the home would fetch the leaderboard and emit its screen-viewed
-   * event while the user is still on For you. Defaults to `true` for standalone
+   * event while the user is still on Trending. Defaults to `true` for standalone
    * use.
    */
   isActive?: boolean;

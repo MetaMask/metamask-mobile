@@ -81,10 +81,10 @@ const PAGE_TEST_IDS: Record<
     scroll: string;
   }
 > = {
-  forYou: {
-    page: SocialV1ViewSelectorsIDs.FOR_YOU_PAGE,
-    container: `${SocialV1ViewSelectorsIDs.FOR_YOU_PAGE}-content`,
-    scroll: `${SocialV1ViewSelectorsIDs.FOR_YOU_PAGE}-scroll`,
+  trending: {
+    page: SocialV1ViewSelectorsIDs.TRENDING_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
   },
   following: {
     page: SocialV1ViewSelectorsIDs.FOLLOWING_PAGE,
@@ -110,8 +110,8 @@ const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
 const getTabAnalyticsValue = (tab: SocialShellTab) => {
   switch (tab) {
-    case 'forYou':
-      return SocialLeaderboardEventValues.TAB.FOR_YOU;
+    case 'trending':
+      return SocialLeaderboardEventValues.TAB.TRENDING;
     case 'following':
       return SocialLeaderboardEventValues.TAB.FOLLOWING;
     case 'liveTrades':
@@ -124,7 +124,7 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
 };
 
 /**
- * Social Bundle V1 Follow Trading home: For you | Following | Leaderboard |
+ * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
  */
 const SocialV1View: React.FC = () => {
@@ -138,7 +138,7 @@ const SocialV1View: React.FC = () => {
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
-  const forYouIndex = tabOrder.indexOf('forYou');
+  const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
@@ -166,21 +166,21 @@ const SocialV1View: React.FC = () => {
   // offset would leave the header collapsed after swiping to an unscrolled page.
   // On tab change the incoming page is scrolled into agreement with the outgoing
   // one (see `syncIncomingPageScroll`) so the header never flips.
-  const forYouScrollY = useSharedValue(0);
+  const trendingScrollY = useSharedValue(0);
   const followingScrollY = useSharedValue(0);
   const leaderboardScrollY = useSharedValue(0);
   const liveTradesScrollY = useSharedValue(0);
-  const forYouPageRef = useRef<SocialTabPageHandle>(null);
+  const trendingPageRef = useRef<SocialTabPageHandle>(null);
   const followingPageRef = useRef<SocialTabPageHandle>(null);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(LANDING_INDEX);
-  const forYouIndexSv = useSharedValue(forYouIndex);
+  const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);
   const liveTradesIndexSv = useSharedValue(liveTradesIndex);
   const scrollY = useDerivedValue(() => {
-    if (activeIndexSv.value === forYouIndexSv.value) {
-      return forYouScrollY.value;
+    if (activeIndexSv.value === trendingIndexSv.value) {
+      return trendingScrollY.value;
     }
     if (activeIndexSv.value === followingIndexSv.value) {
       return followingScrollY.value;
@@ -191,9 +191,9 @@ const SocialV1View: React.FC = () => {
     return leaderboardScrollY.value;
   });
 
-  const forYouScrollHandler = useAnimatedScrollHandler({
+  const trendingScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      forYouScrollY.value = event.contentOffset.y;
+      trendingScrollY.value = event.contentOffset.y;
     },
   });
   const followingScrollHandler = useAnimatedScrollHandler({
@@ -215,7 +215,7 @@ const SocialV1View: React.FC = () => {
     SocialShellTab,
     ReturnType<typeof useAnimatedScrollHandler>
   > = {
-    forYou: forYouScrollHandler,
+    trending: trendingScrollHandler,
     following: followingScrollHandler,
     liveTrades: liveTradesScrollHandler,
     leaderboard: leaderboardScrollHandler,
@@ -245,8 +245,8 @@ const SocialV1View: React.FC = () => {
       }
 
       const getOffset = (index: number) => {
-        if (index === forYouIndex) {
-          return forYouScrollY.value;
+        if (index === trendingIndex) {
+          return trendingScrollY.value;
         }
         if (index === followingIndex) {
           return followingScrollY.value;
@@ -272,8 +272,8 @@ const SocialV1View: React.FC = () => {
       // the moment `activeIndexSv` flips, and the native scroll only reports back
       // a frame later — without this the header would collapse/expand for that
       // frame before settling.
-      if (nextIndex === forYouIndex) {
-        forYouScrollY.value = target;
+      if (nextIndex === trendingIndex) {
+        trendingScrollY.value = target;
       } else if (nextIndex === followingIndex) {
         followingScrollY.value = target;
       } else if (nextIndex === liveTradesIndex) {
@@ -283,8 +283,8 @@ const SocialV1View: React.FC = () => {
       }
 
       const incomingPage =
-        nextIndex === forYouIndex
-          ? forYouPageRef
+        nextIndex === trendingIndex
+          ? trendingPageRef
           : nextIndex === followingIndex
             ? followingPageRef
             : nextIndex === liveTradesIndex
@@ -296,8 +296,8 @@ const SocialV1View: React.FC = () => {
       activeIndex,
       followingIndex,
       followingScrollY,
-      forYouIndex,
-      forYouScrollY,
+      trendingIndex,
+      trendingScrollY,
       leaderboardScrollY,
       liveTradesIndex,
       liveTradesScrollY,
@@ -533,8 +533,8 @@ const SocialV1View: React.FC = () => {
             {tabOrder.map((tab) => {
               const testIds = PAGE_TEST_IDS[tab];
               const pageRef =
-                tab === 'forYou'
-                  ? forYouPageRef
+                tab === 'trending'
+                  ? trendingPageRef
                   : tab === 'following'
                     ? followingPageRef
                     : tab === 'liveTrades'
@@ -565,8 +565,8 @@ const SocialV1View: React.FC = () => {
                     <EmptyShellTabPage
                       tab={tab}
                       isActive={
-                        tab === 'forYou'
-                          ? activeIndex === forYouIndex
+                        tab === 'trending'
+                          ? activeIndex === trendingIndex
                           : activeIndex === followingIndex
                       }
                       onScroll={scrollHandlers[tab]}

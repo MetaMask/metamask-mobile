@@ -4,8 +4,8 @@ export const SOCIAL_SHELL_TAB_CONFIG: Record<
   SocialShellTab,
   SocialShellTabConfig
 > = {
-  forYou: {
-    labelKey: 'social_leaderboard.feed.tabs.for_you',
+  trending: {
+    labelKey: 'social_leaderboard.feed.tabs.trending',
   },
   following: {
     labelKey: 'social_leaderboard.feed.tabs.following',
@@ -19,7 +19,7 @@ export const SOCIAL_SHELL_TAB_CONFIG: Record<
 };
 
 export const SOCIAL_V1_TAB_ORDER = [
-  'forYou',
+  'trending',
   'following',
   'leaderboard',
   'liveTrades',

@@ -10,6 +10,7 @@ import {
 import {
   getSocialFeedPositionCardCommentTestId,
   getSocialFeedPositionCardCopyTradeTestId,
+  getSocialFeedPositionCardSectionDividerTestId,
   getSocialFeedPositionCardStatTestId,
   getSocialFeedPositionCardTestId,
 } from './SocialFeedPositionCard.testIds';
@@ -37,6 +38,11 @@ describe('SocialFeedPositionCard', () => {
     ).toHaveTextContent('Leverage is a lifestyle.');
     expect(
       screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getSocialFeedPositionCardSectionDividerTestId(item.id),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
@@ -91,6 +97,11 @@ describe('SocialFeedPositionCard', () => {
     expect(
       screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
     ).toBeNull();
+    expect(
+      screen.getByTestId(
+        getSocialFeedPositionCardSectionDividerTestId(item.id),
+      ),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(getSocialFeedPositionCardStatTestId(item.id, 'exit')),
     ).toBeOnTheScreen();
