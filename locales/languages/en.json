@@ -8010,8 +8010,8 @@
       "success_toast": "SMS verification added"
     },
     "social": {
-      "add_title": "Connect a social login",
-      "add_description": "Use this as a backup method to access your wallet in case you lose your Secret Recovery Phrase. You won't be able to disconnect this later.",
+      "add_title": "Set up wallet recovery",
+      "add_description": "This backs up your Secret Recovery Phrase so you can get back into your wallet without it. The backup is encrypted and split between your device, MetaMask, and a third party, and can't be disconnected later.",
       "continue_google": "Continue with Google",
       "continue_apple": "Continue with Apple",
       "continue_telegram": "Continue with Telegram",

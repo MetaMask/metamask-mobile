@@ -128,16 +128,11 @@ describe('MoneySecurityVerificationSheet', () => {
     });
   });
 
-  it('opens authenticator verification before deleting the last passkey', () => {
+  it('immediately opens authenticator verification when it is the only method', () => {
     mockAction = { type: 'delete-passkey', passkeyIndex: 0 };
-    const { getByTestId } = renderWithProvider(
-      <MoneySecurityVerificationSheet />,
-    );
+    renderWithProvider(<MoneySecurityVerificationSheet />);
 
-    fireEvent.press(
-      getByTestId(MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD),
-    );
-
+    expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.AUTHENTICATOR, {
       entryPoint: 'security',
       initialStep: 'verify',

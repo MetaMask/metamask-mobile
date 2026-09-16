@@ -122,6 +122,7 @@ const MoneySecurityVerificationSheet = () => {
   const showSuccessToast = useMoneySecurityToast();
   const codeInputRef = useRef<TextInput>(null);
   const hasCompletedRef = useRef(false);
+  const hasAutoRoutedAuthenticatorRef = useRef(false);
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
   const [isVerifyingPasskey, setIsVerifyingPasskey] = useState(false);
@@ -143,9 +144,12 @@ const MoneySecurityVerificationSheet = () => {
     return methods;
   }, [isAuthenticatorAdded, isSmsAdded, passkeyCount, route.params]);
 
+  const isSoleAuthenticatorMethod =
+    availableMethods.length === 1 && availableMethods[0] === 'authenticator';
+
   const [selectedMethod, setSelectedMethod] =
     useState<VerificationMethod | null>(
-      availableMethods.length === 1 && availableMethods[0] !== 'authenticator'
+      availableMethods.length === 1 && !isSoleAuthenticatorMethod
         ? availableMethods[0]
         : null,
     );
@@ -220,6 +224,15 @@ const MoneySecurityVerificationSheet = () => {
     });
   }, [navigation, route.params.action]);
 
+  useEffect(() => {
+    if (!isSoleAuthenticatorMethod || hasAutoRoutedAuthenticatorRef.current) {
+      return;
+    }
+
+    hasAutoRoutedAuthenticatorRef.current = true;
+    handleAuthenticatorMethod();
+  }, [handleAuthenticatorMethod, isSoleAuthenticatorMethod]);
+
   const handleCodeChange = useCallback((value: string) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
     setIsCodeInvalid(false);
@@ -268,7 +281,7 @@ const MoneySecurityVerificationSheet = () => {
         {strings('money.security.verification_title')}
       </BottomSheetHeader>
       <Box style={styles.content}>
-        {!selectedMethod ? (
+        {isSoleAuthenticatorMethod ? null : !selectedMethod ? (
           <>
             {availableMethods.length > 1 && (
               <Text

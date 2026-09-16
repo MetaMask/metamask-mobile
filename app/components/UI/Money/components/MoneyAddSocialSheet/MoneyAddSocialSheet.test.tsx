@@ -63,7 +63,7 @@ describe('MoneyAddSocialSheet', () => {
   });
 
   it('adds the selected provider and shows success', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <ToastContext.Provider
         value={{
           toastRef: {
@@ -77,6 +77,13 @@ describe('MoneyAddSocialSheet', () => {
         <MoneyAddSocialSheet />
       </ToastContext.Provider>,
     );
+
+    expect(getByText('Set up wallet recovery')).toBeOnTheScreen();
+    expect(
+      getByText(
+        "This backs up your Secret Recovery Phrase so you can get back into your wallet without it. The backup is encrypted and split between your device, MetaMask, and a third party, and can't be disconnected later.",
+      ),
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(MoneyAddSocialSheetTestIds.GOOGLE_BUTTON));
 
