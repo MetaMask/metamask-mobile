@@ -156,10 +156,37 @@ const makePreview = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+const pressKeypadKey = (key: string) => {
+  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)));
+};
+
+/**
+ * Enters an amount on the in-sheet keypad the way the user does: open from
+ * the amount display, press one key per character, then Done to collapse the
+ * keypad and reveal the summary and the Confirm control. Keys append to the
+ * current amount.
+ */
 const typeAmount = (amount: string) => {
-  const input = screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT);
-  const textInput = input.findByProps({ keyboardType: 'decimal-pad' });
-  fireEvent.changeText(textInput, amount);
+  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+  for (const key of amount.split('')) {
+    pressKeypadKey(key);
+  }
+  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_DONE));
+};
+
+/**
+ * Changes the amount on the keypad: reopens it (the amount persists), clears
+ * the previous entry with the delete key, types the new amount, and Done.
+ */
+const replaceAmount = (previous: string, next: string) => {
+  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+  Array.from({ length: previous.length }).forEach(() =>
+    pressKeypadKey('delete'),
+  );
+  for (const key of next.split('')) {
+    pressKeypadKey(key);
+  }
+  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_DONE));
 };
 
 /**
@@ -333,7 +360,7 @@ describe('PredictOrderFlow', () => {
     );
     expect(previewCalls()).toHaveLength(1);
 
-    typeAmount('50');
+    replaceAmount('20', '50');
     // The changed amount invalidates the previous quote immediately: the
     // Total falls back to the entered amount while the fresh quote loads.
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
@@ -355,7 +382,7 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
     );
 
-    typeAmount('50');
+    replaceAmount('20', '50');
     // The previous preview is hidden while the fresh quote loads: it must
     // not stay approvable underneath the spinner.
     expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
@@ -386,7 +413,7 @@ describe('PredictOrderFlow', () => {
     openSheet();
     typeAmount('20');
     await flushDebounce();
-    typeAmount('0.50');
+    replaceAmount('20', '0.50');
     await act(async () => {
       resolveQuote({ body: makePreview() });
     });
@@ -425,7 +452,7 @@ describe('PredictOrderFlow', () => {
     expect(screen.queryByText(/Enter at least \$1/)).toBeNull();
     expect(previewCalls()).toHaveLength(0);
 
-    typeAmount('1.50');
+    replaceAmount('1.', '1.50');
     await flushDebounce();
     await waitFor(() =>
       expect(
@@ -447,6 +474,54 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
       ).toBeOnTheScreen(),
+    );
+  });
+
+  it('enters the amount on the in-sheet keypad and collapses it on Done', async () => {
+    stubEchoingPreview();
+
+    openSheet();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD)).toBeNull();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.KEYPAD),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY('2')),
+    );
+    fireEvent.press(
+      screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY('0')),
+    );
+    // The keypad replaces the summary and the Confirm control while open.
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_DONE));
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD)).toBeNull();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
+      '$20.00',
+    );
+
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+    );
+  });
+
+  it('deletes the last character with the keypad delete key', async () => {
+    stubEchoingPreview();
+
+    openSheet();
+    // Type and clear without quoting: the Total reads the entered amount.
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+    pressKeypadKey('1');
+    pressKeypadKey('2');
+    pressKeypadKey('delete');
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_DONE));
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
+      '$1.00',
     );
   });
 

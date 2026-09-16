@@ -1,57 +1,62 @@
 import React from 'react';
-import { TextInput, View } from 'react-native';
 import {
   Box,
   Button,
+  ButtonBase,
   ButtonSize,
   ButtonVariant,
   Text,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const QUICK_AMOUNTS = ['$20', '$50', '$100', '$250'] as const;
 
+const AMOUNT_TEXT_TW = 'text-[54px] font-semibold leading-[60px]';
+
 interface OrderAmountInputProps {
   amount: string;
+  /** Opens the in-sheet keypad. */
+  onAmountPress: () => void;
   onAmountChange: (amount: string) => void;
 }
 
-/** USD amount entry: one big centered figure with quick amount chips. */
+/**
+ * USD amount entry: the big centered figure (pressable to open the keypad)
+ * with quick amount chips beneath it.
+ */
 export const OrderAmountInput = ({
   amount,
+  onAmountPress,
   onAmountChange,
 }: OrderAmountInputProps) => {
   const tw = useTailwind();
-  const { colors, themeAppearance } = useTheme();
 
   return (
-    <Box twClassName="gap-2">
-      <Box
-        twClassName="flex-row items-center justify-center gap-1"
+    <Box twClassName="gap-3">
+      {/* The $ and the amount are one centered group, per the design. */}
+      <ButtonBase
+        twClassName="w-full rounded-none bg-transparent py-2"
+        onPress={onAmountPress}
         testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
+        accessibilityLabel={strings('predict_next.order_preview.amount')}
       >
-        <Text twClassName="text-[54px] font-semibold leading-[60px] text-default">
-          $
-        </Text>
-        <TextInput
-          style={tw.style(
-            'h-16 min-w-0 flex-1 text-center text-[54px] font-semibold leading-[60px] text-default',
-          )}
-          value={amount}
-          onChangeText={onAmountChange}
-          keyboardType="decimal-pad"
-          placeholder="0"
-          placeholderTextColor={colors.text.alternative}
-          keyboardAppearance={themeAppearance}
-          accessible
-          accessibilityLabel={strings('predict_next.order_preview.amount')}
-        />
-      </Box>
-      <View style={tw.style('flex-row gap-2')}>
+        <Box twClassName="flex-row items-center justify-center">
+          <Text twClassName={`${AMOUNT_TEXT_TW} text-default`}>$</Text>
+          <Text
+            twClassName={
+              amount
+                ? `${AMOUNT_TEXT_TW} text-default`
+                : `${AMOUNT_TEXT_TW} text-alternative`
+            }
+          >
+            {amount || '0'}
+          </Text>
+        </Box>
+      </ButtonBase>
+      <Box twClassName="flex-row gap-2">
         {QUICK_AMOUNTS.map((quickAmount) => (
           <Button
             key={quickAmount}
@@ -59,12 +64,12 @@ export const OrderAmountInput = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             onPress={() => onAmountChange(quickAmount.replace('$', ''))}
-            twClassName="h-11 flex-1 min-w-0"
+            twClassName="h-12 flex-1 min-w-0"
           >
             <Text>{quickAmount}</Text>
           </Button>
         ))}
-      </View>
+      </Box>
     </Box>
   );
 };

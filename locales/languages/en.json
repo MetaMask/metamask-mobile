@@ -3164,7 +3164,7 @@
       "potential_profit": "Potential profit",
       "fee": "Fee",
       "total_debit": "Total debit",
-      "to_win": "To win ${{amount}}",
+      "to_win": "To win {{amount}}",
       "pay_with": "Pay with",
       "predict_balance": "Predict balance",
       "total": "Total",
@@ -3175,6 +3175,8 @@
       "submitting": "Submitting your order…",
       "success_title": "Order submitted",
       "done": "Done",
+      "close": "Close",
+      "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again"

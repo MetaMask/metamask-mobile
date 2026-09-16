@@ -22,18 +22,23 @@ import {
 } from 'react-native-gesture-handler';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
-  ButtonHero,
+  ButtonBase,
+  ButtonIcon,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Theme,
+  ThemeProvider,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import ModalSafeAreaProvider from '../../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -53,6 +58,7 @@ import type { PredictOrderPreviewService } from '../../../services/PredictOrderP
 
 import { OrderAmountInput } from './OrderAmountInput';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
+import { OrderKeypad } from './OrderKeypad';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderSummaryRows } from './OrderSummaryRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -114,6 +120,7 @@ export const PredictOrderFlowSheet = ({
 
   const [amount, setAmount] = useState('');
   const [quoteNonce, setQuoteNonce] = useState(0);
+  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const [preview, setPreview] = useState<PredictOrderPreview | null>(null);
   const [quoteError, setQuoteError] = useState<PredictError | null>(null);
   const [isQuoting, setIsQuoting] = useState(false);
@@ -132,6 +139,7 @@ export const PredictOrderFlowSheet = ({
   useEffect(() => {
     setAmount('');
     setQuoteNonce(0);
+    setIsKeypadOpen(false);
     setPreview(null);
     setQuoteError(null);
     setIsQuoting(false);
@@ -263,6 +271,21 @@ export const PredictOrderFlowSheet = ({
     setIsBreakdownVisible(false);
   }, []);
 
+  const handleKeypadPress = useCallback(
+    (key: string) => {
+      setAmount((current) => sanitizeAmount(`${current}${key}`));
+    },
+    [sanitizeAmount],
+  );
+
+  const handleKeypadDelete = useCallback(() => {
+    setAmount((current) => sanitizeAmount(current.slice(0, -1)));
+  }, [sanitizeAmount]);
+
+  const handleKeypadDone = useCallback(() => {
+    setIsKeypadOpen(false);
+  }, []);
+
   useEffect(() => {
     if (isBreakdownVisible) {
       breakdownSheetRef.current?.onOpenBottomSheet();
@@ -320,8 +343,9 @@ export const PredictOrderFlowSheet = ({
           </Text>
           <Button
             variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
+            size={ButtonSize.Md}
             onPress={handleRefresh}
+            twClassName="w-full"
             testID={PredictOrderFlowTestIds.RETRY}
           >
             <Text>{strings('predict_next.order_preview.retry')}</Text>
@@ -343,8 +367,9 @@ export const PredictOrderFlowSheet = ({
           </Text>
           <Button
             variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
+            size={ButtonSize.Md}
             onPress={handleRefresh}
+            twClassName="w-full"
             testID={PredictOrderFlowTestIds.REFRESH}
           >
             <Text>{strings('predict_next.order_preview.refresh')}</Text>
@@ -376,33 +401,48 @@ export const PredictOrderFlowSheet = ({
           <GestureHandlerRootView style={styles.gestureRoot}>
             <BottomSheet
               ref={sheetRef}
-              isFullscreen
               onClose={onClose}
               testID={PredictOrderFlowTestIds.SHEET}
             >
-              <BottomSheetHeader onClose={onClose}>
-                <Box twClassName="min-w-0 flex-1 flex-row items-center gap-3">
-                  {intent.eventImageUrl ? (
-                    <Image
-                      source={{ uri: intent.eventImageUrl }}
-                      style={tw.style('h-12 w-12 rounded-lg')}
-                    />
-                  ) : (
-                    <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
-                  )}
-                  <Box twClassName="min-w-0 flex-1">
+              {/* Custom header row: the design pins content to the 16pt
+                  margin, which the shared BottomSheetHeader's centered-title
+                  layout (and its accessory-width slot) does not honor. */}
+              <Box twClassName="flex-row items-center gap-3 px-4 pb-2 pt-3">
+                {intent.eventImageUrl ? (
+                  <Image
+                    source={{ uri: intent.eventImageUrl }}
+                    style={tw.style('h-12 w-12 rounded-lg')}
+                  />
+                ) : (
+                  <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
+                )}
+                <Box twClassName="min-w-0 flex-1">
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-alternative"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {intent.eventTitle}
+                  </Text>
+                  <Box
+                    twClassName="min-w-0 flex-row items-center"
+                    testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+                  >
                     <Text
                       variant={TextVariant.BodySm}
-                      twClassName="text-alternative"
+                      fontWeight={FontWeight.Bold}
+                      color={
+                        intent.side === 'yes'
+                          ? TextColor.SuccessDefault
+                          : TextColor.ErrorDefault
+                      }
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
-                      {intent.eventTitle}
+                      {intent.outcomeLabel}
                     </Text>
-                    <Box
-                      twClassName="min-w-0 flex-row items-center"
-                      testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
-                    >
+                    {displayedPrice ? (
                       <Text
                         variant={TextVariant.BodySm}
                         fontWeight={FontWeight.Bold}
@@ -412,28 +452,20 @@ export const PredictOrderFlowSheet = ({
                             : TextColor.ErrorDefault
                         }
                         numberOfLines={1}
-                        ellipsizeMode="tail"
                       >
-                        {intent.outcomeLabel}
+                        {` · ${formatCents(displayedPrice)}`}
                       </Text>
-                      {displayedPrice ? (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Bold}
-                          color={
-                            intent.side === 'yes'
-                              ? TextColor.SuccessDefault
-                              : TextColor.ErrorDefault
-                          }
-                          numberOfLines={1}
-                        >
-                          {` · ${formatCents(displayedPrice)}`}
-                        </Text>
-                      ) : null}
-                    </Box>
+                    ) : null}
                   </Box>
                 </Box>
-              </BottomSheetHeader>
+                <ButtonIcon
+                  iconName={IconName.Close}
+                  onPress={onClose}
+                  accessibilityLabel={strings(
+                    'predict_next.order_preview.close',
+                  )}
+                />
+              </Box>
               <ScrollView
                 contentContainerStyle={tw.style('gap-4 px-4 pb-6 pt-2')}
               >
@@ -461,6 +493,7 @@ export const PredictOrderFlowSheet = ({
                   <>
                     <OrderAmountInput
                       amount={amount}
+                      onAmountPress={() => setIsKeypadOpen(true)}
                       onAmountChange={(next) => setAmount(sanitizeAmount(next))}
                     />
                     <Box twClassName="items-center gap-2">
@@ -479,54 +512,78 @@ export const PredictOrderFlowSheet = ({
                         </Text>
                       )}
                     </Box>
-                    <OrderSummaryRows
-                      balance={balanceLabel}
-                      total={totalLabel}
-                      canShowBreakdown={preview !== null && !isQuoting}
-                      onBreakdownPress={handleBreakdownPress}
-                    />
-                    {statusContent}
-                    {phase === 'submitting' ? (
-                      <Box
-                        twClassName="items-center gap-2"
-                        testID={PredictOrderFlowTestIds.SUBMITTING}
-                      >
-                        <ActivityIndicator size="small" />
-                        <Text
-                          variant={TextVariant.BodySm}
-                          twClassName="text-alternative"
-                        >
-                          {strings('predict_next.order_preview.submitting')}
-                        </Text>
-                      </Box>
+                    {isKeypadOpen ? (
+                      <>
+                        {/* Quote errors stay visible while typing. */}
+                        {statusContent}
+                        <OrderKeypad
+                          onKeyPress={handleKeypadPress}
+                          onDelete={handleKeypadDelete}
+                          onDone={handleKeypadDone}
+                        />
+                      </>
                     ) : (
-                      <ButtonHero
-                        size={ButtonSize.Lg}
-                        onPress={handleApprove}
-                        isDisabled={!canApprove}
-                        testID={PredictOrderFlowTestIds.APPROVE}
-                      >
-                        <Text variant={TextVariant.BodyMd}>
-                          {strings('predict_next.order_preview.confirm')}
-                        </Text>
-                      </ButtonHero>
+                      <>
+                        <OrderSummaryRows
+                          balance={balanceLabel}
+                          total={totalLabel}
+                          canShowBreakdown={preview !== null && !isQuoting}
+                          onBreakdownPress={handleBreakdownPress}
+                        />
+                        {statusContent}
+                        {phase === 'submitting' ? (
+                          <Box
+                            twClassName="items-center gap-2"
+                            testID={PredictOrderFlowTestIds.SUBMITTING}
+                          >
+                            <ActivityIndicator size="small" />
+                            <Text
+                              variant={TextVariant.BodySm}
+                              twClassName="text-alternative"
+                            >
+                              {strings('predict_next.order_preview.submitting')}
+                            </Text>
+                          </Box>
+                        ) : (
+                          /* The white pill CTA is locked to the light theme
+                           * so bg-default/text-default resolve to the
+                           * design's white-on-near-black pairing. */
+                          <ThemeProvider theme={Theme.Light}>
+                            <ButtonBase
+                              isFullWidth
+                              twClassName="h-12 bg-default"
+                              onPress={handleApprove}
+                              isDisabled={!canApprove}
+                              testID={PredictOrderFlowTestIds.APPROVE}
+                            >
+                              <Text
+                                variant={TextVariant.BodyMd}
+                                fontWeight={FontWeight.Medium}
+                                color={TextColor.TextDefault}
+                              >
+                                {strings('predict_next.order_preview.confirm')}
+                              </Text>
+                            </ButtonBase>
+                          </ThemeProvider>
+                        )}
+                        <Box twClassName="flex-row flex-wrap justify-center gap-1">
+                          <Text
+                            variant={TextVariant.BodyXs}
+                            twClassName="text-alternative"
+                          >
+                            {strings('predict_next.order_preview.terms')}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyXs}
+                            twClassName="text-info-default"
+                            onPress={handleTermsPress}
+                            suppressHighlighting
+                          >
+                            {strings('predict_next.order_preview.learn_more')}
+                          </Text>
+                        </Box>
+                      </>
                     )}
-                    <Box twClassName="flex-row flex-wrap justify-center gap-1">
-                      <Text
-                        variant={TextVariant.BodyXs}
-                        twClassName="text-alternative"
-                      >
-                        {strings('predict_next.order_preview.terms')}
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodyXs}
-                        twClassName="text-info-default"
-                        onPress={handleTermsPress}
-                        suppressHighlighting
-                      >
-                        {strings('predict_next.order_preview.learn_more')}
-                      </Text>
-                    </Box>
                   </>
                 )}
               </ScrollView>
