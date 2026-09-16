@@ -2,9 +2,6 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
   Checkbox,
@@ -84,34 +81,27 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="pb-4"
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={tw.style(
+        'flex-row items-center gap-2 px-4 pb-4',
+      )}
     >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('flex-row gap-2 px-4')}
-        style={tw.style('flex-1')}
-      >
-        <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
-        {secondaryChip ? (
-          <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
-        ) : null}
-      </ScrollView>
-      {aggregatedToggle ? (
-        <Box twClassName="pr-4">
-          <Checkbox
-            label={strings('activity_view.aggregated')}
-            labelProps={{ variant: TextVariant.BodySm }}
-            isSelected={aggregatedToggle.isSelected}
-            onChange={aggregatedToggle.onChange}
-            testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
-          />
-        </Box>
+      <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
+      {secondaryChip ? (
+        <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
       ) : null}
-    </Box>
+      {aggregatedToggle ? (
+        <Checkbox
+          label={strings('activity_view.aggregated')}
+          labelProps={{ variant: TextVariant.BodySm }}
+          isSelected={aggregatedToggle.isSelected}
+          onChange={aggregatedToggle.onChange}
+          testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
+        />
+      ) : null}
+    </ScrollView>
   );
 };
 

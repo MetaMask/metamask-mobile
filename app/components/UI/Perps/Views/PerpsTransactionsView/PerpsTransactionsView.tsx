@@ -22,9 +22,6 @@ import {
   TextVariant,
   TextColor,
   ButtonSize,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
@@ -423,20 +420,14 @@ const PerpsTransactionsView: React.FC = () => {
 
   const renderFilterBar = () => (
     <View style={styles.filterContainer} pointerEvents="box-none">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('flex-row items-center gap-2')}
+        pointerEvents="auto"
+        scrollEnabled
       >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('flex-row gap-2')}
-          pointerEvents="auto"
-          scrollEnabled
-          style={tw.style('flex-1')}
-        >
-          {filterTabs.map(renderFilterTab)}
-        </ScrollView>
+        {filterTabs.map(renderFilterTab)}
         {activeFilter === 'Trades' ? (
           <PerpsAggregatedFillsCheckbox
             isSelected={aggregateFills}
@@ -444,7 +435,7 @@ const PerpsTransactionsView: React.FC = () => {
             testID={PerpsTransactionsViewSelectorsIDs.AGGREGATED_CHECKBOX}
           />
         ) : null}
-      </Box>
+      </ScrollView>
     </View>
   );
 
