@@ -22,6 +22,7 @@ import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDepo
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { isHardwareAccount } from '../../../../util/address';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 
@@ -81,6 +82,10 @@ jest.mock('../../../../selectors/accountsController', () => ({
     metadata: { name: 'Account 1' },
   })),
 }));
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(() => false),
+}));
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
     colors: {
@@ -115,16 +120,26 @@ const mockUnsubscribe = jest.fn<
   void,
   [string, TransactionStatusUpdatedHandler | TransactionConfirmedHandler]
 >();
+const mockControllerCall = jest.fn();
 
 const mockNavigate = jest.fn();
 
 Object.defineProperty(Engine, 'controllerMessenger', {
-  value: { subscribe: mockSubscribe, unsubscribe: mockUnsubscribe },
+  value: {
+    subscribe: mockSubscribe,
+    unsubscribe: mockUnsubscribe,
+    call: mockControllerCall,
+  },
   writable: true,
   configurable: true,
 });
 
 const mockControllerTransactions: TransactionMeta[] = [];
+const mockBatchTransactionCounts: Record<string, number> = {};
+const mockTransactionPayData: Record<
+  string,
+  { accountOverride?: string; quotes?: unknown[] }
+> = {};
 
 Object.defineProperty(Engine, 'context', {
   value: {
@@ -270,6 +285,25 @@ describe('useMoneyTransactionStatus', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockControllerTransactions.length = 0;
+    Object.keys(mockBatchTransactionCounts).forEach((key) => {
+      delete mockBatchTransactionCounts[key];
+    });
+    Object.keys(mockTransactionPayData).forEach((key) => {
+      delete mockTransactionPayData[key];
+    });
+    (isHardwareAccount as jest.Mock).mockReturnValue(false);
+    mockControllerCall.mockImplementation((action: string) => {
+      if (action === 'TransactionController:getState') {
+        return {
+          batchTransactionCounts: mockBatchTransactionCounts,
+          transactions: mockControllerTransactions,
+        };
+      }
+      if (action === 'TransactionPayController:getState') {
+        return { transactionData: mockTransactionPayData };
+      }
+      throw new Error(`Unexpected messenger action: ${action}`);
+    });
 
     Object.assign(NavigationService.navigation, { navigate: mockNavigate });
     mockUseMoneyToasts.mockReturnValue({
@@ -348,6 +382,78 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
+    });
+
+    it('hardware payer: approved does not show in-progress until funding legs are signed', () => {
+      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+      const parentId = 'hw-deposit-parent';
+      const fundingId = 'hw-funding-leg';
+      const parent = buildTxMeta({
+        id: parentId,
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+        requiredTransactionIds: [fundingId],
+        txParams: {
+          from: '0xMoneyAccount',
+          data: encodeDepositData(BigInt(1)),
+        },
+      });
+      const funding = buildTxMeta({
+        id: fundingId,
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.unapproved,
+        txParams: { from: '0xLedger', data: '0x' },
+      });
+      mockControllerTransactions.push(parent, funding);
+      mockTransactionPayData[parentId] = {
+        accountOverride: '0xLedger',
+        quotes: [{}],
+      };
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      funding.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: funding });
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
+    });
+
+    it('hardware payer: parent submitted is a fallback to show in-progress', () => {
+      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+      const parentId = 'hw-deposit-submitted';
+      const parent = buildTxMeta({
+        id: parentId,
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+        txParams: {
+          from: '0xMoneyAccount',
+          data: encodeDepositData(BigInt(1)),
+        },
+      });
+      mockControllerTransactions.push(parent);
+      mockTransactionPayData[parentId] = {
+        accountOverride: '0xLedger',
+        quotes: [{}],
+      };
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      parent.status = TransactionStatus.submitted;
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
     });
 
     it('approved → in-progress toast forwards the batch intent', () => {

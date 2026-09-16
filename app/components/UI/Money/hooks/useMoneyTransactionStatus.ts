@@ -17,7 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { renderShortAddress } from '../../../../util/address';
+import { isHardwareAccount, renderShortAddress } from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   TOAST_TRACKING_CLEANUP_DELAY_MS,
@@ -35,6 +35,10 @@ import {
   resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
 import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
+import {
+  haveRequiredTransactionsBeenSigned,
+  isTransactionStatusSignedOrLater,
+} from '../../../Views/confirmations/utils/batch-signing';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -113,6 +117,37 @@ function latestTransactionMeta(
   );
 }
 
+function getPayingAccountAddress(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const accountOverride =
+    Engine.controllerMessenger.call('TransactionPayController:getState')
+      .transactionData[transactionMeta.id]?.accountOverride;
+  return (
+    (accountOverride as string | undefined) ??
+    (transactionMeta.txParams?.from as string | undefined)
+  );
+}
+
+function shouldDeferInProgressForHardware(
+  transactionMeta: TransactionMeta,
+): boolean {
+  if (!isMoneyDepositTx(transactionMeta)) {
+    return false;
+  }
+  const payingAccount = getPayingAccountAddress(transactionMeta);
+  return Boolean(payingAccount && isHardwareAccount(payingAccount));
+}
+
+function isHardwareDepositSigningComplete(
+  transactionMeta: TransactionMeta,
+): boolean {
+  return (
+    isTransactionStatusSignedOrLater(transactionMeta.status) ||
+    haveRequiredTransactionsBeenSigned(transactionMeta.id)
+  );
+}
+
 // Activity rows render transaction status from the Redux copy of
 // TransactionController state, which trails these messenger events behind
 // EngineService's update batcher; under a busy JS thread the rows visibly lag
@@ -140,6 +175,7 @@ export const useMoneyTransactionStatus = () => {
   useEffect(() => {
     const pendingInProgress = pendingInProgressRef.current;
     const pendingCleanups = pendingCleanupsRef.current;
+    const waitingForHardwareSigning = new Set<string>();
 
     const cancelPendingInProgress = (transactionId: string) => {
       const timeoutId = pendingInProgress.get(transactionId);
@@ -147,6 +183,7 @@ export const useMoneyTransactionStatus = () => {
         clearTimeout(timeoutId);
         pendingInProgress.delete(transactionId);
       }
+      waitingForHardwareSigning.delete(transactionId);
     };
 
     const scheduleCleanup = (transactionId: string, finalKey: string) => {
@@ -171,11 +208,10 @@ export const useMoneyTransactionStatus = () => {
       getMoneyAccountDepositIntent(transactionMeta.batchId) ??
       resolveMoneyDepositIntent(transactionMeta);
 
-    const showInProgressFor = (transactionMeta: TransactionMeta) => {
-      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
-      if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
+    const scheduleInProgressToast = (transactionMeta: TransactionMeta) => {
       if (pendingInProgress.has(transactionMeta.id)) return;
+      waitingForHardwareSigning.delete(transactionMeta.id);
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const onPress = () =>
         navigateToMoneyTransactionDetails(transactionMeta.id);
       const timeoutId = setTimeout(() => {
@@ -192,6 +228,54 @@ export const useMoneyTransactionStatus = () => {
         }
       }, IN_PROGRESS_DELAY_MS);
       pendingInProgress.set(transactionMeta.id, timeoutId);
+    };
+
+    const showInProgressFor = (transactionMeta: TransactionMeta) => {
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
+      if (pendingInProgress.has(transactionMeta.id)) return;
+
+      // Hardware-funded deposits stay on the device confirmation sheet after
+      // `approved`. Wait until funding legs are signed (or the parent advances)
+      // so the toast appears after signing and the confirmation closes.
+      if (shouldDeferInProgressForHardware(transactionMeta)) {
+        waitingForHardwareSigning.add(transactionMeta.id);
+        if (isHardwareDepositSigningComplete(transactionMeta)) {
+          scheduleInProgressToast(transactionMeta);
+        }
+        return;
+      }
+
+      scheduleInProgressToast(transactionMeta);
+    };
+
+    const maybeScheduleDeferredHardwareInProgress = (
+      transactionMeta: TransactionMeta,
+    ) => {
+      for (const parentId of [...waitingForHardwareSigning]) {
+        if (pendingInProgress.has(parentId)) {
+          continue;
+        }
+        const parentMeta =
+          latestTransactionMeta(parentId) ??
+          (transactionMeta.id === parentId ? transactionMeta : undefined);
+        if (!parentMeta) {
+          continue;
+        }
+        const requiredIds = parentMeta.requiredTransactionIds ?? [];
+        const isFundingUpdate = requiredIds.includes(transactionMeta.id);
+        if (
+          transactionMeta.id !== parentId &&
+          !isFundingUpdate &&
+          !isHardwareDepositSigningComplete(parentMeta)
+        ) {
+          continue;
+        }
+        if (isHardwareDepositSigningComplete(parentMeta)) {
+          scheduleInProgressToast(parentMeta);
+        }
+      }
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
@@ -322,6 +406,7 @@ export const useMoneyTransactionStatus = () => {
       transactionMeta: TransactionMeta;
     }) => {
       flushActivityState(transactionMeta);
+      maybeScheduleDeferredHardwareInProgress(transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
