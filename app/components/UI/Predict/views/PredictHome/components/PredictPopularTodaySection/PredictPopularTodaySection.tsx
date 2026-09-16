@@ -187,52 +187,64 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
       />
 
       {isLoading ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <Box twClassName="gap-2">
-            {skeletonRows.map((row, rowIndex) => (
-              <Box
-                key={`popular-today-skeleton-row-${rowIndex}`}
-                twClassName="flex-row gap-2"
-              >
-                {row.map((index) => (
-                  <Skeleton
-                    key={`popular-today-skeleton-${index}`}
-                    width={104}
-                    height={40}
-                    style={tw.style('rounded-xl')}
-                    testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
-                  />
-                ))}
-              </Box>
-            ))}
-          </Box>
-        </ScrollView>
+        <Box twClassName="-mx-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4')}
+          >
+            <Box twClassName="gap-2">
+              {skeletonRows.map((row, rowIndex) => (
+                <Box
+                  key={`popular-today-skeleton-row-${rowIndex}`}
+                  twClassName="flex-row gap-2"
+                >
+                  {row.map((index) => (
+                    <Skeleton
+                      key={`popular-today-skeleton-${index}`}
+                      width={104}
+                      height={40}
+                      style={tw.style('rounded-xl')}
+                      testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
+                    />
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          </ScrollView>
+        </Box>
       ) : null}
 
       {!isLoading && chips.length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <Box twClassName="gap-2">
-            {chipRows.map((row, rowIndex) => (
-              <Box
-                key={`popular-today-row-${rowIndex}`}
-                testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
-                twClassName="flex-row gap-2"
-              >
-                {row.map(({ key, label, option }) => (
-                  <Button
-                    key={key}
-                    testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
-                    onPress={() => handleChipPress(option)}
-                    accessibilityLabel={label}
-                    variant={ButtonVariant.Secondary}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </Box>
-            ))}
-          </Box>
-        </ScrollView>
+        <Box twClassName="-mx-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4')}
+          >
+            <Box twClassName="gap-2">
+              {chipRows.map((row, rowIndex) => (
+                <Box
+                  key={`popular-today-row-${rowIndex}`}
+                  testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
+                  twClassName="flex-row gap-2"
+                >
+                  {row.map(({ key, label, option }) => (
+                    <Button
+                      key={key}
+                      testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
+                      onPress={() => handleChipPress(option)}
+                      accessibilityLabel={label}
+                      variant={ButtonVariant.Secondary}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          </ScrollView>
+        </Box>
       ) : null}
     </Box>
   );

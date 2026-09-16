@@ -34,6 +34,8 @@ import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeIn
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
 import { SwapsLimitOrderExpirationModalScreen } from './components/SwapsLimitOrderExpirationModal/SwapsLimitOrderExpirationModalScreen';
+import { SwapsLimitOrderDefaultCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderDefaultCostToleranceModal';
+import { SwapsLimitOrderCustomCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderCustomCostToleranceModal';
 import { LimitOrderConfirmationModalScreen } from './components/LimitOrderConfirmationModal/LimitOrderConfirmationModalScreen';
 import { RecurringIntervalSheetScreen } from './components/RecurringIntervalSheet/RecurringIntervalSheetScreen';
 import { RecurringRepeatInfoSheetScreen } from './components/RecurringRepeatInfoSheet/RecurringRepeatInfoSheetScreen';
@@ -180,6 +182,14 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL}
       component={SwapsLimitOrderExpirationModalScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL}
+      component={SwapsLimitOrderDefaultCostToleranceModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL}
+      component={SwapsLimitOrderCustomCostToleranceModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL}
