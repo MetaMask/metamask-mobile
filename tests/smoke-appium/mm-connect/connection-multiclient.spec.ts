@@ -1,28 +1,28 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  ensureAccountGroupsFinishedLoading,
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import {
   DappServer,
   DappVariants,
   TestDapps,
   sleep,
-  PlaywrightGestures,
-  asPlaywrightElement,
+  Gestures,
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  ensureAccountGroupsFinishedLoading,
-  waitForDappServerReady,
-  unlockIfLockScreenVisible,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -51,19 +51,12 @@ const playgroundServer = new DappServer({
 appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
   // Start local playground server before all tests
   appiumTest.beforeAll(async () => {
-    // Set port and start the server directly (bypassing Detox-specific utilities)
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-
-    // Set up adb reverse for Android emulator access
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Stop local playground server after all tests
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Test steps (in order):
@@ -102,7 +95,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       // Login and navigate to dapp
       //
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -116,7 +109,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       //
 
       // Tap the Connect button (multichain API - default scopes)
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         // Note: the Solana wallet standard provider itself has an issue where it does not
         // listen for wallet_sessionChanged events, so we need to use the Solana's connect button
         // as the entrypoint for now.
@@ -124,7 +117,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       }, DAPP_URL);
 
       // Handle connection approval in MetaMask
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapConnectButton();
@@ -134,7 +127,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertMultichainConnected(true);
         await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
         await BrowserPlaygroundDapp.assertScopeCardVisible(
@@ -152,11 +145,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         );
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapConfirmButton();
       });
@@ -165,7 +158,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
         await BrowserPlaygroundDapp.assertSolanaConnected(true);
@@ -173,13 +166,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
           ACCOUNT_1_SOLANA_ADDRESS,
         );
         // Verify solana sign works when solana is connected
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.solanaCard),
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.solanaCard);
         await BrowserPlaygroundDapp.tapSolanaSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SnapSignModal.tapConfirmButton();
       });
@@ -188,20 +179,19 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
           ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
         );
 
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.legacyEvmCard),
-          { scrollParams: { direction: 'down' } },
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.legacyEvmCard, {
+          direction: 'down',
+        });
         // Test EVM sign (legacy personal sign) when EVM is connected
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapConfirmButton();
       });
@@ -210,24 +200,20 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertResponseValue(
           '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
         );
 
         // Disconnect EVM
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(
-            BrowserPlaygroundDapp.wagmiDisconnectButton,
-          ),
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.wagmiDisconnectButton,
         );
         await BrowserPlaygroundDapp.tapWagmiDisconnect();
 
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(
-            BrowserPlaygroundDapp.connectedScopesSection,
-          ),
-          { scrollParams: { direction: 'down' } },
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.connectedScopesSection,
+          { direction: 'down' },
         );
         await BrowserPlaygroundDapp.assertMultichainConnected(true);
         await BrowserPlaygroundDapp.assertScopeCardNotVisible('eip155:1');
@@ -240,14 +226,16 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         await BrowserPlaygroundDapp.assertSolanaConnected(true);
 
         // Reconnect EVM
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.connectWagmiButton),
-          { scrollParams: { direction: 'down' } },
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.connectWagmiButton,
+          {
+            direction: 'down',
+          },
         );
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton({ shouldCooldown: true });
       });
@@ -256,11 +244,10 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.wagmiCard),
-          { scrollParams: { direction: 'up' } },
-        );
+      await AppiumContextHelpers.withWebAction(async () => {
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.wagmiCard, {
+          direction: 'up',
+        });
 
         await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
 
@@ -275,11 +262,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         );
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapConfirmButton();
       });
@@ -288,7 +275,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
         // Make sure solana is still connected
@@ -303,7 +290,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         await BrowserPlaygroundDapp.tapSolanaSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SnapSignModal.tapConfirmButton();
       });
@@ -312,11 +299,9 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(
-            BrowserPlaygroundDapp.solanaSignedMessageResult,
-          ),
+      await AppiumContextHelpers.withWebAction(async () => {
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.solanaSignedMessageResult,
         );
         await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
           ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,

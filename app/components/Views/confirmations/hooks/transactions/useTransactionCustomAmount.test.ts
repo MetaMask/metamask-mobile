@@ -25,10 +25,11 @@ import {
   MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
 import {
-  useTransactionPayTotals,
+  useIsTransactionPayQuoteLoading,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayFiatPayment,
+  useTransactionPayQuotesLastUpdated,
 } from '../pay/useTransactionPayData';
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
@@ -36,7 +37,6 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import {
   PaymentOverride,
   TransactionPaymentToken,
-  TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
@@ -46,7 +46,9 @@ import {
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { isRouteToken } from '../../utils/relayFixedSpread';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
+import { DepositPrefillStatus } from './useDepositPrefillAmount';
 
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -62,9 +64,11 @@ jest.mock('../../utils/relayFixedSpread', () => ({
   ...jest.requireActual('../../utils/relayFixedSpread'),
   isRouteToken: jest.fn(),
 }));
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
-  ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
+jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
+}));
+jest.mock('../../../../../util/abTest', () => ({
+  resolveABTestAssignment: jest.fn(),
 }));
 
 jest.mock('../tokens/useTokenFiatRates');
@@ -77,7 +81,10 @@ jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
-jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ balanceFiatNumber: 0 })),
+}));
 jest.mock('../metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -92,6 +99,42 @@ jest.useFakeTimers();
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_TRANSFER_DATA =
   '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
+const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
+const MONEY_ACCOUNT_KEYRING_ID_MOCK = 'mock-money-keyring-id';
+
+function getMoneyAccountState(balanceRaw?: string) {
+  return {
+    moneyBalance: {
+      redeemable: balanceRaw
+        ? { address: MONEY_ACCOUNT_ADDRESS_MOCK, raw: balanceRaw }
+        : null,
+    },
+    engine: {
+      backgroundState: {
+        KeyringController: {
+          keyrings: [
+            {
+              accounts: [],
+              metadata: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK, name: 'HD 1' },
+              type: 'HD Key Tree',
+            },
+          ],
+        },
+        MoneyAccountController: {
+          moneyAccounts: {
+            account1: {
+              address: MONEY_ACCOUNT_ADDRESS_MOCK,
+              id: 'account1',
+              options: {
+                entropy: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
 
 function runHook({
   transactionMeta,
@@ -147,12 +190,17 @@ describe('useTransactionCustomAmount', () => {
   const useParamsMock = jest.mocked(useParams);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
   const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
-  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
   const useTransactionPayIsPostQuoteMock = jest.mocked(
     useTransactionPayIsPostQuote,
+  );
+  const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+    useIsTransactionPayQuoteLoading,
+  );
+  const useTransactionPayQuotesLastUpdatedMock = jest.mocked(
+    useTransactionPayQuotesLastUpdated,
   );
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
@@ -168,19 +216,28 @@ describe('useTransactionCustomAmount', () => {
   );
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
   const useRampsBuyLimitsMock = jest.mocked(useRampsBuyLimits);
+  const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
 
-  const updateTransactionPayAmountMock: ReturnType<
-    typeof useUpdateTransactionPayAmount
-  >['updateTransactionPayAmount'] = jest.fn();
+  const updateTransactionPayAmountMock = jest.fn(
+    (_amountHuman: string): Promise<boolean | undefined> =>
+      Promise.resolve(true),
+  );
 
   const setConfirmationMetricMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
+    resolveABTestAssignmentMock.mockReturnValue({
+      variantName: 'treatment',
+      isActive: true,
+    });
+
+    updateTransactionPayAmountMock.mockResolvedValue(true);
     useTokenFiatRateMock.mockReturnValue(2);
 
     useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: false,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
 
@@ -201,9 +258,10 @@ describe('useTransactionCustomAmount', () => {
     useConfirmationMetricEventsMock.mockReturnValue({
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
-    useTransactionPayTotalsMock.mockReturnValue(undefined);
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(undefined);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useMMPayFiatConfigMock.mockReturnValue({
@@ -222,6 +280,10 @@ describe('useTransactionCustomAmount', () => {
     });
     (selectDepositLimits as unknown as jest.Mock).mockReturnValue({});
     (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -390,6 +452,175 @@ describe('useTransactionCustomAmount', () => {
     expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('61.725');
   });
 
+  it('prefetches an optimized amount update after the typing debounce', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    const { result } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('12');
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+      result.current.updatePendingAmount('123.45');
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(299);
+    });
+
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+    expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('61.725');
+  });
+
+  it('marks the current amount as prefetched once its quote settles', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    const { result, rerender } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.hasPrefetchedQuote).toBe(false);
+
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+    rerender(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(11);
+    rerender(undefined);
+
+    expect(result.current.hasPrefetchedQuote).toBe(true);
+
+    await act(async () => {
+      result.current.updatePendingAmount('456.78');
+    });
+
+    expect(result.current.hasPrefetchedQuote).toBe(false);
+  });
+
+  it('invalidates a prefetched quote when the pay token changes', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    const { result, rerender } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+    rerender(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(11);
+    rerender(undefined);
+
+    expect(result.current.hasPrefetchedQuote).toBe(true);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x9876543210987654321098765432109876543210' as Hex,
+        balanceUsd: '1234.56',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+    await act(async () => {
+      rerender(undefined);
+    });
+
+    expect(result.current.hasPrefetchedQuote).toBe(false);
+
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+    rerender(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(12);
+    rerender(undefined);
+
+    expect(result.current.hasPrefetchedQuote).toBe(true);
+  });
+
+  it('does not mark an unpublished optimized amount update as prefetched', async () => {
+    updateTransactionPayAmountMock.mockResolvedValue(false);
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    const { result, rerender } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+    rerender(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(11);
+    rerender(undefined);
+
+    expect(result.current.hasPrefetchedQuote).toBe(false);
+  });
+
+  it('does not prefetch an amount update when the optimized pipeline is disabled', async () => {
+    const { result } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('does not prefetch a zero amount', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+
+    runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+  });
+
   it('sets mm_pay_quote_requested metric only when hasSourceAmount becomes true after updateTokenAmount was called', async () => {
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
 
@@ -449,7 +680,7 @@ describe('useTransactionCustomAmount', () => {
 
     const { result, rerender } = runHook();
 
-    jest.spyOn(Date, 'now').mockReturnValue(1746696741000);
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(1746696741000);
 
     await act(async () => {
       result.current.updatePendingAmount('100');
@@ -461,7 +692,7 @@ describe('useTransactionCustomAmount', () => {
       result.current.updateTokenAmount();
     });
 
-    jest.spyOn(Date, 'now').mockReturnValue(1746696741250);
+    dateNowSpy.mockReturnValue(1746696741250);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
 
     await act(async () => {
@@ -484,49 +715,18 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('43.21');
   });
 
-  it('returns targetAmount.usd when isMaxAmount is true', async () => {
+  it('displays the full input amount when isMaxAmount is true, not the destination-received targetAmount.usd', async () => {
+    // The input field always shows what the user is putting in (their full
+    // balance on Max). The net amount received after fees is surfaced by the
+    // receive row, so the input no longer overrides its display with
+    // targetAmount.usd.
     useTransactionPayIsMaxAmountMock.mockReturnValue(true);
-    useTransactionPayTotalsMock.mockReturnValue({
-      targetAmount: { usd: '567.891' },
-    } as TransactionPayTotals);
+    useParamsMock.mockReturnValue({ amount: '100' });
 
     const { result } = runHook();
 
-    expect(result.current.amountFiat).toBe('567.89');
+    expect(result.current.amountFiat).toBe('100');
   });
-
-  it('pads targetAmount.usd to two decimals when isMaxAmount is true', async () => {
-    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
-    useTransactionPayTotalsMock.mockReturnValue({
-      targetAmount: { usd: '3.4' },
-    } as TransactionPayTotals);
-
-    const { result } = runHook();
-
-    expect(result.current.amountFiat).toBe('3.40');
-  });
-
-  it.each([
-    TransactionType.perpsWithdraw,
-    TransactionType.predictWithdraw,
-    TransactionType.moneyAccountWithdraw,
-  ])(
-    'skips the targetAmount.usd override for %s because it represents the destination-received value, not the withdraw amount',
-    async (transactionType) => {
-      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
-      useTransactionPayTotalsMock.mockReturnValue({
-        targetAmount: { usd: '567.891' },
-      } as TransactionPayTotals);
-
-      useParamsMock.mockReturnValue({ amount: '100' });
-
-      const { result } = runHook({
-        transactionMeta: { type: transactionType },
-      });
-
-      expect(result.current.amountFiat).toBe('100');
-    },
-  );
 
   it('returns isInputChanged as true after amount changed and debounce', async () => {
     const { result } = runHook();
@@ -660,6 +860,46 @@ describe('useTransactionCustomAmount', () => {
   });
 
   describe('updatePendingAmountPercentage updates amount fiat', () => {
+    it('returns false when there is no balance', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+      let didApply = true;
+
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(didApply).toBe(false);
+      expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('returns false when balance rounds down to dust ($0.00)', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0.004',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+      let didApply = true;
+
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(didApply).toBe(false);
+      expect(result.current.amountFiat).toBe('0');
+    });
+
     it('to percentage of token balance', async () => {
       const { result } = runHook();
 
@@ -667,7 +907,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('530.86');
+      expect(result.current.amountFiat).toBe('530.8608');
     });
 
     it('to percentage of token balance converted to usd if overridden', async () => {
@@ -679,7 +919,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('530.86');
+      expect(result.current.amountFiat).toBe('530.8608');
     });
 
     it('to 100 percent of balance when selecting max', async () => {
@@ -697,7 +937,7 @@ describe('useTransactionCustomAmount', () => {
       expect(config.isMaxAmount).toBe(true);
     });
 
-    it('to percentage of predict balance converted to USD', async () => {
+    it('to percentage of predict balance as USD 1:1', async () => {
       usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
 
       const { result } = runHook({
@@ -710,7 +950,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('3716.25');
+      expect(result.current.amountFiat).toBe('1858.1289');
     });
 
     it('to total predict balance when selecting max', async () => {
@@ -726,7 +966,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('8642.46');
+      expect(result.current.amountFiat).toBe('4321.23');
     });
 
     it('uses predict balance for predictWithdraw even when payment override is MoneyAccount', async () => {
@@ -761,8 +1001,8 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(50);
       });
 
-      // 4321.23 (predict balance) × 2 (fiat rate) × 0.50 = 4321.23
-      expect(result.current.amountFiat).toBe('4321.23');
+      // Predict balance is treated as USD 1:1, ignoring the pay-token fiat rate.
+      expect(result.current.amountFiat).toBe('2160.615');
     });
 
     it('uses full predict balance for predictWithdraw max even when payment override is MoneyAccount', async () => {
@@ -797,23 +1037,26 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      // 4321.23 (predict balance) × 2 (fiat rate) = 8642.46
-      expect(result.current.amountFiat).toBe('8642.46');
+      // Predict balance is treated as USD 1:1, ignoring the pay-token fiat rate.
+      expect(result.current.amountFiat).toBe('4321.23');
     });
 
     it('to percentage of perps available balance', async () => {
-      (Engine.context as Record<string, unknown>).PerpsController = {
-        state: {
-          accountState: {
-            spendableBalance: '500.00',
-            withdrawableBalance: '500.00',
-          },
-        },
-      };
-
       const { result } = runHook({
         transactionMeta: {
           type: TransactionType.perpsWithdraw,
+        },
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                accountState: {
+                  spendableBalance: '500.00',
+                  withdrawableBalance: '500.00',
+                },
+              },
+            },
+          },
         },
       });
 
@@ -824,22 +1067,27 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('250');
     });
 
-    it('truncates the Max amount for perps withdraw down to 2 decimals so the input field matches the displayed balance', async () => {
-      // Real HL balances often have 3+ decimals (e.g. 50.389).
-      // Max must truncate — not halfExpand — otherwise the typed value could
-      // exceed the balance and trip the insufficient-balance alert.
-      (Engine.context as Record<string, unknown>).PerpsController = {
-        state: {
-          accountState: {
-            spendableBalance: '50.389',
-            withdrawableBalance: '50.389',
-          },
-        },
-      };
-
+    it('keeps the full precision of the Max amount for perps withdraw', async () => {
+      // Real HL balances often have 3+ decimals (e.g. 50.389). Max must apply
+      // the balance exactly so the withdraw encodes the whole position;
+      // truncating to 2dp left dust behind. The amount can never exceed the
+      // balance because it is the balance. Rounding to cents is display-only,
+      // in custom-amount.tsx.
       const { result } = runHook({
         transactionMeta: {
           type: TransactionType.perpsWithdraw,
+        },
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                accountState: {
+                  spendableBalance: '50.389',
+                  withdrawableBalance: '50.389',
+                },
+              },
+            },
+          },
         },
       });
 
@@ -847,27 +1095,28 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('50.38');
+      expect(result.current.amountFiat).toBe('50.389');
     });
 
-    it('does NOT set isMaxAmount=true for perps withdraw when Max is pressed', async () => {
-      // TPC's calculatePostQuoteSourceAmounts substitutes token.balanceRaw
-      // (the Arbitrum USDC wallet balance, not the HL balance) when
-      // isMaxAmount=true, which would strand most of the HyperLiquid balance.
-      // Letting isMaxAmount stay false routes the typed balance through as
-      // token.amountRaw instead.
-      (Engine.context as Record<string, unknown>).PerpsController = {
-        state: {
-          accountState: {
-            spendableBalance: '500.00',
-            withdrawableBalance: '500.00',
-          },
-        },
-      };
-
+    it('sets isMaxAmount=true for perps withdraw when Max is pressed', async () => {
+      // The correct source balance (HyperLiquid, not the wallet USDC balance)
+      // is resolved by TPC's getBalance callback, so the Max button always arms
+      // isMaxAmount regardless of the transaction type.
       const { result } = runHook({
         transactionMeta: {
           type: TransactionType.perpsWithdraw,
+        },
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                accountState: {
+                  spendableBalance: '500.00',
+                  withdrawableBalance: '500.00',
+                },
+              },
+            },
+          },
         },
       });
 
@@ -875,48 +1124,24 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(setTransactionConfigMock).not.toHaveBeenCalled();
-    });
-
-    it('clears isMaxAmount for perps withdraw when Max was previously set and user re-selects 100%', async () => {
-      // Defensive: if isMaxAmount is somehow already true, the perps-withdraw
-      // Max path should still flip it back to false on re-selection.
-      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
-
-      (Engine.context as Record<string, unknown>).PerpsController = {
-        state: {
-          accountState: {
-            spendableBalance: '500.00',
-            withdrawableBalance: '500.00',
-          },
-        },
-      };
-
-      const { result } = runHook({
-        transactionMeta: {
-          type: TransactionType.perpsWithdraw,
-        },
-      });
-
-      await act(async () => {
-        result.current.updatePendingAmountPercentage(100);
-      });
-
-      const config = { isMaxAmount: true };
+      const config = { isMaxAmount: false };
       setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(false);
+      expect(config.isMaxAmount).toBe(true);
     });
 
     it('returns 0 for perps withdraw when no available balance', async () => {
-      (Engine.context as Record<string, unknown>).PerpsController = {
-        state: {
-          accountState: {},
-        },
-      };
-
       const { result } = runHook({
         transactionMeta: {
           type: TransactionType.perpsWithdraw,
+        },
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                accountState: {},
+              },
+            },
+          },
         },
       });
 
@@ -937,6 +1162,7 @@ describe('useTransactionCustomAmount', () => {
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500000000'),
       });
 
       await act(async () => {
@@ -977,6 +1203,7 @@ describe('useTransactionCustomAmount', () => {
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500000000'),
       });
 
       await act(async () => {
@@ -986,32 +1213,52 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('500');
     });
 
-    it('does NOT set isMaxAmount=true for money account withdraw when Max is pressed', async () => {
-      // Same class of bug as perps: isMaxAmount=true makes TPC use on-chain
-      // token.balanceRaw (mUSD only) instead of the typed aggregate (mUSD +
-      // vmUSD).
+    it('keeps full precision for money account withdraw Max so the encoded withdraw matches the quote', async () => {
+      // Cent-rounding here made the withdraw smaller than the amount the quote
+      // had sized against the exact balance, reverting with
+      // InsufficientBalance. The amount input truncates for display instead.
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableMusd: new BigNumber(500),
+        withdrawableMusd: new BigNumber('500.123456'),
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500123456'),
       });
 
       await act(async () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('500');
-      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      expect(result.current.amountFiat).toBe('500.123456');
     });
 
-    it('clears isMaxAmount for money account withdraw when Max was previously set and user re-selects 100%', async () => {
-      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    it('pads a lone decimal up to cents without losing precision', async () => {
+      useTokenFiatRateMock.mockReturnValue(1);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        withdrawableMusd: new BigNumber('1000.2'),
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.moneyAccountWithdraw,
+        },
+        stateOverrides: getMoneyAccountState('1000200000'),
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      expect(result.current.amountFiat).toBe('500.10');
+    });
+
+    it('sets isMaxAmount=true for money account withdraw when Max is pressed', async () => {
+      // The mUSD + vmUSD aggregate balance is resolved by TPC's getBalance
+      // callback, so the Max button always arms isMaxAmount here too.
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableMusd: new BigNumber(500),
@@ -1021,6 +1268,7 @@ describe('useTransactionCustomAmount', () => {
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500000000'),
       });
 
       await act(async () => {
@@ -1029,9 +1277,9 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('500');
 
-      const config = { isMaxAmount: true };
+      const config = { isMaxAmount: false };
       setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(false);
+      expect(config.isMaxAmount).toBe(true);
     });
 
     it('returns 0 for money account withdraw when withdrawableMusd is undefined', async () => {
@@ -1191,7 +1439,7 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
-  describe('money account deposit max precision', () => {
+  describe('money account deposit max', () => {
     const depositTransactionMeta = {
       type: TransactionType.moneyAccountDeposit,
       batchId: '0xtestbatchid' as Hex,
@@ -1201,7 +1449,11 @@ describe('useTransactionCustomAmount', () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
     });
 
-    it('updateTokenAmount uses full-precision amount from balanceRaw for 100% deposit', async () => {
+    it('updateTokenAmount uses the fiat-derived amount for a 100% deposit', async () => {
+      // Money-account deposit Max no longer bypasses to full balanceRaw
+      // precision. It flows through the same fiat-derived amount + atomic flag
+      // path as every other Max; precision is preserved on the controller via
+      // the atomic flag, not a full-precision override in the hook.
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
@@ -1224,8 +1476,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updateTokenAmount();
       });
 
-      // Should use balanceRaw-derived value (1123456 × 10^-6 = 1.123456),
-      // NOT the lossy fiat roundtrip (2.24 ÷ 2 = 1.12)
+      // 100% of 2.246912 = 2.246912, ÷ 2 (fiat rate) = 1.123456
       expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
     });
 
@@ -1252,8 +1503,8 @@ describe('useTransactionCustomAmount', () => {
         result.current.updateTokenAmount();
       });
 
-      // 50% of 2.246912 rounded down = 1.12, ÷ 2 (fiat rate) = 0.56
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('0.56');
+      // 50% of 2.246912 = 1.123456, ÷ 2 (fiat rate) = 0.561728
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('0.561728');
     });
 
     it('manual input clears the deposit max override', async () => {
@@ -1283,7 +1534,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updateTokenAmount();
       });
 
-      // Manual input clears depositMaxHumanRef → uses fiat-derived amount
+      // Manual input after Max → uses the fiat-derived amount
       // amountFiat = 7, amountHuman = 7 ÷ 2 = 3.5
       expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('3.5');
     });
@@ -1309,9 +1560,9 @@ describe('useTransactionCustomAmount', () => {
         result.current.updateTokenAmount();
       });
 
-      // Non-deposit type → no depositMaxHumanRef → fiat-derived amount
-      // 100% of 2.246912 rounded down = 2.24, ÷ 2 = 1.12
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.12');
+      // Non-deposit type → fiat-derived amount
+      // 100% of 2.246912 = 2.246912, ÷ 2 = 1.123456
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
     });
 
     it('resets deposit max when payToken changes', async () => {
@@ -1352,20 +1603,18 @@ describe('useTransactionCustomAmount', () => {
         result.current.updateTokenAmount();
       });
 
-      // payToken change resets depositMaxHumanRef → uses fiat-derived amount
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.12');
+      // payToken change resets Max state → uses fiat-derived amount
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
     });
+  });
 
-    it('defaults to 6 decimals when payToken.decimals is undefined', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
-          address: TOKEN_ADDRESS_MOCK,
-          balanceUsd: '2.246912',
-          balanceRaw: '1123456',
-          chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
-      } as ReturnType<typeof useTransactionPayToken>);
+  describe('money account deposit atomic toggle', () => {
+    const depositTransactionMeta = {
+      type: TransactionType.moneyAccountDeposit,
+      batchId: '0xtestbatchid' as Hex,
+    };
 
+    it('sets atomic to false when Max is pressed on moneyAccountDeposit', async () => {
       const { result } = runHook({
         transactionMeta: depositTransactionMeta,
       });
@@ -1374,12 +1623,68 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      await act(async () => {
-        result.current.updateTokenAmount();
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return Object.hasOwn(cfg, 'atomic');
+      });
+      expect(atomicCall).toBeDefined();
+      const config: Record<string, unknown> = {};
+      atomicCall?.[1](config);
+      expect(config.atomic).toBe(false);
+    });
+
+    it('clears atomic when Max is unset via non-100% selection', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
       });
 
-      // decimals defaults to 6: 1123456 × 10^-6 = 1.123456
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = { atomic: false };
+        call[1](cfg);
+        return cfg.atomic === undefined;
+      });
+      expect(atomicCall).toBeDefined();
+    });
+
+    it('clears atomic when Max is unset via manual amount input', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('5');
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = { atomic: false };
+        call[1](cfg);
+        return cfg.atomic === undefined;
+      });
+      expect(atomicCall).toBeDefined();
+    });
+
+    it('does not flip atomic when Max is pressed on non-deposit types', async () => {
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return Object.hasOwn(cfg, 'atomic');
+      });
+      expect(atomicCall).toBeUndefined();
     });
   });
 
@@ -1412,7 +1717,7 @@ describe('useTransactionCustomAmount', () => {
       },
     };
 
-    it('uses withdrawableFiatRaw as balance when payment override is MoneyAccount', async () => {
+    it('uses cached money-account redeemable raw as balance when payment override is MoneyAccount', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: '750.50',
       } as ReturnType<typeof useMoneyAccountBalance>);
@@ -1424,7 +1729,11 @@ describe('useTransactionCustomAmount', () => {
           chainId: '0x1' as Hex,
           txParams: { from: '0xabc' },
         } as unknown as Partial<TransactionMeta>,
-        stateOverrides: moneyAccountStateOverrides,
+        stateOverrides: merge(
+          {},
+          moneyAccountStateOverrides,
+          getMoneyAccountState('750500000'),
+        ),
       });
 
       await act(async () => {
@@ -1434,7 +1743,7 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('750.50');
     });
 
-    it('returns 0 when payment override is MoneyAccount but withdrawableFiatRaw is undefined', async () => {
+    it('returns 0 when payment override is MoneyAccount but cached redeemable raw is undefined', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
@@ -1489,12 +1798,32 @@ describe('useTransactionCustomAmount', () => {
       });
     });
 
-    it('prefills stablecoin with 100% of balance', async () => {
+    it('returns skipped deposit prefill status for a zero-balance pay token', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      expect(result.current.depositPrefillStatus).toBe(
+        DepositPrefillStatus.Skipped,
+      );
+    });
+
+    it('prefills stablecoin with 100% of balance via Max path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '500',
+          balanceRaw: '500000000',
+          decimals: 6,
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
@@ -1508,9 +1837,25 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+
+      // 100% prefill must set isMaxAmount like pressing Max, so the
+      // insufficient-funds alert can skip a Max money account deposit.
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeDefined();
+
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: 'prefilled_max',
+          mm_pay_amount_input_prefill_presented: true,
+        },
+      });
     });
 
-    it('prefills non-stablecoin with 50% of balance', async () => {
+    it('prefills non-stablecoin with 50% of balance via percentage path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1529,9 +1874,22 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: 'prefilled_50',
+          mm_pay_amount_input_prefill_presented: true,
+        },
+      });
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
-    it('caps at deposit limit when balance exceeds it', async () => {
+    it('caps at deposit limit when balance exceeds it without Max flags', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1550,6 +1908,20 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('100000');
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
+
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: 'prefilled',
+          mm_pay_amount_input_prefill_presented: true,
+        },
+      });
     });
 
     it('does not prefill when flag is disabled', async () => {
@@ -1605,6 +1977,45 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('updates prefill amount when switching to a different funded token', async () => {
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '500',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result, rerender } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0xdifferent' as Hex,
+          balanceUsd: '800',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('800');
+      expect(result.current.depositPrefillStatus).toBe(
+        DepositPrefillStatus.Prefilled,
+      );
     });
 
     it('only prefills once even if balance changes', async () => {

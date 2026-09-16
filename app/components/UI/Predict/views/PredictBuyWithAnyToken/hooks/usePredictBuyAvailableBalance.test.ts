@@ -45,6 +45,7 @@ describe('usePredictBuyAvailableBalance', () => {
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
       expect(result.current.availableBalance).toBe(250.5);
+      expect(result.current.isPredictBalanceSelected).toBe(true);
     });
 
     it('returns only the payToken balanceUsd when isPredictBalanceSelected is false', () => {
@@ -57,6 +58,7 @@ describe('usePredictBuyAvailableBalance', () => {
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
       expect(result.current.availableBalance).toBe(150.75);
+      expect(result.current.isPredictBalanceSelected).toBe(false);
     });
 
     it('returns 0 when payToken has no balanceUsd and isPredictBalanceSelected is false', () => {

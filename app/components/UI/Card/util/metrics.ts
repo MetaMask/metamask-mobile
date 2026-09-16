@@ -13,6 +13,7 @@ enum CardScreens {
   VERIFY_IDENTITY = 'VERIFY_IDENTITY',
   VERIFYING_VERIFF_KYC = 'VERIFYING_VERIFF_KYC',
   KYC_PROCESSING = 'KYC_PROCESSING',
+  IMMERSVE_KYC_WEBVIEW = 'IMMERSVE_KYC_WEBVIEW',
   FUNDING_APPROVAL = 'FUNDING_APPROVAL',
   KYC_PENDING = 'KYC_PENDING',
   KYC_FAILED = 'KYC_FAILED',
@@ -25,6 +26,11 @@ enum CardScreens {
   REVIEW_ORDER = 'REVIEW_ORDER',
   DAIMO_PAY = 'DAIMO_PAY',
   ORDER_COMPLETED = 'ORDER_COMPLETED',
+  SET_PIN = 'SET_PIN',
+  CONFIRM_PIN = 'CONFIRM_PIN',
+  CASHBACK = 'CASHBACK',
+  CREDIT_REDEEM = 'CREDIT_REDEEM',
+  MIGRATION_UPDATE_SHEET = 'MIGRATION_UPDATE_SHEET',
 }
 
 enum CardActions {
@@ -50,6 +56,7 @@ enum CardActions {
   ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET = 'ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET',
   NAVIGATE_TO_TRAVEL_PAGE = 'NAVIGATE_TO_TRAVEL_PAGE',
   NAVIGATE_TO_CARD_TOS_PAGE = 'NAVIGATE_TO_CARD_TOS_PAGE',
+  NAVIGATE_TO_REPORT_TRANSACTION_PAGE = 'NAVIGATE_TO_REPORT_TRANSACTION_PAGE',
   CHOOSE_CARD_CONTINUE = 'CHOOSE_CARD_CONTINUE',
   REVIEW_ORDER_PAY = 'REVIEW_ORDER_PAY',
   REVIEW_ORDER_RENEWS_PRESSED = 'REVIEW_ORDER_RENEWS_PRESSED',
@@ -63,12 +70,14 @@ enum CardActions {
   FREEZE_CARD_BUTTON = 'FREEZE_CARD_BUTTON',
   UNFREEZE_CARD_BUTTON = 'UNFREEZE_CARD_BUTTON',
   VIEW_PIN_BUTTON = 'VIEW_PIN_BUTTON',
+  SET_PIN_BUTTON = 'SET_PIN_BUTTON',
+  SET_PIN_CONTINUE = 'SET_PIN_CONTINUE',
+  CONFIRM_PIN_SUBMIT = 'CONFIRM_PIN_SUBMIT',
   CASHBACK_BUTTON = 'CASHBACK_BUTTON',
   CREDIT_BUTTON = 'CREDIT_BUTTON',
   MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON = 'MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON',
   MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON = 'MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON',
   MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON = 'MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON',
-  MONEY_ACCOUNT_METAMASK_CARD_HEADER = 'MONEY_ACCOUNT_METAMASK_CARD_HEADER',
   MONEY_ACCOUNT_METAMASK_CARD_GET_NOW_BUTTON = 'MONEY_ACCOUNT_METAMASK_CARD_GET_NOW_BUTTON',
   MONEY_ACCOUNT_METAMASK_CARD_LINK_BUTTON = 'MONEY_ACCOUNT_METAMASK_CARD_LINK_BUTTON',
   MONEY_ACCOUNT_METAMASK_CARD_MANAGE_BUTTON = 'MONEY_ACCOUNT_METAMASK_CARD_MANAGE_BUTTON',
@@ -77,6 +86,21 @@ enum CardActions {
   MONEY_LINK_CARD_SHEET_CLOSE_BUTTON = 'MONEY_LINK_CARD_SHEET_CLOSE_BUTTON',
   UNLINK_MONEY_ACCOUNT_BUTTON = 'UNLINK_MONEY_ACCOUNT_BUTTON',
   SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON = 'SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON',
+  FUNDING_APPROVAL_CONFIRM = 'FUNDING_APPROVAL_CONFIRM',
+  FUNDING_APPROVAL_RETRY = 'FUNDING_APPROVAL_RETRY',
+  KYC_WEBVIEW_RETRY = 'KYC_WEBVIEW_RETRY',
+  KYC_WEBVIEW_CLOSE = 'KYC_WEBVIEW_CLOSE',
+  KYC_WEBVIEW_COMPLETED = 'KYC_WEBVIEW_COMPLETED',
+  KYC_WEBVIEW_LOAD_ERROR = 'KYC_WEBVIEW_LOAD_ERROR',
+  KYC_REOPEN = 'KYC_REOPEN',
+  KYC_PENDING_TIMEOUT = 'KYC_PENDING_TIMEOUT',
+  IMMERSVE_RESUME_ONBOARDING = 'IMMERSVE_RESUME_ONBOARDING',
+  IMMERSVE_PROVISIONING_RESUME = 'IMMERSVE_PROVISIONING_RESUME',
+  IMMERSVE_ONBOARDING_ROUTED = 'IMMERSVE_ONBOARDING_ROUTED',
+  MIGRATION_SHEET_GET_STARTED_BUTTON = 'MIGRATION_SHEET_GET_STARTED_BUTTON',
+  MIGRATION_SHEET_REMIND_ME_LATER_BUTTON = 'MIGRATION_SHEET_REMIND_ME_LATER_BUTTON',
+  MIGRATION_SHEET_CLOSE_BUTTON = 'MIGRATION_SHEET_CLOSE_BUTTON',
+  MIGRATION_ATTENTION_SET_UP_CARD_BUTTON = 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
 }
 
 enum CardDeeplinkActions {
@@ -94,11 +118,44 @@ enum CardEntryPoint {
   SPENDING_LIMIT_SPEND_AND_EARN_PROMO = 'SPENDING_LIMIT_SPEND_AND_EARN_PROMO',
   CASHBACK = 'CASHBACK',
   CREDIT = 'CREDIT',
+  SIGN_UP = 'SIGN_UP',
+  AUTHENTICATION = 'AUTHENTICATION',
 }
 
 enum CardFlow {
   MONEY_ACCOUNT_LINKAGE = 'money_account_linkage',
+  MIGRATION = 'migration',
 }
+
+type CardUkMigrationAnalyticsPhase = 'grace_window' | 'post_cutoff';
+
+type CardBadgeReason = 'card_migration';
+
+/**
+ * Maps mobile UK migration schedule phase to Segment `migration_phase`.
+ * `off` (and unknown) omit the property.
+ */
+const mapUkMigrationPhaseToAnalytics = (
+  phase: string | null | undefined,
+): CardUkMigrationAnalyticsPhase | undefined => {
+  if (phase === 'soft') {
+    return 'grace_window';
+  }
+  if (phase === 'forced') {
+    return 'post_cutoff';
+  }
+  return undefined;
+};
+
+/**
+ * Builds Segment `badge_reasons` when the Card UK migration entry badge
+ * (Accounts menu Update label / wallet attention for card migration) is shown.
+ * Omits the property when the badge is not visible.
+ */
+const buildCardMigrationBadgeReasons = (
+  updateBadgeVisible: boolean,
+): CardBadgeReason[] | undefined =>
+  updateBadgeVisible ? ['card_migration'] : undefined;
 
 enum CardLinkingFailureReason {
   PRECONDITION_FAILED = 'PRECONDITION_FAILED',
@@ -125,6 +182,18 @@ const deriveCardState = ({
   return 'no_card';
 };
 
+/**
+ * Merges Card analytics properties with a required `provider` dimension
+ * (`baanx` | `immersve`) so funnels can be segmented by card provider.
+ */
+const withCardProvider = (
+  provider: string | null | undefined,
+  properties: Record<string, unknown> = {},
+): Record<string, unknown> => ({
+  provider,
+  ...properties,
+});
+
 export {
   CardScreens,
   CardActions,
@@ -132,6 +201,9 @@ export {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  buildCardMigrationBadgeReasons,
   deriveCardState,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
 };
-export type { CardState };
+export type { CardState, CardUkMigrationAnalyticsPhase, CardBadgeReason };

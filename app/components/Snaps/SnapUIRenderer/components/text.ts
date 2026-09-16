@@ -1,45 +1,45 @@
 import { JSXElement, TextElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
-import { mapTextToTemplate } from '../utils';
-import { UIComponentFactory } from './types';
 import {
+  FontWeight,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text/Text.types';
-import { typography } from '@metamask/design-tokens';
+} from '@metamask/design-system-react-native';
+import { mapTextToTemplate } from '../utils';
+import { UIComponentFactory } from './types';
 
 function getTextColor(color: TextElement['props']['color']) {
   switch (color) {
     case 'default':
-      return TextColor.Default;
+      return TextColor.TextDefault;
     case 'alternative':
-      return TextColor.Alternative;
+      return TextColor.TextAlternative;
     case 'muted':
-      return TextColor.Muted;
+      return TextColor.TextMuted;
     case 'error':
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     case 'success':
-      return TextColor.Success;
+      return TextColor.SuccessDefault;
     case 'warning':
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
     default:
       return null;
   }
 }
 
 function getFontWeight(
-  color: TextElement['props']['fontWeight'],
+  fontWeight: TextElement['props']['fontWeight'],
   inheritedWeight?: string,
 ) {
-  switch (color ?? inheritedWeight) {
-    case 'bold':
-      return typography.sBodyMDBold.fontWeight;
-    case 'medium':
-      return typography.sBodyMDMedium.fontWeight;
-    case 'regular':
+  switch (fontWeight ?? inheritedWeight) {
+    case FontWeight.Bold:
+      return FontWeight.Bold;
+    case FontWeight.Medium:
+      return FontWeight.Medium;
+    case FontWeight.Regular:
     default:
-      return typography.sBodyMD.fontWeight;
+      return FontWeight.Regular;
   }
 }
 
@@ -65,11 +65,11 @@ function getTextVariant(
 ) {
   switch (size) {
     case 'md':
-      return TextVariant.BodyMD;
+      return TextVariant.BodyMd;
     case 'sm':
-      return TextVariant.BodySM;
+      return TextVariant.BodySm;
     default:
-      return inheritedVariant ?? TextVariant.BodyMD;
+      return inheritedVariant ?? TextVariant.BodyMd;
   }
 }
 
@@ -103,8 +103,8 @@ export const text: UIComponentFactory<TextElement> = ({
     props: {
       variant: textVariant,
       color: textColor,
+      fontWeight: textFontWeight,
       style: {
-        fontWeight: textFontWeight,
         textAlign: textAlignment,
       },
     },

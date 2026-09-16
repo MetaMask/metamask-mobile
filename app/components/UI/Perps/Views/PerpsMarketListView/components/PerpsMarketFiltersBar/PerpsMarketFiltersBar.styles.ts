@@ -22,7 +22,8 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingVertical: 6,
-      paddingHorizontal: 16,
+      paddingLeft: 16,
+      paddingRight: 4,
     },
   });
 };

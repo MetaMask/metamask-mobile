@@ -7,6 +7,7 @@ import {
 import { Json } from '@metamask/utils';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { reportStorageWriteError } from '../../../util/storage/diskSpaceError';
 
 /**
  * Utility functions for StorageService key encoding/decoding.
@@ -105,8 +106,10 @@ export const mobileStorageAdapter: StorageAdapter = {
         Device.isIos(),
       );
     } catch (error) {
-      Logger.error(error as Error, {
+      reportStorageWriteError(error as Error, {
         message: `StorageService: Failed to set item: ${namespace}:${key}`,
+        key: `${namespace}:${key}`,
+        source: 'storage_service',
       });
       throw error;
     }

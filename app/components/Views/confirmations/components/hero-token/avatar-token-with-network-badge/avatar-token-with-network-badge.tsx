@@ -70,11 +70,13 @@ export const AvatarTokenWithNetworkBadge = ({
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
-          <Badge
-            imageSource={networkImage}
-            name={networkName}
-            variant={BadgeVariant.Network}
-          />
+          networkImage ? (
+            <Badge
+              imageSource={networkImage}
+              name={networkName}
+              variant={BadgeVariant.Network}
+            />
+          ) : undefined
         }
       >
         <AvatarTokenOrNetworkAssetLogo

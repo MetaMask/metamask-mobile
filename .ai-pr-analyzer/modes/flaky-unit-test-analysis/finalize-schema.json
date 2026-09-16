@@ -46,6 +46,7 @@
         },
         "required": [
           "file",
+          "line",
           "patternId",
           "patternName",
           "severity",

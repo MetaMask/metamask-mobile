@@ -53,6 +53,12 @@ import {
   navigateWithDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
+import { useTrackFilterClicked } from '../../hooks/useTrackFilterClicked';
+import {
+  ALL_NETWORKS_FILTER_VALUE,
+  FilterLocation,
+  FilterType,
+} from '../../../core/Analytics/events/filters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -80,6 +86,7 @@ const ActivityScreen = () => {
     redirectToPerpsTransactions: redirectToPerpsParam,
     redirectToOrders: redirectToOrdersParam,
     initialPerpsFilter: initialPerpsFilterParam,
+    entryPoint,
   } = params;
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
     resolveInitialActivityTypeFilter(params),
@@ -92,6 +99,7 @@ const ActivityScreen = () => {
   );
 
   const networkOptions = useNetworkFilterOptions();
+  const trackFilterClicked = useTrackFilterClicked();
 
   // TODO(activity-redesign): restore with the search input.
   // const handleClearSearch = useCallback(() => {
@@ -165,9 +173,19 @@ const ActivityScreen = () => {
     PERPS_ACTIVITY_FILTER_LABEL_KEY[perpsFilter],
   );
 
-  const handleSelectNetwork = useCallback((chainIds: CaipChainId[] | null) => {
-    setNetworkFilter(chainIds);
-  }, []);
+  const handleSelectNetwork = useCallback(
+    (chainIds: CaipChainId[] | null) => {
+      trackFilterClicked({
+        location: FilterLocation.Activity,
+        filter_type: FilterType.Network,
+        from_network: networkFilter?.[0] ?? ALL_NETWORKS_FILTER_VALUE,
+        to_network: chainIds?.[0] ?? ALL_NETWORKS_FILTER_VALUE,
+      });
+
+      setNetworkFilter(chainIds);
+    },
+    [networkFilter, trackFilterClicked],
+  );
 
   const handleSelectPerpsFilter = useCallback((filter: PerpsActivityFilter) => {
     setPerpsFilter(filter);
@@ -330,6 +348,8 @@ const ActivityScreen = () => {
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
               subFilterKinds={subFilterKinds}
+              trackScreenViewed
+              entryPoint={entryPoint}
             />
 
             {isFilterBarPinned ? (

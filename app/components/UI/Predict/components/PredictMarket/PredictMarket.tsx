@@ -19,14 +19,13 @@ interface PredictMarketProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: PredictMarketBuyButtonPress;
-  /** Active feed tab key forwarded to trade analytics (e.g. "trending", "world-cup"). */
+  /** Active feed tab key forwarded to trade analytics (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context forwarded to trade analytics (e.g. "world_cup"). */
+  /** Screen context forwarded to trade analytics. */
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -34,7 +33,6 @@ interface PredictMarketProps {
 const PredictMarket: React.FC<PredictMarketProps> = ({
   market,
   testID,
-  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
@@ -53,7 +51,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
-        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
         predictFeedTab={predictFeedTab}
@@ -70,7 +67,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
-        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
         predictFeedTab={predictFeedTab}
@@ -87,7 +83,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
-        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
         predictFeedTab={predictFeedTab}
@@ -103,7 +98,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       testID={testID}
       entryPoint={entryPoint}
       isCarousel={isCarousel}
-      cardPressDisabled={cardPressDisabled}
       onCardPress={onCardPress}
       onBuyButtonPress={onBuyButtonPress}
       predictFeedTab={predictFeedTab}

@@ -18,11 +18,13 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './info-section-accordion.styles';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -115,7 +117,9 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
       >
         {typeof header === 'string' ? (
           <Animated.Text>
-            <Text variant={TextVariant.BodyMDMedium}>{header}</Text>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {header}
+            </Text>
           </Animated.Text>
         ) : (
           header

@@ -27,7 +27,8 @@ import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
@@ -83,9 +84,11 @@ const ConfirmPhoneNumber = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
+            }),
+          )
           .build(),
       );
       const { user } = await verifyPhoneVerification({
@@ -162,9 +165,11 @@ const ConfirmPhoneNumber = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
+            }),
+          )
           .build(),
       );
       await sendPhoneVerification({
@@ -193,9 +198,11 @@ const ConfirmPhoneNumber = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.CONFIRM_PHONE_NUMBER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.CONFIRM_PHONE_NUMBER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);

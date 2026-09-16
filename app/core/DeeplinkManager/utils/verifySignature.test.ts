@@ -1,5 +1,4 @@
-import QuickCrypto from 'react-native-quick-crypto';
-import { CryptoKey } from 'react-native-quick-crypto/lib/typescript/src/keys';
+import QuickCrypto, { CryptoKey } from 'react-native-quick-crypto';
 import {
   verifyDeeplinkSignature,
   hasSignature,
@@ -10,16 +9,14 @@ import {
 import AppConstants from '../../AppConstants';
 
 jest.mock('react-native-quick-crypto', () => ({
-  webcrypto: {
-    subtle: {
-      importKey: jest.fn(),
-      verify: jest.fn(),
-    },
+  subtle: {
+    importKey: jest.fn(),
+    verify: jest.fn(),
   },
 }));
 
-const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
-  typeof QuickCrypto.webcrypto.subtle
+const mockSubtle = QuickCrypto.subtle as jest.Mocked<
+  typeof QuickCrypto.subtle
 > & {
   verify: jest.Mock<Promise<boolean>>;
 };
@@ -201,6 +198,89 @@ describe('verifySignature', () => {
       expect(canonicalUrl).toBe(
         'https://example.com/path?alpha=first&zebra=last',
       );
+    });
+
+    describe('link.metamask.com origin normalization', () => {
+      const signature = Buffer.from(new Array(64).fill(0)).toString('base64');
+
+      const verifyAgainstCanonicalUrl = (expectedCanonicalUrl: string) => {
+        mockSubtle.verify.mockImplementation(
+          async (_algorithm, _key, _signature, data) =>
+            new TextDecoder().decode(data as Uint8Array) ===
+            expectedCanonicalUrl,
+        );
+      };
+
+      it('verifies a link.metamask.com URL against the link.metamask.io signing origin', async () => {
+        const url = new URL(
+          `https://link.metamask.com/perps?campaign=mobile&sig=${signature}`,
+        );
+        verifyAgainstCanonicalUrl(
+          'https://link.metamask.io/perps?campaign=mobile',
+        );
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+      });
+
+      it('keeps link.metamask.io signature verification unchanged', async () => {
+        const url = new URL(
+          `https://link.metamask.io/perps?campaign=mobile&sig=${signature}`,
+        );
+        verifyAgainstCanonicalUrl(
+          'https://link.metamask.io/perps?campaign=mobile',
+        );
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+      });
+
+      it.each(['link.metamask.com', 'link.metamask.io'])(
+        'rejects a %s URL whose path differs from the signed path',
+        async (hostname) => {
+          const url = new URL(
+            `https://${hostname}/altered?campaign=mobile&sig=${signature}`,
+          );
+          verifyAgainstCanonicalUrl(
+            'https://link.metamask.io/perps?campaign=mobile',
+          );
+
+          const result = await verifyDeeplinkSignature(url);
+
+          expect(result).toBe(INVALID);
+        },
+      );
+
+      it.each(['link.metamask.com', 'link.metamask.io'])(
+        'rejects a %s URL whose query differs from the signed query',
+        async (hostname) => {
+          const url = new URL(
+            `https://${hostname}/perps?campaign=altered&sig=${signature}`,
+          );
+          verifyAgainstCanonicalUrl(
+            'https://link.metamask.io/perps?campaign=mobile',
+          );
+
+          const result = await verifyDeeplinkSignature(url);
+
+          expect(result).toBe(INVALID);
+        },
+      );
+
+      it('does not normalize a hostname with link.metamask.com as a prefix', async () => {
+        const url = new URL(
+          `https://link.metamask.com.evil.tld/perps?campaign=mobile&sig=${signature}`,
+        );
+        verifyAgainstCanonicalUrl(
+          'https://link.metamask.io/perps?campaign=mobile',
+        );
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(INVALID);
+      });
     });
 
     it('handles URLs with no query parameters except sig', async () => {

@@ -70,6 +70,8 @@ describe('PerpsTPSLView', () => {
         szDecimals: 2,
         onConfirm,
       },
+      // The form only submits against a position the live stream still holds.
+      streamOverrides: { positions: [position] },
     });
 
     fireEvent.changeText(
@@ -113,6 +115,8 @@ describe('PerpsTPSLView', () => {
         szDecimals: 2,
         onConfirm,
       },
+      // The form only submits against a position the live stream still holds.
+      streamOverrides: { positions: [position] },
     });
 
     fireEvent.changeText(
@@ -130,6 +134,47 @@ describe('PerpsTPSLView', () => {
         undefined,
         expect.objectContaining({ direction: 'long' }),
       );
+    });
+  });
+
+  it('renders RoE sign badges at default + take profit and - stop loss', async () => {
+    renderPerpsTPSLView();
+
+    expect(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
+        {},
+        { timeout: 10000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
+    ).toHaveTextContent('+');
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    ).toHaveTextContent('-');
+  });
+
+  it('flips the take profit RoE badge from + to - on press', async () => {
+    renderPerpsTPSLView();
+
+    const tpBadge = await screen.findByTestId(
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
+      {},
+      { timeout: 10000 },
+    );
+
+    fireEvent.press(tpBadge);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
+        ),
+      ).toHaveTextContent('-');
     });
   });
 });

@@ -15,6 +15,21 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabBar from './TabBar';
 import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: jest.fn(() => ({})),
+}));
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 // Minimal descriptor interface for tests - only includes what TabBar component uses
 interface TestTabDescriptor {
@@ -113,6 +128,33 @@ describe('TabBar', () => {
     expect(toJSON()).toBeDefined();
   });
 
+  it('reports every tab press as a bottom nav click on the Navigation Drawer event', () => {
+    mockAddProperties.mockClear();
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={state as TabNavigationState<ParamListBase>}
+        descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_DRAWER,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action: 'bottom_nav_clicked',
+      name: 'home',
+    });
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action: 'bottom_nav_clicked',
+      name: 'activity',
+    });
+  });
+
   it('navigates to the correct screen when a tab is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <TabBar
@@ -142,7 +184,10 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.BottomNavClick },
+    });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {

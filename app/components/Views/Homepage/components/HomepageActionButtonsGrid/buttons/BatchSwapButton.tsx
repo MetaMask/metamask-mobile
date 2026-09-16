@@ -8,7 +8,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../core/AppConstants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../../../core/redux/slices/bridge';
-import type { RootState } from '../../../../../../reducers';
 import { selectBatchSellEnabled } from '../../../../../../selectors/featureFlagController/batchSell';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -31,9 +30,7 @@ const BatchSwapButton = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
-  const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state),
-  );
+  const isSwapsEnabled = useSelector(selectIsSwapsEnabled);
   const label = strings('homepage.action_buttons.batch_swap');
   const isDisabled =
     !isBatchSellEnabled || !AppConstants.SWAPS.ACTIVE || !isSwapsEnabled;

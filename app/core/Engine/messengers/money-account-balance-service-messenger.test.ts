@@ -30,7 +30,7 @@ describe('getMoneyAccountBalanceServiceMessenger', () => {
     expect(serviceMessenger).toBeInstanceOf(Messenger);
   });
 
-  it('delegates NetworkController, RemoteFeatureFlagController, and MoneyAccountApiDataService actions to the scoped messenger', () => {
+  it('delegates balance dependencies to the scoped messenger', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
@@ -43,6 +43,9 @@ describe('getMoneyAccountBalanceServiceMessenger', () => {
           'NetworkController:getNetworkClientById',
           'RemoteFeatureFlagController:getState',
           'MoneyAccountApiDataService:fetchPositions',
+        ]),
+        events: expect.arrayContaining([
+          'RemoteFeatureFlagController:stateChange',
         ]),
       }),
     );

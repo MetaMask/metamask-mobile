@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
-import { containsUserRejectedError } from '../../../../util/middlewares';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -22,33 +21,28 @@ import { isMonadMainnetChainId } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  type ConfirmationLaunchSource,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { selectPrefilledAmountConfig } from '../../../../selectors/featureFlagController/confirmations';
-import type { RootState } from '../../../../reducers';
+import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 import { ensureError } from '../../../../util/errorUtils';
-import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
+import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import useMoneyToasts from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  setMoneyAccountDepositIntent,
+  type MoneyAccountDepositIntent,
+} from '../utils/moneyAccountDepositIntent';
+
+export type { MoneyAccountDepositIntent };
+export {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from '../utils/moneyAccountDepositIntent';
 
 const LOG_TAG = '[Money Account]';
-
-export type MoneyAccountDepositIntent = 'convert' | 'addMusd' | 'card';
-
-const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
-
-export function getMoneyAccountDepositIntent(
-  batchId: string | undefined,
-): MoneyAccountDepositIntent | undefined {
-  if (!batchId) return undefined;
-  return depositIntentByBatchId.get(batchId.toLowerCase());
-}
-
-export function clearMoneyAccountDepositIntent(
-  batchId: string | undefined,
-): void {
-  if (!batchId) return;
-  depositIntentByBatchId.delete(batchId.toLowerCase());
-}
 
 export interface InitiateDepositOptions {
   preferredPaymentToken?: {
@@ -58,6 +52,11 @@ export interface InitiateDepositOptions {
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
   replaceConfirmation?: boolean;
+  /**
+   * Where the deposit was started from. Carried to the confirmation so it can
+   * land somewhere other than the Money tab — see `navigateOnConfirm`.
+   */
+  launchedFrom?: ConfirmationLaunchSource;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -76,13 +75,6 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
-function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
-  return containsUserRejectedError(
-    getErrorMessage(error, fallbackMessage),
-    getErrorCode(error),
-  );
-}
-
 function isMoneyConfirmationActive(): boolean {
   return (
     NavigationService.navigation.getCurrentRoute()?.name ===
@@ -93,9 +85,7 @@ function isMoneyConfirmationActive(): boolean {
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const prefillConfig = useSelector((state: RootState) =>
-    selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
-  );
+  const isDepositPrefillEnabled = useMoneyAccountDepositPrefillEnabled();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -156,19 +146,16 @@ export function useMoneyAccountDeposit() {
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.
       if (options?.intent) {
-        depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
+        setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
-      const usePrefillLoader =
-        (prefillConfig.enabled || options?.intent === 'addMusd') &&
-        options?.intent !== 'card';
-
       const confirmationParams = {
-        loader: usePrefillLoader
+        loader: isDepositPrefillEnabled(options?.intent)
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
+        launchedFrom: options?.launchedFrom,
       };
 
       // Navigate early for better UX; recover on failure below.
@@ -220,7 +207,7 @@ export function useMoneyAccountDeposit() {
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
-        depositIntentByBatchId.delete(batchId.toLowerCase());
+        clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
           if (isMoneyConfirmationActive()) {
             navigation.goBack();
@@ -237,9 +224,9 @@ export function useMoneyAccountDeposit() {
     },
     [
       MoneyToastOptions.deposit,
+      isDepositPrefillEnabled,
       navigateToConfirmation,
       navigation,
-      prefillConfig.enabled,
       primaryMoneyAccount,
       showToast,
       vaultConfig,

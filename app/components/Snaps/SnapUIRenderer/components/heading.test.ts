@@ -1,8 +1,8 @@
 import { HeadingElement } from '@metamask/snaps-sdk/jsx';
-import { heading } from './heading';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
+import { TextVariant } from '@metamask/design-system-react-native';
 import { FlexWrap } from '../../../UI/Box/box.types';
 import { mockTheme } from '../../../../util/theme';
+import { heading } from './heading';
 
 describe('heading UIComponentFactory', () => {
   it('transform HeadingElement into Text format with default size', () => {
@@ -25,7 +25,7 @@ describe('heading UIComponentFactory', () => {
       element: 'Text',
       children: 'Test Heading',
       props: {
-        variant: TextVariant.HeadingSM,
+        variant: TextVariant.HeadingSm,
         numberOfLines: 0,
         flexWrap: FlexWrap.Wrap,
       },
@@ -51,7 +51,7 @@ describe('heading UIComponentFactory', () => {
       element: 'Text',
       children: '',
       props: {
-        variant: TextVariant.HeadingSM,
+        variant: TextVariant.HeadingSm,
         numberOfLines: 0,
         flexWrap: FlexWrap.Wrap,
       },
@@ -77,7 +77,7 @@ describe('heading UIComponentFactory', () => {
       element: 'Text',
       children: ['Multiple ', 'Text ', 'Nodes'],
       props: {
-        variant: TextVariant.HeadingSM,
+        variant: TextVariant.HeadingSm,
         numberOfLines: 0,
         flexWrap: FlexWrap.Wrap,
       },
@@ -87,9 +87,9 @@ describe('heading UIComponentFactory', () => {
   it('handle different heading sizes', () => {
     const sizes = ['sm', 'md', 'lg'] as const;
     const expectedVariants = {
-      sm: TextVariant.HeadingSM,
-      md: TextVariant.HeadingMD,
-      lg: TextVariant.HeadingLG,
+      sm: TextVariant.HeadingSm,
+      md: TextVariant.HeadingMd,
+      lg: TextVariant.HeadingLg,
     };
 
     sizes.forEach((size) => {

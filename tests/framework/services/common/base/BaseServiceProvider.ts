@@ -31,7 +31,42 @@ export abstract class BaseServiceProvider implements ServiceProvider {
   }
 
   /**
-   * Optional cleanup - override in subclasses if needed
+   * Deletes the WebDriver session when a browser is provided.
+   * Providers that cache a browser (e.g. EmulatorProvider) should override
+   * this so they can also clear their local reference.
+   */
+  async cleanupSession(drv?: Browser): Promise<void> {
+    if (!drv) {
+      this.sessionId = undefined;
+      this.logger.debug(
+        `Session cleanup for ${this.constructor.name}: no active session`,
+      );
+      return;
+    }
+
+    this.logger.debug(
+      `Deleting WebDriver session ${drv.sessionId ?? this.sessionId ?? 'unknown'} (${this.constructor.name})`,
+    );
+    try {
+      await drv.deleteSession();
+      this.logger.info('WebDriver session deleted');
+    } catch (error) {
+      this.logger.error('Failed to delete WebDriver session:', error);
+      throw error;
+    } finally {
+      this.sessionId = undefined;
+    }
+  }
+
+  /**
+   * Optional provider cleanup - override in subclasses if needed
+   */
+  async cleanupProvider?(): Promise<void> {
+    this.logger.debug(`Provider cleanup for ${this.constructor.name}`);
+  }
+
+  /**
+   * Legacy cleanup — prefer cleanupSession + cleanupProvider.
    */
   async cleanup?(): Promise<void> {
     this.logger.debug(`Cleanup for ${this.constructor.name}`);

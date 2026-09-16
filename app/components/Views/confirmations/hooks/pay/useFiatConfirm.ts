@@ -28,8 +28,8 @@ const FIAT_TEST_FUNDING_SOURCE_ORDER_ID = 'fiat-test-funding-source';
 /**
  * Maps a confirmation transaction type to the headless ramps `ramp_surface`
  * (TRAM-3623). Only deposit flows routed through the headless buy belong here.
- * `musdConversion` and withdraw types are intentionally omitted: not
- * money/perps/prediction deposits, so they get an `undefined` surface.
+ * Withdraw types are intentionally omitted: not money/perps/prediction
+ * deposits, so they get an `undefined` surface.
  */
 const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
   Record<TransactionType, RampSurface>
@@ -94,6 +94,7 @@ export function useFiatConfirm() {
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
 
+    // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type
       ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]
       : undefined;

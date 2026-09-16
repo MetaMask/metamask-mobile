@@ -5,7 +5,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
@@ -41,7 +45,16 @@ import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboar
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+  buildCardMigrationBadgeReasons,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
@@ -53,13 +66,19 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
-  selectCardFeatureFlag,
-  selectImmersveOnboardingEnabled,
+  selectCardImmersveCountries,
+  selectCardImmersveEnabled,
 } from '../../../../../selectors/featureFlagController/card';
-import { selectCardSelectedCardProgramId } from '../../../../../selectors/cardController';
-import RadioButton from '../../../../../component-library/components/RadioButton';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
+import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
+import type { CardOnboardingStackParamList } from '../../types/navigation';
+import Logger from '../../../../../util/Logger';
+
+const UK_MIGRATION_COUNTRY_CODE = 'GB';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -68,8 +87,41 @@ const buildWaitlistUrl = (countryName: string, email?: string): string => {
   return `${HUBSPOT_WAITLIST_URL}?${query}`;
 };
 
+const normalizeCallingCode = (code: string | null | undefined): string =>
+  (code ?? '').replace(/\D/g, '');
+
+const matchPhoneRegionByCallingCode = (
+  callingCode: string,
+  allRegions: Region[],
+  getRegionByCode: (code: string | null | undefined) => Region | null,
+  options: {
+    fromMigration: boolean;
+    selectedCountryKey?: string;
+  },
+): Region | null => {
+  if (!callingCode) {
+    return null;
+  }
+
+  const preferredCountryKey = options.fromMigration
+    ? UK_MIGRATION_COUNTRY_CODE
+    : options.selectedCountryKey;
+
+  if (preferredCountryKey) {
+    const preferredRegion = getRegionByCode(preferredCountryKey);
+    if (preferredRegion?.areaCode === callingCode) {
+      return preferredRegion;
+    }
+  }
+
+  return allRegions.find((region) => region.areaCode === callingCode) ?? null;
+};
+
 const SignUp = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<CardOnboardingStackParamList, 'CardOnboardingSignUp'>>();
+  const fromMigration = Boolean(route.params?.fromMigration);
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
@@ -80,11 +132,31 @@ const SignUp = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
+  const hasPrefillAttempted = useRef(false);
+  const hasUserEditedEmail = useRef(false);
+  const hasUserEditedPhoneNumber = useRef(false);
+  const hasUserEditedPhoneRegion = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const immersveOnboardingEnabled = useSelector(
-    selectImmersveOnboardingEnabled,
-  );
+  const immersveCountries = useSelector(selectCardImmersveCountries);
+  const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
+  const {
+    state: { phase: ukMigrationPhase },
+  } = useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const migrationAnalyticsProps = useMemo(() => {
+    if (!fromMigration) {
+      return {};
+    }
+    const migrationPhase = mapUkMigrationPhaseToAnalytics(ukMigrationPhase);
+    const badgeReasons = buildCardMigrationBadgeReasons(
+      Boolean(cardUpdateBadgeSeverity),
+    );
+    return {
+      flow: CardFlow.MIGRATION,
+      ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+      ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
+    };
+  }, [cardUpdateBadgeSeverity, fromMigration, ukMigrationPhase]);
   const {
     allRegions,
     getRegionByCode,
@@ -92,14 +164,6 @@ const SignUp = () => {
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const postAuthRedirect = useCardPostAuthRedirect();
-
-  // Temporary: multi-program selector for internal Immersve testing.
-  const cardProgramIds = cardFeatureFlag.immersve?.cardProgramIds ?? [];
-  const defaultCardProgramId = cardFeatureFlag.immersve?.cardProgramId;
-  const persistedCardProgramId = useSelector(selectCardSelectedCardProgramId);
-  const [selectedCardProgramId, setSelectedCardProgramId] = useState<
-    string | null
-  >(persistedCardProgramId ?? defaultCardProgramId ?? null);
 
   // Immersve onboarding entry: SIWE binds to the currently-selected EVM account.
   const accountName = useAccountGroupName();
@@ -125,16 +189,6 @@ const SignUp = () => {
     navigation.navigate(Routes.CARD.AUTHENTICATION);
   }, [navigation, postAuthRedirect]);
 
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.SIGN_UP,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
-
   const {
     sendEmailVerification,
     isLoading: emailVerificationIsLoading,
@@ -147,7 +201,7 @@ const SignUp = () => {
   const debouncedPassword = useDebouncedValue(password, 1000);
 
   useEffect(() => {
-    if (!allRegions.length || geoLocation === 'UNKNOWN') {
+    if (!allRegions.length) {
       return;
     }
 
@@ -155,6 +209,23 @@ const SignUp = () => {
     // (which produces a new getRegionByCode reference) from overwriting the
     // user's manual country selection.
     if (hasAutoSelectedCountry.current) {
+      return;
+    }
+
+    if (fromMigration) {
+      const ukRegion = getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
+      if (!ukRegion) {
+        return;
+      }
+      // Local UI only — do not call setSelectedCountry here. That would switch
+      // the active provider / clear Baanx before the user confirms with Next.
+      hasAutoSelectedCountry.current = true;
+      setSelectedCountry(ukRegion);
+      setPhoneRegion(ukRegion);
+      return;
+    }
+
+    if (geoLocation === 'UNKNOWN') {
       return;
     }
 
@@ -169,7 +240,76 @@ const SignUp = () => {
       );
       Engine.context.CardController.setSelectedCountry(matchedRegion.key);
     }
-  }, [allRegions.length, geoLocation, getRegionByCode]);
+  }, [allRegions.length, fromMigration, geoLocation, getRegionByCode]);
+
+  useEffect(() => {
+    if (!fromMigration) {
+      return;
+    }
+    hasUserEditedEmail.current = false;
+    hasUserEditedPhoneNumber.current = false;
+    hasUserEditedPhoneRegion.current = false;
+    hasPrefillAttempted.current = false;
+  }, [fromMigration]);
+
+  // Best-effort contact prefill for UK migration while Baanx is still active.
+  useEffect(() => {
+    if (!fromMigration || !allRegions.length || hasPrefillAttempted.current) {
+      return;
+    }
+
+    let cancelled = false;
+    Engine.context.CardController.getUserDetails()
+      .then((user) => {
+        if (cancelled || hasPrefillAttempted.current) {
+          return;
+        }
+        hasPrefillAttempted.current = true;
+        if (user.email && !hasUserEditedEmail.current) {
+          setEmail(user.email);
+        }
+        if (user.phoneNumber && !hasUserEditedPhoneNumber.current) {
+          setPhoneNumber(user.phoneNumber.replace(/\D/g, ''));
+        }
+        const callingCode = normalizeCallingCode(user.phoneCountryCode);
+        if (
+          user.phoneNumber &&
+          !hasUserEditedPhoneNumber.current &&
+          !hasUserEditedPhoneRegion.current &&
+          callingCode &&
+          allRegions.length
+        ) {
+          const matchedPhoneRegion = matchPhoneRegionByCallingCode(
+            callingCode,
+            allRegions,
+            getRegionByCode,
+            { fromMigration },
+          );
+          if (matchedPhoneRegion) {
+            setPhoneRegion(matchedPhoneRegion);
+          }
+        }
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+        hasPrefillAttempted.current = true;
+        Logger.error(error as Error, {
+          tags: { feature: 'card' },
+          context: {
+            name: 'SignUp',
+            data: { method: 'fromMigrationPrefill' },
+          },
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally omit selectedCountry: migration prefers GB via fromMigration,
+    // and depending on selectedCountry re-fires this effect after UK auto-select.
+  }, [allRegions, fromMigration, getRegionByCode]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -200,12 +340,50 @@ const SignUp = () => {
   const isImmersveCountry = Boolean(
     immersveOnboardingEnabled &&
       selectedCountry &&
-      (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
+      immersveCountries.includes(selectedCountry.key),
   );
 
-  // Temporary: only show the program picker for Immersve onboarding.
-  const showCardProgramSelector =
-    isImmersveCountry && cardProgramIds.length > 1;
+  const lastTrackedSignUpView = useRef<string | null>(null);
+  useEffect(() => {
+    // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
+    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
+    if (!selectedCountry) {
+      return;
+    }
+    const provider = isImmersveCountry
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
+    if (lastTrackedSignUpView.current === viewKey) {
+      return;
+    }
+    lastTrackedSignUpView.current = viewKey;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(provider, {
+            screen: CardScreens.SIGN_UP,
+            ...migrationAnalyticsProps,
+          }),
+        )
+        .build(),
+    );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    selectedCountry,
+    isImmersveCountry,
+    migrationAnalyticsProps,
+  ]);
+
+  const {
+    onboardingDocuments,
+    isLoading: isLegalDocsLoading,
+    error: legalDocsError,
+    refetch: refetchLegalDocs,
+  } = useImmersveSupportedRegions(
+    isImmersveCountry ? selectedCountry?.key : undefined,
+  );
 
   const isWaitlistMode = Boolean(
     selectedCountry && !selectedCountry.canSignUp && !isImmersveCountry,
@@ -221,8 +399,15 @@ const SignUp = () => {
     }
     if (isImmersveCountry) {
       // Email + phone are collected; SIWE binds to the selected account.
+      // Legal docs must be loaded before Continue (clickwrap agreement).
       return (
-        !email || !isPhoneValid || !immersveAddress || isImmersveSubmitting
+        !email ||
+        !isPhoneValid ||
+        !immersveAddress ||
+        isImmersveSubmitting ||
+        isLegalDocsLoading ||
+        Boolean(legalDocsError) ||
+        onboardingDocuments.length === 0
       );
     }
     return (
@@ -239,6 +424,9 @@ const SignUp = () => {
     isImmersveCountry,
     immersveAddress,
     isImmersveSubmitting,
+    isLegalDocsLoading,
+    legalDocsError,
+    onboardingDocuments.length,
     email,
     isPhoneValid,
     password,
@@ -274,14 +462,36 @@ const SignUp = () => {
       setIsPhoneNumberError(true);
       return;
     }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.SIGN_UP_BUTTON,
+            ...migrationAnalyticsProps,
+            ...(fromMigration
+              ? {
+                  country_of_residence: selectedCountry.key,
+                  phone_number_country_code: phoneRegion.areaCode,
+                }
+              : {}),
+          }),
+        )
+        .build(),
+    );
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
+      // Clear Baanx while it is still the active provider, then continue as
+      // a new Immersve user (setSelectedCountry + SIWE happen in resume).
+      if (fromMigration) {
+        await Engine.context.CardController.logout();
+      }
       await resumeImmersveOnboarding({
         country: selectedCountry.key,
         address: immersveAddress,
         email,
         phone: `+${phoneRegion.areaCode}${phoneNumber}`,
+        entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));
@@ -294,7 +504,11 @@ const SignUp = () => {
     email,
     phoneNumber,
     phoneRegion?.areaCode,
+    fromMigration,
+    migrationAnalyticsProps,
     resumeImmersveOnboarding,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleJoinWaitlist = useCallback(() => {
@@ -309,10 +523,13 @@ const SignUp = () => {
 
   const handleEmailChange = useCallback(
     (emailText: string) => {
+      if (fromMigration) {
+        hasUserEditedEmail.current = true;
+      }
       resetEmailVerificationSend();
       setEmail(emailText);
     },
-    [resetEmailVerificationSend],
+    [fromMigration, resetEmailVerificationSend],
   );
 
   const handlePasswordChange = useCallback(
@@ -342,9 +559,11 @@ const SignUp = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.SIGN_UP_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.SIGN_UP_BUTTON,
+            }),
+          )
           .build(),
       );
       const { contactVerificationId } = await sendEmailVerification(email);
@@ -376,7 +595,7 @@ const SignUp = () => {
   ]);
 
   const handleCountrySelect = useCallback(() => {
-    if (isLoadingRegistrationSettings) return;
+    if (fromMigration || isLoadingRegistrationSettings) return;
     resetEmailVerificationSend();
     setOnValueChange((region) => {
       setSelectedCountry(region);
@@ -395,6 +614,7 @@ const SignUp = () => {
       }),
     );
   }, [
+    fromMigration,
     navigation,
     allRegions,
     selectedCountry?.key,
@@ -404,6 +624,9 @@ const SignUp = () => {
 
   const handlePhoneRegionSelect = useCallback(() => {
     setOnValueChange((region) => {
+      if (fromMigration) {
+        hasUserEditedPhoneRegion.current = true;
+      }
       setPhoneRegion(region);
     });
 
@@ -415,16 +638,23 @@ const SignUp = () => {
         selectedRegionKey: phoneRegion?.key ?? selectedCountry?.key ?? null,
       }),
     );
-  }, [navigation, allRegions, phoneRegion?.key, selectedCountry?.key]);
+  }, [
+    fromMigration,
+    navigation,
+    allRegions,
+    phoneRegion?.key,
+    selectedCountry?.key,
+  ]);
 
-  const handlePhoneNumberChange = useCallback((text: string) => {
-    setPhoneNumber(text.replace(/\D/g, ''));
-  }, []);
-
-  const handleCardProgramSelect = useCallback((id: string) => {
-    setSelectedCardProgramId(id);
-    Engine.context.CardController.setSelectedCardProgramId(id);
-  }, []);
+  const handlePhoneNumberChange = useCallback(
+    (text: string) => {
+      if (fromMigration) {
+        hasUserEditedPhoneNumber.current = true;
+      }
+      setPhoneNumber(text.replace(/\D/g, ''));
+    },
+    [fromMigration],
+  );
 
   useEffect(() => () => clearOnValueChange(), []);
 
@@ -443,7 +673,7 @@ const SignUp = () => {
           <SelectField
             value={selectedCountry?.name}
             onPress={handleCountrySelect}
-            isDisabled={isLoadingRegistrationSettings}
+            isDisabled={fromMigration || isLoadingRegistrationSettings}
             testID="signup-country-select"
           />
         )}
@@ -498,24 +728,6 @@ const SignUp = () => {
 
       {isImmersveCountry && (
         <>
-          {showCardProgramSelector ? (
-            <Box testID="signup-card-program-selector">
-              <Label>
-                {strings('card.card_onboarding.sign_up.card_program_label')}
-              </Label>
-              <Box twClassName="gap-2 mt-1">
-                {cardProgramIds.map((program) => (
-                  <RadioButton
-                    key={program.id}
-                    label={program.name}
-                    isChecked={selectedCardProgramId === program.id}
-                    onPress={() => handleCardProgramSelect(program.id)}
-                    testID={`signup-card-program-${program.id}`}
-                  />
-                ))}
-              </Box>
-            </Box>
-          ) : null}
           <Box>
             <Label>
               {strings(
@@ -563,7 +775,7 @@ const SignUp = () => {
           </Box>
           <Box>
             <Label>
-              {strings('card.card_onboarding.sign_up.account_label')}
+              {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
             <SelectField
               value={accountName ?? undefined}
@@ -574,7 +786,9 @@ const SignUp = () => {
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative mt-1"
             >
-              {strings('card.card_onboarding.sign_up.account_description')}
+              {strings(
+                'card.card_onboarding.sign_up.account_description_immersve',
+              )}
             </Text>
             {immersveError ? (
               <Text
@@ -642,6 +856,26 @@ const SignUp = () => {
 
   const renderActions = () => (
     <>
+      {isImmersveCountry ? (
+        <Box twClassName="mb-6">
+          <ImmersveLegalClickwrap
+            documents={onboardingDocuments}
+            isLoading={isLegalDocsLoading}
+            error={legalDocsError}
+            treatEmptyAsError
+            suffix={
+              fromMigration
+                ? strings(
+                    'card.card_onboarding.sign_up.clickwrap_suffix_migration',
+                  )
+                : undefined
+            }
+            onRetry={() => {
+              refetchLegalDocs().catch(() => undefined);
+            }}
+          />
+        </Box>
+      ) : null}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
@@ -665,23 +899,33 @@ const SignUp = () => {
           ? strings('card.card_onboarding.sign_up.join_waitlist')
           : strings('card.card_onboarding.continue_button')}
       </Button>
-      <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
-        <Text
-          testID="signup-i-already-have-an-account-text"
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default text-center p-4"
-        >
-          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
-        </Text>
-      </TouchableOpacity>
+      {!fromMigration ? (
+        <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
+          <Text
+            testID="signup-i-already-have-an-account-text"
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-default text-center p-4"
+          >
+            {strings(
+              isImmersveCountry
+                ? 'card.card_onboarding.sign_up.i_already_have_an_account_immersve'
+                : 'card.card_onboarding.sign_up.i_already_have_an_account',
+            )}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </>
   );
 
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.sign_up.title')}
-      description={strings('card.card_onboarding.sign_up.description')}
+      description={strings(
+        isImmersveCountry
+          ? 'card.card_onboarding.sign_up.description_immersve'
+          : 'card.card_onboarding.sign_up.description',
+      )}
       formFields={renderFormFields()}
       actions={renderActions()}
       headerMode="back"

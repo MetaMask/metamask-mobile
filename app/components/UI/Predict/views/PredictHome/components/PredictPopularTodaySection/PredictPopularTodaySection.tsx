@@ -1,14 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextColor,
-  TextVariant,
-  FontWeight,
+  Button,
+  ButtonVariant,
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -185,15 +183,11 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
         title={strings('predict.feed.popular_today')}
         isInteractive
         onPress={handleSeeAll}
-        twClassName="px-0 pt-0 mb-2"
+        twClassName="px-0 pt-0 mb-1"
       />
 
       {isLoading ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-1')}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <Box twClassName="gap-2">
             {skeletonRows.map((row, rowIndex) => (
               <Box
@@ -216,11 +210,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
       ) : null}
 
       {!isLoading && chips.length > 0 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-1')}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <Box twClassName="gap-2">
             {chipRows.map((row, rowIndex) => (
               <Box
@@ -229,22 +219,15 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
                 twClassName="flex-row gap-2"
               >
                 {row.map(({ key, label, option }) => (
-                  <Pressable
+                  <Button
                     key={key}
                     testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
                     onPress={() => handleChipPress(option)}
-                    accessibilityRole="button"
                     accessibilityLabel={label}
-                    style={tw.style('rounded-xl bg-muted px-4 py-2')}
+                    variant={ButtonVariant.Secondary}
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextDefault}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {label}
-                    </Text>
-                  </Pressable>
+                    {label}
+                  </Button>
                 ))}
               </Box>
             ))}

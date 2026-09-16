@@ -1,7 +1,6 @@
 import { RootState } from '../reducers';
 import {
   selectCardSelectedCountry,
-  selectCardSelectedCardProgramId,
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -12,18 +11,23 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardHomeDataError,
+  selectCardHomeDataFetchedThisSession,
+  selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
   selectHasMetalCard,
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
+  selectCardExternalWalletPriority,
   selectCardDelegationSettings,
   selectIsMoneyAccountDelegatedForCard,
   selectCardCountryOfResidence,
   selectCardResidencyRegion,
   selectIsCardResidencyBlocked,
   selectCardRedemptionDestinationIsMoneyAccount,
+  selectCardRedeemWithdrawal,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -121,13 +125,13 @@ const createMockRootState = (
       backgroundState: {
         CardController: {
           selectedCountry: null,
-          selectedCardProgramId: null,
           activeProviderId: null,
           isAuthenticated: false,
           cardholderAccounts: [],
           providerData: {},
           cardHomeData: null,
           cardHomeDataStatus: 'idle',
+          cardHomeDataError: null,
           moneyAccountCardLinkInProgress: false,
           ...overrides,
         },
@@ -148,6 +152,33 @@ const createMockRootState = (
   }) as unknown as RootState;
 
 describe('CardController selectors', () => {
+  describe('selectCardRedeemWithdrawal', () => {
+    it('returns null when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+      expect(selectCardRedeemWithdrawal(state)).toBeNull();
+    });
+
+    it('returns null when redeemWithdrawal is null', () => {
+      const state = createMockRootState({ redeemWithdrawal: null });
+      expect(selectCardRedeemWithdrawal(state)).toBeNull();
+    });
+
+    it('returns the redeemWithdrawal state', () => {
+      const redeemWithdrawal = {
+        mode: 'cashback' as const,
+        status: 'monitoring' as const,
+        txHash: '0xabc',
+        chainId: '0xe708',
+        submittedAt: 1,
+        error: null,
+      };
+      const state = createMockRootState({ redeemWithdrawal });
+      expect(selectCardRedeemWithdrawal(state)).toEqual(redeemWithdrawal);
+    });
+  });
+
   describe('selectIsMoneyAccountCardLinkInProgress', () => {
     it('returns false when CardController state is undefined', () => {
       const state = {
@@ -182,22 +213,6 @@ describe('CardController selectors', () => {
       const state = createMockRootState({ selectedCountry: 'US' });
 
       expect(selectCardSelectedCountry(state)).toBe('US');
-    });
-  });
-
-  describe('selectCardSelectedCardProgramId', () => {
-    it('returns null when no card program is selected', () => {
-      const state = createMockRootState();
-
-      expect(selectCardSelectedCardProgramId(state)).toBeNull();
-    });
-
-    it('returns the selected card program id', () => {
-      const state = createMockRootState({
-        selectedCardProgramId: 'program-alpha',
-      });
-
-      expect(selectCardSelectedCardProgramId(state)).toBe('program-alpha');
     });
   });
 
@@ -531,6 +546,147 @@ describe('selectCardHomeDataStatus', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeDataStatus(state)).toBe('idle');
+  });
+});
+
+describe('selectCardHomeDataError', () => {
+  it('returns null by default', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataError(state)).toBeNull();
+  });
+
+  it('returns the stored error object', () => {
+    const error = {
+      reason: 'no_evm_address' as const,
+      code: null,
+      statusCode: null,
+      at: 123,
+    };
+    const state = createMockRootState({ cardHomeDataError: error });
+    expect(selectCardHomeDataError(state)).toStrictEqual(error);
+  });
+
+  it('returns null when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataError(state)).toBeNull();
+  });
+});
+
+describe('selectCardHomeDataFetchedThisSession', () => {
+  it('returns false by default, so restored data is revalidated', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+
+  it('returns true once a fetch has run in this session', () => {
+    const state = createMockRootState({
+      cardHomeDataFetchedThisSession: true,
+    });
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(true);
+  });
+
+  it('returns false when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+});
+
+describe('selectIsCardStateResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when status is success with a verification status', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'PENDING' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false when status is success but account is missing', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns false when status is error', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: [],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false while loading for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns true while refreshing existing data for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true when a background refresh fails with existing data', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false while idle for a cardholder', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
   });
 });
 
@@ -1768,5 +1924,94 @@ describe('selectCardRedemptionDestinationIsMoneyAccount', () => {
       cardHomeData: homeDataWithPriority([]),
     });
     expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
+  });
+});
+
+describe('referential stability of card list selectors', () => {
+  const cloneHomeData = (): CardHomeData =>
+    JSON.parse(JSON.stringify(mockCardHomeData)) as CardHomeData;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns the same selectCardAvailableTokens reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardAvailableTokens(stateA);
+    const second = selectCardAvailableTokens(stateB);
+
+    expect(second).toBe(first);
+    expect(first).toHaveLength(2);
+  });
+
+  it('returns the same selectCardFundingTokens reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardFundingTokens(stateA);
+    const second = selectCardFundingTokens(stateB);
+
+    expect(second).toBe(first);
+    expect(first).toHaveLength(2);
+  });
+
+  it('returns the same selectCardPrimaryToken reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardPrimaryToken(stateA);
+    const second = selectCardPrimaryToken(stateB);
+
+    expect(second).toBe(first);
+    expect(first?.symbol).toBe('USDC');
+  });
+
+  it('returns the shared empty array for selectCardholderAccounts when CardController is missing', () => {
+    const stateA = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    const stateB = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+
+    const first = selectCardholderAccounts(stateA);
+    const second = selectCardholderAccounts(stateB);
+
+    expect(first).toStrictEqual([]);
+    expect(second).toBe(first);
+  });
+
+  it('returns the shared empty array for selectCardExternalWalletPriority when missing', () => {
+    const stateA = createMockRootState({ cardHomeData: null });
+    const stateB = createMockRootState({ cardHomeData: null });
+
+    const first = selectCardExternalWalletPriority(stateA);
+    const second = selectCardExternalWalletPriority(stateB);
+
+    expect(first).toStrictEqual([]);
+    expect(second).toBe(first);
   });
 });

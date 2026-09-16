@@ -1,4 +1,4 @@
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import { QuoteResponse } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { SolMethod } from '@metamask/keyring-api';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -14,7 +14,7 @@ export default function useValidateBridgeTx() {
       quoteResponse,
       signal,
     }: {
-      quoteResponse: QuoteResponse & QuoteMetadata;
+      quoteResponse: QuoteResponse;
       signal?: AbortSignal;
     }) => {
       const response = await fetch(

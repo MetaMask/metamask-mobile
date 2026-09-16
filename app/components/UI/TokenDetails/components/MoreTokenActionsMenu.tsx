@@ -11,25 +11,24 @@ import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { isMusdToken } from '../../../UI/Earn/constants/musd';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import useAssetVisibility from './useAssetVisibility';
 import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { useAssetActivation } from '../hooks/useAssetActivation';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -77,13 +76,17 @@ const MoreTokenActionsMenu = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const explorer = useBlockExplorer(asset.chainId);
 
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
   const { handleHideToken } = useAssetVisibility(asset);
+
+  const { deactivateAsset, canDeactivate, isDeactivating } = useAssetActivation(
+    {
+      assetId: asset.address,
+      assetSymbol: asset.symbol,
+    },
+  );
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -95,14 +98,24 @@ const MoreTokenActionsMenu = () => {
   const goToBrowserUrl = useCallback(
     (url: string, title: string) => {
       closeBottomSheetAndNavigate(async () => {
-        if (await InAppBrowser.isAvailable()) {
-          await InAppBrowser.open(url);
-        } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url, title },
-          });
+        navigation.navigate('WalletView');
+
+        try {
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(url);
+            return;
+          }
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'MoreTokenActionsMenu: Failed to open InAppBrowser',
+          );
         }
+
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: { url, title },
+        });
       });
     },
     [closeBottomSheetAndNavigate, navigation],
@@ -164,18 +177,9 @@ const MoreTokenActionsMenu = () => {
                   tokenChainId: asset.chainId,
                   selectInternalAccountByScope,
                 });
-              } else {
-                const { TokensController, NetworkController } = Engine.context;
-                const networkClientId =
-                  NetworkController.findNetworkClientIdByChainId(
-                    asset.chainId as Hex,
-                  );
-                TokensController.ignoreTokens([asset.address], networkClientId);
               }
 
-              if (isAssetsUnifyStateEnabled) {
-                handleHideToken();
-              }
+              handleHideToken();
 
               const tokenSymbol = asset.symbol || null;
 
@@ -212,13 +216,32 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.address,
     asset.symbol,
-    isAssetsUnifyStateEnabled,
     handleHideToken,
     selectInternalAccountByScope,
     trackEvent,
     createEventBuilder,
     onActionTapped,
   ]);
+
+  const handleDeactivateTrustline = useCallback(() => {
+    closeBottomSheetAndNavigate(async () => {
+      const { success, errorMessage } = await deactivateAsset();
+
+      if (errorMessage) {
+        NotificationManager.showSimpleNotification({
+          status: 'error',
+          duration: 5000,
+          title: strings('transactions.activity_trustline_deactivation_failed'),
+          description: errorMessage,
+        });
+        return;
+      }
+
+      if (success) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
+    });
+  }, [closeBottomSheetAndNavigate, deactivateAsset, navigation]);
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>
     selectAsset(state, {
@@ -280,6 +303,18 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
+    if (canDeactivate) {
+      actions.push({
+        type: 'stellar-deactivate-trustline',
+        label: strings('asset_details.options.deactivate_asset'),
+        iconName: IconName.Trash,
+        testID: 'more-actions-deactivate-asset',
+        isVisible: true,
+        isDisabled: isDeactivating,
+        onPress: handleDeactivateTrustline,
+      });
+    }
+
     return actions;
   }, [
     asset.address,
@@ -296,6 +331,9 @@ const MoreTokenActionsMenu = () => {
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,
+    handleDeactivateTrustline,
+    canDeactivate,
+    isDeactivating,
   ]);
 
   return (

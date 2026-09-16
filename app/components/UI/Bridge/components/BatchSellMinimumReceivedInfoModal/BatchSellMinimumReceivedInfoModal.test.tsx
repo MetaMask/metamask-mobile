@@ -61,22 +61,14 @@ describe('BatchSellMinimumReceivedInfoModal', () => {
   });
 
   it('restores the source modal when the back button is pressed', () => {
-    const sourceModal = {
-      screen: 'BatchSellQuoteDetailsModal',
-      params: {
-        totalReceived: '100 USDC',
-      },
-    };
+    const sourceModal = { screen: 'BatchSellQuoteDetailsModal' } as const;
     const { getByTestId } = renderModal({ sourceModal });
 
     fireEvent.press(
       getByTestId(BatchSellMinimumReceivedInfoModalSelectorsIDs.BACK_BUTTON),
     );
 
-    expect(mockReplace).toHaveBeenCalledWith(
-      sourceModal.screen,
-      sourceModal.params,
-    );
+    expect(mockReplace).toHaveBeenCalledWith(sourceModal.screen);
   });
 
   it('does not render a back button without a source modal', () => {

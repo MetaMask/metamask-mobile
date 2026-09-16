@@ -8,7 +8,17 @@
  * pass Arbitrum); open `order` entries are dropped (executed history only).
  * See TMCU-860 for pending product confirmation of the display defaults.
  */
-import type { CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  toCaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
+import { isTriggerOrderType } from '@metamask/perps-controller';
+import {
+  getCaipChainId,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
   FillType,
   PerpsOrderTransactionStatus,
@@ -44,6 +54,23 @@ interface MapPerpsTransactionArgs {
 }
 
 const DEFAULT_QUOTE: QuoteAsset = { symbol: 'USD' };
+
+export function getPerpsActivityMappingIds(isTestnet: boolean) {
+  const chainId = getCaipChainId(isTestnet) as CaipChainId;
+  const { namespace, reference } = parseCaipChainId(chainId);
+  return {
+    chainId,
+    collateralAssetId: toCaipAssetType(
+      namespace,
+      reference,
+      'erc20',
+      (isTestnet
+        ? USDC_ARBITRUM_TESTNET_ADDRESS
+        : USDC_ARBITRUM_MAINNET_ADDRESS
+      ).toLowerCase(),
+    ),
+  };
+}
 
 function toToken(
   amount: number,
@@ -151,21 +178,20 @@ function mapOrderStatus(
 function mapOrderKind(
   order: NonNullable<PerpsTransaction['order']>,
 ): ActivityListItem['type'] | null {
-  const { side, detailedOrderType, type } = order;
+  const { side, type } = order;
   if (side !== 'buy' && side !== 'sell') {
     return null;
   }
 
-  // Open/close + direction come from the same helpers that build the perps
-  // order title (formatOrderLabel), so title and kind can't disagree.
+  // Keep semantic classification independent from the Activity display title,
+  // which preserves the user-selected conditional order type.
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
   const isLimit = type === 'limit';
 
-  const isStopMarket =
-    Boolean(detailedOrderType?.toLowerCase().includes('stop')) && !isLimit;
+  const isStopMarket = order.orderType === 'stop_market';
 
-  if (isStopMarket) {
+  if (isStopMarket && isClosing) {
     return direction === 'long'
       ? 'stopMarketCloseLong'
       : 'stopMarketCloseShort';
@@ -285,6 +311,12 @@ export function mapPerpsTransaction({
     if (!status || !kind) {
       return null;
     }
+    const perpsTriggerOrderType =
+      order.isTrigger &&
+      order.orderType !== undefined &&
+      isTriggerOrderType(order.orderType)
+        ? order.orderType
+        : undefined;
 
     // The perps domain formats the position size into the subtitle as
     // "<size> <symbol>", so reuse that asset quantity for the row's size leg.
@@ -309,6 +341,7 @@ export function mapPerpsTransaction({
       hash: id,
       raw: { type: 'perpsTransaction', data: transaction },
       data: {
+        ...(perpsTriggerOrderType ? { perpsTriggerOrderType } : {}),
         token: toToken(Number(order.size), 'out', quoteAsset),
         sourceToken: {
           ...(assetSize ? { amount: assetSize } : {}),

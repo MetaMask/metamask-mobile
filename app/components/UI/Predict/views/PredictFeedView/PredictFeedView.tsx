@@ -31,7 +31,7 @@ import PredictOffline from '../../components/PredictOffline';
 import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
-import { usePredictMarketList } from '../../hooks/usePredictMarketList';
+import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictFeedViewSelectorsIDs,
@@ -39,6 +39,7 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
+import { resolvePredictFilterLabel } from '../../utils/feed';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarket as PredictMarketType } from '../../types';
 
@@ -79,6 +80,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const showSportsLiveFirst =
+    feedId === 'sports' && activeFilter?.showLiveFirst === true;
 
   // True once the active filter state is stable enough to log.
   // - No initialFilterId → settled immediately.
@@ -111,7 +114,13 @@ const PredictFeedView: React.FC = () => {
     hasNextPage,
     refetch,
     fetchNextPage,
-  } = usePredictMarketList(activeFilter?.params ?? {}, { enabled: isReady });
+  } = usePredictFeedMarketList(activeFilter?.params ?? {}, {
+    enabled: isReady,
+    showLiveFirst: showSportsLiveFirst,
+    autoAdvanceEmptyPages: feedId === 'sports',
+    filterStaleGameMarkets: feedId === 'sports',
+    filterByVolume: activeFilter?.filterByVolume,
+  });
 
   // Keep the latest tab/filter selection in a ref so the focus effect can read
   // it without re-firing "feed viewed" every time the tab/filter changes (those
@@ -186,7 +195,7 @@ const PredictFeedView: React.FC = () => {
     () =>
       tabs.map((tab) => ({
         key: tab.id,
-        label: strings(tab.titleKey),
+        label: resolvePredictFilterLabel(tab),
         content: null,
       })),
     [tabs],
@@ -246,9 +255,7 @@ const PredictFeedView: React.FC = () => {
     () =>
       filters.map((filter) => ({
         key: filter.id,
-        label: filter.titleKey
-          ? strings(filter.titleKey)
-          : (filter.label ?? ''),
+        label: resolvePredictFilterLabel(filter),
       })),
     [filters],
   );
@@ -290,7 +297,7 @@ const PredictFeedView: React.FC = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <Box twClassName="flex-1 px-4">
+        <Box twClassName={`flex-1 px-4 ${showFilterBar ? 'pt-1' : ''}`}>
           {Array.from({ length: INITIAL_SKELETON_COUNT }).map((_, index) => (
             <PredictMarketSkeleton
               key={`skeleton-${index}`}
@@ -346,7 +353,11 @@ const PredictFeedView: React.FC = () => {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.7}
           ListFooterComponent={renderFooter}
-          contentContainerStyle={tw.style('px-4 pb-4')}
+          contentContainerStyle={tw.style(
+            'px-4 pb-4',
+            // Chip row is pb-3 (12px); 4px here makes 16px to the first card.
+            showFilterBar && 'pt-1',
+          )}
           showsVerticalScrollIndicator={false}
         />
       </Box>
@@ -399,6 +410,10 @@ const PredictFeedView: React.FC = () => {
             activeChipKey={activeFilterId ?? ''}
             onChipSelect={handleFilterSelect}
             testID={PredictFeedViewSelectorsIDs.FILTERS}
+            // No tabs: flush under the header like Explore Trending.
+            // With tabs: 16px (pt-4) between the tab underline and chips.
+            // pb-3 = 12px between chips and the first feed card.
+            containerTwClassName={showTabBar ? 'pt-4 pb-3' : 'pb-3'}
           />
         )}
 

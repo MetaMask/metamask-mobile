@@ -29,6 +29,9 @@ import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getSocialAccountType } from '../../../constants/onboarding';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 interface SocialLoginIosUserProps {
@@ -41,16 +44,30 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
+  const { accountName, oauthLoginSuccess, provider } =
     (route.params as {
       accountName?: string;
       oauthLoginSuccess?: boolean;
-      onboardingTraceCtx?: unknown;
       provider?: string;
     }) || {};
 
   const isUserTypeNew = type === 'new';
   const accountType = getSocialAccountType(provider ?? '', !isUserTypeNew);
+
+  useNavigationPerformance({
+    destinationScreenId: isUserTypeNew
+      ? OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_NEW_USER
+      : OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+    destinationReady: true,
+  });
+
+  useScreenPerformance({
+    screenId: isUserTypeNew
+      ? OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_NEW_USER
+      : OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   const hasTrackedView = useRef(false);
   useEffect(() => {
@@ -79,7 +96,6 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       StackActions.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess,
-        onboardingTraceCtx,
         accountName,
         provider,
       }),
@@ -99,7 +115,6 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       StackActions.replace(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
-        onboardingTraceCtx,
         provider,
       }),
     );

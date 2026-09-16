@@ -129,14 +129,10 @@ searchDirs:
   - .github/
 
 models:
-  default: grok-4-20-reasoning
-  escalation: claude-sonnet-4.6
-  escalationThreshold: 2
-
   escalationPatterns:                                                                                                                                                                         
     - 'confirm|transaction|swap|bridge|send'                                                                                                                                                
     - 'predict|perp|trade|stake|exchange'
-    - 'keyring|vault|seed|mnemonic|private.?key'                                                                                                                                              
+    - 'seed|mnemonic|private.?key'                                                                                                                                              
     - 'auth|permission|access.?control|role'
 
 

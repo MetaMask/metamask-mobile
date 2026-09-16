@@ -151,8 +151,19 @@ if [ -f "$SUMMARY_FILE" ]; then
     # Build type label
     if [ "$buildType" = "Experimental" ]; then
         buildTypeLabel="Experimental"
+    elif [ "$buildType" = "RC" ]; then
+        buildTypeLabel="RC"
+    elif [ "$buildType" = "E2E" ]; then
+        buildTypeLabel="E2E"
     else
         buildTypeLabel="Normal"
+    fi
+
+    releaseVersion=""
+    if [[ "${GITHUB_REF_NAME:-}" =~ ^release/(.+)$ ]]; then
+        releaseVersion="${BASH_REMATCH[1]}"
+    elif [[ "${BRANCH_NAME:-}" =~ ^release/(.+)$ ]]; then
+        releaseVersion="${BASH_REMATCH[1]}"
     fi
 
     # Helper: format device key "DeviceName+OSVersion" -> "DeviceName (vOSVersion)"
@@ -170,7 +181,16 @@ if [ -f "$SUMMARY_FILE" ]; then
     # --- Build the formatted message ---
 
     SUMMARY="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    SUMMARY+="*🔄 Performance E2E Tests — ${buildTypeLabel} Build*\n"
+    if [ "$buildTypeLabel" = "RC" ]; then
+        if [ -n "$releaseVersion" ]; then
+            SUMMARY+="*🔄 Performance E2E Tests — RC ${releaseVersion} (track-only)*\n"
+        else
+            SUMMARY+="*🔄 Performance E2E Tests — RC (track-only)*\n"
+        fi
+        SUMMARY+="_Observability only — does not block the release._\n"
+    else
+        SUMMARY+="*🔄 Performance E2E Tests — ${buildTypeLabel} Build*\n"
+    fi
     SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     # Count job-level failures (jobs that failed before producing test results)
@@ -317,10 +337,16 @@ if [ -f "$SUMMARY_FILE" ]; then
     # Build Info
     SUMMARY+="*🔧 BUILD INFO*\n"
     SUMMARY+="├─ Build: ${buildTypeLabel}\n"
+    if [ -n "$releaseVersion" ]; then
+        SUMMARY+="├─ Release: \`${releaseVersion}\`\n"
+    fi
     SUMMARY+="├─ Branch: \`$GITHUB_REF_NAME\`\n"
     SUMMARY+="└─ Commit: \`${GITHUB_SHA:0:7}\`\n\n"
 
     SUMMARY+="<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|🔗 View full results>\n"
+    if [ "$buildTypeLabel" = "RC" ]; then
+        SUMMARY+="_Filter in Sentry (test): \`ci_build_variant:rc\` + \`release_version:${releaseVersion:-*}\`_\n"
+    fi
     SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     echo "$SUMMARY"

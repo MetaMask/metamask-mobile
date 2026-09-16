@@ -38,7 +38,7 @@ describe('MMConnect excluded from performance CI', () => {
   it('omits mm-connect Playwright projects from the performance config', () => {
     const playwrightConfig = readRepoFile('tests/playwright.config.ts');
 
-    expect(playwrightConfig).toMatch(/grep:\s*\/@Performance\//);
+    expect(playwrightConfig).toMatch(/grep:\s*\/@Performance\\b\//);
     expect(playwrightConfig).not.toMatch(/name:\s*'mm-connect-/);
     expect(playwrightConfig).not.toContain('performance/mm-connect');
     expect(playwrightConfig).not.toContain('smoke-appium/mm-connect');

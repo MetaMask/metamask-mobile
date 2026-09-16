@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { toHex } from '@metamask/controller-utils';
 import { TextColor } from '@metamask/design-system-react-native';
+import BigNumber from 'bignumber.js';
 import Logger from '../../../../util/Logger';
 import { TokenI } from '../../Tokens/types';
 import type { TokenListItemCta } from '../../Tokens/TokenList/TokenListItem/TokenListItem';
@@ -12,7 +13,7 @@ import {
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
@@ -30,7 +31,7 @@ export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
   const { shouldShowMoneyTokenListItemCta } = useMoneyCtaVisibility();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: screenName,
     component_name: COMPONENT_NAMES.MONEY_TOKEN_LIST_ITEM_CTA,
@@ -96,6 +97,7 @@ export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
         token_position_in_list: context.tokenPositionInList,
         token_chain_id: asset.chainId,
         tokens_in_list: context.tokensInList,
+        token_has_balance: new BigNumber(asset.balance).gt(0),
       });
 
       if (redirectedToOnboarding) {

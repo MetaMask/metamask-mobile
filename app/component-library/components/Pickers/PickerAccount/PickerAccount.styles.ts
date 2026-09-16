@@ -28,6 +28,9 @@ const styleSheet = (params: {
       flexDirection: 'row',
       borderWidth: 0,
     },
+    dropdownIcon: {
+      marginLeft: 8,
+    },
     accountAddressLabel: {
       color: colors.text.alternative,
       textAlign: 'center',

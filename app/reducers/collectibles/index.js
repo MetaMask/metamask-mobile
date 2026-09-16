@@ -1,31 +1,13 @@
-import { toHex } from '@metamask/controller-utils';
 import { createSelector } from 'reselect';
 import { selectChainId } from '../../selectors/networkController';
 import {
   selectAllNftContracts,
   selectAllNfts,
+  selectMultichainCollectiblesByEnabledNetworks,
 } from '../../selectors/nftController';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
 import { createDeepEqualSelector } from '../../selectors/util';
-import { selectEnabledNetworksByNamespace } from '../../selectors/networkEnablementController';
-
-/**
- * Builds a set of chain IDs for filtering. When chainIds include CAIP-2 (e.g. from listPopularNetworks),
- * adds Hex form for eip155:* so we match NFT keys which are Hex.
- * @param {string[]} chainIds - CAIP-2 or Hex chain IDs
- * @returns {Set<string>}
- */
-function buildAllowedChainIdSet(chainIds) {
-  const set = new Set(chainIds);
-  for (const id of chainIds) {
-    if (id.startsWith('eip155:')) {
-      const reference = id.slice(7);
-      if (reference) set.add(toHex(reference));
-    }
-  }
-  return set;
-}
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
@@ -61,69 +43,7 @@ export const collectiblesSelector = createDeepEqualSelector(
  * @param {string[]} [addressesOverride] - Optional list of addresses to aggregate NFTs from; when omitted, uses selected account address only
  */
 export const multichainCollectiblesByEnabledNetworksSelector =
-  createDeepEqualSelector(
-    [
-      selectSelectedInternalAccountAddress,
-      selectAllNfts,
-      selectEnabledNetworksByNamespace,
-      (state, preferredChainIds) => preferredChainIds,
-      (state, _preferredChainIds, addressesOverride) => addressesOverride,
-    ],
-    (
-      selectedAddress,
-      allNfts,
-      enabledNetworks,
-      preferredChainIds,
-      addressesOverride,
-    ) => {
-      const addresses =
-        addressesOverride != null &&
-        Array.isArray(addressesOverride) &&
-        addressesOverride.length > 0
-          ? addressesOverride
-          : selectedAddress
-            ? [selectedAddress]
-            : [];
-
-      let allowedChainIdsSet;
-
-      if (
-        preferredChainIds != null &&
-        Array.isArray(preferredChainIds) &&
-        preferredChainIds.length > 0
-      ) {
-        allowedChainIdsSet = buildAllowedChainIdSet(preferredChainIds);
-      } else {
-        const enabledChainIds = [];
-        for (const namespace of Object.keys(enabledNetworks || {})) {
-          const networkMap = enabledNetworks[namespace] || {};
-          for (const chainId of Object.keys(networkMap)) {
-            if (networkMap[chainId]) enabledChainIds.push(chainId);
-          }
-        }
-
-        if (enabledChainIds.length === 0) {
-          return {};
-        }
-
-        allowedChainIdsSet = new Set(enabledChainIds);
-      }
-
-      const result = {};
-      for (const address of addresses) {
-        const addressNfts = allNfts?.[address];
-        if (!addressNfts) continue;
-        for (const chainId of Object.keys(addressNfts)) {
-          if (!allowedChainIdsSet.has(chainId)) continue;
-          const nfts = addressNfts[chainId];
-          if (!Array.isArray(nfts)) continue;
-          result[chainId] = (result[chainId] || []).concat(nfts);
-        }
-      }
-
-      return result;
-    },
-  );
+  selectMultichainCollectiblesByEnabledNetworks;
 
 export const favoritesCollectiblesSelector = createSelector(
   selectSelectedInternalAccountAddress,

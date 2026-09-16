@@ -1,15 +1,8 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import {
-  Image,
-  View,
-  StyleSheet,
-  useWindowDimensions,
-  ViewStyle,
-  ImageStyle,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,7 +13,8 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
 import {
   Box,
@@ -34,10 +28,14 @@ import { brandColor } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../../../styles/common';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
-// Threshold for small screen adjustments
-const SMALL_SCREEN_THRESHOLD = 700;
-
 const staticStyles = StyleSheet.create({
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
   headerContainer: {
     zIndex: 2,
   },
@@ -55,50 +53,30 @@ const KYCFailed = () => {
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-
-  const dynamicStyles = useMemo<{
-    imageContainer: ViewStyle;
-    image: ImageStyle;
-  }>(() => {
-    const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
-    const imageTop = isSmallScreen ? '28%' : '25%';
-    const imageWidth = isSmallScreen ? screenWidth * 1.5 : screenWidth * 1.2;
-    const imageHeight = isSmallScreen
-      ? screenHeight * 0.8
-      : screenHeight * 0.75;
-
-    return {
-      imageContainer: {
-        position: 'absolute',
-        top: imageTop,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        zIndex: 1,
-      },
-      image: {
-        width: imageWidth,
-        height: imageHeight,
-      },
-    };
-  }, [screenWidth, screenHeight]);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const hasTrackedView = useRef(false);
 
   useEffect(() => {
     dispatch(resetOnboardingState());
   }, [dispatch]);
 
   useEffect(() => {
+    // Wait for a known provider so we don't fire with a Baanx fallback then
+    // again when Immersve resolves (duplicate / misattributed views).
+    if (hasTrackedView.current || !activeProviderId) {
+      return;
+    }
+    hasTrackedView.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.KYC_FAILED,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.KYC_FAILED,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME);
@@ -106,6 +84,13 @@ const KYCFailed = () => {
 
   return (
     <Box twClassName="flex-1" style={tw.style(`bg-[${brandColor.purple800}]`)}>
+      <Image
+        source={MM_CARD_ONBOARDING_FAILED}
+        resizeMode="cover"
+        style={staticStyles.backgroundImage}
+        testID="kyc-failed-image"
+      />
+
       {/* Header with back button */}
       <SafeAreaView edges={['top']} style={staticStyles.headerContainer}>
         <Box twClassName="px-4 py-2 items-start">
@@ -129,23 +114,13 @@ const KYCFailed = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-white opacity-80 mt-4"
+            twClassName="text-white opacity-80 mt-2"
             testID="kyc-failed-description"
           >
             {strings('card.card_onboarding.kyc_failed.description')}
           </Text>
         </Box>
       </SafeAreaView>
-
-      {/* Image - positioned absolutely to extend behind footer */}
-      <View style={dynamicStyles.imageContainer}>
-        <Image
-          source={MM_CARD_ONBOARDING_FAILED}
-          resizeMode="contain"
-          style={dynamicStyles.image}
-          testID="kyc-failed-image"
-        />
-      </View>
 
       {/* Footer */}
       <SafeAreaView

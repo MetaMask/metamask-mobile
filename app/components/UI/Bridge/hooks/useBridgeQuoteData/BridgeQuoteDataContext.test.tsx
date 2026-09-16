@@ -1,63 +1,35 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
-import { BigNumber } from 'ethers';
-import { SolScope } from '@metamask/keyring-api';
-import {
-  selectBridgeQuotes,
-  selectBridgeFeatureFlags,
-} from '@metamask/bridge-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   BridgeQuoteDataProvider,
   useBridgeQuoteDataContext,
 } from './BridgeQuoteDataContext';
-import { createBridgeTestState } from '../../testUtils';
-import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import {
-  getQuoteRefreshRate,
-  isQuoteExpired,
-  shouldRefreshQuote,
-} from '../../utils/quoteUtils';
+import { runQuoteProviderCases } from './runQuoteProviderCases';
+import { FeatureId } from '@metamask/bridge-controller';
 
-jest.mock('../../utils/quoteUtils', () => ({
-  isQuoteExpired: jest.fn(),
-  getQuoteRefreshRate: jest.fn(),
-  shouldRefreshQuote: jest.fn(),
+// `@metamask/bridge-controller` is ESM-only; Babel compiles its re-exports to
+// non-configurable getters that `jest.spyOn` cannot redefine. Re-exporting the
+// real module through a plain object restores spy-able properties for the
+// `selectBridgeQuotes` / `selectBridgeFeatureFlags` spies in the shared cases.
+jest.mock('@metamask/bridge-controller', () => ({
+  // `__esModule` keeps Babel's interop from wrapping this object in a copy,
+  // so the namespace the spies patch is the one consumers read from.
+  __esModule: true,
+  ...jest.requireActual('@metamask/bridge-controller'),
 }));
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
 }));
 
-jest.mock('@metamask/bridge-controller', () => {
-  const actual = jest.requireActual('@metamask/bridge-controller');
-  return {
-    ...actual,
-    selectBridgeQuotes: jest.fn(),
-    selectBridgeFeatureFlags: jest.fn().mockImplementation(() => ({
-      minimumVersion: '7.58.0',
-      priceImpactThreshold: {
-        gasless: 0.4,
-        normal: 0.19,
-        warning: 0.05,
-        error: 0.25,
-      },
-    })),
-  };
-});
-
-const mockValidateBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
   __esModule: true,
-  default: () => ({
-    validateBridgeTx: mockValidateBridgeTx,
-  }),
+  default: jest.fn(),
 }));
 
-const mockUseIsInsufficientBalance = jest.fn();
 jest.mock('../useInsufficientBalance', () => ({
   __esModule: true,
-  default: (params: unknown) => mockUseIsInsufficientBalance(params),
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -79,88 +51,35 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
-function Consumer() {
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+const Consumer = () => {
   useBridgeQuoteDataContext();
   return null;
-}
+};
 
-describe('BridgeQuoteDataContext', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (isQuoteExpired as jest.Mock).mockReturnValue(false);
-    (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
-    (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
-    mockUseIsInsufficientBalance.mockReturnValue(false);
-    mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
-    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
-      recommendedQuote: mockQuoteWithMetadata,
-      sortedQuotes: [mockQuoteWithMetadata],
-    }));
-    (selectBridgeFeatureFlags as unknown as jest.Mock).mockImplementation(
-      () => ({
-        minimumVersion: '7.58.0',
-        priceImpactThreshold: {
-          gasless: 0.4,
-          normal: 0.19,
-          warning: 0.05,
-          error: 0.25,
-        },
-      }),
-    );
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('shares one bridge quote data instance across multiple consumers', async () => {
-    jest.spyOn(console, 'warn').mockImplementation();
-
-    const testState = createBridgeTestState({
-      bridgeReducerOverrides: {
-        sourceAmount: '0.5',
-        sourceToken: {
-          symbol: 'SOL',
-          chainId: SolScope.Mainnet,
-          address:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
-          decimals: 9,
-        },
-        destToken: {
-          symbol: 'USDC',
-          chainId: SolScope.Mainnet,
-          address:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          decimals: 6,
-        },
-      },
-    });
-
+runQuoteProviderCases({
+  name: 'BridgeQuoteDataContext',
+  missingProviderError:
+    'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
+  renderProvider: (state) =>
     renderWithProvider(
-      <BridgeQuoteDataProvider
-        latestSourceAtomicBalance={BigNumber.from('1000000000')}
-      >
+      <BridgeQuoteDataProvider>
         <Consumer />
         <Consumer />
         <Consumer />
         <Consumer />
         <Consumer />
       </BridgeQuoteDataProvider>,
-      { state: testState },
-    );
-
-    await waitFor(() => {
-      expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('throws when used outside BridgeQuoteDataProvider', () => {
-    jest.spyOn(console, 'error').mockImplementation();
-
-    expect(() => {
-      renderWithProvider(<Consumer />);
-    }).toThrow(
-      'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
-    );
-  });
+      { state },
+    ),
+  renderWithoutProvider: () => renderWithProvider(<Consumer />),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+  quoteParams: {},
 });

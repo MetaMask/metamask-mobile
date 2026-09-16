@@ -8,6 +8,7 @@ import {
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
 import { type Position } from '@metamask/perps-controller';
 import { usePerpsOrderFees } from '../../hooks';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
@@ -19,6 +20,7 @@ jest.mock('../../../../../util/theme', () => {
     useTheme: jest.fn(() => mockTheme),
   };
 });
+jest.mock('../../../../../util/haptics');
 
 jest.mock('./PerpsFlipPositionConfirmSheet.styles', () => () => ({
   contentContainer: {},
@@ -96,14 +98,16 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
-  PERPS_EVENT_VALUE: {
-    SOURCE: {
-      POSITION_SCREEN: 'position_screen',
-    },
-  },
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    ...actual,
+    getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  };
+});
 
 jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');
@@ -339,6 +343,24 @@ describe('PerpsFlipPositionConfirmSheet', () => {
         }),
       );
     });
+    expect(playImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays PrimaryCTA once for an opted-in flip confirmation', async () => {
+    render(
+      <PerpsFlipPositionConfirmSheet
+        position={mockLongPosition}
+        enableHaptics
+      />,
+    );
+
+    fireEvent.press(screen.getByText('Flip'));
+
+    await waitFor(() => {
+      expect(mockHandleFlipPosition).toHaveBeenCalled();
+    });
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('calls onClose when cancel button is pressed', () => {

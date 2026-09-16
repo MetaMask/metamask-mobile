@@ -12,6 +12,7 @@ The performance framework lives under the `tests/` directory alongside the rest 
 
 - [Test Structure](#test-structure)
 - [Configuration](#configuration)
+- [CI Triggers](#ci-triggers)
 - [Running Tests](#running-tests)
 - [Test Categories](#test-categories)
 - [Performance Tracking System](#performance-tracking-system)
@@ -45,7 +46,7 @@ tests/
 │   │   └── helpers.ts               # File-based failure tracking across workers
 │   ├── TimerStore.ts               # Low-level timer management
 │   ├── TimerHelper.ts              # Timer helper with thresholds support
-│   ├── PlaywrightContextHelpers.ts  # Native ↔ web context switching (dapp tests)
+│   ├── AppiumContextHelpers.ts  # Native ↔ web context switching (dapp tests)
 │   └── utils/
 │       ├── TestConstants.js         # Test constants and credentials
 │       └── Utils.js                 # General utilities
@@ -121,6 +122,28 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
   }
 }
 ```
+
+## CI Triggers
+
+Performance E2E never runs on push. Coverage comes from PR selection on `main` plus a fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
+
+| Event                                 | Behavior                                                                                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                                                                             |
+| PR targeting `main`                   | Smart E2E Selection decides which performance tags to run (or none). The `run-performance-tests` label forces the full Android low-profile suite regardless of the AI's decision. |
+| PR targeting `release/*` or `stable`  | No automatic performance run — CI ignores AI performance selection for these base branches. The `run-performance-tests` label still forces a full run.                            |
+| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                |
+| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                                                                                            |
+
+Workflow layout:
+
+- [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on BrowserStack, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
+- [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
+- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
+
+For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
+
+`build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to BrowserStack. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.
 
 ## Running Tests
 
@@ -205,6 +228,7 @@ These tags categorize tests by feature area and can be used with `--grep` for ad
 | `@PerformanceAssetLoading` | Asset and balance loading performance                         |
 | `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
 | `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
+| `@PerformanceRewards`      | Rewards tab time-to-content (onboarding or dashboard shell)   |
 
 ### Tagging Convention
 
@@ -252,6 +276,7 @@ Tests for users with existing wallets:
 
 - `asset-balances.spec.ts` - Asset balance loading times
 - `asset-view.spec.ts` - Individual asset view performance
+- `rewards-tab-time-to-content.spec.ts` - Rewards tab time-to-content (onboarding or dashboard)
 - `eth-swap-flow.spec.ts` - ETH swap transaction flow
 - `cross-chain-swap-flow.spec.ts` - Cross-chain swap performance
 - `import-multiple-srps.spec.ts` - Multiple SRP import performance
@@ -318,18 +343,16 @@ const timer = new TimerHelper(
 // Using measure() — action BEFORE measure, assertion INSIDE measure
 await SomeScreen.tapButton(); // action (not timed)
 await timer.measure(async () => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(NextScreen.container),
-  );
+  await AppiumAssertions.expectElementToBeVisible(NextScreen.container);
 });
 
 // Manual start/stop for cross-context flows (dapp tests)
-await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 await DappScreen.tapConnect(); // action
 timer.start(); // start AFTER the action
-await PlaywrightContextHelpers.switchToNativeContext();
+await AppiumContextHelpers.switchToNativeContext();
 await DappConnectionModal.tapConfirm();
-await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 await DappScreen.assertConnected(); // assertion
 timer.stop(); // stop AFTER assertion
 ```
@@ -369,9 +392,7 @@ perfTest(
 
     await SomeScreen.tapButton(); // action
     await timer.measure(async () => {
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(NextScreen.container),
-      );
+      await AppiumAssertions.expectElementToBeVisible(NextScreen.container);
     });
 
     // Add timer to tracker — metrics are auto-attached after the test by the fixture
@@ -456,7 +477,7 @@ Quality Gates FAILED for "My Test":
 Tests use static page object classes from `tests/page-objects/`. No device assignment is needed — just import and call:
 
 ```typescript
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
 
@@ -465,9 +486,7 @@ perfTest(
   async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
     // No device assignment needed — page objects use the global driver
     await WalletView.tapOnToken('USDC');
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(WalletView.accountIcon),
-    );
+    await AppiumAssertions.expectElementToBeVisible(WalletView.accountIcon);
   },
 );
 ```
@@ -508,16 +527,6 @@ import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
 ```
 
-### `dismisspredictionsModalPlaywright()`
-
-Dismiss the Predictions modal:
-
-```typescript
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
-
-await dismisspredictionsModalPlaywright();
-```
-
 ### `selectAccountByDevice(deviceName)`
 
 Select the account mapped to the current device for parallel testing:
@@ -531,13 +540,13 @@ await selectAccountByDevice(currentDeviceDetails.deviceName);
 ### Context switching for dapp tests
 
 ```typescript
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 
 // Switch to native MetaMask context
-await PlaywrightContextHelpers.switchToNativeContext();
+await AppiumContextHelpers.switchToNativeContext();
 
 // Switch to a specific web/dapp context
-await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 ```
 
 ## Environment Variables
@@ -583,9 +592,20 @@ TEST_PASSWORD_ONBOARDING="your onboarding password"
 # Feature flags for performance tests (client-config API: rc | exp | test; not e2e)
 E2E_PERFORMANCE_BUILD_VARIANT=rc
 
-# CI note: scheduled/feature-branch performance workflows use build_variant=e2e
-# (GitHub environment build-e2e). E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately
-# in performance-test-runner for the flags API. Release workflows use build_variant=rc.
+# CI note: PR (main) and scheduled performance runs use build_variant=e2e
+# (GitHub environment build-e2e). Manual dispatch also supports build_variant=exp
+# or rc. E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately in
+# performance-test-runner for the flags API. See "CI Triggers".
+#
+# Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
+# procedure as main-e2e Android (build-android-e2e.yml), via find-reusable-build in
+# build-android-upload-to-browserstack.yml:
+#   - miss → fresh dual Gradle builds
+#   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
+#   - hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
+#     then upload (fingerprint ignores JS-only changes, so repack avoids stale JS)
+# Separate from Appium smoke main-e2e APKs and from reuse_main_builds BrowserStack
+# custom_id resolution on main (test-only fast path that skips the dual-build job).
 ```
 
 ### Sentry Performance Instrumentation (Optional)
@@ -610,6 +630,26 @@ What gets sent per scenario:
 - Each test timer as a numeric measurement (duration in milliseconds)
 - Scenario metadata (test name, project, tags, team, retry, worker)
 - Timer details (thresholds and pass/fail validation) in `extra.timer_steps`
+- RC track-only tags when running release builds: `ci_build_variant`,
+  `release_version`, `github_ref`, `github_run_id`, `tracking_mode=observe`
+
+### RC performance tracking (observe-only)
+
+RC performance E2E is available through manual dispatch of
+`run-performance-e2e-manual.yml` against a `release/*` branch with
+`build_variant=rc`. This path is **track-only** (does not block the release):
+
+- Uploads scenario + profiling metrics to the **test** Sentry project by default
+  (`sentry_target: test`)
+- Tags events with `ci_build_variant:rc` and `release_version` (from
+  `release/X.Y.Z`) so RC runs are filterable in Discover
+- Slack summary is labeled `RC <version> (track-only)`
+
+Filter example in Sentry:
+
+```text
+ci_build_variant:rc release_version:7.58.0
+```
 
 ## Reports and Metrics
 
@@ -661,11 +701,23 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
 | `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
 
-### App profiling check (on-demand PR diff)
+### App profiling check (automatic on PR failures)
 
-When a performance scenario fails on a PR, the results comment includes an
-**App profiling check** command. Paste it as a PR comment to compare BrowserStack
-`profilingSummary` against the last green run of that scenario on `main`:
+When a PR performance run has failed scenarios, the results comment includes
+an inline **App profiling check** under each failed scenario that has a prior
+usable baseline on `main` (short summary + collapsed metric table). Scenarios
+without a prior baseline are omitted from that block.
+
+Baselines come from the scheduled `main` runs of
+[`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml)
+(`BASELINE_WORKFLOW` in `tests/scripts/diff-app-profiling.mjs`). The reusable
+`run-performance-e2e.yml` cannot be used as the baseline source: it is
+`workflow_call` only, so its invocations are jobs of the caller run and never
+appear in `gh run list --workflow run-performance-e2e.yml`.
+
+Header uses ⚠️ when there are failed tests.
+
+Manual re-run remains available via:
 
 ```text
 @metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run <RUN_ID>
@@ -677,8 +729,34 @@ Or compare all failed scenarios from that run:
 @metamaskbot app-profiling-check --all --run <RUN_ID>
 ```
 
-This runs `.github/workflows/app-profiling-check.yml`, which downloads
-`aggregated-reports` for the current run + baseline and posts a diff comment.
+This uses `.github/workflows/app-profiling-check.yml` (bot command /
+`workflow_dispatch`). The automatic PR path embeds profiling into the
+performance results comment from `run-performance-e2e.yml`.
+
+Both paths share `tests/scripts/diff-app-profiling.mjs`, so a `--workflow`
+override on the manual command also changes where baselines are looked up.
+
+### Weekly app profiling report (Cursor Automation)
+
+For a weekly rollup of BrowserStack app-profiling averages across merged PRs
+that ran performance tests:
+
+```bash
+node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+```
+
+Outputs:
+
+| File             | Description                                                                   |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `report.json`    | Scenario averages, peak-sample recording URLs, failing PRs, data-driven leads |
+| `slack.md`       | Slack-ready markdown (leads include BrowserStack recording links for peaks)   |
+| `ai-briefing.md` | Briefing for an AI pass (investigation insights + peak recordings)            |
+
+Recommended automation: schedule the prompt in
+[`.cursor/automations/weekly-app-profiling-report.md`](../../.cursor/automations/weekly-app-profiling-report.md).
+That run collects metrics, adds a final **AI insights to investigate** section
+based on merged PR themes/hotspots, and DMs the report on Slack.
 
 ### HTML Dashboard Features
 
@@ -717,15 +795,15 @@ The aggregated HTML report (`performance-report.html`) includes:
    // ✅ Good — action outside, assertion inside
    await WalletView.tapButton();
    await timer.measure(async () => {
-     await PlaywrightAssertions.expectElementToBeVisible(
-       asPlaywrightElement(NextScreen.container),
+     await AppiumAssertions.expectElementToBeVisible(
+       NextScreen.container,
      );
    });
 
    // ❌ Bad — action inside measure pollutes the timing
    await timer.measure(async () => {
      await WalletView.tapButton();
-     await PlaywrightAssertions.expectElementToBeVisible(...);
+     await AppiumAssertions.expectElementToBeVisible(...);
    });
    ```
 
@@ -754,7 +832,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
@@ -780,8 +858,8 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
       // 3. Measure the action
       await WalletView.tapOnToken('USDC'); // action (not timed)
       await timer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TokenOverview.container),
+        await AppiumAssertions.expectElementToBeVisible(
+          TokenOverview.container,
         );
       });
 

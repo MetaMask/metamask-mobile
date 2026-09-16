@@ -37,7 +37,12 @@ export const addDeviceVerificationCodeScreenOptions: NativeStackNavigationOption
   };
 
 export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
+  animation: 'ios_from_right',
+};
+
+export const slideFromLeftNativeOptions: NativeStackNavigationOptions = {
+  animation: 'ios_from_left',
+  animationMatchesGesture: true,
 };
 
 export const fadeNativeOptions: NativeStackNavigationOptions = {

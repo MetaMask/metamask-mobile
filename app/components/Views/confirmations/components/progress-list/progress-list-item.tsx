@@ -5,12 +5,7 @@ import ButtonIcon, {
 import {
   IconColor,
   IconName,
-  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import { Box } from '../../../../UI/Box/Box';
 import {
@@ -24,6 +19,14 @@ import { strings } from '../../../../../../locales/i18n';
 import { Severity, StatusIcon } from '../status-icon';
 import styleSheet from './progress-list.styles';
 import { useProgressListItemMeta } from './progress-list';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  IconColor as DsIconColor,
+  IconSize as DsIconSize,
+} from '@metamask/design-system-react-native';
 
 interface ProgressListItemProps {
   title: string;
@@ -70,7 +73,9 @@ function DotListItem({
         {!isLast && <StepConnector testID="progress-list-dotted-connector" />}
       </Box>
       <Box style={styles.dotContent}>
-        <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {title}
+        </Text>
         <DotStatusLine severity={severity} subtitle={subtitle} />
       </Box>
       {buttonIcon ? (
@@ -105,8 +110,8 @@ function DotStatusLine({
     return (
       <Text
         testID="progress-list-item-subtitle"
-        variant={TextVariant.BodyMD}
-        color={TextColor.Error}
+        variant={TextVariant.BodyMd}
+        color={TextColor.ErrorDefault}
       >
         {strings('transaction.failed')}
       </Text>
@@ -121,14 +126,14 @@ function DotStatusLine({
         gap={4}
       >
         <PendingSpinner
-          size={IconSize.Sm}
-          color={IconColor.Warning}
+          size={DsIconSize.Sm}
+          color={DsIconColor.WarningDefault}
           testID="progress-list-item-pending-spinner"
         />
         <Text
           testID="progress-list-item-subtitle"
-          variant={TextVariant.BodyMD}
-          color={TextColor.Warning}
+          variant={TextVariant.BodyMd}
+          color={TextColor.WarningDefault}
         >
           {strings('transaction.pending')}
         </Text>
@@ -139,8 +144,8 @@ function DotStatusLine({
   return (
     <Text
       testID="progress-list-item-subtitle"
-      variant={TextVariant.BodyMD}
-      color={TextColor.Alternative}
+      variant={TextVariant.BodyMd}
+      color={TextColor.TextAlternative}
     >
       {subtitle}
     </Text>
@@ -171,7 +176,11 @@ function StatusIconListItem({
           alignItems={AlignItems.center}
         >
           <StatusIcon severity={severity} tooltip={tooltip} />
-          <Text color={textColor} variant={TextVariant.BodyMDMedium}>
+          <Text
+            color={textColor}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+          >
             {title}
           </Text>
         </Box>
@@ -188,8 +197,8 @@ function StatusIconListItem({
         <Box style={styles.subtitleSpacer} />
         <Text
           testID="progress-list-item-subtitle"
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.subtitleText}
         >
           {subtitle}
@@ -202,7 +211,7 @@ function StatusIconListItem({
 function getTextColor(severity: Severity): TextColor | undefined {
   switch (severity) {
     case 'error':
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     default:
       return undefined;
   }

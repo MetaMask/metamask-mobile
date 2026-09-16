@@ -37,6 +37,10 @@ const AddressCopy = ({ iconColor, hitSlop, testID }: AddressCopyProps) => {
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
+  const endShowAccountAddressListTrace = useCallback(() => {
+    endTrace({ name: TraceName.ShowAccountAddressList });
+  }, []);
+
   const handleOnPress = useCallback(() => {
     // Start the trace before navigating to the address list to include the
     // navigation and render times in the trace.
@@ -48,20 +52,23 @@ const AddressCopy = ({ iconColor, hitSlop, testID }: AddressCopyProps) => {
       },
     });
 
-    navigateWithDetails(
-      navigation,
-      createAddressListNavigationDetails({
-        groupId: selectedAccountGroupId as AccountGroupId,
-        title: `${strings(
-          'multichain_accounts.address_list.receiving_address',
-        )}`,
-        source: AddressListViewedSource.COPY_BUTTON,
-        onLoad: () => {
-          endTrace({ name: TraceName.ShowAccountAddressList });
-        },
-      }),
-    );
-  }, [navigation, selectedAccountGroupId]);
+    try {
+      navigateWithDetails(
+        navigation,
+        createAddressListNavigationDetails({
+          groupId: selectedAccountGroupId as AccountGroupId,
+          title: `${strings(
+            'multichain_accounts.address_list.receiving_address',
+          )}`,
+          source: AddressListViewedSource.COPY_BUTTON,
+          onLoad: endShowAccountAddressListTrace,
+        }),
+      );
+    } catch (error) {
+      endShowAccountAddressListTrace();
+      throw error;
+    }
+  }, [endShowAccountAddressListTrace, navigation, selectedAccountGroupId]);
 
   return (
     <View style={styles.address} testID={testID}>

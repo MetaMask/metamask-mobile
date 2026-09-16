@@ -45,6 +45,12 @@ export const selectWalletHomeOnboardingSteps = createSelector(
     WALLET_HOME_ONBOARDING_STEPS_INITIAL,
 );
 
+export const selectPushNotificationOsPromptRequested = createSelector(
+  selectOnboarding,
+  (onboardingState) =>
+    onboardingState?.pushNotificationOsPromptRequested === true,
+);
+
 export const selectShouldShowWalletHomeOnboardingSteps = createSelector(
   selectWalletHomeOnboardingStepsEligible,
   selectWalletHomeOnboardingSteps,

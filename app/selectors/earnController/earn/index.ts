@@ -1,5 +1,6 @@
 import {
   isSupportedPooledStakingChain,
+  selectLendingMarkets,
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
@@ -19,6 +20,7 @@ import {
   weiToFiatNumber,
   toTokenMinimalUnit,
 } from '../../../util/number';
+import { renderFiat as renderFiatBigInt } from '../../../util/number/bigint';
 import { selectSelectedInternalAccountByScope } from '../../multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../accountTrackerController';
 import {
@@ -35,6 +37,11 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
+import {
+  selectMoneyDepositAssetsMeetingMinimumBalance,
+  selectMoneyDepositBlockedTokens,
+} from '../../../components/UI/Money/selectors/depositTokens';
+import { selectAssetsBySelectedAccountGroup } from '../../assets/assets-list';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
@@ -71,6 +78,14 @@ const getPooledStakingApr = (
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
 
+const selectSelectedEvmAddress = (state: RootState) =>
+  selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address;
+
+const selectAllLendingMarkets = createSelector(
+  selectEarnControllerState,
+  (earnControllerState) => selectLendingMarkets(earnControllerState),
+);
+
 const selectEarnTokenBaseData = createSelector(
   [
     selectEarnControllerState,
@@ -80,7 +95,7 @@ const selectEarnTokenBaseData = createSelector(
     pooledStakingSelectors.selectEligibility,
     selectTokensBalances,
     selectTokenMarketData,
-    selectSelectedInternalAccountByScope,
+    selectSelectedEvmAddress,
     selectCurrentCurrency,
     selectNetworkConfigurations,
     selectAccountTokensAcrossChainsUnified,
@@ -96,7 +111,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAccountByScope,
+    selectedAddress,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -111,7 +126,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAddress: selectedAccountByScope(EVM_SCOPE)?.address,
+    selectedAddress,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -283,14 +298,22 @@ const selectEarnTokens = createDeepEqualSelector(
       const ethToUserSelectedFiatConversionRate =
         currencyRates?.[nativeCurrency]?.conversionRate ?? 0;
       const balanceFiatNumber = weiToFiatNumber(
-        balanceWei.toString(),
-        ethToUsdConversionRate,
+        tokenBalanceMinimalUnit.toString(),
+        ethToUserSelectedFiatConversionRate,
         2,
       );
       const nonEvmOrDerived = isNonEvmNative
         ? {
             balanceValueFormatted: token.balance ?? '0',
-            balanceFiat: token.balanceFiat ?? '0',
+            balanceFiat:
+              token.balanceFiat === undefined ||
+              !Number.isFinite(parseFloat(token.balanceFiat))
+                ? undefined
+                : renderFiatBigInt(
+                    parseFloat(token.balanceFiat),
+                    currentCurrency as Parameters<typeof renderFiatBigInt>[1],
+                    2,
+                  ),
             balanceFiatCalculation: parseFloat(token.balanceFiat ?? '0'),
           }
         : deriveBalanceFromAssetMarketDetails(
@@ -305,6 +328,15 @@ const selectEarnTokens = createDeepEqualSelector(
         nonEvmOrDerived.balanceValueFormatted || '0';
       const balanceFiat = nonEvmOrDerived.balanceFiat || '0';
       const balanceFiatCalculation = nonEvmOrDerived.balanceFiatCalculation;
+      const isBalanceFiatAvailable = isNonEvmNative // E.g. TRX
+        ? token.balanceFiat !== undefined &&
+          Number.isFinite(parseFloat(token.balanceFiat)) &&
+          (parseFloat(token.balance ?? '0') === 0 ||
+            parseFloat(token.balanceFiat) > 0)
+        : token.isETH
+          ? ethToUserSelectedFiatConversionRate > 0 ||
+            new BN4(tokenBalanceMinimalUnit.toString()).isZero()
+          : Number.isFinite(balanceFiatCalculation);
 
       let assetBalanceFiatNumber = isNonEvmNative
         ? parseFloat(token.balanceFiat ?? '0') || 0
@@ -328,8 +360,12 @@ const selectEarnTokens = createDeepEqualSelector(
           token,
           pooledStakingVaultAprForChain,
         );
+        const stakingExperienceType =
+          isTronNative || isTronStakedToken
+            ? EARN_EXPERIENCES.TRX_STAKING
+            : EARN_EXPERIENCES.POOLED_STAKING;
         experiences.push({
-          type: EARN_EXPERIENCES.POOLED_STAKING,
+          type: stakingExperienceType,
           apr: aprForExperience,
           ...getEstimatedAnnualRewards(
             aprForExperience,
@@ -350,7 +386,7 @@ const selectEarnTokens = createDeepEqualSelector(
           for (const market of lendingMarketsForToken) {
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              apr: String(market.netSupplyRate.toFixed(1)),
+              apr: String(market.netSupplyRate),
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,
@@ -403,6 +439,7 @@ const selectEarnTokens = createDeepEqualSelector(
           // fiat balance of the asset in number format, the most accurate
           // i.e. 100.12345
           balanceFiatNumber: assetBalanceFiatNumber,
+          isBalanceFiatAvailable,
           tokenUsdExchangeRate,
           experience: experiences[0],
           // asset apr info per experience
@@ -494,6 +531,42 @@ const selectEarnTokens = createDeepEqualSelector(
 
     return earnTokensData;
   },
+);
+
+export const selectEarnAssetCatalogueInputs = createSelector(
+  [
+    selectEarnTokens,
+    selectAllLendingMarkets,
+    selectMoneyDepositAssetsMeetingMinimumBalance,
+    selectMoneyDepositBlockedTokens,
+    selectAssetsBySelectedAccountGroup,
+    pooledStakingSelectors.selectEligibility,
+    selectPooledStakingEnabledFlag,
+    selectStablecoinLendingEnabledFlag,
+    selectTrxStakingEnabled,
+  ],
+  (
+    earnTokensData,
+    lendingMarkets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
+    assetsByChain,
+    isEarnEligible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  ) => ({
+    earnTokens: earnTokensData.earnTokens,
+    earnOutputTokens: earnTokensData.earnOutputTokens,
+    lendingMarkets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
+    assets: Object.values(assetsByChain).flat(),
+    isEarnEligible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  }),
 );
 
 const selectEarnToken = createSelector(
@@ -613,7 +686,7 @@ const selectPrimaryEarnExperienceTypeForAsset = createSelector(
     const isTronNative =
       asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
     if (isTronNative && isTrxStakingEnabled) {
-      return EARN_EXPERIENCES.POOLED_STAKING;
+      return EARN_EXPERIENCES.TRX_STAKING;
     }
     return undefined;
   },
@@ -621,7 +694,9 @@ const selectPrimaryEarnExperienceTypeForAsset = createSelector(
 
 export const earnSelectors = {
   selectEarnControllerState,
+  selectAllLendingMarkets,
   selectEarnTokens,
+  selectEarnAssetCatalogueInputs,
   selectEarnToken,
   selectEarnOutputToken,
   selectEarnTokenPair,

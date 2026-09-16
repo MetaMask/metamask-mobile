@@ -55,6 +55,7 @@ Always measure on **Android** (more sensitive, more representative) with the **p
 - [Release build profiler](../readme/release-build-profiler.md)
 - [Animations](../readme/animations.md)
 - [`app/util/trace.ts`](../../app/util/trace.ts) — the `trace()`/`TraceName` instrumentation API
+- [Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md) — Processed / Navigated CUF catalog
 - The `mms-performance` AI skill (via `yarn skills`) — the codebase-verified playbook
 - Internal: the **Performance Guide for Engineers** (Confluence, TL1 space) for tool walkthrough recordings, and the **Power-user SRPs** page for ready-made test wallets — ask the Mobile Platform team
 - [Callstack — The Ultimate Guide to React Native Optimization](https://www.callstack.com/ebooks/the-ultimate-guide-to-react-native-optimization)

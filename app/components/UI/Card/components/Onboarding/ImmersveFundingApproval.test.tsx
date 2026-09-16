@@ -55,9 +55,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({ countryKey: 'GB' }),
 }));
 
-jest.mock('../../hooks/useImmersveSpendingPrerequisites');
-jest.mock('../../hooks/useImmersveFunding');
-jest.mock('../../hooks/useImmersveOnboardingRouter');
+jest.mock('../../hooks/useImmersveSpendingPrerequisites', () => ({
+  useImmersveSpendingPrerequisites: jest.fn(),
+}));
+jest.mock('../../hooks/useImmersveFunding', () => ({
+  useImmersveFunding: jest.fn(),
+}));
+jest.mock('../../hooks/useImmersveOnboardingRouter', () => ({
+  useImmersveOnboardingRouter: jest.fn(),
+}));
 
 const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
@@ -84,6 +90,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../util/metrics', () => ({
   CardScreens: { FUNDING_APPROVAL: 'FUNDING_APPROVAL' },
+  CardActions: {
+    FUNDING_APPROVAL_CONFIRM: 'FUNDING_APPROVAL_CONFIRM',
+    FUNDING_APPROVAL_RETRY: 'FUNDING_APPROVAL_RETRY',
+  },
+  withCardProvider: (
+    provider: string | null | undefined,
+    properties: Record<string, unknown> = {},
+  ) => ({
+    provider,
+    ...properties,
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {

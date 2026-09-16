@@ -16,10 +16,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(),
-}));
-
 jest.mock('../../../../core/HardwareWallets/analytics');
 
 const mockNavigate = jest.fn();

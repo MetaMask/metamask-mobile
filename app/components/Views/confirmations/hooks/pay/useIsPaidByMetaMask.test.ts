@@ -55,7 +55,7 @@ function runHook({
     state.engine.backgroundState
       .TransactionController as TransactionControllerState
   ).transactions[0];
-  tx.type = type ?? TransactionType.musdConversion;
+  tx.type = type ?? TransactionType.perpsDeposit;
 
   if (isGasFeeSponsored !== undefined) {
     (tx as { isGasFeeSponsored?: boolean }).isGasFeeSponsored =
@@ -124,12 +124,6 @@ describe('useIsPaidByMetaMask', () => {
     expect(result.current).toBe(false);
   });
 
-  it('returns true when all four fee components are zero and the type is musdConversion', () => {
-    const { result } = runHook({ type: TransactionType.musdConversion });
-
-    expect(result.current).toBe(true);
-  });
-
   it('returns true when metaMask.usd is undefined and other fees are zero', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
@@ -140,7 +134,7 @@ describe('useIsPaidByMetaMask', () => {
       },
     } as TransactionPayTotals);
 
-    const { result } = runHook({ type: TransactionType.musdConversion });
+    const { result } = runHook({ type: TransactionType.perpsDeposit });
 
     expect(result.current).toBe(true);
   });
@@ -148,7 +142,7 @@ describe('useIsPaidByMetaMask', () => {
   it('returns false when at least one fee component is non-zero', () => {
     useTransactionPayTotalsMock.mockReturnValue(nonZeroFeesTotals);
 
-    const { result } = runHook({ type: TransactionType.musdConversion });
+    const { result } = runHook({ type: TransactionType.perpsDeposit });
 
     expect(result.current).toBe(false);
   });

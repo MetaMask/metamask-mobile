@@ -5,9 +5,9 @@ import {
   SOCIAL_AI_QUICK_BUY_AB_KEY,
   SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
   SOCIAL_AI_QUICK_BUY_VARIANTS,
-} from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
+} from '../../QuickBuy/abTestConfig';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
-import type { QuickBuySheetSource } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import type { QuickBuySheetSource } from '../../QuickBuy/analytics';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
 interface UseStickyQuickBuyArgs {

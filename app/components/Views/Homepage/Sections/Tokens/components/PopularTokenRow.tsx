@@ -208,35 +208,26 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
         <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
           {token.name}
         </Text>
-        {token.description ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+        >
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {token.description}
+            {priceDisplay}
+            {percentageChange.text ? ' \u2022 ' : ''}
           </Text>
-        ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-          >
+          {percentageChange.text ? (
             <Text
               variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
+              color={percentageChange.color}
             >
-              {priceDisplay}
-              {percentageChange.text ? ' \u2022 ' : ''}
+              {percentageChange.text}
             </Text>
-            {percentageChange.text ? (
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={percentageChange.color}
-              >
-                {percentageChange.text}
-              </Text>
-            ) : null}
-          </Box>
-        )}
+          ) : null}
+        </Box>
       </Box>
 
       {/* Buy Button */}

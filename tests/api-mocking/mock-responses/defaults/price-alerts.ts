@@ -5,7 +5,6 @@ import { MockEventsObject } from '../../../framework';
  * Blocks actual requests to the price-alerts supported-chains endpoint,
  * which is fetched whenever the Token Details page is opened.
  */
-
 export const PRICE_ALERTS_API_MOCKS: MockEventsObject = {
   GET: [
     {

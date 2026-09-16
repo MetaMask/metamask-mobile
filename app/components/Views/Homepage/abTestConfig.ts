@@ -3,6 +3,49 @@ import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnaly
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
+// ─── Homepage Earn section (MUSD-1313) ──────────────────────────────────────
+export const HOMEPAGE_EARN_SECTION_AB_KEY =
+  'musd1313AbtestEarnSectionOnHomepage';
+
+export enum HomepageEarnSectionVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface HomepageEarnSectionVariantConfig {
+  showEarnSection: boolean;
+}
+
+export const HOMEPAGE_EARN_SECTION_VARIANTS: Record<
+  HomepageEarnSectionVariant,
+  HomepageEarnSectionVariantConfig
+> = {
+  [HomepageEarnSectionVariant.Control]: {
+    showEarnSection: false,
+  },
+  [HomepageEarnSectionVariant.Treatment]: {
+    showEarnSection: true,
+  },
+};
+
+export const HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Earn section on Homepage',
+  variationNames: {
+    control: 'Homepage without Earn section',
+    treatment: 'Homepage with Earn section',
+  },
+} as const;
+
+export const HOMEPAGE_EARN_SECTION_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_EARN_SECTION_AB_KEY,
+    validVariants: Object.values(HomepageEarnSectionVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+    injectWhenPropertiesMatch: {
+      section_name: 'earn',
+    },
+  };
+
 // ─── Homepage Perps empty state — Explore-style pills (TMCU-725) ─────────────
 
 /**
@@ -255,4 +298,166 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
     flagKey: HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
     validVariants: Object.values(HomepageActionButtonsGridVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
+  };
+
+// ─── Homepage balance breakdown ──────────────────────────────────────────────
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
+  'homeTMCU1209AbtestHomepageBalanceBreakdown';
+export const HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT =
+  'homescreen_balance_breakdown';
+
+export enum HomepageBalanceBreakdownVariant {
+  Control = 'control',
+  Icons = 'icons',
+  IconsWithArrows = 'iconsWithArrows',
+  Allocation = 'allocation',
+}
+
+export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
+
+interface HomepageBalanceBreakdownVariantConfig {
+  layout: HomepageBalanceBreakdownLayout | null;
+  showRowArrows: boolean;
+}
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
+  HomepageBalanceBreakdownVariant,
+  HomepageBalanceBreakdownVariantConfig
+> = {
+  [HomepageBalanceBreakdownVariant.Control]: {
+    layout: null,
+    showRowArrows: false,
+  },
+  [HomepageBalanceBreakdownVariant.Icons]: {
+    layout: 'icons',
+    showRowArrows: false,
+  },
+  [HomepageBalanceBreakdownVariant.IconsWithArrows]: {
+    layout: 'icons',
+    showRowArrows: true,
+  },
+  [HomepageBalanceBreakdownVariant.Allocation]: {
+    layout: 'allocation',
+    showRowArrows: false,
+  },
+};
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage balance breakdown',
+  variationNames: {
+    control: 'Current homepage without balance breakdown',
+    icons: 'Primitive breakdown with icons',
+    iconsWithArrows: 'Primitive breakdown with icons and row arrows',
+    allocation: 'Primitive allocation breakdown',
+  },
+} as const;
+
+export function getHomepageBalanceBreakdownTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    validVariants: Object.values(HomepageBalanceBreakdownVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.MONEY_SURFACE_VIEWED,
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PREDICT_FEED_VIEWED,
+      EVENT_NAME.PREDICT_HOME_VIEWED,
+      EVENT_NAME.POSITION_SCREEN_VIEWED,
+    ],
+    eventPropertyRequirements: {
+      [EVENT_NAME.MONEY_SURFACE_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PERPS_SCREEN_VIEWED]: {
+        source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PREDICT_FEED_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PREDICT_HOME_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.POSITION_SCREEN_VIEWED]: {
+        source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+    },
+  };
+
+// ─── Wallet header & bottom NavBar refresh (TMCU-1276) ───────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1276).
+ */
+export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
+
+export enum HeaderNavBarVariant {
+  Control = 'control',
+  SearchFocused = 'searchFocused',
+  TradeFocused = 'tradeFocused',
+}
+
+/** Trailing circular button alongside the floating NavBar pill. */
+export type HeaderNavBarTrailingAction = 'none' | 'search' | 'trade';
+
+interface HeaderNavBarVariantConfig {
+  isCompactHeaderEnabled: boolean;
+  trailingNavBarAction: HeaderNavBarTrailingAction;
+  /** Search moves into the header when the NavBar button opens the trade tray. */
+  isHeaderSearchEnabled: boolean;
+}
+
+export const HEADER_NAV_BAR_VARIANTS: Record<
+  HeaderNavBarVariant,
+  HeaderNavBarVariantConfig
+> = {
+  [HeaderNavBarVariant.Control]: {
+    isCompactHeaderEnabled: false,
+    trailingNavBarAction: 'none',
+    isHeaderSearchEnabled: false,
+  },
+  [HeaderNavBarVariant.SearchFocused]: {
+    isCompactHeaderEnabled: true,
+    trailingNavBarAction: 'search',
+    isHeaderSearchEnabled: false,
+  },
+  [HeaderNavBarVariant.TradeFocused]: {
+    isCompactHeaderEnabled: true,
+    trailingNavBarAction: 'trade',
+    isHeaderSearchEnabled: true,
+  },
+};
+
+export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Header and Nav Bar refresh',
+  variationNames: {
+    control: 'Current header and NavBar',
+    searchFocused:
+      'Refreshed header with consolidated hamburger menu and NavBar search',
+    tradeFocused: 'Refreshed header with NavBar trade button and header search',
+  },
+} as const;
+
+export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HEADER_NAV_BAR_AB_KEY,
+    validVariants: Object.values(HeaderNavBarVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACCOUNT_LIST_VIEWED],
   };

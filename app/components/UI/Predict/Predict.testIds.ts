@@ -228,6 +228,8 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+  TWAP_INFO_BUTTON: 'predict-crypto-up-down-details-twap-info-button',
+  TWAP_INFO_SHEET: 'predict-crypto-up-down-details-twap-info-sheet',
 } as const;
 
 export const PredictCryptoUpDownPositionsSelectorsIDs = {
@@ -305,6 +307,9 @@ export const PredictBuyPreviewSelectorsIDs = {
   // Inline error banners (sheet mode)
   PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
   ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
+  PAYMENT_FAILED_BANNER: 'predict-buy-preview-payment-failed-banner',
+  PAYMENT_FAILED_ADD_FUNDS_BUTTON:
+    'predict-buy-preview-payment-failed-add-funds',
 } as const;
 
 // ========================================
@@ -346,6 +351,12 @@ export const PredictUnavailableSelectorsIDs = {
   DESCRIPTION_TEXT: enContent.predict.unavailable.description,
   LINK_TEXT: enContent.predict.unavailable.link,
   BUTTON_TEXT: enContent.predict.unavailable.button,
+} as const;
+
+export const PredictConnectionErrorSelectorsIDs = {
+  TITLE_TEXT: enContent.predict.error.title,
+  DESCRIPTION_TEXT: enContent.predict.error.description,
+  RETRY_TEXT: enContent.predict.error.retry,
 } as const;
 
 // ========================================

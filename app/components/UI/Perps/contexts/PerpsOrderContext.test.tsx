@@ -38,11 +38,20 @@ describe('PerpsOrderContext', () => {
     setTakeProfitPrice: jest.fn(),
     setStopLossPrice: jest.fn(),
     setLimitPrice: jest.fn(),
+    commitLimitPrice: jest.fn(),
+    commitTriggerPrice: jest.fn(),
+    hasBlurredLimitPrice: false,
+    hasBlurredTriggerPrice: false,
+    triggerPrice: undefined,
+    setTriggerPrice: jest.fn(),
+    resetPriceInputInteraction: jest.fn(),
     setOrderType: jest.fn(),
+    pendingReduceOnly: undefined,
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setMaxPossibleAmountOverride: jest.fn(),
     balanceForValidation: 1000,
   };
 
@@ -137,6 +146,8 @@ describe('PerpsOrderContext', () => {
       expect(result.current.setTakeProfitPrice).toBeDefined();
       expect(result.current.setStopLossPrice).toBeDefined();
       expect(result.current.setLimitPrice).toBeDefined();
+      expect(result.current.triggerPrice).toBeUndefined();
+      expect(result.current.setTriggerPrice).toBeDefined();
       expect(result.current.setOrderType).toBeDefined();
       expect(result.current.handlePercentageAmount).toBeDefined();
       expect(result.current.handleMaxAmount).toBeDefined();
@@ -313,6 +324,7 @@ describe('PerpsOrderContext', () => {
       expect(contextResult).toHaveProperty('setStopLossPrice');
       expect(contextResult).toHaveProperty('setLimitPrice');
       expect(contextResult).toHaveProperty('setOrderType');
+      expect(contextResult).toHaveProperty('pendingReduceOnly');
       expect(contextResult).toHaveProperty('handlePercentageAmount');
       expect(contextResult).toHaveProperty('handleMaxAmount');
       expect(contextResult).toHaveProperty('handleMinAmount');

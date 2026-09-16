@@ -3,15 +3,16 @@ import {
   NestedTransactionMetadata,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import {
   PaymentOverride,
   TransactionFiatPayment,
   TransactionPayRequiredToken,
+  TransactionPayTotals,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
-import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
@@ -26,6 +27,7 @@ import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
+import { isTransactionPayWithdraw } from './transaction';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -311,21 +313,44 @@ export function resolvePreferredPayToken({
 }
 
 /**
- * Sets the money account payment override on a transaction and clears any
- * previously selected fiat payment method. For deposit flows the money
- * account address is stored as the refund destination.
+ * Sets the Money Account payment override on a transaction and clears any
+ * previously selected fiat payment method.
+ *
+ * `paymentOverride` is set unconditionally; the additional flow-specific
+ * fields are set only for the flows that need them.
+ *
+ * Perps/Predict withdraw → MA sets `atomic: false` so the post-Relay transfer
+ * to the Money Account runs in `submitPostNonAtomic`. The quote recipient is
+ * derived by the pay controller via the `getPaymentOverrideData` callback.
+ * Deposit-direction flows funded by the Money Account (Money Account, Perps,
+ * and Predict deposits) set `refundTo: MA` so failed Relay bridges refund to
+ * the MA rather than the funding EOA. Money Account deposits additionally
+ * flip `atomic: false` later via `useTransactionCustomAmount`'s `setIsMax`
+ * when the user toggles max amount.
+ *
+ * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
+ * path with no recipient override: `processTransactions` overwrites the quote
+ * recipient with the actual token-transfer target from the nested batch.
  */
 export function applyMoneyAccountOverride(
   transactionId: string,
   moneyAccountAddress: string | undefined,
-  isWithdraw: boolean,
+  transactionMeta: TransactionMeta | undefined,
 ): void {
+  const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
   Engine.context.TransactionPayController.setTransactionConfig(
     transactionId,
     (config) => {
-      (config as Record<string, unknown>).paymentOverride =
-        PaymentOverride.MoneyAccount;
-      if (moneyAccountAddress && !isWithdraw) {
+      config.paymentOverride = PaymentOverride.MoneyAccount;
+      if (isPerpsOrPredictWithdraw) {
+        config.atomic = false;
+      }
+      if (!isWithdraw && moneyAccountAddress) {
         config.refundTo = moneyAccountAddress as Hex;
       }
     },
@@ -337,4 +362,43 @@ export function applyMoneyAccountOverride(
       fp.selectedPaymentMethodId = undefined;
     },
   });
+}
+
+export function getTotalPayFeesUsd(
+  fees: TransactionPayTotals['fees'],
+): BigNumber {
+  return new BigNumber(fees.provider?.usd ?? 0)
+    .plus(fees.sourceNetwork?.estimate?.usd ?? 0)
+    .plus(fees.targetNetwork?.usd ?? 0)
+    .plus(fees.metaMask?.usd ?? 0);
+}
+
+/**
+ * Truncates a fiat amount to two decimals for rendering and for the keypad
+ * buffer, since the stored amount carries full precision so that Max spends
+ * the entire balance.
+ *
+ * Truncates rather than rounds because the result is re-typable: the user can
+ * read the value off the screen and enter it back through the keypad, and
+ * rounding up would produce an amount greater than the balance.
+ *
+ * Amounts already within two decimals are returned as-is, so keypad input
+ * renders exactly as typed and a mid-edit `12.` is never rewritten to `12.00`.
+ */
+export function formatAmountForDisplay(amountFiat: string): string {
+  const separatorIndex = amountFiat.search(/[.,]/u);
+
+  if (separatorIndex === -1) {
+    return amountFiat;
+  }
+
+  const decimalCount = amountFiat.length - separatorIndex - 1;
+
+  if (decimalCount <= 2) {
+    return amountFiat;
+  }
+
+  const value = new BigNumber(amountFiat.replace(',', '.'));
+
+  return value.isFinite() ? value.toFixed(2, BigNumber.ROUND_DOWN) : amountFiat;
 }

@@ -119,6 +119,16 @@ describe('Checkout', () => {
     expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
+  it('allows http, https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
+    const { getByTestId } = render();
+    expect(getByTestId('checkout-webview').props.originWhitelist).toEqual([
+      'https://*',
+      'http://*',
+      'about:blank',
+      'about:srcdoc',
+    ]);
+  });
+
   it('displays sell WebView when url is present and no errors', () => {
     mockUseRampSDKValues.isBuy = false;
     const { getByTestId } = render();

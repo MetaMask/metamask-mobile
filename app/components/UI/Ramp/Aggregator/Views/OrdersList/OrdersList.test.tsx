@@ -338,6 +338,8 @@ describe('OrdersList', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
 
-    expect(mockGoToBuy).toHaveBeenCalledWith();
+    expect(mockGoToBuy).toHaveBeenCalledWith(undefined, {
+      surface: 'orders_list',
+    });
   });
 });

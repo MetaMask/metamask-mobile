@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -9,28 +10,38 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectLocalActivityItemsByIdentifier } from '#app/selectors/activity';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
+import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
-import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({ transactions: [] })),
+  useSelector: jest.fn(),
 }));
-jest.mock('../../ActivityList/hooks/useLocalActivityItems');
 jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
   mapNonEvmTransactions: jest.fn(() => []),
 }));
+jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
+  useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
+    bridgeHistoryItemsBySrcTxHash: {},
+  })),
+  findBridgeHistoryItemBySrcTxHash: jest.fn(),
+}));
+jest.mock('./useLocalTransactionMeta', () => ({
+  useLocalTransactionMeta: jest.fn(),
+}));
 
-const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
 const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
+const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
 
 const rampOrder: FiatOrder = {
   id: 'ramp-order-id',
@@ -62,18 +73,52 @@ function makeItem(
   } as ActivityListItem;
 }
 
+function stubGroup(item: ActivityListItem) {
+  return {
+    primaryTransaction: { hash: item.hash, id: item.hash },
+    initialTransaction: { hash: item.hash, id: item.hash },
+  };
+}
+
+let localByIdentifier = new Map<string, ActivityListItem>();
+
+function identifierMapFrom(
+  items: ActivityListItem[],
+  groups: ReturnType<typeof stubGroup>[],
+) {
+  const byKey = new Map<string, ActivityListItem>();
+  items.forEach((item, index) => {
+    const group = groups[index] ?? stubGroup(item);
+    for (const transaction of [
+      group.primaryTransaction,
+      group.initialTransaction,
+    ]) {
+      if (transaction.hash) {
+        byKey.set(transaction.hash.toLowerCase(), item);
+      }
+      if (transaction.id) {
+        byKey.set(String(transaction.id).toLowerCase(), item);
+      }
+    }
+  });
+  return byKey;
+}
+
 function setSources({
   local = [],
+  localGroups,
   confirmed = [],
   nonEvm = [],
   ramp = [],
 }: {
   local?: ActivityListItem[];
+  localGroups?: ReturnType<typeof stubGroup>[];
   confirmed?: ActivityListItem[];
   nonEvm?: ActivityListItem[];
   ramp?: ActivityListItem[];
 }) {
-  useLocalActivityItemsMock.mockReturnValue(local);
+  const groups = localGroups ?? local.map(stubGroup);
+  localByIdentifier = identifierMapFrom(local, groups);
   useRampActivityItemsMock.mockReturnValue(ramp);
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
@@ -82,7 +127,20 @@ function setSources({
 }
 
 describe('useActivityDetailsItem', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useLocalTransactionMetaMock.mockReturnValue(undefined);
+    localByIdentifier = new Map();
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [];
+      }
+      return { transactions: [] };
+    });
+  });
 
   it('returns undefined when no identifier is provided', () => {
     setSources({});
@@ -106,6 +164,34 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(nonEvm);
   });
 
+  it('forwards bridge history and subject address into non-EVM mapping', () => {
+    const transaction = { id: 'sol-tx', account: 'account-1' };
+    const subjectAddress = 'So11111111111111111111111111111111111111112';
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [{ id: 'account-1', address: subjectAddress }];
+      }
+      return { transactions: [transaction] };
+    });
+    mapNonEvmTransactionsMock.mockReturnValue([
+      makeItem({ type: 'receive', hash: 'sol-tx' }),
+    ]);
+
+    renderHook(() => useActivityDetailsItem('sol-tx'));
+
+    expect(mapNonEvmTransactionsMock).toHaveBeenCalledWith(
+      [transaction],
+      expect.any(Function),
+      expect.any(Function),
+    );
+    const getSubjectAddress = mapNonEvmTransactionsMock.mock
+      .calls[0][2] as (tx: { account: string }) => string | undefined;
+    expect(getSubjectAddress(transaction)).toBe(subjectAddress);
+  });
+
   it('prefers the API item over a generic local contractInteraction', () => {
     const local = makeItem({ type: 'contractInteraction', hash: '0xdef' });
     const api = makeItem({ type: 'swap', hash: '0xdef' });
@@ -115,8 +201,12 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(api);
   });
 
-  it('prefers the API swap over a local swapIncomplete (destination unresolved on-device)', () => {
-    const local = makeItem({ type: 'swapIncomplete', hash: '0xswap' });
+  it('prefers the API swap over a local swap whose destination is unresolved on-device', () => {
+    const local = makeItem({
+      type: 'swap',
+      hash: '0xswap',
+      data: { sourceToken: { direction: 'out', symbol: 'ETH' } },
+    });
     const api = makeItem({ type: 'swap', hash: '0xswap' });
     setSources({ local: [local], confirmed: [api] });
 
@@ -124,8 +214,12 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(api);
   });
 
-  it('falls back to the local swapIncomplete when there is no API copy', () => {
-    const local = makeItem({ type: 'swapIncomplete', hash: '0xonly' });
+  it('falls back to the local swap when there is no API copy', () => {
+    const local = makeItem({
+      type: 'swap',
+      hash: '0xonly',
+      data: { sourceToken: { direction: 'out', symbol: 'ETH' } },
+    });
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xonly'));
@@ -220,148 +314,47 @@ describe('useActivityDetailsItem', () => {
     const local = makeItem({
       type: 'send',
       hash: '0xnewhash',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-1', hash: '0xnewhash' },
-          initialTransaction: { id: 'meta-1', hash: '0xoldhash' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'meta-1',
+      hash: '0xnewhash',
+    } as ReturnType<typeof useLocalTransactionMeta>);
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
     expect(result.current).toBe(local);
   });
 
-  it('recovers a live local item via preloaded meta id after a hash mismatch', () => {
-    const live = makeItem({
-      type: 'send',
-      hash: '0xnewhash',
-      status: 'pending',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-2', hash: '0xnewhash' },
-          initialTransaction: { id: 'meta-2' },
+  it('resolves a local item by the initial transaction hash', () => {
+    const local = makeItem({ type: 'send', hash: '0xprimary' });
+    setSources({
+      local: [local],
+      localGroups: [
+        {
+          primaryTransaction: { id: 'primary-id', hash: '0xprimary' },
+          initialTransaction: { id: 'initial-id', hash: '0xinitial' },
         },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const preloaded = makeItem({
-      type: 'send',
-      hash: '0xoldhash',
-      status: 'pending',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-2', hash: '0xoldhash' },
-          initialTransaction: { id: 'meta-2' },
-        },
-      },
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [
-          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
-        ],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ local: [live] });
+      ],
+    });
 
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('0xoldhash', 'eip155:1', preloaded),
-    );
-    expect(result.current).toBe(live);
+    const { result } = renderHook(() => useActivityDetailsItem('0xinitial'));
+    expect(result.current).toBe(local);
   });
 
-  it('falls back to a preloaded local snapshot when live lookup misses', () => {
-    const preloaded = makeItem({
-      type: 'send',
-      hash: '0xorphan',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-orphan', hash: '0xorphan' },
-          initialTransaction: { id: 'meta-orphan' },
+  it('resolves a local item by the transaction group id', () => {
+    const local = makeItem({ type: 'send', hash: '0xabc' });
+    setSources({
+      local: [local],
+      localGroups: [
+        {
+          primaryTransaction: { id: 'meta-1', hash: '0xabc' },
+          initialTransaction: { id: 'meta-1', hash: '0xabc' },
         },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({});
+      ],
+    });
 
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-orphan', 'eip155:1', preloaded),
-    );
-    expect(result.current).toBe(preloaded);
-  });
-
-  it('prefers a preloaded local gas-token fee over a native-only API copy when live local misses', () => {
-    const api = makeItem({
-      type: 'send',
-      hash: '0xshared',
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const preloaded = makeItem({
-      type: 'send',
-      hash: '0xshared',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-gas', hash: '0xshared' },
-          initialTransaction: { id: 'meta-gas' },
-        },
-      },
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [
-          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
-        ],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ confirmed: [api] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-gas', 'eip155:1', preloaded),
-    );
-    expect(result.current).toBe(preloaded);
-  });
-
-  it('prefers the API copy over a preloaded local when the snapshot has no richer fees', () => {
-    const api = makeItem({
-      type: 'send',
-      hash: '0xshared2',
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const preloaded = makeItem({
-      type: 'send',
-      hash: '0xshared2',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-plain', hash: '0xshared2' },
-          initialTransaction: { id: 'meta-plain' },
-        },
-      },
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ confirmed: [api] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-plain', 'eip155:1', preloaded),
-    );
-    expect(result.current).toBe(api);
+    const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
+    expect(result.current).toBe(local);
   });
 
   it('returns the API item when there is no local match', () => {
@@ -411,73 +404,5 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current).toBe(ramp);
-  });
-
-  it('resolves a preloaded domain item by hash without reading provider-backed sources', () => {
-    const preloaded = makeItem({
-      type: 'perpsOpenLong',
-      chainId: 'eip155:42161',
-      hash: 'perps-fill-1',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'fill-1',
-          type: 'trade',
-          category: 'position_open',
-          title: 'Opened long',
-          subtitle: '0.0001 BTC',
-          timestamp: 1,
-          asset: 'BTC',
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({});
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('perps-fill-1', 'eip155:42161', preloaded),
-    );
-
-    expect(result.current).toBe(preloaded);
-  });
-
-  it('prefers a matching preloaded domain item over a local hash collision', () => {
-    const local = makeItem({
-      type: 'send',
-      chainId: 'eip155:42161',
-      hash: '0xshared',
-    });
-    const preloaded = makeItem({
-      type: 'perpsAddFunds',
-      chainId: 'eip155:42161',
-      hash: '0xshared',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'wallet-deposit-1',
-          type: 'deposit',
-          category: 'deposit',
-          title: 'Account funded',
-          subtitle: 'Completed',
-          timestamp: 1,
-          asset: 'USDC',
-          depositWithdrawal: {
-            amount: '+$1.00',
-            amountNumber: 1,
-            isPositive: true,
-            asset: 'USDC',
-            txHash: '0xshared',
-            status: 'completed',
-            type: 'deposit',
-          },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ local: [local] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('0xshared', 'eip155:42161', preloaded),
-    );
-
-    expect(result.current).toBe(preloaded);
   });
 });

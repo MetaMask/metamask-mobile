@@ -12,6 +12,28 @@ import {
 import { dashboardKeys } from './dashboard';
 import { authKeys } from './auth';
 
+const transactionKeys = {
+  all: () => ['card', 'transactions'] as const,
+  list: (
+    providerId: string | null,
+    providerUserId: string,
+    fromDate?: number,
+    toDate?: number,
+  ) =>
+    [
+      ...transactionKeys.all(),
+      providerId,
+      providerUserId,
+      fromDate,
+      toDate,
+    ] as const,
+  detail: (transactionId: string) =>
+    [...transactionKeys.all(), 'detail', transactionId] as const,
+  /** Bounded Money Account enrichment index; scoped per provider/user. */
+  index: (providerId: string | null, providerUserId: string) =>
+    [...transactionKeys.all(), 'index', providerId, providerUserId] as const,
+};
+
 export const cardQueries = {
   keys: {
     all: () => ['card'] as const,
@@ -34,5 +56,8 @@ export const cardQueries = {
   },
   auth: {
     keys: authKeys,
+  },
+  transactions: {
+    keys: transactionKeys,
   },
 };

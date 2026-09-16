@@ -13,3 +13,22 @@ export {
   startFailureRecording,
   stopFailureRecordingAndAttach,
 } from './ScreenRecording.ts';
+export { isSessionAlive, switchToNativeContext } from './sessionHealth.ts';
+export {
+  consumeSharedSessionRecreate,
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+  resetSharedSessionRecreateState,
+} from './sessionRecovery.ts';
+export {
+  isAdbTransportFault,
+  withAdbHostLock,
+  withAdbHostLockSync,
+} from './adbHostLock.ts';
+export {
+  softReloadAppForFixtures,
+  type SoftReloadAppForFixturesOptions,
+  type SoftReloadAppForFixturesResult,
+  type SoftReloadDeviceCommands,
+  type SoftReloadFixtureServer,
+} from './softReloadApp.ts';

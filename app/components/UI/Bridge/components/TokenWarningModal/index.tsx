@@ -132,7 +132,7 @@ export const TokenWarningModal = () => {
     }
 
     const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact,
+      activeQuote?.quote.priceData?.priceImpact?.amount,
     );
 
     if (

@@ -1,5 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -58,11 +64,12 @@ const RiveOnboardingStepper = ({
   enableRiveAnimation = true,
 }: RiveOnboardingStepperProps) => {
   const tw = useTailwind();
-  const riveRef = useRef<RiveRef>(null);
+  const { riveFile } = useRiveFile(riveConfig.source);
+  const { riveViewRef, setHybridRef } = useRive();
   const hasCompletedRef = useRef(false);
-  // When Rive is disabled it never fires `onPlay`, so start ready to avoid the
-  // content staying hidden behind the `opacity-0` gate.
-  const [isRiveReady, setIsRiveReady] = useState(!enableRiveAnimation);
+  // When Rive is disabled the view never becomes ready, so treat it as ready
+  // to avoid the content staying hidden behind the `opacity-0` gate.
+  const isRiveReady = !enableRiveAnimation || Boolean(riveViewRef);
 
   const {
     currentStepIndex,
@@ -78,8 +85,6 @@ const RiveOnboardingStepper = ({
     onClose && currentStep?.showCloseButton !== false
       ? () => onClose(currentStepIndex)
       : undefined;
-
-  const handleRivePlay = useCallback(() => setIsRiveReady(true), []);
 
   const safeAutoComplete = useCallback(() => {
     if (hasCompletedRef.current) return;
@@ -110,12 +115,12 @@ const RiveOnboardingStepper = ({
     }
 
     try {
-      riveRef.current?.fireState(
-        riveConfig.stateMachineName,
-        riveConfig.triggerName,
-      );
+      riveViewRef?.triggerInput(riveConfig.triggerName);
     } catch (error) {
-      Logger.error(error as Error, 'RiveOnboardingStepper: fireState failed');
+      Logger.error(
+        error as Error,
+        'RiveOnboardingStepper: triggerInput failed',
+      );
     }
 
     advanceStep();
@@ -124,7 +129,7 @@ const RiveOnboardingStepper = ({
     isLastStep,
     advanceStep,
     onComplete,
-    riveConfig.stateMachineName,
+    riveViewRef,
     riveConfig.triggerName,
   ]);
 
@@ -168,18 +173,17 @@ const RiveOnboardingStepper = ({
         </Box>
 
         {/* Rive animation fills remaining space — intentionally edge-to-edge, no horizontal padding */}
-        {enableRiveAnimation && (
+        {enableRiveAnimation && riveFile && (
           <Box twClassName="absolute inset-0">
-            <Rive
-              ref={riveRef}
+            <RiveView
+              hybridRef={setHybridRef}
               style={riveStyle}
-              source={riveConfig.source}
+              file={riveFile}
               stateMachineName={riveConfig.stateMachineName}
               fit={riveConfig.fit ?? Fit.FitWidth}
               alignment={riveConfig.alignment ?? Alignment.Center}
-              autoplay
+              autoPlay
               testID={RiveOnboardingStepperTestIds.RIVE_ANIMATION}
-              onPlay={handleRivePlay}
             />
           </Box>
         )}

@@ -8,6 +8,9 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { endPerpsCufTrace } from '../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
 
 const mockNavigate = jest.fn();
 
@@ -22,6 +25,17 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('./usePerpsTrading');
+jest.mock('../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  startPerpsCufTrace: jest.fn(() => 'close-cuf-op'),
+  endPerpsCufTrace: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  watchPerpsCufPositionClosed: jest.fn(),
+  acceptPerpsCufRequest: jest.fn(),
+}));
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -60,6 +74,7 @@ const mockPerpsToastOptions = {
           partialPositionCloseFailed: {},
         },
       },
+      positionAlreadyClosed: { label: 'already-closed' },
     },
   },
 };
@@ -702,6 +717,91 @@ describe('usePerpsClosePosition', () => {
       });
 
       describe('failure toasts', () => {
+        it('shows already-closed toast when close returns No position found', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'No position found for BTC',
+          });
+          const onSuccess = jest.fn();
+          const { result } = renderHook(() =>
+            usePerpsClosePosition({ onSuccess }),
+          );
+
+          let closeResult: OrderResult | undefined;
+          await act(async () => {
+            closeResult = await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'market',
+            });
+          });
+
+          expect(closeResult).toEqual({
+            success: false,
+            error: 'No position found for BTC',
+          });
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition
+              .positionAlreadyClosed,
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'positions',
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'accountState',
+          );
+          expect(endPerpsCufTrace).toHaveBeenCalledWith({
+            id: 'close-cuf-op',
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+            },
+          });
+          expect(onSuccess).not.toHaveBeenCalled();
+          expect(Logger.error).not.toHaveBeenCalled();
+        });
+
+        it('shows already-closed toast when close throws No position found', async () => {
+          mockClosePosition.mockRejectedValue(
+            new Error('No position found for BTC'),
+          );
+          const onSuccess = jest.fn();
+          const { result } = renderHook(() =>
+            usePerpsClosePosition({ onSuccess }),
+          );
+
+          let closeResult: OrderResult | undefined;
+          await act(async () => {
+            closeResult = await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'market',
+            });
+          });
+
+          expect(closeResult).toEqual({
+            success: false,
+            error: 'No position found for BTC',
+          });
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition
+              .positionAlreadyClosed,
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'positions',
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'accountState',
+          );
+          expect(endPerpsCufTrace).toHaveBeenCalledWith({
+            id: 'close-cuf-op',
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+            },
+          });
+          expect(onSuccess).not.toHaveBeenCalled();
+          expect(Logger.error).not.toHaveBeenCalled();
+        });
+
         it('should show failure toast for full position market close', async () => {
           const failureResult: OrderResult = {
             success: false,

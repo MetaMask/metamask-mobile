@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 
+import { syncPriceAlertsWatchlistMirror } from '../../PriceAlerts/syncWatchlistMirror';
 import {
   EMPTY_BLOB,
   readFromTokenWatchList,
@@ -108,13 +109,16 @@ const applyOp = (acc: string[], op: WatchlistOp): string[] => {
 export const tokenWatchlistBatcher = createAsyncBatcher<WatchlistOp>(
   async (ops) => {
     const current = await readFromTokenWatchList();
+    const nextAssets = ops.reduce<string[]>(
+      (acc, op) => applyOp(acc, op),
+      [...current.assets],
+    );
     await writeToTokenWatchList({
       ...current,
-      assets: ops.reduce<string[]>(
-        (acc, op) => applyOp(acc, op),
-        [...current.assets],
-      ),
+      assets: nextAssets,
     });
+    // Soft-fail mirror — never rolls back a successful real-watchlist write.
+    await syncPriceAlertsWatchlistMirror(current.assets, nextAssets);
   },
 );
 
@@ -165,10 +169,13 @@ const useWatchlistMutation = <TInput>({
         input,
       );
 
-      queryClient.setQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob, {
-        assets: nextAssets,
-        version: 1,
-      });
+      queryClient.setQueryData<WatchlistBlob>(
+        tokenWatchlistQueryKeys.blob,
+        () => ({
+          assets: nextAssets,
+          version: 1,
+        }),
+      );
       queryClient.setQueryData<WatchlistTokenMetadata[]>(
         tokenWatchlistQueryKeys.hydrated,
         (old) => applyOptimisticToHydrated(old, nextAssets) ?? old,

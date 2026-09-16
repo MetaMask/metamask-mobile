@@ -20,6 +20,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  getTraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -31,6 +32,9 @@ import {
   JsonMap,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { getSocialAccountType } from '../../../constants/onboarding';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
@@ -90,9 +94,25 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     type = 'not_exist',
     accountName,
     oauthLoginSuccess,
-    onboardingTraceCtx,
     provider,
   } = route?.params ?? {};
+
+  useNavigationPerformance({
+    destinationScreenId:
+      type === 'found'
+        ? OnboardingScreenIds.ACCOUNT_ALREADY_EXISTS
+        : OnboardingScreenIds.ACCOUNT_NOT_FOUND,
+    destinationReady: true,
+  });
+
+  useScreenPerformance({
+    screenId:
+      type === 'found'
+        ? OnboardingScreenIds.ACCOUNT_ALREADY_EXISTS
+        : OnboardingScreenIds.ACCOUNT_NOT_FOUND,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   const isSmallScreen = windowWidth < 375;
 
@@ -129,11 +149,15 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         ? TraceName.OnboardingNewSocialAccountExists
         : TraceName.OnboardingExistingSocialAccountNotFound;
 
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     trace({
       name: traceName,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
     });
 
     track(
@@ -146,7 +170,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     return () => {
       endTrace({ name: traceName });
     };
-  }, [accountType, onboardingTraceCtx, type, track]);
+  }, [accountType, type, track]);
 
   const navigateNextScreen = (
     targetRoute: string,
@@ -157,6 +181,10 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       type === 'found'
         ? TraceName.OnboardingExistingSocialLogin
         : TraceName.OnboardingNewSocialCreateWallet;
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     trace({
       name: nextScenarioTraceName,
       op: TraceOperation.OnboardingUserJourney,
@@ -164,14 +192,13 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         ...getTraceTags(store.getState()),
         source: 'account_status_redirect',
       },
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
     });
 
     navigation.dispatch(
       StackActions.replace(targetRoute, {
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
-        onboardingTraceCtx,
         provider,
       }),
     );

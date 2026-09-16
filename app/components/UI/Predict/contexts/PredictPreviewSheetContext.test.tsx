@@ -12,16 +12,24 @@ import type {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
 } from '../types/navigation';
+import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import Routes from '../../../../constants/navigation/Routes';
+import { predictBuyPreviewOrderInitiatedRef } from '../views/PredictBuyPreview/PredictBuyPreview';
 
 const mockNavigate = jest.fn();
 const mockTrackBetslipDismissed = jest.fn();
+const mockTrackPredictOrderEvent = jest.fn();
+const mockCancelRetryablePredictBuyAttempt = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackBetslipDismissed: (...args: unknown[]) =>
         mockTrackBetslipDismissed(...args),
+      trackPredictOrderEvent: (...args: unknown[]) =>
+        mockTrackPredictOrderEvent(...args),
+      cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockCancelRetryablePredictBuyAttempt(...args),
     },
   },
 }));
@@ -59,7 +67,13 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockClearOrderError = jest.fn();
-let mockActiveOrder: { error?: string; state?: string } | null = null;
+let mockActiveOrder: {
+  error?: string;
+  errorStage?: 'payment' | 'order';
+  state?: string;
+  paymentTokenAddress?: string;
+  paymentTokenSymbol?: string;
+} | null = null;
 
 jest.mock('../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: jest.fn(() => ({
@@ -269,6 +283,7 @@ describe('PredictPreviewSheetContext', () => {
     mockBottomSheetEnabled = true;
     mockPayWithAnyTokenEnabled = false;
     mockActiveOrder = null;
+    predictBuyPreviewOrderInitiatedRef.current = false;
     mockNonRegTimeSportsMarketTypes = [];
     mockSelectPredictBottomSheetEnabledFlag.mockImplementation(
       () => mockBottomSheetEnabled,
@@ -286,6 +301,7 @@ describe('PredictPreviewSheetContext', () => {
     mockToastCloseToast.mockReset();
     mockClearOrderError.mockReset();
     mockTrackBetslipDismissed.mockReset();
+    mockCancelRetryablePredictBuyAttempt.mockReset();
   });
 
   it('provides openBuySheet and openSellSheet to consumers', () => {
@@ -513,6 +529,8 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+    expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -708,12 +726,18 @@ describe('PredictPreviewSheetContext', () => {
       fireEvent.press(screen.getByTestId('open-buy'));
       expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
 
+      mockActiveOrder = { state: 'placing_order' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
       expect(
         screen.queryByTestId('predict-buy-preview-sheet'),
       ).not.toBeOnTheScreen();
 
-      mockActiveOrder = { error: 'order/failed' };
+      mockActiveOrder = { state: 'preview', error: 'order/failed' };
       rerender(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -754,6 +778,67 @@ describe('PredictPreviewSheetContext', () => {
       });
       expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
       expect(mockToastCloseToast).not.toHaveBeenCalled();
+    });
+
+    it('offers Add funds for payment-stage failures and does not auto-clear the error', () => {
+      jest.useFakeTimers();
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'depositing' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+      mockClearOrderError.mockClear();
+
+      mockActiveOrder = {
+        error: 'PREDICT_DEPOSIT_FAILED',
+        errorStage: 'payment',
+        paymentTokenSymbol: 'USDC',
+      };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+      const toastCall = mockToastShowToast.mock.calls[0][0];
+      expect(toastCall.closeButtonOptions.label).toBe('Add funds');
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'payment_failure_prompted',
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+
+      act(() => {
+        toastCall.closeButtonOptions.onPress();
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+          params: { autoDeposit: true },
+        }),
+      );
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'add_funds_submitted',
+        }),
+      );
+      jest.useRealTimers();
     });
 
     it('does not fire the toast when the slip is open (banner handles it)', () => {
@@ -821,9 +906,15 @@ describe('PredictPreviewSheetContext', () => {
       );
 
       fireEvent.press(screen.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'placing_order' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
 
-      mockActiveOrder = { error: 'order/failed' };
+      mockActiveOrder = { state: 'preview', error: 'order/failed' };
       rerender(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -857,6 +948,12 @@ describe('PredictPreviewSheetContext', () => {
       );
       // Outer "remembers" buy params from a prior open + dismiss.
       fireEvent.press(outer.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'placing_order' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
       fireEvent.press(outer.getByTestId('dismiss-sheet'));
 
       const inner = render(
@@ -868,7 +965,7 @@ describe('PredictPreviewSheetContext', () => {
       fireEvent.press(inner.getByTestId('open-buy'));
       fireEvent.press(inner.getByTestId('dismiss-sheet'));
 
-      mockActiveOrder = { error: 'order/failed' };
+      mockActiveOrder = { state: 'preview', error: 'order/failed' };
       outer.rerender(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -893,6 +990,12 @@ describe('PredictPreviewSheetContext', () => {
         </PredictPreviewSheetProvider>,
       );
       fireEvent.press(outer.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'placing_order' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
       fireEvent.press(outer.getByTestId('dismiss-sheet'));
 
       const inner = render(
@@ -904,7 +1007,7 @@ describe('PredictPreviewSheetContext', () => {
       fireEvent.press(inner.getByTestId('dismiss-sheet'));
 
       // First error transition — only inner (topmost) fires.
-      mockActiveOrder = { error: 'order/failed' };
+      mockActiveOrder = { state: 'preview', error: 'order/failed' };
       outer.rerender(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -990,13 +1093,20 @@ describe('PredictPreviewSheetContext', () => {
       );
 
       fireEvent.press(screen.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'placing_order' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
 
       // `clearOrderError` is called by the dismiss path; reset so subsequent
       // assertions only count timer-driven calls.
       mockClearOrderError.mockClear();
+      mockCancelRetryablePredictBuyAttempt.mockClear();
 
-      mockActiveOrder = { error: 'order/failed' };
+      mockActiveOrder = { state: 'preview', error: 'order/failed' };
       rerender(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -1006,15 +1116,20 @@ describe('PredictPreviewSheetContext', () => {
       return { rerender, unmount };
     };
 
-    it('clears the order error after the toast auto-dismisses (~3s)', () => {
+    it('cancels the attempt and clears the error after toast auto-dismiss', () => {
       showRetryToast();
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
       expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
 
       act(() => {
         jest.advanceTimersByTime(3000);
       });
 
+      expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
+      expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledWith(
+        PREDICT_BUY_CANCELLATION_REASONS.RETRY_PROMPT_EXPIRED,
+      );
       expect(mockClearOrderError).toHaveBeenCalledTimes(1);
     });
 
@@ -1032,6 +1147,19 @@ describe('PredictPreviewSheetContext', () => {
       });
 
       expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
+    });
+
+    it('does not cancel the attempt if the sheet reopens another way', () => {
+      showRetryToast();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('open-buy'));
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
     });
 
     it('cancels the pending clear timer on provider unmount', () => {
@@ -1044,6 +1172,7 @@ describe('PredictPreviewSheetContext', () => {
       });
 
       expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
     });
   });
 
@@ -1067,7 +1196,7 @@ describe('PredictPreviewSheetContext', () => {
       unmount();
     });
 
-    it('returns true after openBuySheet is called and false after unmount', () => {
+    it('returns false after the buy sheet is dismissed', () => {
       const { unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -1077,6 +1206,10 @@ describe('PredictPreviewSheetContext', () => {
       fireEvent.press(screen.getByTestId('open-buy'));
 
       expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
 
       unmount();
 
@@ -1096,6 +1229,51 @@ describe('PredictPreviewSheetContext', () => {
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
 
       expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the order error while an order is in flight', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(screen.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'depositing' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+    });
+
+    it('clears a failed order after an initiated order is dismissed', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(screen.getByTestId('open-buy'));
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      mockActiveOrder = {
+        state: 'preview',
+        error: 'order/failed',
+        errorStage: 'order',
+      };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
 
     it('does not call clearOrderError when sell sheet is dismissed', () => {

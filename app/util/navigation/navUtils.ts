@@ -33,7 +33,20 @@ export const createNavigationDetails =
 export function navigateWithDetails(
   navigation: { navigate: (...args: never[]) => void },
   details: NavigationDetails,
+  options?: { pop?: boolean },
 ): void {
+  if (options) {
+    const [name, params] = details;
+    (
+      navigation.navigate as unknown as (
+        name: string,
+        params: NavigationParams,
+        options: { pop?: boolean },
+      ) => void
+    )(name, params, options);
+    return;
+  }
+
   (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
     ...details,
   );

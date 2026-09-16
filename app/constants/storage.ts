@@ -47,6 +47,7 @@ export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
 export const PUSH_NOTIFICATIONS_PROMPT_TIME = `${prefix}pushNotificationsPromptTime`;
+export const BRAZE_PUSH_REGISTRATION_STATE = `${prefix}brazePushRegistrationState`;
 
 export const LANGUAGE = `${prefix}language`;
 
@@ -82,9 +83,18 @@ export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
 
 export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
 
+export const STELLAR_DISCOVERY_PENDING = `${prefix}stellarDiscoveryPending`;
+
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
-export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;
+export const PERPS_MODE_SELECTION_COMPLETED = `${prefix}perpsModeSelectionCompleted`;
+
+export const perpsCompetitionBannerDismissedKey = (campaignId: string) =>
+  `${prefix}perpsCompetitionBannerDismissed:${campaignId}`;
+
+export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
+
+export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
 
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
@@ -99,3 +109,6 @@ export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_
 export const PUSH_PRE_PROMPT_SHOWN = `${prefix}PUSH_PRE_PROMPT_SHOWN`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
+
+/** Persisted while an OAuth round trip is in flight (Android process-death detection). */
+export const OAUTH_IN_PROGRESS = `${prefix}oauthInProgress`;

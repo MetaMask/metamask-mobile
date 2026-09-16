@@ -32,6 +32,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -58,13 +59,12 @@ const MoneyBalanceCard = () => {
   const {
     totalFiatRaw,
     totalFiatFormatted,
-    apyPercent,
     isBalanceLoading,
     isBalanceFetchError,
     moneyBalanceQuery,
     refetchBalance,
-    vaultApyQuery,
   } = useMoneyAccountBalance();
+  const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();

@@ -19,12 +19,14 @@ import {
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
   TOP_TRADERS_BUY_ACTION_VARIANTS,
 } from '../abTestConfig';
-import TraderPositionQuickBuy, { positionToQuickBuyTarget } from './QuickBuy';
-import { useQuickBuySetup } from './QuickBuy/hooks/useQuickBuySetup';
+import TraderPositionQuickBuy, {
+  positionToQuickBuyTarget,
+} from '../../../../UI/QuickBuy';
+import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
 import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
-} from './QuickBuy/analytics';
+} from '../../../../UI/QuickBuy/analytics';
 
 /**
  * `sourcePage` reported to the swaps view for attribution. Snake_case matches

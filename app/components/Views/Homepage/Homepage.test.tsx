@@ -1,17 +1,26 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
 import {
+  HOMEPAGE_EARN_SECTION_AB_KEY,
+  HOMEPAGE_EARN_SECTION_VARIANTS,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+  HomepageEarnSectionVariant,
   HomepagePerpsPillsEmptyVariant,
 } from './abTestConfig';
 
-const defaultUseABTestImplementation = (key: string) => {
+interface MockABTestResult {
+  variant: unknown;
+  variantName: string;
+  isActive: boolean;
+}
+
+const defaultUseABTestImplementation = (key: string): MockABTestResult => {
   if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
     return {
       variant:
@@ -50,16 +59,35 @@ jest.mock('../../../hooks', () => ({
     Reflect.apply(mockUseABTest, undefined, args),
 }));
 
+const mockHomepageEarnSection = jest.fn();
+jest.mock('./Sections/EarnSection', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    __esModule: true,
+    HomepageEarnSection: ReactLib.forwardRef(
+      (props: Record<string, unknown>, _ref: React.Ref<unknown>) => {
+        mockHomepageEarnSection(props);
+        return <View testID="homepage-earn-section-mock" />;
+      },
+    ),
+  };
+});
+
 const mockUseOwnedNfts = jest.fn((): Nft[] => []);
 jest.mock('./Sections/NFTs/hooks', () => ({
   useOwnedNfts: () => mockUseOwnedNfts(),
 }));
 
 // Mock feature flags - enable all sections
+const mockPerpsEnabled = true;
 jest.mock('../../UI/Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => true),
+  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
 }));
 
+const mockPerpsConnectionProvider = jest.fn();
 jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
   const ReactLib = jest.requireActual<typeof import('react')>('react');
   const PerpsConnectionContext = ReactLib.createContext({
@@ -75,8 +103,16 @@ jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
 
   return {
     PerpsConnectionContext,
-    PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    PerpsConnectionProvider: ({
       children,
+      isEnabled,
+    }: {
+      children: React.ReactNode;
+      isEnabled?: boolean;
+    }) => {
+      mockPerpsConnectionProvider({ isEnabled });
+      return children;
+    },
   };
 });
 
@@ -153,45 +189,15 @@ jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
-  selectPredictWorldCupConfig: jest.fn(() => ({
-    enabled: false,
-    minimumVersion: '',
-    showMainFeedBanner: false,
-    showMainFeedTab: false,
-    showWorldCupScreen: false,
-    seriesId: '10218',
-    tagSlug: 'fifa-world-cup',
-    gamesTagId: '100639',
-    stages: [],
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
   })),
-  selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
 }));
 
-jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
-  usePredictWorldCupMarkets: () => ({
-    marketData: [],
-    isFetching: false,
-    isFetchingMore: false,
-    error: null,
-    hasMore: false,
-    refetch: jest.fn().mockResolvedValue(undefined),
-    fetchMore: jest.fn().mockResolvedValue(undefined),
-  }),
-  usePredictWorldCupAvailability: () => ({
-    availability: { live: false, props: false, stages: {} },
-    isFetching: false,
-    isLoading: false,
-    errors: [],
-    refetch: jest.fn(),
-  }),
-  usePredictWorldCupAvailableTabs: () => ({
-    availability: { live: false, props: false, stages: {} },
-    tabs: [],
-    isFetching: false,
-    isLoading: false,
-    errors: [],
-    refetch: jest.fn(),
-  }),
+jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
+  UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
 }));
 
 jest.mock('@tanstack/react-query', () => {
@@ -242,9 +248,14 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
   selectDeFiPositionsSectionEnabled: jest.fn(() => true),
 }));
 
+jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
+  selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
+}));
+
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
   selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
+  selectAiSocialAusCacheRefreshEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Assets/selectors/featureFlags', () => ({
@@ -258,6 +269,18 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
     refetch: jest.fn().mockResolvedValue(undefined),
   })),
 }));
+
+const mockBalanceBreakdownSection = jest.fn();
+jest.mock('./Sections/BalanceBreakdown', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockBalanceBreakdownSection(props);
+      return <View testID="balance-breakdown-section-mock" />;
+    },
+  };
+});
 
 jest.mock('./Sections/TopTraders/hooks', () => ({
   useTopTraders: jest.fn(() => ({
@@ -303,16 +326,11 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
   ][];
 }
 
-jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-  selectPooledStakingEnabledFlag: jest.fn(() => false),
-  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-  selectIsMusdGetBuyCtaEnabledFlag: jest.fn(() => false),
-  selectMusdConversionCTATokens: jest.fn(() => ({})),
-  selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
-  selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
-  selectMusdBalanceChainIds: jest.fn(() => []),
+let mockHomepageEarnSectionVisible = false;
+jest.mock('../../UI/Earn/selectors/visibility', () => ({
+  selectIsHomepageEarnSectionVisible: jest.fn(
+    () => mockHomepageEarnSectionVisible,
+  ),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
@@ -388,6 +406,9 @@ describe('Homepage', () => {
       .requireMock('../../../selectors/deFiPositionsSectionEnabled')
       .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
     jest
+      .requireMock('../../../selectors/deFiPositionsV2SectionEnabled')
+      .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
+    jest
       .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
       .selectSocialLeaderboardEnabled.mockReturnValue(false);
     jest
@@ -401,6 +422,119 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+    mockHomepageEarnSectionVisible = false;
+  });
+
+  const mockEarnSectionExperiment = (
+    enabled: boolean,
+    variantName: HomepageEarnSectionVariant,
+  ) => {
+    mockHomepageEarnSectionVisible = enabled;
+    mockUseABTest.mockImplementation((key: string) => {
+      if (key === HOMEPAGE_EARN_SECTION_AB_KEY) {
+        return {
+          variant: HOMEPAGE_EARN_SECTION_VARIANTS[variantName],
+          variantName,
+          isActive: true,
+        };
+      }
+
+      return defaultUseABTestImplementation(key);
+    });
+  };
+
+  it('uses one enabled Perps connection provider for the homepage', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: true,
+    });
+  });
+
+  it('keeps the shared provider inert when Perps is disabled', () => {
+    jest
+      .requireMock('../../UI/Perps')
+      .selectPerpsEnabledFlag.mockReturnValue(false);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: false,
+    });
+  });
+
+  it('renders the treatment breakdown before homepage sections when provided', () => {
+    const balanceBreakdownSectionProps = {
+      accountGroupBalanceProps: {},
+      hideRows: false,
+      layout: 'icons' as const,
+    };
+
+    renderWithProvider(
+      <Homepage balanceBreakdownSectionProps={balanceBreakdownSectionProps} />,
+      { state: stateWithPreferences },
+    );
+
+    expect(
+      screen.getByTestId('balance-breakdown-section-mock'),
+    ).toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
+      balanceBreakdownSectionProps,
+    );
+  });
+
+  it('does not render a breakdown section for control', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(
+      screen.queryByTestId('balance-breakdown-section-mock'),
+    ).not.toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
+  });
+
+  describe('Earn section experiment', () => {
+    it('keeps the Earn section hidden for the control variant', () => {
+      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Control);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.queryByTestId('homepage-earn-section-mock'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the Earn section for the treatment variant', () => {
+      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Treatment);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.getByTestId('homepage-earn-section-mock'),
+      ).toBeOnTheScreen();
+      expect(mockHomepageEarnSection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sectionIndex: 2,
+          totalSectionsLoaded: 6,
+        }),
+      );
+    });
+
+    it('keeps the Earn section hidden when its feature flag is disabled', () => {
+      mockEarnSectionExperiment(false, HomepageEarnSectionVariant.Treatment);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.queryByTestId('homepage-earn-section-mock'),
+      ).not.toBeOnTheScreen();
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        HOMEPAGE_EARN_SECTION_AB_KEY,
+        HOMEPAGE_EARN_SECTION_VARIANTS,
+        expect.objectContaining({ trackExposure: false }),
+      );
+    });
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
@@ -530,6 +664,9 @@ describe('Homepage', () => {
       jest
         .requireMock('../../../selectors/deFiPositionsSectionEnabled')
         .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
+      jest
+        .requireMock('../../../selectors/deFiPositionsV2SectionEnabled')
+        .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
     });
 
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {

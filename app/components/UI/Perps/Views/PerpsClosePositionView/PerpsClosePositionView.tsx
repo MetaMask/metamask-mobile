@@ -1,4 +1,5 @@
 import {
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -12,26 +13,32 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  Box,
+  BottomSheetFooter,
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  HelpText,
+  HelpTextSeverity,
   KeyValueRow,
   KeyValueRowVariant,
+  Slider,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
+import {
+  ImpactMoment,
+  playImpact,
+  useHaptics,
+} from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -39,8 +46,9 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
+  isStrategyOrderType,
   type InputMethod,
-  type OrderType,
+  type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -58,9 +66,11 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
 import {
   formatPositionSize,
   formatPerpsFiat,
@@ -79,11 +89,9 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/featureFlags';
-
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -95,16 +103,20 @@ const PerpsClosePositionView: React.FC = () => {
     source: routeSource,
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
+    enableHaptics = false,
   } = route.params as {
     position: Position;
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
+  const { playImpact: playHapticImpact } = useHaptics();
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
   const hasConfirmedCloseRef = useRef(false);
+  const hasReconciledGoneRef = useRef(false);
   const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -127,7 +139,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   // State for order type and bottom sheets
-  const [orderType, setOrderType] = useState<OrderType>('market');
+  const [orderType, setOrderType] = useState<OrdinaryOrderType>('market');
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -137,6 +149,20 @@ const PerpsClosePositionView: React.FC = () => {
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
   const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input (user input only)
 
+  // Live slider display value for immediate UI feedback while dragging. The
+  // committed `closePercentage` only updates on drag end, since it drives the
+  // expensive fee/rewards/validation recompute pipeline (usePerpsOrderFees et
+  // al.). `displayClosePercentage` is derived (not effect-synced) so every
+  // other input method (keypad, percentage, max) renders the committed
+  // percentage immediately, with no one-render window waiting on a
+  // `useEffect` to catch up.
+  const [liveDragClosePercentage, setLiveDragClosePercentage] =
+    useState(closePercentage);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+  const displayClosePercentage = isDraggingSlider
+    ? liveDragClosePercentage
+    : closePercentage;
+
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
 
@@ -144,10 +170,9 @@ const PerpsClosePositionView: React.FC = () => {
   // resetting state in an effect) guarantees that a disabled — or mid-session
   // flipped-off — flag can never drive limit UI, calculations, validation, or
   // submission, with no one-render window before an effect would run.
-  const effectiveOrderType: OrderType = isClosePositionLimitOrderEnabled
+  const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
-
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
     symbols: [position.symbol],
@@ -180,13 +205,48 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Subscribe to live position updates for this coin
   // This ensures margin and PnL values include real-time funding fees
-  const { positions: livePositions } = usePerpsLivePositions({
-    throttleMs: 1000,
-  });
-  const livePosition = useMemo(
-    () => livePositions.find((p) => p.symbol === position.symbol) || position,
-    [livePositions, position],
+  const { positions: livePositions, isInitialLoading: isPositionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: 1000,
+    });
+  const matchingLivePosition = useMemo(
+    () => livePositions.find((p) => p.symbol === position.symbol),
+    [livePositions, position.symbol],
   );
+  // Keep the route snapshot only for layout until we dismiss a gone position.
+  const livePosition = matchingLivePosition ?? position;
+  const isPositionGone = !isPositionsLoading && !matchingLivePosition;
+  const isScreenFocused = useIsFocused();
+
+  useEffect(() => {
+    // A tooltip modal can sit on top of this still-mounted sheet. Dismissing
+    // then would pop the tooltip instead of the sheet, so wait for focus and
+    // latch only once the dismissal actually runs. handleConfirm already
+    // dismisses on its own, so a stream drop racing its blur must not goBack
+    // a second time.
+    if (
+      !isPositionGone ||
+      !isScreenFocused ||
+      hasConfirmedCloseRef.current ||
+      hasReconciledGoneRef.current
+    ) {
+      return;
+    }
+    hasReconciledGoneRef.current = true;
+    hasConfirmedCloseRef.current = true;
+    showToast(
+      PerpsToastOptions.positionManagement.closePosition.positionAlreadyClosed,
+    );
+    PerpsCacheInvalidator.invalidate('positions');
+    PerpsCacheInvalidator.invalidate('accountState');
+    navigation.goBack();
+  }, [
+    isPositionGone,
+    isScreenFocused,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+  ]);
 
   // Determine position direction using live position data
   const isLong = parseFloat(livePosition.size) > 0;
@@ -202,6 +262,61 @@ const PerpsClosePositionView: React.FC = () => {
     }
     return currentPrice;
   }, [effectiveOrderType, limitPrice, currentPrice]);
+
+  // Single funnel for "the slider is no longer the source of truth for
+  // displayClosePercentage" — used by drag end/cancel below, and by every
+  // other input method's commit path (keypad, percentage, max) so a gesture
+  // that never fires `onDragEnd` (see handleSliderDragCancel) cannot
+  // permanently wedge displayClosePercentage on a stale
+  // liveDragClosePercentage once the user does anything else. Unlike a
+  // quiet-period timer, this depends only on real "something else just
+  // committed a value" events, so it can never misfire mid-drag (e.g. a
+  // paused-but-still-active hold, where onValueChange legitimately stops
+  // ticking without the gesture ending).
+  const commitClosePercentage = useCallback(
+    (value: number, options?: { syncUsdString?: boolean }) => {
+      setIsDraggingSlider(false);
+      setLiveDragClosePercentage(value);
+      setClosePercentage(value);
+
+      if (options?.syncUsdString === false) {
+        return;
+      }
+      // Update USD input to match calculated value for keypad display consistency
+      const newUSDAmount = (value / 100) * absSize * effectivePrice;
+      setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    },
+    [absSize, effectivePrice],
+  );
+
+  const handleSliderValueChange = useCallback((value: number) => {
+    inputMethodRef.current = 'slider';
+    setIsDraggingSlider(true);
+    setLiveDragClosePercentage(value);
+  }, []);
+
+  const handleSliderDragEnd = useCallback(
+    (value: number) => {
+      commitClosePercentage(value);
+    },
+    [commitClosePercentage],
+  );
+
+  // A pan gesture cancelled by competing-gesture arbitration (e.g. a parent
+  // ScrollView taking over) finalizes internally in the design-system Slider
+  // without ever calling `onDragEnd`, and react-native-gesture-handler owns
+  // the touch outside RN's responder system, so this `onTouchCancel` is only
+  // a best-effort signal, not a guarantee. The real safety net is that every
+  // other input method funnels through `commitClosePercentage`, which
+  // unconditionally clears `isDraggingSlider` — so even if this never fires,
+  // the very next keypad/percentage/max edit (or the confirm-close guard
+  // below) self-heals the stuck flag instead of leaving it wedged
+  // indefinitely.
+  const handleSliderDragCancel = useCallback(() => {
+    if (isDraggingSlider) {
+      commitClosePercentage(liveDragClosePercentage);
+    }
+  }, [commitClosePercentage, isDraggingSlider, liveDragClosePercentage]);
 
   // Calculate display values directly from closePercentage for immediate updates
   const { closeAmount, calculatedUSDString } = useMemo(() => {
@@ -237,11 +352,46 @@ const PerpsClosePositionView: React.FC = () => {
     isLoadingMarketData,
   ]);
 
+  // Live counterpart of closeAmount/calculatedUSDString for display only -
+  // cheap synchronous calc, safe to recompute every drag frame off the live
+  // display percentage. closeAmount/calculatedUSDString above stay tied to
+  // the committed closePercentage and keep feeding fees, validation, and
+  // handleConfirm.
+  const {
+    closeAmount: liveCloseAmount,
+    calculatedUSDString: liveCalculatedUSDString,
+  } = useMemo(() => {
+    if (isLoadingMarketData) {
+      return { closeAmount: '0', calculatedUSDString: '0.00' };
+    }
+
+    const szDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+
+    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+      percentage: displayClosePercentage,
+      positionSize: absSize,
+      currentPrice: effectivePrice,
+      szDecimals,
+    });
+
+    return {
+      closeAmount: tokenAmount.toString(),
+      calculatedUSDString: formatCloseAmountUSD(usdValue),
+    };
+  }, [
+    displayClosePercentage,
+    absSize,
+    effectivePrice,
+    marketData?.szDecimals,
+    isLoadingMarketData,
+  ]);
+
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
     isInputFocused || isUserInputActive
       ? closeAmountUSDString
-      : calculatedUSDString;
+      : liveCalculatedUSDString;
 
   // Use live position data which includes real-time funding fees
   // HyperLiquid's marginUsed already includes accumulated PnL
@@ -375,7 +525,6 @@ const PerpsClosePositionView: React.FC = () => {
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
-
   const unrealizedPnlPercent = useMemo(() => {
     const initialMargin = marginUsed - pnl; // Back-calculate initial margin
     return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
@@ -425,7 +574,8 @@ const PerpsClosePositionView: React.FC = () => {
   // emit abandon_order on a real exit (back swipe, hardware back,
   // programmatic dismissal) AND on a genuine tab switch away, but never when a
   // child route (e.g. the limit-price flow) is pushed or after a confirmed close
-  // (hasConfirmedCloseRef).
+  // (hasConfirmedCloseRef). The already-closed auto-dismissal above also sets
+  // that ref: the venue removed the position, so the user abandoned nothing.
   const getAbandonProperties = useCallback(
     () => latestAbandonPropsRef.current,
     [],
@@ -459,7 +609,23 @@ const PerpsClosePositionView: React.FC = () => {
     }
   }, [effectiveOrderType, limitPrice]);
 
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
+    if (isClosing || isPositionGone) {
+      return;
+    }
+
+    // Guard against submitting a stale committed `closePercentage` while
+    // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
+    // that never reached commitClosePercentage (see handleSliderDragCancel
+    // above). Flush the last live value and bail; `closePercentage`
+    // reflects it on the next render, so the very next tap confirms the
+    // right amount instead of racing a same-tick confirm against a state
+    // update.
+    if (isDraggingSlider) {
+      commitClosePercentage(liveDragClosePercentage);
+      return;
+    }
+
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
     const isFullClose = closePercentage === 100;
@@ -468,7 +634,9 @@ const PerpsClosePositionView: React.FC = () => {
     if (effectiveOrderType === 'limit' && !limitPrice) {
       return;
     }
-
+    if (enableHaptics) {
+      playHapticImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
 
@@ -510,7 +678,37 @@ const PerpsClosePositionView: React.FC = () => {
             : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
       },
     });
-  };
+  }, [
+    closePercentage,
+    closeAmount,
+    effectiveOrderType,
+    enableHaptics,
+    isClosing,
+    isPositionGone,
+    limitPrice,
+    navigation,
+    handleClosePosition,
+    livePosition,
+    feeResults.totalFee,
+    feeResults.metamaskFeeRate,
+    feeResults.feeDiscountPercentage,
+    feeResults.metamaskFee,
+    feeResults.protocolFeeRate,
+    currentPrice,
+    receiveAmount,
+    effectivePnL,
+    rewardsState.estimatedPoints,
+    routeSource,
+    vipTier,
+    priceData,
+    position.symbol,
+    closingValueString,
+    effectivePrice,
+    playHapticImpact,
+    isDraggingSlider,
+    commitClosePercentage,
+    liveDragClosePercentage,
+  ]);
 
   const handleAmountPress = () => {
     setIsInputFocused(true);
@@ -546,10 +744,10 @@ const PerpsClosePositionView: React.FC = () => {
         setIsUserInputActive(true);
       }
 
-      // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
+      // Enforce digit limit (ignoring non-digits). Block the change if exceeded.
       const digitCount = (adjustedValue.match(/\d/g) || []).length;
-      if (digitCount > 9) {
-        return; // Ignore input that would exceed 9 digits
+      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+        return; // Ignore input that would exceed the max digit limit
       }
 
       // USD decimal input logic - preserve raw string for display
@@ -584,29 +782,25 @@ const PerpsClosePositionView: React.FC = () => {
       const newPercentage =
         positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
 
-      // Update percentage (amount and token values are calculated automatically)
-      setClosePercentage(newPercentage);
+      // Update percentage (amount and token values are calculated
+      // automatically). `syncUsdString: false` because `closeAmountUSDString`
+      // was just set above from the user's raw typed string (preserving
+      // e.g. a trailing "2." while typing) — commitClosePercentage's own USD
+      // recompute would immediately clobber that with a reformatted value.
+      commitClosePercentage(newPercentage, { syncUsdString: false });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [positionValue, isInputFocused, isUserInputActive, closeAmountUSDString],
   );
 
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
-    const newPercentage = percentage * 100;
-    setClosePercentage(newPercentage);
-
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = (newPercentage / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    commitClosePercentage(percentage * 100);
   };
 
   const handleMaxPress = () => {
     inputMethodRef.current = 'max';
-    setClosePercentage(100);
-
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    commitClosePercentage(100);
   };
 
   const handleDonePress = () => {
@@ -614,14 +808,13 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
-  const handleSliderChange = (value: number) => {
-    inputMethodRef.current = 'slider';
-    setClosePercentage(value);
+  const handleSliderGrip = useCallback(() => {
+    playImpact(ImpactMoment.SliderGrip);
+  }, []);
 
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = (value / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
-  };
+  const handleSliderMark = useCallback(() => {
+    playImpact(ImpactMoment.SliderTick);
+  }, []);
 
   // Hide provider-level limit price required error on this UI. Surface the
   // minimum amount error (e.g. minimum $10) and the "limit price too far"
@@ -644,11 +837,15 @@ const PerpsClosePositionView: React.FC = () => {
     );
   }, [validationResult.errors]);
 
+  const summaryMargin = (closePercentage / 100) * effectiveMargin;
+  const summaryPnl = effectivePnL * (closePercentage / 100);
+  const summaryFees = feeResults.totalFee;
+
   const Summary = (
     <PerpsCloseSummary
-      totalMargin={(closePercentage / 100) * effectiveMargin}
-      totalPnl={effectivePnL * (closePercentage / 100)}
-      totalFees={feeResults.totalFee}
+      totalMargin={summaryMargin}
+      totalPnl={summaryPnl}
+      totalFees={summaryFees}
       originalTotalFees={feeResults.undiscountedTotalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
       metamaskFeeRate={feeResults.metamaskFeeRate}
@@ -673,6 +870,28 @@ const PerpsClosePositionView: React.FC = () => {
         receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />
+  );
+
+  const isConfirmDisabled =
+    isClosing ||
+    isPositionGone ||
+    (effectiveOrderType === 'limit' &&
+      (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+    (effectiveOrderType === 'market' && closePercentage === 0) ||
+    !validationResult.isValid;
+
+  const confirmButtonProps = useMemo(
+    () => ({
+      children: isClosing
+        ? strings('perps.close_position.closing')
+        : strings('perps.close_position.button'),
+      onPress: handleConfirm,
+      size: ButtonSize.Lg,
+      isDisabled: isConfirmDisabled,
+      isLoading: isClosing,
+      testID: PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    }),
+    [handleConfirm, isClosing, isConfirmDisabled],
   );
 
   return (
@@ -703,43 +922,49 @@ const PerpsClosePositionView: React.FC = () => {
       >
         {/* Amount Display */}
         <PerpsAmountDisplay
-          label={strings('perps.close_position.select_amount')}
           amount={displayUSDString}
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={formatPositionSize(closeAmount, marketData?.szDecimals)}
+          tokenAmount={formatPositionSize(
+            liveCloseAmount,
+            marketData?.szDecimals,
+          )}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.symbol}
           showMaxAmount={false}
         />
 
         {/* Toggle Button for USD/Token Display */}
-        <View style={styles.toggleContainer}>
+        <Box twClassName="items-center px-4 pt-0 pb-2">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
+            {`${formatPositionSize(liveCloseAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
-        </View>
+        </Box>
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <View style={styles.sliderSection}>
-            <PerpsSlider
-              value={closePercentage}
-              onValueChange={handleSliderChange}
+          <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+            <Slider
+              value={displayClosePercentage}
+              onValueChange={handleSliderValueChange}
+              onDragEnd={handleSliderDragEnd}
               minimumValue={0}
               maximumValue={100}
               step={1}
-              showPercentageLabels
-              disabled={isClosing}
+              showRangeLabels
+              showRangeDots
+              isDisabled={isClosing}
+              onGrip={handleSliderGrip}
+              onMark={handleSliderMark}
             />
-          </View>
+          </Box>
         )}
 
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {effectiveOrderType === 'limit' && !isInputFocused && (
-          <View style={styles.detailsWrapper}>
-            <View style={styles.inputGroupContainer}>
+          <Box twClassName="px-4 pb-0">
+            <Box twClassName="bg-background-section rounded-xl overflow-hidden">
               <TouchableOpacity
                 testID={PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW}
                 onPress={() => setIsLimitPriceVisible(true)}
@@ -756,46 +981,38 @@ const PerpsClosePositionView: React.FC = () => {
                   }
                 />
               </TouchableOpacity>
-            </View>
-          </View>
+            </Box>
+          </Box>
         )}
 
         {/* Order Details moved to footer summary */}
 
         {/* Validation Messages - keep visible while typing */}
         {/* Filter the errors and only show minimum $10 error */}
-        {filteredErrors.length > 0 && (
-          <View style={styles.validationSection}>
-            {filteredErrors.map((error, index) => (
-              <View key={`error-${index}`} style={styles.errorMessage}>
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Sm}
-                  color={IconColor.ErrorDefault}
-                />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                >
-                  {error}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+        <Box style={styles.helpTextContainer}>
+          {filteredErrors.map((error, index) => (
+            <HelpText
+              key={`error-${index}`}
+              severity={HelpTextSeverity.Danger}
+              twClassName="w-full justify-center text-center"
+            >
+              {error}
+            </HelpText>
+          ))}
+        </Box>
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}
       {isInputFocused && (
-        <View style={styles.bottomSection}>
+        <Box twClassName="pt-4">
           {/* Summary shown above keypad while editing */}
           {Summary}
-          <View style={styles.percentageButtonsContainer}>
+          <Box twClassName="flex-row justify-between px-4 mb-3 gap-2">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.25)}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               25%
             </Button>
@@ -803,7 +1020,7 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.5)}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               50%
             </Button>
@@ -811,7 +1028,7 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleMaxPress}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -819,52 +1036,31 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleDonePress}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               {strings('perps.deposit.done_button')}
             </Button>
-          </View>
+          </Box>
 
-          <Keypad
-            value={closeAmountUSDString}
-            onChange={handleKeypadChange}
-            currency={'USD'}
-            decimals={2}
-            style={styles.keypad}
-          />
-        </View>
+          <Box twClassName="px-4">
+            <Keypad
+              value={closeAmountUSDString}
+              onChange={handleKeypadChange}
+              currency={'USD'}
+              decimals={2}
+            />
+          </Box>
+        </Box>
       )}
 
       {/* Summary + Action Buttons - Always visible (button hidden when keypad active) */}
-      <View style={[styles.footer, styles.footerWithSummary]}>
+      <Box twClassName="w-full pb-4" style={styles.footerWithSummary}>
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <View style={styles.footerButton}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleConfirm}
-              isDisabled={
-                isClosing ||
-                (effectiveOrderType === 'limit' &&
-                  (!limitPrice || parseFloat(limitPrice) <= 0)) ||
-                (effectiveOrderType === 'market' && closePercentage === 0) ||
-                !validationResult.isValid
-              }
-              isLoading={isClosing}
-              testID={
-                PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
-              }
-            >
-              {isClosing
-                ? strings('perps.close_position.closing')
-                : strings('perps.close_position.button')}
-            </Button>
-          </View>
+          <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
         )}
-      </View>
+      </Box>
 
       {/* Limit Price Bottom Sheet - gated on the derived order type so a
           mid-session flag flip closes it immediately (effectiveOrderType can
@@ -900,6 +1096,9 @@ const PerpsClosePositionView: React.FC = () => {
           isVisible={isOrderTypeVisible}
           onClose={() => setIsOrderTypeVisible(false)}
           onSelect={(type) => {
+            if (isStrategyOrderType(type)) {
+              return;
+            }
             setOrderType(type);
             // Clear limit price when switching back to market order
             if (type === 'market') {
@@ -915,5 +1114,4 @@ const PerpsClosePositionView: React.FC = () => {
     </SafeAreaView>
   );
 };
-
 export default PerpsClosePositionView;

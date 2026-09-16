@@ -14,10 +14,12 @@ import {
 import { QrKeyring as QrKeyringV2 } from '@metamask/eth-qr-keyring/v2';
 import {
   LedgerKeyring,
+  LedgerDmkBridge,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring as LedgerKeyringV2 } from '@metamask/eth-ledger-bridge-keyring/v2';
+import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
@@ -53,10 +55,18 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
 /**
  * Build the list of keyring builders.
  *
+ * @param messenger - Needed by some builders that interact with the shared bus.
+ * TODO: Remove this parameter when we remove the DMK feature flag.
+ * @param useDmk - Whether to use the DMK Ledger bridge for Ledger keyrings.
+ * Resolved once in `initializeWallet` from persisted RemoteFeatureFlagController
+ * state via `isDmkEnabled` (the `ledgerDmk` flag; `LEDGER_FORCE_DMK` env var
+ * overrides) and threaded via `getKeyringControllerInstanceOptions`; the
+ * adapter factory reads the same flag in `useAdapterLifecycle`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
 export function getKeyringBuilders(
   messenger: RootMessenger,
+  useDmk: boolean,
 ): KeyringControllerOptions['keyringBuilders'] {
   // Required by the HD keyring and money keyring to use native crypto functions.
   const cryptographicFunctions: CryptographicFunctions = {
@@ -78,8 +88,16 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-  const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
+  // Bridge type is fixed at Engine init: the `useDmk` param is resolved once
+  // in `initializeWallet` from persisted feature-flag state (`isDmkEnabled`
+  // honors the `LEDGER_FORCE_DMK` env override there) and threaded through
+  // `getKeyringControllerInstanceOptions`. The adapter factory must use the
+  // same decision so discovery/connect share one DMK instance.
+  const ledgerBridge = useDmk
+    ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
+    : new LedgerMobileBridge(new LedgerTransportMiddleware());
+  const ledgerKeyringBuilder = () =>
+    new LedgerKeyring({ bridge: ledgerBridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;
 
   keyrings.push(ledgerKeyringBuilder);

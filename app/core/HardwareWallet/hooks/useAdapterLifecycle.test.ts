@@ -3,9 +3,15 @@ import {
   HardwareWalletConnectionState,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
+import { useSelector } from 'react-redux';
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
 import { useAdapterLifecycle } from './useAdapterLifecycle';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../adapters', () => ({
   createAdapter: jest.fn(),
@@ -15,6 +21,7 @@ jest.mock('../../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockCreateAdapter = jest.mocked(createAdapter);
 
 const createMockAdapter = (
@@ -23,12 +30,14 @@ const createMockAdapter = (
   ({
     walletType,
     disconnect: jest.fn().mockResolvedValue(undefined),
+    destroy: jest.fn(),
     onTransportStateChange: jest.fn(() => jest.fn()),
   }) as unknown as HardwareWalletAdapter;
 
 describe('useAdapterLifecycle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue({});
   });
 
   it('resets the transport baseline when an adapter is initialized imperatively', () => {
@@ -116,12 +125,12 @@ describe('useAdapterLifecycle', () => {
 
     rerender({ walletType: HardwareWalletType.Ledger });
 
-    expect(qrAdapter.disconnect).toHaveBeenCalledTimes(1);
+    expect(qrAdapter.destroy).toHaveBeenCalledTimes(1);
     expect(adapterRef.current).toBe(ledgerAdapter);
     unmount();
   });
 
-  it('disconnects the current adapter on unmount', () => {
+  it('destroys the current adapter on unmount', () => {
     const adapter = createMockAdapter(HardwareWalletType.Qr);
     const adapterRef = { current: null as HardwareWalletAdapter | null };
     mockCreateAdapter.mockReturnValue(adapter);
@@ -139,6 +148,6 @@ describe('useAdapterLifecycle', () => {
 
     unmount();
 
-    expect(adapter.disconnect).toHaveBeenCalledTimes(1);
+    expect(adapter.destroy).toHaveBeenCalledTimes(1);
   });
 });

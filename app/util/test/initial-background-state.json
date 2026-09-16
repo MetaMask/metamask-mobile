@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -431,7 +432,10 @@
     "location": "UNKNOWN",
     "status": "loading",
     "lastFetchedAt": null,
-    "error": null
+    "error": null,
+    "country": null,
+    "region": null,
+    "timezone": null
   },
   "GasFeeController": {
     "gasFeeEstimates": {},
@@ -461,11 +465,11 @@
         "symbol": "mUSD",
         "type": "erc20"
       },
-      "eip155:5042/erc20:0x3600000000000000000000000000000000000000": {
-        "decimals": 6,
+      "eip155:5042/slip44:5042": {
+        "decimals": 18,
         "name": "USDC",
         "symbol": "USDC",
-        "type": "erc20"
+        "type": "native"
       },
       "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
@@ -530,15 +534,27 @@
       "direction": "desc"
     },
     "mode": "lite",
+    "orderBookPreferences": {
+      "currency": "usd",
+      "metric": "total"
+    },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "proLayoutPreferences": {
-      "chartExpanded": false,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
-      "orderFormPosition": "right"
+      "chartExpanded": true,
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
+      "orderFormPosition": "right",
+      "ordersSideFilter": "all",
+      "ordersSortDirection": "desc",
+      "ordersSortField": "time",
+      "positionsSideFilter": "all",
+      "positionsSortDirection": "desc",
+      "positionsSortField": "positionValue"
     },
+    "selectedOrderType": "market",
     "selectedPaymentToken": null,
+    "visibleCandleCount": 30,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
   },
@@ -564,9 +580,26 @@
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
   },
+  "SubscriptionController": {
+    "subscriptions": [],
+    "trialedProducts": []
+  },
+  "ShieldController": {
+    "coverageResults": {},
+    "orderedTransactionHistory": []
+  },
+  "ClaimsController": {
+    "claims": [],
+    "claimsConfigurations": {
+      "validSubmissionWindowDays": 21,
+      "supportedNetworks": ["0x1", "0xe708"]
+    },
+    "drafts": []
+  },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -589,8 +622,10 @@
     "transactionData": {}
   },
   "ProfileMetricsController": {
+    "accountSourceBackfillEnqueued": false,
     "initialEnqueueCompleted": false,
     "proofBackfillEnqueued": false,
+    "reportedAccounts": [],
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -598,7 +633,8 @@
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
     "isContactSyncingEnabled": true,
-    "isContactSyncingInProgress": false
+    "isContactSyncingInProgress": false,
+    "isRampsSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
@@ -691,6 +727,10 @@
   "MultichainTransactionsController": {
     "nonEvmTransactions": {}
   },
+  "NetworkConnectionBannerController": {
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {},
@@ -723,15 +763,24 @@
   },
   "CardController": {
     "selectedCountry": null,
-    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
+    "providerUserId": null,
     "cardHomeData": null,
+    "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataError": null,
+    "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {
@@ -745,6 +794,42 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "phase": "idle",
+    "statusMessage": "",
+    "error": null,
+    "email": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null,
+    "vendorDisclaimers": [],
+    "vendorError": null,
+    "sessionDisclaimers": null,
+    "geoCountry": null,
+    "moonpaySessionToken": null,
+    "moonpayAccessToken": null,
+    "moonpayCustomerId": null,
+    "activeVendor": "moonpay",
+    "activeProduct": null,
+    "kycRequiredByProduct": {},
+    "lastCheckedAt": null,
+    "userStatus": null,
+    "userStatusSumsubSessionId": null,
+    "userStatusErrorCode": null,
+    "sumsub": {
+      "status": "idle",
+      "result": null,
+      "sessionId": null,
+      "applicantAccessToken": null,
+      "sessionStatus": null
+    }
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -808,6 +893,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "DeFiPositionsControllerV2": {
+    "allDeFiPositionsV2": {}
+  },
   "SamplePetnamesController": {
     "namesByChainIdAndAddress": {}
   },
@@ -827,12 +915,15 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "perpsTradingCampaignPrizePool": {},
     "predictThePitchLeaderboard": {},
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
+    "moneyAccountSweepstakesStats": {},
+    "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
-    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -848,6 +939,7 @@
   },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
@@ -871,11 +963,9 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

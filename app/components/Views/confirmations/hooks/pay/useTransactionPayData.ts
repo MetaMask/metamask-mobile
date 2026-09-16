@@ -2,9 +2,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import {
   selectIsTransactionPayLoadingByTransactionId,
+  selectIsTransactionPaySubmitReadyByTransactionId,
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayIsPostQuoteByTransactionId,
+  selectTransactionPayQuoteErrorByTransactionId,
   selectTransactionPayQuotesByTransactionId,
   selectTransactionPayQuotesLastUpdatedByTransactionId,
   selectTransactionPayRawQuotesByTransactionId,
@@ -68,6 +70,21 @@ export function useTransactionPayIsPostQuote() {
 
 export function useTransactionPayFiatPayment() {
   return useTransactionPayData(selectTransactionPayFiatPaymentByTransactionId);
+}
+
+export function useTransactionPayQuoteError() {
+  return useTransactionPayData(selectTransactionPayQuoteErrorByTransactionId);
+}
+
+/**
+ * Whether the pay transaction would pass the publish guard (executable quote
+ * in state, or a validated direct or fiat route). CTAs that confirm a
+ * pay-token-required transaction must stay blocked while this is false.
+ */
+export function useIsTransactionPaySubmitReady() {
+  return useTransactionPayData(
+    selectIsTransactionPaySubmitReadyByTransactionId,
+  );
 }
 
 function useTransactionPayData<T>(

@@ -37,6 +37,7 @@ const mockPanGestureHandlers: {
   onStart?: () => void;
   onUpdate?: (event: { translationY: number }) => void;
   onEnd?: (event: { translationY: number; velocityY: number }) => void;
+  onFinalize?: () => void;
 } = {};
 
 jest.mock('react-native-gesture-handler', () => ({
@@ -61,6 +62,10 @@ jest.mock('react-native-gesture-handler', () => ({
         handler: (event: { translationY: number; velocityY: number }) => void,
       ) {
         mockPanGestureHandlers.onEnd = handler;
+        return this;
+      },
+      onFinalize(handler: () => void) {
+        mockPanGestureHandlers.onFinalize = handler;
         return this;
       },
     }),
@@ -96,6 +101,7 @@ const swipeToast = async ({
     mockPanGestureHandlers.onStart?.();
     mockPanGestureHandlers.onUpdate?.({ translationY });
     mockPanGestureHandlers.onEnd?.({ translationY, velocityY });
+    mockPanGestureHandlers.onFinalize?.();
     jest.runAllTimers();
   });
 };
@@ -110,6 +116,7 @@ describe('Toast', () => {
     mockPanGestureHandlers.onStart = undefined;
     mockPanGestureHandlers.onUpdate = undefined;
     mockPanGestureHandlers.onEnd = undefined;
+    mockPanGestureHandlers.onFinalize = undefined;
     jest.useFakeTimers();
   });
 
@@ -927,6 +934,7 @@ describe('Toast', () => {
         mockPanGestureHandlers.onStart?.();
         mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
         mockPanGestureHandlers.onEnd?.({ translationY: -10, velocityY: -100 });
+        mockPanGestureHandlers.onFinalize?.();
       });
 
       expect(screen.getByText('Entrance swipe toast')).toBeOnTheScreen();
@@ -936,6 +944,39 @@ describe('Toast', () => {
       });
 
       expect(screen.queryByText('Entrance swipe toast')).toBeNull();
+    });
+
+    it('still auto-dismisses when pan fails after activation', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Failed pan toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        // Finish entrance spring and start the auto-dismiss timer.
+        jest.advanceTimersByTime(500);
+      });
+
+      await act(async () => {
+        // Activate the pan (clears auto-dismiss), then fail without onEnd
+        // (e.g. horizontal travel past failOffsetX).
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onFinalize?.();
+      });
+
+      expect(screen.getByText('Failed pan toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Failed pan toast')).toBeNull();
     });
 
     it('ignores stale spring-back resume after toast is replaced', async () => {
@@ -967,6 +1008,7 @@ describe('Toast', () => {
           translationY: -10,
           velocityY: -100,
         });
+        mockPanGestureHandlers.onFinalize?.();
         jest.advanceTimersByTime(100);
       });
 

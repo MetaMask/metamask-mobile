@@ -2,12 +2,15 @@ import { toPushAnalyticsPayload } from '@metamask/notification-services-controll
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { NativeModules, Platform } from 'react-native';
-import Logger from '../../../util/Logger';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
+import {
+  extractPushNotificationData,
+  extractPushNotificationDeeplink,
+} from '../pushNotificationDeeplink';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -28,7 +31,9 @@ async function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    const data = toFcmDataStringRecord(remoteMessage?.data);
+    const data = toFcmDataStringRecord(
+      extractPushNotificationData(remoteMessage?.data),
+    );
     const payload = toPushAnalyticsPayload(data);
 
     const properties = payload
@@ -50,6 +55,33 @@ async function analyticsTrackPushClickEvent(
 }
 
 type UnsubscribeFunc = () => void;
+
+const ANDROID_NOTIFICATION_OPENED_EVENT = 'metamask.notification_opened';
+
+/**
+ * A notification tap, and what the payload carried with it. `opened` is true
+ * even when there is no deeplink — on-chain activity notifications commonly
+ * have no CTA link.
+ */
+export interface PushTapResult {
+  opened: boolean;
+  deeplink: string | null;
+  notificationType?: string;
+  notificationSubtype?: string;
+}
+
+export function toPushTapResult(data: unknown, opened: boolean): PushTapResult {
+  const normalizedData = toFcmDataStringRecord(
+    extractPushNotificationData(data),
+  );
+  const payload = toPushAnalyticsPayload(normalizedData);
+  return {
+    opened,
+    deeplink: extractPushNotificationDeeplink(data) ?? null,
+    notificationType: payload?.notification_type,
+    notificationSubtype: payload?.notification_subtype,
+  };
+}
 
 /**
  * Utility to check if devices have enabled push notifications
@@ -190,30 +222,46 @@ class FCMService {
     this.#hasRegisteredForeground = null;
   };
 
-  onClickPushNotificationWhenAppClosed = async () => {
+  /**
+   * @returns `opened` — whether a notification tap launched the app, which is
+   * true even when the payload carries no deeplink (common for on-chain
+   * activity notifications) — and the deeplink when one is present.
+   */
+  onClickPushNotificationWhenAppClosed = async (): Promise<PushTapResult> => {
     try {
       const remoteMessage = await getInitialNotification();
       await analyticsTrackPushClickEvent(remoteMessage);
-      return toFcmDataStringRecord(remoteMessage?.data)?.deeplink ?? null;
+      return toPushTapResult(remoteMessage?.data, Boolean(remoteMessage));
     } catch {
-      return null;
+      return { opened: false, deeplink: null };
     }
   };
 
   onClickPushNotificationWhenAppSuspended = (
-    deeplinkCallback: (deeplink?: string) => void,
+    tapCallback: (tap: PushTapResult) => void,
   ) => {
     try {
-      messaging().onNotificationOpenedApp(async (remoteMessage) => {
+      const handleOpenedNotification = async (
+        remoteMessage?: FirebaseMessagingTypes.RemoteMessage,
+      ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
-          deeplinkCallback(
-            toFcmDataStringRecord(remoteMessage?.data)?.deeplink,
+          tapCallback(
+            toPushTapResult(remoteMessage?.data, Boolean(remoteMessage)),
           );
         } catch {
           // Do nothing
         }
-      });
+      };
+
+      if (Platform.OS === 'android') {
+        DeviceEventEmitter.addListener(
+          ANDROID_NOTIFICATION_OPENED_EVENT,
+          handleOpenedNotification,
+        );
+      } else {
+        messaging().onNotificationOpenedApp(handleOpenedNotification);
+      }
     } catch {
       // Do nothing
     }

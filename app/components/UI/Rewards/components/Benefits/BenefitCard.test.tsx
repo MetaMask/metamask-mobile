@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import BenefitCard from './BenefitCard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -91,6 +91,19 @@ describe('BenefitCard', () => {
       expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
     });
 
+    it('renders the company name in the remaining-time row', () => {
+      const benefit = createBenefit({ companyName: 'Pudgy Penguins' });
+      const { getByTestId } = render(<BenefitCard benefit={benefit} />);
+      const footer = within(
+        getByTestId(
+          `${REWARDS_VIEW_SELECTORS.BENEFIT_CARD_FOOTER}-${benefit.id}`,
+        ),
+      );
+
+      expect(footer.getByText('Pudgy Penguins')).toBeOnTheScreen();
+      expect(footer.getByText('1mo 3d')).toBeOnTheScreen();
+    });
+
     it('does not render an empty company label when companyName is null', () => {
       const benefit = createBenefit({ companyName: null });
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
@@ -159,26 +172,34 @@ describe('BenefitCard', () => {
   });
 
   describe('remaining time', () => {
-    it('formats and renders remaining time when actionDate exists', () => {
-      const benefit = createBenefit({ actionDate: '2026-09-01T00:00:00Z' });
+    it('prefers validTo when validTo and actionDate exist', () => {
+      const benefit = createBenefit({
+        validTo: '2026-12-31T23:59:59Z',
+        actionDate: '2026-09-01T00:00:00Z',
+      });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
 
       expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
       expect(mockFormatDateRemaining).toHaveBeenCalledWith(
-        '2026-09-01T00:00:00Z',
+        benefit.validTo,
         expect.any(Number),
       );
       expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
-    it('does not call formatter and hides remaining time when actionDate is null', () => {
+    it('falls back to actionDate when validTo is unavailable', () => {
       const benefit = createBenefit({
-        actionDate: null,
+        validTo: null,
+        actionDate: '2026-09-01T00:00:00Z',
       });
-      const { queryByText } = render(<BenefitCard benefit={benefit} />);
+      const { getByText } = render(<BenefitCard benefit={benefit} />);
 
-      expect(mockFormatDateRemaining).not.toHaveBeenCalled();
-      expect(queryByText('1mo 3d')).toBeNull();
+      expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
+      expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+        benefit.actionDate,
+        expect.any(Number),
+      );
+      expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
     it('hides remaining time when formatter returns null', () => {

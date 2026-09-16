@@ -4,6 +4,13 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 // Mock FilesystemStorage
 jest.mock('redux-persist-filesystem-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
@@ -73,11 +80,21 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import {
+  getOAuthBackgroundAnalyticsProperties,
+  isOAuthLifecycleInProgress,
+  resetOAuthLifecycleTrackingForTests,
+} from '../../../core/OAuthService/oauthLifecycleTracking';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
-import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import {
+  MIGRATION_ERROR_HAPPENED,
+  OAUTH_IN_PROGRESS,
+} from '../../../constants/storage';
 import { AccountType, OnboardingMethod } from '../../../constants/onboarding';
+import { OnboardingCtaIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { _resetOnboardingNavigationPerformanceForTesting } from '../../../hooks/performance/onboardingNavigationPerformanceState';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
@@ -104,8 +121,13 @@ jest.mock('../../../util/test/utils', () => ({
 }));
 
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
+const mockUseOnboardingLoadingStallTracker =
+  useOnboardingLoadingStallTracker as jest.MockedFunction<
+    typeof useOnboardingLoadingStallTracker
+  >;
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
@@ -243,6 +265,7 @@ jest.mock('../../../util/trace', () => ({
   annotateTrace: jest.fn(),
   updateCachedConsent: jest.fn(),
   discardBufferedTraces: jest.fn(),
+  applyPendingOnboardingMachineTime: jest.fn(),
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({
@@ -670,7 +693,6 @@ describe('Onboarding', () => {
         'ChoosePassword',
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
       expect(annotateTrace).toHaveBeenCalledWith(
@@ -841,7 +863,6 @@ describe('Onboarding', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.objectContaining({
             [PREVIOUS_SCREEN]: ONBOARDING,
-            onboardingTraceCtx: expect.any(Object),
           }),
         );
       });
@@ -875,9 +896,10 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        // The component now reads from Redux state, not MMKV storage
-        // So we don't expect StorageWrapper.getItem to be called
-        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+        // Existing-user is read from Redux, not MMKV. Mount still checks
+        // persisted OAuth-in-progress for Android process-death analytics.
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(OAUTH_IN_PROGRESS);
+        expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -911,9 +933,10 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        // The component now reads from Redux state, not MMKV storage
-        // So we don't expect StorageWrapper.getItem to be called
-        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+        // Existing-user is read from Redux, not MMKV. Mount still checks
+        // persisted OAuth-in-progress for Android process-death analytics.
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(OAUTH_IN_PROGRESS);
+        expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
       });
 
       await act(async () => {
@@ -952,6 +975,114 @@ describe('Onboarding', () => {
       jest.clearAllMocks();
       mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
+    });
+
+    it('passes wallet_setup_type new to the stall tracker when social create starts', async () => {
+      let resolveLogin: (value: unknown) => void = () => undefined;
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      let loginPromise: Promise<unknown> | undefined;
+      await act(async () => {
+        loginPromise = navCall[1].params.onPressContinueWithGoogle(true);
+      });
+
+      await waitFor(() => {
+        expect(mockUseOnboardingLoadingStallTracker).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isLoading: true,
+            properties: { wallet_setup_type: 'new' },
+          }),
+        );
+      });
+
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+        await loginPromise;
+      });
+    });
+
+    it('passes wallet_setup_type import to the stall tracker when social import starts', async () => {
+      let resolveLogin: (value: unknown) => void = () => undefined;
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      let loginPromise: Promise<unknown> | undefined;
+      await act(async () => {
+        loginPromise = navCall[1].params.onPressContinueWithApple(false);
+      });
+
+      await waitFor(() => {
+        expect(mockUseOnboardingLoadingStallTracker).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isLoading: true,
+            properties: { wallet_setup_type: 'import' },
+          }),
+        );
+      });
+
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: true,
+          accountName: 'test@icloud.com',
+        });
+        await loginPromise;
+      });
     });
 
     it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
@@ -1013,7 +1144,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'test@example.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1071,7 +1201,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
 
@@ -1131,7 +1260,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'test@icloud.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1474,7 +1602,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1569,6 +1696,52 @@ describe('Onboarding', () => {
             primaryButtonLabel: strings('error_sheet.oauth_error_button'),
             type: 'error',
           }),
+        }),
+      );
+    });
+
+    it('does not report to Sentry when OAuth login is already in progress', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const loginInProgressError = new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(loginInProgressError);
+      (captureException as jest.Mock).mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      expect(captureException).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         }),
       );
     });
@@ -2029,7 +2202,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'existing@example.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2074,7 +2246,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'newuser@icloud.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2335,7 +2506,6 @@ describe('Onboarding', () => {
         'ChoosePassword',
         expect.objectContaining({
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
           [PREVIOUS_SCREEN]: ONBOARDING,
           provider: 'google',
         }),
@@ -3521,6 +3691,7 @@ describe('Onboarding', () => {
     };
 
     beforeEach(() => {
+      _resetOnboardingNavigationPerformanceForTesting();
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
       (Device.isIos as jest.Mock).mockReturnValue(false);
@@ -3549,6 +3720,7 @@ describe('Onboarding', () => {
       jest.clearAllMocks();
       mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
+      resetOAuthLifecycleTrackingForTests();
     });
 
     it('reuses the mount journey span for social login instead of ending it as abandoned', async () => {
@@ -3606,6 +3778,92 @@ describe('Onboarding', () => {
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingJourneyOverall,
+        }),
+      );
+    });
+
+    it('re-annotates the journey with the account type the login resolved to', async () => {
+      (isSentryEnabled as jest.Mock).mockReturnValue(true);
+      // The user asked to create a wallet, but the account already exists, so the
+      // journey turns out to be an import.
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(annotateTrace).toHaveBeenCalledWith(expect.anything(), {
+          account_type: AccountType.ImportedGoogle,
+        });
+      });
+    });
+
+    it('does not start a social CTA navigation span while OAuth is still in the browser', async () => {
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles: the user is still on the provider's login page.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+      // Opening Create wallet already starts a sheet CTA span; this case is
+      // about the social CTA that must wait until OAuth resolves.
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
+
+      await act(async () => {
+        void googleLogin(true);
+      });
+
+      // Timing the tap would charge the OAuth round trip to navigation latency.
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCtaNavigation,
+        }),
+      );
+    });
+
+    it('starts the CTA navigation span once OAuth resolves the destination', async () => {
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
+
+      await act(async () => {
+        await googleLogin(false);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingCtaNavigation,
+            tags: expect.objectContaining({
+              cta_id: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+            }),
+          }),
+        );
+      });
+      // Sheet create_wallet CTA is superseded when the social CTA starts; the
+      // social span stays open until the destination ends it.
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCtaNavigation,
+          data: expect.objectContaining({
+            success: true,
+            cta_id: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+          }),
         }),
       );
     });
@@ -3760,8 +4018,192 @@ describe('Onboarding', () => {
       });
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingSocialLoginAttempt,
-        data: { success: false },
+        data: { success: false, reason: 'login_abandoned' },
       });
+    });
+
+    it('does not reset background duration when iOS resumes through inactive', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles while the user is in the provider browser.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+            properties: expect.objectContaining({
+              status: 'started',
+            }),
+          }),
+        );
+      });
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      act(() => {
+        jest.advanceTimersByTime(5_000);
+      });
+      dispatchAppStateChange('inactive');
+      dispatchAppStateChange('active');
+
+      expect(getOAuthBackgroundAnalyticsProperties()).toEqual({
+        had_background_during_oauth: true,
+        background_count: 1,
+        time_in_background_ms: 5_000,
+      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'backgrounded',
+            auth_connection: 'google',
+            had_background_during_oauth: false,
+            background_count: 0,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'resumed',
+            auth_connection: 'google',
+            had_background_during_oauth: true,
+            background_count: 1,
+            time_in_background_ms: 5_000,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps OAuth lifecycle tracking during Android Google browser fallback', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const originalPlatform = Platform.OS;
+      Platform.OS = 'android';
+
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(
+          new OAuthError('', OAuthErrorType.GoogleLoginNoCredential),
+        )
+        .mockReturnValueOnce(
+          new Promise(() => {
+            // Fallback browser login is in flight.
+          }),
+        );
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+      });
+
+      expect(isOAuthLifecycleInProgress()).toBe(true);
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'started',
+          }),
+        }),
+      );
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      act(() => {
+        jest.advanceTimersByTime(2_000);
+      });
+      dispatchAppStateChange('active');
+
+      expect(getOAuthBackgroundAnalyticsProperties()).toEqual({
+        had_background_during_oauth: true,
+        background_count: 1,
+        time_in_background_ms: 2_000,
+      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'backgrounded',
+            had_background_during_oauth: false,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'resumed',
+            had_background_during_oauth: true,
+            time_in_background_ms: 2_000,
+          }),
+        }),
+      );
+
+      Platform.OS = originalPlatform;
+    });
+
+    it('tracks Social Login Status Updated abandoned after the grace period without resetting OAuth UI state', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles: user abandoned the flow in the external browser.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
+      });
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'abandoned',
+            auth_connection: 'google',
+            resume_outcome: 'abandoned',
+            had_background_during_oauth: true,
+          }),
+        }),
+      );
+      expect(mockOAuthService.resetOauthState).not.toHaveBeenCalled();
     });
 
     it('cancels the abandonment countdown when OAuth returns to the background', async () => {

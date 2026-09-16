@@ -65,8 +65,14 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { RootState } from '../../../reducers';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
+import {
+  discardPendingAppInstall,
+  replayPendingAppInstall,
+} from '../../../util/analytics/appInstallEvent';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -83,6 +89,12 @@ const OptinMetrics = () => {
     >();
   const tw = useTailwind();
   const metrics = useAnalytics();
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.OPTIN_METRICS,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
@@ -254,6 +266,14 @@ const OptinMetrics = () => {
         attributionProps,
         trackEvent: (event) => metrics.trackEvent(event),
       });
+    }
+
+    // Emit App Installed for an install captured before consent existed, or
+    // drop it when the user declines, same as the buffers handled above.
+    if (isBasicUsageChecked) {
+      await replayPendingAppInstall();
+    } else {
+      discardPendingAppInstall();
     }
 
     dispatch(clearOnboardingEvents());

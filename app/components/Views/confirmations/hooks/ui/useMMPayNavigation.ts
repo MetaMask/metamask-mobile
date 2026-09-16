@@ -1,10 +1,19 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
+import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { CustomAmountStage } from '../custom-amount/useCustomAmountStage';
 
+/**
+ * Intercepts navbar / hardware / gesture back on MM Pay review stages so the
+ * user returns to the amount page instead of dismissing the confirmation.
+ * On the amount page, back leaves the flow as usual.
+ *
+ * @param stage - Current custom-amount UI stage.
+ * @param setStage - Stage setter; used to reopen AmountInput on back.
+ * @param skipBackToAmountInput - When true, skip interception (leave on back).
+ */
 const useMMPayNavigation = (
   stage: CustomAmountStage,
   setStage: Dispatch<SetStateAction<CustomAmountStage | null>>,
@@ -15,18 +24,13 @@ const useMMPayNavigation = (
 
   const isAmountInput = stage === CustomAmountStage.AmountInput;
 
-  // Track whether the amount input has ever been shown, so the back gesture is
-  // allowed to leave the screen before the user has had a chance to edit.
-  const wasAmountInputVisibleRef = useRef(isAmountInput);
-  if (isAmountInput) {
-    wasAmountInputVisibleRef.current = true;
-  }
-
   useEffect(() => {
     const showAmountInput = () => setStage(CustomAmountStage.AmountInput);
-    const neverShown = !wasAmountInputVisibleRef.current;
 
-    const allowBack = isAmountInput || skipBackToAmountInput || neverShown;
+    // Amount page (or explicit skip): allow normal leave/reject. Review stages
+    // (Loading / ShowTotals / NoQuote): intercept and reopen amount input —
+    // including deposit-prefill flows that never showed AmountInput first.
+    const allowBack = isAmountInput || skipBackToAmountInput;
     mmPayRequestInProgressNavHandler.current = allowBack
       ? false
       : showAmountInput;
@@ -34,7 +38,7 @@ const useMMPayNavigation = (
       gestureEnabled: !!allowBack,
     });
 
-    if (isAmountInput || neverShown) {
+    if (allowBack) {
       return () => {
         mmPayRequestInProgressNavHandler.current = false;
       };

@@ -21,7 +21,7 @@ const TRENDING_FETCH_LIMIT = 10;
  * full "See all" feed share the same React Query cache key.
  * Falls back to hardcoded params if the registry entry is missing.
  */
-const TRENDING_PARAMS: PredictMarketListParams =
+export const TRENDING_PARAMS: PredictMarketListParams =
   resolvePredictFeedDefaultFilter('trending')?.params ?? {
     order: 'volume24hr',
     status: 'open',
@@ -33,6 +33,8 @@ export interface UsePredictTrendingSectionResult {
   markets: PredictMarket[];
   /** Initial load with nothing to show yet (render skeletons). */
   isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<unknown>;
   /**
    * True when load is complete and there is nothing to display (empty result
    * or fetch error). Unlike other home sections, Trending does NOT hide in
@@ -51,13 +53,16 @@ export interface UsePredictTrendingSectionResult {
  */
 export const usePredictTrendingSection =
   (): UsePredictTrendingSectionResult => {
-    const { markets, isLoading, error } = usePredictMarketList(TRENDING_PARAMS);
+    const { markets, isLoading, error, refetch } =
+      usePredictMarketList(TRENDING_PARAMS);
 
     const showEmptyState = !isLoading && (!!error || markets.length === 0);
 
     return {
       markets: markets.slice(0, TRENDING_DISPLAY_LIMIT),
       isLoading,
+      error,
+      refetch,
       showEmptyState,
     };
   };

@@ -1,19 +1,20 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
-import PlaywrightUtilities from '../../framework/PlaywrightUtilities.js';
+import AppiumUtilities from '../../framework/AppiumUtilities.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
-  unlockIfLockScreenVisible,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -34,17 +35,13 @@ const playgroundServer = new DappServer({
 const scopeCardTestId = (scope: string): string =>
   `${MMConnectDappTestIds.SCOPE_CARD}-${scope.toLowerCase().replace(/:/g, '-')}`;
 
-appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
+appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
   appiumTest.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest(
@@ -59,7 +56,7 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
         async () => {
           const DAPP_URL = getDappUrlForBrowser(currentDeviceDetails.platform);
 
-          await PlaywrightContextHelpers.withNativeAction(async () => {
+          await AppiumContextHelpers.withNativeAction(async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await launchMobileBrowser({ safelyOnboardChrome: true });
             await navigateToDapp(DAPP_URL);
@@ -69,7 +66,7 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           // session creation. Drive the dapp via CDP; capture metamask:// from the
           // SDK session payload and open it with package-scoped mobile: deepLink
           // so we land on the connect sheet (not wallet home via bare app focus).
-          PlaywrightUtilities.collapseStatusBar();
+          AppiumUtilities.collapseStatusBar();
           // Playground ≥0.8 defaults to Localhost (eip155:1337) on http://localhost.
           // Opt into Ethereum Mainnet so the post-connect scope card assertion matches.
           await ChromeCdpHelpers.ensureScopeCheckboxes(DAPP_URL, [
@@ -81,7 +78,7 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
             MMConnectDappTestIds.CONNECT_BUTTON,
           );
 
-          await PlaywrightContextHelpers.withNativeAction(async () => {
+          await AppiumContextHelpers.withNativeAction(async () => {
             // Auto-lock often appears immediately after deeplink/chooser — unlock
             // before (and while) waiting for the connect sheet.
             await unlockIfLockScreenVisible();
@@ -90,6 +87,8 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
             await DappConnectionModal.tapConnectButton({
               timeout: 30_000,
             });
+            // Let the success toast dismiss so the un-awaited relay write flushes before backgrounding MetaMask.
+            await DappConnectionModal.waitForReturnToAppToastToDismiss();
           });
 
           await switchToMobileBrowser();

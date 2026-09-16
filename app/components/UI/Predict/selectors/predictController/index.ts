@@ -1,6 +1,6 @@
 import { createSelector, weakMapMemoize } from 'reselect';
 import { RootState } from '../../../../../reducers';
-import { PredictPositionStatus } from '../../types';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 const weakMapMemoizeOptions = {
@@ -52,9 +52,7 @@ const selectPredictClaimablePositionsByAddress = createSelector(
 const selectPredictWonPositions = createSelector(
   [selectPredictClaimablePositionsByAddress],
   (claimablePositions) =>
-    claimablePositions.filter(
-      (position) => position.status === PredictPositionStatus.WON,
-    ),
+    claimablePositions.filter(isActionableClaimablePosition),
   weakMapMemoizeOptions,
 );
 

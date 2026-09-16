@@ -2,9 +2,9 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokePredictions } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
+import PredictHome from '../../page-objects/Predict/PredictHome.js';
+import PredictFeedView from '../../page-objects/Predict/PredictFeedView.js';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage.js';
-import Assertions from '../../framework/Assertions.js';
 import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
@@ -23,6 +23,7 @@ import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
@@ -50,6 +51,7 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
@@ -61,20 +63,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    predictHomeRedesign: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);
@@ -102,15 +91,15 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
 
           await WalletView.scrollAndTapPredictionsSection();
 
-          await PredictMarketList.waitForScreenToDisplay({
-            description: 'Predict market list container should be visible',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible',
           });
 
-          await PredictMarketList.tapCategoryTab(positionDetails.category);
-          await PredictMarketList.tapMarketCard(
-            positionDetails.category,
-            positionDetails.marketIndex,
-          );
+          await PredictHome.tapCategoryTile(positionDetails.category);
+          await PredictFeedView.waitForScreenToDisplay({
+            description: 'Predict sports feed should be visible',
+          });
+          await PredictFeedView.tapMarketCard(positionDetails.marketIndex);
           await PredictDetailsPage.tapGameBetYesButton();
 
           await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
@@ -125,14 +114,17 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           // Top toast covers the market-details back control until it auto-dismisses.
           await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
-          await PredictMarketList.waitForScreenToDisplay({
+          await PredictFeedView.waitForScreenToDisplay({
             description:
-              'Predict market list should be visible after opening position',
+              'Predict sports feed should be visible after opening position',
           });
-          await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-            description: `USDC balance should display ${positionDetails.newBalance} after opening position`,
+          await PredictFeedView.tapBackButton();
+          await PredictHome.waitForScreenToDisplay({
+            description:
+              'Predict home should be visible after opening position',
           });
-          await PredictMarketList.tapBackButton();
+          await PredictHome.expectAmountDisplayed(positionDetails.newBalance);
+          await PredictHome.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
 
           await WalletView.scrollAndTapPredictionsPosition(
@@ -156,7 +148,10 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           await PredictDetailsPage.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.scrollAndTapPredictionsSection();
-          await Assertions.expectTextDisplayed(positionDetails.newBalance);
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible for balance check',
+          });
+          await PredictHome.expectAmountDisplayed(positionDetails.newBalance);
         },
       );
     },

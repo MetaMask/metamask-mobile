@@ -5,7 +5,7 @@ import messaging, {
 import FCMService from './FCMService';
 import { EVENT_NAME } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
-import { NativeModules, Platform } from 'react-native';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 // Firebase Mock
@@ -383,7 +383,12 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
         const { result, mocks } = await arrangeAct(testData);
 
-        expect(result).toBe('https://test.metamask.io/perps-asset?symbol=ETH');
+        expect(result).toEqual({
+          opened: true,
+          deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+          notificationType: 'platform',
+          notificationSubtype: 'take_profit_executed',
+        });
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
           notification_id: 'test-notification-id',
@@ -393,11 +398,39 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
       });
 
-      it('tracks click event but does not return deeplink when no deeplink present', async () => {
+      it('returns a classified tap from serialized Notifee data', async () => {
+        const deeplink = 'https://link.metamask.io/rewards';
+        const { result, mocks } = await arrangeAct({
+          dataStr: JSON.stringify(createMockPushAnalyticsFcmData({ deeplink })),
+        });
+
+        expect(result).toEqual({
+          opened: true,
+          deeplink,
+          notificationType: 'platform',
+          notificationSubtype: 'take_profit_executed',
+        });
+        assertMockInitialNotificationCalled(mocks);
+        assertTrackEventCalledWith(mocks.mockTrackEvent, {
+          notification_id: 'test-notification-id',
+          notification_type: 'platform',
+          notification_subtype: 'take_profit_executed',
+          deeplink,
+        });
+      });
+
+      // On-chain activity notifications commonly carry no CTA link, so the tap
+      // must still be reported as an open even with no deeplink to return.
+      it('reports an open with no deeplink when no deeplink present', async () => {
         const testData = createMockPushAnalyticsFcmData();
         const { result, mocks } = await arrangeAct(testData);
 
-        expect(result).toBeFalsy();
+        expect(result).toEqual({
+          opened: true,
+          deeplink: null,
+          notificationType: 'platform',
+          notificationSubtype: 'take_profit_executed',
+        });
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
           notification_id: 'test-notification-id',
@@ -406,10 +439,15 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
       });
 
-      it('tracks click event with no properties provided', async () => {
+      it('reports no open when there was no initial notification', async () => {
         const { result, mocks } = await arrangeAct(null);
 
-        expect(result).toBeFalsy();
+        expect(result).toEqual({
+          opened: false,
+          deeplink: null,
+          notificationType: undefined,
+          notificationSubtype: undefined,
+        });
         assertMockInitialNotificationCalled(mocks);
         expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
           expect.objectContaining({}), //Called with no additional properties
@@ -420,6 +458,10 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
 });
 
 describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
+  beforeEach(() => {
+    Platform.OS = 'ios';
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
@@ -485,9 +527,12 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     });
     const { mocks, deeplinkCallback } = await arrangeAct(testData);
 
-    expect(deeplinkCallback).toHaveBeenCalledWith(
-      'https://test.metamask.io/perps-asset?symbol=ETH',
-    );
+    expect(deeplinkCallback).toHaveBeenCalledWith({
+      opened: true,
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+      notificationType: 'platform',
+      notificationSubtype: 'take_profit_executed',
+    });
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
       notification_id: 'test-notification-id',
       notification_type: 'platform',
@@ -496,11 +541,56 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     });
   });
 
-  it('calls deeplink callback with undefined when notification has no deeplink', async () => {
+  it('reports serialized Notifee data from the Android native event', async () => {
+    const deeplink = 'https://link.metamask.io/rewards';
+    const mocks = arrangeMocks();
+    let nativeNotificationHandler:
+      | ((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => Promise<void>)
+      | undefined;
+
+    Platform.OS = 'android';
+    jest
+      .spyOn(DeviceEventEmitter, 'addListener')
+      .mockImplementation((eventType, listener) => {
+        expect(eventType).toBe('metamask.notification_opened');
+        nativeNotificationHandler = listener as (
+          remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+        ) => Promise<void>;
+        return { remove: jest.fn() } as never;
+      });
+
+    FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
+    await nativeNotificationHandler?.(
+      createMockRemoteMessage({
+        dataStr: JSON.stringify(createMockPushAnalyticsFcmData({ deeplink })),
+      }),
+    );
+
+    expect(mocks.mockOnNotificationOpenedApp).not.toHaveBeenCalled();
+    expect(mocks.deeplinkCallback).toHaveBeenCalledWith({
+      opened: true,
+      deeplink,
+      notificationType: 'platform',
+      notificationSubtype: 'take_profit_executed',
+    });
+    assertTrackEventCalledWith(mocks.mockTrackEvent, {
+      notification_id: 'test-notification-id',
+      notification_type: 'platform',
+      notification_subtype: 'take_profit_executed',
+      deeplink,
+    });
+  });
+
+  it('reports the tap with a null deeplink when notification has no deeplink', async () => {
     const testData = createMockPushAnalyticsFcmData();
     const { mocks, deeplinkCallback } = await arrangeAct(testData);
 
-    expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
+    expect(deeplinkCallback).toHaveBeenCalledWith({
+      opened: true,
+      deeplink: null,
+      notificationType: 'platform',
+      notificationSubtype: 'take_profit_executed',
+    });
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
       notification_id: 'test-notification-id',
       notification_type: 'platform',
@@ -508,10 +598,15 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     });
   });
 
-  it('calls deeplink callback with undefined when notification has null data', async () => {
+  it('reports the tap with no classification when notification has null data', async () => {
     const { mocks, deeplinkCallback } = await arrangeAct(null);
 
-    expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
+    expect(deeplinkCallback).toHaveBeenCalledWith({
+      opened: false,
+      deeplink: null,
+      notificationType: undefined,
+      notificationSubtype: undefined,
+    });
     expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({}), //Called with no additional properties
     );

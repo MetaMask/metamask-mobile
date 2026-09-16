@@ -59,13 +59,6 @@ jest.mock('../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
 }));
 
-jest.mock('../../../../selectors/multichain/evm', () => ({
-  selectHideZeroBalanceTokens: () => false,
-  selectAccountTokensAcrossChains: () => [],
-  selectTokensBalances: () => ({}),
-  selectEvmTokensWithZeroBalanceFilter: () => [],
-}));
-
 jest.mock('../../../../core/SDKConnectV2', () => ({
   default: {
     initialize: jest.fn(),

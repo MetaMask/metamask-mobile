@@ -12,6 +12,8 @@ jest.mock('../../../../util/trace', () => ({
     MoneyHomeTimeToContent: 'Money Home Time To Content',
     MoneyHomeBalanceTimeToContent: 'Money Home Balance Time To Content',
     MoneyHomeActivityTimeToContent: 'Money Home Activity Time To Content',
+    MoneyHomeEarningsTimeToContent: 'Money Home Earnings Time To Content',
+    MoneyHomeApyTimeToContent: 'Money Home APY Time To Content',
   },
   TraceOperation: {
     MoneyHomePerformance: 'money.home.performance',
@@ -24,6 +26,7 @@ const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
 
 const BALANCE = TraceName.MoneyHomeBalanceTimeToContent;
 const ACTIVITY = TraceName.MoneyHomeActivityTimeToContent;
+const EARNINGS = TraceName.MoneyHomeEarningsTimeToContent;
 
 const segments = (
   balanceReady: boolean,
@@ -68,6 +71,118 @@ describe('useMoneyHomePerformance', () => {
         op: TraceOperation.MoneyHomePerformance,
       }),
     );
+    expect(mockTrace.mock.calls[0][0]).not.toHaveProperty('startTime');
+    expect(mockTrace.mock.calls[1][0]).not.toHaveProperty('startTime');
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  it('does not start a disabled optional segment', () => {
+    renderHook(() =>
+      useMoneyHomePerformance({
+        segments: [
+          {
+            name: EARNINGS,
+            enabled: false,
+            ready: false,
+            contentState: 'empty',
+          },
+        ],
+      }),
+    );
+
+    expect(mockTrace).not.toHaveBeenCalled();
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  it('does not backdate an optional segment enabled on mount', () => {
+    renderHook(() =>
+      useMoneyHomePerformance({
+        segments: [
+          {
+            name: EARNINGS,
+            enabled: true,
+            backdateToMount: true,
+            ready: false,
+            contentState: 'empty',
+          },
+        ],
+      }),
+    );
+
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockTrace.mock.calls[0][0]).not.toHaveProperty('startTime');
+  });
+
+  it('backdates a segment that becomes enabled after mount', () => {
+    const mountTime = 1_786_370_400_000;
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(mountTime);
+    const { rerender } = renderHook(
+      ({ enabled, ready }) =>
+        useMoneyHomePerformance({
+          segments: [
+            {
+              name: EARNINGS,
+              enabled,
+              backdateToMount: true,
+              ready,
+              contentState: 'filled',
+            },
+          ],
+        }),
+      { initialProps: { enabled: false, ready: false } },
+    );
+
+    expect(mockTrace).not.toHaveBeenCalled();
+
+    rerender({ enabled: true, ready: true });
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EARNINGS,
+        op: TraceOperation.MoneyHomePerformance,
+        startTime: mountTime,
+      }),
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EARNINGS,
+        data: expect.objectContaining({
+          success: true,
+          content_state: 'filled',
+        }),
+      }),
+    );
+    dateNowSpy.mockRestore();
+  });
+
+  it('ends an in-flight segment when it becomes disabled', () => {
+    const { rerender, unmount } = renderHook(
+      ({ enabled }) =>
+        useMoneyHomePerformance({
+          segments: [
+            {
+              name: EARNINGS,
+              enabled,
+              ready: false,
+              contentState: 'empty',
+            },
+          ],
+        }),
+      { initialProps: { enabled: true } },
+    );
+
+    rerender({ enabled: false });
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EARNINGS,
+        data: { success: false, reason: 'disabled' },
+      }),
+    );
+
+    mockEndTrace.mockClear();
+    unmount();
     expect(mockEndTrace).not.toHaveBeenCalled();
   });
 

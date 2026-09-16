@@ -18,6 +18,7 @@ import {
   PartialState,
 } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
+import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { View as MockView } from 'react-native';
@@ -30,6 +31,12 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
+
+const mockQueueColdHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  queueColdHomepageReadyTrace: (...args: unknown[]) =>
+    mockQueueColdHomepageReadyTrace(...args),
+}));
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -68,12 +75,9 @@ jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
   usePredictToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock(
-  '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations',
-  () => ({
-    useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
-  }),
-);
+jest.mock('../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations', () => ({
+  useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
+}));
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
@@ -190,10 +194,10 @@ jest.mock(
   '../../UI/TokenDetails/components/SecurityBadgeBottomSheet',
   () => () => <MockView testID="mock-security-badge" />,
 );
-jest.mock('../../../components/UI/DeleteWalletModal', () => () => (
+jest.mock('../../UI/DeleteWalletModal', () => () => (
   <MockView testID="mock-delete-wallet" />
 ));
-jest.mock('../../../components/Views/AccountActions', () => () => (
+jest.mock('../../Views/AccountActions', () => () => (
   <MockView testID="mock-account-actions" />
 ));
 jest.mock('../../Views/EditAccountName/EditAccountName', () => () => (
@@ -224,6 +228,16 @@ jest.mock('../../UI/SelectOptionSheet/OptionsSheet', () => () => (
 ));
 jest.mock('../../Views/NetworksManagement/NetworkDetailsView', () => () => (
   <MockView testID="mock-network-details" />
+));
+jest.mock('../../Views/ProHub', () => () => <MockView testID="mock-pro-hub" />);
+jest.mock('../../Views/ProHub/screens/Membership', () => () => (
+  <MockView testID="mock-pro-hub-membership" />
+));
+jest.mock('../../Views/ProHub/screens/Earned', () => () => (
+  <MockView testID="mock-pro-hub-earned" />
+));
+jest.mock('../../Views/ProHub/screens/CancelMembership', () => () => (
+  <MockView testID="mock-pro-hub-cancel-membership" />
 ));
 jest.mock('../../Views/LockScreen', () => () => (
   <MockView testID="mock-lock-screen" />
@@ -304,7 +318,7 @@ jest.mock('../../../util/trace', () => ({
 const mockCheckIsSeedlessPasswordOutdated = jest
   .fn()
   .mockResolvedValue(undefined);
-jest.mock('../../../core/', () => ({
+jest.mock('../../../core', () => ({
   Authentication: {
     checkIsSeedlessPasswordOutdated: (...args: unknown[]) =>
       mockCheckIsSeedlessPasswordOutdated(...args),
@@ -379,7 +393,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
-jest.mock('../../../components/hooks/useAsyncResult', () => ({
+jest.mock('../../hooks/useAsyncResult', () => ({
   useAsyncResultOrThrow: jest.fn().mockResolvedValue({
     pending: false,
     value: {},
@@ -387,16 +401,13 @@ jest.mock('../../../components/hooks/useAsyncResult', () => ({
 }));
 
 // Mock 7702 networks
-jest.mock(
-  '../../../components/Views/confirmations/hooks/7702/useEIP7702Networks',
-  () => ({
-    useEIP7702Networks: jest.fn().mockReturnValue({
-      network7702List: [],
-      networkSupporting7702Present: false,
-      pending: false,
-    }),
+jest.mock('../../Views/confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest.fn().mockReturnValue({
+    network7702List: [],
+    networkSupporting7702Present: false,
+    pending: false,
   }),
-);
+}));
 
 jest.mock('../../../core/Multichain/networks', () => ({
   getMultichainBlockExplorer: jest.fn().mockReturnValue({
@@ -417,6 +428,7 @@ describe('App', () => {
   afterEach(() => {
     cleanup();
     jest.runOnlyPendingTimers();
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -477,7 +489,7 @@ describe('App', () => {
       },
     };
 
-    beforeAll(() => {
+    beforeEach(() => {
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -1420,9 +1432,29 @@ describe('App', () => {
   });
 
   describe('Performance tracing', () => {
-    const renderApp = () => {
+    const getHomepageReadyState = (
+      isUnlocked: boolean,
+    ): DeepPartial<RootState> => ({
+      ...initialState,
+      user: {
+        ...initialState.user,
+        existingUser: true,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine?.backgroundState,
+          KeyringController: {
+            ...backgroundState.KeyringController,
+            isUnlocked,
+          },
+        },
+      },
+    });
+
+    const renderApp = (state: DeepPartial<RootState> = initialState) => {
       const mockStore = configureMockStore();
-      const store = mockStore(initialState);
+      const store = mockStore(state);
 
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
@@ -1445,6 +1477,56 @@ describe('App', () => {
           name: TraceName.UIStartup,
         });
       });
+    });
+
+    it('queues Homepage Ready at app open for an unlocked existing user', () => {
+      renderApp(getHomepageReadyState(true));
+
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not queue Homepage Ready before credentials for a locked user', () => {
+      renderApp(getHomepageReadyState(false));
+
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('queues Homepage Ready when the unlocked state becomes available after mount', () => {
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore((state: unknown | undefined, action) => {
+        if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
+          return unlockedState;
+        }
+        if (action.type === 'TEST/LOCKED') {
+          return lockedState;
+        }
+        return state ?? lockedState;
+      }, lockedState as unknown);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/LOCKED' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1617,29 +1699,29 @@ describe('App', () => {
       return render(<App />, { wrapper: Providers });
     };
 
-    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', async () => {
+    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', () => {
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-          expect.objectContaining({
-            skipCache: true,
-            captureSentryError: false,
-          }),
-        );
+      act(() => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCache: true,
+          captureSentryError: false,
+        }),
+      );
     });
 
-    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', async () => {
+    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', () => {
       renderAppWithSeedlessState(false);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
+      act(() => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
     });
 
     it('logs error when checkIsSeedlessPasswordOutdated rejects', async () => {
@@ -1648,14 +1730,14 @@ describe('App', () => {
 
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          testError,
-          'App: Error in checkIsSeedlessPasswordOutdated',
-        );
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        testError,
+        'App: Error in checkIsSeedlessPasswordOutdated',
+      );
     });
   });
 
@@ -1986,7 +2068,7 @@ describe('App', () => {
       });
     });
 
-    it('renders the AddNetworkFlow screen', async () => {
+    it('renders the AddNetwork screen', async () => {
       const routeState = {
         index: 0,
         routes: [{ name: Routes.ADD_NETWORK }],
@@ -1996,6 +2078,58 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-network-details')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHub screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.ROOT }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-membership')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubEarned screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.EARNED }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-earned')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubCancelMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.CANCEL_MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-cancel-membership')).toBeTruthy();
       });
     });
 
@@ -2078,29 +2212,54 @@ describe('App', () => {
     });
 
     it('renders the MultichainAddressList screen', async () => {
+      // Nested navigator shares the ADDRESS_LIST route name; seed child state so
+      // the mocked screen mounts without waiting on navigation effects.
+      // Avoid waitFor: App suite uses fake timers and testSetup mocks Date.now,
+      // so waitFor's timeout never elapses and a slow mount hangs until Jest's
+      // 5s test timeout (flaky CI failures).
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-address-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-address-list')).toBeOnTheScreen();
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-pk-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
     });
 
     it('renders the LockScreen route', async () => {
@@ -2111,10 +2270,13 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-lock-screen')).toBeTruthy();
-      });
-    });
+      await waitFor(
+        () => {
+          expect(getByTestId('mock-lock-screen')).toBeTruthy();
+        },
+        { timeout: 15000 },
+      );
+    }, 20000);
   });
 
   describe('isNetworkUiRedesignEnabled conditional rendering', () => {
@@ -2147,10 +2309,10 @@ describe('App', () => {
         ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-network-details')).toBeTruthy();
       });
     });
 

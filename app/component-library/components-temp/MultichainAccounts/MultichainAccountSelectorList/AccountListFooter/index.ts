@@ -1,1 +1,4 @@
-export { default } from './AccountListFooter';
+export {
+  default,
+  abandonCreateMultichainAccountTrace,
+} from './AccountListFooter';

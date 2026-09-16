@@ -284,6 +284,7 @@ export function HardwareWalletsSwaps() {
               navigation.navigate(Routes.BRIDGE.HW_QR_SCANNER, {
                 currentStep: getCameraScanStep(progress.currentStep),
                 totalSteps: getTotalQrScans(progress.totalSteps),
+                ...(strategy.isSendFlow ? { completeOnScan: true } : {}),
               })
             }
           >

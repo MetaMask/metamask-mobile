@@ -1,71 +1,89 @@
 # E2E Test Decision Tree
 
-The following diagram shows the high level decision flow used by Mobile CI to determine whether E2E tests should run, to which platform, and whether AI-powered test selection is applied.
+The following diagram shows the intended decision flow used for `Mobile CI` (ci.yml) to determine whether E2E tests (and builds) should run, for which platform, and whether AI-powered test selection is applied. It is intended to stay high-level for readability reasons, focusing only on when E2E tests should run.
+
+Note: This doc is the source of truth for the intended E2E trigger policy. CI should follow this logic and agents should not modify this doc unless a human is intentionally changing the policy. Keep it high level, avoiding technical details.
 
 ```mermaid
 flowchart TD
-    CI[CI run starts - Android and iOS] --> GR[Check conditions]
-    GR -->|Merge Queue | MQ[No E2E]
-    GR -->|Fork PR| FK[No E2E]
-    GR -->|PR label: skip-e2e| HS[No E2E]
-    GR -->|PR label: pr-not-ready-for-e2e| L2[No E2E]
-    L2 -->|ignorable-only changes| NoBlock[No merge block]
+    CI[CI run starts] --> GR{{Check conditions}}
+    GR -->|Merge Queue| MQ[❌ No E2E]
+    GR -->|Fork PR| FK[❌ No E2E]
+    GR -->|PR targets stable| ST[❌ No E2E]
+    GR -->|PR label: skip-e2e| HS[❌ No E2E]
+    GR -->|PR label: pr-not-ready-for-e2e| L2[❌ No E2E]
+    L2 -->|ignorable-only changes| NoBlock[🟢 Merge allowed]
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
-    GR -->|PR ignorable-only changes| Ignorable[No E2E]
-    GR -->|PR test-only changes| TestOnly[E2E + Smart selection, reuse main builds]
-    GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
-    GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
-    GR -->|PR other files changed| Both[Both Build + Tests needed]
-    GR -->|Scheduled and Push to main | Full[Run all E2E Suites for Both]
+    GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
+    GR -->|Scheduled| Scheduled[🧪 Run all E2E for iOS only]
+    GR -->|Push to release/*| FullRelease[🧪 Path filter to run all E2E for Android and/or iOS]
+    GR -->|Push to main| AndroidMain[🧪 Path filter; run all E2E for Android if selected]
 
-    Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
-    LABEL -->|yes| AllTags[Run all E2E needed]
-    LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
+    GR -->|PR with non-ignorable changes| PRToValidate["Path-filtered platforms (Android, iOS, or both)"]
+    PRToValidate -->|Yes, Android tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
+    PRToValidate -->iOSRequired{{PR label: run-appium-ios-tests? or E2E infra code?}}
+    iOSRequired -->|Yes, iOS tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
+
+    Smart -->|Yes| AllTags[🧪 Run all E2E for required platforms]
+    Smart -->|No| AI[🤖 AI selects test suites + confidence score]
     AI --> CONF{{Confidence >= 85% ?}}
-    CONF -->|yes| SelectedTags[Run selected E2E suites]
-    CONF -->|no| AllTagsFallback[Run all E2E needed]
+    CONF -->|Yes| SelectedTags[🧪 Run selected E2E for required platforms]
+    CONF -->|No| AllTagsFallback[🧪 Run all E2E for required platforms]
+
 ```
 
-## Test-only PR changes
+## E2E platform policy
 
-When a PR only changes E2E/performance test files (and other ignorable files), CI still runs Smart E2E Selection and the selected E2E/performance suites, but **does not compile fresh iOS/Android native builds**. Instead, it reuses the latest matching artifacts from `main`.
+After the global gates, path filters classify non-ignorable changes as Android-only, iOS-only, or both. For pull requests, iOS is suppressed unless it is explicitly requested with `run-appium-ios-tests`. Ignorable-only changes stop before this stage; labels cannot revive them.
 
-The native build fingerprint for test-only PRs is computed from **`main` HEAD** (not the PR merge tree) so the lookup key matches completed `ci.yml` runs on `main`. Reuse tries GitHub Actions artifacts first, then the Cirrus `main` APK cache on Android.
+For every eligible pull request, iOS runs on explicit request:
 
-If `main` has new native-changing commits but its CI build has not finished yet, reuse lookup may miss — CI logs a warning and **falls back to a fresh native build** instead of failing the workflow. Performance E2E on test-only PRs resolves BrowserStack apps via stable main `custom_id`s (`MetaMask-Android-*-main`) first, then legacy `…-main-<run_id>` IDs; if none are found it **falls back to a fresh dual Android upload** instead of failing.
+| Request | Effect |
+| --- | --- |
+| `run-appium-ios-tests` | Adds iOS while preserving the path-selected Android platform. |
+| `skip-smart-e2e-selection` | Runs all Android E2E tags and bypasses AI test tag selection. It does not request iOS. |
+| Both labels | Runs all E2E tags on Android and iOS. |
 
-This applies when all changed files match `e2e_test_files` or `e2e_ignorable` filters in `.github/rules/filter-rules.yml`, with at least one E2E test file changed, and no E2E-relevant workflow files were modified.
+For non-PR events:
 
-Use the `force-builds` label or `[force-builds]` commit tag to override reuse and compile fresh builds — including on test-only PRs that would otherwise require main-branch artifacts.
+- Scheduled runs on `main` execute all iOS E2E tests only; Android E2E tests do not run.
+- Pushes to `main` execute Android E2E tests only when path filtering selects Android-relevant changes. If no Android paths are selected, E2E tests do not run.
 
-## E2E tests skipped by default on new PRs
+Forced platform runs:
+
+| Condition | Effect |
+| --- | --- |
+| E2E infrastructure changes on a PR targeting `main` | Select both Android and iOS as required to run to catch breaking infrastructure changes. |
+
+## E2E tests skipped by default on new PRs during peak hours
 
 To save infra resources while waiting for static analysis findings and potential fixes/iterations:
 
 - Label `pr-not-ready-for-e2e` is applied to the PR automatically when it is created.
-- E2E tests are skipped and merge is blocked while the label is present, **unless** all changes are ignorable-only.
-- If E2E tests are needed, they should pass to be able to merge.
+- E2E tests are skipped and merge is blocked while the label is present, **unless** all PR changes are ignorable-only.
+- If E2E tests are needed, they should pass to be able to merge, so remove the label and the CI will re-run again including the tests.
 
 ## Smart AI E2E test selection
 
 Runs only when all of the following are true:
 
+- Event is a pull request
 - Not a fork
 - No hard E2E skip signal (label `skip-e2e`)
 - No `skip-smart-e2e-selection` label
 
+For eligible pull requests without a skip label, AI selects tags for the platforms selected by the E2E platform policy. With `skip-smart-e2e-selection`, AI smart selection is bypassed and the full `ALL` tag set runs, i.e. all the test suites. Global gates still apply, so an ignorable-only PR cannot be revived by the label.
+
+Some changes trigger conservative hard rules based on lessons from past regressions. These rules force the full `ALL` E2E test suite when changes could break E2E execution or increase the risk of missing app bugs. For example, when an E2E test-execution workflow, such as `setup-e2e-env`, changes, Smart E2E Selection returns the `ALL` tag set with 100% confidence before calling AI. Performance-only workflow changes are handled by performance selection, and other artifact or runner-support changes do not force all smoke tags.
+
 ## (Exceptional) skip builds and all E2E tests
 
-- Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
+- Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of e.g. infra issues.
 - Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
 
-## (Exceptional) force Appium iOS smoke tests on PRs
+## E2E flakiness detection in PRs targeting `main`
 
-Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). To also run them on a PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
-
-## E2E flakiness detection in PRs
-
-Flakiness detection is applied to modified E2E test files in PRs:
+Flakiness detection is applied to modified E2E test files in PRs targeting `main`:
 
 - Modified E2E test files run twice
 - It applies to existing test files as well as new test files added in the PR
@@ -73,7 +91,9 @@ Flakiness detection is applied to modified E2E test files in PRs:
 
 ## Release branches
 
-PRs to release branches (cherry-picks from main to release/\* branches and PRs to stable branch) are exempt from the following:
+`release/*` branches are release candidates cut from main.
 
-- Label `pr-not-ready-for-e2e` is not applied
-- Smart AI E2E selection is skipped - all E2E suites are run (if changes are not ignorable-only, e.g. only docs)
+- Pull requests targeting `release/*` branches follow the E2E platform and Smart E2E policies above.
+- Pushes to `release/*` branches use deterministic path filtering and run `ALL` tags (test suites) on Android, iOS, or both; ignorable-only pushes skip E2E.
+- Pull requests from `release/*` to `stable` are synchronization PRs and run no E2E.
+- The final release decision is based on the latest tested `release/*` SHA.

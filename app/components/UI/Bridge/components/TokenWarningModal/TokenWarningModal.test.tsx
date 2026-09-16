@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenWarningModal } from './index';
 import { TokenWarningModalMode } from './constants';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -106,8 +109,26 @@ const mockBridgeFeatureFlags = {
 
 const mockActiveQuote = {
   quote: {
-    priceData: { priceImpact: '0.05' }, // below error threshold by default
+    priceData: { priceImpact: { amount: '0.05' } }, // below error threshold by default
   },
+} as unknown as QuoteResponse;
+
+const defaultBridgeQuoteData: ReturnType<typeof useBridgeQuoteData> = {
+  bestQuote: null,
+  quoteFetchError: null,
+  activeQuote: undefined,
+  quotesLoadingStatus: null,
+  destTokenAmount: undefined,
+  isLoading: false,
+  formattedQuoteData: undefined,
+  isNoQuotesAvailable: false,
+  willRefresh: false,
+  isExpired: false,
+  blockaidError: null,
+  shouldShowPriceImpactWarning: false,
+  validQuotes: [],
+  needsNewQuote: false,
+  isActiveQuoteForCurrentTokenPair: false,
 };
 
 const mockFeatures = [
@@ -142,8 +163,9 @@ describe('TokenWarningModal', () => {
     mockUseLatestBalance.mockReturnValue(undefined);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
     mockUseBridgeQuoteData.mockReturnValue({
+      ...defaultBridgeQuoteData,
       activeQuote: mockActiveQuote,
-    } as ReturnType<typeof useBridgeQuoteData>);
+    });
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSourceToken) return mockSourceToken;
       if (selector === selectDestToken) return mockDestToken;
@@ -405,7 +427,9 @@ describe('TokenWarningModal', () => {
     it('navigates to PriceImpactModal when price impact meets error threshold', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.25' } }, // exactly at threshold
+          quote: {
+            priceData: { priceImpact: { amount: '0.25' } }, // exactly at threshold
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>);
 
@@ -427,7 +451,9 @@ describe('TokenWarningModal', () => {
     it('does not call confirmBridge when price impact exceeds threshold', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.90' } },
+          quote: {
+            priceData: { priceImpact: { amount: '0.90' } },
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>);
 
@@ -451,7 +477,9 @@ describe('TokenWarningModal', () => {
       });
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.40' } },
+          quote: {
+            priceData: { priceImpact: { amount: '0.40' } },
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>);
 

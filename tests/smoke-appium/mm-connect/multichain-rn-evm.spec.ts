@@ -1,21 +1,16 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  ensureAccountGroupsFinishedLoading,
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
-import {
-  unlockIfLockScreenVisible,
-  ensurePlaygroundInstalled,
-  ensureAccountGroupsFinishedLoading,
-} from './utils.js';
-import {
-  PlaywrightAssertions,
-  sleep,
-  asPlaywrightElement,
-  PlaywrightGestures,
-} from '../../framework/index.js';
+import { ensurePlaygroundInstalled } from './utils.js';
+import { Assertions, sleep, Gestures } from '../../framework/index.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 
 const CHAINS = {
@@ -88,10 +83,9 @@ appiumTest.describe.skip(SmokeMMConnect('Multichain RN EVM'), () => {
       // 1. Login to MetaMask wallet
       //
       await loginToAppPlaywright();
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(WalletView.container),
-        { timeout: 15000 },
-      );
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        timeout: 15000,
+      });
 
       await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
 
@@ -200,7 +194,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multichain RN EVM'), () => {
       }
 
       // Eager swipe up as the disconnect button sits at the top of the Dapp
-      await PlaywrightGestures.swipe({
+      await Gestures.swipeScreen({
         scrollParams: { direction: 'down' },
         duration: 100,
         from: { x: 100, y: 300 },

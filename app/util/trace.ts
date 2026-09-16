@@ -8,6 +8,7 @@ import {
   type StartSpanOptions,
   type Span,
   withIsolationScope,
+  startNewTrace,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import performance from 'react-native-performance';
@@ -37,6 +38,12 @@ export enum TraceName {
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
+  HomepageReady = 'Homepage Ready',
+  UiSlotsLoad = 'UI Slots Load',
+  DeeplinkProcessed = 'Deeplink Processed',
+  DeeplinkNavigated = 'Deeplink Navigated',
+  DeeplinkSignatureVerify = 'Deeplink Signature Verify',
+  DeeplinkIntentPrepare = 'Deeplink Intent Prepare',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
@@ -59,17 +66,22 @@ export enum TraceName {
   LoadDepositExperience = 'Load Deposit Experience',
   DepositContinueFlow = 'Deposit Continue Flow',
   DepositInputOtp = 'Deposit Input OTP',
+  RampBuyToOrderDetails = 'Ramp Buy To Order Details',
+  RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
+  RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
+  /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
+  RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
-  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
-  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
   /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Transaction creation to the confirmation body's first paint. */
+  TransactionConfirmationLoad = 'Transaction Confirmation Load',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -109,8 +121,17 @@ export enum TraceName {
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   OnboardingSRPAccountCreationTime = 'Onboarding SRP Account Creation Time',
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
+  // Onboarding screen / Rive / navigation performance
+  OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenFullyDisplayed = 'Onboarding Screen Fully Displayed',
+  OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
+  OnboardingRiveReady = 'Onboarding Rive Ready',
+  OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  SwapQuoteFetch = 'Swap Quote Fetch',
+  SwapTokenSearch = 'Swap Token Search',
+  SwapPopularTokensFetch = 'Swap Popular Tokens Fetch',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
@@ -178,6 +199,9 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  PerpsLoadingSession = 'Perps Loading Session',
+  /** Market-detail mount to section resolution offsets for one mode/context generation. */
+  PerpsMarketDetailSession = 'Perps Market Detail Session',
   // Perps chart: first visible candle after the market detail chart mounts.
   PerpsChartFirstCandle = 'perps.chart.first_candle',
   // Perps chart: fullscreen chart visible after open.
@@ -189,7 +213,7 @@ export enum TraceName {
   // Perps user-perceived CUF spans: gesture/open -> render with live data
   /** Tap/open -> Perps market list rendered with live prices. */
   PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
-  /** Market route open -> stats + chart + top-of-book live. */
+  /** Market detail mount -> metadata + stats + price + account resolved. */
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
@@ -201,6 +225,8 @@ export enum TraceName {
   PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
   /** Cancel tap -> order absent from the live stream. */
   PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** Terminate tap -> TWAP schedule absent or terminal in reconciled data. */
+  PerpsTerminateTwapToConfirmation = 'Perps Terminate TWAP To Confirmation',
   /** TP/SL submit -> updated values visible in the live stream. */
   PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
   /** WebSocket price subscription -> first price delivered. */
@@ -244,14 +270,31 @@ export enum TraceName {
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
+  // PredictNext
+  PredictNextHomeView = 'PredictNext Home View',
+  PredictNextFeedView = 'PredictNext Feed View',
+  PredictNextEventView = 'PredictNext Event View',
+  PredictNextPortfolioView = 'PredictNext Portfolio View',
+  PredictNextGetBalance = 'PredictNext Get Balance',
+  PredictNextGetPositions = 'PredictNext Get Positions',
+  PredictNextGetActivity = 'PredictNext Get Activity',
+  PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
+  PredictNextGetFeed = 'PredictNext Get Feed',
+  PredictNextGetEvent = 'PredictNext Get Event',
+  PredictNextGetMarketHistory = 'PredictNext Get Market History',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
   MusdConversionConfirm = 'mUSD Conversion Confirm',
   // Market Insights
+  MarketInsightsFetch = 'Market Insights Fetch',
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
   MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
+  WhatsHappeningFetch = "What's Happening Fetch",
+  WhatsHappeningFrontPageFetch = "What's Happening Front Page Fetch",
+  WhatsHappeningCarouselLoad = "What's Happening Carousel Load",
+  WhatsHappeningViewLoad = "What's Happening View Load",
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
@@ -259,6 +302,18 @@ export enum TraceName {
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
+  MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Money Home Data Fetches
+  MoneyActivityFetch = 'Money Activity Fetch',
+  CardHomeDataFetch = 'Card Home Data Fetch',
+  CardRedeemWithdraw = 'Card Redeem Withdraw',
+  // Rewards
+  /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
+  RewardsTabTimeToContent = 'Rewards Tab Time To Content',
+  // Notifications & Braze Performance
+  NotificationListTimeToContent = 'Notification List Time To Content',
+  BrazeBannerTimeToContent = 'Braze Banner Time To Content',
 }
 
 export enum TraceOperation {
@@ -268,6 +323,8 @@ export enum TraceOperation {
   EngineInitialization = 'engine.initialization',
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
+  HomepagePerformance = 'homepage.performance',
+  DeeplinkPerformance = 'deeplink.performance',
   NavInit = 'navigation.initialization',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
@@ -288,15 +345,23 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  CardDataFetch = 'card.data_fetch',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  OnboardingScreenPerformance = 'onboarding.screen.performance',
+  OnboardingRivePerformance = 'onboarding.rive.performance',
+  OnboardingNavigationPerformance = 'onboarding.navigation.performance',
+  // Swap/Bridge
+  BridgeScreenPerformance = 'bridge.screen.performance',
+  BridgeDataFetch = 'bridge.data_fetch',
   // Accounts
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',
   AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
+  PerpsLoading = 'perps.loading',
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
@@ -314,13 +379,22 @@ export enum TraceOperation {
   MusdConversionOperation = 'musd.conversion.operation',
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
   // Market Insights
+  MarketInsightsFetch = 'market_insights.fetch',
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
+  WhatsHappeningFetch = 'whats_happening.fetch',
+  WhatsHappeningLoad = 'whats_happening.load',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  // Rewards
+  RewardsPerformance = 'rewards.performance',
+  // Notifications & Braze Performance
+  NotificationPerformance = 'notification.performance',
+  BrazeBannerPerformance = 'braze_banner.performance',
+  RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
@@ -334,6 +408,93 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
 const localBufferedTraces: BufferedTrace[] = [];
+
+/**
+ * Summed machine/app wait time on `Onboarding - Overall Journey`, excluding human
+ * interaction (browser OAuth, password typing). See `MACHINE_TIME_TRACE_NAMES`.
+ */
+export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
+
+/**
+ * Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap.
+ * Retries of the same span key (name + id) keep only the latest successful duration
+ * so multiple social-login attempts in one journey are not added together.
+ *
+ * `OnboardingCreateKeyAndBackupSrp` is deliberately excluded: it nests inside
+ * `OnboardingSRPAccountCreationTime` on the SRP-create-wallet path
+ * (ChoosePassword -> Authentication.newWalletAndKeychain ->
+ * createAndBackupSeedPhrase), so summing both would double-count the overlap.
+ */
+const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
+  TraceName.OnboardingScreenTimeToContent,
+  TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+  TraceName.OnboardingOAuthSeedlessAuthenticate,
+  TraceName.OnboardingSRPAccountCreationTime,
+  TraceName.OnboardingSRPAccountImportTime,
+  TraceName.OnboardingFetchSrps,
+  TraceName.OnboardingAddSrp,
+  TraceName.OnboardingResetPassword,
+]);
+
+/** Latest successful duration per machine-time span key (`name:id`). */
+let onboardingMachineTimeByKey = new Map<string, number>();
+/** Harvested from buffered spans on social opt-in discard; applied on journey start/reuse. */
+let pendingOnboardingMachineTimeByKey = new Map<string, number>();
+
+const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
+const ONBOARDING_OP_PREFIX = 'onboarding.';
+
+/** Journey account type inherited by onboarding child spans (see `rememberOnboardingAccountType`). */
+let onboardingAccountType: string | undefined;
+
+/**
+ * Record the journey's account type when the given tags carry one.
+ *
+ * @param tags - Tags from a journey trace request or annotation.
+ */
+function rememberOnboardingAccountType(
+  tags?: Record<string, TraceValue>,
+): void {
+  const accountType = tags?.[ACCOUNT_TYPE_ATTRIBUTE];
+
+  if (typeof accountType === 'string') {
+    onboardingAccountType = accountType;
+  }
+}
+
+/**
+ * Resolve the attributes a span starts with. Tags are mirrored into attributes,
+ * with data taking precedence, and onboarding spans inherit the journey's account
+ * type when they do not set one of their own.
+ *
+ * @param request - The trace request being started.
+ * @returns The attributes to open the span with.
+ */
+function getSpanAttributes(
+  request: TraceRequest,
+): Record<string, TraceValue> | undefined {
+  const { data, op, tags } = request;
+  const attributes =
+    data || tags
+      ? {
+          ...tags,
+          ...data,
+        }
+      : undefined;
+
+  if (
+    !op?.startsWith(ONBOARDING_OP_PREFIX) ||
+    onboardingAccountType === undefined ||
+    attributes?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+  ) {
+    return attributes;
+  }
+
+  return {
+    ...attributes,
+    [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType,
+  };
+}
 
 export interface PendingTrace {
   end: (timestamp?: number) => void;
@@ -383,8 +544,14 @@ export interface TraceRequest {
    */
   parentContext?: TraceContext;
 
+  /** Root transaction; without parentContext also starts a fresh Sentry trace ID. */
+  forceTransaction?: boolean;
+
   /**
    * Override the start time of the trace.
+   * Must come from {@link getPerformanceTimestamp} so start and end share one
+   * clock. `Date.now()` mixed with the performance stamp used by `endTrace`
+   * can produce invalid durations that Sentry silently drops.
    */
   startTime?: number;
 
@@ -432,6 +599,11 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
   parentTraceName?: string; // Track parent trace name for reconnecting during flush
+  measurements?: {
+    name: string;
+    value: number;
+    unit: Parameters<typeof setMeasurement>[2];
+  }[];
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -522,14 +694,87 @@ function finishPendingTrace(
  */
 /**
  * Return the in-flight span for a pending manual trace, if any.
- * Used to nest a security op (e.g. Create Key and Backup SRP) under an
- * already-open journey span (e.g. New Social Create Wallet) without
- * threading the span through route params.
+ * Used to nest a child span under an already-open parent span without
+ * threading the span through route params (perf_fix: trace-registry-v1).
+ *
+ * Onboarding screens call this with `TraceName.OnboardingJourneyOverall` to
+ * fetch the parent context instead of receiving it as a non-serializable
+ * React Navigation route param.
  */
 export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,
 ): TraceContext {
   return tracesByKey.get(getTraceKey(request))?.span;
+}
+
+function getBufferedStart(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+): BufferedTrace<TraceRequest> | undefined {
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (getTraceKey(bufferedTrace.request) !== traceKey) {
+      continue;
+    }
+
+    return bufferedTrace.type === 'start'
+      ? (bufferedTrace as BufferedTrace<TraceRequest>)
+      : undefined;
+  }
+  return undefined;
+}
+
+/** Write a measurement to an explicit pending trace, buffering until consent. */
+export function setTraceMeasurement(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  name: string,
+  value: number,
+  unit: Parameters<typeof setMeasurement>[2],
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    setMeasurement(name, value, unit, span);
+    return;
+  }
+
+  const bufferedStart = getBufferedStart(request);
+  if (!bufferedStart) {
+    return;
+  }
+
+  const measurements = bufferedStart.measurements ?? [];
+  const existing = measurements.find(
+    (measurement) => measurement.name === name,
+  );
+  if (existing) {
+    existing.value = value;
+    existing.unit = unit;
+  } else {
+    measurements.push({ name, value, unit });
+  }
+  bufferedStart.measurements = measurements;
+}
+
+/** Attach attributes to an explicit pending trace, buffering until consent. */
+export function annotateTraceByRequest(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  attributes: Record<string, TraceValue>,
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    annotateTrace(span, attributes);
+    return;
+  }
+
+  const bufferedStart = getBufferedStart(request);
+  if (!bufferedStart) {
+    return;
+  }
+
+  bufferedStart.request.data = {
+    ...bufferedStart.request.data,
+    ...attributes,
+  };
 }
 
 /**
@@ -545,9 +790,99 @@ export function annotateTrace(
     return;
   }
 
+  rememberOnboardingAccountType(tags);
+
   for (const [key, value] of Object.entries(tags)) {
     context.setAttribute(key, value);
   }
+}
+
+function sumOnboardingMachineTime(byKey: Map<string, number>): number {
+  let total = 0;
+
+  for (const duration of byKey.values()) {
+    total += duration;
+  }
+
+  return total;
+}
+
+function recordOnboardingMachineTime(
+  request: { name: TraceName; id?: string },
+  duration: number,
+  target: Map<string, number> = onboardingMachineTimeByKey,
+): void {
+  target.set(getTraceKey(request), Math.max(duration, 0));
+}
+
+function mergeOnboardingMachineTime(
+  target: Map<string, number>,
+  source: Map<string, number>,
+): void {
+  for (const [key, duration] of source) {
+    target.set(key, duration);
+  }
+}
+
+/** Skip failed spans; capped unmount durations are not real user waits. */
+function addOnboardingMachineTime(
+  request: EndTraceRequest,
+  duration: number,
+): void {
+  if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+    return;
+  }
+
+  if (request.data?.success === false || !Number.isFinite(duration)) {
+    return;
+  }
+
+  recordOnboardingMachineTime(request, duration);
+}
+
+/** Credit open machine-time spans on successful journey end (e.g. SRP create path). */
+function addOpenOnboardingMachineTime(
+  request: EndTraceRequest,
+  journeyEndTime: number,
+): void {
+  if (request.data?.success === false) {
+    return;
+  }
+
+  for (const pendingTrace of tracesByKey.values()) {
+    if (!MACHINE_TIME_TRACE_NAMES.has(pendingTrace.request.name)) {
+      continue;
+    }
+
+    const { startTime } = pendingTrace;
+    const cappedEndTime = Math.min(
+      journeyEndTime,
+      startTime + TRACES_CLEANUP_INTERVAL,
+    );
+
+    if (!Number.isFinite(cappedEndTime - startTime)) {
+      continue;
+    }
+
+    recordOnboardingMachineTime(
+      pendingTrace.request,
+      cappedEndTime - startTime,
+    );
+  }
+}
+
+/** Write `onboarding.machine.ms` before the journey span finishes. */
+function finalizeOnboardingMachineTime(span?: Span): void {
+  // Mirrors the guard around span.end(): the tracing layer must never throw into
+  // an onboarding flow because a span implementation is incomplete.
+  if (span?.setAttribute !== undefined) {
+    span.setAttribute(
+      ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+      Math.round(sumOnboardingMachineTime(onboardingMachineTimeByKey)),
+    );
+  }
+
+  onboardingMachineTimeByKey = new Map();
 }
 
 export function endTrace(request: EndTraceRequest): void {
@@ -577,10 +912,23 @@ export function endTrace(request: EndTraceRequest): void {
     }
   }
 
-  const endTime = finishPendingTrace(key, pendingTrace, timestamp);
+  let endTimeRequest = timestamp;
+
+  if (name === TraceName.OnboardingJourneyOverall) {
+    // Resolved here because the machine-time total needs the journey's end before
+    // the span is finished. Capping is idempotent, so handing the resolved value
+    // to finishPendingTrace records the same timestamp without re-reading the clock.
+    endTimeRequest = getEffectiveEndTime(pendingTrace, timestamp);
+    addOpenOnboardingMachineTime(request, endTimeRequest);
+    finalizeOnboardingMachineTime(pendingTrace.span);
+  }
+
+  const endTime = finishPendingTrace(key, pendingTrace, endTimeRequest);
 
   const { request: pendingRequest, startTime } = pendingTrace;
   const duration = endTime - startTime;
+
+  addOnboardingMachineTime(request, duration);
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
 }
@@ -597,7 +945,7 @@ function createBufferedStartTrace(
     request: {
       ...request,
       parentContext: undefined, // Remove original parentContext to avoid invalid references
-      startTime: request.startTime ?? Date.now(),
+      startTime: request.startTime ?? getPerformanceTimestamp(),
     },
     parentTraceName,
   } as BufferedTrace;
@@ -611,7 +959,7 @@ function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
     type: 'end',
     request: {
       ...request,
-      timestamp: request.timestamp ?? Date.now(),
+      timestamp: request.timestamp ?? getPerformanceTimestamp(),
     },
   } as BufferedTrace;
 }
@@ -669,6 +1017,14 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
+        bufferedItem.measurements?.forEach((measurement) => {
+          setMeasurement(
+            measurement.name,
+            measurement.value,
+            measurement.unit,
+            span,
+          );
+        });
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {
@@ -732,8 +1088,75 @@ export function updateCachedConsent(consent: boolean) {
   cachedConsent = consent;
 }
 
+/** Pair buffered start/end machine-time spans before social opt-in discard. */
+function harvestBufferedOnboardingMachineTime(): Map<string, number> {
+  const openStartsByKey = new Map<string, number>();
+  const harvestedByKey = new Map<string, number>();
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type === 'start') {
+      const request = bufferedItem.request as TraceRequest;
+      if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+        continue;
+      }
+
+      openStartsByKey.set(
+        getTraceKey(request),
+        request.startTime ?? Date.now(),
+      );
+      continue;
+    }
+
+    if (bufferedItem.type !== 'end') {
+      continue;
+    }
+
+    const request = bufferedItem.request as EndTraceRequest;
+    const { timestamp, data } = request;
+    if (
+      !MACHINE_TIME_TRACE_NAMES.has(request.name) ||
+      data?.success === false
+    ) {
+      continue;
+    }
+
+    const key = getTraceKey(request);
+    const startTime = openStartsByKey.get(key);
+    if (startTime === undefined) {
+      continue;
+    }
+
+    const duration = (timestamp ?? Date.now()) - startTime;
+    openStartsByKey.delete(key);
+
+    if (Number.isFinite(duration)) {
+      recordOnboardingMachineTime(request, duration, harvestedByKey);
+    }
+  }
+
+  return harvestedByKey;
+}
+
+/** Apply pending machine time when the journey span is reused after social opt-in. */
+export function applyPendingOnboardingMachineTime(): void {
+  mergeOnboardingMachineTime(
+    onboardingMachineTimeByKey,
+    pendingOnboardingMachineTimeByKey,
+  );
+  pendingOnboardingMachineTimeByKey = new Map();
+}
+
+export function _resetOnboardingMachineTimeForTesting(): void {
+  onboardingMachineTimeByKey = new Map();
+  pendingOnboardingMachineTimeByKey = new Map();
+}
+
 export function discardBufferedTraces() {
-  localBufferedTraces.length = 0; // Clear local buffer as well
+  mergeOnboardingMachineTime(
+    pendingOnboardingMachineTimeByKey,
+    harvestBufferedOnboardingMachineTime(),
+  );
+  localBufferedTraces.length = 0;
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
@@ -791,6 +1214,14 @@ function startTrace(request: TraceRequest): TraceContext {
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
 
+  if (name === TraceName.OnboardingJourneyOverall) {
+    onboardingMachineTimeByKey = new Map(pendingOnboardingMachineTimeByKey);
+    pendingOnboardingMachineTimeByKey = new Map();
+    onboardingAccountType = undefined;
+    rememberOnboardingAccountType(request.tags);
+    rememberOnboardingAccountType(request.data);
+  }
+
   if (getCachedConsent() !== true) {
     // Extract parent trace name if parentContext exists
     let parentTraceName: string | undefined;
@@ -806,7 +1237,7 @@ function startTrace(request: TraceRequest): TraceContext {
   const callback = (span: Span | undefined) => {
     const end = (timestamp?: number) => {
       if (span?.end !== undefined) {
-        span?.end(timestamp);
+        span?.end(timestamp ?? getPerformanceTimestamp());
       }
     };
 
@@ -875,19 +1306,24 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, op } = request;
+  const { name, parentContext, startTime, op, forceTransaction } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
-    attributes,
+    attributes: getSpanAttributes(request),
     name,
     op: op || OP_DEFAULT,
     parentSpan,
     startTime,
+    forceTransaction,
   };
 
   return withIsolationScope((scope) => {
     setScopeTags(scope, request);
+
+    if (forceTransaction && !parentSpan) {
+      return startNewTrace(() => callback(spanOptions));
+    }
 
     return callback(spanOptions);
   }) as T;
@@ -947,8 +1383,11 @@ function initSpan(_span: Span, request: TraceRequest) {
  * `timeOrigin + now` is only a few million (uptime ms) and gets misread as
  * "seconds since 1970" — Sentry then silently drops the transaction. Fall back
  * to `Date.now()` whenever the performance clock is not a plausible epoch ms.
+ *
+ * Callers that pass `startTime` into {@link trace} must use this function so
+ * start and end share one clock.
  */
-function getPerformanceTimestamp(): number {
+export function getPerformanceTimestamp(): number {
   const performanceMs = performance.timeOrigin + performance.now();
   // Any real epoch-ms timestamp for MetaMask is well above 1e11 (≈ 1973).
   if (!Number.isFinite(performanceMs) || performanceMs < 1e11) {

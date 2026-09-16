@@ -1,9 +1,14 @@
+import { mapLocalTransaction } from '@metamask/client-utils';
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
 import {
+  enrichLocalActivity,
   getActivityFromTo,
   getActivityValue,
-  mapLocalTransaction,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
+  prepareLocalTransactionGroup,
   type ActivityListItem,
   type TransactionGroup,
 } from '../../../util/activity-adapters';
@@ -22,6 +27,7 @@ export const mapTransactionToActivityItem = ({
   nativeAssetSymbol,
   currentChainId,
   tokenChainId,
+  bridgeHistoryItem,
 }: {
   transaction: TransactionWithImportTime;
   assetSymbol?: string;
@@ -30,7 +36,8 @@ export const mapTransactionToActivityItem = ({
   nativeAssetSymbol?: string;
   currentChainId?: Hex;
   tokenChainId?: Hex;
-}) => {
+  bridgeHistoryItem?: BridgeHistoryItem;
+}): ActivityListItem => {
   const chainId = tx.chainId ?? tokenChainId ?? currentChainId;
   const transaction = {
     ...tx,
@@ -49,12 +56,27 @@ export const mapTransactionToActivityItem = ({
     assetAddress !== undefined &&
     transaction.txParams?.to?.toLowerCase() === assetAddress.toLowerCase();
 
+  // Legacy callers passed the asset symbol here; keep that behavior when no
+  // explicit native symbol is provided.
+  const resolvedNativeAssetSymbol = nativeAssetSymbol ?? assetSymbol;
+
+  const { sourceToken, destinationToken } = getSwapTokenEnrichment(
+    transaction,
+    resolvedNativeAssetSymbol,
+    bridgeHistoryItem,
+  );
+  const activityStatus = getBridgeActivityStatus(
+    transaction,
+    bridgeHistoryItem,
+  );
+
   const transactionGroup: TransactionGroup = {
     initialTransaction: transaction,
     primaryTransaction: transaction,
-    // Legacy callers passed the asset symbol here; keep that behavior when no
-    // explicit native symbol is provided.
-    nativeAssetSymbol: nativeAssetSymbol ?? assetSymbol,
+    nativeAssetSymbol: resolvedNativeAssetSymbol,
+    ...(sourceToken ? { sourceToken } : {}),
+    ...(destinationToken ? { destinationToken } : {}),
+    ...(activityStatus ? { activityStatus } : {}),
     ...(isAssetContractTx
       ? {
           contractTokenMetadata: {
@@ -65,7 +87,17 @@ export const mapTransactionToActivityItem = ({
       : {}),
   };
 
-  return mapLocalTransaction(transactionGroup);
+  const prepared = prepareLocalTransactionGroup(transactionGroup);
+
+  return {
+    ...enrichLocalActivity(
+      mapLocalTransaction(
+        prepared as Parameters<typeof mapLocalTransaction>[0],
+      ) as ActivityListItem,
+      prepared,
+    ),
+    raw: { type: 'localTransaction' as const, data: transactionGroup },
+  };
 };
 
 export const getTransactionDetailsParams = ({

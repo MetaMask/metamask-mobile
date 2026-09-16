@@ -23,7 +23,7 @@ export type PerpsDepositWithdrawalStatus = NonNullable<
   PerpsTransaction['depositWithdrawal']
 >['status'];
 
-export type PerpsActivityType =
+type PerpsActivityType =
   | 'perpsAddFunds'
   | 'perpsWithdraw'
   | 'perpsOpenLong'
@@ -44,23 +44,11 @@ export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;
 };
 
-export function getPerpsTransaction(
-  item: ActivityListItem,
-): PerpsTransaction | undefined {
-  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
-}
-
 export {
   formatPerpsTransactionDate,
   getPerpsAssetIconUrls,
   formatPositiveFiat,
 };
-
-export function asPerpsActivityItem(
-  item: ActivityListItem,
-): PerpsActivityListItem {
-  return item as PerpsActivityListItem;
-}
 
 export function formatSignedPerpsFiat(
   amount: number | string,
@@ -92,12 +80,6 @@ export function getPerpsPositionSize(
   );
 }
 
-export function getPerpsPriceLabel(fill: PerpsTransaction['fill']): string {
-  return fill?.action === 'Closed' || fill?.action === 'Flipped'
-    ? strings('perps.transactions.position.close_price')
-    : strings('perps.transactions.position.entry_price');
-}
-
 export function getPerpsPriceValue(
   price: string | undefined,
 ): string | undefined {
@@ -112,8 +94,8 @@ export function shouldShowPerpsPnl(fill: PerpsTransaction['fill']): boolean {
   );
 }
 
-export function formatPerpsOrderFee(fee: number, isFilled: boolean): string {
-  return formatPerpsFiat(isFilled ? fee : 0, {
+export function formatPerpsOrderFee(fee: number): string {
+  return formatPerpsFiat(fee, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
 }

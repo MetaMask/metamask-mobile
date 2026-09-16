@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -19,10 +20,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import {
-  selectSocialLeaderboardEnabled,
-  selectSocialLeaderboardPerpsEnabled,
-} from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
@@ -33,13 +31,30 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
-import { ALL_CHAINS, SPOT_CHAINS } from '../../../shared/top-traders-constants';
+import {
+  DEFAULT_LEADERBOARD_SORT,
+  DEFAULT_TIMEFRAME,
+  SPOT_CHAINS,
+} from '../../../shared/top-traders-constants';
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/useOpenTradingSignalsSetup';
+import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
+import {
+  LEADERBOARD_LANDING_FEED_AB_KEY,
+  LEADERBOARD_LANDING_FEED_VARIANTS,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../SocialLeaderboard/SocialV0View/abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../SocialLeaderboard/SocialV1View/abTestConfig';
+import { useABTest } from '../../../../../hooks/useABTest';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -75,31 +90,56 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
-  const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const title = strings('homepage.sections.top_traders');
   const [visibleTraderIds, setVisibleTraderIds] = useState<string[]>([]);
-  const chains = isPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
+
+  // Keep an idle placeholder measurable before the first request. Do not feed
+  // query loading back into this hook: doing so would hide visibility as soon
+  // as the visibility-gated request starts.
+  const { isVisible: isSectionVisible, onLayout: sectionVisibleOnLayout } =
+    useSectionViewportVisible(sectionViewRef, { isLoading: false });
+  const [hasEverBeenVisible, setHasEverBeenVisible] =
+    useState(isSectionVisible);
+
+  useEffect(() => {
+    if (isSectionVisible && !hasEverBeenVisible) {
+      setHasEverBeenVisible(true);
+    }
+  }, [hasEverBeenVisible, isSectionVisible]);
+
+  // Keep the query warm after its first reveal. A continuous visibility gate
+  // would re-enable this stale query and refetch whenever the user scrolls back.
+  const hasRequestedTraders = isSectionVisible || hasEverBeenVisible;
 
   const {
     traders: allTraders,
     isLoading,
     isFetching,
+    hasFetched,
     error,
     refresh,
     toggleFollow,
   } = useTopTraders({
     limit: HOME_TRADER_FETCH_LIMIT,
-    chains,
-    enabled: isEnabled,
+    chains: SPOT_CHAINS,
+    sort: DEFAULT_LEADERBOARD_SORT,
+    timeframe: DEFAULT_TIMEFRAME,
+    enabled: isEnabled && hasRequestedTraders,
   });
 
-  // Trimming the shared fetch to the display count here; matches TopTradersView "All".
+  // Mirrors the leaderboard's landing state (Tokens / 7D / P&L): the API only
+  // ranks on its 30-day figures, so the 7-day ordering is applied here before
+  // trimming the shared fetch to the display count.
   const traders = useMemo(
-    () => allTraders.slice(0, HOME_TRADER_DISPLAY_COUNT),
+    () =>
+      rankTradersByMetric(allTraders, DEFAULT_LEADERBOARD_SORT).slice(
+        0,
+        HOME_TRADER_DISPLAY_COUNT,
+      ),
     [allTraders],
   );
 
@@ -115,10 +155,24 @@ const TopTradersSection = forwardRef<
   const hasTraders = traders.length > 0;
   const hasError = Boolean(error);
   const showError = hasError && !isFetching && !hasTraders;
-  const willRender = isEnabled && (isInFlight || hasError || hasTraders);
+  const showSkeletons =
+    !hasTraders && (!hasRequestedTraders || !hasFetched || isInFlight);
+  const showViewMore = hasTraders;
+  // A cached empty result must not remove the viewport target before this
+  // instance has requested data; otherwise it can never become visible and
+  // revalidate the stale query.
+  const isEmpty =
+    hasRequestedTraders &&
+    hasFetched &&
+    !isInFlight &&
+    !hasError &&
+    !hasTraders;
+  // The idle skeleton is a real, measurable root. Keep it registered with
+  // viewport analytics so it is not mistaken for a non-rendered empty section.
+  const sectionMountsVisibleRoot = isEnabled && !isEmpty;
 
   const { onLayout: homeViewedOnLayout } = useHomeViewedEvent({
-    sectionRef: willRender ? sectionViewRef : null,
+    sectionRef: sectionMountsVisibleRoot ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
@@ -126,9 +180,6 @@ const TopTradersSection = forwardRef<
     isEmpty: traders.length === 0,
     itemCount: traders.length,
   });
-
-  const { isVisible: isSectionVisible, onLayout: sectionVisibleOnLayout } =
-    useSectionViewportVisible(sectionViewRef, { isLoading });
 
   usePrefetchTraderProfiles(visibleTraderIds, {
     enabled: isEnabled && hasTraders,
@@ -148,16 +199,14 @@ const TopTradersSection = forwardRef<
     // sections. Without this, a fetch error with no cached traders would be
     // reported as `content_state: 'empty'`.
     isEmpty: !isLoading && !hasError && !hasTraders,
-    isLoading,
+    // React Query v4 reports isLoading=true for an uncached disabled query.
+    // Require active fetching so offscreen dwell is not counted as fetch time.
+    isLoading: isLoading && isFetching,
     // Disable telemetry once we render the error UI so the in-flight TTC and
     // data-fetch spans get closed via the hook's cleanup instead of remaining
     // open until the user navigates away.
     enabled: isEnabled && !showError,
   });
-
-  const showSkeletons = isInFlight && !hasTraders;
-  const showViewMore = hasTraders;
-  const isEmpty = !isInFlight && !hasError && !hasTraders;
 
   const carouselData = useMemo((): TopTradersCarouselItem[] => {
     const items: TopTradersCarouselItem[] = traders.map((trader) => ({
@@ -172,16 +221,38 @@ const TopTradersSection = forwardRef<
     return items;
   }, [traders, showViewMore]);
 
+  // TSA-1042: where this entry point lands inside Follow Trading. Exposure is
+  // emitted by the destination once it receives these params, so rendering the
+  // homepage carousel does not count a user as exposed.
+  const { variant: bundleVariant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    { trackExposure: false },
+  );
+  const { variant: landingVariant } = useABTest(
+    LEADERBOARD_LANDING_FEED_AB_KEY,
+    LEADERBOARD_LANDING_FEED_VARIANTS,
+    { trackExposure: false },
+  );
+
   const handleViewAll = useCallback(() => {
+    if (bundleVariant.useSocialV1) {
+      navigateToSocialLeaderboard(navigation.navigate, {
+        source: 'home_carousel',
+      });
+      return;
+    }
     navigateToSocialLeaderboard(navigation.navigate, {
       source: 'home_carousel',
+      landingTab: landingVariant.landingTab,
+      landingFeedAudience: landingVariant.landingFeedAudience,
     });
-  }, [navigation]);
+  }, [navigation, bundleVariant, landingVariant]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,
@@ -195,21 +266,17 @@ const TopTradersSection = forwardRef<
   const handleFollowPress = useCallback(
     async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      const wasFollowing = trader?.isFollowing ?? false;
-      const performFollow = () =>
+      await followWithSetup(trader?.isFollowing ?? false, () =>
         toggleFollow(traderId, {
           source: 'home_carousel',
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
           traderAvatarUri: trader?.avatarUri,
-        });
-      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
-        return;
-      }
-      await performFollow();
+        }),
+      );
     },
-    [traders, toggleFollow, openSetupIfNeeded],
+    [traders, toggleFollow, followWithSetup],
   );
 
   const onViewableItemsChanged = useRef(

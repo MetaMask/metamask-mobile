@@ -1,13 +1,6 @@
-import {
-  asPlaywrightElement,
-  PlatformDetector,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-} from '../framework';
+import { Gestures, Matchers, PlatformDetector } from '../framework';
 import { CHROME_PACKAGE } from '../framework/Constants';
-import PlaywrightUtilities, {
-  withTimeout,
-} from '../framework/PlaywrightUtilities';
+import AppiumUtilities, { withTimeout } from '../framework/AppiumUtilities';
 import ChromeBrowserView from '../page-objects/Native/ChromeBrowserView';
 
 /** Max time to wait for a Chrome modal dismissal (find + tap). Prevents long hangs. */
@@ -20,11 +13,14 @@ const CHROME_UI_SETTLE_MS = 800;
 const CHROME_VIEW_INTENT_SETTLE_MS = 3000;
 
 /**
- * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
- * Avoid "More" — it expands FRE options rather than dismissing them.
- * @returns void
+ * Best-effort dismissal of Chrome first-run / privacy dialogs, bounded by an
+ * absolute deadline. Avoid "More" — it expands FRE options rather than
+ * dismissing them.
+ * @param deadlineMs - Absolute time (Date.now() ms) after which to stop.
  */
-const dismissChromeAdPrivacyIfPresent = async () => {
+const dismissChromeAdPrivacyIfPresent = async (
+  deadlineMs: number = Date.now() + CHROME_DISMISS_TIMEOUT_MS,
+) => {
   const dismissTexts = [
     'Got it',
     'No thanks',
@@ -35,15 +31,18 @@ const dismissChromeAdPrivacyIfPresent = async () => {
     'Use without an account',
   ];
   for (const text of dismissTexts) {
+    if (Date.now() > deadlineMs) {
+      return;
+    }
     try {
-      const dismissControl = await PlaywrightMatchers.getElementByText(
-        text,
-        true,
-      );
-      await PlaywrightGestures.waitAndTap(dismissControl);
+      if ((await Matchers.countElementsByText(text, true)) === 0) {
+        continue;
+      }
+      const dismissControl = Matchers.getElementByExactText(text);
+      await Gestures.waitAndTap(dismissControl, { timeout: 1500 });
       return;
     } catch {
-      // This text not found, try next
+      // Try the next label.
     }
   }
 };
@@ -54,8 +53,11 @@ const dismissChromeAdPrivacyIfPresent = async () => {
  * @returns void
  */
 const dismissChromeNotificationsIfPresent = async () => {
-  const noThanks = await PlaywrightMatchers.getElementByText('No thanks');
-  await PlaywrightGestures.waitAndTap(noThanks);
+  if ((await Matchers.countElementsByText('No thanks')) === 0) {
+    return;
+  }
+  const noThanks = Matchers.getElementByText('No thanks');
+  await Gestures.waitAndTap(noThanks, { timeout: 1500 });
 };
 
 /**
@@ -83,13 +85,9 @@ const safelyOnboardChromeBrowser = async () => {
     // No "No thanks" dialog or timed out
   }
   try {
-    await withTimeout(
-      dismissChromeAdPrivacyIfPresent(),
-      CHROME_DISMISS_TIMEOUT_MS,
-      'dismissChromeAdPrivacy',
-    );
+    await dismissChromeAdPrivacyIfPresent();
   } catch {
-    // No Enhanced ad privacy dialog or timed out — continue
+    // No Enhanced ad privacy dialog — continue
   }
   try {
     await withTimeout(
@@ -102,53 +100,19 @@ const safelyOnboardChromeBrowser = async () => {
   }
 };
 
-/**
- * Wait until Chrome NTP/omnibox is interactable, dismissing leftover dialogs.
- * google_apis emulator Chrome often uses placeholder text instead of stable IDs.
- * @throws If Chrome never becomes ready within the timeout
- */
-const waitForChromeNavigationReady = async () => {
-  const deadline = Date.now() + 20_000;
-  while (Date.now() < deadline) {
-    PlaywrightUtilities.collapseStatusBar();
-    try {
-      await withTimeout(
-        dismissChromeNotificationsIfPresent(),
-        2_000,
-        'dismissChromeNotificationsReady',
-      );
-    } catch {
-      // Modal not present
-    }
-
-    for (const probe of [
-      () => asPlaywrightElement(ChromeBrowserView.chromeHomePageSearchBox),
-      () => asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
-      () =>
-        PlaywrightMatchers.getElementByText('Search or type web address', true),
-    ]) {
-      try {
-        const chromeTarget = await probe();
-        if (await chromeTarget.isVisible()) {
-          return;
-        }
-      } catch {
-        // Try next probe
-      }
-    }
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  throw new Error(
-    'Chrome navigation UI (NTP/omnibox) did not become ready within 20s',
-  );
-};
+interface ChromeUrlBarElement {
+  isVisible: () => Promise<boolean>;
+  getText: () => Promise<string | undefined>;
+  getAttribute: (name: string) => Promise<string | undefined>;
+}
 
 /**
  * Returns true when the Chrome URL bar appears to show the target URL.
  */
 const chromeUrlBarShowsTarget = async (url: string): Promise<boolean> => {
   try {
-    const urlBar = await asPlaywrightElement(ChromeBrowserView.chromeUrlBar);
+    const urlBar =
+      (await ChromeBrowserView.chromeUrlBar) as ChromeUrlBarElement;
     if (!(await urlBar.isVisible())) {
       return false;
     }
@@ -176,21 +140,23 @@ export const launchMobileBrowser = async ({
   safelyOnboardChrome = false,
 }: { safelyOnboardChrome?: boolean } = {}) => {
   if (await PlatformDetector.isIOS()) {
-    await PlaywrightGestures.activateApp(undefined, 'com.apple.mobilesafari');
+    await Gestures.activateApp(undefined, 'com.apple.mobilesafari');
     return;
   }
 
   // Clear before disable-fre so the next cold start picks up chrome-command-line.
-  PlaywrightUtilities.clearChromeData();
-  PlaywrightUtilities.setupChromeDisableFre();
-  PlaywrightUtilities.grantChromeNotificationPermission();
-  PlaywrightUtilities.forceStopChrome();
+  AppiumUtilities.clearChromeData();
+  AppiumUtilities.setupChromeDisableFre();
+  AppiumUtilities.grantChromeNotificationPermission();
+  AppiumUtilities.forceStopChrome();
 
-  await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
+  await Gestures.activateApp(undefined, CHROME_PACKAGE);
   if (safelyOnboardChrome) {
     await safelyOnboardChromeBrowser();
   }
-  await waitForChromeNavigationReady();
+  // No omnibox/NTP readiness gate: newer Chrome restores to the tab switcher on
+  // warm launches, where the omnibox is absent. navigateToDapp() uses an adb VIEW
+  // intent that foregrounds Chrome on the target URL regardless of prior UI state.
   await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
 };
 
@@ -200,9 +166,9 @@ export const launchMobileBrowser = async ({
  */
 export const switchToMobileBrowser = async () => {
   if (await PlatformDetector.isIOS()) {
-    await PlaywrightGestures.activateApp(undefined, 'com.apple.mobilesafari');
+    await Gestures.activateApp(undefined, 'com.apple.mobilesafari');
   } else {
-    await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
+    await Gestures.activateApp(undefined, CHROME_PACKAGE);
   }
 };
 
@@ -212,18 +178,14 @@ export const switchToMobileBrowser = async () => {
  * @returns A promise that resolves when the navigation is complete
  */
 export const navigateToDappAndroid = async (url: string) => {
-  PlaywrightUtilities.collapseStatusBar();
+  AppiumUtilities.collapseStatusBar();
 
   // Prefer VIEW intent — omnibox IDs/text are unreliable on fresh google_apis Chrome.
   try {
-    PlaywrightUtilities.openUrlInChrome(url);
+    AppiumUtilities.openUrlInChrome(url);
     await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
     try {
-      await withTimeout(
-        dismissChromeAdPrivacyIfPresent(),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'dismissChromeAfterViewIntent',
-      );
+      await dismissChromeAdPrivacyIfPresent();
     } catch {
       // No post-navigation dialog
     }
@@ -241,11 +203,8 @@ export const navigateToDappAndroid = async (url: string) => {
   } catch {
     try {
       // Newer Chrome on google_apis images may not expose search_box_text.
-      await PlaywrightGestures.waitAndTap(
-        await PlaywrightMatchers.getElementByText(
-          'Search or type web address',
-          true,
-        ),
+      await Gestures.waitAndTap(
+        Matchers.getElementByExactText('Search or type web address'),
       );
     } catch {
       // NTP search box not present — tap URL bar directly
@@ -258,21 +217,33 @@ export const navigateToDappAndroid = async (url: string) => {
   }
 
   try {
-    await PlaywrightGestures.typeText(
-      await asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
-      url,
-    );
+    await Gestures.appendText(ChromeBrowserView.chromeUrlBar, url);
   } catch {
-    const editText = await PlaywrightMatchers.getElementByXPath(
-      '//android.widget.EditText',
-    );
-    await PlaywrightGestures.typeText(editText, url);
+    try {
+      const editText = Matchers.getElementByNativeXPath(
+        '//android.widget.EditText',
+      );
+      await Gestures.appendText(editText, url);
+    } catch {
+      // No editable field (e.g. tab switcher) — VIEW-intent retry recovers below.
+    }
   }
   try {
     await ChromeBrowserView.tapSelectDappUrl();
   } catch {
     // Suggestion row resource IDs vary; Enter submits the omnibox URL.
-    await PlaywrightGestures.submitAndroidUrlBar();
+    await Gestures.submitAndroidUrlBar();
+  }
+
+  // Recover from the tab switcher (CDP downstream verifies the load).
+  if (!(await chromeUrlBarShowsTarget(url))) {
+    AppiumUtilities.openUrlInChrome(url);
+    await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
+    try {
+      await dismissChromeAdPrivacyIfPresent();
+    } catch {
+      // No post-navigation dialog
+    }
   }
 };
 
@@ -282,10 +253,8 @@ export const navigateToDappAndroid = async (url: string) => {
  * @returns A promise that resolves when the navigation is complete
  */
 export const navigateToDappIOS = async (url: string) => {
-  await PlaywrightGestures.typeText(
-    await asPlaywrightElement(
-      PlaywrightMatchers.getElementByNameiOS('TabBarItemTitle'),
-    ),
+  await Gestures.appendText(
+    Matchers.getElementByNameiOS('TabBarItemTitle'),
     `${url}\n`,
   );
 };

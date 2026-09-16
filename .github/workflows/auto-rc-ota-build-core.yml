@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
         default: true
+      build_number:
+        description: 'Build number from generate-build-version.yml to apply locally at build time'
+        required: false
+        type: string
+        default: ''
     outputs:
       semantic_version:
         description: 'package.json version at the built commit (empty when OTA bump skips the build)'
@@ -76,6 +81,7 @@ jobs:
       build_name: ${{ inputs.build_name }}
       platform: ${{ inputs.platform }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_number: ${{ inputs.build_number }}
       upload_to_sentry: true
     secrets: inherit
 

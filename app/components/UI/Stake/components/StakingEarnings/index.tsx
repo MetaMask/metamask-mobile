@@ -20,6 +20,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import EarningsHistoryButton from '../../../Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import useEarnings from '../../../Earn/hooks/useEarnings';
@@ -32,13 +33,28 @@ import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakingEarnings.styles';
 import { trace, TraceName } from '../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import {
+  FontWeight as DesignSystemFontWeight,
+  SensitiveText,
+  SensitiveTextLength,
+  TextColor as DesignSystemTextColor,
+  TextVariant as DesignSystemTextVariant,
+} from '@metamask/design-system-react-native';
 
 export interface StakingEarningsProps {
   asset: TokenI;
 }
 
+export const STAKING_EARNINGS_TEST_IDS = {
+  LIFETIME_EARNINGS_FIAT: 'staking-lifetime-earnings-fiat',
+  LIFETIME_EARNINGS_TOKEN: 'staking-lifetime-earnings-token',
+  ESTIMATED_ANNUAL_EARNINGS_FIAT: 'staking-estimated-annual-earnings-fiat',
+  ESTIMATED_ANNUAL_EARNINGS_TOKEN: 'staking-estimated-annual-earnings-token',
+};
+
 const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
     selectPooledStakingServiceInterruptionBannerEnabledFlag,
@@ -148,13 +164,24 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               </SkeletonPlaceholder>
             ) : (
               <>
-                <Text variant={TextVariant.BodyMD}>{lifetimeRewardsFiat}</Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
+                <SensitiveText
+                  variant={DesignSystemTextVariant.BodyMd}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                  testID={STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT}
+                >
+                  {lifetimeRewardsFiat}
+                </SensitiveText>
+                <SensitiveText
+                  variant={DesignSystemTextVariant.BodySm}
+                  fontWeight={DesignSystemFontWeight.Medium}
+                  color={DesignSystemTextColor.TextAlternative}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                  testID={STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN}
                 >
                   {lifetimeRewards}
-                </Text>
+                </SensitiveText>
               </>
             )}
           </View>
@@ -185,20 +212,35 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               </SkeletonPlaceholder>
             ) : (
               <>
-                <Text variant={TextVariant.BodyMD}>
+                <SensitiveText
+                  variant={DesignSystemTextVariant.BodyMd}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                  testID={
+                    STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT
+                  }
+                >
                   {estimatedAnnualEarningsFiat}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
+                </SensitiveText>
+                <SensitiveText
+                  variant={DesignSystemTextVariant.BodySm}
+                  fontWeight={DesignSystemFontWeight.Medium}
+                  color={DesignSystemTextColor.TextAlternative}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                  testID={
+                    STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN
+                  }
                 >
                   {estimatedAnnualEarnings}
-                </Text>
+                </SensitiveText>
               </>
             )}
           </View>
         </View>
-        <EarningsHistoryButton asset={asset} />
+        <View style={styles.earningsHistory}>
+          <EarningsHistoryButton asset={asset} />
+        </View>
       </View>
     </View>
   );

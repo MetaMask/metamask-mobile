@@ -1,18 +1,19 @@
-import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
-import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
   createMockInternalAccount,
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
+import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -169,14 +170,140 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('SubscriptionController');
+    expect(engine.context).toHaveProperty('SubscriptionService');
+    expect(engine.context).toHaveProperty('ShieldController');
+    expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
+  });
+
+  it('exposes v8 subscription methods after the controller upgrade', () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+
+    expect(
+      engine.context.SubscriptionController.startSubscriptionWithCard,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.submitSubscriptionCryptoApproval,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.cacheLastSelectedPaymentMethod,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.startSubscriptionWithCrypto,
+    ).toEqual(expect.any(Function));
+    expect(engine.context.SubscriptionController.stopAllPolling).toEqual(
+      expect.any(Function),
+    );
+    expect(
+      'startShieldSubscriptionWithCard' in
+        engine.context.SubscriptionController,
+    ).toBe(false);
+  });
+
+  it('hydrates representative v7 subscription state without a migration', () => {
+    const v7SubscriptionControllerState = {
+      subscriptions: [
+        {
+          id: 'sub-shield',
+          products: [
+            {
+              name: 'shield',
+              currency: 'usd',
+              unitAmount: 800,
+              unitDecimals: 2,
+            },
+          ],
+          currentPeriodStart: '2026-01-01T00:00:00.000Z',
+          currentPeriodEnd: '2026-02-01T00:00:00.000Z',
+          status: 'active',
+          interval: 'month',
+          paymentMethod: {
+            type: 'card',
+            card: {
+              brand: 'visa',
+              displayBrand: 'visa',
+              last4: '4242',
+            },
+          },
+          cancelType: 'allowed_at_period_end',
+          isEligibleForSupport: true,
+        },
+      ],
+      trialedProducts: ['shield'],
+      lastSelectedPaymentMethod: {
+        shield: {
+          type: 'crypto',
+          plan: 'month',
+          paymentTokenSymbol: 'USDC',
+        },
+      },
+      pricing: {
+        products: [
+          {
+            name: 'shield',
+            prices: [
+              {
+                interval: 'month',
+                unitAmount: 800,
+                unitDecimals: 2,
+                currency: 'usd',
+                trialPeriodDays: 14,
+                minBillingCycles: 12,
+                minBillingCyclesForBalance: 1,
+              },
+            ],
+          },
+        ],
+        paymentMethods: [
+          { type: 'card' },
+          {
+            type: 'crypto',
+            chains: [
+              {
+                chainId: '0x1',
+                paymentAddress: '0x2222222222222222222222222222222222222222',
+                tokens: [
+                  {
+                    symbol: 'USDC',
+                    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                    decimals: 6,
+                    conversionRate: { usd: '1.0' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    } as SubscriptionControllerState;
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      SubscriptionController: v7SubscriptionControllerState,
+    });
+
+    expect(engine.context.SubscriptionController.state.subscriptions).toEqual(
+      v7SubscriptionControllerState.subscriptions,
+    );
+    expect(engine.context.SubscriptionController.state.trialedProducts).toEqual(
+      ['shield'],
+    );
+    expect(
+      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
+        ?.shield,
+    ).toEqual(v7SubscriptionControllerState.lastSelectedPaymentMethod?.shield);
+    expect(
+      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
+        ?.money_account_plus,
+    ).toBeUndefined();
   });
 
   it('hydrates address poisoning known recipients from persisted address book state', () => {
@@ -338,6 +465,41 @@ describe('Engine', () => {
   });
 
   describe('RemoteFeatureFlagController startup fetch', () => {
+    const authStateWithCanonicalId = (
+      canonicalProfileId?: string,
+    ): AuthenticationControllerState =>
+      ({
+        isSignedIn: Boolean(canonicalProfileId),
+        srpSessionData: canonicalProfileId
+          ? {
+              'srp-1': { profile: { canonicalProfileId } },
+            }
+          : {},
+      }) as AuthenticationControllerState;
+
+    const spyForcedFlagRefresh = (engine: ReturnType<typeof Engine.init>) => {
+      const updateSpy = jest
+        .spyOn(
+          engine.context.RemoteFeatureFlagController,
+          'updateRemoteFeatureFlags',
+        )
+        .mockResolvedValue(undefined);
+      updateSpy.mockClear();
+      return updateSpy;
+    };
+
+    const publishAuthState = (
+      engine: ReturnType<typeof Engine.init>,
+      state: ReturnType<typeof authStateWithCanonicalId>,
+    ) => {
+      // @ts-expect-error accessing messenger for testing
+      engine.context.AuthenticationController.messenger.publish(
+        'AuthenticationController:stateChange',
+        state,
+        [],
+      );
+    };
+
     afterEach(() => {
       // `jest.mock` return values survive `restoreAllMocks()`, so reset the
       // ones these tests override back to their file-level defaults.
@@ -479,13 +641,14 @@ describe('Engine', () => {
           cacheTimestamp: 123,
         },
       });
-      const subscribeCallback = jest.mocked(store.subscribe).mock
-        .calls[0][0] as () => void;
+      const subscribeCallbacks = jest
+        .mocked(store.subscribe)
+        .mock.calls.map(([callback]) => callback as () => void);
       const controller = engine.context.RemoteFeatureFlagController;
       const disableSpy = jest.spyOn(controller, 'disable');
 
       jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
-      subscribeCallback();
+      subscribeCallbacks.forEach((callback) => callback());
 
       expect(disableSpy).toHaveBeenCalled();
       expect(controller.state).toEqual(
@@ -495,6 +658,48 @@ describe('Engine', () => {
           cacheTimestamp: 0,
         }),
       );
+    });
+
+    it('force-refreshes flags when a canonical profile id first becomes available', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {});
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id'));
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('does not refresh flags when the canonical profile id is unchanged', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id'));
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('force-refreshes flags when the canonical profile id changes', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id-1'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id-2'));
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('force-refreshes flags when the canonical profile id is cleared', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId());
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
     });
   });
 
@@ -513,11 +718,119 @@ describe('Engine', () => {
   describe('getTotalEvmFiatAccountBalance', () => {
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const selectedAccountId = 'test-account-id';
-    const chainId: Hex = '0x1';
-    const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
     const ethBalance = 1;
     const stakedEthBalance = 1;
+    const ethAssetId = 'eip155:1/slip44:60';
+    const stakedEthAssetId =
+      'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df';
+    const priceLastUpdated = 1732887955694;
+
+    const selectedInternalAccount = {
+      ...createMockInternalAccount(selectedAddress, 'Test Account'),
+      type: 'eip155:eoa' as const,
+    };
+
+    const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
+    const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
+
+    const buildAssetsController = ({
+      ethAmount = String(ethBalance),
+      ethPricePercentChange1d,
+      tokens = [],
+      stakedAmount,
+    }: {
+      ethAmount?: string;
+      ethPricePercentChange1d?: number;
+      tokens?: {
+        address: Hex;
+        balance: number;
+        price: number;
+        pricePercentChange1d: number;
+        decimals: number;
+        symbol: string;
+      }[];
+      stakedAmount?: string;
+    } = {}) => {
+      const assetsInfo: Record<
+        string,
+        {
+          type: 'native' | 'erc20';
+          symbol: string;
+          name: string;
+          decimals: number;
+        }
+      > = {
+        [ethAssetId]: {
+          type: 'native',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+        },
+      };
+      const assetsPrice: Record<
+        string,
+        {
+          assetPriceType: 'fungible';
+          price: number;
+          usdPrice: number;
+          lastUpdated: number;
+          pricePercentChange1d?: number;
+        }
+      > = {
+        [ethAssetId]: {
+          assetPriceType: 'fungible',
+          price: ethConversionRate,
+          usdPrice: ethConversionRate,
+          lastUpdated: priceLastUpdated,
+          ...(ethPricePercentChange1d !== undefined
+            ? { pricePercentChange1d: ethPricePercentChange1d }
+            : {}),
+        },
+      };
+      const accountBalances: Record<string, { amount: string }> = {
+        [ethAssetId]: { amount: ethAmount },
+      };
+
+      tokens.forEach((token) => {
+        const assetId = `eip155:1/erc20:${token.address}`;
+        assetsInfo[assetId] = {
+          type: 'erc20',
+          symbol: token.symbol,
+          name: token.symbol,
+          decimals: token.decimals,
+        };
+        assetsPrice[assetId] = {
+          assetPriceType: 'fungible',
+          price: token.price * ethConversionRate,
+          usdPrice: token.price * ethConversionRate,
+          lastUpdated: priceLastUpdated,
+          pricePercentChange1d: token.pricePercentChange1d,
+        };
+        accountBalances[assetId] = { amount: String(token.balance) };
+      });
+
+      if (stakedAmount !== undefined) {
+        assetsInfo[stakedEthAssetId] = {
+          type: 'erc20',
+          symbol: 'stETH',
+          name: 'Staked ETH',
+          decimals: 18,
+        };
+        accountBalances[stakedEthAssetId] = { amount: stakedAmount };
+      }
+
+      return {
+        selectedCurrency: 'usd',
+        assetsInfo,
+        assetsPrice,
+        assetsBalance: {
+          [selectedAccountId]: accountBalances,
+        },
+        customAssets: {},
+        assetPreferences: {},
+      } as AssetsControllerState;
+    };
 
     const state: Partial<EngineState> = {
       AccountsController: {
@@ -527,19 +840,9 @@ describe('Engine', () => {
         ),
         internalAccounts: {
           accounts: {
-            [selectedAccountId]: createMockInternalAccount(
-              selectedAddress,
-              'Test Account',
-            ),
+            [selectedAccountId]: selectedInternalAccount,
           },
           selectedAccount: selectedAccountId,
-        },
-      },
-      AccountTrackerController: {
-        accountsByChainId: {
-          [chainId]: {
-            [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
-          },
         },
       },
       NetworkController: mockNetworkState({
@@ -548,16 +851,7 @@ describe('Engine', () => {
         nickname: 'mainnet',
         ticker: 'ETH',
       }),
-      CurrencyRateController: {
-        currencyRates: {
-          [ticker]: {
-            conversionRate: ethConversionRate,
-            conversionDate: 0,
-            usdConversionRate: ethConversionRate,
-          },
-        },
-        currentCurrency: ticker,
-      },
+      AssetsController: buildAssetsController(),
     };
 
     it('calculates when theres no balances', () => {
@@ -570,16 +864,7 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            AccountTrackerController: {
-              accountsByChainId: {
-                [chainId]: {
-                  [selectedAddress]: {
-                    balance: '0',
-                    stakedBalance: '0',
-                  },
-                },
-              },
-            },
+            AssetsController: buildAssetsController({ ethAmount: '0' }),
           },
         },
       });
@@ -607,15 +892,9 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            TokenRatesController: {
-              marketData: {
-                [chainId]: {
-                  [zeroAddress()]: {
-                    pricePercentChange1d: ethPricePercentChange1d,
-                  } as Partial<MarketDataDetails> as MarketDataDetails,
-                },
-              },
-            },
+            AssetsController: buildAssetsController({
+              ethPricePercentChange1d,
+            }),
           },
         },
       });
@@ -635,9 +914,6 @@ describe('Engine', () => {
 
     it('calculates when there are ETH and tokens', () => {
       const ethPricePercentChange1d = 5;
-
-      const token1Address = '0x0001' as Hex;
-      const token2Address = '0x0002' as Hex;
 
       const tokens = [
         {
@@ -667,49 +943,10 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            TokensController: {
-              allTokens: {
-                [chainId]: {
-                  [selectedAddress]: tokens.map(
-                    ({ address, balance, decimals, symbol }) => ({
-                      address,
-                      balance,
-                      decimals,
-                      symbol,
-                    }),
-                  ),
-                },
-              },
-              allIgnoredTokens: {},
-              allDetectedTokens: {},
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                [selectedAddress as Hex]: {
-                  [chainId]: {
-                    [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                    [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
-                  },
-                },
-              },
-            },
-            TokenRatesController: {
-              marketData: {
-                [chainId]: {
-                  [zeroAddress()]: {
-                    pricePercentChange1d: ethPricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token1Address]: {
-                    price: tokens[0].price,
-                    pricePercentChange1d: tokens[0].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token2Address]: {
-                    price: tokens[1].price,
-                    pricePercentChange1d: tokens[1].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                },
-              },
-            },
+            AssetsController: buildAssetsController({
+              ethPricePercentChange1d,
+              tokens,
+            }),
           },
         },
       });
@@ -741,9 +978,6 @@ describe('Engine', () => {
     it('calculates when there is ETH and staked ETH and tokens', () => {
       const ethPricePercentChange1d = 5;
 
-      const token1Address = '0x0001' as Hex;
-      const token2Address = '0x0002' as Hex;
-
       const tokens = [
         {
           address: token1Address,
@@ -772,59 +1006,11 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            AccountTrackerController: {
-              accountsByChainId: {
-                [chainId]: {
-                  [selectedAddress]: {
-                    balance: (ethBalance * 1e18).toString(),
-                    stakedBalance: (stakedEthBalance * 1e18).toString(),
-                  },
-                },
-              },
-            },
-            TokensController: {
-              allTokens: {
-                [chainId]: {
-                  [selectedAddress]: tokens.map(
-                    ({ address, balance, decimals, symbol }) => ({
-                      address,
-                      balance,
-                      decimals,
-                      symbol,
-                    }),
-                  ),
-                },
-              },
-              allIgnoredTokens: {},
-              allDetectedTokens: {},
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                [selectedAddress as Hex]: {
-                  [chainId]: {
-                    [token1Address]: '0x0de0b6b3a7640000',
-                    [token2Address]: '0x1bc16d674ec80000',
-                  },
-                },
-              },
-            },
-            TokenRatesController: {
-              marketData: {
-                [chainId]: {
-                  [zeroAddress()]: {
-                    pricePercentChange1d: ethPricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token1Address]: {
-                    price: tokens[0].price,
-                    pricePercentChange1d: tokens[0].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token2Address]: {
-                    price: tokens[1].price,
-                    pricePercentChange1d: tokens[1].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                },
-              },
-            },
+            AssetsController: buildAssetsController({
+              ethPricePercentChange1d,
+              tokens,
+              stakedAmount: String(stakedEthBalance),
+            }),
           },
         },
       });
@@ -1107,6 +1293,7 @@ describe('Engine', () => {
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
+              controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
               controllerName === 'DelegationController'),
         )
@@ -1125,6 +1312,57 @@ describe('Engine', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls SubscriptionController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('stops subscription polling before clearing subscription state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const stopAllPollingSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'stopAllPolling')
+        .mockImplementation(() => undefined);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(stopAllPollingSpy).toHaveBeenCalled();
+      expect(clearStateSpy).toHaveBeenCalled();
+      expect(stopAllPollingSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        clearStateSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls ShieldController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ShieldController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ClaimsController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ClaimsController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();

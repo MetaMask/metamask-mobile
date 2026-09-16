@@ -1,13 +1,17 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  ensureAccountGroupsFinishedLoading,
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import {
   DappServer,
   DappVariants,
@@ -16,11 +20,8 @@ import {
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
-  unlockIfLockScreenVisible,
-  ensureAccountGroupsFinishedLoading,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -41,15 +42,11 @@ const playgroundServer = new DappServer({
 // Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
 appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
   appiumTest.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Test steps (in order):
@@ -96,7 +93,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       const platform = currentDeviceDetails.platform;
       const DAPP_URL = getDappUrlForBrowser(platform);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -104,11 +101,11 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       });
       await sleep(5000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapEditAccountsButton();
@@ -124,14 +121,14 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapConfirmButton({
           shouldCooldown: true,
@@ -143,7 +140,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertResponseValue(
           // Account 1 signed the message
           '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
@@ -151,7 +148,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
         await BrowserPlaygroundDapp.tapSendTransaction();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('Ethereum');
         await SignModal.tapCancelButton({
@@ -164,13 +161,13 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         // Note: Error message may differ slightly in browser playground
         await BrowserPlaygroundDapp.assertResponseValue('denied');
         await BrowserPlaygroundDapp.tapSwitchToPolygon();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SwitchChainModal.assertNetworkText('Polygon');
         await SwitchChainModal.tapConnectButton({
@@ -183,12 +180,12 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertChainIdValue('0x89');
         await BrowserPlaygroundDapp.tapSendTransaction();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('Polygon');
         await SignModal.tapCancelButton({
@@ -201,13 +198,13 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapSwitchToMainnet();
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.tapSendTransaction();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('Ethereum');
         await SignModal.tapCancelButton({
@@ -224,7 +221,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM sign'), () => {
       // Reset dapp state
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

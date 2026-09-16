@@ -1,20 +1,16 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  ensureAccountGroupsFinishedLoading,
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal.js';
-import {
-  unlockIfLockScreenVisible,
-  ensurePlaygroundInstalled,
-  ensureAccountGroupsFinishedLoading,
-} from './utils.js';
-import {
-  PlaywrightAssertions,
-  sleep,
-  asPlaywrightElement,
-} from '../../framework/index.js';
+import { ensurePlaygroundInstalled } from './utils.js';
+import { Assertions, sleep } from '../../framework/index.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 
 const CHAINS = {
@@ -75,10 +71,9 @@ appiumTest.describe.skip(SmokeMMConnect('Multichain RN Solana'), () => {
       // 1. Login to MetaMask wallet
       //
       await loginToAppPlaywright();
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(WalletView.container),
-        { timeout: 15000 },
-      );
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        timeout: 15000,
+      });
 
       await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
 

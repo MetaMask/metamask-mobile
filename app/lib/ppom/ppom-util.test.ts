@@ -368,14 +368,41 @@ describe('PPOM Utils', () => {
       );
     });
 
-    it('normalizes transaction request origin before validation', async () => {
-      await PPOMUtil.validateRequest(
-        {
-          ...mockRequest,
-          origin: 'wc::metamask.github.io',
-        },
-        { transactionMeta: mockTransactionMeta },
-      );
+    it.each([
+      ['WalletConnect-prefixed', 'wc::https://malicious.example'],
+      ['SDK v1-prefixed', 'MMSDKREMOTE::https://malicious.example'],
+      [
+        'MetaMask Connect-prefixed',
+        'MMSDKCONNECTV2::https://malicious.example',
+      ],
+      ['deeplink placeholder', 'deeplink'],
+      ['qr-code placeholder', 'qr-code'],
+      ['bare connection UUID', 'f8b7f6f6-a086-4b6e-8f0e-2b6c9d4a1e5b'],
+    ])(
+      'drops %s origin from the scan request instead of forwarding it',
+      async (_label, origin) => {
+        // Security invariant: origins from unverifiable paths are
+        // self-reported (or meaningless connection ids / placeholders) and
+        // must never reach Blockaid, where the URL is a core heuristic that
+        // can flip a scan verdict between malicious and benign.
+        await PPOMUtil.validateRequest(
+          {
+            ...mockRequest,
+            origin,
+          },
+          { transactionMeta: mockTransactionMeta },
+        );
+
+        expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+        const sentRequest = validateWithSecurityAlertsAPIMock.mock.calls[0][1];
+        expect(sentRequest).not.toHaveProperty('origin');
+      },
+    );
+
+    it('keeps the verified in-app browser origin on the scan request', async () => {
+      await PPOMUtil.validateRequest(mockRequest, {
+        transactionMeta: mockTransactionMeta,
+      });
 
       expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
@@ -383,6 +410,17 @@ describe('PPOM Utils', () => {
         expect.any(String),
         mockTransactionNormalizedWithGasAndGasPrice,
       );
+    });
+
+    it('drops unverifiable origins from signature scan requests too', async () => {
+      await PPOMUtil.validateRequest({
+        ...mockSignatureRequest,
+        origin: 'wc::https://malicious.example',
+      });
+
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+      const sentRequest = validateWithSecurityAlertsAPIMock.mock.calls[0][1];
+      expect(sentRequest).not.toHaveProperty('origin');
     });
 
     it('uses chain ID from transaction if provided', async () => {
