@@ -1027,6 +1027,7 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: false,
       };
       const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
 
       const learnMoreLink = component.getByTestId(
         ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
@@ -1044,6 +1045,40 @@ describe('ChoosePassword', () => {
           title: 'support.metamask.io',
         },
       });
+    });
+
+    it('does not accept the password-loss acknowledgement when the learn more link is pressed', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID),
+        );
+      });
+
+      expect(
+        component.getByTestId(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ).props.accessibilityState?.checked,
+      ).toBe(false);
+
+      await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      expect(
+        component.getByText(strings('choose_password.acknowledgement_error')),
+      ).toBeOnTheScreen();
+      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
   });
 

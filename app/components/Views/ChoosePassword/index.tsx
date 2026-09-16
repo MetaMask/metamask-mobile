@@ -30,6 +30,8 @@ import {
   TitleStandard,
   HelpText,
   HelpTextSeverity,
+  Checkbox,
+  ListItem,
   ListItemMultiSelect,
   ListItemVariant,
   TextButton,
@@ -988,32 +990,60 @@ const ChoosePassword = () => {
                 )}
               </Box>
 
-              <ListItemMultiSelect
-                variant={
-                  getOauth2LoginSuccess()
-                    ? ListItemVariant.MultiLine
-                    : ListItemVariant.TwoLines
-                }
-                isSelected={marketingOptInChecked}
-                onPress={setSelection}
-                testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName="mt-2 border border-muted rounded-xl"
-                titleProps={{
-                  variant: TextVariant.BodySm,
-                  testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
-                }}
-                title={
-                  getOauth2LoginSuccess() ? (
-                    strings('choose_password.marketing_opt_in_description')
-                  ) : (
+              {getOauth2LoginSuccess() ? (
+                <ListItemMultiSelect
+                  variant={ListItemVariant.MultiLine}
+                  isSelected={marketingOptInChecked}
+                  onPress={setSelection}
+                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: marketingOptInChecked }}
+                  twClassName="mt-2 border border-muted rounded-xl"
+                  titleProps={{
+                    variant: TextVariant.BodySm,
+                    testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
+                  }}
+                  title={strings(
+                    'choose_password.marketing_opt_in_description',
+                  )}
+                />
+              ) : (
+                <ListItem
+                  variant={ListItemVariant.TwoLines}
+                  accessoryGap={3}
+                  twClassName={
+                    marketingOptInChecked
+                      ? 'mt-2 border border-muted rounded-xl bg-background-muted'
+                      : 'mt-2 border border-muted rounded-xl'
+                  }
+                  endAccessory={
+                    <Checkbox
+                      isSelected={marketingOptInChecked}
+                      onChange={setSelection}
+                      label=""
+                      testID={
+                        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
+                      }
+                      accessibilityLabel={strings(
+                        'choose_password.loose_password_description',
+                      )}
+                    />
+                  }
+                  title={
                     <Text
                       variant={TextVariant.BodySm}
                       color={TextColor.TextDefault}
                       testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     >
-                      {strings('choose_password.loose_password_description')}{' '}
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextDefault}
+                        onPress={setSelection}
+                      >
+                        {strings(
+                          'choose_password.loose_password_description',
+                        )}{' '}
+                      </Text>
                       <TextButton
                         variant={TextVariant.BodySm}
                         onPress={learnMore}
@@ -1022,9 +1052,9 @@ const ChoosePassword = () => {
                         {strings('reset_password.learn_more')}
                       </TextButton>
                     </Text>
-                  )
-                }
-              />
+                  }
+                />
+              )}
               {isAcknowledgementInvalid && (
                 <HelpText severity={HelpTextSeverity.Danger}>
                   {strings('choose_password.acknowledgement_error')}
