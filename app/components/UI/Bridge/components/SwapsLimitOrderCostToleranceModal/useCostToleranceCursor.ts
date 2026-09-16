@@ -77,7 +77,7 @@ export const useCostToleranceCursor = ({
         return;
       }
 
-      const numericValue = parseFloat(nextValue) || 0;
+      const numericValue = Number.parseFloat(nextValue) || 0;
       if (numericValue > maxAmount) {
         onAttemptExceedMaxChange(true);
         return;

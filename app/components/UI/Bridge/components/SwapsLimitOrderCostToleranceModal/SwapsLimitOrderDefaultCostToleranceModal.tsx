@@ -2,6 +2,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  BottomSheet,
+  BottomSheetRef,
   Box,
   Button,
   ButtonSize,
@@ -9,9 +11,6 @@ import {
   HeaderStandard,
   Text,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -67,9 +66,7 @@ export const SwapsLimitOrderDefaultCostToleranceModal = () => {
     options.push({
       id: CUSTOM_COST_TOLERANCE_OPTION_ID,
       label: strings('bridge.custom'),
-      selected: !COST_TOLERANCE_OPTIONS.some(
-        (value) => value === selectedCostTolerance,
-      ),
+      selected: !COST_TOLERANCE_OPTIONS.includes(selectedCostTolerance),
       onPress: handleCustomOptionPress,
     });
 
@@ -79,6 +76,7 @@ export const SwapsLimitOrderDefaultCostToleranceModal = () => {
   return (
     <BottomSheet
       ref={sheetRef}
+      goBack={navigation.goBack}
       testID={SwapsLimitOrderCostToleranceModalSelectorsIDs.DEFAULT_SHEET}
     >
       <HeaderStandard

@@ -11,28 +11,34 @@ import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from './testIds';
 
 const mockDispatch = jest.fn();
 const mockSelector = jest.fn();
+const mockGoBack = jest.fn();
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (props: { children: unknown; testID?: string }, _ref: unknown) => (
-          <View testID={props.testID}>{props.children as React.ReactNode}</View>
-        ),
+  return {
+    ...actual,
+    __esModule: true,
+    BottomSheet: ReactModule.forwardRef(
+      (props: { children: unknown; testID?: string }, _ref: unknown) => (
+        <View testID={props.testID}>{props.children as React.ReactNode}</View>
       ),
-    };
-  },
-);
+    ),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: (selector: (state: unknown) => unknown) =>
     mockSelector(selector),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
 }));
 
 // The keypad itself is not under test, but its `Keys` enum is used by the

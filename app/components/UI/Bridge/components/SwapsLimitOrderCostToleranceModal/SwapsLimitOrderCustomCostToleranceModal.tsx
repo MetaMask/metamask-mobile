@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  BottomSheet,
+  BottomSheetRef,
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
@@ -13,10 +16,8 @@ import {
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   selectLimitOrderCostTolerance,
   setLimitOrderCostTolerance,
@@ -35,13 +36,14 @@ import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from './testIds';
 
 export const SwapsLimitOrderCustomCostToleranceModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { goBack } = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
   const [inputAmount, setInputAmount] = useState(
     costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   );
   const [hasAttemptedToExceedMax, setHasAttemptedToExceedMax] = useState(false);
-  const parsedInputAmount = parseFloat(inputAmount);
+  const parsedInputAmount = Number.parseFloat(inputAmount);
   const isBelowMin = !(parsedInputAmount > COST_TOLERANCE_MIN);
   const isAboveMax = parsedInputAmount >= COST_TOLERANCE_MAX;
   const shouldDisableConfirm = isBelowMin || isAboveMax;
@@ -94,11 +96,11 @@ export const SwapsLimitOrderCustomCostToleranceModal = () => {
     setHasAttemptedToExceedMax(false);
 
     setInputAmount((value) => {
-      const newValue = parseFloat(value) + COST_TOLERANCE_STEP;
+      const newValue = Number.parseFloat(value) + COST_TOLERANCE_STEP;
       // Cap the value to the max and to the allowed decimals due to JS rounding issues
       return newValue >= COST_TOLERANCE_MAX
         ? String(COST_TOLERANCE_MAX)
-        : String(parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)));
+        : String(Number.parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)));
     });
   }, [resetCursor]);
 
@@ -107,17 +109,18 @@ export const SwapsLimitOrderCustomCostToleranceModal = () => {
     setHasAttemptedToExceedMax(false);
 
     setInputAmount((value) => {
-      const newValue = parseFloat(value) - COST_TOLERANCE_STEP;
+      const newValue = Number.parseFloat(value) - COST_TOLERANCE_STEP;
       // Cap the value to the min and to the allowed decimals due to JS rounding issues
       return newValue <= COST_TOLERANCE_MIN
         ? String(COST_TOLERANCE_MIN)
-        : String(parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)));
+        : String(Number.parseFloat(newValue.toFixed(COST_TOLERANCE_MAX_DECIMALS)));
     });
   }, [resetCursor]);
 
   return (
     <BottomSheet
       ref={sheetRef}
+      goBack={goBack}
       testID={SwapsLimitOrderCostToleranceModalSelectorsIDs.CUSTOM_SHEET}
     >
       <HeaderStandard
