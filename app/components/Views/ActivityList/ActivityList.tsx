@@ -167,6 +167,11 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
+  /**
+   * When true (default), Perps trade fills that share a block/second are shown
+   * as a single row. Uncheck Aggregated to list each fill.
+   */
+  aggregateFills?: boolean;
   trackScreenViewed?: boolean;
   entryPoint?: ActivityScreenEntryPoint;
 }
@@ -185,6 +190,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter,
       networkFilter,
       subFilterKinds,
+      aggregateFills = true,
       trackScreenViewed = false,
       entryPoint,
     },
@@ -228,6 +234,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         isPerpsEnabled &&
         (typeFilter === ActivityTypeFilter.Perps ||
           typeFilter === ActivityTypeFilter.All),
+      aggregateFills,
     });
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const predictFilterActive =

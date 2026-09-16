@@ -8,6 +8,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { CaipAccountId } from '@metamask/utils';
+import type { OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { MINUTE } from '../../../../constants/time';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -30,6 +31,7 @@ import {
 
 interface PerpsActivityPage {
   transactions: PerpsTransaction[];
+  fills: OrderFill[];
   nextCursor?: number;
 }
 
@@ -66,7 +68,7 @@ async function fetchPerpsActivityPage({
 
   if (cursor !== undefined) {
     if (cursor <= maxStartTime) {
-      return { transactions: [] };
+      return { transactions: [], fills: [] };
     }
 
     const startTime = Math.max(cursor - PAGE_WINDOW_MS, maxStartTime);
@@ -79,6 +81,7 @@ async function fetchPerpsActivityPage({
 
     return {
       transactions: transformFundingToTransactions(olderFunding),
+      fills: [],
       nextCursor: nextCursor > maxStartTime ? nextCursor : undefined,
     };
   }
@@ -103,13 +106,12 @@ async function fetchPerpsActivityPage({
     fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
   }
 
+  const enrichedFills = fills.map((fill) => ({
+    ...fill,
+    detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
+  }));
+
   const transactions = dedupeById([
-    ...transformFillsToTransactions(
-      fills.map((fill) => ({
-        ...fill,
-        detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
-      })),
-    ),
     ...transformOrdersToTransactions(orders, fillSizeByOrderId),
     ...transformFundingToTransactions(funding),
     ...transformUserHistoryToTransactions(userHistory),
@@ -118,6 +120,7 @@ async function fetchPerpsActivityPage({
   const nextCursor = now - PAGE_WINDOW_MS;
   return {
     transactions,
+    fills: enrichedFills,
     nextCursor: nextCursor > maxStartTime ? nextCursor : undefined,
   };
 }
@@ -142,9 +145,31 @@ function flattenPages(data?: InfiniteData<PerpsActivityPage>) {
   return transactions.sort((left, right) => right.timestamp - left.timestamp);
 }
 
+function flattenFills(data?: InfiniteData<PerpsActivityPage>) {
+  if (!data) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  const fills: OrderFill[] = [];
+  for (const page of data.pages) {
+    for (const fill of page.fills ?? []) {
+      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      fills.push(fill);
+    }
+  }
+
+  return fills;
+}
+
 export function usePerpsActivityQuery(
   accountId: CaipAccountId | undefined,
   enabled: boolean,
+  aggregateFills = true,
 ) {
   const query = useInfiniteQuery({
     queryKey: ['perpsActivity', accountId ?? null],
@@ -206,6 +231,10 @@ export function usePerpsActivityQuery(
 
   const transactions = useMemo(() => {
     const rest = flattenPages(query.data);
+    const fillTransactions = transformFillsToTransactions(
+      flattenFills(query.data),
+      { aggregate: aggregateFills },
+    );
     const restHashes = new Set(
       rest
         .map((tx) => tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim())
@@ -215,10 +244,10 @@ export function usePerpsActivityQuery(
       const hash = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
       return hash === '' || !restHashes.has(hash);
     });
-    return [...rest, ...extra].sort(
+    return [...fillTransactions, ...rest, ...extra].sort(
       (left, right) => right.timestamp - left.timestamp,
     );
-  }, [query.data, walletDeposits, walletWithdrawals]);
+  }, [query.data, walletDeposits, walletWithdrawals, aggregateFills]);
 
   return {
     ...query,

@@ -265,22 +265,33 @@ export interface DepositRequest {
   depositId?: string;
 }
 
+export type TransformFillsToTransactionsOptions = {
+  /**
+   * When true (default), merge close fills that share an asset, second, and
+   * direction into one row (Hyperliquid same-block aggregation).
+   */
+  aggregate?: boolean;
+};
+
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format.
- * Close fills that occur at the same timestamp for the same asset are automatically
- * aggregated to show combined PnL (handles split stop loss/take profit orders).
+ * Close fills that occur at the same timestamp for the same asset are
+ * aggregated when `aggregate` is true (default) to show combined PnL
+ * (handles split stop loss/take profit orders).
  *
  * @param fills - Array of abstract OrderFill objects
+ * @param options - Transform options
  * @returns Array of PerpsTransaction objects
  */
 export function transformFillsToTransactions(
   fills: OrderFill[],
+  { aggregate = true }: TransformFillsToTransactionsOptions = {},
 ): PerpsTransaction[] {
-  // Aggregate close fills that occur at the same timestamp for the same asset
-  // This handles split stop loss/take profit orders that execute as multiple fills
-  const aggregatedFills = aggregateFillsByTimestamp(fills);
+  const fillsToTransform = aggregate
+    ? aggregateFillsByTimestamp(fills)
+    : [...fills].sort((left, right) => right.timestamp - left.timestamp);
 
-  return aggregatedFills.reduce((acc: PerpsTransaction[], fill) => {
+  return fillsToTransform.reduce((acc: PerpsTransaction[], fill) => {
     const {
       direction,
       orderId,
