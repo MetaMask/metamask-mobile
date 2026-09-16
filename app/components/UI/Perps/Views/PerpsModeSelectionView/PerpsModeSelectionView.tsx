@@ -8,7 +8,7 @@ import {
   PERPS_EVENT_VALUE,
   PerpsMode,
 } from '@metamask/perps-controller';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useEffectEvent, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -152,16 +152,19 @@ const PerpsModeSelectionView: React.FC = () => {
     });
   }, [continueAfterSelection, entry, selectedMode]);
 
+  const handleBeforeRemove = useEffectEvent(() => {
+    emitDismissIfNeeded();
+    continueAsPreselectedIfNeeded();
+  });
+
   // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
   // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
   useEffect(() => {
-    openedAtRef.current = Date.now();
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
-      emitDismissIfNeeded();
-      continueAsPreselectedIfNeeded();
-    });
+    const unsubscribe = navigation.addListener('beforeRemove', () =>
+      handleBeforeRemove(),
+    );
     return unsubscribe;
-  }, [continueAsPreselectedIfNeeded, emitDismissIfNeeded, navigation]);
+  }, [navigation]);
 
   const handleClose = useCallback(() => {
     // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;

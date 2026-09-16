@@ -412,6 +412,30 @@ describe('PerpsModeSelectionView', () => {
     );
   });
 
+  it('measures time on screen from when the chooser opened, not from a later update', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(5_000);
+
+    const { rerender } = render(<PerpsModeSelectionView />);
+    mockTrack.mockClear();
+
+    // The dismissal continuation derives from the Pro flag, so flipping it
+    // re-creates the callback. Resubscribing must not restart the timer.
+    jest.spyOn(Date, 'now').mockReturnValue(5_400);
+    mockIsProModeEnabled = false;
+    rerender(<PerpsModeSelectionView />);
+
+    jest.spyOn(Date, 'now').mockReturnValue(5_600);
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: PERPS_MODE_SELECTION_DISMISSED,
+        [PERPS_EVENT_PROPERTY.TIME_ON_SCREEN_MS]: 600,
+      }),
+    );
+  });
+
   it('emits mode_selection_dismissed at most once across close and beforeRemove', () => {
     render(<PerpsModeSelectionView />);
     mockTrack.mockClear();
