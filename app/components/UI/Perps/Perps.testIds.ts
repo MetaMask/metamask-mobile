@@ -1325,3 +1325,17 @@ export const PerpsTooltipViewSelectorsIDs = {
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
+
+// ========================================
+// PERPS TRADE ACTIVITY LIST SELECTORS
+// ========================================
+
+export const PerpsMarketTradesListSelectorsIDs = {
+  LIST: 'perps-market-trades-list',
+  ROW: (index: number) => `perps-market-trades-row-${index}`,
+} as const;
+
+export const PerpsRecentActivityListSelectorsIDs = {
+  LIST: 'perps-recent-activity-list',
+  ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;
