@@ -218,7 +218,8 @@ jobs:
 
       - name: Fetch qa-stats timings fallback
         if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
+        continue-on-error: true
+        run: node .github/scripts/qa-automation/stats/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
