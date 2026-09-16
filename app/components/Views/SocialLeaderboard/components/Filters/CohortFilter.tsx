@@ -7,6 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import FilterOptionSheet from './FilterOptionSheet';
 import {
   LEADERBOARD_COHORT_LABEL_KEY,
+  LEADERBOARD_COHORT_LEADING_EMOJI,
   LEADERBOARD_COHORT_OPTIONS,
   type LeaderboardTraderCohort,
 } from './filterOptions';
@@ -17,6 +18,12 @@ import {
 
 const getCohortLabel = (value: LeaderboardTraderCohort) =>
   strings(LEADERBOARD_COHORT_LABEL_KEY[value]);
+
+const getCohortSheetLabel = (value: LeaderboardTraderCohort) => {
+  const label = getCohortLabel(value);
+  const emoji = LEADERBOARD_COHORT_LEADING_EMOJI[value];
+  return emoji ? `${emoji} ${label}` : label;
+};
 
 export interface CohortFilterSelectorProps {
   value: LeaderboardTraderCohort;
@@ -62,7 +69,7 @@ export const CohortFilterSheet: React.FC<CohortFilterSheetProps> = ({
     title={strings('social_leaderboard.cohort_filter.title')}
     options={LEADERBOARD_COHORT_OPTIONS}
     value={value}
-    getLabel={getCohortLabel}
+    getLabel={getCohortSheetLabel}
     onChange={onChange}
     onClose={onClose}
     sheetTestID={sheetTestID}

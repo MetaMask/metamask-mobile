@@ -12,6 +12,7 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
+import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../components/Filters/filterOptions';
 
 /**
  * Market cap slider bounds (USD billions). Matches the screenshot labels
@@ -100,11 +101,7 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
 
 /** Emoji prefixes shown on the cohort chips (matches the Figma screenshots). */
 export const COHORT_LEADING_EMOJI: Partial<Record<SocialTraderCohort, string>> =
-  {
-    shrimp: '🦐',
-    dolphin: '🐬',
-    whale: '🐳',
-  };
+  LEADERBOARD_COHORT_LEADING_EMOJI;
 
 export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = [
   '1h',

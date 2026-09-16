@@ -92,6 +92,15 @@ export const LEADERBOARD_COHORT_LABEL_KEY: Record<
 
 export const DEFAULT_LEADERBOARD_COHORT: LeaderboardTraderCohort = 'all';
 
+/** Emoji prefixes for cohort rows in the Trader cohort sheet (Leaderboard). */
+export const LEADERBOARD_COHORT_LEADING_EMOJI: Partial<
+  Record<LeaderboardTraderCohort, string>
+> = {
+  shrimp: '🦐',
+  dolphin: '🐬',
+  whale: '🐳',
+};
+
 export {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,

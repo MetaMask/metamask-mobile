@@ -8,8 +8,6 @@ import {
   FilterButtonSize,
   FilterButtonVariant,
   IconName,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
@@ -89,14 +87,6 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
             onPress={handleStreamToggle}
             testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
             accessibilityLabel={streamLabel}
-            startAccessory={
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="text-icon-default"
-              >
-                {isLive ? '\u25B6' : '\u23F8'}
-              </Text>
-            }
           >
             {streamLabel}
           </FilterButton>
