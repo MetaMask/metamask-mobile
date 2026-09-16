@@ -45,9 +45,10 @@ jest.mock('../../../hooks/usePerpsProOrderBookPosition', () => ({
 }));
 
 const mockSetOrderBookPreferences = jest.fn();
+let mockOrderBookMetric: 'size' | 'total' = 'total';
 jest.mock('../../../hooks/usePerpsOrderBookPreferences', () => ({
   usePerpsOrderBookPreferences: () => ({
-    preferences: { currency: 'usd', metric: 'total' },
+    preferences: { currency: 'usd', metric: mockOrderBookMetric },
     setOrderBookPreferences: mockSetOrderBookPreferences,
   }),
 }));
@@ -144,6 +145,7 @@ describe('PerpsProOrderBookPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrderBookPosition = 'right';
+    mockOrderBookMetric = 'total';
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -717,6 +719,55 @@ describe('PerpsProOrderBookPanel', () => {
       left: undefined,
       right: 0,
     });
+  });
+
+  const getDepthBarWidth = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) =>
+    StyleSheet.flatten(view.getByTestId(`${rowTestID}-depth-bar`).props.style)
+      .width;
+
+  // TAT-3966: the bar has to measure whatever the value column is showing.
+  // In the fixture the deepest bid (size 2.0, total 3.5) and the widest single
+  // level are different rows, so the two modes cannot produce the same bars.
+  it('sizes the depth bar from the cumulative total when listing by total', () => {
+    mockOrderBookMetric = 'total';
+    const view = renderLadder('right');
+
+    // bid-0 carries total 1.5 of the ladder's 3.5 maximum.
+    expect(getDepthBarWidth(view, `${testID}-bid-row-0`)).toBe(
+      `${(1.5 / 3.5) * 100}%`,
+    );
+    expect(getDepthBarWidth(view, `${testID}-bid-row-1`)).toBe('100%');
+  });
+
+  it('sizes the depth bar from the level size when listing by size', () => {
+    mockOrderBookMetric = 'size';
+    const view = renderLadder('right');
+
+    // bid-0 carries size 1.5 of the ladder's largest single size, 2.0 — not the
+    // 1.5/3.5 its cumulative total would give.
+    expect(getDepthBarWidth(view, `${testID}-bid-row-0`)).toBe(
+      `${(1.5 / 2.0) * 100}%`,
+    );
+    expect(getDepthBarWidth(view, `${testID}-bid-row-1`)).toBe('100%');
+  });
+
+  it('draws different bars for the same level in each listing mode', () => {
+    mockOrderBookMetric = 'total';
+    const byTotal = getDepthBarWidth(
+      renderLadder('right'),
+      `${testID}-bid-row-0`,
+    );
+
+    mockOrderBookMetric = 'size';
+    const bySize = getDepthBarWidth(
+      renderLadder('right'),
+      `${testID}-bid-row-0`,
+    );
+
+    expect(bySize).not.toBe(byTotal);
   });
 
   it('shows the spread value alone, keeping the label for screen readers', () => {
