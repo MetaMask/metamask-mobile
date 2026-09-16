@@ -48,6 +48,8 @@ describe('handleSocialTraderPositionUrl', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({ event: 'mocked' });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
   });
 
   it('navigates to TraderPositionView with positionId and forwards notificationSubtype', () => {

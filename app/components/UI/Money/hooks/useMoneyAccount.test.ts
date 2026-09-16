@@ -12,7 +12,10 @@ import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  type ConfirmationLaunchSource,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
@@ -340,6 +343,20 @@ describe('useMoneyAccountDeposit', () => {
         disableUpgrade: true,
         skipInitialGasEstimate: true,
       }),
+    );
+  });
+
+  it('passes launchedFrom to navigateToConfirmation so it can pick the landing screen', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        launchedFrom: 'rewards' as ConfirmationLaunchSource,
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({ launchedFrom: 'rewards' }),
     );
   });
 

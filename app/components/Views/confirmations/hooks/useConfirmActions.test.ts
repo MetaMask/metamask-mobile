@@ -87,6 +87,7 @@ describe('useConfirmAction', () => {
   const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
   const useNavigationMock = jest.mocked(useNavigation);
   const navigateMock = jest.fn();
+  const navigateOnConfirmMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -97,6 +98,7 @@ describe('useConfirmAction', () => {
     } as unknown as ReturnType<typeof useNavigation>);
 
     useTransactionConfirmMock.mockReturnValue({
+      navigateOnConfirm: navigateOnConfirmMock,
       onConfirm: jest.fn(),
     });
   });
@@ -109,6 +111,7 @@ describe('useConfirmAction', () => {
     expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
       expect.objectContaining({
         fromAddress: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        onSigningComplete: navigateOnConfirmMock,
       }),
     );
     expect(mockUseQrConfirm).toHaveBeenCalledWith(
@@ -212,6 +215,7 @@ describe('useConfirmAction', () => {
     const mockSetSigningConfirmed = jest.fn();
     const mockTransactionConfirm = jest.fn().mockResolvedValue(undefined);
     useTransactionConfirmMock.mockReturnValue({
+      navigateOnConfirm: navigateOnConfirmMock,
       onConfirm: mockTransactionConfirm,
     });
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({

@@ -268,7 +268,7 @@ describe('TopTradersSection', () => {
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         sort: 'pnl',
         timeframe: '7d',
         limit: 50,
@@ -425,7 +425,7 @@ describe('TopTradersSection', () => {
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
       }),
     );
   });

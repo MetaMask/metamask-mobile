@@ -11,6 +11,7 @@ import type {
 } from '@metamask/client-utils';
 import type { Transaction } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
+import type { TriggerOrderType } from '@metamask/perps-controller';
 import type { TransactionGroup } from './adapters/transaction-group';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
@@ -92,6 +93,8 @@ type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
     : T;
 
 interface MobileDataExtras {
+  /** Semantic trigger type localized by the Activity presentation layer. */
+  perpsTriggerOrderType?: TriggerOrderType;
   fees?: ActivityFee[];
 }
 

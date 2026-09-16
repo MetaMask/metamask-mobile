@@ -5,10 +5,9 @@ import {
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+// The app-wide Toast host is still the legacy component-library one, and its
+// `iconName` slot is typed against the legacy enum.
+import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -17,8 +16,11 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Spinner,
-  IconSize as ReactNativeDsIconSize,
   Text,
   TextColor,
   TextVariant,
@@ -157,7 +159,7 @@ const useMoneyToasts = (): {
   const closeButtonOptions = useMemo(
     () => ({
       variant: ButtonIconVariant.Icon,
-      iconName: IconName.Close,
+      iconName: ToastIconName.Close,
       onPress: closeToast,
     }),
     [closeToast],
@@ -181,13 +183,13 @@ const useMoneyToasts = (): {
       success: {
         ...(MONEY_TOASTS_DEFAULT_OPTIONS as MoneyToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
+        iconName: ToastIconName.Confirmation,
         iconColor: theme.colors.success.default,
         hapticsType: NotificationMoment.Success,
         startAccessory: (
           <Icon
             name={IconName.Confirmation}
-            color={theme.colors.success.default}
+            color={IconColor.SuccessDefault}
             size={IconSize.Lg}
           />
         ),
@@ -195,23 +197,21 @@ const useMoneyToasts = (): {
       inProgress: {
         ...(MONEY_TOASTS_DEFAULT_OPTIONS as MoneyToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
+        iconName: ToastIconName.Loading,
         hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
-        startAccessory: (
-          <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
-        ),
+        startAccessory: <Spinner spinnerIconProps={{ size: IconSize.Lg }} />,
       },
       error: {
         ...(MONEY_TOASTS_DEFAULT_OPTIONS as MoneyToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.CircleX,
+        iconName: ToastIconName.CircleX,
         iconColor: theme.colors.error.default,
         hapticsType: NotificationMoment.Error,
         startAccessory: (
           <Icon
             name={IconName.CircleX}
-            color={theme.colors.error.default}
+            color={IconColor.ErrorDefault}
             size={IconSize.Lg}
           />
         ),

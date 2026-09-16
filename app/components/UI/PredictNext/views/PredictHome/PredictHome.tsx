@@ -7,7 +7,12 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useFeed } from '../../hooks/useFeed';
 import {
@@ -92,7 +97,16 @@ export const PredictHome = () => {
   );
 
   return (
-    <Box twClassName="flex-1 pt-12" testID={PredictHomeTestIds.HOME}>
+    <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
+      <HeaderStandard
+        includesTopInset
+        {...(navigation.canGoBack()
+          ? {
+              onBack: () => navigation.goBack(),
+              backButtonProps: { testID: PredictHomeTestIds.BACK },
+            }
+          : {})}
+      />
       <ScrollView testID={PredictHomeTestIds.SCROLL}>
         <Box twClassName="gap-6 px-4 pb-8">
           <Text variant={TextVariant.HeadingLg}>Predictions</Text>

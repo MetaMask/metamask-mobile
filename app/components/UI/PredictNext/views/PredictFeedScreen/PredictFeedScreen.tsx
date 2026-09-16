@@ -55,7 +55,11 @@ interface FeedEventRowProps {
 const EventSeparator = () => <Box twClassName="h-3" />;
 
 const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => (
-  <PredictEventCard event={event} onPress={() => onOpenEvent(event)} />
+  <PredictEventCard
+    event={event}
+    variant="featured"
+    onPress={() => onOpenEvent(event)}
+  />
 ));
 
 const FeedLoading = () => (

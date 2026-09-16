@@ -23,7 +23,8 @@ import {
   // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
-import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
@@ -72,6 +73,7 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
@@ -80,9 +82,11 @@ const AddDeviceToWallet = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
 
   const handleBack = useCallback(() => {
-    Engine.context.QrSyncController.resetState();
+    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+      () => undefined,
+    );
     navigation.goBack();
-  }, [navigation]);
+  }, [messenger, navigation]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -112,9 +116,15 @@ const AddDeviceToWallet = () => {
     enabled: !isScannerOpen,
   });
 
-  const submitQrPayload = useCallback(async (qrPayload: string) => {
-    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
-  }, []);
+  const submitQrPayload = useCallback(
+    async (qrPayload: string) => {
+      await messenger.call(
+        'QrSyncController:handleScannedQrPayload',
+        qrPayload,
+      );
+    },
+    [messenger],
+  );
 
   const onScanSuccess = useCallback(
     (data: ScanSuccess, content?: string) => {
@@ -133,7 +143,9 @@ const AddDeviceToWallet = () => {
 
   const openQRScanner = useCallback(() => {
     if (isSessionActive) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
 
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
@@ -142,7 +154,7 @@ const AddDeviceToWallet = () => {
       origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
       onScanSuccess,
     });
-  }, [navigation, onScanSuccess, isSessionActive]);
+  }, [messenger, navigation, onScanSuccess, isSessionActive]);
 
   if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;

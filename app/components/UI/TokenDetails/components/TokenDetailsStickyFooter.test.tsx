@@ -28,11 +28,11 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
   default: () => ({ isBuyable: mockIsBuyable(), isLoading: false }),
 }));
 
-const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsTokenTradable = jest.fn(() => true);
 const mockIsStockToken = jest.fn(() => false);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: mockIsStockToken,
   }),
 }));
@@ -148,7 +148,7 @@ describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
     mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
     setupSelectorMock();
@@ -196,8 +196,8 @@ describe('TokenDetailsStickyFooter', () => {
       expect(queryByText('Swap')).toBeNull();
     });
 
-    it('renders nothing when isTokenTradingOpen returns false', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('renders nothing when isTokenTradable returns false', () => {
+      mockIsTokenTradable.mockReturnValue(false);
       const { queryByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
@@ -242,8 +242,8 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onStickyButtonsResolved).toHaveBeenCalledWith('buy');
     });
 
-    it('reports null when trading is not open', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('reports null when token is not tradable', () => {
+      mockIsTokenTradable.mockReturnValue(false);
       const onStickyButtonsResolved = jest.fn();
       render(
         <TokenDetailsStickyFooter

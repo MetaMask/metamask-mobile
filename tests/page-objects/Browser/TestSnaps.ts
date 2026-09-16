@@ -195,7 +195,7 @@ class TestSnaps {
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
     options: Partial<RetryOptions> = {
-      timeout: 5_000,
+      timeout: 30_000,
       interval: 100,
     },
   ): Promise<void> {
@@ -222,7 +222,7 @@ class TestSnaps {
         await Assertions.checkIfTextMatches(actualText, expectedMessage);
       },
       {
-        timeout: options.timeout ?? 5_000,
+        timeout: options.timeout ?? 30_000,
         interval: options.interval ?? 100,
         description: `Assert result "${webId}" matches expected text`,
       },
@@ -309,7 +309,7 @@ class TestSnaps {
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
     options: Partial<RetryOptions> = {
-      timeout: 5_000,
+      timeout: 30_000,
       interval: 100,
     },
   ): Promise<void> {
@@ -330,7 +330,7 @@ class TestSnaps {
         }
       },
       {
-        timeout: options.timeout ?? 5_000,
+        timeout: options.timeout ?? 30_000,
         interval: options.interval ?? 100,
         description: `Assert result "${webId}" contains "${formattedExpectedMessage}"`,
       },

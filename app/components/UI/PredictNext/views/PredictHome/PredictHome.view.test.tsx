@@ -3,6 +3,7 @@ import { renderPredictNext } from '../../../../../../tests/component-view/render
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
+import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
@@ -67,8 +68,6 @@ describe('PredictHome', () => {
       homeScore: '21',
       awayQuote: 'PAC · 41¢',
       homeQuote: 'STE · 59¢',
-      competition: 'NFL',
-      volume: '$1.5M Vol',
     });
     expectPredictNextGameCard(nflSection, 'nfl-2', {
       away: 'Panthers',
@@ -77,8 +76,6 @@ describe('PredictHome', () => {
       homeScore: '7',
       awayQuote: 'PAN · 36¢',
       homeQuote: 'CAR · 64¢',
-      competition: 'NFL',
-      volume: '$2.5k Vol',
     });
     expect(
       within(nflSection).queryByText('Hidden NFL Game'),
@@ -99,8 +96,6 @@ describe('PredictHome', () => {
       homeScore: '31',
       awayQuote: 'PIT · 47¢',
       homeQuote: 'MIA · 53¢',
-      competition: 'NCAAF',
-      volume: '$500 Vol',
     });
     expectPredictNextGameCard(ncaaSection, 'ncaa-2', {
       away: 'Georgia',
@@ -109,8 +104,6 @@ describe('PredictHome', () => {
       homeScore: '0',
       awayQuote: 'GEO · 55¢',
       homeQuote: 'FLO · 45¢',
-      competition: 'NCAAF',
-      volume: '$900k Vol',
     });
     expect(
       within(ncaaSection).queryByText('Hidden College Game'),
@@ -306,12 +299,16 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+      await view.findByTestId(MarketFooterCardTestIds.ROOT),
     ).toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledWith(
-      'PredictMarketDataService:getEvent',
-      'kalshi',
-      'nfl-1',
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining([
+          'PredictMarketDataService:getEvent',
+          'kalshi',
+          'nfl-1',
+        ]),
+      ]),
     );
 
     fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));

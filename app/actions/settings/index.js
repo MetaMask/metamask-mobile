@@ -55,11 +55,30 @@ export function setBasicFunctionality(basicFunctionalityEnabled) {
   };
 }
 
+export function setBasicFunctionalityConsolidatedEnabled(
+  isBasicFunctionalityConsolidatedEnabled,
+) {
+  return {
+    type: 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED',
+    isBasicFunctionalityConsolidatedEnabled,
+  };
+}
+
 // Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
-  return async (dispatch) => {
-    // First dispatch the Redux state update
+  return async (dispatch, getState) => {
     dispatch(setBasicFunctionality(basicFunctionalityEnabled));
+
+    const {
+      selectIsBasicFunctionalityConsolidationEnabled,
+    } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
+    const {
+      syncConsolidatedBasicFunctionalityPreferences,
+    } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
+
+    if (selectIsBasicFunctionalityConsolidationEnabled(getState())) {
+      syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
+    }
 
     const Engine = require('../../core/Engine').default;
     Engine.context.MultichainAccountService.setBasicFunctionality(

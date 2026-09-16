@@ -1565,7 +1565,10 @@ describeForPlatforms('ActivityScreen — perps orders', () => {
       { timeout: 10000 },
     );
     expect(title).toHaveTextContent(
-      strings('transactions.activity_limit_close_short'),
+      strings('transactions.activity_trigger_order_close', {
+        orderType: strings('perps.order.type.take_profit_limit.title'),
+        direction: strings('perps.market.close_short').toLowerCase(),
+      }),
     );
     expect(
       await findByTestId(activityListRowPrimaryAmountTestId(orderHash)),

@@ -471,7 +471,6 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
 import {
   ProfileMetricsController,
   ProfileMetricsControllerActions,
@@ -487,12 +486,12 @@ import {
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
-  NFTDetectionControllerState
+  NftDetectionController['state']
 >;
 
 type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
-  NFTDetectionControllerState
+  NftDetectionController['state']
 >;
 import {
   TransactionPayController,
@@ -1089,8 +1088,6 @@ export type MessengerClientsToInitialize =
   | 'AssetsContractController'
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
-  | 'ConfigRegistryController'
-  | 'ConfigRegistryApiService'
   | 'SentinelApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'

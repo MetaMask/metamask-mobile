@@ -39,4 +39,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   spread: undefined,
   pay_with: undefined,
   slippage: undefined,
+  size_skew: undefined,
 };

@@ -99,22 +99,29 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: (symbol: string) => symbol,
-  PERPS_CONSTANTS: {
-    RecentActivityLimit: 3,
-  },
-  PERPS_EVENT_VALUE: {
-    SCREEN_NAME: {
-      PERPS_MARKET_DETAILS: 'perps_market_details',
+jest.mock('@metamask/perps-controller', () => {
+  const actualConstants = jest.requireActual(
+    '@metamask/perps-controller/constants',
+  );
+
+  return {
+    getPerpsDisplaySymbol: (symbol: string) => symbol,
+    PERPS_CONSTANTS: {
+      RecentActivityLimit: 3,
     },
-  },
-  HYPERLIQUID_TWAP_LIMITS: {
-    MinDurationMinutes: 5,
-    MaxDurationMinutes: 1440,
-    MinNotionalUsd: 100,
-  },
-}));
+    PERPS_EVENT_VALUE: {
+      SCREEN_NAME: {
+        PERPS_MARKET_DETAILS: 'perps_market_details',
+      },
+    },
+    HYPERLIQUID_TWAP_LIMITS: {
+      MinDurationMinutes: 5,
+      MaxDurationMinutes: 1440,
+      MinNotionalUsd: 100,
+    },
+    CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
+  };
+});
 
 describe('PerpsMarketTradesList', () => {
   const mockNavigate = jest.fn();

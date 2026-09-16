@@ -265,6 +265,7 @@ runs:
     - name: Create Android Virtual Device (AVD)
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       env:
+        ANDROID_API_LEVEL: ${{ inputs.android-api-level }}
         ANDROID_TAG: ${{ inputs.android-tag }}
         ANDROID_ABI: ${{ inputs.android-abi }}
         ANDROID_AVD_NAME: ${{ inputs.android-avd-name }}
@@ -273,6 +274,22 @@ runs:
         IMAGE_PACKAGE: ${{ steps.prepare-android-system-image.outputs.image-package }}
       run: |
         set -euo pipefail
+        AVD_DIR="$HOME/.android/avd/$ANDROID_AVD_NAME.avd"
+        SNAPSHOT_PB="$AVD_DIR/snapshots/e2e_golden/snapshot.pb"
+        FINGERPRINT_FILE="$AVD_DIR/snapshots/e2e_golden.fingerprint.txt"
+        EXPECTED_IMAGE_PATH="system-images/android-${ANDROID_API_LEVEL}/${ANDROID_TAG}/${ANDROID_ABI}"
+        # A primed golden quick-boot snapshot lives inside the AVD dir;
+        # `create avd --force` would delete it. Skip recreation only when the
+        # cached AVD still targets this system image and the snapshot is complete.
+        if [ -f "$SNAPSHOT_PB" ] && grep -q "$EXPECTED_IMAGE_PATH" "$AVD_DIR/config.ini" 2>/dev/null; then
+          if [ "${CI:-}" != "true" ] || [ -f "$FINGERPRINT_FILE" ]; then
+            echo "Golden snapshot present for $ANDROID_AVD_NAME — skipping AVD recreation."
+            exit 0
+          fi
+        fi
+        if [ -f "$SNAPSHOT_PB" ]; then
+          echo "Golden snapshot stale or incomplete for $ANDROID_AVD_NAME — recreating AVD."
+        fi
         echo "Creating AVD with image: $IMAGE_PACKAGE"
         "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" --verbose create avd \
           --force \

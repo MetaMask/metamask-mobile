@@ -1,3 +1,5 @@
+import { isUiAutomator2SessionDeadError } from '../../Constants.ts';
+
 const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /pm clear/i,
   /MainActivity.*does not exist/i,
@@ -12,6 +14,9 @@ let recreateRequested = false;
 
 /** True when the error looks like emulator/session health failure, not a product assert. */
 export function isDeviceHealthError(error: unknown): boolean {
+  if (isUiAutomator2SessionDeadError(error)) {
+    return true;
+  }
   const message =
     error instanceof Error
       ? error.message

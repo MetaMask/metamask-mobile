@@ -96,13 +96,25 @@ import {
   SecurityLevel,
   authenticateAsync,
 } from 'expo-local-authentication';
-import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
+import {
+  classifyUnlockError,
+  getAuthIcon,
+  getAuthLabel,
+  getAuthType,
+} from './utils';
+import { trackForcedReset } from '../../util/analytics/accountAccessTracking';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
+import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
+import {
+  clearUnlockAppStartType,
+  getUnlockAppStartType,
+  resumeUnlockDeeplinkNavigatedAfterOptIn,
+} from '../Performance/unlockTraces';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -869,6 +881,10 @@ class AuthenticationService {
             OPTIN_META_METRICS_UI_SEEN,
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            const deeplinkAppStartType = getUnlockAppStartType();
+            cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
+            clearUnlockAppStartType();
+
             NavigationService.navigation?.reset({
               routes: [
                 {
@@ -877,6 +893,14 @@ class AuthenticationService {
                     screen: Routes.ONBOARDING.NAV,
                     params: {
                       screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      params: {
+                        onContinue: async () => {
+                          resumeUnlockDeeplinkNavigatedAfterOptIn({
+                            appStartType: deeplinkAppStartType,
+                          });
+                          await navigateToPostUnlockHome();
+                        },
+                      },
                     },
                   },
                 },
@@ -952,6 +976,8 @@ class AuthenticationService {
       if (error instanceof Error) {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+        // Track App Unlocked Failed with whether lockApp reset the keychain.
+        trackForcedReset(classifyUnlockError(error), shouldResetOnLock);
       }
       throw ensureError(error, 'Unlock wallet failed');
     } finally {

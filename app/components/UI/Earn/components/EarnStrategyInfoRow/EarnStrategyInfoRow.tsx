@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -21,7 +22,11 @@ const EarnStrategyInfoRow = ({
   >
     {startAccessory ? <Box twClassName="mr-3">{startAccessory}</Box> : null}
     <Box twClassName="min-w-0 flex-1">
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
         {text}
       </Text>
     </Box>

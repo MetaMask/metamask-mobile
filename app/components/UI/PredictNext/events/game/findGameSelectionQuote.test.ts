@@ -2,6 +2,7 @@ import type {
   PredictEntityId,
   PredictEvent,
   PredictMarket,
+  PredictMarketGroup,
   PredictOutcome,
   PredictTimestamp,
   PredictVenueId,
@@ -22,11 +23,13 @@ const createOutcome = (
 const createMarket = (
   id: string,
   outcomes: readonly [PredictOutcome, PredictOutcome],
+  group?: PredictMarketGroup,
 ): PredictMarket => ({
   id: id as PredictEntityId,
   question: id,
   status: 'active',
   outcomes,
+  ...(group ? { group } : {}),
 });
 
 const createEvent = (markets: readonly PredictMarket[]): PredictEvent => ({
@@ -96,5 +99,70 @@ describe('findGameSelectionQuote', () => {
     const result = findGameSelectionQuote(event, 'away');
 
     expect(result).toBeUndefined();
+  });
+
+  it('returns the unique draw quote', () => {
+    const drawYes = createOutcome('draw-yes', 'yes', 'draw');
+    const event = createEvent([
+      createMarket('away', [
+        createOutcome('away-yes', 'yes', 'away'),
+        createOutcome('away-no', 'no'),
+      ]),
+      createMarket('home', [
+        createOutcome('home-yes', 'yes', 'home'),
+        createOutcome('home-no', 'no'),
+      ]),
+      createMarket('draw', [drawYes, createOutcome('draw-no', 'no')]),
+    ]);
+
+    const result = findGameSelectionQuote(event, 'draw');
+
+    expect(result).toEqual({
+      market: event.markets[2],
+      outcome: drawYes,
+    });
+  });
+
+  it('returns undefined when multiple Outcomes claim draw', () => {
+    const event = createEvent([
+      createMarket('draw-one', [
+        createOutcome('draw-one-yes', 'yes', 'draw'),
+        createOutcome('draw-one-no', 'no'),
+      ]),
+      createMarket('draw-two', [
+        createOutcome('draw-two-yes', 'yes', 'draw'),
+        createOutcome('draw-two-no', 'no'),
+      ]),
+    ]);
+
+    expect(findGameSelectionQuote(event, 'draw')).toBeUndefined();
+  });
+
+  it('ignores grouped Markets when resolving a unique Game Selection', () => {
+    const awayYes = createOutcome('away-yes', 'yes', 'away');
+    const spreadGroup: PredictMarketGroup = {
+      key: 'spread-1',
+      groupType: 'marketSelector',
+      marketType: 'spread',
+      option: { type: 'number', value: 3.5 },
+    };
+    const event = createEvent([
+      createMarket('away', [awayYes, createOutcome('away-no', 'no')]),
+      createMarket(
+        'spread-away',
+        [
+          createOutcome('spread-away-yes', 'yes', 'away'),
+          createOutcome('spread-away-no', 'no'),
+        ],
+        spreadGroup,
+      ),
+    ]);
+
+    const result = findGameSelectionQuote(event, 'away');
+
+    expect(result).toEqual({
+      market: event.markets[0],
+      outcome: awayYes,
+    });
   });
 });

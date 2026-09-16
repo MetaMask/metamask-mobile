@@ -21,6 +21,13 @@ import {
 } from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 import NotificationsService from '../../util/notifications/services/NotificationService';
+import {
+  startDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  cancelDeeplinkProcessedTrace,
+  type DeeplinkPerfAppStartType,
+} from '../Performance/DeeplinkPerformance';
+import { getUnlockAppStartType } from '../Performance/unlockTraces';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -84,18 +91,27 @@ export class DeeplinkManager {
       browserCallBack,
       origin,
       onHandled,
+      appStartType = 'warm',
     }: {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<boolean> {
+    const processedTraceToken = startDeeplinkProcessedTrace({
+      url,
+      source: 'parse',
+      appStartType,
+    });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       browserCallBack,
       onHandled,
+      processedTraceToken,
     });
 
     return typeof result === 'boolean' ? result : Boolean(result);
@@ -105,22 +121,44 @@ export class DeeplinkManager {
     url: string,
     {
       origin,
+      appStartType = getUnlockAppStartType(),
     }: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<DeeplinkResolveResult> {
+    const processedTraceToken = startDeeplinkProcessedTrace({
+      url,
+      source: 'resolve',
+      appStartType,
+    });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       mode: 'resolve',
+      processedTraceToken,
     });
 
     if (result === false) {
+      cancelDeeplinkProcessedTrace({
+        reason: 'rejected',
+        traceToken: processedTraceToken,
+      });
       return false;
     }
 
-    return result && typeof result !== 'boolean' ? result : null;
+    const intent = result && typeof result !== 'boolean' ? result : null;
+
+    if (intent === null) {
+      cancelDeeplinkProcessedTrace({
+        reason: 'unresolved',
+        traceToken: processedTraceToken,
+      });
+    }
+
+    return intent;
   }
 
   static start() {
@@ -272,12 +310,14 @@ export default {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
   resolve: (
     url: string,
     args: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),

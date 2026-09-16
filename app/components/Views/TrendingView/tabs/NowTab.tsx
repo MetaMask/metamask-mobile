@@ -61,8 +61,8 @@ import {
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
-import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import ExploreEarnSection from '../components/ExploreEarnSection';
+import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -224,7 +224,7 @@ const NowTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
-  const isEarnSectionEnabled = useSelector(selectExploreEarnSectionEnabledFlag);
+  const isEarnSectionVisible = useSelector(selectIsExploreEarnSectionVisible);
 
   const whatsHappening = useWhatsHappening();
   const refreshWhatsHappening = whatsHappening.refresh;
@@ -368,7 +368,7 @@ const NowTabContent: React.FC<TabProps> = ({
       });
     }
 
-    if (isEarnSectionEnabled) {
+    if (isEarnSectionVisible) {
       items.push({
         key: 'earn',
         content: <ExploreEarnSection tabName="Now" refresh={refresh} />,
@@ -422,7 +422,7 @@ const NowTabContent: React.FC<TabProps> = ({
     showPredictions,
     showCryptoMovers,
     showPerps,
-    isEarnSectionEnabled,
+    isEarnSectionVisible,
     showStocks,
     whatsHappening,
     displayedPredictions,

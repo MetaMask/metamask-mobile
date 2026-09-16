@@ -79,12 +79,46 @@ async function mockSwapUSDCtoGOOGLONGeoBlocked(
 }
 
 /**
+ * Absorb leaked STX batchStatus polls from earlier swap specs in the same
+ * Appium shard. STX helpers poll GET …/batchStatus with a fixed UUID after
+ * submit; without this mock, geo-block cleanup fails on an unmocked request
+ * even when the geo-restriction assertions already passed.
+ */
+const STX_LEAKED_BATCH_STATUS_UUID = '0d506aaa-5e38-4cab-ad09-2039cb7a0f33';
+
+async function mockLeakedSmartTransactionBatchStatus(
+  mockServer: Mockttp,
+): Promise<void> {
+  await setupMockRequest(mockServer, {
+    url: /\.api\.cx\.metamask\.io\/(v\d+\/)?networks\/\d+\/batchStatus/,
+    response: {
+      [STX_LEAKED_BATCH_STATUS_UUID]: {
+        cancellationFeeWei: 0,
+        cancellationReason: 'not_cancelled',
+        deadlineRatio: 0,
+        isSettled: true,
+        minedTx: 'success',
+        wouldRevertMessage: null,
+        minedHash:
+          '0xec9d6214684d6dc191133ae4a7ec97db3e521fff9cfe5c4f48a84cb6c93a5fa5',
+        timedOut: true,
+        proxied: false,
+        type: 'sentinel',
+      },
+    },
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
+}
+
+/**
  * Standard swap mocks with USDC → GOOGLON overridden to return RWA_GEO_RESTRICTED.
  */
 export const rwaSwapGeoBlockTestSpecificMock: TestSpecificMock = async (
   mockServer,
 ) => {
   await testSpecificMock(mockServer);
+  await mockLeakedSmartTransactionBatchStatus(mockServer);
   await setupRemoteFeatureFlagsMock(
     mockServer,
     RWA_GEO_BLOCK_REMOTE_FEATURE_FLAG_OVERRIDES,

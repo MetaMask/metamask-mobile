@@ -71,6 +71,8 @@ import {
 } from '../../../util/analytics/appInstallEvent';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -87,6 +89,12 @@ const OptinMetrics = () => {
     >();
   const tw = useTailwind();
   const metrics = useAnalytics();
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.OPTIN_METRICS,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);

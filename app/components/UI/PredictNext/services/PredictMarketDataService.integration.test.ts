@@ -45,6 +45,22 @@ const marketHistory = {
   ],
 };
 
+const groupedEvent = {
+  ...event,
+  markets: [
+    {
+      ...event.markets[0],
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: 220.5 },
+        displayOrder: 0,
+      },
+    },
+  ],
+};
+
 describe('PredictNext public market data', () => {
   const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
     [];
@@ -157,6 +173,28 @@ describe('PredictNext public market data', () => {
       event.id as PredictEntityId,
     );
 
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('preserves grouped Market metadata through the cached Event read path', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: groupedEvent,
+    }));
+
+    const first = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id as PredictEntityId,
+    );
+    const cached = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id as PredictEntityId,
+    );
+
+    expect(first.markets[0].group).toEqual(groupedEvent.markets[0].group);
+    expect(cached.markets[0].group).toEqual(groupedEvent.markets[0].group);
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
     harness.destroy();
   });

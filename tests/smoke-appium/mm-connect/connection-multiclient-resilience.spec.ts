@@ -21,9 +21,8 @@ import {
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -52,19 +51,12 @@ const playgroundServer = new DappServer({
 appiumTest.describe.skip(SmokeMMConnect('Multiclient resilience'), () => {
   // Start local playground server before all tests
   appiumTest.beforeAll(async () => {
-    // Set port and start the server directly (bypassing Detox-specific utilities)
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-
-    // Set up adb reverse for Android emulator access
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Stop local playground server after all tests
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Test steps (in order):
