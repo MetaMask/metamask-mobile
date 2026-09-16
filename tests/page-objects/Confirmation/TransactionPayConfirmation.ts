@@ -351,11 +351,27 @@ class TransactionPayConfirmation {
   }
 
   async clearAmount(): Promise<void> {
-    await Gestures.longPress(this.keypadDeleteButton, {
-      duration: 600,
-      elemDescription: 'Keypad delete button (long-press clears amount)',
-      timeout: 15000,
-    });
+    // Long-press can miss on Android after a percentage tap. Re-issue the
+    // gesture until custom-amount-input is '0' (Keys.Initial). Short
+    // per-attempt assertion timeout; executeWithRetry owns the budget.
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.longPress(this.keypadDeleteButton, {
+          duration: 600,
+          elemDescription: 'Keypad delete button (long-press clears amount)',
+          timeout: 15000,
+        });
+        await Assertions.expectElementToHaveText(this.keyboardContainer, '0', {
+          description: 'Amount should be 0 after keypad long-press clear',
+          timeout: 2000,
+        });
+      },
+      {
+        timeout: 15000,
+        interval: 400,
+        description: 'Clear custom amount until 0',
+      },
+    );
   }
 
   async tapKeyboardAmount(amount: string): Promise<void> {
