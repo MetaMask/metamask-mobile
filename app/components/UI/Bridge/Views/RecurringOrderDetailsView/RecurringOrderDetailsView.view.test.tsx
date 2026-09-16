@@ -7,7 +7,11 @@ import {
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from '../BridgeView/BridgeView.testIds';
-import { MOCK_RECURRING_OPEN_ORDER } from './RecurringOrderDetailsView.mock';
+import {
+  MOCK_RECURRING_CANCELLED_ORDER,
+  MOCK_RECURRING_COMPLETED_ORDER,
+  MOCK_RECURRING_OPEN_ORDER,
+} from '../../api/recurringOrders.mock';
 import ToastService from '../../../../../core/ToastService';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
@@ -24,7 +28,7 @@ async function openInProgressOrderDetails(
   });
 
   await userEvent.press(
-    renderResult.getByTestId(
+    await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
         MOCK_RECURRING_OPEN_ORDER.orderId,
       ),
@@ -146,21 +150,15 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       renderResult.getByTestId(
         RecurringOrderDetailsViewSelectorsIDs.FILLED_VALUE,
       ),
-    ).toHaveTextContent(
-      `${MOCK_RECURRING_OPEN_ORDER.filledAmount} / ${MOCK_RECURRING_OPEN_ORDER.totalSourceAmount} (40%)`,
-    );
-    for (const swap of MOCK_RECURRING_OPEN_ORDER.swaps) {
-      expect(
-        renderResult.getByTestId(
-          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId),
-        ),
-      ).toBeOnTheScreen();
-    }
+    ).toHaveTextContent('0.003 / 0.0075 ETH (40%)');
+    expect(
+      renderResult.queryByText(strings('bridge.recurring.history')),
+    ).not.toBeOnTheScreen();
   });
 
-  it('returns from a missing order fallback without showing actions', async () => {
+  it('shows duplicate action for a completed API order', async () => {
     const renderResult = renderRecurringOrderDetailsView({
-      orderId: 'unknown-recurring-order',
+      order: MOCK_RECURRING_COMPLETED_ORDER,
     });
 
     await userEvent.press(
@@ -171,9 +169,32 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
 
     expect(
       await renderResult.findByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.NOT_FOUND,
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
-    ).toHaveTextContent(strings('bridge.recurring.order_not_found'));
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows no footer action for a cancelled API order', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_CANCELLED_ORDER,
+    });
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
+      ),
+    );
+
+    expect(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.SUMMARY,
+      ),
+    ).toBeOnTheScreen();
     expect(
       renderResult.queryByTestId(
         RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
@@ -184,17 +205,5 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
     ).not.toBeOnTheScreen();
-
-    await userEvent.press(
-      renderResult.getByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.BACK_BUTTON,
-      ),
-    );
-
-    expect(
-      await renderResult.findByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
-      ),
-    ).toBeOnTheScreen();
   });
 });

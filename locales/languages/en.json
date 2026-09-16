@@ -9061,7 +9061,9 @@
       "empty": {
         "open_orders": "Open orders appear here",
         "history": "Order history appears here"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9168,6 +9170,7 @@
       "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "completed": "Completed",
+      "cancelled": "Cancelled",
       "you_sent": "You sent",
       "you_receive": "You receive",
       "filled_progress": "{{percent}}%",
