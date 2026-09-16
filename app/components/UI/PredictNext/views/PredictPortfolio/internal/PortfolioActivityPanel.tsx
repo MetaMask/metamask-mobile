@@ -2,23 +2,16 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useActivity } from '../../../hooks/useActivity';
-import type {
-  PredictActivityEntry,
-  PredictEntityId,
-  PredictVenueId,
-} from '../../../types';
-import { PORTFOLIO_PAGE_LIMIT } from '../../../queries/portfolioQueries';
+import type { useActivity } from '../../../hooks/useActivity';
+import type { PredictActivityEntry, PredictEntityId } from '../../../types';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
 import { PortfolioActivityRow } from './PortfolioActivityRow';
 import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
 import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
 
-const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
-
 interface PortfolioActivityPanelProps {
-  venueId: PredictVenueId;
+  query: ReturnType<typeof useActivity>;
   isPrivacyMode: boolean;
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
@@ -26,7 +19,7 @@ interface PortfolioActivityPanelProps {
 
 /** Renders the independently cached Activity list (Fills and Settlements) for one Venue. */
 export const PortfolioActivityPanel = ({
-  venueId,
+  query,
   isPrivacyMode,
   onOpenEvent,
   onBrowseMarkets,
@@ -39,7 +32,7 @@ export const PortfolioActivityPanel = ({
     isFetchingNextPage,
     isPending,
     refetch,
-  } = useActivity(venueId, PAGE_PARAMS);
+  } = query;
   const entries = useMemo(
     () => data?.pages.flatMap((page) => page.activity) ?? [],
     [data],
