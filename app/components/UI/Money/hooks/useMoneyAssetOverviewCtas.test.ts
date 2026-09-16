@@ -24,6 +24,11 @@ import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 
+jest.mock('../../../../selectors/earnController/earn', () => ({
+  earnSelectors: {
+    selectIsAaveOutputToken: jest.fn(),
+  },
+}));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -48,9 +53,8 @@ const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
 const mockUseMoneyOnboardingNavigation = jest.mocked(
   useMoneyOnboardingNavigation,
 );
-const mockSelectIsAaveOutputToken = jest.spyOn(
-  earnSelectors,
-  'selectIsAaveOutputToken',
+const mockSelectIsAaveOutputToken = jest.mocked(
+  earnSelectors.selectIsAaveOutputToken,
 );
 const mockSelectorState = {} as RootState;
 
