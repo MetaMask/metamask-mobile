@@ -133,6 +133,13 @@ export interface BridgeState {
   // Recurring
   recurring: RecurringState;
 
+  // Limit orders
+  /**
+   * Cost tolerance in % applied to limit orders.
+   * `undefined` means the Auto option is in effect.
+   */
+  limitOrderCostTolerance: string | undefined;
+
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: CaipChainId | undefined;
 }
@@ -170,6 +177,9 @@ export const initialState: BridgeState = {
 
   // Recurring
   recurring: initialRecurringState,
+
+  // Limit orders
+  limitOrderCostTolerance: undefined,
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,
@@ -318,6 +328,12 @@ const slice = createSlice({
     ) => {
       state.slippage = action.payload;
       state.isSlippageUserOverride = true;
+    },
+    setLimitOrderCostTolerance: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.limitOrderCostTolerance = action.payload;
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
@@ -799,6 +815,11 @@ export const selectIsSlippageUserOverride = createSelector(
   (bridgeState) => bridgeState.isSlippageUserOverride,
 );
 
+export const selectLimitOrderCostTolerance = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderCostTolerance,
+);
+
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -1233,6 +1254,7 @@ export const {
   setSelectedDestChainId,
   setSlippage,
   setSlippageUserOverride,
+  setLimitOrderCostTolerance,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,

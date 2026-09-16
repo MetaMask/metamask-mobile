@@ -133,6 +133,7 @@ import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import {
+  predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
@@ -387,6 +388,7 @@ export class Engine {
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
+        PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
@@ -684,6 +686,7 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       RewardsController: rewardsController,
       DelegationController: delegationController,

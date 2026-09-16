@@ -192,6 +192,10 @@ describe('WatchlistSection', () => {
     expect(getByTestId('watchlist-empty-icon')).toBeDefined();
     expect(getAllByText('Watchlist').length).toBeGreaterThanOrEqual(1);
     expect(getByText('You have no watchlist items yet')).toBeDefined();
+    // Translations long enough to wrap fall back to left alignment without this.
+    expect(getByText('You have no watchlist items yet')).toHaveStyle({
+      textAlign: 'center',
+    });
   });
 
   it('renders up to 3 tokens when watchlist has items (newest first)', () => {
