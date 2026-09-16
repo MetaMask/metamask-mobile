@@ -1828,6 +1828,27 @@ describe('TrendingTokenRowItem', () => {
   });
 
   describe('Add to watchlist button (endAction: watchlist)', () => {
+    const renderWatchlistRow = () => {
+      const onPress = jest.fn();
+      const token = createMockToken();
+      const renderResult = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'watchlist', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+      return {
+        onPress,
+        token,
+        addButtonId: getTrendingTokenRowAddButtonTestId(
+          token.assetId as string,
+        ),
+        ...renderResult,
+      };
+    };
+
     it('does not render the add button when no endAction is provided', () => {
       const token = createMockToken();
 
@@ -1845,59 +1866,22 @@ describe('TrendingTokenRowItem', () => {
     });
 
     it('renders the add button when provided', () => {
-      const token = createMockToken();
-      const onPress = jest.fn();
+      const { getByTestId, addButtonId } = renderWatchlistRow();
 
-      const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem
-          token={token}
-          endAction={{ type: 'watchlist', onPress }}
-        />,
-        { state: mockState },
-        false,
-      );
-
-      expect(
-        getByTestId(
-          getTrendingTokenRowAddButtonTestId(token.assetId as string),
-        ),
-      ).toBeOnTheScreen();
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
     });
 
     it('calls onPress with the token when the button is pressed', () => {
-      const token = createMockToken();
-      const onPress = jest.fn();
+      const { getByTestId, onPress, token, addButtonId } = renderWatchlistRow();
 
-      const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem
-          token={token}
-          endAction={{ type: 'watchlist', onPress }}
-        />,
-        { state: mockState },
-        false,
-      );
-
-      fireEvent.press(
-        getByTestId(
-          getTrendingTokenRowAddButtonTestId(token.assetId as string),
-        ),
-      );
+      fireEvent.press(getByTestId(addButtonId));
 
       expect(onPress).toHaveBeenCalledTimes(1);
       expect(onPress).toHaveBeenCalledWith(token);
     });
 
     it('renders an outline star button matching the perps suggested add affordance (PR 36358)', () => {
-      const token = createMockToken();
-
-      const { UNSAFE_getByType } = renderWithProvider(
-        <TrendingTokenRowItem
-          token={token}
-          endAction={{ type: 'watchlist', onPress: jest.fn() }}
-        />,
-        { state: mockState },
-        false,
-      );
+      const { UNSAFE_getByType } = renderWatchlistRow();
 
       const button = UNSAFE_getByType(ButtonIcon);
 
@@ -1911,23 +1895,9 @@ describe('TrendingTokenRowItem', () => {
     });
 
     it('does not trigger row navigation when the add button is pressed', async () => {
-      const token = createMockToken();
-      const onPress = jest.fn();
+      const { getByTestId, addButtonId } = renderWatchlistRow();
 
-      const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem
-          token={token}
-          endAction={{ type: 'watchlist', onPress }}
-        />,
-        { state: mockState },
-        false,
-      );
-
-      fireEvent.press(
-        getByTestId(
-          getTrendingTokenRowAddButtonTestId(token.assetId as string),
-        ),
-      );
+      fireEvent.press(getByTestId(addButtonId));
 
       await waitFor(() => {
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -1936,23 +1906,9 @@ describe('TrendingTokenRowItem', () => {
     });
 
     it('renders only the watchlist action when both variants could apply', () => {
-      const token = createMockToken();
-      const onPress = jest.fn();
+      const { getByTestId, queryByTestId, addButtonId } = renderWatchlistRow();
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <TrendingTokenRowItem
-          token={token}
-          endAction={{ type: 'watchlist', onPress }}
-        />,
-        { state: mockState },
-        false,
-      );
-
-      expect(
-        getByTestId(
-          getTrendingTokenRowAddButtonTestId(token.assetId as string),
-        ),
-      ).toBeOnTheScreen();
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
       expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
     });
   });

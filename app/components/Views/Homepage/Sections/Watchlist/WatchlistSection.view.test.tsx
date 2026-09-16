@@ -32,6 +32,9 @@ const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 const getRowTestId = (assetId: string) =>
   getTrendingTokenRowItemTestId(assetId);
 
+const getAddButtonTestId = (assetId: string) =>
+  getTrendingTokenRowAddButtonTestId(assetId);
+
 beforeEach(() => {
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
@@ -105,9 +108,7 @@ describeForPlatforms('WatchlistSection', () => {
     // Empty state = suggested rows with add buttons below the header,
     // rendered silently (matching the perps watchlist structure).
     expect(
-      await findByTestId(
-        getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
-      ),
+      await findByTestId(getAddButtonTestId('eip155:1/slip44:60')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -132,13 +133,13 @@ describeForPlatforms('WatchlistSection', () => {
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
     const addButton = await findByTestId(
-      getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+      getAddButtonTestId('eip155:1/slip44:60'),
     );
     expect(addButton).toBeOnTheScreen();
     // The star button exposes an accessibility label, matching perps.
     expect(
-      getByTestId(getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'))
-        .props.accessibilityLabel,
+      getByTestId(getAddButtonTestId('eip155:1/slip44:60')).props
+        .accessibilityLabel,
     ).toBe('Add to watchlist');
   });
 
@@ -213,31 +214,21 @@ describeForPlatforms('WatchlistSection', () => {
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
     expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
     expect(getByText('Suggested')).toBeOnTheScreen();
-    expect(
-      getByTestId(getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60')),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        getTrendingTokenRowAddButtonTestId(
-          'bip122:000000000019d6689c085ae165831e93/slip44:0',
-        ),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        getTrendingTokenRowAddButtonTestId(
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-        ),
-      ),
-    ).toBeOnTheScreen();
+    for (const assetId of [
+      'eip155:1/slip44:60',
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    ]) {
+      expect(getByTestId(getAddButtonTestId(assetId))).toBeOnTheScreen();
+    }
     // BNB is the 4th suggestion — dropped by the 5 - 2 cap.
     expect(
-      queryByTestId(getTrendingTokenRowAddButtonTestId('eip155:56/slip44:714')),
+      queryByTestId(getAddButtonTestId('eip155:56/slip44:714')),
     ).not.toBeOnTheScreen();
     // Watched tokens are not re-suggested.
     expect(
       queryByTestId(
-        getTrendingTokenRowAddButtonTestId(
+        getAddButtonTestId(
           'eip155:1/erc20:0x1f9840a85d8aBE325823995344D8762464388D4',
         ),
       ),
@@ -251,7 +242,7 @@ describeForPlatforms('WatchlistSection', () => {
     const { findByTestId, queryByTestId } = renderWatchlistSectionWithRoutes();
 
     const addButton = await findByTestId(
-      getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
+      getAddButtonTestId('eip155:1/slip44:60'),
     );
 
     await act(async () => {
@@ -267,9 +258,7 @@ describeForPlatforms('WatchlistSection', () => {
     await waitFor(
       () =>
         expect(
-          queryByTestId(
-            getTrendingTokenRowAddButtonTestId('eip155:1/slip44:60'),
-          ),
+          queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
         ).toBeNull(),
       { timeout: 5000 },
     );
