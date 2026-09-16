@@ -4,6 +4,10 @@ import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { selectMoneyAccountPlusPricing } from '../../../../../../selectors/subscriptionController';
 import type { MoneyAccountPlusPricingView } from '../utils/mapMoneyAccountPlusPricing';
+import {
+  isMockPricingEnabled,
+  MOCK_PLUS_PRICING,
+} from './useSubscriptionPricing.mock';
 
 export interface UseSubscriptionPricingResult {
   plusPricing: MoneyAccountPlusPricingView;
@@ -41,6 +45,12 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   const isMountedRef = useRef(true);
 
   const fetchPricing = useCallback(async () => {
+    if (isMockPricingEnabled) {
+      setIsLoading(false);
+      setHasError(false);
+      return;
+    }
+
     if (inFlightRef.current) {
       return;
     }
@@ -76,7 +86,7 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   }, [fetchPricing]);
 
   return {
-    plusPricing,
+    plusPricing: isMockPricingEnabled ? MOCK_PLUS_PRICING : plusPricing,
     isLoading,
     hasError,
     retry: fetchPricing,

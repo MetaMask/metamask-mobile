@@ -1,4 +1,4 @@
-import I18n from '../../../../../../../locales/i18n';
+import I18n from '../../../locales/i18n';
 import { formatSubscriptionFiat } from './formatSubscriptionFiat';
 
 describe('formatSubscriptionFiat', () => {

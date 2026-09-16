@@ -5,7 +5,7 @@ import {
   type PlanId,
   type PlanOption,
 } from '../Benefits.constants';
-import { formatSubscriptionFiat } from './formatSubscriptionFiat';
+import { formatSubscriptionFiat } from '../../../../../../util/subscription/formatSubscriptionFiat';
 import type { MoneyAccountPlusPricingView } from './mapMoneyAccountPlusPricing';
 
 export interface PlanSelectorCardCopy {

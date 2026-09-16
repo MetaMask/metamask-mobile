@@ -1,13 +1,22 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import {
+  CANCEL_TYPES,
+  PAYMENT_TYPES,
+  PRODUCT_TYPES,
+  RECURRING_INTERVALS,
+  SUBSCRIPTION_STATUSES,
+  type PricingResponse,
+  type Subscription,
+} from '@metamask/subscription-controller';
 import Membership from './Membership';
 import { MembershipTestIds } from './Membership.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  MOCK_MEMBERSHIP_STATS,
-  MOCK_PAYMENT_DETAILS,
-} from './Membership.constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../reducers';
+import configureStore from '../../../../../util/test/configureStore';
+import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -39,7 +48,80 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-const renderMembership = () => render(<Membership />);
+const subscription: Subscription = {
+  id: 'money-account-plus-subscription',
+  products: [
+    {
+      name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      currency: 'usd',
+      unitAmount: 9900,
+      unitDecimals: 2,
+    },
+  ],
+  currentPeriodStart: '2026-07-20T00:00:00.000Z',
+  currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+  status: SUBSCRIPTION_STATUSES.active,
+  interval: RECURRING_INTERVALS.year,
+  paymentMethod: {
+    type: PAYMENT_TYPES.byCard,
+    card: {
+      brand: 'visa',
+      displayBrand: 'visa',
+      last4: '4242',
+    },
+  },
+  cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
+  isEligibleForSupport: true,
+};
+
+const pricing: PricingResponse = {
+  products: [
+    {
+      name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      prices: [
+        {
+          interval: RECURRING_INTERVALS.month,
+          currency: 'usd',
+          unitAmount: 999,
+          unitDecimals: 2,
+          trialPeriodDays: 0,
+          minBillingCycles: 1,
+          minBillingCyclesForBalance: 1,
+        },
+        {
+          interval: RECURRING_INTERVALS.year,
+          currency: 'usd',
+          unitAmount: 9900,
+          unitDecimals: 2,
+          trialPeriodDays: 0,
+          minBillingCycles: 1,
+          minBillingCyclesForBalance: 1,
+        },
+      ],
+    },
+  ],
+  paymentMethods: [],
+};
+
+const createStoreState = () =>
+  ({
+    engine: {
+      backgroundState: {
+        SubscriptionController: {
+          subscriptions: [subscription],
+          trialedProducts: [],
+          pricing,
+        },
+      },
+    },
+  }) as unknown as RootState;
+
+const renderMembership = () =>
+  render(
+    <Provider store={configureStore(createStoreState())}>
+      <Membership />
+    </Provider>,
+  );
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -83,20 +165,19 @@ describe('Membership', () => {
       expect(getByTestId(MembershipTestIds.STATS_SECTION)).toBeOnTheScreen();
     });
 
-    it('renders the plan row with mock plan value', () => {
+    it('renders the annual plan from SubscriptionController state', () => {
       const { getByTestId } = renderMembership();
 
-      // Row container includes both label + value; use regex for partial match.
       expect(getByTestId(MembershipTestIds.PLAN_ROW)).toHaveTextContent(
-        toRegex(MOCK_MEMBERSHIP_STATS.plan),
+        toRegex('Pro (Annual)'),
       );
     });
 
-    it('renders the earned this month row with mock value', () => {
+    it('renders an unavailable value for earnings absent from controller state', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.EARNED_ROW)).toHaveTextContent(
-        toRegex(MOCK_MEMBERSHIP_STATS.earnedThisMonth),
+        toRegex('--'),
       );
     });
   });
@@ -124,10 +205,10 @@ describe('Membership', () => {
       const totalRow = getByTestId(MembershipTestIds.TOTAL_ROW);
 
       expect(totalRow).toHaveTextContent(
-        toRegex(MOCK_PAYMENT_DETAILS.totalOriginal),
+        toRegex(formatSubscriptionFiat(119.88, 'usd')),
       );
       expect(totalRow).toHaveTextContent(
-        toRegex(MOCK_PAYMENT_DETAILS.totalDiscounted),
+        toRegex(formatSubscriptionFiat(99, 'usd')),
       );
     });
 
@@ -135,7 +216,7 @@ describe('Membership', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
-        toRegex(MOCK_PAYMENT_DETAILS.payingWith),
+        toRegex('VISA •••• 4242'),
       );
     });
 
@@ -143,7 +224,7 @@ describe('Membership', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(MOCK_PAYMENT_DETAILS.renewsOn),
+        toRegex('Jul 20, 2027'),
       );
     });
   });
