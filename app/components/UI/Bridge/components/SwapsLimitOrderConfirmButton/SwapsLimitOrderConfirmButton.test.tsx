@@ -3,7 +3,9 @@ import { fireEvent } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { SwapsLimitOrderConfirmButton } from './index';
 
 const TEST_ID = BridgeViewSelectorsIDs.CONFIRM_BUTTON;
@@ -13,6 +15,22 @@ jest.mock('../../hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+const createMockBridgeSession = (
+  overrides: Partial<ReturnType<typeof useBridgeSession>> = {},
+) => ({
+  selectedTab: BridgeTabKey.Limit,
+  renderedTab: BridgeTabKey.Limit,
+  setSelectedTab: jest.fn(),
+  setRenderedTab: jest.fn(),
+  latestSourceBalance: undefined,
+  quoteParams: {},
+  ...overrides,
+});
 
 function renderButton(
   props: Partial<
@@ -38,6 +56,7 @@ describe('SwapsLimitOrderConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useBridgeSession).mockReturnValue(createMockBridgeSession());
   });
 
   it('calls onPress when pressed', () => {
@@ -89,12 +108,15 @@ describe('SwapsLimitOrderConfirmButton', () => {
     expect(getByTestId(TEST_ID)).toHaveTextContent(DEFAULT_LABEL);
   });
 
-  it('checks the balance against the atomic balance passed by the caller', () => {
+  it('checks the balance against the atomic balance from the session', () => {
     const atomicBalance = BigNumber.from('1000000000000000000');
+    jest.mocked(useBridgeSession).mockReturnValue(
+      createMockBridgeSession({
+        latestSourceBalance: { atomicBalance, displayBalance: '1.0' },
+      }),
+    );
 
-    renderButton({
-      latestSourceBalance: { atomicBalance, displayBalance: '1.0' },
-    });
+    renderButton();
 
     expect(useIsInsufficientBalance).toHaveBeenCalledWith(
       expect.objectContaining({ latestAtomicBalance: atomicBalance }),

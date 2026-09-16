@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { FeatureId, formatChainIdToCaip } from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
@@ -20,19 +20,13 @@ import { TokenSelectorType } from '../../types';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useLatestBalance } from '../useLatestBalance';
 import { useSourceAmountInput } from '../useSourceAmountInput';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
 import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
+import { useBridgeSession } from '../useBridgeSession';
 
-interface UseLimitOrderSwapInputsOptions {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-export const useLimitOrderSwapInputs = ({
-  latestSourceBalance,
-}: UseLimitOrderSwapInputsOptions) => {
+export const useLimitOrderSwapInputs = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -74,6 +68,8 @@ export const useLimitOrderSwapInputs = ({
     }
   }, [enabledChainIds, dispatch]);
 
+  const { latestSourceBalance } = useBridgeSession();
+
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
       dispatch(setSourceAmount(value));
@@ -86,7 +82,6 @@ export const useLimitOrderSwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
-    featureId: FeatureId.LIMIT_ORDER,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -139,7 +134,6 @@ export const useLimitOrderSwapInputs = ({
       type: TokenSelectorType.Source,
       enabledChainIds,
       excludeRwaTokens: true,
-      featureId: FeatureId.LIMIT_ORDER,
     });
   }, [enabledChainIds, navigation]);
 
@@ -150,7 +144,6 @@ export const useLimitOrderSwapInputs = ({
         ? [formatChainIdToCaip(sourceToken.chainId)]
         : [],
       excludeRwaTokens: true,
-      featureId: FeatureId.LIMIT_ORDER,
     });
   }, [navigation, sourceToken?.chainId]);
 
