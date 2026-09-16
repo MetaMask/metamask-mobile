@@ -253,11 +253,15 @@ describe('WatchlistSection', () => {
       isLoading: false,
     });
 
-    const { getByTestId } = render(
+    const { getByTestId, getByText } = render(
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
     expect(getByTestId('watchlist-empty-state')).toBeOnTheScreen();
+    expect(getByTestId('watchlist-empty-subtitle')).toBeOnTheScreen();
+    expect(
+      getByText('Tap + to add a token to your watchlist.'),
+    ).toBeOnTheScreen();
     expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
     expect(getByTestId('row-ethereum')).toBeOnTheScreen();
     expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();

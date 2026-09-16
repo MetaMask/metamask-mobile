@@ -2,6 +2,11 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
+import {
+  ButtonIcon,
+  ButtonIconVariant,
+  IconName,
+} from '@metamask/design-system-react-native';
 import renderWithProviderBase from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem, {
   getAssetNavigationParams,
@@ -1884,6 +1889,24 @@ describe('TrendingTokenRowItem', () => {
 
       expect(onPress).toHaveBeenCalledTimes(1);
       expect(onPress).toHaveBeenCalledWith(token);
+    });
+
+    it('renders a filled + button matching the perps suggested add affordance', () => {
+      const token = createMockToken();
+
+      const { UNSAFE_getByType } = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'watchlist', onPress: jest.fn() }}
+        />,
+        { state: mockState },
+        false,
+      );
+
+      const button = UNSAFE_getByType(ButtonIcon);
+
+      expect(button.props.iconName).toStrictEqual(IconName.Add);
+      expect(button.props.variant).toStrictEqual(ButtonIconVariant.Filled);
     });
 
     it('does not trigger row navigation when the add button is pressed', async () => {

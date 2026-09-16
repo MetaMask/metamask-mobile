@@ -1,5 +1,10 @@
 import React, { useCallback } from 'react';
 import type { CaipAssetType } from '@metamask/utils';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
@@ -32,25 +37,44 @@ import WatchlistEmptyLightIcon from '../../../../../../images/watchlist-empty-li
 
 const SUGGESTED_SKELETON_COUNT = 3;
 
+/** Matches the perps watchlist suggested-section animation timing. */
+const ANIMATION_DURATION = 250;
+
 interface SuggestedTokensListProps {
   tokens: WatchlistTokenWithBalance[];
   onAddPress: (token: WatchlistTokenWithBalance) => void;
 }
 
-/** Perps-style list-add mode: suggested rows with an outline star add button. */
+/** Perps-style list-add mode: hint subtitle + suggested rows with a + button. */
 const SuggestedTokensList: React.FC<SuggestedTokensListProps> = ({
   tokens,
   onAddPress,
 }) => (
-  <Box testID="watchlist-empty-state" gap={1}>
-    {tokens.map((token) => (
-      <TrendingTokenRowItem
-        key={String(token.assetId)}
-        token={mapWatchlistTokenToTrendingAsset(token)}
-        tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-        endAction={{ type: 'watchlist', onPress: () => onAddPress(token) }}
-      />
-    ))}
+  <Box testID="watchlist-empty-state">
+    <Text
+      variant={TextVariant.BodySm}
+      color={TextColor.TextDefault}
+      twClassName="mb-1"
+      testID="watchlist-empty-subtitle"
+    >
+      {strings('token_watchlist.home_empty_add_hint')}
+    </Text>
+    <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
+      {tokens.map((token) => (
+        <Animated.View
+          key={String(token.assetId)}
+          entering={FadeIn.duration(ANIMATION_DURATION)}
+          exiting={FadeOut.duration(ANIMATION_DURATION)}
+          layout={LinearTransition.duration(ANIMATION_DURATION)}
+        >
+          <TrendingTokenRowItem
+            token={mapWatchlistTokenToTrendingAsset(token)}
+            tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+            endAction={{ type: 'watchlist', onPress: () => onAddPress(token) }}
+          />
+        </Animated.View>
+      ))}
+    </Animated.View>
   </Box>
 );
 
