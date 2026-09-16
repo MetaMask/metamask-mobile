@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Predict deposit-and-order Relay quotes to preserve exact-output sizing (#36144, #36151)
 - Restored the Money onboarding footer layout spacing (#36065)
 - Fixed Braze push notification consent synchronization with MetaMask notification settings (#35945)
 - Fixed Money onboarding navigation before the final animation completes (#35998)
