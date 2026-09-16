@@ -62,6 +62,7 @@ import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickB
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
+import ManageAccounts from '../../Views/ManageAccounts';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ActivityTypeFilterSheet from '../../Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/PerpsActivityFilterSheet';
@@ -227,6 +228,18 @@ const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   presentation: 'card',
   gestureEnabled: true,
   fullScreenGestureEnabled: true,
+};
+
+/**
+ * Registered on the AppFlow stack (not the nested Main stack) so pushes from
+ * the Account Selector gear icon are a same-stack push. When this screen lived
+ * in the nested Main stack, navigating from Account Selector forced React
+ * Navigation to first pop the selector — flashing the wallet screen — before
+ * pushing Manage Accounts.
+ */
+const manageAccountsTransitionOptions: NativeStackNavigationOptions = {
+  ...slideFromRightNativeOptions,
+  presentation: 'card',
 };
 
 const addWalletTransitionOptions: NativeStackNavigationOptions = {
@@ -1346,6 +1359,11 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
         component={AccountSelector}
         options={accountSelectorTransitionOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MANAGE_ACCOUNTS_VIEW}
+        component={ManageAccounts}
+        options={manageAccountsTransitionOptions}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_WALLET}
