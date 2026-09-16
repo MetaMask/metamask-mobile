@@ -127,7 +127,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             {ranges.map((range) => {
               const isSelected = selected === range;
               const hasCustomColor = selectedColor && isSelected;
-              const textColor = hasCustomColor
+              const textColorClass = hasCustomColor
                 ? selectedColor.includes('success') ||
                   selectedColor === '#02C84B'
                   ? 'text-success-inverse'
@@ -140,8 +140,11 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                   value={range}
                   size={FilterButtonSize.Sm}
                   twClassName={`flex-1 ${
-                    hasCustomColor ? `bg-[${selectedColor}] ${textColor}` : ''
+                    hasCustomColor ? `bg-[${selectedColor}]` : ''
                   }`}
+                  textProps={{
+                    twClassName: textColorClass || undefined,
+                  }}
                 >
                   {range}
                 </FilterButton>
