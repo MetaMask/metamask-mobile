@@ -50,6 +50,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
           },
         },
         true,
+        false,
       );
 
       expect(result).toBe(true);
@@ -64,6 +65,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
           },
         },
         true,
+        false,
       );
 
       expect(result).toBe(false);
@@ -73,6 +75,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
         true,
+        false,
       );
 
       expect(result).toBe(false);
@@ -83,6 +86,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
 
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
+        false,
         false,
       );
 
@@ -95,6 +99,43 @@ describe('basicFunctionalityConsolidation selectors', () => {
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
         false,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('keeps the build-flag cohort after migration lands Basic Functionality on', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        true,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('does not enroll an on wallet from the build flag alone', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a persisted on wallet when the build flag is off', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(false);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        true,
       );
 
       expect(result).toBe(false);
