@@ -314,6 +314,32 @@ describe('transactionTransforms', () => {
         expect(result[0].startPosition).toBe('37.66');
       });
 
+      it('ignores a flip fill that already crossed to the other side', () => {
+        // Flipping a small short into a big long: the first fill crosses well past zero, so
+        // the position it leaves behind is larger than the one the order opened with. Picking
+        // by magnitude alone would call +5 the start and under-report the resulting long.
+        const crossingFill = createFill({
+          orderId: 'flip-order-5',
+          direction: 'Short > Long',
+          size: '6',
+          startPosition: '-1',
+          timestamp: 1700000000000,
+        });
+
+        const remainderFill = createFill({
+          orderId: 'flip-order-5',
+          direction: 'Short > Long',
+          size: '5',
+          startPosition: '5',
+          timestamp: 1700000000000, // Same millisecond
+        });
+
+        const result = aggregateFillsByOrder([crossingFill, remainderFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('-1');
+      });
+
       it('keeps a negative opening position signed when timestamps tie', () => {
         const newestFill = createFill({
           orderId: 'adl-order-1',
@@ -834,6 +860,38 @@ describe('transactionTransforms', () => {
       expect(result[0].fill?.size).toBe('5.57');
       expect(result[0].fill?.amount).toBe('+$40.00');
       expect(result[0].title).toBe('Flipped long > short');
+    });
+
+    it('sizes a short flip from the magnitude of the position it opened from', () => {
+      // A 37.66 short flipped into a 5.57 long: 43.23 traded. A short opens from a negative
+      // position, so subtracting the traded size straight from it would report 80.89 - the
+      // two magnitudes added together - instead of the 5.57 the flip left open.
+      const firstFill: OrderFill = {
+        ...mockFill,
+        orderId: 'flip-order-6',
+        direction: 'Short > Long',
+        size: '30',
+        startPosition: '-37.66',
+        pnl: '30.00',
+        fee: '4.00',
+        timestamp: 1700000000000,
+      };
+
+      const secondFill: OrderFill = {
+        ...firstFill,
+        size: '13.23',
+        startPosition: '-7.66',
+        pnl: '20.00',
+        fee: '6.00',
+        timestamp: 1700000002000,
+      };
+
+      const result = transformFillsToTransactions([firstFill, secondFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('43.23 ETH');
+      expect(result[0].fill?.size).toBe('5.57');
+      expect(result[0].title).toBe('Flipped short > long');
     });
 
     it('sizes a tied-timestamp flip from the position the order started at', () => {

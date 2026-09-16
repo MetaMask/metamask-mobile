@@ -92,14 +92,66 @@ function getDirectionForAggregation(
  * - Fees are summed
  * - Price is calculated as VWAP (Volume Weighted Average Price)
  * - Latest fill's orderId, timestamp and metadata are preserved
- * - startPosition is the largest position any of the fills saw, which is the position the order
- * started from, and is picked by magnitude so tied fill timestamps cannot scramble it
+ * - startPosition is the position the order started from, chosen by pickOpeningPosition
  * - detailedOrderType (Stop Loss, Take Profit) is preserved from any grouped fill
  * - liquidation info is preserved from any grouped fill
  *
  * @param fills - Array of OrderFill objects to aggregate
  * @returns Array of OrderFill objects with each order's fills aggregated into one
  */
+/**
+ * Picks the position an order started from out of its fills.
+ *
+ * The fills of one order walk the position in a single direction, so the opening position is
+ * the largest one any fill saw. It is picked by magnitude rather than by position in the list
+ * because a book sweep gives every fill the same millisecond, which leaves the list in whatever
+ * order history returned it.
+ *
+ * A flip is the exception: it names the side it opened from ("Long > Short"), and a fill that
+ * has already crossed over reports the new position on the other side, which can be larger than
+ * the one the order opened with. Those fills are skipped so flipping a small position into a
+ * big one still reports the small one as the start.
+ *
+ * The original signed value is returned - auto-deleveraging reads its sign for the long/short
+ * label.
+ *
+ * @param fills - The fills of a single aggregated order
+ * @returns The signed startPosition the order opened from, or undefined when no fill carries one
+ */
+function pickOpeningPosition(fills: OrderFill[]): string | undefined {
+  const [openingSide, flipMarker] = (fills[0]?.direction || '').split(' ');
+  const isFlip = flipMarker === '>';
+
+  let openingPosition: string | undefined;
+
+  for (const fill of fills) {
+    if (!fill.startPosition) {
+      continue;
+    }
+
+    const startPosition = BigNumber(fill.startPosition);
+
+    const stillOnOpeningSide =
+      openingSide === 'Long'
+        ? startPosition.isGreaterThan(0)
+        : startPosition.isLessThan(0);
+    if (isFlip && !stillOnOpeningSide) {
+      continue;
+    }
+
+    if (
+      openingPosition === undefined ||
+      startPosition
+        .absoluteValue()
+        .isGreaterThan(BigNumber(openingPosition).absoluteValue())
+    ) {
+      openingPosition = fill.startPosition;
+    }
+  }
+
+  return openingPosition;
+}
+
 export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
   // Seed groups, keyed by the rule that may pull fills of different orders together
   const secondGroups: { bucket: string; fills: OrderFill[] }[] = [];
@@ -208,7 +260,7 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
     // Preserve detailedOrderType and liquidation from any fill in the group
     let aggregatedDetailedOrderType: string | undefined;
     let aggregatedLiquidation: OrderFill['liquidation'];
-    let aggregatedStartPosition: string | undefined;
+    const aggregatedStartPosition = pickOpeningPosition(fillsOldestFirst);
 
     for (const fill of fillsOldestFirst) {
       const size = BigNumber(fill.size);
@@ -229,23 +281,6 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
       // Preserve liquidation info from any fill that has it
       if (fill.liquidation && !aggregatedLiquidation) {
         aggregatedLiquidation = fill.liquidation;
-      }
-
-      // The position the order started from is the largest one any of its fills saw: a close
-      // or a flip walks an existing position down, so every later fill starts from less of
-      // it. Picking by magnitude instead of by position in the list keeps this correct when
-      // fills share a millisecond, which is what a single book sweep produces. Keep the
-      // original signed value - auto-deleveraging reads its sign for the long/short label.
-      if (fill.startPosition) {
-        const startPosition = BigNumber(fill.startPosition).absoluteValue();
-        if (
-          aggregatedStartPosition === undefined ||
-          startPosition.isGreaterThan(
-            BigNumber(aggregatedStartPosition).absoluteValue(),
-          )
-        ) {
-          aggregatedStartPosition = fill.startPosition;
-        }
       }
     }
 
@@ -413,7 +448,11 @@ export function transformFillsToTransactions(
     let displayAmount = '';
     let fillSize = size;
     if (isFlipped) {
+      // The flip leaves the traded size minus the position it opened from. Take that opening
+      // position's magnitude first: a short opens from a negative position, and subtracting the
+      // traded size straight from it adds the two magnitudes instead of cancelling them.
       fillSize = BigNumber(fill.startPosition || '0')
+        .absoluteValue()
         .minus(fill.size)
         .absoluteValue()
         .toString();
