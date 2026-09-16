@@ -5,7 +5,6 @@ export const WatchlistAnalytics = {
   },
   ADD_SOURCE: {
     PRICE_ALERT_CREATION: 'price_alert_creation',
-    /** User added a suggested token from the homepage empty watchlist state. */
     HOMEPAGE_EMPTY: 'watchlist_homepage_empty',
   },
   PAGE_VIEW_SOURCE: {
