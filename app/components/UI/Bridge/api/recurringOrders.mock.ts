@@ -120,7 +120,7 @@ export const MOCK_RECURRING_OPEN_ORDER = createMockRecurringOrder({
   },
 });
 
-export const MOCK_RECURRING_OPEN_ORDER_SECONDARY = createMockRecurringOrder({
+export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({
   orderId: 'mock-recurring-order-open-secondary',
   status: RecurringOrderStatus.Open,
   filledSwapsCount: 0,
@@ -130,7 +130,7 @@ export const MOCK_RECURRING_OPEN_ORDER_SECONDARY = createMockRecurringOrder({
   destAsset: BNB_CHAIN_USDT,
 });
 
-export const MOCK_RECURRING_OPEN_ORDER_TERTIARY = createMockRecurringOrder({
+export const MOCK_RECURRING_OPEN_ORDER_3 = createMockRecurringOrder({
   orderId: 'mock-recurring-order-open-tertiary',
   status: RecurringOrderStatus.Open,
   filledSwapsCount: 3,
@@ -156,8 +156,8 @@ export const MOCK_RECURRING_CANCELLED_ORDER = createMockRecurringOrder({
 
 export const MOCK_RECURRING_ORDERS: RecurringOrder[] = [
   MOCK_RECURRING_OPEN_ORDER,
-  MOCK_RECURRING_OPEN_ORDER_SECONDARY,
-  MOCK_RECURRING_OPEN_ORDER_TERTIARY,
+  MOCK_RECURRING_OPEN_ORDER_2,
+  MOCK_RECURRING_OPEN_ORDER_3,
   MOCK_RECURRING_COMPLETED_ORDER,
   MOCK_RECURRING_CANCELLED_ORDER,
 ];

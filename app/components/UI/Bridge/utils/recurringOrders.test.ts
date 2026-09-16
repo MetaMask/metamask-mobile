@@ -1,6 +1,6 @@
 import {
   MOCK_RECURRING_OPEN_ORDER,
-  MOCK_RECURRING_OPEN_ORDER_SECONDARY,
+  MOCK_RECURRING_OPEN_ORDER_2,
 } from '../api/recurringOrders.mock';
 import {
   formatRecurringExecutionPrice,
@@ -55,15 +55,13 @@ describe('recurring order formatting', () => {
   });
 
   it('formats an unfilled order as zero percent', () => {
-    const result = getRecurringOrderFilledPercent(
-      MOCK_RECURRING_OPEN_ORDER_SECONDARY,
-    );
+    const result = getRecurringOrderFilledPercent(MOCK_RECURRING_OPEN_ORDER_2);
 
     expect(result).toBe(0);
   });
 
   it('omits average execution price from an unfilled fixture', () => {
-    const result = MOCK_RECURRING_OPEN_ORDER_SECONDARY.averageExecutionPriceUsd;
+    const result = MOCK_RECURRING_OPEN_ORDER_2.averageExecutionPriceUsd;
 
     expect(result).toBeUndefined();
   });

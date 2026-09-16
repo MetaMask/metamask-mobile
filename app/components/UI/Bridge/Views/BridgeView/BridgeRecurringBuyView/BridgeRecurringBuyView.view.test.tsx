@@ -29,8 +29,8 @@ import {
   MOCK_RECURRING_CANCELLED_ORDER,
   MOCK_RECURRING_COMPLETED_ORDER,
   MOCK_RECURRING_OPEN_ORDER,
-  MOCK_RECURRING_OPEN_ORDER_SECONDARY,
-  MOCK_RECURRING_OPEN_ORDER_TERTIARY,
+  MOCK_RECURRING_OPEN_ORDER_2,
+  MOCK_RECURRING_OPEN_ORDER_3,
 } from '../../../api/recurringOrders.mock';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import {
@@ -1195,12 +1195,12 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-        MOCK_RECURRING_OPEN_ORDER_TERTIARY.orderId,
+        MOCK_RECURRING_OPEN_ORDER_3.orderId,
       ),
     );
     [
-      MOCK_RECURRING_OPEN_ORDER_TERTIARY,
-      MOCK_RECURRING_OPEN_ORDER_SECONDARY,
+      MOCK_RECURRING_OPEN_ORDER_3,
+      MOCK_RECURRING_OPEN_ORDER_2,
       MOCK_RECURRING_OPEN_ORDER,
     ].forEach((order) => assertRecurringOrderRow(renderResult, order));
 
@@ -1224,14 +1224,14 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-          MOCK_RECURRING_OPEN_ORDER_TERTIARY.orderId,
+          MOCK_RECURRING_OPEN_ORDER_3.orderId,
         ),
       ),
     ).toBeOnTheScreen();
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SECONDARY.orderId,
+          MOCK_RECURRING_OPEN_ORDER_2.orderId,
         ),
       ),
     ).toBeOnTheScreen();
@@ -1250,7 +1250,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SECONDARY.orderId,
+          MOCK_RECURRING_OPEN_ORDER_2.orderId,
         ),
       ),
     ).toBeOnTheScreen();
@@ -1258,7 +1258,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(
         renderResult.queryByTestId(
           RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-            MOCK_RECURRING_OPEN_ORDER_TERTIARY.orderId,
+            MOCK_RECURRING_OPEN_ORDER_3.orderId,
           ),
         ),
       ).not.toBeOnTheScreen();

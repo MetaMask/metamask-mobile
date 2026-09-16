@@ -34,4 +34,31 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
 
     expect(result).toStrictEqual({ orders: [] });
   });
+
+  it('exposes recurring-swaps arguments in query-key order', async () => {
+    const rootMessenger: RootMessenger = new Messenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const serviceMessenger =
+      getRecurringOrdersDataServiceMessenger(rootMessenger);
+    const handler = jest.fn().mockResolvedValue({ swaps: [] });
+    serviceMessenger.registerActionHandler(
+      'RecurringOrdersDataService:getRecurringSwaps',
+      handler,
+    );
+
+    const result = await rootMessenger.call(
+      'RecurringOrdersDataService:getRecurringSwaps',
+      'order-id',
+      { limit: 20 },
+      'swap-cursor',
+    );
+
+    expect(handler).toHaveBeenCalledWith(
+      'order-id',
+      { limit: 20 },
+      'swap-cursor',
+    );
+    expect(result).toStrictEqual({ swaps: [] });
+  });
 });

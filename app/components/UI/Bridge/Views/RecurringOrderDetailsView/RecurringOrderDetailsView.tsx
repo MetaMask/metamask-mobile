@@ -1,5 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native';
+import {
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,10 +18,14 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
+  IconSize,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -37,6 +45,7 @@ import type { BridgeToken } from '../../types';
 import { getTokenImageSource } from '../../utils';
 import { showRecurringOrderCanceledToast } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { RecurringOrderStatus } from '../../api/recurringOrders.types';
+import { useRecurringSwaps } from '../../hooks/useRecurringSwaps';
 import {
   formatRecurringExecutionPrice,
   formatRecurringInterval,
@@ -50,6 +59,9 @@ import {
 import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 import { type RecurringOrderDetailsRouteParams } from './RecurringOrderDetailsView.types';
+import { RecurringSwapRow } from './RecurringSwapRow';
+
+const LOAD_MORE_SCROLL_THRESHOLD = 100;
 
 interface RecurringTokenSummaryProps {
   label: string;
@@ -115,6 +127,7 @@ function RecurringOrderDetailsView() {
   const currentCurrency = useSelector(selectCurrentCurrency) ?? 'USD';
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const swapsQuery = useRecurringSwaps({ orderId: order.orderId });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -134,6 +147,20 @@ function RecurringOrderDetailsView() {
   }, []);
 
   const handleDuplicateOrder = useCallback(() => undefined, []);
+
+  const handleScroll = useCallback(
+    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const distanceFromBottom =
+        nativeEvent.contentSize.height -
+        nativeEvent.layoutMeasurement.height -
+        nativeEvent.contentOffset.y;
+
+      if (distanceFromBottom <= LOAD_MORE_SCROLL_THRESHOLD) {
+        swapsQuery.fetchNextPage();
+      }
+    },
+    [swapsQuery],
+  );
 
   const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
   const filledPercent = getRecurringOrderFilledPercent(order);
@@ -199,6 +226,8 @@ function RecurringOrderDetailsView() {
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-6')}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         <Box gap={6} paddingHorizontal={4} paddingVertical={4}>
           <RecurringTokenSummary
@@ -287,6 +316,111 @@ function RecurringOrderDetailsView() {
               {formatRecurringOrderDate(order.endsAt)}
             </Text>
           </DetailRow>
+        </Box>
+
+        <Box twClassName="mx-4 border-t-[1px] border-muted" />
+
+        <Box
+          paddingHorizontal={4}
+          paddingTop={4}
+          gap={5}
+          testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            alignItems={BoxAlignItems.Center}
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('bridge.recurring.history')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('bridge.recurring.history_progress', {
+                filledOrderCount: order.filledSwapsCount,
+                totalOrderCount: order.schedule.repeatCount,
+              })}
+            </Text>
+          </Box>
+
+          {swapsQuery.isLoading && swapsQuery.swaps.length === 0 ? (
+            <Box alignItems={BoxAlignItems.Center} paddingVertical={6}>
+              <Spinner
+                testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_LOADING}
+                spinnerIconProps={{ size: IconSize.Lg }}
+              />
+            </Box>
+          ) : null}
+
+          {swapsQuery.isError && swapsQuery.swaps.length === 0 ? (
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              gap={3}
+              paddingVertical={4}
+              testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ERROR}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('bridge.recurring.history_error')}
+              </Text>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                onPress={() => swapsQuery.refetch()}
+                testID={
+                  RecurringOrderDetailsViewSelectorsIDs.HISTORY_RETRY_BUTTON
+                }
+              >
+                {strings('bridge.orders.try_again')}
+              </Button>
+            </Box>
+          ) : null}
+
+          {!swapsQuery.isLoading &&
+          !swapsQuery.isError &&
+          swapsQuery.swaps.length === 0 ? (
+            <Box
+              alignItems={BoxAlignItems.Center}
+              paddingVertical={4}
+              testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_EMPTY}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('bridge.recurring.history_empty')}
+              </Text>
+            </Box>
+          ) : null}
+
+          {swapsQuery.swaps.length > 0 ? (
+            <Box gap={3}>
+              {swapsQuery.swaps.map((swap) => (
+                <RecurringSwapRow
+                  key={swap.swapId}
+                  swap={swap}
+                  sourceToken={sourceToken}
+                  destinationToken={destinationToken}
+                />
+              ))}
+            </Box>
+          ) : null}
+
+          {swapsQuery.isFetchingNextPage ? (
+            <Box alignItems={BoxAlignItems.Center} paddingVertical={4}>
+              <Spinner
+                testID={
+                  RecurringOrderDetailsViewSelectorsIDs.HISTORY_NEXT_PAGE_LOADING
+                }
+                spinnerIconProps={{ size: IconSize.Md }}
+              />
+            </Box>
+          ) : null}
         </Box>
       </ScrollView>
 

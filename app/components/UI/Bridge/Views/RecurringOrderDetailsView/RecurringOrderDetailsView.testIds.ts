@@ -8,6 +8,15 @@ export const RecurringOrderDetailsViewSelectorsIDs = {
     'recurring-order-details-destination-network-badge',
   SUMMARY: 'recurring-order-details-summary',
   FILLED_VALUE: 'recurring-order-details-filled-value',
+  HISTORY: 'recurring-order-details-history',
+  HISTORY_ROW: (swapId: string) =>
+    `recurring-order-details-history-row-${swapId}`,
+  HISTORY_LOADING: 'recurring-order-details-history-loading',
+  HISTORY_ERROR: 'recurring-order-details-history-error',
+  HISTORY_RETRY_BUTTON: 'recurring-order-details-history-retry-button',
+  HISTORY_EMPTY: 'recurring-order-details-history-empty',
+  HISTORY_NEXT_PAGE_LOADING:
+    'recurring-order-details-history-next-page-loading',
   CANCEL_BUTTON: 'recurring-order-details-cancel-button',
   DUPLICATE_BUTTON: 'recurring-order-details-duplicate-button',
   CANCEL_SHEET: 'recurring-order-details-cancel-sheet',

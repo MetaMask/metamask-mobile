@@ -9,6 +9,33 @@ export enum RecurringOrderStatus {
   Expired = 'expired',
 }
 
+export enum RecurringSwapStatus {
+  Filled = 'filled',
+  Skipped = 'skipped',
+  Failed = 'failed',
+}
+
+export type RecurringSwapSkipReason =
+  | 'not_enough_gas'
+  | 'out_of_price_range'
+  | 'insufficient_balance'
+  | 'no_quotes_available'
+  | 'needs_smart_account'
+  | 'execution_failed';
+
+export interface RecurringSwap {
+  swapId: string;
+  orderId: string;
+  status: RecurringSwapStatus;
+  skipReason?: RecurringSwapSkipReason;
+  src: { amount: string };
+  dest: { amount: string; minAmount?: string };
+  requestId?: string;
+  txHash?: string;
+  scheduledAt: string;
+  executedAt?: string;
+}
+
 export interface RecurringSchedule {
   every: number;
   unit: RecurringIntervalUnit;
@@ -60,5 +87,15 @@ export interface GetRecurringOrdersQuery {
 
 export interface GetRecurringOrdersResponse {
   orders: RecurringOrder[];
+  nextCursor?: string;
+}
+
+export interface GetRecurringSwapsQuery {
+  limit?: number;
+  cursor?: string;
+}
+
+export interface GetRecurringSwapsResponse {
+  swaps: RecurringSwap[];
   nextCursor?: string;
 }

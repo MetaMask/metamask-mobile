@@ -6,11 +6,18 @@ import {
 } from '@metamask/base-data-service';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
-import { getRecurringOrders as fetchRecurringOrders } from '../api/recurringOrders';
-import type { GetRecurringOrdersResponse } from '../api/recurringOrders.types';
+import {
+  getRecurringOrders as fetchRecurringOrders,
+  getRecurringSwaps as fetchRecurringSwaps,
+} from '../api/recurringOrders';
+import type {
+  GetRecurringOrdersResponse,
+  GetRecurringSwapsResponse,
+} from '../api/recurringOrders.types';
 import {
   recurringOrdersQueries,
   type RecurringOrdersQueryParams,
+  type RecurringSwapsQueryParams,
 } from '../queries/recurringOrders';
 
 export const RECURRING_ORDERS_DATA_SERVICE_NAME =
@@ -24,8 +31,18 @@ export interface RecurringOrdersDataServiceGetRecurringOrdersAction {
   ) => Promise<GetRecurringOrdersResponse>;
 }
 
+export interface RecurringOrdersDataServiceGetRecurringSwapsAction {
+  type: 'RecurringOrdersDataService:getRecurringSwaps';
+  handler: (
+    orderId: string,
+    params: RecurringSwapsQueryParams,
+    cursor?: string,
+  ) => Promise<GetRecurringSwapsResponse>;
+}
+
 export type RecurringOrdersDataServiceActions =
   | RecurringOrdersDataServiceGetRecurringOrdersAction
+  | RecurringOrdersDataServiceGetRecurringSwapsAction
   | DataServiceInvalidateQueriesAction<
       typeof RECURRING_ORDERS_DATA_SERVICE_NAME
     >;
@@ -60,6 +77,10 @@ export class RecurringOrdersDataService extends BaseDataService<
       'RecurringOrdersDataService:getRecurringOrders',
       this.getRecurringOrders.bind(this),
     );
+    messenger.registerActionHandler(
+      'RecurringOrdersDataService:getRecurringSwaps',
+      this.getRecurringSwaps.bind(this),
+    );
   }
 
   async getRecurringOrders(
@@ -78,6 +99,32 @@ export class RecurringOrdersDataService extends BaseDataService<
             ...params,
             cursor: pageParam as string | undefined,
           }) as Promise<Json & GetRecurringOrdersResponse>,
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
+      },
+      cursor,
+    );
+  }
+
+  async getRecurringSwaps(
+    orderId: string,
+    params: RecurringSwapsQueryParams,
+    cursor?: string,
+  ): Promise<GetRecurringSwapsResponse> {
+    const descriptor = recurringOrdersQueries.getRecurringSwaps(
+      orderId,
+      params,
+    );
+
+    return this.fetchInfiniteQuery(
+      {
+        queryKey: descriptor.queryKey,
+        staleTime: descriptor.staleTime,
+        initialPageParam: cursor as string | null,
+        queryFn: ({ pageParam }) =>
+          fetchRecurringSwaps(orderId, {
+            ...params,
+            cursor: pageParam as string | undefined,
+          }) as Promise<Json & GetRecurringSwapsResponse>,
         getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
       },
       cursor,
