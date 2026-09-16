@@ -5,6 +5,7 @@ import {
   type ActionConstraint,
   type EventConstraint,
 } from '@metamask/messenger';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 
 import {
   RewardsMoneyDataServiceGetReferralMeAction,
@@ -41,12 +42,18 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
-  | RewardsMoneyDataServiceGetDefaultRewardsMoneyEnvUrlAction;
+  | RewardsMoneyDataServiceGetDefaultRewardsMoneyEnvUrlAction
+  | AuthenticationController.AuthenticationControllerIsSignedInAction;
+
+// Don't reexport as per guidelines
+type AllowedEvents =
+  | AuthenticationController.AuthenticationControllerStateChangeEvent
+  | AuthenticationController.AuthenticationControllerProfileSignInEvent;
 
 export type RewardsMoneyControllerMessenger = Messenger<
   typeof name,
   RewardsMoneyControllerActions | AllowedActions,
-  RewardsMoneyControllerEvents
+  RewardsMoneyControllerEvents | AllowedEvents
 >;
 
 export function getRewardsMoneyControllerMessenger(
@@ -84,8 +91,12 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:setRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:getDefaultRewardsMoneyEnvUrl',
+      'AuthenticationController:isSignedIn',
     ],
-    events: [],
+    events: [
+      'AuthenticationController:stateChange',
+      'AuthenticationController:profileSignIn',
+    ],
   } as Parameters<RootMessenger['delegate']>[0]);
 
   return messenger;

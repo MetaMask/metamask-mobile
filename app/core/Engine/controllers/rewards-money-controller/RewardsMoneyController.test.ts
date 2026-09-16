@@ -150,9 +150,26 @@ describe('RewardsMoneyController', () => {
       unsubscribe: jest.fn(),
     } as unknown as jest.Mocked<RewardsMoneyControllerMessenger>;
 
+    // Avoid clearing seeded cache during construct (unsigned cold-start path).
+    mockMessenger.call.mockImplementation((action, ..._args): any => {
+      if (action === 'AuthenticationController:isSignedIn') {
+        return true;
+      }
+      return undefined;
+    });
+
     controller = new RewardsMoneyController({
       messenger: mockMessenger,
       isDisabled,
+    });
+
+    // Drop the construct-time isSignedIn call so per-test call counts stay clean.
+    mockMessenger.call.mockClear();
+    mockMessenger.call.mockImplementation((action, ..._args): any => {
+      if (action === 'AuthenticationController:isSignedIn') {
+        return true;
+      }
+      return undefined;
     });
   });
 
@@ -178,11 +195,113 @@ describe('RewardsMoneyController', () => {
           'getEarningsLedger',
           'getClaimHistory',
           'getClaimById',
-          'invalidateRewardsMoneyCache',
+          'clearProfileCache',
           'isRewardsMoneyFeatureEnabled',
           'setRewardsMoneyEnvUrl',
         ]),
       );
+    });
+
+    it('subscribes to Hydra auth events', () => {
+      expect(mockMessenger.subscribe).toHaveBeenCalledWith(
+        'AuthenticationController:stateChange',
+        expect.any(Function),
+      );
+      expect(mockMessenger.subscribe).toHaveBeenCalledWith(
+        'AuthenticationController:profileSignIn',
+        expect.any(Function),
+      );
+    });
+
+    it('clears persisted cache on construct when already signed out', () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:isSignedIn') {
+          return false;
+        }
+        return undefined;
+      });
+
+      controller = new RewardsMoneyController({
+        messenger: mockMessenger,
+        isDisabled,
+        state: {
+          referralMe: { payload: mockReferralMe, lastFetched: Date.now() },
+        },
+      });
+
+      expect(controller.state.referralMe).toBeNull();
+    });
+  });
+
+  describe('auth cache invalidation', () => {
+    const getHandler = (event: string) => {
+      const calls = mockMessenger.subscribe.mock.calls.filter(
+        (entry) => entry[0] === event,
+      );
+      return calls[calls.length - 1]?.[1] as
+        | ((payload: unknown) => void)
+        | undefined;
+    };
+
+    beforeEach(() => {
+      controller = new RewardsMoneyController({
+        messenger: mockMessenger,
+        isDisabled,
+        state: {
+          referralMe: { payload: mockReferralMe, lastFetched: Date.now() },
+          earningsSummary: {
+            all: { payload: mockSummary, lastFetched: Date.now() },
+          },
+        },
+      });
+    });
+
+    it('invalidates all buckets when Hydra session signs out', () => {
+      const onStateChange = getHandler('AuthenticationController:stateChange');
+      expect(onStateChange).toBeDefined();
+
+      onStateChange?.({ isSignedIn: false });
+
+      expect(controller.state.referralMe).toBeNull();
+      expect(controller.state.earningsSummary).toEqual({});
+    });
+
+    it('does not invalidate when stateChange keeps the session signed in', () => {
+      const onStateChange = getHandler('AuthenticationController:stateChange');
+
+      onStateChange?.({ isSignedIn: true });
+
+      expect(controller.state.referralMe?.payload).toEqual(mockReferralMe);
+    });
+
+    it('invalidates when profileSignIn reports a profile id change', () => {
+      const onProfileSignIn = getHandler(
+        'AuthenticationController:profileSignIn',
+      );
+      expect(onProfileSignIn).toBeDefined();
+
+      onProfileSignIn?.({
+        profileId: 'profile-b',
+        profileAliases: [],
+        profileIdChanged: true,
+      });
+
+      expect(controller.state.referralMe).toBeNull();
+      expect(controller.state.earningsSummary).toEqual({});
+    });
+
+    it('does not invalidate when profileSignIn keeps the same profile id', () => {
+      const onProfileSignIn = getHandler(
+        'AuthenticationController:profileSignIn',
+      );
+
+      onProfileSignIn?.({
+        profileId: 'profile-a',
+        profileAliases: [],
+        profileIdChanged: false,
+      });
+
+      expect(controller.state.referralMe?.payload).toEqual(mockReferralMe);
     });
   });
 
@@ -202,20 +321,25 @@ describe('RewardsMoneyController', () => {
           },
         },
       });
+      mockMessenger.call.mockClear();
     });
 
     it('does not call data service when flag is off for getReferralMe', async () => {
       await expect(controller.getReferralMe()).rejects.toThrow(
         'Rewards Money is disabled',
       );
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
     });
 
     it('does not return persisted cache when flag is off', async () => {
       await expect(controller.getEarningsSummary()).rejects.toThrow(
         'Rewards Money is disabled',
       );
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
     });
 
     it('returns empty pages for list reads when disabled', async () => {
@@ -237,7 +361,9 @@ describe('RewardsMoneyController', () => {
         enrolled: 0,
         earning_generating: 0,
       });
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
     });
 
     it('reports feature disabled via isRewardsMoneyFeatureEnabled', () => {
@@ -353,9 +479,11 @@ describe('RewardsMoneyController', () => {
       ).toBeLessThanOrEqual(20);
     });
 
-    it('invalidateRewardsMoneyCache clears all seven buckets', async () => {
+    it('clearProfileCache clears all seven buckets', async () => {
       mockMessenger.call.mockImplementation((action, ..._args): any => {
         switch (action) {
+          case 'AuthenticationController:isSignedIn':
+            return true;
           case 'RewardsMoneyDataService:getReferralMe':
             return mockReferralMe;
           case 'RewardsMoneyDataService:getReferralFunnel':
@@ -375,6 +503,14 @@ describe('RewardsMoneyController', () => {
         }
       });
 
+      controller = new RewardsMoneyController({
+        messenger: mockMessenger,
+        isDisabled,
+        state: {
+          rewardsMoneyEnvUrl: 'https://custom.example',
+        },
+      });
+
       await controller.getReferralMe();
       await controller.getReferralFunnel();
       await controller.getReferralCodes();
@@ -383,7 +519,7 @@ describe('RewardsMoneyController', () => {
       await controller.getClaimHistory();
       await controller.getClaimById({ claimId: 'claim-1' });
 
-      controller.invalidateRewardsMoneyCache();
+      controller.clearProfileCache();
 
       expect(controller.state.referralMe).toBeNull();
       expect(controller.state.referralCodes).toBeNull();
@@ -392,6 +528,9 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.earningsLedgerFirstPage).toEqual({});
       expect(controller.state.claimHistoryFirstPage).toBeNull();
       expect(controller.state.claimById).toEqual({});
+      expect(controller.state.rewardsMoneyEnvUrl).toBe(
+        'https://custom.example',
+      );
     });
 
     it('refetches earnings summary after money TTL', async () => {

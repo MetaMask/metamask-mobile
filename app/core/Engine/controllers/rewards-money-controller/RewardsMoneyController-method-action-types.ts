@@ -5,6 +5,48 @@
 
 import type { RewardsMoneyController } from './RewardsMoneyController';
 
+export type RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction = {
+  type: `RewardsMoneyController:isRewardsMoneyFeatureEnabled`;
+  handler: RewardsMoneyController['isRewardsMoneyFeatureEnabled'];
+};
+
+export type RewardsMoneyControllerResetStateAction = {
+  type: `RewardsMoneyController:resetState`;
+  handler: RewardsMoneyController['resetState'];
+};
+
+/**
+ * Drop every profile-scoped cache bucket. Called on env URL change, Hydra
+ * sign-out, and Hydra profile-id change (`AuthenticationController:profileSignIn`
+ * when `profileIdChanged` is true). Also exposed on the messenger for callers
+ * that need an explicit flush. Preserves device/build config such as
+ * `rewardsMoneyEnvUrl`.
+ */
+export type RewardsMoneyControllerClearProfileCacheAction = {
+  type: `RewardsMoneyController:clearProfileCache`;
+  handler: RewardsMoneyController['clearProfileCache'];
+};
+
+export type RewardsMoneyControllerGetRewardsMoneyEnvUrlAction = {
+  type: `RewardsMoneyController:getRewardsMoneyEnvUrl`;
+  handler: RewardsMoneyController['getRewardsMoneyEnvUrl'];
+};
+
+export type RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction = {
+  type: `RewardsMoneyController:canChangeRewardsMoneyEnvUrl`;
+  handler: RewardsMoneyController['canChangeRewardsMoneyEnvUrl'];
+};
+
+export type RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction = {
+  type: `RewardsMoneyController:getDefaultRewardsMoneyEnvUrl`;
+  handler: RewardsMoneyController['getDefaultRewardsMoneyEnvUrl'];
+};
+
+export type RewardsMoneyControllerSetRewardsMoneyEnvUrlAction = {
+  type: `RewardsMoneyController:setRewardsMoneyEnvUrl`;
+  handler: RewardsMoneyController['setRewardsMoneyEnvUrl'];
+};
+
 export type RewardsMoneyControllerGetReferralMeAction = {
   type: `RewardsMoneyController:getReferralMe`;
   handler: RewardsMoneyController['getReferralMe'];
@@ -45,42 +87,17 @@ export type RewardsMoneyControllerGetClaimByIdAction = {
   handler: RewardsMoneyController['getClaimById'];
 };
 
-export type RewardsMoneyControllerInvalidateRewardsMoneyCacheAction = {
-  type: `RewardsMoneyController:invalidateRewardsMoneyCache`;
-  handler: RewardsMoneyController['invalidateRewardsMoneyCache'];
-};
-
-export type RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction = {
-  type: `RewardsMoneyController:isRewardsMoneyFeatureEnabled`;
-  handler: RewardsMoneyController['isRewardsMoneyFeatureEnabled'];
-};
-
-export type RewardsMoneyControllerResetStateAction = {
-  type: `RewardsMoneyController:resetState`;
-  handler: RewardsMoneyController['resetState'];
-};
-
-export type RewardsMoneyControllerGetRewardsMoneyEnvUrlAction = {
-  type: `RewardsMoneyController:getRewardsMoneyEnvUrl`;
-  handler: RewardsMoneyController['getRewardsMoneyEnvUrl'];
-};
-
-export type RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction = {
-  type: `RewardsMoneyController:canChangeRewardsMoneyEnvUrl`;
-  handler: RewardsMoneyController['canChangeRewardsMoneyEnvUrl'];
-};
-
-export type RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction = {
-  type: `RewardsMoneyController:getDefaultRewardsMoneyEnvUrl`;
-  handler: RewardsMoneyController['getDefaultRewardsMoneyEnvUrl'];
-};
-
-export type RewardsMoneyControllerSetRewardsMoneyEnvUrlAction = {
-  type: `RewardsMoneyController:setRewardsMoneyEnvUrl`;
-  handler: RewardsMoneyController['setRewardsMoneyEnvUrl'];
-};
-
+/**
+ * Union of all RewardsMoneyController action types.
+ */
 export type RewardsMoneyControllerMethodActions =
+  | RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction
+  | RewardsMoneyControllerResetStateAction
+  | RewardsMoneyControllerClearProfileCacheAction
+  | RewardsMoneyControllerGetRewardsMoneyEnvUrlAction
+  | RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction
+  | RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction
+  | RewardsMoneyControllerSetRewardsMoneyEnvUrlAction
   | RewardsMoneyControllerGetReferralMeAction
   | RewardsMoneyControllerGetReferralFunnelAction
   | RewardsMoneyControllerGetReferralCodesAction
@@ -88,11 +105,4 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetEarningsSummaryAction
   | RewardsMoneyControllerGetEarningsLedgerAction
   | RewardsMoneyControllerGetClaimHistoryAction
-  | RewardsMoneyControllerGetClaimByIdAction
-  | RewardsMoneyControllerInvalidateRewardsMoneyCacheAction
-  | RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction
-  | RewardsMoneyControllerResetStateAction
-  | RewardsMoneyControllerGetRewardsMoneyEnvUrlAction
-  | RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction
-  | RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction
-  | RewardsMoneyControllerSetRewardsMoneyEnvUrlAction;
+  | RewardsMoneyControllerGetClaimByIdAction;

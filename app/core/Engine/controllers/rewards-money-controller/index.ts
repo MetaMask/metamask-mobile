@@ -36,6 +36,7 @@ export { RewardsMoneyController };
 export type { RewardsMoneyControllerMessenger };
 export {
   defaultRewardsMoneyControllerState,
+  emptyProfileCache,
   getRewardsMoneyControllerDefaultState,
 } from './defaultState';
 export type { RewardsMoneyControllerGetStateAction } from './types';
@@ -48,7 +49,7 @@ export type {
   RewardsMoneyControllerGetEarningsLedgerAction,
   RewardsMoneyControllerGetClaimHistoryAction,
   RewardsMoneyControllerGetClaimByIdAction,
-  RewardsMoneyControllerInvalidateRewardsMoneyCacheAction,
+  RewardsMoneyControllerClearProfileCacheAction,
   RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction,
   RewardsMoneyControllerResetStateAction,
   RewardsMoneyControllerGetRewardsMoneyEnvUrlAction,

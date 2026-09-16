@@ -1,3 +1,4 @@
+import { getVersion } from 'react-native-device-info';
 import {
   RewardsMoneyDataService,
   RewardsMoneyAuthorizationError,
@@ -9,6 +10,7 @@ import {
   getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv,
 } from '../utils/rewards-money-api-url';
 import AppConstants from '../../../../AppConstants';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../AppConstants', () => ({
   REWARDS_MONEY_API_URL: {
@@ -19,6 +21,10 @@ jest.mock('../../../../AppConstants', () => ({
 }));
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.50.1'),
+}));
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
 }));
 jest.mock('../utils/rewards-money-api-url', () => ({
   ...jest.requireActual('../utils/rewards-money-api-url'),
@@ -33,6 +39,20 @@ const mockGetDefault =
   getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv as jest.MockedFunction<
     typeof getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv
   >;
+const mockGetVersion = getVersion as jest.MockedFunction<typeof getVersion>;
+
+const okJson = <T>(body: T): Response =>
+  ({
+    ok: true,
+    status: 200,
+    json: async () => body,
+  }) as Response;
+
+const notOk = (status: number): Response =>
+  ({
+    ok: false,
+    status,
+  }) as Response;
 
 describe('RewardsMoneyDataService', () => {
   const originalEnv = process.env;
@@ -45,6 +65,7 @@ describe('RewardsMoneyDataService', () => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
     delete process.env.REWARDS_MONEY_API_URL;
+    mockGetVersion.mockReturnValue('7.50.1');
 
     mockGetDefault.mockReturnValue([
       AppConstants.REWARDS_MONEY_API_URL.DEV,
@@ -101,9 +122,8 @@ describe('RewardsMoneyDataService', () => {
 
   describe('authentication', () => {
     it('attaches Authorization Bearer for authenticated reads', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
+      mockFetch.mockResolvedValue(
+        okJson({
           role: 'NONE',
           variant: 'NONE',
           user_type: 'REGULAR',
@@ -117,7 +137,7 @@ describe('RewardsMoneyDataService', () => {
             cashback_earning_term_minutes: null,
           },
         }),
-      } as Response);
+      );
 
       await service.getReferralMe();
 
@@ -127,6 +147,8 @@ describe('RewardsMoneyDataService', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer hydra-token',
+            'rewards-client-id': 'mobile-7.50.1',
+            'Accept-Language': 'en-US',
           }),
         }),
       );
@@ -142,10 +164,7 @@ describe('RewardsMoneyDataService', () => {
     });
 
     it('throws RewardsMoneyAuthorizationError on 401', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 401,
-      } as Response);
+      mockFetch.mockResolvedValue(notOk(401));
 
       await expect(service.getReferralMe()).rejects.toBeInstanceOf(
         RewardsMoneyAuthorizationError,
@@ -153,10 +172,7 @@ describe('RewardsMoneyDataService', () => {
     });
 
     it('throws RewardsMoneyAuthorizationError on 403', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 403,
-      } as Response);
+      mockFetch.mockResolvedValue(notOk(403));
 
       await expect(service.getEarningsSummary()).rejects.toBeInstanceOf(
         RewardsMoneyAuthorizationError,
@@ -164,10 +180,7 @@ describe('RewardsMoneyDataService', () => {
     });
 
     it('does not attach Authorization for validateReferralCode', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({ success: true }),
-      } as Response);
+      mockFetch.mockResolvedValue(okJson({ success: true }));
 
       await service.validateReferralCode('ABC123');
 
@@ -181,13 +194,104 @@ describe('RewardsMoneyDataService', () => {
         expect.any(Object),
       );
     });
+
+    it('continues when getVersion throws', async () => {
+      mockGetVersion.mockImplementation(() => {
+        throw new Error('version unavailable');
+      });
+      mockFetch.mockResolvedValue(okJson({ success: true }));
+
+      await service.validateReferralCode('ABC123');
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        'RewardsMoneyDataService: failed to read app version',
+        'version unavailable',
+      );
+      const [, options] = mockFetch.mock.calls[0];
+      expect(
+        (options?.headers as Record<string, string>)['rewards-client-id'],
+      ).toBeUndefined();
+    });
+
+    it('maps AbortError to a timeout Error', async () => {
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      await expect(service.getReferralMe()).rejects.toThrow(
+        'Request timeout after 10000ms',
+      );
+    });
+
+    it('rethrows non-abort fetch failures', async () => {
+      mockFetch.mockRejectedValue(new Error('Network down'));
+
+      await expect(service.getReferralMe()).rejects.toThrow('Network down');
+    });
+
+    it('strips trailing slashes from the base URL', async () => {
+      service.setRewardsMoneyEnvUrl('https://dev.rewards-money.test///');
+      mockFetch.mockResolvedValue(okJson({ success: true }));
+
+      await service.validateReferralCode('XYZ');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://dev.rewards-money.test/referral/validate?code=XYZ',
+        expect.any(Object),
+      );
+    });
   });
 
   describe('reads', () => {
+    it('fetches referral funnel', async () => {
+      const body = { enrolled: 3, earning_generating: 1 };
+      mockFetch.mockResolvedValue(okJson(body));
+
+      await expect(service.getReferralFunnel()).resolves.toEqual(body);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/referral/me/funnel'),
+        expect.any(Object),
+      );
+    });
+
+    it('throws when referral funnel fails', async () => {
+      mockFetch.mockResolvedValue(notOk(500));
+      await expect(service.getReferralFunnel()).rejects.toThrow(
+        'Get referral funnel failed: 500',
+      );
+    });
+
+    it('fetches referral codes', async () => {
+      const body = { codes: [{ code: 'ABC' }] };
+      mockFetch.mockResolvedValue(okJson(body));
+
+      await expect(service.getReferralCodes()).resolves.toEqual(body);
+    });
+
+    it('throws when referral codes fail', async () => {
+      mockFetch.mockResolvedValue(notOk(502));
+      await expect(service.getReferralCodes()).rejects.toThrow(
+        'Get referral codes failed: 502',
+      );
+    });
+
+    it('throws when validate referral code fails', async () => {
+      mockFetch.mockResolvedValue(notOk(400));
+      await expect(service.validateReferralCode('BAD')).rejects.toThrow(
+        'Validate referral code failed: 400',
+      );
+    });
+
+    it('throws when referral me fails with a non-auth status', async () => {
+      mockFetch.mockResolvedValue(notOk(500));
+      await expect(service.getReferralMe()).rejects.toThrow(
+        'Get referral me failed: 500',
+      );
+    });
+
     it('fetches earnings summary with origin-type query', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
+      mockFetch.mockResolvedValue(
+        okJson({
           lifetime_total: '0',
           window: null,
           pending: '0',
@@ -209,7 +313,7 @@ describe('RewardsMoneyDataService', () => {
             by_claim_family: {},
           },
         }),
-      } as Response);
+      );
 
       await service.getEarningsSummary([
         'SWAPS_FEE_CASHBACK',
@@ -224,16 +328,40 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
-    it('sends cursor without origin types on ledger page 2', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
+    it('throws when earnings summary fails', async () => {
+      mockFetch.mockResolvedValue(notOk(503));
+      await expect(service.getEarningsSummary()).rejects.toThrow(
+        'Get earnings summary failed: 503',
+      );
+    });
+
+    it('sends origin types on ledger page 1', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({
           results: [],
           has_more: false,
           cursor: null,
           window: null,
         }),
-      } as Response);
+      );
+
+      await service.getEarningsLedger(['SWAPS_FEE_CASHBACK']);
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('earning_origin_type=SWAPS_FEE_CASHBACK');
+      expect(url).toContain('limit=20');
+      expect(url).not.toContain('cursor=');
+    });
+
+    it('sends cursor without origin types on ledger page 2', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({
+          results: [],
+          has_more: false,
+          cursor: null,
+          window: null,
+        }),
+      );
 
       await service.getEarningsLedger(['SWAPS_FEE_CASHBACK'], 'cursor-1');
 
@@ -241,12 +369,58 @@ describe('RewardsMoneyDataService', () => {
       expect(url).toContain('cursor=cursor-1');
       expect(url).not.toContain('earning_origin_type');
     });
+
+    it('throws when earnings ledger fails', async () => {
+      mockFetch.mockResolvedValue(notOk(500));
+      await expect(service.getEarningsLedger()).rejects.toThrow(
+        'Get earnings ledger failed: 500',
+      );
+    });
+
+    it('fetches claim history with optional cursor', async () => {
+      const body = { results: [], has_more: false, cursor: null };
+      mockFetch.mockResolvedValue(okJson(body));
+
+      await expect(service.getClaimHistory('next-page')).resolves.toEqual(body);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/earnings/claim/me?limit=20&cursor=next-page'),
+        expect.any(Object),
+      );
+    });
+
+    it('throws when claim history fails', async () => {
+      mockFetch.mockResolvedValue(notOk(404));
+      await expect(service.getClaimHistory()).rejects.toThrow(
+        'Get claim history failed: 404',
+      );
+    });
+
+    it('fetches claim by id', async () => {
+      const body = { id: 'claim-1', status: 'PENDING' };
+      mockFetch.mockResolvedValue(okJson(body));
+
+      await expect(service.getClaimById('claim-1')).resolves.toEqual(body);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/earnings/claim/claim-1'),
+        expect.any(Object),
+      );
+    });
+
+    it('throws when claim by id fails', async () => {
+      mockFetch.mockResolvedValue(notOk(404));
+      await expect(service.getClaimById('missing')).rejects.toThrow(
+        'Get claim by id failed: 404',
+      );
+    });
   });
 
   describe('env URL', () => {
     it('returns override when canChange is true', () => {
       service.setRewardsMoneyEnvUrl('https://custom.example');
       expect(service.getRewardsMoneyEnvUrl()).toBe('https://custom.example');
+      expect(Logger.log).toHaveBeenCalledWith(
+        'RewardsMoneyDataService: env switched to https://custom.example',
+      );
     });
 
     it('ignores set when canChange is false', () => {
@@ -259,6 +433,19 @@ describe('RewardsMoneyDataService', () => {
       service.setRewardsMoneyEnvUrl('https://custom.example');
       expect(service.getRewardsMoneyEnvUrl()).toBe(
         AppConstants.REWARDS_MONEY_API_URL.PRD,
+      );
+    });
+
+    it('exposes canChange and default URL helpers', () => {
+      expect(service.canChangeRewardsMoneyEnvUrl()).toBe(true);
+      expect(service.getDefaultRewardsMoneyEnvUrl()).toBe(
+        AppConstants.REWARDS_MONEY_API_URL.DEV,
+      );
+    });
+
+    it('returns the default URL when no override is set', () => {
+      expect(service.getRewardsMoneyEnvUrl()).toBe(
+        AppConstants.REWARDS_MONEY_API_URL.DEV,
       );
     });
   });

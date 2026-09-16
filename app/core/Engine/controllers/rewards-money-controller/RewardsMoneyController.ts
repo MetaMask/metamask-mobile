@@ -4,6 +4,7 @@ import Logger from '../../../../util/Logger';
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
 import {
   defaultRewardsMoneyControllerState,
+  emptyProfileCache,
   getRewardsMoneyControllerDefaultState,
 } from './defaultState';
 import {
@@ -126,7 +127,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getEarningsLedger',
   'getClaimHistory',
   'getClaimById',
-  'invalidateRewardsMoneyCache',
+  'clearProfileCache',
   'isRewardsMoneyFeatureEnabled',
   'resetState',
   'getRewardsMoneyEnvUrl',
@@ -171,6 +172,45 @@ export class RewardsMoneyController extends BaseController<
       this,
       MESSENGER_EXPOSED_METHODS,
     );
+    this.#initializeAuthSubscriptions();
+  }
+
+  /**
+   * Drop persisted money caches when the Hydra session ends or the profile id
+   * changes, so wrapWithCache cannot serve another user's referral/earnings.
+   */
+  #initializeAuthSubscriptions(): void {
+    this.messenger.subscribe(
+      'AuthenticationController:stateChange',
+      (state) => {
+        if (!state.isSignedIn) {
+          this.clearProfileCache();
+        }
+      },
+    );
+
+    this.messenger.subscribe(
+      'AuthenticationController:profileSignIn',
+      (info) => {
+        if (info.profileIdChanged) {
+          this.clearProfileCache();
+        }
+      },
+    );
+
+    // Cold start / upgrade: persisted buckets can outlive a prior sign-out if
+    // we were not yet subscribed. Always invalidate when already unsigned —
+    // cheaper than maintaining a parallel "has cache" field list.
+    try {
+      const signedIn = this.messenger.call(
+        'AuthenticationController:isSignedIn',
+      );
+      if (!signedIn) {
+        this.clearProfileCache();
+      }
+    } catch {
+      // Auth messenger may be unavailable in isolated unit tests.
+    }
   }
 
   isRewardsMoneyFeatureEnabled(): boolean {
@@ -182,17 +222,15 @@ export class RewardsMoneyController extends BaseController<
   }
 
   /**
-   * Drop every cached bucket. Called on env URL change and on auth change.
+   * Drop every profile-scoped cache bucket. Called on env URL change, Hydra
+   * sign-out, and Hydra profile-id change (`AuthenticationController:profileSignIn`
+   * when `profileIdChanged` is true). Also exposed on the messenger for callers
+   * that need an explicit flush. Preserves device/build config such as
+   * `rewardsMoneyEnvUrl`.
    */
-  invalidateRewardsMoneyCache(): void {
+  clearProfileCache(): void {
     this.update((draft) => {
-      draft.referralMe = null;
-      draft.referralCodes = null;
-      draft.referralFunnel = null;
-      draft.earningsSummary = {};
-      draft.earningsLedgerFirstPage = {};
-      draft.claimHistoryFirstPage = null;
-      draft.claimById = {};
+      Object.assign(draft, emptyProfileCache());
     });
   }
 
@@ -220,7 +258,7 @@ export class RewardsMoneyController extends BaseController<
       state.rewardsMoneyEnvUrl = url;
     });
     this.messenger.call('RewardsMoneyDataService:setRewardsMoneyEnvUrl', url);
-    this.invalidateRewardsMoneyCache();
+    this.clearProfileCache();
   }
 
   async getReferralMe(params: GetReferralMeDto = {}): Promise<ReferralMeDto> {
