@@ -145,12 +145,10 @@ describe('SecuritySettings', () => {
   });
 
   it('renders all sections without SDK section (SDK is in account menu)', () => {
-    const { getByText, getByTestId, queryByTestId } = renderWithProvider(
-      <SecuritySettings />,
-      {
+    const { getByText, getByTestId, queryByTestId, queryByText } =
+      renderWithProvider(<SecuritySettings />, {
         state: initialState,
-      },
-    );
+      });
     expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
@@ -170,7 +168,7 @@ describe('SecuritySettings', () => {
     expect(getByText('Passkeys')).toBeOnTheScreen();
     expect(getByText('Social')).toBeOnTheScreen();
     expect(getByText('Authenticator app')).toBeOnTheScreen();
-    expect(getByText('Transaction verification')).toBeOnTheScreen();
+    expect(queryByText('Transaction verification')).not.toBeOnTheScreen();
   });
 
   it('opens Money passkeys from global security settings', () => {
@@ -209,6 +207,7 @@ describe('SecuritySettings', () => {
     expect(getByText('SMS')).toBeOnTheScreen();
     expect(queryByText('Social login')).not.toBeOnTheScreen();
     expect(queryByText('account@gmail.com')).not.toBeOnTheScreen();
+    expect(queryByText('Transaction verification')).not.toBeOnTheScreen();
   });
 
   it('renders Blockaid settings', async () => {

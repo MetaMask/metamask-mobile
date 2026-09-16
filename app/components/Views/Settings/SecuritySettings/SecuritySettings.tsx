@@ -383,6 +383,7 @@ const Settings: React.FC = () => {
               <MoneySecurityMethodsSection
                 title={strings('money.security.section_title')}
                 compactBottomSpacing
+                showTransactionVerification={false}
               />
             </View>
           )}

@@ -133,11 +133,13 @@ const SecurityMethodRow = ({
 interface MoneySecurityMethodsSectionProps {
   title?: string;
   compactBottomSpacing?: boolean;
+  showTransactionVerification?: boolean;
 }
 
 const MoneySecurityMethodsSection = ({
   title = strings('money.security.methods_title'),
   compactBottomSpacing = false,
+  showTransactionVerification = true,
 }: MoneySecurityMethodsSectionProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { brandColors, colors } = useTheme();
@@ -265,44 +267,46 @@ const MoneySecurityMethodsSection = ({
         />
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Start}
-        gap={3}
-        twClassName={compactBottomSpacing ? 'pt-5 pb-0' : 'py-5'}
-      >
-        <Box twClassName="flex-1">
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('money.security.transaction_verification')}
-          </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mt-1"
-          >
-            {strings(
-              isTransactionVerificationEnabled
-                ? 'money.security.transaction_verification_description_enabled'
-                : 'money.security.transaction_verification_description',
-              isTransactionVerificationEnabled
-                ? { method: defaultVerificationMethodLabel }
-                : undefined,
-            )}
-          </Text>
+      {showTransactionVerification && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
+          gap={3}
+          twClassName={compactBottomSpacing ? 'pt-5 pb-0' : 'py-5'}
+        >
+          <Box twClassName="flex-1">
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('money.security.transaction_verification')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="mt-1"
+            >
+              {strings(
+                isTransactionVerificationEnabled
+                  ? 'money.security.transaction_verification_description_enabled'
+                  : 'money.security.transaction_verification_description',
+                isTransactionVerificationEnabled
+                  ? { method: defaultVerificationMethodLabel }
+                  : undefined,
+              )}
+            </Text>
+          </Box>
+          <Switch
+            value={isTransactionVerificationEnabled}
+            onValueChange={handleTransactionVerificationChange}
+            trackColor={{
+              false: colors.border.muted,
+              true: colors.primary.default,
+            }}
+            thumbColor={brandColors.white}
+            ios_backgroundColor={colors.border.muted}
+            style={styles.switch}
+            testID={MoneySecurityViewTestIds.TRANSACTION_VERIFICATION_SWITCH}
+          />
         </Box>
-        <Switch
-          value={isTransactionVerificationEnabled}
-          onValueChange={handleTransactionVerificationChange}
-          trackColor={{
-            false: colors.border.muted,
-            true: colors.primary.default,
-          }}
-          thumbColor={brandColors.white}
-          ios_backgroundColor={colors.border.muted}
-          style={styles.switch}
-          testID={MoneySecurityViewTestIds.TRANSACTION_VERIFICATION_SWITCH}
-        />
-      </Box>
+      )}
     </>
   );
 };
