@@ -1,8 +1,7 @@
 import React from 'react';
 import { Platform, Switch } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import ManageCardListItem from '../../../components/ManageCardListItem';
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
@@ -36,6 +35,9 @@ interface ManageCardOptionsProps {
   onManageSpendingLimit: () => void;
   showUnlinkMoneyAccount: boolean;
   onUnlinkMoneyAccount: () => void;
+  showRevokeAllowance?: boolean;
+  onRevokeAllowance?: () => void;
+  fundingAccountName?: string;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
@@ -67,6 +69,9 @@ const ManageCardOptions = ({
   onManageSpendingLimit,
   showUnlinkMoneyAccount,
   onUnlinkMoneyAccount,
+  showRevokeAllowance = false,
+  onRevokeAllowance,
+  fundingAccountName,
   onOrderMetalCard,
   isSpendingLimitActive,
   onChangeAsset,
@@ -266,6 +271,20 @@ const ManageCardOptions = ({
             rightIcon={IconName.ArrowRight}
             onPress={onUnlinkMoneyAccount}
             testID={CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM}
+          />
+        )}
+        {isFullySetUp && showRevokeAllowance && onRevokeAllowance && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.unlink_funding_account',
+            )}
+            description={strings(
+              'card.card_home.manage_card_options.unlink_funding_account_description',
+              { accountName: fundingAccountName },
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={onRevokeAllowance}
+            testID={CardHomeSelectors.REVOKE_ALLOWANCE_ITEM}
           />
         )}
       </Box>

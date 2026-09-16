@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { CardMessageBoxType } from '../../../types';
+import { CardMessageBoxType, type CardProvisioningView } from '../../../types';
 import CardMessageBox from '../../../components/CardMessageBox/CardMessageBox';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import type { CardAlert } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
@@ -9,18 +9,14 @@ interface CardAlertSectionProps {
   alerts: CardAlert[];
   onNavigateToSpendingLimit: () => void;
   onDismissSpendingLimitWarning?: () => void;
-  hasPendingVerification?: boolean;
-  onContinueVerification?: () => void;
-  isReconcilingProvisioning?: boolean;
+  provisioningView?: CardProvisioningView;
 }
 
 const CardAlertSection = ({
   alerts,
   onNavigateToSpendingLimit,
   onDismissSpendingLimitWarning,
-  hasPendingVerification,
-  onContinueVerification,
-  isReconcilingProvisioning,
+  provisioningView = 'provisioning',
 }: CardAlertSectionProps) => {
   const tw = useTailwind();
 
@@ -44,8 +40,11 @@ const CardAlertSection = ({
                 messageType={CardMessageBoxType.KYCPending}
               />
             );
+          case 'allowance_revoked':
+            // Covered by the shared Enable card button — no banner.
+            return null;
           case 'card_provisioning':
-            if (isReconcilingProvisioning) {
+            if (provisioningView === 'reconciling') {
               return (
                 <Skeleton
                   key={`${cardAlert.type}-${index}`}
@@ -56,13 +55,18 @@ const CardAlertSection = ({
                 />
               );
             }
-            return hasPendingVerification ? (
-              <CardMessageBox
-                key={`${cardAlert.type}-${index}`}
-                messageType={CardMessageBoxType.PendingVerification}
-                onConfirm={onContinueVerification}
-              />
-            ) : (
+            if (provisioningView === 'hidden') {
+              return null;
+            }
+            if (provisioningView === 'kyc_under_review') {
+              return (
+                <CardMessageBox
+                  key={`${cardAlert.type}-${index}`}
+                  messageType={CardMessageBoxType.KYCPending}
+                />
+              );
+            }
+            return (
               <CardMessageBox
                 key={`${cardAlert.type}-${index}`}
                 messageType={CardMessageBoxType.CardProvisioning}

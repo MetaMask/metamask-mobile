@@ -22,9 +22,13 @@ interface RouteContext {
   showAccountExistsToast?: boolean;
   /** Callers outside the OnboardingNavigator (CardAuthentication) hop via ONBOARDING.ROOT. */
   navigateFromRoot?: boolean;
+  hasExistingCard?: boolean;
 }
 
-function destinationForAction(action: ImmersveNextAction): string {
+function destinationForAction(
+  action: ImmersveNextAction,
+  hasExistingCard?: boolean,
+): string {
   switch (action.type) {
     case 'contact':
       return Routes.CARD.ONBOARDING.SIGN_UP;
@@ -33,7 +37,9 @@ function destinationForAction(action: ImmersveNextAction): string {
     case 'expected_spend':
       return Routes.CARD.ONBOARDING.KYC_PROCESSING;
     case 'funding':
-      return Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
+      return hasExistingCard
+        ? Routes.CARD.HOME
+        : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
       return Routes.CARD.ONBOARDING.KYC_FAILED;
     case 'active':
@@ -61,7 +67,12 @@ export const useImmersveOnboardingRouter = () => {
 
   return useCallback(
     (action: ImmersveNextAction, ctx: RouteContext = {}) => {
-      const { countryKey, showAccountExistsToast, navigateFromRoot } = ctx;
+      const {
+        countryKey,
+        showAccountExistsToast,
+        navigateFromRoot,
+        hasExistingCard,
+      } = ctx;
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -69,7 +80,7 @@ export const useImmersveOnboardingRouter = () => {
             withCardProvider(CardProviderIds.Immersve, {
               action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
               next_action: action.type,
-              destination: destinationForAction(action),
+              destination: destinationForAction(action, hasExistingCard),
             }),
           )
           .build(),
@@ -86,6 +97,13 @@ export const useImmersveOnboardingRouter = () => {
         }
       };
 
+      const goToCardHome = () => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      };
+
       switch (action.type) {
         case 'contact':
           goToOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {});
@@ -99,6 +117,10 @@ export const useImmersveOnboardingRouter = () => {
           });
           break;
         case 'funding':
+          if (hasExistingCard) {
+            goToCardHome();
+            break;
+          }
           goToOnboarding(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
             countryKey,
           });
@@ -131,10 +153,7 @@ export const useImmersveOnboardingRouter = () => {
               hasNoTimeout: false,
             });
           }
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.CARD.HOME }],
-          });
+          goToCardHome();
           break;
         default:
           break;

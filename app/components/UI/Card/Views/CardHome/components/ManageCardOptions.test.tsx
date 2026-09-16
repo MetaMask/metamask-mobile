@@ -120,6 +120,59 @@ describe('ManageCardOptions funding-limit gating', () => {
       getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
     ).toBeOnTheScreen();
   });
+
+  it('shows revoke allowance when showRevokeAllowance is true', () => {
+    const onRevokeAllowance = jest.fn();
+    const { getByTestId } = render(
+      <ManageCardOptions
+        card={CARD}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsFundingLimits: false })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="gb"
+        isFrozen={false}
+        isFreezeLoading={false}
+        isPinLoading={false}
+        cardDetailsVisible={false}
+        onViewCardDetails={jest.fn()}
+        onViewPin={jest.fn()}
+        onSetPin={jest.fn()}
+        onToggleFreeze={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        showRevokeAllowance
+        onRevokeAllowance={onRevokeAllowance}
+        fundingAccountName="Account 1"
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.REVOKE_ALLOWANCE_ITEM),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.REVOKE_ALLOWANCE_ITEM),
+    ).toHaveTextContent('Unlink card');
+  });
+
+  it('hides revoke allowance when showRevokeAllowance is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: false }),
+    );
+
+    expect(queryByTestId(CardHomeSelectors.REVOKE_ALLOWANCE_ITEM)).toBeNull();
+  });
 });
 
 describe('ManageCardOptions travel gating', () => {

@@ -39,7 +39,10 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
-  selectCardImmersveConfig: jest.fn(() => ({ network: 'base-sepolia' })),
+  selectCardImmersveConfig: jest.fn(() => ({
+    network: 'base-sepolia',
+    spenderAddress: '0x2222222222222222222222222222222222222222',
+  })),
 }));
 
 jest.mock('./useEnsureCardNetworkExists', () => ({
@@ -119,6 +122,7 @@ describe('useImmersveFunding', () => {
     );
     cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
       network: 'base-sepolia',
+      spenderAddress: '0x2222222222222222222222222222222222222222',
     });
   });
 
@@ -261,6 +265,7 @@ describe('useImmersveFunding', () => {
   it('executeFunding clears loading when network config is unsupported', async () => {
     cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
       network: 'not-a-network',
+      spenderAddress: '0x2222222222222222222222222222222222222222',
     });
 
     const { result } = renderHook(() => useImmersveFunding());
@@ -283,6 +288,121 @@ describe('useImmersveFunding', () => {
           }),
         }),
       }),
+    );
+  });
+
+  it('revokeFunding encodes approve(spender, 0) and submits the tx', async () => {
+    const { ethers } = jest.requireActual('ethers');
+    const { BASE_SEPOLIA_USDC_TOKEN_ADDRESS } =
+      jest.requireActual('../constants');
+    mockAwait.mockImplementation(async ({ submit }) => {
+      await submit();
+      return { txHash: '0xrevokehash', transactionMeta: {} };
+    });
+    (mockTx.addTransaction as jest.Mock).mockResolvedValue({
+      result: Promise.resolve('0xrevokehash'),
+      transactionMeta: {},
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    let txHash;
+    await act(async () => {
+      txHash = await result.current.revokeFunding();
+    });
+
+    const expectedData = new ethers.utils.Interface([
+      'function approve(address _spender, uint256 _value) returns (bool)',
+    ]).encodeFunctionData('approve', [
+      '0x2222222222222222222222222222222222222222',
+      '0',
+    ]);
+
+    expect(mockTx.addTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        data: expectedData,
+      }),
+      expect.objectContaining({
+        networkClientId: 'network-client-1',
+        type: 'approve',
+      }),
+    );
+    expect(txHash).toBe('0xrevokehash');
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'immersve',
+        step: 'revoke',
+        is_revoke: true,
+      }),
+    );
+  });
+
+  it('revokeFunding throws when spenderAddress is unset', async () => {
+    cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
+      network: 'base-sepolia',
+      spenderAddress: '',
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await expect(result.current.revokeFunding()).rejects.toThrow(
+        /spender address is not configured/,
+      );
+    });
+
+    expect(mockTx.addTransaction).not.toHaveBeenCalled();
+  });
+
+  it('buildApproveWrite returns an approve write for the configured spender', () => {
+    const { BASE_SEPOLIA_USDC_TOKEN_ADDRESS, BAANX_MAX_LIMIT } =
+      jest.requireActual('../constants');
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    const write = result.current.buildApproveWrite(BAANX_MAX_LIMIT);
+
+    expect(write).toEqual({
+      abi: expect.any(Array),
+      contractAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+      method: 'approve',
+      params: {
+        _spender: '0x2222222222222222222222222222222222222222',
+        _value: BAANX_MAX_LIMIT,
+      },
+    });
+    expect(mockTx.addTransaction).not.toHaveBeenCalled();
+  });
+
+  it('buildApproveWrite throws when spenderAddress is unset', () => {
+    cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
+      network: 'base-sepolia',
+      spenderAddress: '',
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    expect(() => result.current.buildApproveWrite('0')).toThrow(
+      /spender address is not configured/,
+    );
+    expect(mockTx.addTransaction).not.toHaveBeenCalled();
+  });
+
+  it('revokeFunding maps user cancel to UserCancelledError', async () => {
+    mockAwait.mockRejectedValue(new Error('User rejected the request'));
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await expect(result.current.revokeFunding()).rejects.toThrow(
+        'User rejected the request',
+      );
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_USER_CANCELED,
     );
   });
 });
