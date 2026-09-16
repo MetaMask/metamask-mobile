@@ -369,6 +369,7 @@ const ManualBackupStep1 = () => {
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item, index }) => (
                 <TextField
+                  value={item}
                   isReadOnly
                   startAccessory={
                     <Text
