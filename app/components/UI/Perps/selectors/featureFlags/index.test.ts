@@ -5,6 +5,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsLighterProviderEnabledFlag,
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsRecentlyViewedEnabledFlag,
@@ -40,6 +41,11 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
+import { isLighterProviderEnabled } from '../../utils/lighterFeatureFlags';
+
+jest.mock('../../utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -684,6 +690,115 @@ describe('Perps Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectPerpsLighterProviderEnabledFlag', () => {
+    beforeEach(() => {
+      jest.mocked(isLighterProviderEnabled).mockReturnValue(false);
+    });
+
+    const createEmptyFlagsState = () =>
+      ({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      }) as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+    it('returns false without a remote flag or local enablement', () => {
+      expect(
+        selectPerpsLighterProviderEnabledFlag(createEmptyFlagsState()),
+      ).toBe(false);
+    });
+
+    it('falls back to local enablement when the remote flag is absent', () => {
+      jest.mocked(isLighterProviderEnabled).mockReturnValue(true);
+
+      expect(
+        selectPerpsLighterProviderEnabledFlag(createEmptyFlagsState()),
+      ).toBe(true);
+    });
+
+    it('lets a valid remote flag win over local enablement', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      jest.mocked(isLighterProviderEnabled).mockReturnValue(true);
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(false);
+    });
+
+    it('enables the provider when the remote flag is enabled and the version gate passes', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(true);
+    });
+
+    it('stays disabled when the remote flag is enabled but the version gate fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(false);
     });
   });
 

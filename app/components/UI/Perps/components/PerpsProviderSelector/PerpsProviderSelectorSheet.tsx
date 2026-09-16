@@ -44,9 +44,9 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
   const handleOptionPress = useCallback(
     async (option: ProviderNetworkOption) => {
       await onOptionSelect(option);
-      bottomSheetRef.current?.onCloseBottomSheet();
+      onClose();
     },
-    [onOptionSelect],
+    [onClose, onOptionSelect],
   );
 
   return (

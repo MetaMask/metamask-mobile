@@ -19,6 +19,8 @@ import {
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { isPerpsProviderSelectorEnabled } from '../utils/lighterFeatureFlags';
+import { selectPerpsLighterProviderEnabledFlag } from '../selectors/featureFlags';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -38,8 +40,6 @@ const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
   isLoading: false,
 };
-const AVAILABLE_PROVIDERS: PerpsActiveProviderMode[] = ['hyperliquid'];
-
 /**
  * Hook for managing perps provider selection
  *
@@ -54,8 +54,22 @@ export function usePerpsProvider(
   const activeProvider = useSelector(selectPerpsProvider);
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
+  const lighterEnabled = useSelector(selectPerpsLighterProviderEnabledFlag);
 
-  const availableProviders = AVAILABLE_PROVIDERS;
+  /**
+   * Get list of available providers based on feature flags
+   */
+  const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
+    const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
+
+    if (lighterEnabled) {
+      providers.push('lighter');
+      providers.push('aggregated');
+    }
+
+    return providers;
+  }, [lighterEnabled]);
+  const isProviderSelectorEnabled = isPerpsProviderSelectorEnabled();
 
   /**
    * Switch to a different provider
@@ -249,8 +263,8 @@ export function usePerpsProvider(
    * Check if multi-provider mode is enabled (more than one provider available)
    */
   const isMultiProviderEnabled = useMemo(
-    () => availableProviders.length > 1,
-    [availableProviders],
+    () => isProviderSelectorEnabled && availableProviders.length > 1,
+    [availableProviders, isProviderSelectorEnabled],
   );
 
   return {
@@ -270,6 +284,7 @@ export function usePerpsProvider(
     supportsScaleOrders,
     supportsChaseOrders,
     checkOrderCapability,
+    isProviderSelectorEnabled,
     isMultiProviderEnabled,
   };
 }

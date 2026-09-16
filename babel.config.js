@@ -183,6 +183,14 @@ module.exports = {
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
     {
+      // Lighter Go/WASM signer page (base64-embedded WASM, ~10 MB) inlined as
+      // a string for the hidden signer WebView.
+      test: pathIncludes(
+        '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+      ),
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
+    },
+    {
       test: pathIncludes('/app/core/redux/ReduxService.ts'),
       plugins: privateMethodsLoose,
     },

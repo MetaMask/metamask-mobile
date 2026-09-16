@@ -388,6 +388,7 @@ const Routes = {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
     ORDER_REDIRECT: 'PerpsOrderRedirect', // Redirect for one-click trade from token details
+    BALANCE_ORDER: 'PerpsBalanceOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)

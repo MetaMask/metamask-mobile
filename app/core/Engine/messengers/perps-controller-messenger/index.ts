@@ -47,6 +47,7 @@ export function getPerpsControllerMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'KeyringController:getState',
       'KeyringController:signTypedMessage',
+      'KeyringController:signPersonalMessage',
       'TransactionController:addTransaction',
       'RemoteFeatureFlagController:getState',
       'AccountsController:getSelectedAccount',
