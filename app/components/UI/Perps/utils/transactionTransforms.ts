@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   TransactionMeta,
   TransactionType,
@@ -195,6 +196,39 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   // Combine aggregated and non-aggregatable fills, then sort by timestamp descending
   const allFills = [...aggregatedFills, ...nonAggregatableFills];
   allFills.sort((a, b) => b.timestamp - a.timestamp);
+
+  // [TAT-3931] BUG_MARKER: one order's fills survive as more than one activity row
+  const inputFillCountByOrderId = new Map<string, number>();
+  for (const fill of fills) {
+    if (!fill.orderId) continue;
+    inputFillCountByOrderId.set(
+      fill.orderId,
+      (inputFillCountByOrderId.get(fill.orderId) || 0) + 1,
+    );
+  }
+  const outputRowsByOrderId = new Map<string, OrderFill[]>();
+  for (const fill of allFills) {
+    if (!fill.orderId) continue;
+    const rows = outputRowsByOrderId.get(fill.orderId) || [];
+    rows.push(fill);
+    outputRowsByOrderId.set(fill.orderId, rows);
+  }
+  for (const [orderId, rows] of outputRowsByOrderId.entries()) {
+    if (rows.length > 1) {
+      DevLogger.log(
+        '[PR-TAT-3931] BUG_MARKER: multi-fill order split across activity rows: ' +
+          JSON.stringify({
+            orderId,
+            symbol: rows[0].symbol,
+            direction: rows[0].direction,
+            inputFills: inputFillCountByOrderId.get(orderId) || 0,
+            outputRows: rows.length,
+            rowSizes: rows.map((row) => row.size),
+            rowTimestamps: rows.map((row) => row.timestamp),
+          }),
+      );
+    }
+  }
 
   return allFills;
 }
