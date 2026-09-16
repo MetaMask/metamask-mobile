@@ -12,9 +12,11 @@ on:
       - stable
   merge_group:
   schedule:
-    # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
-    # This helps to identy the flaky and failed tests on main branch
-    - cron: '0 2-6 * * *'
+    # Scheduled workflows run from the default main branch. Run iOS E2E every
+    # two hours from 06:00 through 22:00 UTC on weekdays.
+    - cron: '0 6-22/2 * * 1-5'
+    # Run iOS E2E twice per day on Saturday and Sunday.
+    - cron: '0 12,20 * * 0,6'
   workflow_call:
     inputs:
       runner_provider:
@@ -54,7 +56,7 @@ on:
 
 concurrency:
   # Scheduled runs must not share the main-branch SHA group. A schedule that
-  # takes longer than the hourly cadence would otherwise replace the previous
+  # takes longer than the two-hour cadence would otherwise replace the previous
   # pending run when the next schedule is created.
   group: >-
     ${{ github.workflow }}-${{
@@ -1689,8 +1691,8 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on Android only, so on PRs into main it runs only when Android was requested via
-  # run-appium-android-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # Runs on Android only, so on PRs into main it runs when path filters select
+  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
   # release/* that build Android.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
