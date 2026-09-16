@@ -28,6 +28,10 @@ import {
   buildWindowMarkdown,
   buildWindowSlack,
 } from './analyze-app-profiling.mjs';
+import {
+  collectHermesCpuProfiles,
+  findHermesCpuProfileFiles,
+} from './aggregate-performance-reports.mjs';
 
 function profile(fileName, overrides = {}) {
   const parsed = parseProfileFileName(fileName);
@@ -87,14 +91,65 @@ test('resolveLatestRun prefers successful scheduled runs', () => {
 test('findHermesProfiles excludes hashed Playwright attachment copies', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-find-'));
   const named = path.join(root, 'reports', 'hermes-cpuprofiles');
+  const dedicated = path.join(
+    root,
+    'hermes-cpuprofiles-android-imported-wallet-Pixel-14',
+  );
+  const hashed = path.join(root, 'playwright-report', 'data');
+  fs.mkdirSync(named, { recursive: true });
+  fs.mkdirSync(dedicated, { recursive: true });
+  fs.mkdirSync(hashed, { recursive: true });
+  const namedProfile = path.join(named, 'scenario.cpuprofile');
+  const dedicatedProfile = path.join(dedicated, 'dedicated.cpuprofile');
+  fs.writeFileSync(namedProfile, '{}');
+  fs.writeFileSync(dedicatedProfile, '{}');
+  fs.writeFileSync(path.join(hashed, 'abc123.cpuprofile'), '{}');
+
+  const result = findHermesProfiles(root);
+
+  assert.deepEqual(result.sort(), [namedProfile, dedicatedProfile].sort());
+});
+
+test('aggregator finds named profiles but excludes Playwright attachment copies', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-aggregate-find-'));
+  const named = path.join(root, 'reports', 'hermes-cpuprofiles');
   const hashed = path.join(root, 'playwright-report', 'data');
   fs.mkdirSync(named, { recursive: true });
   fs.mkdirSync(hashed, { recursive: true });
-  fs.writeFileSync(path.join(named, 'scenario.cpuprofile'), '{}');
+  const namedProfile = path.join(named, 'scenario.cpuprofile');
+  fs.writeFileSync(namedProfile, '{}');
   fs.writeFileSync(path.join(hashed, 'abc123.cpuprofile'), '{}');
-  assert.deepEqual(findHermesProfiles(root), [
-    path.join(named, 'scenario.cpuprofile'),
-  ]);
+
+  const result = findHermesCpuProfileFiles(root);
+
+  assert.deepEqual(result, [namedProfile]);
+});
+
+test('aggregator skips duplicate profile names without changing scenario identity', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-aggregate-'));
+  const first = path.join(root, 'first', 'hermes-cpuprofiles');
+  const second = path.join(root, 'second', 'hermes-cpuprofiles');
+  const output = path.join(root, 'output');
+  fs.mkdirSync(first, { recursive: true });
+  fs.mkdirSync(second, { recursive: true });
+  fs.writeFileSync(path.join(first, 'scenario.cpuprofile'), '{"run":1}');
+  fs.writeFileSync(path.join(second, 'scenario.cpuprofile'), '{"run":2}');
+
+  const copied = collectHermesCpuProfiles(
+    [path.dirname(first), path.dirname(second)],
+    output,
+  );
+
+  const outputFiles = fs.readdirSync(path.join(output, 'hermes-cpuprofiles'));
+  assert.equal(copied, 1);
+  assert.deepEqual(outputFiles, ['scenario.cpuprofile']);
+  assert.equal(
+    fs.readFileSync(
+      path.join(output, 'hermes-cpuprofiles', 'scenario.cpuprofile'),
+      'utf8',
+    ),
+    '{"run":1}',
+  );
 });
 
 test('findSkillAnalyzer locates the analyzer installed by yarn skills', () => {

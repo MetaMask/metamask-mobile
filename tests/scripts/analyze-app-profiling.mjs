@@ -473,7 +473,9 @@ function findHermesProfiles(directory, output = []) {
       findHermesProfiles(fullPath, output);
     } else if (
       entry.endsWith('.cpuprofile') &&
-      fullPath.split(path.sep).includes('hermes-cpuprofiles')
+      fullPath
+        .split(path.sep)
+        .some((segment) => segment.startsWith('hermes-cpuprofiles'))
     ) {
       output.push(fullPath);
     }

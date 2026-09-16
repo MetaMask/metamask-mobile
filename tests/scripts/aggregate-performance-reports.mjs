@@ -123,7 +123,10 @@ function findHermesCpuProfileFiles(dir, profileFiles = []) {
     const fullPath = path.join(dir, entry);
     if (fs.statSync(fullPath).isDirectory()) {
       findHermesCpuProfileFiles(fullPath, profileFiles);
-    } else if (entry.endsWith('.cpuprofile')) {
+    } else if (
+      entry.endsWith('.cpuprofile') &&
+      fullPath.split(path.sep).includes('hermes-cpuprofiles')
+    ) {
       profileFiles.push(fullPath);
     }
   }
@@ -161,14 +164,15 @@ function collectHermesCpuProfiles(searchDirs, outputDir) {
   fs.mkdirSync(profilesOutputDir, { recursive: true });
 
   for (const sourcePath of profileFiles) {
-    let fileName = path.basename(sourcePath);
+    const fileName = path.basename(sourcePath);
     const collisionCount = usedNames.get(fileName) ?? 0;
     usedNames.set(fileName, collisionCount + 1);
 
     if (collisionCount > 0) {
-      const ext = path.extname(fileName);
-      const base = path.basename(fileName, ext);
-      fileName = `${base}-${collisionCount + 1}${ext}`;
+      console.warn(
+        `⚠️ Skipping duplicate Hermes profile name instead of changing its scenario identity: ${fileName}`,
+      );
+      continue;
     }
 
     const destPath = path.join(profilesOutputDir, fileName);
