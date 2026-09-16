@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import {
   IconName,
   IconSize,
   SectionDivider,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -30,6 +31,10 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../hooks/useMoneyAccountPlusAccess';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -99,10 +104,23 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const proAccess = useMoneyAccountPlusAccess();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // The hub is subscriber-only. Anyone without an entitlement is sent back
+  // rather than shown paid content, and `Loading` deliberately falls through
+  // so an entitled user is not bounced while their claims resolve.
+  useEffect(() => {
+    if (
+      proAccess === MoneyAccountPlusAccess.Disabled ||
+      proAccess === MoneyAccountPlusAccess.Eligible
+    ) {
+      navigation.goBack();
+    }
+  }, [proAccess, navigation]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
@@ -141,93 +159,104 @@ const ProHub = () => {
         {strings('pro_hub.title')}
       </HeaderBase>
 
-      <ScrollView
-        contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
-        showsVerticalScrollIndicator={false}
-      >
-        <Box twClassName="w-full mb-4 gap-y-4">
-          <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
+      {proAccess !== MoneyAccountPlusAccess.Subscriber ? (
+        <Box
+          twClassName="px-4 pt-2 gap-y-4"
+          testID={ProHubTestIds.LOADING_SKELETON}
+        >
+          <Skeleton height={104} twClassName="w-full rounded-xl" />
+          <Skeleton height={72} twClassName="w-full rounded-xl" />
+          <Skeleton height={180} twClassName="w-full rounded-xl" />
+        </Box>
+      ) : (
+        <ScrollView
+          contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
+          showsVerticalScrollIndicator={false}
+        >
+          <Box twClassName="w-full mb-4 gap-y-4">
+            <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
 
-          <Box
-            twClassName="gap-y-1"
-            testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
+            <Box
+              twClassName="gap-y-1"
+              testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
             >
-              {strings('pro_hub.lifetime_earnings')}
-            </Text>
-            <Text
-              variant={TextVariant.AmountDisplayLg}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_PRO_HUB_STATS.lifetimeEarnings}
-            </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('pro_hub.lifetime_earnings')}
+              </Text>
+              <Text
+                variant={TextVariant.AmountDisplayLg}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextDefault}
+              >
+                {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+              </Text>
 
-            <Box>
-              <StatRow
-                iconName={IconName.TrendUp}
-                label={strings('pro_hub.money_balance')}
-                value={MOCK_PRO_HUB_STATS.moneyBalance}
-                testID={ProHubTestIds.MONEY_BALANCE_ROW}
-              />
-              <StatRow
-                iconName={IconName.Card}
-                label={strings('pro_hub.musd_back')}
-                value={MOCK_PRO_HUB_STATS.musdBack}
-                testID={ProHubTestIds.MUSD_BACK_ROW}
-              />
+              <Box>
+                <StatRow
+                  iconName={IconName.TrendUp}
+                  label={strings('pro_hub.money_balance')}
+                  value={MOCK_PRO_HUB_STATS.moneyBalance}
+                  testID={ProHubTestIds.MONEY_BALANCE_ROW}
+                />
+                <StatRow
+                  iconName={IconName.Card}
+                  label={strings('pro_hub.musd_back')}
+                  value={MOCK_PRO_HUB_STATS.musdBack}
+                  testID={ProHubTestIds.MUSD_BACK_ROW}
+                />
+              </Box>
             </Box>
           </Box>
-        </Box>
 
-        <PhysicalCardBanner onPress={handleGetCard} />
+          <PhysicalCardBanner onPress={handleGetCard} />
 
-        <SectionDivider marginVertical={6} />
+          <SectionDivider marginVertical={6} />
 
-        <MemberPricingOnTrades />
+          <MemberPricingOnTrades />
 
-        <SectionDivider marginVertical={6} />
+          <SectionDivider marginVertical={6} />
 
-        <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
-          <Box twClassName="gap-y-1">
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
+          <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
+            <Box twClassName="gap-y-1">
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextDefault}
+              >
+                {strings('pro_hub.also_included.title')}
+              </Text>
+              {ALSO_INCLUDED_ITEMS.map((item) => (
+                <AlsoIncludedRow
+                  key={item.id}
+                  item={item}
+                  testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
+                />
+              ))}
+            </Box>
+            <SectionDivider twClassName="mb-8" />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleManageMembership}
+              isFullWidth
+              testID={ProHubTestIds.MANAGE_BUTTON}
+              twClassName="mb-8"
             >
-              {strings('pro_hub.also_included.title')}
+              {strings('pro_hub.manage_membership')}
+            </Button>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextMuted}
+              testID={ProHubTestIds.DISCLAIMER_TEXT}
+            >
+              {strings('pro_hub.also_included.disclaimer')}
             </Text>
-            {ALSO_INCLUDED_ITEMS.map((item) => (
-              <AlsoIncludedRow
-                key={item.id}
-                item={item}
-                testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
-              />
-            ))}
           </Box>
-          <SectionDivider twClassName="mb-8" />
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={handleManageMembership}
-            isFullWidth
-            testID={ProHubTestIds.MANAGE_BUTTON}
-            twClassName="mb-8"
-          >
-            {strings('pro_hub.manage_membership')}
-          </Button>
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextMuted}
-            testID={ProHubTestIds.DISCLAIMER_TEXT}
-          >
-            {strings('pro_hub.also_included.disclaimer')}
-          </Text>
-        </Box>
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

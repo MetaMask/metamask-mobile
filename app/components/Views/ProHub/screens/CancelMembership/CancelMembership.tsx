@@ -6,6 +6,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import { buildPostCancellationResetState } from './CancelMembership.utils';
+import { refresh as refreshEntitlements } from '../../../../../core/Subscription/entitlementResolution';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelSuccessStep from './components/CancelSuccessStep';
 
@@ -28,6 +29,12 @@ const CancelMembership = () => {
 
   const handleCancelConfirm = useCallback(() => {
     setStep('success');
+    // Re-resolve entitlements while the user reads the confirmation, so the
+    // reset in handleDone lands on a Pro Hub that reflects the cancellation
+    // (retained until period end, or revoked outright).
+    refreshEntitlements().catch(() => {
+      // Status is already recorded as `error` by the store.
+    });
   }, []);
 
   const handleReasonSelect = useCallback((id: string) => {

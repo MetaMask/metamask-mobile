@@ -6,6 +6,7 @@ import { ALSO_INCLUDED_ITEMS } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -26,6 +27,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (..._args: unknown[]) => ({}),
   }),
+}));
+
+// ─── Plus access ──────────────────────────────────────────────────────────────
+
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -51,6 +60,56 @@ describe('ProHub', () => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Subscriber,
+    );
+  });
+
+  // ── Access guard ───────────────────────────────────────────────────────────
+
+  describe('Access guard', () => {
+    it.each([
+      ['disabled', MoneyAccountPlusAccess.Disabled],
+      ['eligible but not entitled', MoneyAccountPlusAccess.Eligible],
+    ])('navigates back when Pro access is %s', (_label, access) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(access);
+
+      renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open for an entitled subscriber', () => {
+      renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('shows a skeleton instead of subscriber content while entitlements load', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Loading,
+      );
+
+      const { getByTestId, queryByTestId } = renderProHub();
+
+      expect(getByTestId(ProHubTestIds.LOADING_SKELETON)).toBeOnTheScreen();
+      expect(
+        queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(ProHubTestIds.LIFETIME_EARNINGS_SECTION),
+      ).not.toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not render the skeleton once entitlements resolve', () => {
+      const { getByTestId, queryByTestId } = renderProHub();
+
+      expect(
+        queryByTestId(ProHubTestIds.LOADING_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+    });
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
