@@ -935,6 +935,15 @@ jest.mock('../../hooks/usePerpsMaxSlippage', () => ({
   usePerpsMaxSlippage: jest.fn(() => mockDefaultUsePerpsMaxSlippage()),
 }));
 
+const mockUsePerpsAssetMetadata = jest.fn((_assetSymbol?: string) => ({
+  assetUrl: 'https://icons.test/ETH.svg',
+}));
+
+jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
+  usePerpsAssetMetadata: (assetSymbol?: string) =>
+    mockUsePerpsAssetMetadata(assetSymbol),
+}));
+
 // Test setup
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -1333,6 +1342,21 @@ describe('PerpsOrderView', () => {
     expect(
       screen.queryByTestId(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
     ).not.toBeOnTheScreen();
+  });
+
+  it('skips asset icon resolution on the full-screen route', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith(undefined);
+    expect(mockUsePerpsAssetMetadata).not.toHaveBeenCalledWith('ETH');
+  });
+
+  it('resolves the asset icon on the Trade sheet route', () => {
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('ETH');
   });
 
   it('closes the Trade sheet back to its presenting market', () => {

@@ -359,7 +359,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
-  const { assetUrl } = usePerpsAssetMetadata(orderForm.asset);
+  // Only the Trade sheet renders the asset icon, and resolving it costs a HEAD
+  // request, so the full-screen flow must not trigger that lookup.
+  const { assetUrl } = usePerpsAssetMetadata(
+    useBottomSheet ? orderForm.asset : undefined,
+  );
 
   // Live slider display value for immediate UI feedback while dragging. The
   // committed `orderForm.amount` only updates on drag end, since it drives
