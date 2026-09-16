@@ -54,6 +54,11 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       alignSelf: 'center',
     },
+    watchlistAddButton: {
+      // The row container aligns children to flex-start; keep the star
+      // vertically centered against the taller text columns.
+      alignSelf: 'center',
+    },
   });
 };
 

@@ -18,7 +18,6 @@ import {
   BadgeWrapperPosition,
   ButtonIcon,
   ButtonIconSize,
-  ButtonIconVariant,
   Icon,
   IconName,
   IconSize,
@@ -100,7 +99,7 @@ interface TrendingTokenRowItemProps {
  * Trailing action button variants for {@link TrendingTokenRowItem}.
  *
  * - `quick-trade`: circular Quick Trade button.
- * - `watchlist`: filled + button (add to watchlist), matching perps.
+ * - `watchlist`: outline star button (add to watchlist), matching perps.
  */
 export type QuickActionButton =
   | { type: 'quick-trade'; onPress: (token: TrendingAsset) => void }
@@ -283,12 +282,12 @@ const TrendingTokenRowItem = ({
       </View>
       {endAction?.type === 'watchlist' && (
         <ButtonIcon
-          iconName={IconName.Add}
+          iconName={IconName.Star}
           size={ButtonIconSize.Md}
-          variant={ButtonIconVariant.Filled}
           onPress={() => endAction.onPress(token)}
           accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
           testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
+          style={styles.watchlistAddButton}
         />
       )}
       {endAction?.type === 'quick-trade' && (

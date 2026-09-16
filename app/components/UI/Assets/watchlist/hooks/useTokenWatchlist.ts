@@ -1,13 +1,11 @@
 import { useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 
-import { readFromTokenWatchList, type WatchlistBlob } from '../storage';
 import {
   useTokenWatchlistAddItemMutation,
   useTokenWatchlistRemoveItemMutation,
 } from './useTokenWatchlistMutations';
-import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
+import { useTokenWatchlistAssetIds } from './useTokenWatchlistAssetIds';
 
 export interface UseTokenWatchlistResult {
   isWatched: boolean;
@@ -33,17 +31,11 @@ export function useTokenWatchlist(
   const addMutation = useTokenWatchlistAddItemMutation();
   const removeMutation = useTokenWatchlistRemoveItemMutation();
 
-  const { data: blob } = useQuery<WatchlistBlob>({
-    queryKey: tokenWatchlistQueryKeys.blob,
-    queryFn: readFromTokenWatchList,
-    staleTime: Infinity,
-  });
-
+  const watchlistAssetIds = useTokenWatchlistAssetIds();
   const assetIdStr = assetId ? String(assetId) : null;
   const normalizedAssetId = assetIdStr?.toLowerCase() ?? null;
   const isWatched = normalizedAssetId
-    ? (blob?.assets.some((id) => id.toLowerCase() === normalizedAssetId) ??
-      false)
+    ? watchlistAssetIds.some((id) => id.toLowerCase() === normalizedAssetId)
     : false;
 
   const isLoading = addMutation.isPending || removeMutation.isPending;

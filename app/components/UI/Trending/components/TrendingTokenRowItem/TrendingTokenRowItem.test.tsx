@@ -2,11 +2,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
-import {
-  ButtonIcon,
-  ButtonIconVariant,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import renderWithProviderBase from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem, {
   getAssetNavigationParams,
@@ -1891,7 +1887,7 @@ describe('TrendingTokenRowItem', () => {
       expect(onPress).toHaveBeenCalledWith(token);
     });
 
-    it('renders a filled + button matching the perps suggested add affordance', () => {
+    it('renders an outline star button matching the perps suggested add affordance (PR 36358)', () => {
       const token = createMockToken();
 
       const { UNSAFE_getByType } = renderWithProvider(
@@ -1905,8 +1901,13 @@ describe('TrendingTokenRowItem', () => {
 
       const button = UNSAFE_getByType(ButtonIcon);
 
-      expect(button.props.iconName).toStrictEqual(IconName.Add);
-      expect(button.props.variant).toStrictEqual(ButtonIconVariant.Filled);
+      expect(button.props.iconName).toStrictEqual(IconName.Star);
+      // No variant → outline style, mirroring PerpsMarketRowItem.
+      expect(button.props.variant).toBeUndefined();
+      // The star is vertically centered against the row's text columns.
+      expect(button.props.style).toStrictEqual(
+        expect.objectContaining({ alignSelf: 'center' }),
+      );
     });
 
     it('does not trigger row navigation when the add button is pressed', async () => {

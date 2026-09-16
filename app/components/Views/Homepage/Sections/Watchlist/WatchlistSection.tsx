@@ -9,19 +9,35 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import type { CaipAssetType } from '@metamask/utils';
 import {
+  Box,
   SectionDivider,
   SectionHeader,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import WatchlistEmptyState from './components/WatchlistEmptyState';
+import WatchlistSuggestedSection from './components/WatchlistSuggestedSection';
+import WatchlistEmptyFallback from './components/WatchlistEmptyFallback';
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
+import { useSuggestedWatchlistItemsQuery } from '../../../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery';
+import { useTokenWatchlistAddItemMutation } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations';
+import { useTokenWatchlistAssetIds } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistAssetIds';
+import {
+  getWatchlistAssetType,
+  WatchlistAnalytics,
+} from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
+import { getSuggestedWatchlistTokens } from '../../../../UI/Assets/watchlist/utils/getSuggestedWatchlistTokens';
+import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
   HomeSectionNames,
@@ -32,6 +48,8 @@ import type { SectionRefreshHandle } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_ITEMS_DISPLAYED = 3;
+
+const SUGGESTED_SKELETON_COUNT = 3;
 
 interface WatchlistSectionProps {
   sectionIndex: number;
@@ -46,6 +64,15 @@ const WatchlistSection = forwardRef<
   const navigation = useNavigation<AppNavigationProp>();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
+  const { data: suggestedPool, isLoading: isSuggestedLoading } =
+    useSuggestedWatchlistItemsQuery();
+  const addMutation = useTokenWatchlistAddItemMutation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // Raw stored asset IDs (optimistically updated) — used for the suggested
+  // target count and exclusions so tokens that haven't hydrated yet still
+  // count, mirroring the perps Redux-symbol approach.
+  const watchlistAssetIds = useTokenWatchlistAssetIds();
 
   const title = strings('homepage.sections.watchlist');
 
@@ -59,12 +86,45 @@ const WatchlistSection = forwardRef<
     [data],
   );
 
+  const suggestedTokens = useMemo(
+    () => getSuggestedWatchlistTokens(suggestedPool ?? [], watchlistAssetIds),
+    [suggestedPool, watchlistAssetIds],
+  );
+
   const isEmpty = !isLoading && displayTokens.length === 0;
   const itemCount = displayTokens.length;
 
   const handleSectionPress = useCallback(() => {
     navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
   }, [navigation]);
+
+  const handleAddPress = useCallback(
+    (token: WatchlistTokenWithBalance) => {
+      const assetId = String(token.assetId) as CaipAssetType;
+
+      addMutation.mutate(assetId, {
+        onSuccess: () => {
+          toast({
+            title: strings('token_watchlist.added_to_watchlist'),
+            severity: ToastSeverity.Success,
+            hasNoTimeout: false,
+            showCloseButton: false,
+          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+              .addProperties({
+                source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
+                asset_id: assetId,
+                asset_type: getWatchlistAssetType(String(assetId)),
+                has_balance: token.isInWallet,
+              })
+              .build(),
+          );
+        },
+      });
+    },
+    [addMutation, createEventBuilder, trackEvent],
+  );
 
   const refresh = useCallback(async () => {
     await refetch();
@@ -94,6 +154,11 @@ const WatchlistSection = forwardRef<
     return null;
   }
 
+  const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
+  const showSuggestedSection = suggestedTokens.length > 0;
+  const showFallback =
+    isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
+
   return (
     <View ref={sectionViewRef} onLayout={onLayout}>
       <SectionDivider />
@@ -108,17 +173,37 @@ const WatchlistSection = forwardRef<
           Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, i) => (
             <TrendingTokensSkeleton key={`watchlist-skeleton-${i}`} />
           ))
-        ) : isEmpty ? (
-          <WatchlistEmptyState />
         ) : (
-          displayTokens.map((token, index) => (
-            <TrendingTokenRowItem
-              key={token.assetId}
-              token={token}
-              position={index}
-              tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-            />
-          ))
+          <>
+            {displayTokens.map((token, index) => (
+              <TrendingTokenRowItem
+                key={token.assetId}
+                token={token}
+                position={index}
+                tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+              />
+            ))}
+            {showSuggestedSkeletons ? (
+              <Box testID="watchlist-suggested-skeleton">
+                {Array.from(
+                  { length: SUGGESTED_SKELETON_COUNT },
+                  (_, index) => (
+                    <TrendingTokensSkeleton
+                      key={`watchlist-suggested-skeleton-${index}`}
+                    />
+                  ),
+                )}
+              </Box>
+            ) : null}
+            {showSuggestedSection ? (
+              <WatchlistSuggestedSection
+                tokens={suggestedTokens}
+                hasWatchlist={displayTokens.length > 0}
+                onAddPress={handleAddPress}
+              />
+            ) : null}
+            {showFallback ? <WatchlistEmptyFallback /> : null}
+          </>
         )}
       </SectionRow>
     </View>
