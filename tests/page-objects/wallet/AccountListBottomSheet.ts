@@ -420,7 +420,7 @@ class AccountListBottomSheet {
       timeout: 15_000,
       description: 'Account list dismissed after account selection',
     });
-    await WalletView.checkActiveAccount(accountName);
+    await WalletView.checkActiveAccount(accountName, 10_000, exactMatch);
   }
 
   async scrollToAccount(index: number): Promise<void> {
