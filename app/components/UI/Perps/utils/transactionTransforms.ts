@@ -77,12 +77,14 @@ function getDirectionForAggregation(
  * orders, over several seconds - and each piece comes back as its own fill.
  *
  * Fills are grouped when they share an asset and a direction category (Open Long, Close Short,
- * Long > Short, Buy, Sell, Auto-Deleveraging...) and either of:
- * - the same order id, which covers an order that filled across several seconds
- * - the same second, which covers a trigger order HyperLiquid split into several child
- * orders that fill together under different order ids
+ * Long > Short, Buy, Sell, Auto-Deleveraging...) and the same order id, which covers an order
+ * that filled across several price levels or several seconds.
  *
- * Grouping is transitive, so fills linked by either rule end up in the same entry.
+ * Close-category fills (Close Long/Short, Sell, Auto-Deleveraging) additionally group by the
+ * second they landed in, because HyperLiquid splits a triggered TP/SL into several child orders
+ * that fill together under different order ids. That cross-order rule is deliberately limited to
+ * the close side: two separate opens on one market inside the same second are two trades, and
+ * merging them would report a size the user never placed.
  *
  * For aggregated fills:
  * - Sizes are summed
@@ -98,7 +100,7 @@ function getDirectionForAggregation(
  * @returns Array of OrderFill objects with each order's fills aggregated into one
  */
 export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
-  // Fills of one asset + direction that landed in the same second, keyed by that second
+  // Seed groups, keyed by the rule that may pull fills of different orders together
   const secondGroups: { bucket: string; fills: OrderFill[] }[] = [];
   const secondGroupByKey = new Map<
     string,
@@ -107,7 +109,8 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   // Array to preserve non-aggregatable fills in order
   const nonAggregatableFills: OrderFill[] = [];
 
-  // Group fills by asset + direction + the second they landed in
+  // Seed one group per order, except on the close side, where the same second is the
+  // seed instead so a trigger order split into several child order ids stays together.
   for (const fill of fills) {
     const direction = getDirectionForAggregation(fill.direction);
 
@@ -118,21 +121,27 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
     }
 
     const bucket = `${fill.symbol}-${direction}`;
-    const secondKey = `${bucket}-${Math.floor(fill.timestamp / 1000)}`;
+    const isCloseCategory =
+      direction.startsWith('Close ') ||
+      direction === 'Sell' ||
+      direction === 'Auto-Deleveraging';
+    const seedKey = isCloseCategory
+      ? `${bucket}-second-${Math.floor(fill.timestamp / 1000)}`
+      : `${bucket}-order-${fill.orderId || `solo-${fill.timestamp}`}`;
 
-    const existingGroup = secondGroupByKey.get(secondKey);
+    const existingGroup = secondGroupByKey.get(seedKey);
     if (existingGroup) {
       existingGroup.fills.push(fill);
     } else {
       const group = { bucket, fills: [fill] };
-      secondGroupByKey.set(secondKey, group);
+      secondGroupByKey.set(seedKey, group);
       secondGroups.push(group);
     }
   }
 
-  // Link the per-second groups that share an order id. An order large enough to walk the
-  // book fills over several seconds, and every one of those fills is still the one trade
-  // the user placed, so they have to end up in the same group.
+  // Link the seed groups that share an order id, which merges the per-second close groups an
+  // order filled over several seconds into the one trade the user placed. Order-seeded groups
+  // are already whole, so this can only chain groups that genuinely share an order id.
   const groupOwner = secondGroups.map((_group, index) => index);
   const resolveOwner = (index: number): number => {
     let owner = index;

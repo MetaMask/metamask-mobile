@@ -310,6 +310,67 @@ describe('transactionTransforms', () => {
         expect(result).toHaveLength(2);
       });
 
+      it('keeps two opens of different orders apart inside the same second', () => {
+        const fill1 = createFill({
+          orderId: 'open-order-5',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000100,
+        });
+
+        const fill2 = createFill({
+          orderId: 'open-order-6',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000900, // Same second, different order
+        });
+
+        const result = aggregateFillsByTimestamp([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+        expect(result.map((fill) => fill.size)).toEqual(['1', '1']);
+      });
+
+      it('does not chain unrelated opens through an order that spans two seconds', () => {
+        const orderA = createFill({
+          orderId: 'open-order-a',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000100,
+        });
+
+        const orderBFirst = createFill({
+          orderId: 'open-order-b',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000900, // Same second as order A
+        });
+
+        const orderBSecond = createFill({
+          orderId: 'open-order-b',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000002100, // Order B spans into the next second
+        });
+
+        const orderC = createFill({
+          orderId: 'open-order-c',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000002900, // Same second as order B's last fill
+        });
+
+        const result = aggregateFillsByTimestamp([
+          orderA,
+          orderBFirst,
+          orderBSecond,
+          orderC,
+        ]);
+
+        expect(result).toHaveLength(3);
+        expect(result.map((fill) => fill.size).sort()).toEqual(['1', '1', '2']);
+      });
+
       it('does not aggregate an open and a close of the same order id', () => {
         const openFill = createFill({
           orderId: 'order-1',
@@ -693,6 +754,41 @@ describe('transactionTransforms', () => {
           action: 'Flipped',
         },
       });
+    });
+
+    it('reports a multi-fill flip as one row sized from the whole order (TAT-3931)', () => {
+      // A 37.66 long flipped into a 5.57 short: 43.23 traded, split over two seconds.
+      // Pre-fix each fill became its own row, so the size shown was derived from a partial
+      // trade (|37.66 - 30| = 7.66). Post-fix the row is derived from the whole order:
+      // subtitle carries the 43.23 actually traded, and fill.size carries the 5.57 position
+      // the flip left open (|startPosition of the earliest fill - total traded|).
+      const firstFill: OrderFill = {
+        ...mockFill,
+        orderId: 'flip-order-2',
+        direction: 'Long > Short',
+        size: '30',
+        startPosition: '37.66',
+        pnl: '30.00',
+        fee: '4.00',
+        timestamp: 1700000000000,
+      };
+
+      const secondFill: OrderFill = {
+        ...firstFill,
+        size: '13.23',
+        startPosition: '7.66',
+        pnl: '20.00',
+        fee: '6.00',
+        timestamp: 1700000002000,
+      };
+
+      const result = transformFillsToTransactions([firstFill, secondFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('43.23 ETH');
+      expect(result[0].fill?.size).toBe('5.57');
+      expect(result[0].fill?.amount).toBe('+$40.00');
+      expect(result[0].title).toBe('Flipped long > short');
     });
 
     it('should handle empty fills array', () => {
