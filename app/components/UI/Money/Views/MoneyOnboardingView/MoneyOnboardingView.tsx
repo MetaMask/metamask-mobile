@@ -127,6 +127,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  riveHidden: {
+    opacity: 0,
+  },
   textGroup: {
     position: 'absolute',
   },
@@ -157,9 +160,11 @@ const FALLBACK_APY = 4;
 
 const MoneyOnboardingTextOverlay = ({
   content,
+  isVisible,
   opacity,
 }: {
   content?: OnboardingTextContent;
+  isVisible: boolean;
   opacity: SharedValue<number>;
 }) => {
   const insets = useSafeAreaInsets();
@@ -173,14 +178,18 @@ const MoneyOnboardingTextOverlay = ({
     [isSmallScreen],
   );
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
+  const animatedStyle = useAnimatedStyle(
+    () => ({
+      opacity: isVisible ? opacity.value : 0,
+    }),
+    [isVisible],
+  );
 
   return (
     <Animated.View
       pointerEvents="none"
       style={[StyleSheet.absoluteFill, animatedStyle]}
+      testID={MoneyOnboardingViewTestIds.OVERLAY_CONTAINER}
     >
       {content && (
         <>
@@ -268,6 +277,8 @@ const MoneyOnboardingView = () => {
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
+  const [isRiveLaidOut, setIsRiveLaidOut] = useState(false);
+  const [isRiveVisible, setIsRiveVisible] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(1);
 
@@ -577,6 +588,22 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToMoneyHome],
   );
 
+  const handleRiveLayout = useCallback(() => {
+    setIsRiveLaidOut(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isRiveLaidOut) {
+      return;
+    }
+
+    const animationFrameId = requestAnimationFrame(() => {
+      setIsRiveVisible(true);
+    });
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isRiveLaidOut]);
+
   return (
     <View style={styles.root}>
       {riveFile && instance && (
@@ -586,15 +613,17 @@ const MoneyOnboardingView = () => {
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBind={instance}
           autoPlay
-          fit={Fit.Layout}
+          fit={isRiveLaidOut ? Fit.Layout : Fit.Cover}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
-          style={StyleSheet.absoluteFill}
+          onLayout={handleRiveLayout}
+          style={[StyleSheet.absoluteFill, !isRiveVisible && styles.riveHidden]}
           testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
         />
       )}
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
+        isVisible={isRiveVisible}
         opacity={overlayOpacity}
       />
     </View>

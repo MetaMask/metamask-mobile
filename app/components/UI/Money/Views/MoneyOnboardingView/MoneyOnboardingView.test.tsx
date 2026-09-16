@@ -1,8 +1,13 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { Dimensions, StyleSheet } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
-import { RiveErrorType, type RiveError } from '@rive-app/react-native';
+import { Fit, RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -158,16 +163,19 @@ const mockWorklets = jest.requireMock(
 
 // Local wrapper around the global Nitro Rive mock so the RiveView `onError`
 // prop is observable; triggers/setters are driven via the global mock helpers.
-const mockRiveViewProps: {
-  current?: {
-    onError?: (error: RiveError) => void;
-  };
-} = {};
+interface MockRiveViewProps {
+  fit?: Fit;
+  onError?: (error: RiveError) => void;
+  onLayout?: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+const mockRiveViewProps: { current?: MockRiveViewProps } = {};
 
 jest.mock('@rive-app/react-native', () => {
   const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
-  const MockRiveView = (props: { onError?: (error: RiveError) => void }) => {
+  const MockRiveView = (props: MockRiveViewProps) => {
     mockRiveViewProps.current = props;
     return ReactActual.createElement(actual.RiveView, props);
   };
@@ -228,6 +236,12 @@ const completeOnboarding = async () => {
 };
 
 const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
+
+const triggerRiveLayout = () => {
+  act(() => {
+    mockRiveViewProps.current?.onLayout?.();
+  });
+};
 
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
@@ -325,6 +339,52 @@ describe('MoneyOnboardingView', () => {
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.style,
         ).fontSize,
       ).toBe(10);
+    });
+  });
+
+  describe('Rive initial layout', () => {
+    it('starts hidden with Cover fit before native layout', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(mockRiveViewProps.current?.fit).toBe(Fit.Cover);
+      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
+        0,
+      );
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+        ).opacity,
+      ).toBe(0);
+    });
+
+    it('switches to Layout fit after native layout while remaining hidden', () => {
+      renderMoneyOnboardingView();
+
+      triggerRiveLayout();
+
+      expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
+      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
+        0,
+      );
+    });
+
+    it('reveals Rive and overlay on the animation frame after layout', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      triggerRiveLayout();
+
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+
+      expect(
+        StyleSheet.flatten(mockRiveViewProps.current?.style).opacity,
+      ).toBeUndefined();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+        ).opacity,
+      ).toBe(1);
     });
   });
 
@@ -789,7 +849,7 @@ describe('MoneyOnboardingView', () => {
       expect(__getRivePropertySetter('apyAmountDigit')).toHaveBeenCalledWith(1);
     });
 
-    it('starts the overlay visible after Rive initializes', () => {
+    it('initializes overlay opacity for the initial step', () => {
       renderMoneyOnboardingView();
 
       expect(useSharedValue).toHaveBeenCalledWith(1);
