@@ -2,10 +2,16 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
+  Checkbox,
   IconName,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * Describes a single filter chip: its label, press handler, and the testID to
@@ -14,6 +20,12 @@ import {
 export interface FilterChipDescriptor {
   label: string;
   onPress: () => void;
+  testID: string;
+}
+
+export interface AggregatedToggleDescriptor {
+  isSelected: boolean;
+  onChange: (isSelected: boolean) => void;
   testID: string;
 }
 
@@ -27,6 +39,11 @@ export interface AssetListControlBarProps {
    * concern only.
    */
   secondaryChip?: FilterChipDescriptor | null;
+  /**
+   * Optional Aggregated checkbox shown on Perps Trades (and pinned with the
+   * chips). Omitted when the current type/sub-filter has no fill aggregation.
+   */
+  aggregatedToggle?: AggregatedToggleDescriptor | null;
   suppressTestIDs?: boolean;
 }
 
@@ -61,21 +78,40 @@ const FilterChip: React.FC<{
 const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   typeChip,
   secondaryChip,
+  aggregatedToggle,
   suppressTestIDs = false,
 }) => {
   const tw = useTailwind();
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('flex-row gap-2 px-4 pb-4')}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="pb-4"
     >
-      <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
-      {secondaryChip ? (
-        <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('flex-row gap-2 px-4')}
+        style={tw.style('flex-1')}
+      >
+        <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
+        {secondaryChip ? (
+          <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
+        ) : null}
+      </ScrollView>
+      {aggregatedToggle ? (
+        <Box twClassName="pr-4">
+          <Checkbox
+            label={strings('activity_view.aggregated')}
+            labelProps={{ variant: TextVariant.BodySm }}
+            isSelected={aggregatedToggle.isSelected}
+            onChange={aggregatedToggle.onChange}
+            testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
+          />
+        </Box>
       ) : null}
-    </ScrollView>
+    </Box>
   );
 };
 

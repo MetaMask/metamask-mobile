@@ -76,4 +76,52 @@ describe('usePerpsActivityQuery', () => {
       type: 'deposit',
     });
   });
+
+  it('aggregates same-second close fills by default and lists them separately when disabled', async () => {
+    const closeFill = (overrides: Record<string, unknown>) => ({
+      orderId: 'order-1',
+      symbol: 'BTC',
+      side: 'sell',
+      size: '0.1',
+      price: '90000',
+      pnl: '100',
+      direction: 'Close Long',
+      fee: '5',
+      feeToken: 'USDC',
+      timestamp: 1700000000000,
+      ...overrides,
+    });
+
+    controller.getOrderFills.mockResolvedValue([
+      closeFill({ orderId: 'fill-a', size: '0.1', pnl: '50' }),
+      closeFill({
+        orderId: 'fill-b',
+        size: '0.2',
+        pnl: '80',
+        timestamp: 1700000000500,
+      }),
+    ]);
+
+    const { result, rerender } = renderHook(
+      ({ aggregate }: { aggregate: boolean }) =>
+        usePerpsActivityQuery('eip155:42161:0xabc', true, aggregate),
+      { wrapper, initialProps: { aggregate: true } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    const aggregatedTrades = result.current.transactions.filter(
+      (transaction) => transaction.type === 'trade',
+    );
+    expect(aggregatedTrades).toHaveLength(1);
+
+    rerender({ aggregate: false });
+
+    const detailedTrades = result.current.transactions.filter(
+      (transaction) => transaction.type === 'trade',
+    );
+    expect(detailedTrades).toHaveLength(2);
+  });
 });

@@ -4,6 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ListItem,
   SectionHeader,
   TextColor,
@@ -30,17 +32,22 @@ import {
 } from '../../../../../core/Analytics/events/transactions';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
+import PerpsAggregatedFillsCheckbox from '../PerpsAggregatedFillsCheckbox';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
+  aggregateFills?: boolean;
+  onAggregateFillsChange?: (aggregateFills: boolean) => void;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  aggregateFills = true,
+  onAggregateFillsChange,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isTestnet = usePerpsNetwork() === 'testnet';
@@ -53,6 +60,31 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
       showBackButton: true,
     });
   }, [navigation]);
+
+  const renderSectionHeader = (isInteractive: boolean) => (
+    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+      <Box twClassName="flex-1">
+        {isInteractive ? (
+          <SectionHeader
+            title={activityTitle}
+            isInteractive
+            onPress={handleSeeAll}
+          />
+        ) : (
+          <SectionHeader title={activityTitle} />
+        )}
+      </Box>
+      {onAggregateFillsChange ? (
+        <Box twClassName="pr-4">
+          <PerpsAggregatedFillsCheckbox
+            isSelected={aggregateFills}
+            onChange={onAggregateFillsChange}
+            testID="perps-home-aggregated-checkbox"
+          />
+        </Box>
+      ) : null}
+    </Box>
+  );
 
   const handleTransactionPress = useCallback(
     (transaction: PerpsTransaction) => {
@@ -117,7 +149,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   if (isLoading) {
     return (
       <Box>
-        <SectionHeader title={activityTitle} />
+        {renderSectionHeader(false)}
         <PerpsRowSkeleton count={3} />
       </Box>
     );
@@ -129,11 +161,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   return (
     <Box>
-      <SectionHeader
-        title={activityTitle}
-        isInteractive
-        onPress={handleSeeAll}
-      />
+      {renderSectionHeader(true)}
       <FlatList
         data={transactions}
         renderItem={renderItem}

@@ -457,9 +457,31 @@ describeForPlatforms('ActivityScreen', () => {
     );
 
     await waitFor(() => {
+      expect(getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length)
+        .toBeGreaterThan(0);
+    });
+  });
+
+  it('shows the Aggregated checkbox on Perps Trades and hides it on Deposits', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderActivityScreenView();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(perpsOptionTestId(PerpsActivityFilter.Deposits)),
+    );
+
+    await waitFor(() => {
       expect(
-        getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length,
-      ).toBeGreaterThan(0);
+        queryByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeNull();
     });
   });
 

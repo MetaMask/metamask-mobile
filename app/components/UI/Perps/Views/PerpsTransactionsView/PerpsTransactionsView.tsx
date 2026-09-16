@@ -22,6 +22,9 @@ import {
   TextVariant,
   TextColor,
   ButtonSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
@@ -61,6 +64,7 @@ import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import PerpsAggregatedFillsCheckbox from '../../components/PerpsAggregatedFillsCheckbox';
 
 const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,6 +72,7 @@ const PerpsTransactionsView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
+  const [aggregateFills, setAggregateFills] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isFocusRefreshing, setIsFocusRefreshing] = useState(false);
 
@@ -100,6 +105,7 @@ const PerpsTransactionsView: React.FC = () => {
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
     accountId,
+    aggregateFills,
   });
 
   // Helper function to group transactions by date
@@ -415,6 +421,33 @@ const PerpsTransactionsView: React.FC = () => {
 
   const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
+  const renderFilterBar = () => (
+    <View style={styles.filterContainer} pointerEvents="box-none">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('flex-row gap-2')}
+          pointerEvents="auto"
+          scrollEnabled
+          style={tw.style('flex-1')}
+        >
+          {filterTabs.map(renderFilterTab)}
+        </ScrollView>
+        {activeFilter === 'Trades' ? (
+          <PerpsAggregatedFillsCheckbox
+            isSelected={aggregateFills}
+            onChange={setAggregateFills}
+            testID={PerpsTransactionsViewSelectorsIDs.AGGREGATED_CHECKBOX}
+          />
+        ) : null}
+      </Box>
+    </View>
+  );
+
   const filterTabDescription = useMemo(() => {
     if (activeFilter === 'Funding') {
       return strings('perps.transactions.tabs.funding_description');
@@ -460,17 +493,7 @@ const PerpsTransactionsView: React.FC = () => {
   if (isInitialLoading) {
     return (
       <View style={styles.container}>
-        <View style={styles.filterContainer} pointerEvents="box-none">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-2')}
-            pointerEvents="auto"
-            scrollEnabled={false}
-          >
-            {filterTabs.map(renderFilterTab)}
-          </ScrollView>
-        </View>
+        {renderFilterBar()}
 
         {filterTabDescription && (
           <View style={styles.tabDescription}>
@@ -485,17 +508,7 @@ const PerpsTransactionsView: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterContainer} pointerEvents="box-none">
-        <ScrollView
-          horizontal
-          contentContainerStyle={tw.style('flex-row gap-2')}
-          showsHorizontalScrollIndicator={false}
-          pointerEvents="auto"
-          scrollEnabled
-        >
-          {filterTabs.map(renderFilterTab)}
-        </ScrollView>
-      </View>
+      {renderFilterBar()}
 
       {filterTabDescription && (
         <View style={styles.tabDescription}>
