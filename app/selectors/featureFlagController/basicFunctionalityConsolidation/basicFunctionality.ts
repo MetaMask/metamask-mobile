@@ -10,6 +10,7 @@ import {
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 import { selectOnboardingAccountType } from '../../onboarding';
+import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
 import {
   BFT_CHILD_PREFERENCES,
   isBasicFunctionalitySocialLoginUser,
@@ -45,7 +46,14 @@ type BftChildPreferenceValues = Record<BftChildPreference, boolean>;
  */
 export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  selectBasicFunctionalityEnabled,
+  (remoteFeatureFlags, basicFunctionalityEnabled) => {
+    // Remote flags are unreachable while Basic Functionality is off, so the
+    // build flag carries the rollout for those wallets.
+    if (!basicFunctionalityEnabled) {
+      return isBftcConsolidationBuildEnabled();
+    }
+
     const remoteFlag = remoteFeatureFlags?.[
       MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME
     ] as unknown as VersionGatedFeatureFlag;
