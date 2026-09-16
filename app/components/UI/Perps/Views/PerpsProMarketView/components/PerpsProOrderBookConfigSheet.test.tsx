@@ -227,7 +227,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
     );
   });
 
-  it('outlines FilterButtons per the design for each state', () => {
+  it('outlines only the unselected FilterButtons', () => {
     const { getByTestId } = renderSheet({ currency: 'base' });
 
     const selectedStyle = StyleSheet.flatten(
@@ -240,8 +240,8 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(unselectedStyle.borderWidth).toBe(1);
     expect(unselectedStyle.borderColor).toBe(mockTheme.colors.border.muted);
 
-    expect(selectedStyle.borderWidth).toBe(1);
-    expect(selectedStyle.borderColor).toBe(mockTheme.colors.border.default);
+    // Selected is a muted fill only — no visible outline.
+    expect(selectedStyle.borderColor).toBe('transparent');
     expect(selectedStyle.backgroundColor).toBeTruthy();
   });
 

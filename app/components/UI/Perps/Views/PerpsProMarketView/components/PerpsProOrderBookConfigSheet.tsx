@@ -111,9 +111,7 @@ const OptionFilterButton = ({
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
     textProps={{ variant: TextVariant.BodySm }}
-    twClassName={`flex-1 rounded-xl border ${
-      isSelected ? 'border-default' : 'border-muted'
-    }`}
+    twClassName={`flex-1 rounded-xl ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
     {label}
