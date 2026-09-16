@@ -669,6 +669,7 @@ describe('HardwareWalletProvider', () => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Qr,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
         createdLedgerAdapters.length = 0;
@@ -1548,6 +1549,7 @@ describe('HardwareWalletProvider', () => {
         expect(mockCreateAdapter).toHaveBeenCalledWith(
           HardwareWalletType.Qr,
           expect.any(Object),
+          expect.any(Boolean),
         );
       });
       createdLedgerAdapters.length = 0;
