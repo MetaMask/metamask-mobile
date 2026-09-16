@@ -186,15 +186,21 @@ describe('PerpsProOrderBookConfigSheet', () => {
     );
   });
 
-  it('renders the FilterButton chips at the design size', () => {
+  it('renders the FilterButton chips at the design size and radius', () => {
     const { getByTestId } = renderSheet();
 
-    const chipHeight = (id: string) =>
-      StyleSheet.flatten(getByTestId(id).props.style).height;
+    const chipStyle = (id: string) =>
+      StyleSheet.flatten(getByTestId(id).props.style);
 
-    expect(chipHeight('config-sheet-currency-base')).toBe(40);
-    expect(chipHeight('config-sheet-metric-size')).toBe(40);
-    expect(chipHeight('config-sheet-grouping-1')).toBe(40);
+    for (const id of [
+      'config-sheet-currency-base',
+      'config-sheet-currency-usd',
+      'config-sheet-metric-size',
+      'config-sheet-grouping-1',
+    ]) {
+      expect(chipStyle(id).height).toBe(40);
+      expect(chipStyle(id).borderRadius).toBe(12);
+    }
   });
 
   it('renders unselected FilterButtons with a muted 1px outline', () => {

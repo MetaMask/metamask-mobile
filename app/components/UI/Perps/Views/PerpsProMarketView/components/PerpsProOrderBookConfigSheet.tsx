@@ -91,7 +91,13 @@ interface OptionFilterButtonProps {
   testID: string;
 }
 
-/** `FilterButton` never sets `accessibilityState`, so it is passed here. */
+/**
+ * `FilterButton` never sets `accessibilityState`, so it is passed here.
+ *
+ * `rounded-xl` pins the 12px radius the design specifies. MMDS 0.47.0 turned
+ * `ButtonBase` into a full pill, so without this override the chips render
+ * fully rounded.
+ */
 const OptionFilterButton = ({
   label,
   isSelected,
@@ -104,7 +110,7 @@ const OptionFilterButton = ({
     size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
-    twClassName={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
+    twClassName={`flex-1 rounded-xl ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
     {label}
