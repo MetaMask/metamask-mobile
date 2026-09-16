@@ -5804,7 +5804,6 @@
       "only_numbers_allowed": "Chỉ được phép nhập số",
       "negative_values_not_allowed": "Không được phép sử dụng giá trị âm",
       "max_base_fee_must_be_greater_than_priority_fee": "Phí cơ sở tối đa phải lớn hơn phí ưu tiên",
-      "gas_limit_too_high": "Hạn mức gas vượt quá giá trị tối đa được hỗ trợ",
       "priority_fee_too_high": "Phí ưu tiên phải nhỏ hơn phí cơ sở tối đa",
       "no_zero_value": "{{field}} phải lớn hơn 0",
       "speed": "Tốc độ",

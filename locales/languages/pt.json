@@ -5804,7 +5804,6 @@
       "only_numbers_allowed": "Somente números são permitidos",
       "negative_values_not_allowed": "Valores negativos não são permitidos",
       "max_base_fee_must_be_greater_than_priority_fee": "A taxa-base máxima deve ser maior que a taxa de prioridade",
-      "gas_limit_too_high": "O limite de gás excede o valor máximo suportado",
       "priority_fee_too_high": "A taxa de prioridade deve ser inferior à taxa-base máxima",
       "no_zero_value": "{{field}} deve ser maior que 0",
       "speed": "Velocidade",
