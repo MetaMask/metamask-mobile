@@ -24,7 +24,12 @@ import { useLatestBalance } from '../useLatestBalance';
 import { useSourceAmountInput } from '../useSourceAmountInput';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
+import {
+  getDefaultTokenPairForChains,
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
+import { areAddressesEqual } from '../../../../../util/address';
 
 interface UseLimitOrderSwapInputsOptions {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -73,6 +78,28 @@ export const useLimitOrderSwapInputs = ({
       dispatch(setDestToken(defaultPair.destToken));
     }
   }, [enabledChainIds, dispatch]);
+
+  useEffect(() => {
+    if (!sourceToken?.chainId || !destToken?.chainId) {
+      return;
+    }
+    const sourceChainCaip = formatChainIdToCaip(sourceToken.chainId);
+    const destChainCaip = formatChainIdToCaip(destToken.chainId);
+    if (sourceChainCaip === destChainCaip) {
+      return;
+    }
+    // Limit orders don't support cross-chain trades, so a stale
+    // cross-chain dest must always be corrected, even if the user
+    // manually picked it earlier on the previous source chain.
+    const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+    const nativeToken = getNativeSourceToken(sourceToken.chainId);
+    const nextDestToken =
+      defaultDestToken &&
+      !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+        ? defaultDestToken
+        : nativeToken;
+    dispatch(setDestToken(nextDestToken));
+  }, [sourceToken, destToken, dispatch]);
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {

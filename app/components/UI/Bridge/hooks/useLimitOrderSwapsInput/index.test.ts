@@ -12,7 +12,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bridge/featureFlags';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
 import { createMockToken } from '../../testUtils/fixtures';
 import { TokenSelectorType, type BridgeToken } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -233,12 +236,12 @@ describe('useLimitOrderSwapInputs', () => {
       expect(result.current.isSourceNetworkGasSponsored).toBe(true);
     });
 
-    it('is true when only the source chain is sponsored and the destination is on another chain', () => {
+    it('is true when only the source chain is sponsored and the destination is on the same chain', () => {
       // Sponsorship is read from the source chain alone: limit orders no longer
       // request a quote, so there is no single-chain quote to qualify.
       const sourceToken = createMockToken({ chainId: '0x279f' });
       const destToken = createMockToken({
-        chainId: '0x1',
+        chainId: '0x279f',
         address: '0xdest',
       });
 
@@ -423,5 +426,113 @@ describe('useLimitOrderSwapInputs', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setSourceToken(expect.anything()),
     );
+  });
+
+  describe('cross-chain destination token correction', () => {
+    const mUsdToken = createMockToken({
+      chainId: '0x1',
+      symbol: 'mUSD',
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    });
+
+    it('resets dest token to the source chain default when source and dest chains differ', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'mUSD',
+            chainId: '0x1',
+          }),
+        ),
+      );
+    });
+
+    it('resets dest token when source network changes to a different chain than dest', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:56');
+
+      rerender();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'USDT',
+            chainId: '0x38',
+          }),
+        ),
+      );
+    });
+
+    it('does not dispatch dest correction when source and dest remain on the same chain', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      selectorState.sourceToken = createMockToken({
+        chainId: '0x1',
+        symbol: 'USDC',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      });
+
+      rerender();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setDestToken(expect.anything()),
+      );
+    });
+
+    it('falls back to native token when source token matches the default dest token', () => {
+      const selectorState: SelectorState = {
+        sourceToken: mUsdToken,
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(getNativeSourceToken('eip155:1')),
+      );
+    });
+
+    it('uses the new source chain default after a cross-chain source network change', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:56'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+
+      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(getDefaultDestToken('0x38')),
+      );
+    });
   });
 });
