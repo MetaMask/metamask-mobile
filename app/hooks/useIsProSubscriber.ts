@@ -1,25 +1,17 @@
-import { useSelector } from 'react-redux';
 import {
-  selectHasAnyMoneyAccountPlusEntitlement,
-  selectIsMoneyAccountPlusSubscriber,
-} from '../selectors/subscriptionController';
-import { useResolveMoneyAccountPlusEntitlements } from './useResolveMoneyAccountPlusEntitlements';
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from './useMoneyAccountPlusAccess';
 
 /**
- * Returns whether the user currently has MetaMask Pro (Money Account Plus)
- * access, as reported by the SubscriptionController.
+ * Returns whether the user may see subscriber-only Pro chrome.
  *
- * True for an active subscriber (`active`, `trialing`, `provisional`) and for
- * a user who still holds at least one Plus entitlement (grace / `past_due`).
- *
- * Mounting this hook also resolves entitlements for the session — see
- * {@link useResolveMoneyAccountPlusEntitlements}.
+ * True only when {@link useMoneyAccountPlusAccess} reports
+ * {@link MoneyAccountPlusAccess.Subscriber}. While entitlements are still
+ * resolving (`Loading`), or when the user is `Eligible` or `Disabled`, this
+ * is false so the Money CTA cannot flash Pro or open the hub from a stale
+ * persisted claim.
  */
 export function useIsProSubscriber(): boolean {
-  useResolveMoneyAccountPlusEntitlements();
-
-  const isSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
-  const hasEntitlement = useSelector(selectHasAnyMoneyAccountPlusEntitlement);
-
-  return isSubscriber || hasEntitlement;
+  return useMoneyAccountPlusAccess() === MoneyAccountPlusAccess.Subscriber;
 }

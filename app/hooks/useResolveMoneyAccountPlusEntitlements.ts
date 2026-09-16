@@ -12,10 +12,9 @@ import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 /**
  * Resolves Money Account Plus entitlements for the current session.
  *
- * Mounted from Money (via `useIsProSubscriber`) so the header CTA can react
- * to subscribe, cancel, and account switches without the Pro screens having
- * to be open. Also mounted from `useMoneyAccountPlusAccess` so those screens
- * never render against an unresolved store.
+ * Mounted from `useMoneyAccountPlusAccess` (and thus from Money via
+ * `useIsProSubscriber`) so the header CTA and Pro screens resolve
+ * entitlements without those screens having to be open.
  */
 export function useResolveMoneyAccountPlusEntitlements(): void {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();

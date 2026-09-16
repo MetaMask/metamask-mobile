@@ -1,24 +1,16 @@
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { useIsProSubscriber } from './useIsProSubscriber';
 import {
-  selectHasAnyMoneyAccountPlusEntitlement,
-  selectIsMoneyAccountPlusSubscriber,
-} from '../selectors/subscriptionController';
-import { useResolveMoneyAccountPlusEntitlements } from './useResolveMoneyAccountPlusEntitlements';
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from './useMoneyAccountPlusAccess';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+jest.mock('./useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('./useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: jest.fn(),
 }));
 
-jest.mock('./useResolveMoneyAccountPlusEntitlements', () => ({
-  useResolveMoneyAccountPlusEntitlements: jest.fn(),
-}));
-
-const mockUseSelector = jest.mocked(useSelector);
-const mockUseResolveMoneyAccountPlusEntitlements = jest.mocked(
-  useResolveMoneyAccountPlusEntitlements,
-);
+const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
 
 describe('useIsProSubscriber', () => {
   beforeEach(() => {
@@ -27,43 +19,28 @@ describe('useIsProSubscriber', () => {
 
   it.each([
     {
-      isSubscriber: true,
-      hasEntitlement: false,
+      access: MoneyAccountPlusAccess.Subscriber,
       expected: true,
     },
     {
-      isSubscriber: false,
-      hasEntitlement: true,
-      expected: true,
+      access: MoneyAccountPlusAccess.Loading,
+      expected: false,
     },
     {
-      isSubscriber: true,
-      hasEntitlement: true,
-      expected: true,
+      access: MoneyAccountPlusAccess.Eligible,
+      expected: false,
     },
     {
-      isSubscriber: false,
-      hasEntitlement: false,
+      access: MoneyAccountPlusAccess.Disabled,
       expected: false,
     },
   ])(
-    'returns $expected when subscriber is $isSubscriber and entitlement is $hasEntitlement',
-    ({ isSubscriber, hasEntitlement, expected }) => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsMoneyAccountPlusSubscriber) {
-          return isSubscriber;
-        }
-        if (selector === selectHasAnyMoneyAccountPlusEntitlement) {
-          return hasEntitlement;
-        }
-        return undefined;
-      });
+    'returns $expected when Plus access is $access',
+    ({ access, expected }) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(access);
 
       const { result } = renderHook(() => useIsProSubscriber());
 
-      expect(mockUseResolveMoneyAccountPlusEntitlements).toHaveBeenCalledTimes(
-        1,
-      );
       expect(result.current).toBe(expected);
     },
   );
