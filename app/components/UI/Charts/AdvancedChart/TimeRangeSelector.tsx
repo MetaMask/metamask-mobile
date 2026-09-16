@@ -122,17 +122,30 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             value={selected}
             onChange={(value) => onSelect(value as TimeRange)}
             variant={FilterButtonVariant.Primary}
-            twClassName="flex-1"
+            style={{ flex: 1 }}
           >
-            {ranges.map((range) => (
-              <FilterButton
-                key={range}
-                value={range}
-                size={FilterButtonSize.Sm}
-              >
-                {range}
-              </FilterButton>
-            ))}
+            {ranges.map((range) => {
+              const isSelected = selected === range;
+              return (
+                <FilterButton
+                  key={range}
+                  value={range}
+                  size={FilterButtonSize.Sm}
+                  style={
+                    isSelected && selectedColor
+                      ? { backgroundColor: selectedColor }
+                      : undefined
+                  }
+                  textProps={
+                    !isSelected && selectedColor
+                      ? { style: { color: selectedColor } }
+                      : undefined
+                  }
+                >
+                  {range}
+                </FilterButton>
+              );
+            })}
           </FilterButtonGroup>
           {onChartTypeToggle ? (
             <Pressable

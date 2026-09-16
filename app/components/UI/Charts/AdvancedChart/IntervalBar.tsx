@@ -37,7 +37,8 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
         value={normalised}
         onChange={(value) => onIntervalSelect?.(value.toUpperCase())}
         variant={FilterButtonVariant.Primary}
-        twClassName="flex-1 gap-1"
+        twClassName="gap-1"
+        style={{ flex: 1 }}
       >
         {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval) => (
           <FilterButton
