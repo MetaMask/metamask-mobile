@@ -10,8 +10,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  FilterButton,
-  FilterButtonGroup,
   HeaderStandard,
   IconName,
   Text,
@@ -31,6 +29,7 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
+import PredictChipList from '../../components/PredictChipList';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
 import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
@@ -410,17 +409,12 @@ const PredictFeedView: React.FC = () => {
             twClassName={showTabBar ? 'pt-4 pb-3' : 'pb-3'}
             testID={PredictFeedViewSelectorsIDs.FILTERS}
           >
-            <FilterButtonGroup
-              value={activeFilterId ?? ''}
-              onChange={handleFilterSelect}
-              twClassName="px-4 gap-2"
-            >
-              {chips.map((chip) => (
-                <FilterButton key={chip.key} value={chip.key}>
-                  {chip.label}
-                </FilterButton>
-              ))}
-            </FilterButtonGroup>
+            <PredictChipList
+              chips={chips}
+              activeChipKey={activeFilterId}
+              onChipSelect={handleFilterSelect}
+              containerTwClassName="pt-0 pb-0"
+            />
           </Box>
         )}
 
