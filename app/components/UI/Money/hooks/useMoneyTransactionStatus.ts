@@ -17,7 +17,10 @@ import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { isHardwareAccount, renderShortAddress } from '../../../../util/address';
+import {
+  isHardwareAccount,
+  renderShortAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   TOAST_TRACKING_CLEANUP_DELAY_MS,
@@ -125,8 +128,9 @@ function getTransactionPayData(transactionId: string) {
 function getPayingAccountAddress(
   transactionMeta: TransactionMeta,
 ): string | undefined {
-  const accountOverride = getTransactionPayData(transactionMeta.id)
-    ?.accountOverride;
+  const accountOverride = getTransactionPayData(
+    transactionMeta.id,
+  )?.accountOverride;
   return (
     (accountOverride as string | undefined) ??
     (transactionMeta.txParams?.from as string | undefined)
@@ -265,6 +269,8 @@ export const useMoneyTransactionStatus = () => {
       scheduleInProgressToast(transactionMeta);
     };
 
+    // Any status update may complete signing for a waiting deposit: a funding
+    // leg reaching `signed`, or the parent itself advancing past `approved`.
     const maybeScheduleDeferredHardwareInProgress = (
       transactionMeta: TransactionMeta,
     ) => {
@@ -275,19 +281,7 @@ export const useMoneyTransactionStatus = () => {
         const parentMeta =
           latestTransactionMeta(parentId) ??
           (transactionMeta.id === parentId ? transactionMeta : undefined);
-        if (!parentMeta) {
-          continue;
-        }
-        const requiredIds = parentMeta.requiredTransactionIds ?? [];
-        const isFundingUpdate = requiredIds.includes(transactionMeta.id);
-        if (
-          transactionMeta.id !== parentId &&
-          !isFundingUpdate &&
-          !isHardwareDepositSigningComplete(parentMeta)
-        ) {
-          continue;
-        }
-        if (isHardwareDepositSigningComplete(parentMeta)) {
+        if (parentMeta && isHardwareDepositSigningComplete(parentMeta)) {
           scheduleInProgressToast(parentMeta);
         }
       }
@@ -318,11 +312,14 @@ export const useMoneyTransactionStatus = () => {
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
       // The in-progress toast has no timeout and is normally dismissed by the
       // final toast replacing it. It has actually been displayed only if its
-      // key was reserved and its deferral timer already fired.
+      // key was reserved, it is not still waiting on hardware signing, and its
+      // deferral timer already fired.
       const inProgressToastDisplayed =
         shownToastsRef.current.has(
           `${transactionMeta.id}-${IN_PROGRESS_KEY}`,
-        ) && !pendingInProgress.has(transactionMeta.id);
+        ) &&
+        !waitingForHardwareSigning.has(transactionMeta.id) &&
+        !pendingInProgress.has(transactionMeta.id);
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
       const onPress = () =>

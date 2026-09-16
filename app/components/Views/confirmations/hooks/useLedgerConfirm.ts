@@ -7,7 +7,10 @@ import {
 import Engine from '../../../../core/Engine';
 import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
 import { type TransactionMeta } from '@metamask/transaction-controller';
-import { haveRequiredTransactionsBeenSigned } from '../utils/batch-signing';
+import {
+  getRequiredTransactionIds,
+  haveRequiredTransactionsBeenSigned,
+} from '../utils/batch-signing';
 
 interface UseLedgerConfirmOptions {
   fromAddress: string;
@@ -21,14 +24,6 @@ interface UseLedgerConfirmOptions {
   isTransactionReq: boolean;
   /** Parent transaction whose `requiredTransactionIds` are batch funding legs. */
   transactionId?: string;
-}
-
-function getRequiredTransactionIds(transactionId: string): string[] {
-  return (
-    Engine.controllerMessenger.call('TransactionController:getState')
-      .transactions.find((transaction) => transaction.id === transactionId)
-      ?.requiredTransactionIds ?? []
-  );
 }
 
 /**

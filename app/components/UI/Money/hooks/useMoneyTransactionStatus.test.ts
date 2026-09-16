@@ -1786,6 +1786,195 @@ describe('useMoneyTransactionStatus', () => {
     });
   });
 
+  describe('hardware payer deferral', () => {
+    const parentId = 'hw-parent';
+    const legA = 'hw-leg-a';
+    const legB = 'hw-leg-b';
+
+    const seedHardwareDeposit = (
+      requiredTransactionIds: string[],
+      overrides: Partial<TransactionMeta> = {},
+    ) => {
+      (isHardwareAccount as jest.Mock).mockImplementation(
+        (address: string) => address === '0xLedger',
+      );
+      const parent = buildTxMeta({
+        id: parentId,
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+        requiredTransactionIds,
+        txParams: {
+          from: '0xMoneyAccount',
+          data: encodeDepositData(BigInt(1)),
+        },
+        ...overrides,
+      });
+      mockControllerTransactions.push(parent);
+      mockTransactionPayData[parentId] = {
+        accountOverride: '0xLedger',
+        quotes: [{}],
+      };
+      return parent;
+    };
+
+    const seedLeg = (id: string, batchId?: string) => {
+      const leg = buildTxMeta({
+        id,
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.unapproved,
+        batchId,
+        txParams: { from: '0xLedger', data: '0x' },
+      });
+      mockControllerTransactions.push(leg);
+      return leg;
+    };
+
+    it('shows nothing when the deposit is rejected on the device, even if a leg later signs', () => {
+      const parent = seedHardwareDeposit([legA]);
+      const leg = seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      statusUpdatedHandler({
+        transactionMeta: { ...parent, status: TransactionStatus.rejected },
+      });
+      leg.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: leg });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('shows only the failed toast when the deposit fails before signing completes', () => {
+      const parent = seedHardwareDeposit([legA]);
+      seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      statusUpdatedHandler({
+        transactionMeta: { ...parent, status: TransactionStatus.failed },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for every leg of a batch before showing in-progress', () => {
+      const parent = seedHardwareDeposit([legA, legB]);
+      const first = seedLeg(legA, '0xbatch');
+      const second = seedLeg(legB, '0xbatch');
+      mockBatchTransactionCounts['0xbatch'] = 2;
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      first.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: first });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      second.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: second });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores status updates from unrelated transactions while waiting', () => {
+      const parent = seedHardwareDeposit([legA]);
+      seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'unrelated',
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.signed,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+    });
+
+    it('schedules the toast once, even when several signed events arrive', () => {
+      const parent = seedHardwareDeposit([legA]);
+      const leg = seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      leg.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: leg });
+      leg.status = TransactionStatus.submitted;
+      statusUpdatedHandler({ transactionMeta: leg });
+      parent.status = TransactionStatus.submitted;
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not defer a hardware-funded Money withdrawal', () => {
+      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'hw-withdraw',
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.approved,
+          txParams: { from: '0xLedger', data: '0x' },
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not defer when the paying account resolves to a software account', () => {
+      (isHardwareAccount as jest.Mock).mockImplementation(
+        (address: string) => address === '0xLedger',
+      );
+      mockTransactionPayData['sw-parent'] = { accountOverride: '0xSoftware' };
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'sw-parent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close a toast that was never shown when a first deposit confirms while waiting', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(true);
+      const parent = seedHardwareDeposit([legA]);
+      seedLeg(legA);
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      confirmedHandler({ ...parent, status: TransactionStatus.confirmed });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(mockCloseToast).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositSuccessFn).not.toHaveBeenCalled();
+    });
+  });
+
   describe('deferred in-progress', () => {
     it('does not show in-progress when transaction confirms before the delay elapses', () => {
       const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();

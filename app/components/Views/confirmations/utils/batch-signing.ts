@@ -9,7 +9,7 @@ function getTransactionControllerState() {
   return Engine.controllerMessenger.call('TransactionController:getState');
 }
 
-function getRequiredTransactionIds(transactionId: string): string[] {
+export function getRequiredTransactionIds(transactionId: string): string[] {
   return (
     getTransactionControllerState().transactions.find(
       (transaction) => transaction.id === transactionId,
