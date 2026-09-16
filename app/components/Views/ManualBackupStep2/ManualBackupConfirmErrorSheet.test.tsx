@@ -22,7 +22,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           testID?: string;
           onClose?: () => void;
         },
-        ref,
+        ref: React.ForwardedRef<unknown>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
           onOpenBottomSheet: (callback?: () => void) => {
