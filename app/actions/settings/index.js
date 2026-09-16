@@ -135,8 +135,10 @@ export function consolidateBasicFunctionality() {
     );
 
     syncConsolidatedBasicFunctionalityPreferences(landingState);
-    dispatch(setBasicFunctionality(landingState));
+    // Persist cohort membership before flipping BF so mixed/social wallets that
+    // land ON keep the build-flag rollout instead of briefly reading LD as off.
     dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    dispatch(setBasicFunctionality(landingState));
     dispatch(
       setBasicFunctionalityMigrationNotification(
         state.settings?.basicFunctionalityMigrationNotificationDismissed
