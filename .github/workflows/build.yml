@@ -611,8 +611,19 @@ jobs:
                 find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
               fi
             fi
-            export NODE_OPTIONS='--max-old-space-size=4096'
-            export METRO_MAX_WORKERS='4'
+            # Each Metro transform worker on this codebase grows to a ~7GB working
+            # set and holds it (measured locally with --trace-gc). Two consequences:
+            #   1. A 4096 cap sits below that, so every worker pins at the ceiling,
+            #      GC utilisation collapses, and serialization dies without ever
+            #      writing a bundle. That is the 8.11.0 stall.
+            #   2. NODE_OPTIONS is inherited by every worker, so peak demand is
+            #      workers x heap. 6 workers x 8GB exceeds both runners and forces
+            #      swapping, which costs far more than the lost parallelism.
+            # Runners are 28GB (iOS) / 32GB (Android); keep workers low enough that
+            # workers x heap still leaves room for clang/Gradle running alongside.
+            # Do not put --trace-gc here: Node rejects it in NODE_OPTIONS.
+            export NODE_OPTIONS='--max-old-space-size=8192'
+            export METRO_MAX_WORKERS='2'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
