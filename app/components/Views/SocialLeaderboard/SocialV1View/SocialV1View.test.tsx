@@ -9,12 +9,19 @@ import { SOCIAL_V1_AB_KEY } from './abTestConfig';
 import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
+import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
-const mockUseMyProfile = jest.fn(() => ({ profile: undefined }));
+const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
+const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
+  profile: null,
+  isLoading: false,
+  error: null,
+  refresh: mockRefreshMyProfile,
+}));
 let mockRouteParams: { showNotificationsBanner?: boolean } = {};
 
 jest.mock('../MyProfileView/hooks', () => ({
@@ -143,7 +150,12 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
-    mockUseMyProfile.mockReturnValue({ profile: undefined });
+    mockUseMyProfile.mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshMyProfile,
+    });
   });
 
   it('renders Trending, Following, Leaderboard, and Live trades tabs', () => {
@@ -209,10 +221,9 @@ describe('SocialV1View', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
   });
 
-  it('keeps the remaining placeholder header actions inactive', () => {
+  it('keeps the placeholder header add action inactive', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.HEART_BUTTON));
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -357,7 +368,16 @@ describe('SocialV1View', () => {
 
   it('uses the profile image URL for the header avatar when available', () => {
     mockUseMyProfile.mockReturnValue({
-      profile: { imageUrl: 'https://example.com/avatar.png' },
+      profile: {
+        profileId: 'current-user',
+        displayName: 'Test User',
+        handle: 'test-user',
+        imageUrl: 'https://example.com/avatar.png',
+        shareUrl: 'https://metamask.io/social/test-user',
+      },
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshMyProfile,
     });
 
     renderWithProvider(<SocialV1View />);
