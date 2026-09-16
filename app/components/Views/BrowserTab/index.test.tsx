@@ -1297,6 +1297,42 @@ describe('BrowserTab', () => {
       expect(previousBridge?.onDisconnect).not.toHaveBeenCalled();
     });
 
+    it('keeps the bridge and forwards provider messages when onLoadStart is a blank remount URL', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+
+      const previousBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(previousBridge).toBeDefined();
+      previousBridge?.onDisconnect.mockClear();
+      previousBridge?.onMessage.mockClear();
+
+      await startLoad(webView, 'about:blank');
+
+      expect(previousBridge?.onDisconnect).not.toHaveBeenCalled();
+
+      const onMessage = webView.props.onMessage as (event: {
+        nativeEvent: { data: string };
+      }) => void;
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            name: 'metamask-provider',
+            data: { method: 'eth_accounts', params: [] },
+          }),
+        },
+      });
+
+      expect(previousBridge?.onMessage).toHaveBeenCalledTimes(1);
+    });
+
     it('disconnects the bridge on cross-origin backforward before document-URL commit and rebuilds after resolution', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,

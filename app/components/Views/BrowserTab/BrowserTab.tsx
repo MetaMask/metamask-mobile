@@ -125,6 +125,7 @@ import {
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
+  isHttpPageUrl,
   resolveCommittedDocumentUrl,
 } from './utils';
 import { getURLProtocol } from '../../../util/general';
@@ -234,6 +235,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
     // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
     const loadingUrlRef = useRef('');
+    const loadStartIdRef = useRef(0);
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
     const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
@@ -699,6 +701,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
+        let hostname: string;
+        try {
+          hostname = new URL(urlBridge).origin;
+        } catch {
+          return;
+        }
+        if (!hostname || hostname === 'null') {
+          return;
+        }
+
         teardownBackgroundBridge();
 
         //@ts-expect-error - We should type bacgkround bridge js file
@@ -711,7 +723,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             getProviderState: () => void;
           }) =>
             getRpcMethodMiddleware({
-              hostname: new URL(urlBridge).origin,
+              hostname,
               getProviderState,
               navigation,
               // Website info
@@ -1217,7 +1229,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             // before commit.
             const bridgeUrl = backgroundBridgeRef.current?.url;
             if (
-              loadingUrlRef.current &&
+              isHttpPageUrl(loadingUrlRef.current) &&
               bridgeUrl &&
               !isSameOrigin(loadingUrlRef.current, bridgeUrl)
             ) {
@@ -1242,11 +1254,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onLoadStart = useCallback(
       async ({ nativeEvent }: WebViewNavigationEvent) => {
+        const loadStartId = loadStartIdRef.current + 1;
+        loadStartIdRef.current = loadStartId;
         loadingUrlRef.current = nativeEvent.url;
 
-        // Disconnect the previous-origin bridge on cross-origin navigation
-        // start. Same-origin navigations keep it.
+        // Use URL to produce real url. This should be the actual website that the user is viewing.
+        const { origin: urlOrigin } = new URLParse(nativeEvent.url);
+        const canBindProvider = isHttpPageUrl(nativeEvent.url);
+
+        // Disconnect the previous-origin bridge on cross-origin http(s)
+        // navigation start. Same-origin navigations keep it. Blank loads
+        // from a WebView remount must not disconnect the live provider.
         if (
+          canBindProvider &&
           backgroundBridgeRef.current &&
           resolvedUrlRef.current &&
           !isSameOrigin(nativeEvent.url, resolvedUrlRef.current)
@@ -1254,22 +1274,24 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           teardownBackgroundBridge();
         }
 
-        // Use URL to produce real url. This should be the actual website that the user is viewing.
-        const { origin: urlOrigin } = new URLParse(nativeEvent.url);
-
         // Cancel loading the page if we detect its a phishing page.
         // Pass the full URL (including path) so the scanner can evaluate it,
         // not just the origin.
         const isAllowed = await isAllowedUrl(nativeEvent.url);
+        if (loadStartId !== loadStartIdRef.current) {
+          return false;
+        }
         if (!isAllowed) {
-          handleNotAllowedUrl(urlOrigin);
+          if (canBindProvider) {
+            handleNotAllowedUrl(urlOrigin);
+          }
           return false;
         }
 
         // Bind the destination-origin bridge as soon as the load is allowed
         // so the incoming page can use the provider before commit. Skip when
         // the current bridge already matches this origin (same-origin loads).
-        if (urlOrigin) {
+        if (canBindProvider && urlOrigin) {
           const existingBridge = backgroundBridgeRef.current;
           if (!existingBridge || !isSameOrigin(existingBridge.url, urlOrigin)) {
             initializeBackgroundBridge(urlOrigin, true);
@@ -1682,8 +1704,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
 
           // Disconnect the previous-origin bridge before the document-URL
-          // handshake when back/forward lands on a different origin.
+          // handshake when back/forward lands on a different http(s) origin.
           if (
+            isHttpPageUrl(url) &&
             backgroundBridgeRef.current &&
             resolvedUrlRef.current &&
             !isSameOrigin(url, resolvedUrlRef.current)
