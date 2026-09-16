@@ -109,23 +109,3 @@ If a future conversion bypasses the shared analytics wrappers, wire its
 assignment explicitly according to [`docs/ab-testing.md`](../ab-testing.md)
 when that flow is added. Do not add speculative custom-tracker APIs to this
 shared hook, and do not add new `ab_tests` payloads.
-
-## Perps section priority (`perpsTAT3597AbtestPerpsSectionPriority`)
-
-Places the Perps section above Tokens on wallet home for users judged to be active Perps traders. Config lives in `app/components/Views/Homepage/abTestConfig.ts`, not the Perps directory, because the experiment is owned by the homepage layout.
-
-### Analysis plan
-
-**The primary readout is intent to treat.** `Experiment Viewed` fires for every assigned user on wallet home, including users who are not eligible and users without Perps enabled — all of whom receive the control layout. That is deliberate: eligibility is activity-based and can be influenced by treatment on later visits, so gating exposure on it would condition the population on an outcome. Do not read the headline numbers as an eligible-user comparison.
-
-**The eligible subgroup is a secondary cut**, taken on `perps_priority_eligible`. That property rides every `section_viewed` event rather than only the Perps section's, because in control the Perps section sits below Tokens and only fires on scroll — recording eligibility there would restrict the observable eligible-control group to users who had already scrolled to Perps, which is close to the behaviour being measured. Carrying it on every section keeps both arms comparable.
-
-**Eligibility is captured once per visit, before section order is decided** (`useIsActivePerpsTrader` in `Homepage.tsx`, provided through `PerpsPriorityEligibilityContext`). Capturing at first render keeps sections from reordering after they are on screen, at the cost that a user whose Perps data has not loaded yet stays in the control layout for that visit and is reported ineligible. This only reduces treatment reach; it does not move users between arms. Quantify how often initial data is unavailable before reading the eligible-subgroup cut.
-
-### Guardrails
-
-`ACTION_BUTTON_CLICKED` and `TOKEN_DETAILS_OPENED` are scoped via `eventPropertyRequirements` to `location: home` and `source: mobile-token-list`. Those events also fire from asset details, the navbar and the token list page; tagging that traffic would not bias the comparison, since it tags both arms equally, but it dilutes metrics the section order cannot influence.
-
-### Known follow-up
-
-`recordPerpsAction` writes a single wallet-wide timestamp while positions and orders belong to the selected account, so one account can inherit another's recent activity for up to 48 hours. Confirm whether activity is meant to represent the person or the selected account before relying on the eligible-subgroup cut.
