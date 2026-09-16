@@ -15,8 +15,14 @@ const ENTER_DURATION = 150;
 const EXIT_DURATION = 130;
 const EASING = Easing.out(Easing.cubic);
 
-/** Duration shared by Laminar and the surrounding layout transition. */
+/** Duration for keypad layout / font-size transitions. */
 export const NUMERIC_ANIMATION_DURATION = DURATION;
+
+/**
+ * Duration for Laminar digit reels. Matches Number Flow's default spin/transform
+ * timing (~900ms) with room for snappy's slight spring overshoot.
+ */
+export const NUMERIC_ROLL_DURATION = 900;
 
 /**
  * Layout transition for the slots and the row itself, so appending a character

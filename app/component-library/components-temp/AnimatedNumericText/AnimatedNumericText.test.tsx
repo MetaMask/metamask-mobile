@@ -104,7 +104,8 @@ describe('AnimatedNumericText', () => {
       '1,234,567.89',
     );
     expect(UNSAFE_getByType(Laminar).props.text).toBe('1,234,567.89');
-    expect(UNSAFE_getByType(Laminar).props.animationPreset).toBe('smooth');
+    expect(UNSAFE_getByType(Laminar).props.animationPreset).toBe('snappy');
+    expect(UNSAFE_getByType(Laminar).props.animationDuration).toBe(900);
   });
 
   it('keeps the first typed digit on slots instead of Laminar', () => {

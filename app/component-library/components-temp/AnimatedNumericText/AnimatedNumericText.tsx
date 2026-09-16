@@ -31,6 +31,7 @@ import { Laminar } from 'react-native-laminar';
 import {
   NUMERIC_ANIMATION_DURATION,
   NUMERIC_LAYOUT_TRANSITION,
+  NUMERIC_ROLL_DURATION,
   NUMERIC_SLOT_ENTERING,
   NUMERIC_SLOT_EXITING,
 } from './AnimatedNumericText.constants';
@@ -176,7 +177,7 @@ interface RollingNumericTextProps {
  */
 const RollingNumericText = memo(
   ({
-    animationDuration = NUMERIC_ANIMATION_DURATION,
+    animationDuration = NUMERIC_ROLL_DURATION,
     textStyle,
     value,
   }: RollingNumericTextProps) => {
@@ -197,7 +198,7 @@ const RollingNumericText = memo(
           variant="slots"
           autoSize={false}
           clipToBounds
-          animationPreset="smooth"
+          animationPreset="snappy"
           animationDuration={animationDuration}
           stagger={0}
           style={textStyle}
@@ -430,7 +431,7 @@ const AnimatedNumericText = ({
           animationDuration={
             incomingBulkReplace && rollTarget === null
               ? 0
-              : NUMERIC_ANIMATION_DURATION
+              : NUMERIC_ROLL_DURATION
           }
           textStyle={textStyle}
           value={
