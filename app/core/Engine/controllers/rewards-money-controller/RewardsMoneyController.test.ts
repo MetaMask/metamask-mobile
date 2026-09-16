@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   RewardsMoneyController,
   getRewardsMoneyControllerDefaultState,
@@ -334,14 +335,13 @@ describe('RewardsMoneyController', () => {
     });
 
     it('caches claim by id and caps the map', async () => {
-      mockMessenger.call.mockImplementation(
-        async (action: string, claimId?: string) => {
-          if (action === 'RewardsMoneyDataService:getClaimById') {
-            return { ...mockClaim, id: claimId as string };
-          }
-          return undefined;
-        },
-      );
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'RewardsMoneyDataService:getClaimById') {
+          const claimId = args[0] as string;
+          return Promise.resolve({ ...mockClaim, id: claimId });
+        }
+        return Promise.resolve(undefined);
+      });
 
       for (let i = 0; i < 25; i++) {
         await controller.getClaimById({ claimId: `claim-${i}` });
@@ -354,7 +354,7 @@ describe('RewardsMoneyController', () => {
     });
 
     it('invalidateRewardsMoneyCache clears all seven buckets', async () => {
-      mockMessenger.call.mockImplementation(async (action: string) => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
         switch (action) {
           case 'RewardsMoneyDataService:getReferralMe':
             return mockReferralMe;
@@ -421,7 +421,7 @@ describe('RewardsMoneyController', () => {
 
   describe('env URL', () => {
     it('persists override and invalidates cache when canChange is true', async () => {
-      mockMessenger.call.mockImplementation((action: string) => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl') {
           return true;
         }
@@ -452,7 +452,7 @@ describe('RewardsMoneyController', () => {
     });
 
     it('ignores set when canChange is false', async () => {
-      mockMessenger.call.mockImplementation((action: string) => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl') {
           return false;
         }
