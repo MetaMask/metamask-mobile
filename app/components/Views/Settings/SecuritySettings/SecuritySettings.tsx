@@ -387,7 +387,13 @@ const Settings: React.FC = () => {
               />
             </View>
           )}
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+          <Text
+            variant={TextVariant.HeadingMd}
+            style={[
+              styles.subHeading,
+              isMoneyAccountEnabled && styles.subHeadingAfterMoneySecurity,
+            ]}
+          >
             {strings('app_settings.privacy_heading')}
           </Text>
           <View style={styles.halfSetting}>

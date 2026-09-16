@@ -105,6 +105,9 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       borderTopColor: colors.background.muted,
       paddingTop: 36,
     },
+    subHeadingAfterMoneySecurity: {
+      marginTop: 20,
+    },
   });
 
 export default createStyles;

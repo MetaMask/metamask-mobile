@@ -169,6 +169,9 @@ describe('SecuritySettings', () => {
     expect(getByText('Social')).toBeOnTheScreen();
     expect(getByText('Authenticator app')).toBeOnTheScreen();
     expect(queryByText('Transaction verification')).not.toBeOnTheScreen();
+    expect(getByText(strings('app_settings.privacy_heading'))).toHaveStyle({
+      marginTop: 20,
+    });
   });
 
   it('opens Money passkeys from global security settings', () => {
