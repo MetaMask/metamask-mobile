@@ -375,6 +375,10 @@ const Routes = {
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
       SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL:
+        'SwapsLimitOrderDefaultCostToleranceModal',
+      SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
+        'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',

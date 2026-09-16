@@ -68,6 +68,7 @@ import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
 import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
+import { useLeaderboardReveal } from './components/useLeaderboardReveal';
 import {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
@@ -199,6 +200,13 @@ export interface TopTradersViewProps {
    * so the legacy leaderboard keeps its instant re-sort.
    */
   animateReorder?: boolean;
+  /**
+   * Opens on the ranking the user last saw and animates to the current one, so
+   * the reorder animation summarises what moved since their last visit rather
+   * than waiting for a live change nobody is watching for. Requires
+   * `animateReorder` to be visible. Off by default.
+   */
+  revealPreviousOrder?: boolean;
 }
 
 /**
@@ -215,6 +223,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   rowHeight = TRADER_ROW_HEIGHT,
   pinnedTypeFilter,
   animateReorder = false,
+  revealPreviousOrder = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
@@ -321,7 +330,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
-  const traders = useMemo<RankedTrader[]>(
+  const freshTraders = useMemo<RankedTrader[]>(
     () =>
       rankTradersByMetric(loadedTraders, sort).map((trader) => ({
         ...trader,
@@ -329,6 +338,30 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       })),
     [loadedTraders, sort],
   );
+
+  // Rebuilds a persisted row into a renderable one. `displayMetric` depends on
+  // the active sort and `isFollowing` on live controller state, so both are
+  // recomputed here rather than restored from disk.
+  const hydrateSnapshotRow = useCallback(
+    (trader: TopTrader): RankedTrader => ({
+      ...trader,
+      displayMetric: getTraderMetricDisplay(trader, sort),
+    }),
+    [sort],
+  );
+
+  const snapshotKeyParts = useMemo(
+    () => ({ type: activeTab, sort, timeframe }),
+    [activeTab, sort, timeframe],
+  );
+
+  const { rows: traders, isShowingSnapshot } = useLeaderboardReveal({
+    freshTraders,
+    hasFetched: activeResult.hasFetched,
+    keyParts: snapshotKeyParts,
+    enabled: revealPreviousOrder,
+    hydrateRow: hydrateSnapshotRow,
+  });
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
@@ -604,7 +637,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      {isLoading && traders.length === 0 ? (
+      {isLoading && traders.length === 0 && !isShowingSnapshot ? (
         <Animated.ScrollView
           ref={skeletonScrollRef}
           // `flex-1` matches FlatList's default behavior so the list area sits
