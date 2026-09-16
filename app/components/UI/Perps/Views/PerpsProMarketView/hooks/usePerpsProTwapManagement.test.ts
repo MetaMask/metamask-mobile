@@ -106,15 +106,19 @@ describe('usePerpsProTwapManagement', () => {
     expect(result.current.shouldShowTab).toBe(false);
   });
 
-  it('reads no schedules while the rollout is disabled', () => {
-    // Arrange & Act
+  it('reads no schedules while the rollout is disabled, even on the selected tab', () => {
+    // Arrange & Act: `options` selects the TWAP tab, so a rollout that flips off
+    // under the user must still stop both the initial read and the subscription.
     renderHook(() =>
       usePerpsProTwapManagement({ ...options, isTwapPlacementEnabled: false }),
     );
 
     // Assert
     expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
-      expect.objectContaining({ skipInitialFetch: true }),
+      expect.objectContaining({
+        skipInitialFetch: true,
+        enableLiveUpdates: false,
+      }),
     );
   });
 

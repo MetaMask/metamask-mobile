@@ -69,7 +69,8 @@ export const usePerpsProTwapManagement = ({
     usePerpsTwapOrders({
       // The rollout owns the whole surface, so a disabled rollout reads nothing:
       // there is no tab left for a discovered schedule to appear in.
-      enableLiveUpdates: isScreenFocused && isTabSelected,
+      enableLiveUpdates:
+        isTwapPlacementEnabled && isScreenFocused && isTabSelected,
       skipInitialFetch: !isTwapPlacementEnabled,
       pollingInterval: PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
       pauseLiveRestReconciliation: terminatingSelection !== null,
