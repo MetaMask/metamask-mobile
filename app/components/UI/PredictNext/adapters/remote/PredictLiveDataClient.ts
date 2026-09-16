@@ -10,6 +10,9 @@ import type { PredictEntityId, PredictVenueId } from '../../types';
 const LIVE_DATA_PATH = 'v1/stream/live-data';
 const PROTOCOL_VERSION = 1;
 
+/** Close code the gateway sends when the upgrade token is rejected. */
+export const PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE = 4401;
+
 export const PREDICT_LIVE_DATA_RECONNECT_BASE_MS = 1000;
 export const PREDICT_LIVE_DATA_RECONNECT_MAX_MS = 30_000;
 export const PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS = 4000;
@@ -23,6 +26,7 @@ type AppStateApi = Pick<typeof AppState, 'addEventListener'>;
 
 export interface PredictLiveDataClientOptions {
   baseUrl?: string;
+  getBearerToken: () => Promise<string | undefined>;
   WebSocket?: WebSocketConstructor;
   AppState?: AppStateApi;
   onGameUpdate: (game: PredictGameLive) => void;
@@ -65,6 +69,7 @@ export interface PredictLiveDataTransport {
 
 export class PredictLiveDataClient implements PredictLiveDataTransport {
   readonly #url?: string;
+  readonly #getBearerToken: () => Promise<string | undefined>;
   readonly #WebSocket: WebSocketConstructor;
   readonly #onGameUpdate: (game: PredictGameLive) => void;
   // Screens watch overlapping Events, so each id is held until its last
@@ -79,7 +84,13 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #protocolRejected = false;
   #suspended = false;
   #loggedMissingUrl = false;
+  #loggedMissingToken = false;
   #loggedReconnectCap = false;
+  // Bumped whenever the current connection intent is abandoned (disconnect,
+  // suspend) so an in-flight token fetch cannot resurrect a socket.
+  #connectEpoch = 0;
+  // True only for the in-flight token fetch of the current epoch.
+  #connecting = false;
   #reconnectAttempts = 0;
   #reconnectTimer?: TimerId;
   #lingerTimer?: TimerId;
@@ -89,11 +100,13 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
   constructor({
     baseUrl,
+    getBearerToken,
     WebSocket: WebSocketImpl = global.WebSocket,
     AppState: AppStateImpl = AppState,
     onGameUpdate,
   }: PredictLiveDataClientOptions) {
     this.#url = parseStreamUrl(baseUrl);
+    this.#getBearerToken = getBearerToken;
     this.#WebSocket = WebSocketImpl;
     this.#onGameUpdate = onGameUpdate;
     this.#appStateSubscription = AppStateImpl.addEventListener(
@@ -172,6 +185,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   disconnect(): void {
+    this.#abandonConnect();
     this.#cancelReconnect();
     this.#cancelLinger();
     this.#watchCounts.clear();
@@ -206,8 +220,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
   };
 
+  #abandonConnect(): void {
+    this.#connectEpoch += 1;
+    this.#connecting = false;
+  }
+
   #suspend(): void {
     this.#suspended = true;
+    this.#abandonConnect();
     this.#cancelReconnect();
     this.#cancelLinger();
     this.#welcomed = false;
@@ -231,11 +251,10 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   #connect(): void {
-    if (this.#protocolRejected || this.#suspended) {
+    if (this.#protocolRejected || this.#suspended || this.#connecting) {
       return;
     }
-    const venueId = this.#venueId;
-    if (!venueId || this.#isSocketLive()) {
+    if (!this.#venueId || this.#isSocketLive()) {
       return;
     }
     if (!this.#url) {
@@ -243,7 +262,55 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       return;
     }
 
-    const socket = new this.#WebSocket(this.#url);
+    // The gateway authenticates the upgrade request, so a fresh token is
+    // resolved for every connection attempt. A provider failure is treated as
+    // a missing token, never surfaced.
+    const epoch = this.#connectEpoch;
+    this.#connecting = true;
+    this.#getBearerToken()
+      .catch(() => undefined)
+      .then((token) => {
+        // A later disconnect/suspend already owns connecting. Clearing it
+        // here would let a stale fetch unblock a duplicate connect.
+        if (epoch !== this.#connectEpoch) {
+          return;
+        }
+        this.#connecting = false;
+        // The connection intent may have been abandoned or satisfied while
+        // the token was being resolved.
+        if (
+          this.#protocolRejected ||
+          this.#suspended ||
+          this.#isSocketLive() ||
+          this.#watchCounts.size === 0
+        ) {
+          return;
+        }
+        if (!token?.trim()) {
+          // Retry with backoff: a token can appear later (e.g. once the
+          // wallet is unlocked or the session is refreshed).
+          this.#logMissingTokenOnce();
+          this.#scheduleReconnect();
+          return;
+        }
+        this.#openSocket(token);
+      });
+  }
+
+  #openSocket(token: string): void {
+    const venueId = this.#venueId;
+    if (!venueId || !this.#url) {
+      return;
+    }
+
+    // The token travels as a `token` query parameter — the same contract as
+    // MetaMask's BackendWebSocketService. Headers are not portable here: the
+    // built-in React Native WebSocket and the Nitro adapter that replaces
+    // global.WebSocket take different constructor option shapes.
+    const url = new URL(this.#url);
+    url.searchParams.set('token', token);
+
+    const socket = new this.#WebSocket(url.toString());
     this.#socket = socket;
 
     socket.onerror = () => undefined;
@@ -264,9 +331,15 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         this.#onFrame(frame, venueId);
       }
     };
-    socket.onclose = () => {
+    socket.onclose = (event?: { code?: number }) => {
       if (this.#socket !== socket) {
         return;
+      }
+
+      if (event?.code === PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE) {
+        Logger.log(
+          'PredictLiveDataClient: connection closed as unauthorized; a fresh token is fetched on reconnect',
+        );
       }
 
       this.#socket = undefined;
@@ -452,6 +525,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
     this.#loggedMissingUrl = true;
     Logger.log('PredictLiveDataClient: stream URL is missing or invalid');
+  }
+
+  #logMissingTokenOnce(): void {
+    if (this.#loggedMissingToken) {
+      return;
+    }
+    this.#loggedMissingToken = true;
+    Logger.log('PredictLiveDataClient: no bearer token available for stream');
   }
 
   #logReconnectCapOnce(): void {
