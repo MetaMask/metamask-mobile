@@ -14,10 +14,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import PerpsDiscoveryBannerIcon from '../../../../../images/perps-discovery-banner-icon.svg';
 import type { PerpsDiscoveryBannerProps } from './PerpsDiscoveryBanner.types';
 
 const styleSheet = () =>
@@ -55,7 +53,6 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
   testID = 'perps-discovery-banner',
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const tw = useTailwind();
 
   return (
     <Pressable onPress={onPress} style={styles.container} testID={testID}>
@@ -73,11 +70,10 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
             twClassName="h-10 w-10 shrink-0 overflow-hidden rounded-full p-2"
           >
-            <PerpsDiscoveryBannerIcon
-              name="PerpsDiscoveryBannerIcon"
-              width={24}
-              height={24}
-              color={tw.color('text-icon-alternative')}
+            <Icon
+              name={IconName.Infinity}
+              size={IconSize.Lg}
+              color={IconColor.IconAlternative}
               testID={`${testID}-logo`}
             />
           </Box>

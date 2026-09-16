@@ -11,14 +11,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../images/perps-discovery-banner-icon.svg', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     if (key === 'perps.discovery_banner.title') {
@@ -62,7 +54,7 @@ describe('PerpsDiscoveryBanner', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders logo image', () => {
+  it('renders infinity icon', () => {
     const { getByTestId } = render(<PerpsDiscoveryBanner {...defaultProps} />);
     expect(getByTestId('perps-discovery-banner-logo')).toBeOnTheScreen();
   });
