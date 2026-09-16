@@ -7898,7 +7898,7 @@
       "info_description": "Your passkeys will be required for every Money account transaction, keeping your account safe.",
       "got_it": "Got it",
       "disable_2fa_title": "Turn off 2-step verification?",
-      "disable_2fa_description": "Your Money account will no longer have an additional layer of protection for transactions. This increases the risk of unauthorized transactions if another security method is compromised.",
+      "disable_2fa_description": "Your Money account will no longer have an extra layer of protection. If another security method is compromised, unauthorized transactions become more likely.",
       "disable_2fa_confirm": "Disable",
       "disable_2fa_cancel": "Cancel",
       "verification_title": "Verify it’s you",

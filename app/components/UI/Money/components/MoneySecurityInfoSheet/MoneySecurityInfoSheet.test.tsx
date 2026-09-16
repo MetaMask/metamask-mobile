@@ -70,7 +70,7 @@ describe('MoneySecurityInfoSheet', () => {
     expect(getByText('Turn off 2-step verification?')).toBeOnTheScreen();
     expect(
       getByText(
-        'Your Money account will no longer have an additional layer of protection for transactions. This increases the risk of unauthorized transactions if another security method is compromised.',
+        'Your Money account will no longer have an extra layer of protection. If another security method is compromised, unauthorized transactions become more likely.',
       ),
     ).toBeOnTheScreen();
 
