@@ -2053,6 +2053,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               liquidationPercentage={liquidationPercentage}
               payWithName={payWithName}
               payWithBalance={payWithBalance}
+              showPayWith={isPayRowVisible}
               feePercentage={feePercentage}
               isSubmitting={isPlacingOrder}
               isSubmitDisabled={submitDisabled}

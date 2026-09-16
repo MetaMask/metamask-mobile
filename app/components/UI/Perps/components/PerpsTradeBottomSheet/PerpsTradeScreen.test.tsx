@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
@@ -48,6 +49,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   liquidationPercentage: '30.05%',
   payWithName: 'Perps balance',
   payWithBalance: '$1,285.82',
+  showPayWith: true,
   feePercentage: '0.143',
   isSubmitting: false,
   isSubmitDisabled: false,
@@ -140,6 +142,26 @@ describe('PerpsTradeScreen errors', () => {
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
     ).not.toBeOnTheScreen();
   });
+
+  it('hides Pay With when token payments are unavailable', () => {
+    render(<PerpsTradeScreen {...defaultProps} showPayWith={false} />);
+
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['long', IconName.TrendDown],
+    ['short', IconName.TrendUp],
+  ] as const)(
+    'uses the correct liquidation trend for a %s trade',
+    (direction, iconName) => {
+      render(<PerpsTradeScreen {...defaultProps} direction={direction} />);
+
+      expect(screen.UNSAFE_getByProps({ name: iconName })).toBeDefined();
+    },
+  );
 
   it('propagates an order execution error to the footer', () => {
     render(

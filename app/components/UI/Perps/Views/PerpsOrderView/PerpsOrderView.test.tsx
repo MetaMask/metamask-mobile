@@ -828,6 +828,7 @@ interface MockTradeScreenProps {
   liquidationPercentage?: string;
   payWithName: string;
   payWithBalance: string;
+  showPayWith: boolean;
   feePercentage?: string;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;

@@ -57,6 +57,7 @@ interface PerpsTradeScreenProps {
   liquidationPercentage?: string;
   payWithName: string;
   payWithBalance: string;
+  showPayWith: boolean;
   feePercentage?: string;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
@@ -180,6 +181,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   liquidationPercentage,
   payWithName,
   payWithBalance,
+  showPayWith,
   feePercentage,
   isSubmitting,
   isSubmitDisabled,
@@ -411,28 +413,30 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               endIconColor={IconColor.IconDefault}
               onPress={() => navigateTo('leverage')}
             />
-            <ActionRow
-              testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
-              label={strings('confirm.label.pay_with')}
-              accessibilityLabel={`${strings(
-                'confirm.label.pay_with',
-              )}, ${payWithLabel}`}
-              value={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {payWithName}{' '}
+            {showPayWith ? (
+              <ActionRow
+                testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
+                label={strings('confirm.label.pay_with')}
+                accessibilityLabel={`${strings(
+                  'confirm.label.pay_with',
+                )}, ${payWithLabel}`}
+                value={
                   <Text
                     variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
+                    fontWeight={FontWeight.Medium}
                   >
-                    ({payWithBalance})
+                    {payWithName}{' '}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      ({payWithBalance})
+                    </Text>
                   </Text>
-                </Text>
-              }
-              onPress={onPayWithPress}
-            />
+                }
+                onPress={onPayWithPress}
+              />
+            ) : null}
             <ActionRow
               testID={PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW}
               label={strings('perps.order.liquidation_price')}
@@ -452,7 +456,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   {liquidationPercentage ? (
                     <>
                       <Icon
-                        name={IconName.TrendDown}
+                        name={
+                          direction === 'long'
+                            ? IconName.TrendDown
+                            : IconName.TrendUp
+                        }
                         size={IconSize.Sm}
                         color={IconColor.IconAlternative}
                       />
