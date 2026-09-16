@@ -17,9 +17,30 @@ import WalletView from './WalletView';
 import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 import TrendingView from '../Trending/TrendingView';
 
+/** Native iOS 26 tab items have no testID; UIKit exposes them by title. */
+const NATIVE_TAB_LABELS = {
+  WALLET: 'Home',
+  EXPLORE: 'Explore',
+  ACTIVITY: 'Activity',
+  MONEY: 'Money',
+  REWARDS: 'Rewards',
+} as const;
+
+const NATIVE_TAB_BAR_MIN_IOS_VERSION = 26;
+
 class TabBarComponent {
+  private tabItem(
+    testId: string,
+    nativeLabel: (typeof NATIVE_TAB_LABELS)[keyof typeof NATIVE_TAB_LABELS],
+  ): Promise<AppiumElement> {
+    if (PlatformDetector.isIOSAtLeast(NATIVE_TAB_BAR_MIN_IOS_VERSION)) {
+      return Matchers.getElementByLabel(nativeLabel);
+    }
+    return Matchers.getElementByID(testId);
+  }
+
   get tabBarExploreButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
+    return this.tabItem(TabBarSelectorIDs.EXPLORE, NATIVE_TAB_LABELS.EXPLORE);
   }
 
   get tabBarBrowserButton(): Promise<AppiumElement> {
@@ -27,7 +48,7 @@ class TabBarComponent {
   }
 
   get tabBarWalletButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    return this.tabItem(TabBarSelectorIDs.WALLET, NATIVE_TAB_LABELS.WALLET);
   }
 
   get tabBarActionButton(): Promise<AppiumElement> {
@@ -43,19 +64,19 @@ class TabBarComponent {
   }
 
   get tabBarActivityButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+    return this.tabItem(TabBarSelectorIDs.ACTIVITY, NATIVE_TAB_LABELS.ACTIVITY);
   }
 
   get tabBarRewardsButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
+    return this.tabItem(TabBarSelectorIDs.REWARDS, NATIVE_TAB_LABELS.REWARDS);
   }
 
   get tabBarMoneyButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TabBarSelectorIDs.MONEY);
+    return this.tabItem(TabBarSelectorIDs.MONEY, NATIVE_TAB_LABELS.MONEY);
   }
 
   get homeButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    return this.tabItem(TabBarSelectorIDs.WALLET, NATIVE_TAB_LABELS.WALLET);
   }
 
   private async dismissStackedActivity(): Promise<void> {
