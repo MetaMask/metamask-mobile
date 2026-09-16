@@ -37,7 +37,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
           <Icon
             testID={testID ? `${testID}-check-icon` : undefined}
             name={IconName.Check}
-            size={IconSize.Sm}
+            size={IconSize.Xs}
             color={IconColor.IconInverse}
           />
         ) : null}
