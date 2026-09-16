@@ -9546,7 +9546,7 @@
     },
     "manage_accounts": {
       "title": "Manage accounts",
-      "locked": "Locked",
+      "locked": "Lock",
       "remove": "Remove",
       "remove_wallet": "Remove wallet"
     }
