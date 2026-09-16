@@ -99,7 +99,7 @@ function getDirectionForAggregation(
  * @param fills - Array of OrderFill objects to aggregate
  * @returns Array of OrderFill objects with each order's fills aggregated into one
  */
-export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
+export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
   // Seed groups, keyed by the rule that may pull fills of different orders together
   const secondGroups: { bucket: string; fills: OrderFill[] }[] = [];
   const secondGroupByKey = new Map<
@@ -140,8 +140,11 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   }
 
   // Link the seed groups that share an order id, which merges the per-second close groups an
-  // order filled over several seconds into the one trade the user placed. Order-seeded groups
-  // are already whole, so this can only chain groups that genuinely share an order id.
+  // order filled over several seconds into the one trade the user placed. The union is
+  // transitive, so close seeds can chain: X@s1, {X,Y}@s2, {Y,Z}@s3 end up as one entry even
+  // though X and Z share no order id. Every hop still needs a same-second close collision,
+  // which is the condition the pre-fix code already merged on, and order-seeded groups (opens,
+  // buys, flips) cannot take part because each of those seeds holds a single order.
   const groupOwner = secondGroups.map((_group, index) => index);
   const resolveOwner = (index: number): number => {
     let owner = index;
@@ -336,8 +339,8 @@ export interface DepositRequest {
 
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format.
- * Close fills that occur at the same timestamp for the same asset are automatically
- * aggregated to show combined PnL (handles split stop loss/take profit orders).
+ * The fills of one order are aggregated first, so an open, close or flip that HyperLiquid
+ * filled in several pieces shows combined size, PnL and fees instead of partial amounts.
  *
  * @param fills - Array of abstract OrderFill objects
  * @returns Array of PerpsTransaction objects
@@ -345,9 +348,8 @@ export interface DepositRequest {
 export function transformFillsToTransactions(
   fills: OrderFill[],
 ): PerpsTransaction[] {
-  // Aggregate close fills that occur at the same timestamp for the same asset
-  // This handles split stop loss/take profit orders that execute as multiple fills
-  const aggregatedFills = aggregateFillsByTimestamp(fills);
+  // Collapse each order's fills into the one trade the user placed
+  const aggregatedFills = aggregateFillsByOrder(fills);
 
   return aggregatedFills.reduce((acc: PerpsTransaction[], fill) => {
     const {

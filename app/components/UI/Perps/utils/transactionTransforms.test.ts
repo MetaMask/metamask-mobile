@@ -9,7 +9,7 @@ import {
   transformDepositRequestsToTransactions,
   transformWalletPerpsDepositsToTransactions,
   walletPerpsWithdrawalsToRequests,
-  aggregateFillsByTimestamp,
+  aggregateFillsByOrder,
 } from './transactionTransforms';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
@@ -40,7 +40,7 @@ const mockParseStandardTokenTransactionData =
   >;
 
 describe('transactionTransforms', () => {
-  describe('aggregateFillsByTimestamp', () => {
+  describe('aggregateFillsByOrder', () => {
     // Helper to create a fill with defaults
     const createFill = (overrides: Partial<OrderFill> = {}): OrderFill => ({
       orderId: 'order-1',
@@ -86,7 +86,7 @@ describe('transactionTransforms', () => {
           detailedOrderType: 'Stop Market',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.24213, 5);
@@ -115,7 +115,7 @@ describe('transactionTransforms', () => {
           detailedOrderType: 'Take Profit Market',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
@@ -137,7 +137,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([btcFill, ethFill]);
+        const result = aggregateFillsByOrder([btcFill, ethFill]);
 
         expect(result).toHaveLength(2);
       });
@@ -153,10 +153,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([
-          closeLongFill,
-          closeShortFill,
-        ]);
+        const result = aggregateFillsByOrder([closeLongFill, closeShortFill]);
 
         expect(result).toHaveLength(2);
       });
@@ -172,7 +169,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000001000, // Start of second 1700000001
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(2);
       });
@@ -190,7 +187,7 @@ describe('transactionTransforms', () => {
           pnl: '100',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(0.2);
@@ -214,7 +211,7 @@ describe('transactionTransforms', () => {
           }),
         );
 
-        const result = aggregateFillsByTimestamp(fills);
+        const result = aggregateFillsByOrder(fills);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(8.29, 2);
@@ -237,7 +234,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1);
@@ -258,7 +255,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(100);
@@ -283,7 +280,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000002000, // Two seconds later
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(43.23, 2);
@@ -305,7 +302,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000009000, // Nine seconds later
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(2);
       });
@@ -325,7 +322,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000900, // Same second, different order
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(2);
         expect(result.map((fill) => fill.size)).toEqual(['1', '1']);
@@ -360,7 +357,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000002900, // Same second as order B's last fill
         });
 
-        const result = aggregateFillsByTimestamp([
+        const result = aggregateFillsByOrder([
           orderA,
           orderBFirst,
           orderBSecond,
@@ -384,7 +381,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000005000,
         });
 
-        const result = aggregateFillsByTimestamp([openFill, closeFill]);
+        const result = aggregateFillsByOrder([openFill, closeFill]);
 
         expect(result).toHaveLength(2);
       });
@@ -413,7 +410,7 @@ describe('transactionTransforms', () => {
           }),
         );
 
-        const result = aggregateFillsByTimestamp(fills);
+        const result = aggregateFillsByOrder(fills);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.4, 5);
@@ -443,7 +440,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000003000,
         });
 
-        const result = aggregateFillsByTimestamp([childA, childB, childBLater]);
+        const result = aggregateFillsByOrder([childA, childB, childBLater]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(3);
@@ -466,7 +463,7 @@ describe('transactionTransforms', () => {
           pnl: '50',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(200);
@@ -490,7 +487,7 @@ describe('transactionTransforms', () => {
           startPosition: '1.0',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
@@ -515,7 +512,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].price)).toBeCloseTo(90600, 0);
@@ -534,7 +531,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].detailedOrderType).toBe('Stop Market');
@@ -555,7 +552,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].liquidation).toEqual({
@@ -576,7 +573,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].startPosition).toBe('1.0');
@@ -593,7 +590,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].orderId).toBe('second-order');
@@ -603,7 +600,7 @@ describe('transactionTransforms', () => {
 
     describe('edge cases', () => {
       it('returns empty array for empty input', () => {
-        const result = aggregateFillsByTimestamp([]);
+        const result = aggregateFillsByOrder([]);
 
         expect(result).toEqual([]);
       });
@@ -611,7 +608,7 @@ describe('transactionTransforms', () => {
       it('returns single fill unchanged', () => {
         const fill = createFill();
 
-        const result = aggregateFillsByTimestamp([fill]);
+        const result = aggregateFillsByOrder([fill]);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual(fill);
@@ -630,7 +627,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700001000000,
         });
 
-        const result = aggregateFillsByTimestamp([oldFill, newFill]);
+        const result = aggregateFillsByOrder([oldFill, newFill]);
 
         expect(result[0].timestamp).toBe(1700001000000);
         expect(result[1].timestamp).toBe(1700000000000);
@@ -656,7 +653,7 @@ describe('transactionTransforms', () => {
           pnl: '100',
         });
 
-        const result = aggregateFillsByTimestamp([
+        const result = aggregateFillsByOrder([
           openFill,
           closeFill1,
           closeFill2,
