@@ -310,7 +310,8 @@ interface UseHomeViewedEventParamsSnapshot {
   sectionName?: string;
   sectionIndex?: number;
   totalSectionsLoaded?: number;
-  isActivePerpsTrader?: boolean;
+  /** Read from context by the mock, mirroring what the real hook observes. */
+  perpsPriorityEligible?: boolean;
 }
 
 // Mock useHomeViewedEvent to avoid analytics side-effects in
@@ -318,8 +319,17 @@ interface UseHomeViewedEventParamsSnapshot {
 const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
 jest.mock('./hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: (params: UseHomeViewedEventParamsSnapshot) =>
-    (mockUseHomeViewedEvent as jest.Mock)(params),
+  // Reads the eligibility context the way the real hook does, so tests can
+  // assert what each section observes rather than what Homepage renders.
+  default: (params: UseHomeViewedEventParamsSnapshot) => {
+    const { usePerpsPriorityEligibility } = jest.requireActual<
+      typeof import('./context/PerpsPriorityEligibilityContext')
+    >('./context/PerpsPriorityEligibilityContext');
+    return (mockUseHomeViewedEvent as jest.Mock)({
+      ...params,
+      perpsPriorityEligible: usePerpsPriorityEligibility(),
+    });
+  },
   HomeSectionNames: {
     TOKENS: 'tokens',
     WATCHLIST: 'watchlist',
@@ -788,7 +798,11 @@ describe('Homepage', () => {
   });
 
   describe('Perps section priority experiment', () => {
-    const perpsHooksMock = jest.requireMock('../../UI/Perps/hooks');
+    const perpsHooksMock = jest.mocked(
+      jest.requireMock<typeof import('../../UI/Perps/hooks')>(
+        '../../UI/Perps/hooks',
+      ),
+    );
 
     const setVariant = (variant: PerpsSectionPriorityVariant) => {
       mockUseABTest.mockImplementation((key: string) => {
@@ -876,34 +890,43 @@ describe('Homepage', () => {
       expect(sectionIndexOf('nfts')).toBe(4);
     });
 
+    // Eligibility is provided to every section rather than passed to the Perps
+    // section, so an eligible control user is observable without scrolling to
+    // Perps. See useHomeViewedEvent.test.ts for the event-level contract.
     it.each([
       [PerpsSectionPriorityVariant.Control],
       [PerpsSectionPriorityVariant.Treatment],
     ])(
-      'reports eligibility on the perps section for the %s arm so both arms are comparable',
+      'provides eligibility to every section for the %s arm so both arms are comparable',
       (variant) => {
         setVariant(variant);
         perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
 
         renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-        const perpsCall = getUseHomeViewedEventCalls().find(
-          (c) => c[0]?.sectionName === 'perps',
-        )?.[0];
-        expect(perpsCall?.isActivePerpsTrader).toBe(true);
+        const sections = getUseHomeViewedEventCalls().map((c) => c[0]);
+        expect(sections.length).toBeGreaterThan(1);
+        // Every section sees it, not just Perps — that is the whole point.
+        sections.forEach((section) => {
+          expect(section.perpsPriorityEligible).toBe(true);
+        });
+        expect(
+          sections.some((section) => section.sectionName === 'tokens'),
+        ).toBe(true);
       },
     );
 
-    it('reports ineligibility rather than omitting it', () => {
+    it('provides ineligibility rather than omitting it', () => {
       setVariant(PerpsSectionPriorityVariant.Treatment);
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const perpsCall = getUseHomeViewedEventCalls().find(
-        (c) => c[0]?.sectionName === 'perps',
-      )?.[0];
-      expect(perpsCall?.isActivePerpsTrader).toBe(false);
+      getUseHomeViewedEventCalls()
+        .map((c) => c[0])
+        .forEach((section) => {
+          expect(section.perpsPriorityEligible).toBe(false);
+        });
     });
 
     it('keeps Tokens first when Perps is disabled, regardless of variant', () => {
