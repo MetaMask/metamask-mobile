@@ -104,7 +104,7 @@ const MethodButton = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName={`rounded-xl px-4 gap-3 ${
-        isPrimary ? 'bg-primary-default' : 'bg-muted'
+        isPrimary ? 'bg-icon-default' : 'bg-muted'
       }`}
     >
       <Icon
@@ -207,9 +207,27 @@ const MoneySecurityVerificationSheet = () => {
   const handleSheetGoBack = useCallback(() => {
     if (isTransactionVerification) {
       showTransactionVerificationError();
+      if (selectedMethod && availableMethods.length > 1) {
+        navigation.goBack();
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+          params: {
+            action: route.params.action,
+            showMethodChooser: true,
+          },
+        });
+        return;
+      }
     }
     navigation.goBack();
-  }, [isTransactionVerification, navigation, showTransactionVerificationError]);
+  }, [
+    availableMethods.length,
+    isTransactionVerification,
+    navigation,
+    route.params.action,
+    selectedMethod,
+    showTransactionVerificationError,
+  ]);
 
   const completeAction = useCallback(() => {
     if (hasCompletedRef.current) {
@@ -417,10 +435,10 @@ const MoneySecurityVerificationSheet = () => {
     >
       <BottomSheetHeader
         onBack={
-          selectedMethod && availableMethods.length > 1
-            ? isTransactionVerification
-              ? handleTransactionMethodDismiss
-              : handleBack
+          selectedMethod &&
+          availableMethods.length > 1 &&
+          !isTransactionVerification
+            ? handleBack
             : undefined
         }
         onClose={

@@ -123,6 +123,8 @@ const MoneyAuthenticatorView = () => {
   const [step, setStep] = useState<AuthenticatorStep>(
     route.params.initialStep ?? 'setup',
   );
+  const isTransactionVerification =
+    route.params.verificationAction?.type === 'verify-transaction';
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
 
@@ -297,10 +299,14 @@ const MoneyAuthenticatorView = () => {
         twClassName="px-1 py-2"
       >
         <ButtonIcon
-          iconName={IconName.ArrowLeft}
+          iconName={
+            isTransactionVerification ? IconName.Close : IconName.ArrowLeft
+          }
           size={ButtonIconSize.Md}
           onPress={handleBack}
-          accessibilityLabel={strings('money.security.back')}
+          accessibilityLabel={strings(
+            isTransactionVerification ? 'navigation.close' : 'navigation.back',
+          )}
           testID={MoneyAuthenticatorViewTestIds.BACK_BUTTON}
         />
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>

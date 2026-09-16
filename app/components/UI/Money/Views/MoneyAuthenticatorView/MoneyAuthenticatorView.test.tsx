@@ -254,7 +254,9 @@ describe('MoneyAuthenticatorView', () => {
     mockVerificationAction = { type: 'verify-transaction' };
     const { getByTestId } = renderView();
 
-    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.BACK_BUTTON));
+    const closeButton = getByTestId(MoneyAuthenticatorViewTestIds.BACK_BUTTON);
+    expect(closeButton).toHaveProp('accessibilityLabel', 'Close');
+    fireEvent.press(closeButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();

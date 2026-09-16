@@ -7,6 +7,7 @@ import { MoneySecurityVerificationSheetTestIds } from './MoneySecurityVerificati
 import type { MoneySecurityVerificationAction } from '../../types/navigation';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockDeletePasskey = jest.fn();
 const mockRemoveAuthenticator = jest.fn();
 const mockRemoveSms = jest.fn();
@@ -28,7 +29,7 @@ let mockDefaultVerificationMethod: 'passkeys' | 'authenticator' | 'sms' =
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    goBack: jest.fn(),
+    goBack: mockGoBack,
     navigate: mockNavigate,
   }),
   useRoute: () => ({
@@ -75,13 +76,28 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     BottomSheet: forwardRef(
       (
-        { children, testID }: { children: React.ReactNode; testID?: string },
+        {
+          children,
+          goBack,
+          testID,
+        }: {
+          children: React.ReactNode;
+          goBack?: () => void;
+          testID?: string;
+        },
         ref: React.Ref<unknown>,
       ) => {
         useImperativeHandle(ref, () => ({
           onCloseBottomSheet: mockCloseBottomSheet,
         }));
-        return <View testID={testID}>{children}</View>;
+        return (
+          <View testID={testID}>
+            {children}
+            {goBack && (
+              <Pressable testID="mock-sheet-dismiss" onPress={goBack} />
+            )}
+          </View>
+        );
       },
     ),
     BottomSheetHeader: ({
@@ -214,10 +230,12 @@ describe('MoneySecurityVerificationSheet', () => {
   it('launches the configured transaction method before showing the chooser', () => {
     mockAction = { type: 'verify-transaction' };
     mockIsSmsAdded = true;
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <MoneySecurityVerificationSheet />,
     );
 
+    expect(getByText('Passkey')).toBeOnTheScreen();
+    expect(queryByTestId('mock-header-back')).not.toBeOnTheScreen();
     expect(
       getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON),
     ).toBeOnTheScreen();
@@ -242,6 +260,9 @@ describe('MoneySecurityVerificationSheet', () => {
     fireEvent.press(getByTestId('mock-header-close'));
 
     expect(getByText('or')).toBeOnTheScreen();
+    expect(getByText('Passkey')).toBeOnTheScreen();
+    expect(getByText('Authenticator app')).toBeOnTheScreen();
+    expect(getByText('SMS')).toBeOnTheScreen();
     expect(
       getByTestId(MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD),
     ).toHaveProp('accessibilityState', { selected: true });
@@ -255,6 +276,25 @@ describe('MoneySecurityVerificationSheet', () => {
       'Transaction needs to be verified before sending funds.',
       'error',
     );
+  });
+
+  it('opens the fallback chooser when the initial method sheet is dismissed', () => {
+    mockAction = { type: 'verify-transaction' };
+    mockIsSmsAdded = true;
+    const { getByTestId } = renderWithProvider(
+      <MoneySecurityVerificationSheet />,
+    );
+
+    fireEvent.press(getByTestId('mock-sheet-dismiss'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: { type: 'verify-transaction' },
+        showMethodChooser: true,
+      },
+    });
   });
 
   it('opens directly into the only available transaction method', () => {
