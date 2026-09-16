@@ -11670,7 +11670,7 @@
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
   },
   "pro_hub": {
-    "title": "MetaMask Pro",
+    "title": "MetaMask Orange",
     "manage": "Manage subscription",
     "manage_membership": "Manage membership",
     "also_included": {
@@ -11689,8 +11689,8 @@
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
     "lifetime_earnings": "Lifetime earnings",
-    "money_balance": "Money balance",
-    "musd_back": "3% mUSD back",
+    "money_balance": "{{apy}} APY on Money balance",
+    "musd_back": "{{rate}} mUSD back",
     "member_pricing": {
       "title": "Member pricing on trades",
       "allowance_currency": "${{amount}}",
