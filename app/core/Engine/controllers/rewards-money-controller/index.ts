@@ -49,7 +49,6 @@ export type {
   RewardsMoneyControllerGetClaimHistoryAction,
   RewardsMoneyControllerGetClaimByIdAction,
   RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction,
-  RewardsMoneyControllerResetStateAction,
   RewardsMoneyControllerGetRewardsMoneyEnvUrlAction,
   RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction,
   RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction,

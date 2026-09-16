@@ -138,7 +138,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClaimHistory',
   'getClaimById',
   'isRewardsMoneyFeatureEnabled',
-  'resetState',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
   'getDefaultRewardsMoneyEnvUrl',
@@ -200,10 +199,6 @@ export class RewardsMoneyController extends BaseController<
 
   isRewardsMoneyFeatureEnabled(): boolean {
     return !this.#isDisabled();
-  }
-
-  resetState(): void {
-    this.update(() => getRewardsMoneyControllerDefaultState());
   }
 
   getRewardsMoneyEnvUrl(): string {

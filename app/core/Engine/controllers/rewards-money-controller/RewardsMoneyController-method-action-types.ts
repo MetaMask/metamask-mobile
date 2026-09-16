@@ -10,11 +10,6 @@ export type RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction = {
   handler: RewardsMoneyController['isRewardsMoneyFeatureEnabled'];
 };
 
-export type RewardsMoneyControllerResetStateAction = {
-  type: `RewardsMoneyController:resetState`;
-  handler: RewardsMoneyController['resetState'];
-};
-
 export type RewardsMoneyControllerGetRewardsMoneyEnvUrlAction = {
   type: `RewardsMoneyController:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyController['getRewardsMoneyEnvUrl'];
@@ -80,7 +75,6 @@ export type RewardsMoneyControllerGetClaimByIdAction = {
  */
 export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerIsRewardsMoneyFeatureEnabledAction
-  | RewardsMoneyControllerResetStateAction
   | RewardsMoneyControllerGetRewardsMoneyEnvUrlAction
   | RewardsMoneyControllerCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyControllerGetDefaultRewardsMoneyEnvUrlAction

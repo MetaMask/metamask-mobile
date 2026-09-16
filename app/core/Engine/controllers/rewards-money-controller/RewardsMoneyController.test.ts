@@ -639,24 +639,4 @@ describe('RewardsMoneyController', () => {
       );
     });
   });
-
-  describe('resetState', () => {
-    it('resets to default state', () => {
-      controller = new RewardsMoneyController({
-        messenger: mockMessenger,
-        isDisabled,
-        state: {
-          referralMe: {
-            [PROFILE_A]: { payload: mockReferralMe, lastFetched: Date.now() },
-          },
-          rewardsMoneyEnvUrl: 'https://custom.example',
-        } as Partial<RewardsMoneyControllerState>,
-      });
-
-      controller.resetState();
-
-      expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
-      expect(controller.state.rewardsMoneyEnvUrl).toBeNull();
-    });
-  });
 });
