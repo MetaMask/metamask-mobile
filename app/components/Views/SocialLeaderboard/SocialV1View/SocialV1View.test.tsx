@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -14,7 +14,12 @@ const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
+const mockUseMyProfile = jest.fn(() => ({ profile: undefined }));
 let mockRouteParams: { showNotificationsBanner?: boolean } = {};
+
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => mockUseMyProfile(),
+}));
 
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks/useABTest', () => ({
@@ -138,6 +143,7 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    mockUseMyProfile.mockReturnValue({ profile: undefined });
   });
 
   it('renders For you, Following, Leaderboard, and Live trades tabs', () => {
@@ -277,5 +283,157 @@ describe('SocialV1View', () => {
         tab: 'tab_live_trades',
       }),
     );
+  });
+
+  it('tracks Following tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_following',
+        tab_change_method: 'tap',
+      }),
+    );
+  });
+
+  it('tracks Leaderboard tab selection', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'tab_changed',
+        tab: 'tab_leaderboard',
+      }),
+    );
+  });
+
+  it('plays a selection haptic when switching to a different tab', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not play a haptic when pressing the already-active tab', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockPlaySelection).not.toHaveBeenCalled();
+  });
+
+  it('renders the mocked feed on Following after that tab is opened', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getAllByTestId(
+        getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
+      ),
+    ).toHaveLength(2);
+  });
+
+  it('uses the profile image URL for the header avatar when available', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { imageUrl: 'https://example.com/avatar.png' },
+    });
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  describe('notifications nudge banner', () => {
+    it('is hidden by default when the route param is unset', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(
+        screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('renders when the showNotificationsBanner route param is set', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+
+      expect(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens system settings and dismisses when the CTA is pressed', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+      fireEvent.press(
+        screen.getByText(
+          'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+        ),
+      );
+
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('dismisses when the close button is pressed', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+
+      renderWithProvider(<SocialV1View />);
+      fireEvent.press(screen.getByLabelText('Close banner'));
+
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('auto-dismisses after the timeout window', () => {
+      jest.useFakeTimers();
+      try {
+        mockRouteParams = { showNotificationsBanner: true };
+        renderWithProvider(<SocialV1View />);
+
+        expect(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          jest.advanceTimersByTime(20000);
+        });
+
+        expect(
+          screen.queryByTestId(SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER),
+        ).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 });

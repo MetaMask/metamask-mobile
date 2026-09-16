@@ -56,4 +56,19 @@ describe('LiveTradesView', () => {
 
     expect(onOpenFilters).toHaveBeenCalledTimes(1);
   });
+
+  it('toggles from Paused back to Live on a second press', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.feed.live_stream.live'),
+    ).toBeOnTheScreen();
+  });
 });
