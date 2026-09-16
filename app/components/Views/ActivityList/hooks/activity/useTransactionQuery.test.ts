@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../../../../core/apiClient';
 import { useTransactionQuery } from './useTransactionQuery';
 
-jest.mock('react-native-i18n', () => ({
-  I18n: {
+jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: {
     locale: 'en-US',
   },
 }));

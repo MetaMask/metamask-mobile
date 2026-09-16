@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { I18n } from 'react-native-i18n';
+import I18n from '../../../../../../locales/i18n';
 import { apiClient } from '../../../../../core/apiClient';
 
 function getNumericEvmChainId(chainId: string | undefined) {
@@ -33,7 +33,7 @@ export function useTransactionQuery({
       includeLogs: false,
       includeValueTransfers: true,
       includeTxMetadata: true,
-      lang: I18n.locale.split('-')[0],
+      lang: (I18n.locale ?? 'en').split('-')[0],
     },
   );
 

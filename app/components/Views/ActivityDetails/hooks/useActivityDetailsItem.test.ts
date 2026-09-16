@@ -10,9 +10,8 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedAccountGroupInternalAccounts , selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
@@ -394,10 +393,7 @@ describe('useActivityDetailsItem', () => {
     });
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem(
-        '0xfetched',
-        'eip155:1',
-      ),
+      useActivityDetailsItem('0xfetched', 'eip155:1'),
     );
 
     expect(result.current.item?.hash).toBe('0xfetched');
