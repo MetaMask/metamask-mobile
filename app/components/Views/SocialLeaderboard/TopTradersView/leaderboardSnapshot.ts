@@ -162,20 +162,29 @@ export const writeSnapshot = (
 };
 
 /**
- * Whether two orderings differ, which is the only case worth animating.
+ * Whether the rows the user last saw have moved, which is the only case worth
+ * animating.
  *
  * Compares identity and position only. A row whose PnL moved but whose rank
  * held has nothing to slide to, and re-running the animation for it would make
  * the list twitch on every refetch.
  *
- * @param before - The order currently on screen.
+ * Only the remembered rows are compared, never the lengths. A snapshot is
+ * capped at `SNAPSHOT_MAX_ROWS` while the list fetches a full page, so the two
+ * lengths differ on essentially every visit — treating that as a change would
+ * make the "nothing moved" path unreachable and force the reveal dwell on every
+ * single open. Comparing the prefix also keeps the cap independent of whatever
+ * page size the list happens to request.
+ *
+ * @param before - The order the user last saw, possibly shorter than `after`.
  * @param after - The freshly fetched order.
- * @returns `true` when the sequence of trader ids is not identical.
+ * @returns `true` when a remembered trader sits somewhere new, or has gone.
  */
 export const hasOrderChanged = (
   before: TopTrader[],
   after: TopTrader[],
 ): boolean => {
-  if (before.length !== after.length) return true;
+  // Fewer rows than we remember means some of them dropped off the page.
+  if (after.length < before.length) return true;
   return before.some((trader, index) => trader.id !== after[index].id);
 };

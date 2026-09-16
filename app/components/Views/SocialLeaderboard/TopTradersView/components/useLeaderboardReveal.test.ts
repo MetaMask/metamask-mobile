@@ -141,6 +141,71 @@ describe('useLeaderboardReveal', () => {
     }
   });
 
+  it('skips the dwell when a capped snapshot still matches the fresh order', () => {
+    jest.useFakeTimers();
+    try {
+      // Production shape: the snapshot is capped well below the page the list
+      // fetches, so the lengths differ even when nothing has moved.
+      const remembered = Array.from({ length: 25 }, (_, i) =>
+        buildTrader(`t${i}`, i + 1),
+      );
+      const fresh = Array.from({ length: 50 }, (_, i) =>
+        buildTrader(`t${i}`, i + 1),
+      );
+      mockReadSnapshot.mockReturnValue(remembered);
+
+      const { result, rerender } = renderReveal();
+      rerender({
+        freshTraders: fresh,
+        hasFetched: true,
+        keyParts: KEY_PARTS,
+        enabled: true,
+        hydrateRow,
+      });
+
+      // Nothing moved, so the full list should be on screen straight away
+      // rather than sitting behind a pointless 400ms wait.
+      expect(result.current.isShowingSnapshot).toBe(false);
+      expect(result.current.rows).toHaveLength(50);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('still dwells when a capped snapshot shows real movement', () => {
+    jest.useFakeTimers();
+    try {
+      const remembered = Array.from({ length: 25 }, (_, i) =>
+        buildTrader(`t${i}`, i + 1),
+      );
+      const fresh = Array.from({ length: 50 }, (_, i) =>
+        buildTrader(`t${i}`, i + 1),
+      );
+      // Top two traders trade places.
+      [fresh[0], fresh[1]] = [fresh[1], fresh[0]];
+      mockReadSnapshot.mockReturnValue(remembered);
+
+      const { result, rerender } = renderReveal();
+      rerender({
+        freshTraders: fresh,
+        hasFetched: true,
+        keyParts: KEY_PARTS,
+        enabled: true,
+        hydrateRow,
+      });
+
+      expect(result.current.isShowingSnapshot).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(REVEAL_DWELL_MS);
+      });
+
+      expect(result.current.isShowingSnapshot).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('skips the dwell entirely under Reduce Motion', () => {
     mockUseReducedMotion.mockReturnValue(true);
     const fresh = [buildTrader('b', 1)];

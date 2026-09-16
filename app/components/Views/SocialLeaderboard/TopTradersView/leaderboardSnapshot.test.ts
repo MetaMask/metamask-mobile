@@ -227,9 +227,53 @@ describe('leaderboardSnapshot', () => {
       expect(hasOrderChanged(before, after)).toBe(true);
     });
 
-    it('is true when the set of traders changed', () => {
+    it('is false when the snapshot is a matching prefix of the fresh list', () => {
+      // The real shape: writeSnapshot caps at SNAPSHOT_MAX_ROWS while the list
+      // fetches LEADERBOARD_LIMIT, so these lengths never match in production.
+      const before = Array.from({ length: SNAPSHOT_MAX_ROWS }, (_, i) =>
+        buildTrader({ id: `t${i}` }),
+      );
+      const after = Array.from({ length: 50 }, (_, i) =>
+        buildTrader({ id: `t${i}` }),
+      );
+
+      expect(hasOrderChanged(before, after)).toBe(false);
+    });
+
+    it('is true when a remembered row moved inside a longer fresh list', () => {
+      const before = [buildTrader({ id: 'a' }), buildTrader({ id: 'b' })];
+      const after = [
+        buildTrader({ id: 'b' }),
+        buildTrader({ id: 'a' }),
+        buildTrader({ id: 'c' }),
+      ];
+
+      expect(hasOrderChanged(before, after)).toBe(true);
+    });
+
+    it('is true when remembered rows dropped out of the fresh list', () => {
+      const before = [
+        buildTrader({ id: 'a' }),
+        buildTrader({ id: 'b' }),
+        buildTrader({ id: 'c' }),
+      ];
+      const after = [buildTrader({ id: 'a' })];
+
+      expect(hasOrderChanged(before, after)).toBe(true);
+    });
+
+    it('is false when the list merely grew beneath the remembered rows', () => {
+      // A newcomer appearing below everyone the user saw is not a reorder --
+      // nothing they remember has moved, so there is nothing to animate.
       const before = [buildTrader({ id: 'a' })];
       const after = [buildTrader({ id: 'a' }), buildTrader({ id: 'b' })];
+
+      expect(hasOrderChanged(before, after)).toBe(false);
+    });
+
+    it('is true when a newcomer pushed a remembered row down', () => {
+      const before = [buildTrader({ id: 'a' })];
+      const after = [buildTrader({ id: 'b' }), buildTrader({ id: 'a' })];
 
       expect(hasOrderChanged(before, after)).toBe(true);
     });
