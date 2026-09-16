@@ -110,6 +110,7 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
 const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
 const TWAP_DISCOVERY_INTERVAL_MS = 30_000;
@@ -133,6 +134,7 @@ export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
   SecondsPerMinute: SECONDS_PER_MINUTE,
+  MillisecondsPerSecond: MILLISECONDS_PER_SECOND,
   SuborderIntervalSeconds: TWAP_SUBORDER_INTERVAL_SECONDS,
   MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
   MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
