@@ -297,7 +297,7 @@ describe('rampsBuyCufTrace', () => {
       );
     });
 
-    it('nests under the active Buy E2E parent when one is open', () => {
+    it('stays its own transaction while linking to an open Buy parent', () => {
       startRampsBuyCufTrace();
       mockTrace.mockClear();
 
@@ -308,7 +308,7 @@ describe('rampsBuyCufTrace', () => {
           name: TraceName.RampBuyQuoteFetch,
           id: opId,
           parentContext: { mocked: 'parent-span' },
-          forceTransaction: false,
+          forceTransaction: true,
         }),
       );
     });

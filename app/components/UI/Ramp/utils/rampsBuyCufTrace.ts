@@ -313,7 +313,16 @@ export function buildRampsBuyQuoteFetchCufCompletion({
   };
 }
 
-/** Start Buy Quote Fetch CUF. Nests under E2E parent when active. */
+/**
+ * Start Buy Quote Fetch CUF.
+ *
+ * Always a transaction, even when a parent CUF is live. A child span is only
+ * flushed inside its parent's envelope, so nesting would withhold every quote
+ * fetch until `RampBuyToOrderDetails` ends (order details reached, or the
+ * 5 minute timeout) and drop it entirely if the app dies first. That loss
+ * skews toward abandoned sessions, which is the population the quote SLO
+ * measures. `parentContext` is still passed so the trace waterfall is intact.
+ */
 export function startRampsBuyQuoteFetchTrace({
   tags,
   startTime,
@@ -333,7 +342,7 @@ export function startRampsBuyQuoteFetchTrace({
     id: opId,
     op: TraceOperation.RampOperation,
     parentContext,
-    forceTransaction: !parentContext,
+    forceTransaction: true,
     startTime,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
