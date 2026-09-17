@@ -1889,9 +1889,7 @@ describe('TrendingTokenRowItem', () => {
       // No variant → outline style, mirroring PerpsMarketRowItem.
       expect(button.props.variant).toBeUndefined();
       // The star is vertically centered against the row's text columns.
-      expect(button.props.style).toStrictEqual(
-        expect.objectContaining({ alignSelf: 'center' }),
-      );
+      expect(button.props.twClassName).toBe('self-center');
     });
 
     it('does not trigger row navigation when the add button is pressed', async () => {
