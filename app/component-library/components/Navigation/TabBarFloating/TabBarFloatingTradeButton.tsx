@@ -89,10 +89,9 @@ const TabBarFloatingTradeButton = ({
           setButtonLayout({ x, y, width, height });
         });
       }}
-      // Only paints a fill while open, so the surface's blur shows through otherwise.
+      // Transparent in both states so the surface shows through, as on iOS 26.
       style={tw.style(
-        'h-full w-full items-center justify-center rounded-full',
-        isTrayOpen ? 'bg-icon-default' : 'bg-transparent',
+        'h-full w-full items-center justify-center rounded-full bg-transparent',
       )}
       testID={testID}
       accessibilityLabel={strings(
@@ -106,7 +105,7 @@ const TabBarFloatingTradeButton = ({
         <Icon
           name={IconName.Add}
           size={IconSize.Lg}
-          color={isTrayOpen ? IconColor.IconInverse : IconColor.IconDefault}
+          color={IconColor.IconDefault}
         />
       </Animated.View>
     </ButtonAnimated>
