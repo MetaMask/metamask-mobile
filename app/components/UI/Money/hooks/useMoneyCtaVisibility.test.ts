@@ -339,8 +339,28 @@ describe('useMoneyCtaVisibility', () => {
       );
 
       expect(result.current.isBalanceCtaEligible).toBe(false);
-      // Footer CTA does not depend on the deposit blocklist.
-      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides footer CTA when the token is blocked for money account deposits', () => {
+      setupSelectors({
+        blockedTokens: {
+          default: {
+            tokens: [
+              {
+                address: ctaToken.address,
+                chainId: ctaToken.chainId as string,
+              },
+            ],
+          },
+          overrides: {},
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(false);
     });
 
     it('hides footer CTA when its feature flag is disabled', () => {
