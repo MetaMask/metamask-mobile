@@ -276,7 +276,7 @@ const CardWelcome = () => {
           </Text>
         </ButtonBase>
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Tertiary}
           onPress={handleClose}
           testID={CardWelcomeSelectors.NOT_NOW_BUTTON}
           size={ButtonSize.Lg}
