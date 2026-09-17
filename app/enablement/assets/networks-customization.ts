@@ -53,7 +53,7 @@ function getExcludedAddress(chainId: string): string | undefined {
  * Whether the given address is the excluded ERC-20 for the given chain.
  * Case-insensitive on both chain ID and address.
  */
-function isExcludedAsset(chainId: string, address: string): boolean {
+export function isExcludedAsset(chainId: string, address: string): boolean {
   return getExcludedAddress(chainId) === address.toLowerCase();
 }
 
