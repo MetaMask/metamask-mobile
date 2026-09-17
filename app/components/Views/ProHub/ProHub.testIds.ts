@@ -17,5 +17,4 @@ export const ProHubTestIds = {
   NEXT_PAYMENT_TEXT: 'pro-hub-next-payment-text',
   MANAGE_BUTTON: 'pro-hub-manage-button',
   DISCLAIMER_TEXT: 'pro-hub-disclaimer-text',
-  LOADING_SKELETON: 'pro-hub-loading-skeleton',
 } as const;

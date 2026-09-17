@@ -85,30 +85,14 @@ describe('ProHub', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('shows a skeleton instead of subscriber content while entitlements load', () => {
+    it('does not render subscriber content without access', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Loading,
+        MoneyAccountPlusAccess.Eligible,
       );
 
-      const { getByTestId, queryByTestId } = renderProHub();
+      const { queryByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.LOADING_SKELETON)).toBeOnTheScreen();
-      expect(
-        queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(ProHubTestIds.LIFETIME_EARNINGS_SECTION),
-      ).not.toBeOnTheScreen();
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('does not render the skeleton once entitlements resolve', () => {
-      const { getByTestId, queryByTestId } = renderProHub();
-
-      expect(
-        queryByTestId(ProHubTestIds.LOADING_SKELETON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
   });
 

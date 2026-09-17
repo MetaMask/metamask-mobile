@@ -1,17 +1,6 @@
-import { useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  getSnapshot,
-  subscribe,
-} from '../core/Subscription/entitlementResolution';
-import { selectIsSignedIn } from '../selectors/identity';
-import { selectIsUnlocked } from '../selectors/keyringController';
-import {
-  selectHasAnyMoneyAccountPlusEntitlement,
-  selectIsMoneyAccountPlusSubscriber,
-} from '../selectors/subscriptionController';
+import { selectIsMoneyAccountPlusSubscriber } from '../selectors/subscriptionController';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
-import { useResolveMoneyAccountPlusEntitlements } from './useResolveMoneyAccountPlusEntitlements';
 
 /**
  * Who may see which Money Account Plus surface.
@@ -19,11 +8,9 @@ import { useResolveMoneyAccountPlusEntitlements } from './useResolveMoneyAccount
 export enum MoneyAccountPlusAccess {
   /** A/B flag is off. No Pro UI anywhere, subscriber or not. */
   Disabled = 'disabled',
-  /** Entitlements are not resolved yet. Render no Pro UI, so nothing flashes. */
-  Loading = 'loading',
-  /** Active subscriber, or one retaining entitlements through a grace period. */
+  /** Active subscriber according to SubscriptionController. */
   Subscriber = 'subscriber',
-  /** Resolved with no Plus entitlement. Show the upsell. */
+  /** No active Plus subscription. Show the upsell. */
   Eligible = 'eligible',
 }
 
@@ -33,41 +20,19 @@ export enum MoneyAccountPlusAccess {
  * The `subSUB990AbtestProSubscriptionFlow` A/B flag gates every Pro surface,
  * so control-group users get {@link MoneyAccountPlusAccess.Disabled} even
  * when they hold an active subscription. Past that, access is driven by
- * `SubscriptionController` entitlements rather than by
- * `subscription.products`, so a `past_due` subscriber keeps Pro access while
- * their entitlements are retained and an expired one loses it.
+ * SubscriptionController's active-subscriber selector.
  *
  * @returns The access state for the current user.
  */
 export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const isSignedIn = useSelector(selectIsSignedIn);
-  const isUnlocked = Boolean(useSelector(selectIsUnlocked));
   const isSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
-  const hasEntitlement = useSelector(selectHasAnyMoneyAccountPlusEntitlement);
-  const resolutionStatus = useSyncExternalStore(subscribe, getSnapshot);
-
-  useResolveMoneyAccountPlusEntitlements();
-
-  const canResolve = isProSubscriptionEnabled && isSignedIn && isUnlocked;
 
   if (!isProSubscriptionEnabled) {
     return MoneyAccountPlusAccess.Disabled;
   }
 
-  // Entitlements can only be resolved for a signed-in, unlocked user, so
-  // everyone else is treated as an eligible non-subscriber rather than being
-  // held on a spinner that would never clear.
-  if (
-    canResolve &&
-    (resolutionStatus === 'idle' || resolutionStatus === 'loading')
-  ) {
-    return MoneyAccountPlusAccess.Loading;
-  }
-
-  // A failed fetch falls through to the upsell so we never grant paid UI
-  // against unknown state.
-  return isSubscriber || hasEntitlement
+  return isSubscriber
     ? MoneyAccountPlusAccess.Subscriber
     : MoneyAccountPlusAccess.Eligible;
 }

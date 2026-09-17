@@ -16,7 +16,7 @@ import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
-import { refresh as refreshEntitlements } from '../../../core/Subscription/entitlementResolution';
+import Engine from '../../../core/Engine';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
@@ -89,14 +89,12 @@ const ProSubscription = () => {
     setCurrentScreen('success');
   }, []);
 
-  const shouldRenderFlow =
-    proAccess === MoneyAccountPlusAccess.Eligible ||
-    currentScreen === 'success';
-
   const handleSubscriptionOnSuccess = useCallback(async () => {
-    // Land on the hub with entitlements that reflect the new subscription
-    // rather than the pre-checkout snapshot.
-    await refreshEntitlements();
+    // Card checkout completes outside the controller, so explicitly refresh
+    // its canonical state before opening the hub.
+    await Engine.context.SubscriptionController.getSubscriptions().catch(
+      () => undefined,
+    );
     navigation.replace(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_success',
     });
@@ -130,9 +128,9 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {/* Held back until entitlements resolve so a subscriber never sees a
-          flash of the upsell before being redirected to the hub. */}
-      {shouldRenderFlow && screenContent}
+      {(proAccess === MoneyAccountPlusAccess.Eligible ||
+        currentScreen === 'success') &&
+        screenContent}
     </SafeAreaView>
   );
 };

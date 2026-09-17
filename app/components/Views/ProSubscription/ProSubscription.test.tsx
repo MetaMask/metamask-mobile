@@ -31,9 +31,13 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
-const mockRefreshEntitlements = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../core/Subscription/entitlementResolution', () => ({
-  refresh: () => mockRefreshEntitlements(),
+const mockGetSubscriptions = jest.fn().mockResolvedValue([]);
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    SubscriptionController: {
+      getSubscriptions: () => mockGetSubscriptions(),
+    },
+  },
 }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -79,7 +83,7 @@ describe('ProSubscription', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRoute.params = {};
-    mockRefreshEntitlements.mockResolvedValue(undefined);
+    mockGetSubscriptions.mockResolvedValue([]);
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
@@ -112,21 +116,6 @@ describe('ProSubscription', () => {
       expect(mockReplace).toHaveBeenCalledWith('ProHub', {
         source: 'pro_subscription_already_subscribed',
       });
-    });
-
-    it('holds back the upsell while entitlements are loading', () => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Loading,
-      );
-
-      const { queryByTestId, getByTestId } = render(<ProSubscription />);
-
-      expect(queryByTestId('mock-benefits')).not.toBeOnTheScreen();
-      expect(mockGoBack).not.toHaveBeenCalled();
-      // The close button stays available so the modal is never a dead end.
-      expect(
-        getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON),
-      ).toBeOnTheScreen();
     });
   });
 
@@ -165,7 +154,7 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('refreshes entitlements before replacing the screen with ProHub', async () => {
+    it('refreshes subscriptions before replacing the screen with ProHub', async () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
@@ -173,7 +162,7 @@ describe('ProSubscription', () => {
         fireEvent.press(getByTestId('mock-success'));
       });
 
-      expect(mockRefreshEntitlements).toHaveBeenCalledTimes(1);
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
       expect(mockReplace).toHaveBeenCalledWith('ProHub', {
         source: 'pro_subscription_success',
       });

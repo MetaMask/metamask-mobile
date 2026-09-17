@@ -23,10 +23,6 @@ describe('useIsProSubscriber', () => {
       expected: true,
     },
     {
-      access: MoneyAccountPlusAccess.Loading,
-      expected: false,
-    },
-    {
       access: MoneyAccountPlusAccess.Eligible,
       expected: false,
     },

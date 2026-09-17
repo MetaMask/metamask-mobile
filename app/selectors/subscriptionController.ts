@@ -6,7 +6,6 @@ import {
   selectHasEntitlement,
   selectIsActiveSubscriber,
   type CachedLastSelectedPaymentMethod,
-  type MoneyAccountPlusClaim,
   type ProductType,
   type Subscription,
   type SubscriptionControllerState,
@@ -24,8 +23,6 @@ const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
  */
 const DEFAULT_CONTROLLER_STATE: SubscriptionControllerState =
   getDefaultSubscriptionControllerState();
-
-const MONEY_ACCOUNT_FEATURES = Object.values(MoneyAccountFeature);
 
 const hasProduct = (
   subscription: Subscription,
@@ -145,20 +142,6 @@ export const selectLastSelectedPaymentMethodByProduct = (
   ];
 
 /**
- * Selects the Money Account Plus entitlement claim.
- *
- * @param state - The root Redux state.
- * @returns The claim, or undefined when the user holds no Plus entitlements.
- */
-export const selectMoneyAccountPlusClaim = createSelector(
-  selectSubscriptionControllerState,
-  (subscriptionControllerState): MoneyAccountPlusClaim | undefined =>
-    subscriptionControllerState?.productEntitlements?.[
-      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS
-    ],
-);
-
-/**
  * Selects whether the user has an active Money Account Plus subscription.
  * Active covers `active`, `trialing`, and `provisional`; every other status
  * fails closed.
@@ -192,19 +175,3 @@ export const selectHasMoneyAccountPlusEntitlement = (
     PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
     feature,
   );
-
-/**
- * Selects whether any Money Account Plus feature is still entitled.
- * Entitlements outlive the active statuses, so this is what keeps a
- * `past_due` subscriber in the Pro experience during their grace period.
- *
- * @param state - The root Redux state.
- * @returns Whether at least one Plus feature entitlement is granted.
- */
-export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
-  selectMoneyAccountPlusClaim,
-  (claim): boolean =>
-    MONEY_ACCOUNT_FEATURES.some((feature) =>
-      Boolean(claim?.entitlements?.[feature]),
-    ),
-);

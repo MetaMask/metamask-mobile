@@ -15,12 +15,10 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
-  selectHasAnyMoneyAccountPlusEntitlement,
   selectHasMoneyAccountPlusEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
-  selectMoneyAccountPlusClaim,
   selectMoneyAccountPlusPricing,
   selectSubscriptionByProduct,
   selectSubscriptionControllerState,
@@ -610,28 +608,6 @@ describe('subscriptionController selectors', () => {
           : {}),
       });
 
-    describe('selectMoneyAccountPlusClaim', () => {
-      it('returns the claim including its plan', () => {
-        const claim = selectMoneyAccountPlusClaim(
-          createPlusState({ entitlements: { premiumApy: true } }),
-        );
-
-        expect(claim).toEqual({
-          plan: 'premium',
-          entitlements: {
-            swapFeeWaiver: false,
-            perpsFeeWaiver: false,
-            predictFreeTx: false,
-            premiumApy: true,
-          },
-        });
-      });
-
-      it('returns undefined when the controller is absent', () => {
-        expect(selectMoneyAccountPlusClaim(createState())).toBeUndefined();
-      });
-    });
-
     describe('selectIsMoneyAccountPlusSubscriber', () => {
       it.each([
         SUBSCRIPTION_STATUSES.active,
@@ -711,41 +687,6 @@ describe('subscriptionController selectors', () => {
             MoneyAccountFeature.PremiumApy,
           ),
         ).toBe(false);
-      });
-    });
-
-    describe('selectHasAnyMoneyAccountPlusEntitlement', () => {
-      it('is true when a past_due subscriber retains an entitlement', () => {
-        const state = createPlusState({
-          status: SUBSCRIPTION_STATUSES.pastDue,
-          entitlements: { premiumApy: true },
-        });
-
-        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
-        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(true);
-      });
-
-      it('is false for an expired subscriber whose entitlements were revoked', () => {
-        const state = createPlusState({
-          status: SUBSCRIPTION_STATUSES.canceled,
-          entitlements: {},
-        });
-
-        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(false);
-      });
-
-      it('is false when the claim is missing entirely', () => {
-        expect(
-          selectHasAnyMoneyAccountPlusEntitlement(
-            createPlusState({ status: SUBSCRIPTION_STATUSES.active }),
-          ),
-        ).toBe(false);
-      });
-
-      it('fails closed when the controller is absent', () => {
-        expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
-          false,
-        );
       });
     });
   });
