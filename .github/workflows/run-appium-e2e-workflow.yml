@@ -115,10 +115,14 @@ jobs:
     # two workloads apart. They are not the same workload: Gradle sits at 100%
     # CPU-saturated and wants more, while Appium peaks at 57% of 16 vCPU and 37%
     # of 32 GB and wants less. Right-sizing this profile is a follow-up.
+    #
+    # iOS shares the `ios-build-tahoe-slim` profile rather than `ios-e2e`: this
+    # job inherits setup-e2e-env's Xcode default (26.6, required by Expo SDK 57)
+    # and only the tahoe-slim image carries that version.
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
-        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' ||
          'namespace-profile-metamask-android-e2e') ||
         (inputs.platform == 'ios' &&
           fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
