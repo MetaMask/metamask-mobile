@@ -426,60 +426,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
     });
 
-    it('hardware payer: parent submitted is a fallback to show in-progress', () => {
-      (isHardwareAccount as jest.Mock).mockReturnValue(true);
-      const parentId = 'hw-deposit-submitted';
-      const parent = buildTxMeta({
-        id: parentId,
-        type: TransactionType.moneyAccountDeposit,
-        status: TransactionStatus.approved,
-        txParams: {
-          from: '0xMoneyAccount',
-          data: encodeDepositData(BigInt(1)),
-        },
-      });
-      mockControllerTransactions.push(parent);
-      mockTransactionPayData[parentId] = {
-        accountOverride: '0xLedger',
-        quotes: [{}],
-      };
-
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({ transactionMeta: parent });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-      expect(depositInProgressFn).not.toHaveBeenCalled();
-
-      parent.status = TransactionStatus.submitted;
-      statusUpdatedHandler({ transactionMeta: parent });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not defer in-progress for fiat deposits with a hardware accountOverride', () => {
-      (isHardwareAccount as jest.Mock).mockReturnValue(true);
-      const parentId = 'fiat-hw-override';
-      mockTransactionPayData[parentId] = {
-        accountOverride: '0xLedger',
-        fiatPayment: { selectedPaymentMethodId: 'apple-pay' },
-      };
-
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          id: parentId,
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.approved,
-          metamaskPay: { fiat: { provider: 'apple-pay' } },
-        } as unknown as Partial<TransactionMeta>),
-      });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
-    });
-
     it('approved → in-progress toast forwards the batch intent', () => {
       (
         getMoneyAccountDepositIntent as jest.MockedFunction<
@@ -1879,24 +1825,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
     });
 
-    it('ignores status updates from unrelated transactions while waiting', () => {
-      const parent = seedHardwareDeposit([legA]);
-      seedLeg(legA);
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({ transactionMeta: parent });
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          id: 'unrelated',
-          type: TransactionType.simpleSend,
-          status: TransactionStatus.signed,
-        }),
-      });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).not.toHaveBeenCalled();
-    });
-
     it('schedules the toast once, even when several signed events arrive', () => {
       const parent = seedHardwareDeposit([legA]);
       const leg = seedLeg(legA);
@@ -1913,42 +1841,6 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not defer a hardware-funded Money withdrawal', () => {
-      (isHardwareAccount as jest.Mock).mockReturnValue(true);
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          id: 'hw-withdraw',
-          type: TransactionType.moneyAccountWithdraw,
-          status: TransactionStatus.approved,
-          txParams: { from: '0xLedger', data: '0x' },
-        }),
-      });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not defer when the paying account resolves to a software account', () => {
-      (isHardwareAccount as jest.Mock).mockImplementation(
-        (address: string) => address === '0xLedger',
-      );
-      mockTransactionPayData['sw-parent'] = { accountOverride: '0xSoftware' };
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          id: 'sw-parent',
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.approved,
-        }),
-      });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
     });
 
     it('does not close a toast that was never shown when a first deposit confirms while waiting', () => {

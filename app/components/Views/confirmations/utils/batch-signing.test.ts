@@ -65,21 +65,13 @@ describe('batch-signing', () => {
     });
   });
 
-  describe('getRequiredTransactionIds', () => {
-    it('returns the parent required transaction ids', () => {
-      const { transactions } = buildState(['leg-1', 'leg-2']);
+  it('getRequiredTransactionIds returns [] for an unknown transaction', () => {
+    const { transactions } = buildState(['leg-1']);
 
-      expect(getRequiredTransactionIds(PARENT_ID, transactions)).toEqual([
-        'leg-1',
-        'leg-2',
-      ]);
-    });
-
-    it('returns an empty list for an unknown transaction', () => {
-      const { transactions } = buildState(['leg-1']);
-
-      expect(getRequiredTransactionIds('missing', transactions)).toEqual([]);
-    });
+    expect(getRequiredTransactionIds(PARENT_ID, transactions)).toEqual([
+      'leg-1',
+    ]);
+    expect(getRequiredTransactionIds('missing', transactions)).toEqual([]);
   });
 
   describe('haveRequiredTransactionsBeenSigned', () => {

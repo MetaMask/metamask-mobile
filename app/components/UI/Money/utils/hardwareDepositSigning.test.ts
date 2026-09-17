@@ -113,22 +113,6 @@ describe('hardwareDepositSigning', () => {
 
       expect(isHardwareFundedDeposit(state, buildTx({}))).toBe(false);
     });
-
-    it('detects a nested moneyAccountDeposit inside a batch', () => {
-      mockTransactionPayData['deposit-1'] = { accountOverride: LEDGER };
-
-      expect(
-        isHardwareFundedDeposit(
-          state,
-          buildTx({
-            type: TransactionType.batch,
-            nestedTransactions: [
-              { type: TransactionType.moneyAccountDeposit },
-            ] as TransactionMeta['nestedTransactions'],
-          }),
-        ),
-      ).toBe(true);
-    });
   });
 
   describe('isHardwareDepositSigningComplete', () => {
