@@ -13,6 +13,7 @@ export const CardHomeSelectors = {
   CONTACT_SUPPORT_ITEM: 'contact-support-item',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',
   UNLINK_MONEY_ACCOUNT_ITEM: 'unlink-money-account-item',
+  REVOKE_ALLOWANCE_ITEM: 'revoke-allowance-item',
   CARD_VIEW_TITLE: 'card-view-title',
   ADD_FUNDS_BOTTOM_SHEET: 'add-funds-bottom-sheet',
   ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION:
@@ -44,4 +45,5 @@ export const CardHomeSelectors = {
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
   UK_MIGRATION_REQUIRED_BANNER: 'card-home-uk-migration-required-banner',
   UK_MIGRATION_SOFT_BANNER: 'card-home-uk-migration-soft-banner',
+  TRANSACTION_HISTORY_ITEM: 'card-transaction-history-item',
 };
