@@ -13,8 +13,9 @@ import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCa
 import { useEnsureAccountGroupAssets } from './useEnsureAccountGroupAssets';
 import { useAccountOverrideGroupId } from './useAccountOverrideGroupId';
 import {
-  selectAccountGroupAssets,
-  type SelectedAsset,
+  selectConfirmationAssetsByAccountGroupId,
+  selectConfirmationAssetsWithBalanceByAccountGroupId,
+  type ConfirmationAsset,
 } from '../../selectors/assets';
 import type { RootState } from '../../../../../reducers';
 
@@ -46,16 +47,17 @@ jest.mock('./useEnsureAccountGroupAssets', () => ({
 
 // useAccountOverrideGroupId has its own test suite and internally calls
 // useSelector twice; mock it so the only useSelector consumer in this suite is
-// the selectAccountGroupAssets call inside useDecoratedAssets.
+// the selectConfirmationAsset* call inside useDecoratedAssets.
 jest.mock('./useAccountOverrideGroupId', () => ({
   useAccountOverrideGroupId: jest.fn(),
 }));
 
-// Partial mock so the real hasBalance still runs, while the group id handed to
-// selectAccountGroupAssets stays assertable.
+// Partial mock so both selectors stay assertable while the real module provides
+// all other exports (ConfirmationAsset type, etc.).
 jest.mock('../../selectors/assets', () => ({
   ...jest.requireActual('../../selectors/assets'),
-  selectAccountGroupAssets: jest.fn(),
+  selectConfirmationAssetsByAccountGroupId: jest.fn(),
+  selectConfirmationAssetsWithBalanceByAccountGroupId: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -70,20 +72,27 @@ const mockUseTransactionAccountOverride = jest.mocked(
 );
 const mockUseAccountOverrideGroupId = jest.mocked(useAccountOverrideGroupId);
 const mockUseAssetFiatFormatter = jest.mocked(useAssetFiatFormatter);
-const mockSelectAccountGroupAssets = jest.mocked(selectAccountGroupAssets);
+const mockSelectConfirmationAssetsByAccountGroup = jest.mocked(
+  selectConfirmationAssetsByAccountGroupId,
+);
+const mockSelectConfirmationAssetsWithBalanceByAccountGroup = jest.mocked(
+  selectConfirmationAssetsWithBalanceByAccountGroupId,
+);
 
 const mockFormatFiat = jest.fn();
 
-// selectAccountGroupAssets is mocked, so the state only needs a stable identity
+// Selectors are mocked, so the state only needs a stable identity
 // for the call assertions.
 const MOCK_STATE = {} as RootState;
 
 /**
- * Builds a decorated asset as selectAccountGroupAssets would return it.
- * All fields are explicitly provided so hasBalance and the hook's formatting
+ * Builds a decorated asset as selectConfirmationAssetsByAccountGroupId would
+ * return it. All fields are explicitly provided so the hook's formatting
  * logic can be exercised against realistic values.
  */
-function buildAsset(overrides: Partial<SelectedAsset> = {}): SelectedAsset {
+function buildAsset(
+  overrides: Partial<ConfirmationAsset> = {},
+): ConfirmationAsset {
   return {
     accountId: 'account-1',
     accountType: EthAccountType.Eoa,
@@ -106,7 +115,7 @@ function buildAsset(overrides: Partial<SelectedAsset> = {}): SelectedAsset {
     standard: TokenStandard.ERC20,
     symbol: 'TOKEN1',
     ...overrides,
-  } as SelectedAsset;
+  } as ConfirmationAsset;
 }
 
 const assetWithBalance = buildAsset();
@@ -139,7 +148,12 @@ describe('useAccountTokens', () => {
 
     mockUseTransactionAccountOverride.mockReturnValue(undefined);
     mockUseAccountOverrideGroupId.mockReturnValue(undefined);
-    mockSelectAccountGroupAssets.mockReturnValue([assetWithBalance]);
+    mockSelectConfirmationAssetsByAccountGroup.mockReturnValue([
+      assetWithBalance,
+    ]);
+    mockSelectConfirmationAssetsWithBalanceByAccountGroup.mockReturnValue([
+      assetWithBalance,
+    ]);
     mockUseSelector.mockImplementation((selector) => selector(MOCK_STATE));
     mockFormatFiat.mockReturnValue('$100.00');
     mockUseAssetFiatFormatter.mockReturnValue({
@@ -223,26 +237,29 @@ describe('useAccountTokens', () => {
   });
 
   describe('includeNoBalance filtering', () => {
-    it('excludes assets with no fiat balance and zero rawBalance by default', () => {
-      mockUseSelector.mockReturnValue([assetWithBalance, assetZeroBalance]);
+    it('uses selectConfirmationAssetsWithBalanceByAccountGroupId by default', () => {
+      renderHook(() => useAccountTokens());
 
-      const { result } = renderHook(() => useAccountTokens());
-
-      const symbols = result.current.map((a) => a.symbol);
-      expect(symbols).not.toContain('TOKEN2');
+      expect(
+        mockSelectConfirmationAssetsWithBalanceByAccountGroup,
+      ).toHaveBeenCalled();
+      expect(mockSelectConfirmationAssetsByAccountGroup).not.toHaveBeenCalled();
     });
 
-    it('includes assets with no fiat balance but non-zero rawBalance', () => {
-      mockUseSelector.mockReturnValue([assetRawBalanceOnly]);
+    it('uses selectConfirmationAssetsByAccountGroupId when includeNoBalance is true', () => {
+      renderHook(() => useAccountTokens({ includeNoBalance: true }));
 
-      const { result } = renderHook(() => useAccountTokens());
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].symbol).toBe('TOKEN3');
+      expect(mockSelectConfirmationAssetsByAccountGroup).toHaveBeenCalled();
+      expect(
+        mockSelectConfirmationAssetsWithBalanceByAccountGroup,
+      ).not.toHaveBeenCalled();
     });
 
     it('includes zero-balance assets when includeNoBalance is true', () => {
-      mockUseSelector.mockReturnValue([assetWithBalance, assetZeroBalance]);
+      mockSelectConfirmationAssetsByAccountGroup.mockReturnValue([
+        assetWithBalance,
+        assetZeroBalance,
+      ]);
 
       const { result } = renderHook(() =>
         useAccountTokens({ includeNoBalance: true }),
@@ -253,12 +270,15 @@ describe('useAccountTokens', () => {
       expect(symbols).toContain('TOKEN2');
     });
 
-    it('returns empty list when all assets have zero balance and includeNoBalance is false', () => {
-      mockUseSelector.mockReturnValue([assetZeroBalance]);
+    it('includes assets with no fiat balance but non-zero rawBalance when includeNoBalance is false', () => {
+      mockSelectConfirmationAssetsWithBalanceByAccountGroup.mockReturnValue([
+        assetRawBalanceOnly,
+      ]);
 
       const { result } = renderHook(() => useAccountTokens());
 
-      expect(result.current).toHaveLength(0);
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('TOKEN3');
     });
   });
 
@@ -480,10 +500,9 @@ describe('useAccountTokens', () => {
 
       renderHook(() => useAccountTokens());
 
-      expect(mockSelectAccountGroupAssets).toHaveBeenCalledWith(
-        MOCK_STATE,
-        'entropy:group-1/0',
-      );
+      expect(
+        mockSelectConfirmationAssetsWithBalanceByAccountGroup,
+      ).toHaveBeenCalledWith(MOCK_STATE, 'entropy:group-1/0');
     });
 
     it('queries the selector with an undefined group id when no override is active', () => {
@@ -492,16 +511,15 @@ describe('useAccountTokens', () => {
 
       renderHook(() => useAccountTokens());
 
-      expect(mockSelectAccountGroupAssets).toHaveBeenCalledWith(
-        MOCK_STATE,
-        undefined,
-      );
+      expect(
+        mockSelectConfirmationAssetsWithBalanceByAccountGroup,
+      ).toHaveBeenCalledWith(MOCK_STATE, undefined);
     });
 
     it('returns the assets of the override group', () => {
       mockUseTransactionAccountOverride.mockReturnValue('0xOverride' as never);
       mockUseAccountOverrideGroupId.mockReturnValue('entropy:group-1/0');
-      mockSelectAccountGroupAssets.mockReturnValue([
+      mockSelectConfirmationAssetsWithBalanceByAccountGroup.mockReturnValue([
         buildAsset({ symbol: 'OVERRIDE' }),
       ]);
 

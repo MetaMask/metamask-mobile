@@ -14,7 +14,11 @@ import {
   AssetFiatFormatter,
   useAssetFiatFormatter,
 } from '../pay/useAssetFiatFormatter';
-import { hasBalance, selectAccountGroupAssets } from '../../selectors/assets';
+import {
+  type ConfirmationAsset,
+  selectConfirmationAssetsByAccountGroupId,
+  selectConfirmationAssetsWithBalanceByAccountGroupId,
+} from '../../selectors/assets';
 import { useAccountOverrideGroupId } from './useAccountOverrideGroupId';
 import { useEnsureAccountGroupAssets } from './useEnsureAccountGroupAssets';
 
@@ -22,17 +26,6 @@ export interface EnrichTokenRequest {
   chainId: Hex;
   address: string;
 }
-
-export type DecoratedAsset = AssetType & {
-  /**
-   * Whether the asset was eligible for an EVM fiat rate lookup. Computed once
-   * during decoration and carried on the asset so neither the rate-consumption
-   * walk nor `deriveAssetFiat` has to re-derive it.
-   */
-  isEvmRateEligible: boolean;
-  key: string;
-  sortKey: number;
-};
 
 const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
@@ -85,43 +78,47 @@ export function useAccountTokens({
 }
 
 /**
- * Decoration now happens in `selectAccountGroupAssets`, which memoises per
- * store state rather than per hook instance, so every consumer shares one
- * computation. Only the consumer-specific filter and fiat formatting remain
- * here, since both depend on arguments the selector cannot see.
+ * Decoration now happens in `selectConfirmationAssetsByAccountGroupId`, which
+ * memoises per store state rather than per hook instance, so every consumer
+ * shares one computation. Only the consumer-specific filter and fiat formatting
+ * remain here, since both depend on arguments the selector cannot see.
  */
 function useDecoratedAssets(
   accountGroupId: AccountGroupId | undefined,
   includeNoBalance: boolean,
   tokenFilter: ((chainId: string, address: string) => boolean) | undefined,
   formatFiat: AssetFiatFormatter,
-): DecoratedAsset[] {
+): ConfirmationAsset[] {
   const selectAssets = useCallback(
-    (state: RootState) => selectAccountGroupAssets(state, accountGroupId),
-    [accountGroupId],
+    (state: RootState) =>
+      includeNoBalance
+        ? selectConfirmationAssetsByAccountGroupId(state, accountGroupId)
+        : selectConfirmationAssetsWithBalanceByAccountGroupId(
+            state,
+            accountGroupId,
+          ),
+    [accountGroupId, includeNoBalance],
   );
 
   const assets = useSelector(selectAssets);
 
-  const filteredAssets = useMemo(
-    () =>
-      assets.filter((asset) => {
-        if (tokenFilter) {
-          const address = asset.assetId;
+  // Returns the selector's array untouched when no filter is supplied, so the
+  // reference stays stable and downstream memos are not invalidated.
+  const filteredAssets = useMemo(() => {
+    if (!tokenFilter) {
+      return assets;
+    }
 
-          if (
-            !asset.chainId ||
-            !address ||
-            !tokenFilter(asset.chainId, address)
-          ) {
-            return false;
-          }
-        }
+    return assets.filter((asset) => {
+      const { assetId, chainId } = asset;
 
-        return includeNoBalance || hasBalance(asset);
-      }),
-    [assets, includeNoBalance, tokenFilter],
-  );
+      if (!chainId || !assetId) {
+        return false;
+      }
+
+      return tokenFilter(chainId, assetId);
+    });
+  }, [assets, tokenFilter]);
 
   return useMemo(
     () =>
@@ -137,10 +134,10 @@ function useDecoratedAssets(
 }
 
 function useRemoteTokens(
-  assets: DecoratedAsset[],
+  assets: ConfirmationAsset[],
   enrichTokenRequests: EnrichTokenRequest[],
   formatFiat: AssetFiatFormatter,
-): DecoratedAsset[] {
+): ConfirmationAsset[] {
   const assetIds = useMemo(
     () =>
       enrichTokenRequests.map((req) =>
@@ -196,9 +193,9 @@ function useRemoteTokens(
             sortKey: 0,
             standard: TokenStandard.ERC20,
             symbol: data.symbol ?? '',
-          } as DecoratedAsset;
+          } as ConfirmationAsset;
         })
-        .filter((token) => token !== undefined) as DecoratedAsset[],
+        .filter((token) => token !== undefined) as ConfirmationAsset[],
     [enrichTokenRequests, existingKeys, assetIds, tokensByAssetId, zeroFiat],
   );
 }
