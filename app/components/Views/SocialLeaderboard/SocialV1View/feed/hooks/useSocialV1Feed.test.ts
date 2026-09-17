@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { MOCK_SOCIAL_V1_FEED_ITEMS , mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import {
+  MOCK_SOCIAL_V1_FEED_ITEMS,
+  mockOpenPerpsFeedItem,
+} from '../mocks/socialV1Feed.mock';
 import {
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
