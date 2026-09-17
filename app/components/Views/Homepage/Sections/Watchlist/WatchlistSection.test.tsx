@@ -1,8 +1,12 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
-import WatchlistSection from './WatchlistSection';
+import WatchlistSection, {
+  SUGGESTED_WATCHLIST_LIMIT,
+  getSuggestedWatchlistTokens,
+} from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 
 let mockIsWatchlistEnabled = true;
 const mockNavigate = jest.fn();
@@ -63,12 +67,9 @@ jest.mock(
 );
 
 let mockWatchlistAssetIds: string[] = [];
-jest.mock(
-  '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistAssetIds',
-  () => ({
-    useTokenWatchlistAssetIds: () => mockWatchlistAssetIds,
-  }),
-);
+jest.mock('../../../../UI/Assets/watchlist/hooks/useTokenWatchlist', () => ({
+  useTokenWatchlistAssetIds: () => mockWatchlistAssetIds,
+}));
 
 const mockMutate = jest.fn();
 jest.mock(
@@ -205,7 +206,6 @@ describe('WatchlistSection', () => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
     mockWatchlistAssetIds = [];
-    // Default query state: empty, loaded. Tests override as needed.
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -265,11 +265,8 @@ describe('WatchlistSection', () => {
 
     const { getByTestId, queryByTestId } = renderSection();
 
-    // Empty watchlist renders the suggested rows silently — no sub-header,
-    // no helper copy (mirrors the perps watchlist after #36358).
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
-    // 5 - 0 watched = 5 suggestions; the 6th pool token is dropped.
     expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
     expect(getByTestId('row-ethereum')).toBeOnTheScreen();
     expect(getByTestId('row-solana')).toBeOnTheScreen();
@@ -288,8 +285,8 @@ describe('WatchlistSection', () => {
     });
     mockWatchlistAssetIds = ['eip155:1/erc20:0xeth', 'eip155:1/erc20:0xbtc'];
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      // Watched tokens can appear in the pool and must be filtered out.
       data: makeSuggestedPool(
-        // Already-watched tokens come back in the pool and must be filtered.
         'eth',
         'btc',
         'bitcoin',
@@ -302,10 +299,8 @@ describe('WatchlistSection', () => {
 
     const { getByTestId, getByText, queryByTestId } = renderSection();
 
-    // Watchlist rows render first (newest-first)…
     expect(getByTestId('row-btc')).toBeOnTheScreen();
     expect(getByTestId('row-eth')).toBeOnTheScreen();
-    // …then the labelled suggested section: 5 - 2 watched = 3 suggestions.
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
     expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
     expect(getByText('Suggested')).toBeOnTheScreen();
@@ -313,7 +308,6 @@ describe('WatchlistSection', () => {
     expect(getByTestId('row-ethereum')).toBeOnTheScreen();
     expect(getByTestId('row-solana')).toBeOnTheScreen();
     expect(queryByTestId('row-bnb')).not.toBeOnTheScreen();
-    // Watched tokens carry no add button.
     expect(queryByTestId('row-add-btc')).not.toBeOnTheScreen();
     expect(queryByTestId('row-add-eth')).not.toBeOnTheScreen();
     expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
@@ -347,7 +341,6 @@ describe('WatchlistSection', () => {
 
     fireEvent.press(getByTestId('row-add-bitcoin'));
 
-    // Run the success path the mutation would invoke on settle.
     const { onSuccess } = mockMutate.mock.calls[0][1] as {
       onSuccess: () => void;
     };
@@ -356,7 +349,6 @@ describe('WatchlistSection', () => {
     });
 
     expect(mockToast).not.toHaveBeenCalled();
-    // Analytics still fire alongside the silent optimistic update.
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock' });
   });
@@ -400,7 +392,6 @@ describe('WatchlistSection', () => {
     const { getByTestId, queryByTestId } = renderSection();
 
     // Storage appends newest last; section reverses so newest appears first.
-    // Six watched tokens: the five newest render, the oldest (eth) drops.
     expect(getByTestId('row-link')).toBeDefined();
     expect(getByTestId('row-ada')).toBeDefined();
     expect(getByTestId('row-doge')).toBeDefined();
@@ -417,7 +408,6 @@ describe('WatchlistSection', () => {
       refetch: jest.fn(),
     });
     mockWatchlistAssetIds = names.map((name) => `eip155:1/erc20:0x${name}`);
-    // Pool still has unwatched tokens to offer — the cap must hide them all.
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: makeSuggestedPool('bitcoin', 'ethereum', 'solana'),
       isLoading: false,
@@ -425,7 +415,6 @@ describe('WatchlistSection', () => {
 
     const { getByTestId, queryByTestId } = renderSection();
 
-    // 5 watched → 5 rows, 5 - 5 = 0 suggestions: the section never overflows.
     expect(getByTestId('row-eth')).toBeOnTheScreen();
     expect(getByTestId('row-ada')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
@@ -446,5 +435,131 @@ describe('WatchlistSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.WATCHLIST_FULL_VIEW,
     );
+  });
+});
+
+describe('getSuggestedWatchlistTokens', () => {
+  const makeSuggested = (symbol: string): WatchlistTokenWithBalance =>
+    ({
+      assetId: `eip155:1/erc20:0x${symbol}`,
+      symbol,
+      name: symbol,
+      decimals: 18,
+      balance: '0',
+      isInWallet: false,
+    }) as unknown as WatchlistTokenWithBalance;
+
+  const buildPool = (symbols: string[]): WatchlistTokenWithBalance[] =>
+    symbols.map(makeSuggested);
+
+  const buildWatchedIds = (
+    pool: WatchlistTokenWithBalance[],
+    watchedSymbols: string[],
+  ): string[] =>
+    pool
+      .filter((token) => watchedSymbols.includes(String(token.symbol)))
+      .map((token) => String(token.assetId));
+
+  const defaultPoolSymbols = ['a', 'b', 'c', 'd', 'e', 'f'];
+
+  interface SuggestedTokensTestCase {
+    description: string;
+    poolSymbols: string[];
+    watchedSymbols: string[];
+    expectedSymbols: string[];
+    limit?: number;
+    uppercaseWatchedIds?: boolean;
+  }
+
+  const testCases: SuggestedTokensTestCase[] = [
+    {
+      description:
+        'shows the full limit of suggestions when the watchlist is empty',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: [],
+      expectedSymbols: ['a', 'b', 'c', 'd', 'e'],
+    },
+    {
+      description:
+        'shows limit minus watchlist count suggestions (2 watched → 3)',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a', 'b'],
+      expectedSymbols: ['c', 'd', 'e'],
+    },
+    {
+      description: 'excludes already-watchlisted tokens from the suggestions',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['d'],
+      expectedSymbols: ['a', 'b', 'c', 'e'],
+    },
+    {
+      description: 'compares asset IDs case-insensitively',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a'],
+      expectedSymbols: ['b', 'c', 'd', 'e'],
+      uppercaseWatchedIds: true,
+    },
+    {
+      description: 'shows no suggestions once the watchlist reaches the limit',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a', 'b', 'c', 'd', 'e'],
+      expectedSymbols: [],
+    },
+    {
+      description: 'shows no suggestions when the watchlist exceeds the limit',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a', 'b', 'c', 'd', 'e', 'f'],
+      expectedSymbols: [],
+    },
+    {
+      description:
+        'returns fewer suggestions when the pool is smaller than the target',
+      poolSymbols: ['a'],
+      watchedSymbols: [],
+      expectedSymbols: ['a'],
+    },
+    {
+      description:
+        'returns an empty list when every suggested token is watched',
+      poolSymbols: ['a', 'b'],
+      watchedSymbols: ['a', 'b'],
+      expectedSymbols: [],
+    },
+    {
+      description: 'honors a custom limit',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a'],
+      expectedSymbols: ['b', 'c'],
+      limit: 3,
+    },
+  ];
+
+  it.each(testCases)('$description', ({ ...testCase }) => {
+    const pool = buildPool(testCase.poolSymbols);
+    let watchedIds = buildWatchedIds(pool, testCase.watchedSymbols);
+    if (testCase.uppercaseWatchedIds) {
+      watchedIds = watchedIds.map((id) => id.toUpperCase());
+    }
+
+    const result = getSuggestedWatchlistTokens(
+      pool,
+      watchedIds,
+      testCase.limit,
+    );
+
+    expect(result.map((token) => token.symbol)).toEqual(
+      testCase.expectedSymbols,
+    );
+  });
+
+  it('keeps the suggestion limit aligned with the perps watchlist flow', () => {
+    expect(SUGGESTED_WATCHLIST_LIMIT).toBe(5);
+  });
+
+  it('caps at zero (no floor-of-one) once the watchlist is full', () => {
+    const pool = buildPool(defaultPoolSymbols);
+    const watchedIds = buildWatchedIds(pool, ['a', 'b', 'c', 'd', 'e']);
+
+    expect(getSuggestedWatchlistTokens(pool, watchedIds)).toEqual([]);
   });
 });
