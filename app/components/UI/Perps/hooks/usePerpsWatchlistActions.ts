@@ -5,35 +5,13 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
-import EngineService from '../../../../core/EngineService';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import usePerpsToasts from './usePerpsToasts';
+import { flushEngineState } from '../utils/flushEngineState';
 import { WATCHLIST_LIMIT } from '../utils/marketUtils';
-
-/**
- * Delivers pending controller state before the default 250 ms batch window can
- * leave the watchlist button stale. Redux delivery is best-effort and must not
- * turn a successful controller update into a failed watchlist action.
- */
-const flushEngineState = (): void => {
-  try {
-    EngineService.flushState();
-  } catch (error) {
-    Logger.error(
-      ensureError(error, 'usePerpsWatchlistActions.flushEngineState'),
-      {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          component: 'usePerpsWatchlistActions',
-          action: 'flush_engine_state',
-        },
-      },
-    );
-  }
-};
 
 interface UsePerpsWatchlistActionsResult {
   /**
