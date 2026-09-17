@@ -324,9 +324,7 @@ describe('backupVault file', () => {
       // Both calls are queued and executed — the second wins the keychain
       // entry, since it runs after the first in FIFO order.
       await waitFor(() => {
-        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(
-          secondVault,
-        );
+        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(secondVault);
       });
     });
 
