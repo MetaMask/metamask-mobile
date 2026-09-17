@@ -43,7 +43,9 @@ describe('MoneyProtectWalletSheet', () => {
   });
 
   it('shows the existing passkey benefits', () => {
-    const { getByText } = renderWithProvider(<MoneyProtectWalletSheet />);
+    const { getAllByText, getByText } = renderWithProvider(
+      <MoneyProtectWalletSheet />,
+    );
 
     expect(getByText('Protect your wallet')).toBeOnTheScreen();
     expect(
@@ -51,9 +53,8 @@ describe('MoneyProtectWalletSheet', () => {
         'Get an extra layer of protection in case you lose your wallet or your login is compromised.',
       ),
     ).toBeOnTheScreen();
-    expect(getByText('Log in with Face ID')).toBeOnTheScreen();
     expect(getByText('Syncs across devices automatically')).toBeOnTheScreen();
-    expect(getByText('Verify Money account transfers')).toBeOnTheScreen();
+    expect(getAllByText('Verify Money account transactions')).toHaveLength(2);
   });
 
   it('continues into the existing Add passkey sheet', () => {

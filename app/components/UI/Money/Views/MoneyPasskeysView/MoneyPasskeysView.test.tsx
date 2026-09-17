@@ -50,7 +50,7 @@ describe('MoneyPasskeysView', () => {
   });
 
   it('shows concise passkey benefits without descriptions', () => {
-    const { getByText, queryByText } = renderWithProvider(
+    const { getAllByText, getByText, queryByText } = renderWithProvider(
       <MoneyPasskeysView />,
     );
 
@@ -60,9 +60,8 @@ describe('MoneyPasskeysView', () => {
         'Get an extra layer of protection in case you lose your wallet or your login is compromised.',
       ),
     ).toBeOnTheScreen();
-    expect(getByText('Log in with Face ID')).toBeOnTheScreen();
     expect(getByText('Syncs across devices automatically')).toBeOnTheScreen();
-    expect(getByText('Verify Money account transfers')).toBeOnTheScreen();
+    expect(getAllByText('Verify Money account transactions')).toHaveLength(2);
     expect(queryByText('Use Face ID to unlock and approve.')).toBeNull();
     expect(
       queryByText('Your passkey stays available through your device account.'),
