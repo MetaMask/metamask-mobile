@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -36,11 +36,6 @@ import {
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
-import { PlusBenefitDetailSheetHost } from './components/PlusBenefitDetailSheet';
-import type {
-  PlusBenefitCtaRoute,
-  PlusBenefitDetailId,
-} from './components/MemberPricingOnTrades/mapPlusBenefitToDetail';
 
 interface MembershipBannerProps {
   testID: string;
@@ -65,11 +60,10 @@ interface StatRowProps {
   label: string;
   value: string;
   testID: string;
-  onPress?: () => void;
 }
 
-const StatRow = ({ iconName, label, value, testID, onPress }: StatRowProps) => {
-  const content = (
+const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
+  <Box testID={testID}>
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -104,30 +98,13 @@ const StatRow = ({ iconName, label, value, testID, onPress }: StatRowProps) => {
         {value}
       </Text>
     </Box>
-  );
-
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        testID={testID}
-      >
-        {content}
-      </TouchableOpacity>
-    );
-  }
-
-  return <Box testID={testID}>{content}</Box>;
-};
+  </Box>
+);
 
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const proAccess = useMoneyAccountPlusAccess();
-  const [selectedBenefitId, setSelectedBenefitId] =
-    useState<PlusBenefitDetailId | null>(null);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -147,21 +124,6 @@ const ProHub = () => {
   const handleGetCard = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
-
-  const handleBenefitPress = useCallback((id: PlusBenefitDetailId) => {
-    setSelectedBenefitId(id);
-  }, []);
-
-  const handleBenefitSheetClose = useCallback(() => {
-    setSelectedBenefitId(null);
-  }, []);
-
-  const handleBenefitNavigate = useCallback(
-    (route: PlusBenefitCtaRoute) => {
-      navigation.navigate(route);
-    },
-    [navigation],
-  );
 
   return (
     <SafeAreaView
@@ -224,14 +186,12 @@ const ProHub = () => {
                   label={strings('pro_hub.money_balance')}
                   value={MOCK_PRO_HUB_STATS.moneyBalance}
                   testID={ProHubTestIds.MONEY_BALANCE_ROW}
-                  onPress={() => handleBenefitPress('earn')}
                 />
                 <StatRow
                   iconName={IconName.Card}
                   label={strings('pro_hub.musd_back')}
                   value={MOCK_PRO_HUB_STATS.musdBack}
                   testID={ProHubTestIds.MUSD_BACK_ROW}
-                  onPress={() => handleBenefitPress('card')}
                 />
               </Box>
             </Box>
@@ -241,7 +201,7 @@ const ProHub = () => {
 
           <SectionDivider marginVertical={6} />
 
-          <MemberPricingOnTrades onItemPress={handleBenefitPress} />
+          <MemberPricingOnTrades />
 
           <SectionDivider marginVertical={6} />
 
@@ -259,9 +219,6 @@ const ProHub = () => {
                   key={item.id}
                   item={item}
                   testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
-                  onPress={(id) =>
-                    handleBenefitPress(id as PlusBenefitDetailId)
-                  }
                 />
               ))}
             </Box>
@@ -286,14 +243,6 @@ const ProHub = () => {
           </Box>
         </ScrollView>
       )}
-
-      {selectedBenefitId ? (
-        <PlusBenefitDetailSheetHost
-          id={selectedBenefitId}
-          onClose={handleBenefitSheetClose}
-          onNavigate={handleBenefitNavigate}
-        />
-      ) : null}
     </SafeAreaView>
   );
 };

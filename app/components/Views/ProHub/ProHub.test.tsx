@@ -11,9 +11,6 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from '../../../hooks/useMoneyAccountPlusBenefits';
-import { usePlusBenefitDetail } from '../../../hooks/usePlusBenefitDetail';
-import { PlusBenefitDetailSheetTestIds } from './components/PlusBenefitDetailSheet';
-import { PlusBenefitDetailStatus } from './components/MemberPricingOnTrades/mapPlusBenefitToDetail';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -52,11 +49,6 @@ jest.mock('../../../hooks/useMoneyAccountPlusBenefits', () => ({
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
-const mockUsePlusBenefitDetail = jest.mocked(usePlusBenefitDetail);
-jest.mock('../../../hooks/usePlusBenefitDetail', () => ({
-  usePlusBenefitDetail: jest.fn(),
-}));
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -91,19 +83,6 @@ describe('ProHub', () => {
       isRefreshing: false,
       hasError: false,
       retry: jest.fn(),
-    });
-    mockUsePlusBenefitDetail.mockReturnValue({
-      id: 'swaps',
-      titleKey: 'pro_hub.member_pricing.swaps.label',
-      status: PlusBenefitDetailStatus.Available,
-      kind: 'currency',
-      used: 310,
-      remaining: 190,
-      allowance: 500,
-      resetsOn: 'Sep 15',
-      ctaRoute: Routes.BRIDGE.ROOT,
-      ctaLabelKey: 'pro_hub.benefit_detail.cta.swaps',
-      showRetry: false,
     });
   });
 
@@ -314,25 +293,6 @@ describe('ProHub', () => {
       fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-
-    it('opens the benefit detail sheet when a trade allowance row is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')));
-
-      expect(
-        getByTestId(PlusBenefitDetailSheetTestIds.SHEET),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to Swap from the benefit detail CTA', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')));
-      fireEvent.press(getByTestId(PlusBenefitDetailSheetTestIds.CTA));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT);
     });
 
     it('does not navigate on initial render', () => {

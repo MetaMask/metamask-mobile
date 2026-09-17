@@ -28,9 +28,7 @@ const mockUseMoneyAccountPlusBenefits = jest.mocked(
   useMoneyAccountPlusBenefits,
 );
 
-const renderMemberPricingOnTrades = (
-  onItemPress: (id: TradeAllowanceItem['id']) => void = jest.fn(),
-) => render(<MemberPricingOnTrades onItemPress={onItemPress} />);
+const renderMemberPricingOnTrades = () => render(<MemberPricingOnTrades />);
 
 const renderTradeAllowanceRow = (item: TradeAllowanceItem) =>
   render(<TradeAllowanceRow item={item} />);
@@ -161,16 +159,6 @@ describe('MemberPricingOnTrades', () => {
     expect(
       queryByTestId(MemberPricingOnTradesTestIds.ROW('predict')),
     ).not.toBeOnTheScreen();
-  });
-
-  it('invokes onItemPress with the row id when a trade allowance is pressed', () => {
-    const onItemPress = jest.fn();
-
-    const { getByTestId } = renderMemberPricingOnTrades(onItemPress);
-
-    fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')));
-
-    expect(onItemPress).toHaveBeenCalledWith('swaps');
   });
 });
 

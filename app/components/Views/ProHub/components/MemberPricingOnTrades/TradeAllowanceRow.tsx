@@ -1,15 +1,10 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -20,7 +15,6 @@ import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 
 interface TradeAllowanceRowProps {
   item: TradeAllowanceItem;
-  onPress?: (id: TradeAllowanceItem['id']) => void;
 }
 
 const formatCurrencyAmount = (amount: number): string =>
@@ -61,7 +55,7 @@ const calculateProgress = (item: TradeAllowanceItem): number => {
   return Math.min(item.used / item.allowance, 1);
 };
 
-const TradeAllowanceRow = ({ item, onPress }: TradeAllowanceRowProps) => {
+const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
   const progressPercent = useMemo(
     () => Math.round(calculateProgress(item) * 100),
     [item],
@@ -70,22 +64,18 @@ const TradeAllowanceRow = ({ item, onPress }: TradeAllowanceRowProps) => {
   const footnoteKey = `pro_hub.member_pricing.${item.id}.footnote`;
   const label = strings(labelKey);
 
-  const content = (
-    <Box twClassName="gap-y-3">
-      <Box twClassName="gap-y-2">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
-            {label}
-          </Text>
+  return (
+    <Box testID={MemberPricingOnTradesTestIds.ROW(item.id)}>
+      <Box twClassName="gap-y-3">
+        <Box twClassName="gap-y-2">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-x-2"
+            justifyContent={BoxJustifyContent.Between}
           >
+            <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
+              {label}
+            </Text>
             <Box flexDirection={BoxFlexDirection.Row}>
               <Text
                 variant={TextVariant.BodyMd}
@@ -101,57 +91,33 @@ const TradeAllowanceRow = ({ item, onPress }: TradeAllowanceRowProps) => {
                 {` / ${formatAllowanceValue(item)}`}
               </Text>
             </Box>
-            {onPress ? (
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            ) : null}
+          </Box>
+
+          <Box
+            twClassName="h-2 rounded-full bg-muted overflow-hidden"
+            testID={MemberPricingOnTradesTestIds.PROGRESS(item.id)}
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={label}
+            accessibilityValue={{
+              min: 0,
+              max: item.allowance,
+              now: Math.min(item.used, item.allowance),
+            }}
+          >
+            <Box
+              twClassName="h-full rounded-full bg-icon-default"
+              style={{ width: `${progressPercent}%` }}
+              testID={MemberPricingOnTradesTestIds.PROGRESS_FILL(item.id)}
+            />
           </Box>
         </Box>
 
-        <Box
-          twClassName="h-2 rounded-full bg-muted overflow-hidden"
-          testID={MemberPricingOnTradesTestIds.PROGRESS(item.id)}
-          accessible
-          accessibilityRole="progressbar"
-          accessibilityLabel={label}
-          accessibilityValue={{
-            min: 0,
-            max: item.allowance,
-            now: Math.min(item.used, item.allowance),
-          }}
-        >
-          <Box
-            twClassName="h-full rounded-full bg-icon-default"
-            style={{ width: `${progressPercent}%` }}
-            testID={MemberPricingOnTradesTestIds.PROGRESS_FILL(item.id)}
-          />
-        </Box>
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {strings(footnoteKey)}
+        </Text>
       </Box>
-
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {strings(footnoteKey)}
-      </Text>
     </Box>
-  );
-
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={() => onPress(item.id)}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        testID={MemberPricingOnTradesTestIds.ROW(item.id)}
-      >
-        {content}
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <Box testID={MemberPricingOnTradesTestIds.ROW(item.id)}>{content}</Box>
   );
 };
 
