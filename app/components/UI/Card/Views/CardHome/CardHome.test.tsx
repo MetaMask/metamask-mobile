@@ -2055,6 +2055,7 @@ describe('CardHome Component', () => {
     });
   });
 
+
   it('shows the Enable card button for provider pending actions and resumes from it', () => {
     mockCanEnableCard = true;
     mockProvisioningView = 'hidden';
