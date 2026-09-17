@@ -75,16 +75,14 @@ export type PredictGameStatus =
   | 'completed'
   | 'canceled';
 
-export interface PredictGameScore {
-  home: string;
-  away: string;
-}
-
 export interface PredictGame {
   status: PredictGameStatus;
   homeTeam: PredictTeam;
   awayTeam: PredictTeam;
-  score?: PredictGameScore;
+  score?: {
+    home: string;
+    away: string;
+  };
   period?: string;
   clock?: string;
   observedAt: PredictTimestamp;
