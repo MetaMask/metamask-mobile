@@ -100,14 +100,64 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   const isCompact = variant === 'compact';
 
+  // The design system `Slider` repositions its thumb from a
+  // `useAnimatedReaction` keyed on the `value` prop alone; `minimumValue` /
+  // `maximumValue` are read inside that worklet but do not trigger it. A range
+  // change with `value` unchanged — switching the Perps payment method
+  // recomputes the max spendable notional, e.g. 1866 -> 34, while the amount
+  // stays $10 — therefore left the thumb at the pixel position computed for the
+  // old range (0.5% of 1866, i.e. visually 0%) instead of the new one (29.4%).
+  //
+  // So drive the design system `Slider` in a fixed 0-100 percent domain and do
+  // the domain conversion here. A range change now moves `percentValue`, which
+  // is the prop the reaction already watches, so the thumb repositions without
+  // remounting. That matters because `maximumValue` is derived from live price
+  // and balance feeds: at leverage 20, ten 5-cent balance moves produce ten
+  // distinct maxima. Remounting on each would reset `sliderWidth`/`translateX`,
+  // rebuild the pan gesture, and discard the package's commit-generation echo
+  // suppression — interrupting any drag in progress.
+  const range = maximumValue - minimumValue;
+  const toPercent = (domainValue: number) =>
+    range > 0 ? ((domainValue - minimumValue) / range) * 100 : 0;
+  const toDomain = useCallback(
+    (percent: number) => {
+      const span = maximumValue - minimumValue;
+      if (span <= 0) {
+        return minimumValue;
+      }
+      const raw = minimumValue + (percent / 100) * span;
+      // Re-apply the caller's step in its own domain; the slider's own step is
+      // now expressed in percent and cannot enforce it.
+      const stepped = step > 0 ? Math.round(raw / step) * step : raw;
+      return Math.min(maximumValue, Math.max(minimumValue, stepped));
+    },
+    [maximumValue, minimumValue, step],
+  );
+
+  const percentValue = toPercent(value);
+  // One percent of the track is finer than a whole step for every range the
+  // Perps sliders use, so let the thumb move continuously and let `toDomain`
+  // snap the value the caller actually receives.
+  const percentStep = 0.1;
+
+  const handlePercentChange = useCallback(
+    (percent: number) => onValueChange(toDomain(percent)),
+    [onValueChange, toDomain],
+  );
+
+  const handlePercentDragEnd = useCallback(
+    (percent: number) => onDragEnd?.(toDomain(percent)),
+    [onDragEnd, toDomain],
+  );
+
   const slider = (
     <Slider
-      value={value}
-      onValueChange={onValueChange}
-      onDragEnd={onDragEnd}
-      minimumValue={minimumValue}
-      maximumValue={maximumValue}
-      step={step}
+      value={percentValue}
+      onValueChange={handlePercentChange}
+      onDragEnd={onDragEnd ? handlePercentDragEnd : undefined}
+      minimumValue={0}
+      maximumValue={100}
+      step={percentStep}
       showRangeLabels={showPercentageLabels}
       showRangeDots={showPercentageMarkers}
       onGrip={handleGrip}
