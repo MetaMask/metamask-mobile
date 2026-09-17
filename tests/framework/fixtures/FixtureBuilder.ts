@@ -1438,6 +1438,7 @@ class FixtureBuilder {
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     });
 
     // Enable basic functionality in settings (required for profile syncing)
@@ -1614,6 +1615,7 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     };
     return this;
   }

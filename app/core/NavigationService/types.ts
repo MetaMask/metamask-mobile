@@ -234,7 +234,7 @@ import type {
   ShareAddressParams,
   ShareAddressQRParams,
   DeleteAccountParams,
-  RemoveHardwareAccountParams,
+  RemoveAccountParams,
   SmartAccountParams,
   MultichainAccountDetailsParams,
   MultichainAccountGroupDetailsParams,
@@ -295,15 +295,11 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-/** Add bookmark screen params (nested under AddBookmarkView). */
+/** Add bookmark screen params. */
 interface AddBookmarkParams {
   title: string;
   url: string;
   onAddBookmark: (params: { name: string; url: string }) => Promise<void>;
-}
-
-interface AddBookmarkViewParamList {
-  AddBookmark: AddBookmarkParams;
 }
 
 interface OnboardingSuccessFlowParamList {
@@ -483,7 +479,7 @@ export type RootStackParamList = {
   WalletView: undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
-  AddBookmarkView: NavigatorScreenParams<AddBookmarkViewParamList> | undefined;
+  AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
   ManageAccountsView: undefined;
@@ -562,6 +558,7 @@ export type RootStackParamList = {
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampGetPixKey: undefined;
   RampVbaVerifyIdentity: undefined;
+  RampVbaKycEmail: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -693,25 +690,6 @@ export type RootStackParamList = {
   OTAUpdatesModal: undefined;
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
-    | undefined;
-  FirstPredictOnUsSplash:
-    | {
-        content: unknown;
-        markets: unknown;
-      }
-    | undefined;
-  FirstPredictOnUsOrderSheet:
-    | {
-        confirmLabel: string;
-        selectedOrder: {
-          market: unknown;
-          outcome: unknown;
-          outcomeToken: unknown;
-        };
-        tradeDescriptionTemplate: string;
-        tradePlacedLabel: string;
-        usdAmount: number;
-      }
     | undefined;
 
   // Onboarding routes
@@ -845,7 +823,7 @@ export type RootStackParamList = {
   ShareAddress: ShareAddressParams | undefined;
   ShareAddressQR: ShareAddressQRParams | undefined;
   DeleteAccount: DeleteAccountParams | undefined;
-  RemoveHardwareAccount: RemoveHardwareAccountParams | undefined;
+  RemoveAccount: RemoveAccountParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
   RevealSRPCredential: RevealSRPCredentialParams | undefined;
   SRPRevealQuizInMultichainAccountDetails: SRPRevealQuizParams | undefined;
@@ -917,7 +895,7 @@ export type RootStackParamList = {
   BatchSellTokenSelect: BridgeScreensStackParamList['BatchSellTokenSelect'];
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
-  RecurringJobDetails: BridgeScreensStackParamList['RecurringJobDetails'];
+  RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -1018,12 +996,21 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
+  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  SocialLeaderboardTab: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {
         source?: string;
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  MyProfileView: undefined;
+  ManageProfileView: undefined;
+  ManageProfileTextEditorView: {
+    field: 'displayName' | 'handle' | 'bio' | 'socials';
+  };
+  ManageProfileTradingActivityView: undefined;
+  ManageProfileLinkedAccountView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

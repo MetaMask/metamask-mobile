@@ -99,12 +99,10 @@ const buildHardwareWalletState = (keyringType: string, address: string) => {
 
 const renderUseManageAccountsView = ({
   state = createBaseState().state,
-  navigateToDeleteAccount,
-  navigateToRemoveHardwareAccount,
+  navigateToRemoveAccount,
 }: {
   state?: RootState;
-  navigateToDeleteAccount?: (account: InternalAccount) => void;
-  navigateToRemoveHardwareAccount?: (
+  navigateToRemoveAccount?: (
     account: InternalAccount,
     accountGroup: AccountGroupObject,
   ) => void;
@@ -112,8 +110,7 @@ const renderUseManageAccountsView = ({
   renderHookWithProvider(
     () =>
       useManageAccountsView({
-        navigateToDeleteAccount,
-        navigateToRemoveHardwareAccount,
+        navigateToRemoveAccount,
       }),
     { state },
   );
@@ -248,7 +245,7 @@ describe('useManageAccountsView', () => {
           isLocked: false,
           showsAddAccountFooter: true,
           rowVariantByGroupId: {
-            'keyring:hw/0': ManageAccountRowVariant.Remove,
+            'keyring:hw/0': ManageAccountRowVariant.Hide,
           },
         },
       },
@@ -301,83 +298,43 @@ describe('useManageAccountsView', () => {
   });
 
   describe('onRemoveAccount', () => {
-    it('dispatches the remove-hardware-account confirmation sheet for a hardware group', () => {
+    it('does not dispatch a remove sheet for a Ledger hardware group (hide only)', () => {
       const state = buildHardwareWalletState(
         ExtendedKeyringTypes.ledger,
         HARDWARE_ADDRESS,
       );
-      const navigateToRemoveHardwareAccount = jest.fn();
+      const navigateToRemoveAccount = jest.fn();
       const { result } = renderUseManageAccountsView({
         state,
-        navigateToRemoveHardwareAccount,
+        navigateToRemoveAccount,
       });
 
       act(() => {
         result.current.onRemoveAccount('keyring:hw/0');
       });
 
-      expect(navigateToRemoveHardwareAccount).toHaveBeenCalledTimes(1);
-      expect(navigateToRemoveHardwareAccount).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: HARDWARE_ADDRESS,
-          metadata: expect.objectContaining({
-            keyring: expect.objectContaining({
-              type: ExtendedKeyringTypes.ledger,
-            }),
-          }),
-        }),
-        expect.objectContaining({ id: 'keyring:hw/0' }),
-      );
+      expect(navigateToRemoveAccount).not.toHaveBeenCalled();
     });
 
-    it('dispatches the remove-hardware-account sheet for a QR hardware group', () => {
+    it('does not dispatch a remove sheet for a QR hardware group (hide only)', () => {
       const state = buildHardwareWalletState(
         ExtendedKeyringTypes.qr,
         HARDWARE_ADDRESS,
       );
-      const navigateToRemoveHardwareAccount = jest.fn();
+      const navigateToRemoveAccount = jest.fn();
       const { result } = renderUseManageAccountsView({
         state,
-        navigateToRemoveHardwareAccount,
+        navigateToRemoveAccount,
       });
 
       act(() => {
         result.current.onRemoveAccount('keyring:hw/0');
       });
 
-      expect(navigateToRemoveHardwareAccount).toHaveBeenCalledTimes(1);
+      expect(navigateToRemoveAccount).not.toHaveBeenCalled();
     });
 
-    it('does not dispatch any sheet when the hardware group has no resolvable internal account', () => {
-      const group = createMockAccountGroup('keyring:hw/0', 'Hardware 1');
-      const hardwareWallet = {
-        id: 'keyring:hw',
-        type: AccountWalletType.Keyring,
-        metadata: {
-          name: 'Hardware',
-          keyring: { type: ExtendedKeyringTypes.ledger },
-        },
-        groups: { 'keyring:hw/0': group },
-      } as unknown as AccountWalletObject;
-      // No internal accounts registered for the group.
-      const state = buildState([hardwareWallet]);
-      const navigateToRemoveHardwareAccount = jest.fn();
-      const navigateToDeleteAccount = jest.fn();
-      const { result } = renderUseManageAccountsView({
-        state,
-        navigateToDeleteAccount,
-        navigateToRemoveHardwareAccount,
-      });
-
-      act(() => {
-        result.current.onRemoveAccount('keyring:hw/0');
-      });
-
-      expect(navigateToRemoveHardwareAccount).not.toHaveBeenCalled();
-      expect(navigateToDeleteAccount).not.toHaveBeenCalled();
-    });
-
-    it('navigates to the delete-account sheet for an imported group', () => {
+    it('dispatches the same remove-account sheet for an imported group', () => {
       const group = createMockAccountGroup('keyring:imported/0', 'Imported 1');
       const importedWallet = createMockWallet('keyring:imported', 'Imported', [
         group,
@@ -390,18 +347,21 @@ describe('useManageAccountsView', () => {
       const state = buildState([importedWallet], {
         'account-keyring:imported/0': internalAccount,
       });
-      const navigateToDeleteAccount = jest.fn();
+      const navigateToRemoveAccount = jest.fn();
       const { result } = renderUseManageAccountsView({
         state,
-        navigateToDeleteAccount,
+        navigateToRemoveAccount,
       });
 
       act(() => {
         result.current.onRemoveAccount('keyring:imported/0');
       });
 
-      expect(navigateToDeleteAccount).toHaveBeenCalledTimes(1);
-      expect(navigateToDeleteAccount).toHaveBeenCalledWith(internalAccount);
+      expect(navigateToRemoveAccount).toHaveBeenCalledTimes(1);
+      expect(navigateToRemoveAccount).toHaveBeenCalledWith(
+        internalAccount,
+        expect.objectContaining({ id: 'keyring:imported/0' }),
+      );
     });
 
     it.each([
@@ -420,20 +380,17 @@ describe('useManageAccountsView', () => {
       },
     ])('ignores removal when $description', ({ getGroupId }) => {
       const base = createBaseState();
-      const navigateToDeleteAccount = jest.fn();
-      const navigateToRemoveHardwareAccount = jest.fn();
+      const navigateToRemoveAccount = jest.fn();
       const { result } = renderUseManageAccountsView({
         state: base.state,
-        navigateToDeleteAccount,
-        navigateToRemoveHardwareAccount,
+        navigateToRemoveAccount,
       });
 
       act(() => {
         result.current.onRemoveAccount(getGroupId(base));
       });
 
-      expect(navigateToRemoveHardwareAccount).not.toHaveBeenCalled();
-      expect(navigateToDeleteAccount).not.toHaveBeenCalled();
+      expect(navigateToRemoveAccount).not.toHaveBeenCalled();
     });
   });
 

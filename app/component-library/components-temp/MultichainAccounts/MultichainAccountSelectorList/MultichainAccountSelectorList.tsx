@@ -86,6 +86,8 @@ const MultichainAccountSelectorList = ({
   chainId,
   hideAccountCellMenu = false,
   hideSearch = false,
+  onSearchFocus,
+  onSearchSettled,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
@@ -191,6 +193,12 @@ const MultichainAccountSelectorList = ({
     () => debouncedSearchText.trim(),
     [debouncedSearchText],
   );
+
+  useEffect(() => {
+    if (trimmedSearchText) {
+      onSearchSettled?.(trimmedSearchText);
+    }
+  }, [trimmedSearchText, onSearchSettled]);
 
   const shouldShowExternalAccount = useMemo(
     () =>
@@ -454,6 +462,7 @@ const MultichainAccountSelectorList = ({
           <TextFieldSearch
             value={searchText}
             onChangeText={setSearchText}
+            onFocus={onSearchFocus}
             onPressClearButton={() => setSearchText('')}
             placeholder={strings('accounts.search_your_accounts')}
             inputProps={{

@@ -12,9 +12,9 @@ import {
 import Routes from '../../../app/constants/navigation/Routes';
 import BridgeView from '../../../app/components/UI/Bridge/Views/BridgeView';
 import { BridgeModalStack } from '../../../app/components/UI/Bridge/routes';
-import RecurringJobDetailsView from '../../../app/components/UI/Bridge/Views/RecurringJobDetailsView';
-import { RecurringJobDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringJobDetailsView/RecurringJobDetailsView.testIds';
-import type { RecurringJobDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringJobDetailsView/RecurringJobDetailsView.types';
+import RecurringOrderDetailsView from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView';
+import { RecurringOrderDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
+import type { RecurringOrderDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import BlockExplorersModal from '../../../app/components/UI/Bridge/components/TransactionDetails/BlockExplorersModal';
 import { initialStateBridge } from '../presets/bridge';
@@ -26,8 +26,9 @@ interface RenderBridgeViewOptions {
   deterministicFiat?: boolean;
 }
 
-interface RenderRecurringJobDetailsViewOptions extends RenderBridgeViewOptions {
-  jobId: string;
+interface RenderRecurringOrderDetailsViewOptions
+  extends RenderBridgeViewOptions {
+  orderId: string;
 }
 
 interface RenderBlockExplorersModalOptions {
@@ -83,7 +84,7 @@ export function renderBridgeViewWithModals(
   );
 }
 
-export function renderBridgeViewWithRecurringJobDetails(
+export function renderBridgeViewWithRecurringOrderDetails(
   options: RenderBridgeViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
   const { overrides, deterministicFiat } = options;
@@ -98,36 +99,36 @@ export function renderBridgeViewWithRecurringJobDetails(
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     [
       {
-        name: Routes.BRIDGE.RECURRING_JOB_DETAILS,
+        name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
         Component:
-          RecurringJobDetailsView as unknown as React.ComponentType<object>,
+          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
       },
     ],
     { state },
   );
 }
 
-function RecurringJobDetailsTestEntry({
-  jobId,
-}: RecurringJobDetailsRouteParams) {
+function RecurringOrderDetailsTestEntry({
+  orderId,
+}: RecurringOrderDetailsRouteParams) {
   const navigation = useNavigation<AppNavigationProp>();
 
   return React.createElement(
     Pressable,
     {
       onPress: () =>
-        navigation.navigate(Routes.BRIDGE.RECURRING_JOB_DETAILS, { jobId }),
-      testID: RecurringJobDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
+        navigation.navigate(Routes.BRIDGE.RECURRING_ORDER_DETAILS, { orderId }),
+      testID: RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
     },
-    React.createElement(Text, null, 'Open recurring job details'),
+    React.createElement(Text, null, 'Open recurring order details'),
   );
 }
 
-export function renderRecurringJobDetailsView({
-  jobId,
+export function renderRecurringOrderDetailsView({
+  orderId,
   overrides,
   deterministicFiat,
-}: RenderRecurringJobDetailsViewOptions): ReturnType<
+}: RenderRecurringOrderDetailsViewOptions): ReturnType<
   typeof renderScreenWithRoutes
 > {
   const builder = initialStateBridge({ deterministicFiat });
@@ -137,13 +138,13 @@ export function renderRecurringJobDetailsView({
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    () => React.createElement(RecurringJobDetailsTestEntry, { jobId }),
-    { name: 'RecurringJobDetailsTestEntry' },
+    () => React.createElement(RecurringOrderDetailsTestEntry, { orderId }),
+    { name: 'RecurringOrderDetailsTestEntry' },
     [
       {
-        name: Routes.BRIDGE.RECURRING_JOB_DETAILS,
+        name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
         Component:
-          RecurringJobDetailsView as unknown as React.ComponentType<object>,
+          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
       },
     ],
     { state },

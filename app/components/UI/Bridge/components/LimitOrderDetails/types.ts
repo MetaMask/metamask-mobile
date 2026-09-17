@@ -8,13 +8,13 @@ export interface LimitOrderDetailsProps {
    */
   onExpirationPress: () => void;
   /**
-   * Slippage shown on the price row, e.g. "2%".
+   * Cost tolerance shown on the cost tolerance row, e.g. "2%".
    */
-  slippage: string;
+  costTolerance: string;
   /**
-   * Fired when the price / slippage row is pressed.
+   * Fired when the cost tolerance row is pressed.
    */
-  onPricePress: () => void;
+  onCostTolerancePress: () => void;
   /**
    * Optional test ID for the root element.
    */

@@ -21,14 +21,10 @@ import type { AccountAvatarVariant } from '../../../component-library/components
  */
 interface UseManageAccountsViewDeps {
   /**
-   * Opens the delete-account confirmation sheet for an imported account.
+   * Opens the remove-account confirmation sheet for an account, passing the
+   * account group so the sheet can render the group name.
    */
-  navigateToDeleteAccount?: (account: InternalAccount) => void;
-  /**
-   * Opens the remove-hardware-account confirmation sheet for a hardware
-   * account, passing the account group so the sheet can render the group name.
-   */
-  navigateToRemoveHardwareAccount?: (
+  navigateToRemoveAccount?: (
     account: InternalAccount,
     accountGroup: AccountGroupObject,
   ) => void;
@@ -65,7 +61,8 @@ const isPrivateKeyWallet = (wallet: AccountWalletObject): boolean =>
 /**
  * Determines the row variant (trailing actions) for a wallet.
  * - Entropy / HD: Hide toggle only.
- * - Hardware: Remove action only (hardware accounts are not hideable).
+ * - Hardware: Hide toggle only (hardware accounts are hidden, not removed,
+ * from this screen).
  * - Imported private key: Remove action only.
  * - Snap / unknown: No trailing action.
  *
@@ -86,10 +83,10 @@ const getWalletRowVariant = (
       ) {
         return ManageAccountRowVariant.Hide;
       }
-      if (isPrivateKeyWallet(wallet)) {
-        return ManageAccountRowVariant.Remove;
-      }
       if (isHardwareKeyringWallet(wallet)) {
+        return ManageAccountRowVariant.Hide;
+      }
+      if (isPrivateKeyWallet(wallet)) {
         return ManageAccountRowVariant.Remove;
       }
       return ManageAccountRowVariant.None;
@@ -139,7 +136,7 @@ interface UseManageAccountsViewResult {
 const useManageAccountsView = (
   deps: UseManageAccountsViewDeps = {},
 ): UseManageAccountsViewResult => {
-  const { navigateToDeleteAccount, navigateToRemoveHardwareAccount } = deps;
+  const { navigateToRemoveAccount } = deps;
   const accountSections = useSelector(selectAccountGroupsByWallet);
   const hiddenGroupIds = useSelector(
     selectHiddenAccountGroupIds,
@@ -192,8 +189,8 @@ const useManageAccountsView = (
   );
 
   /**
-   * Handles removing an account group (opens the appropriate confirmation
-   * sheet for imported and hardware accounts).
+   * Handles removing an account group (opens the remove-account confirmation
+   * sheet for imported private-key accounts).
    */
   const onRemoveAccount = useCallback(
     (groupId: AccountGroupId) => {
@@ -216,21 +213,10 @@ const useManageAccountsView = (
       }
 
       if (isPrivateKeyWallet(section.wallet)) {
-        // Imported group → delete-account confirmation sheet.
-        navigateToDeleteAccount?.(account);
-        return;
-      }
-
-      if (isHardwareKeyringWallet(section.wallet)) {
-        navigateToRemoveHardwareAccount?.(account, group);
+        navigateToRemoveAccount?.(account, group);
       }
     },
-    [
-      accountSections,
-      internalAccountsById,
-      navigateToDeleteAccount,
-      navigateToRemoveHardwareAccount,
-    ],
+    [accountSections, internalAccountsById, navigateToRemoveAccount],
   );
 
   /**

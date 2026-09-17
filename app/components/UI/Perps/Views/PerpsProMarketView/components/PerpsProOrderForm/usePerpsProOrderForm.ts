@@ -89,6 +89,7 @@ import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
   formatPerpsFiat,
+  formatPerpsPrice,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -147,6 +148,7 @@ import type {
   PerpsProSizeSliderModel,
   PerpsProTwapModel,
 } from './PerpsProOrderForm.types';
+import { formatTwapRuntimeSummary } from './PerpsProTwapFields';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 import { usePerpsProPositionModifyPreview } from './usePerpsProPositionModifyPreview';
 
@@ -3167,6 +3169,42 @@ export const usePerpsProOrderForm = ({
     isChaseMaxDistanceInvalid,
   ]);
 
+  const twapRuntimeSummary = useMemo(
+    () => formatTwapRuntimeSummary(twapDuration),
+    [twapDuration],
+  );
+  const twapSizePerSuborder = useMemo(() => {
+    const suborderCount = Math.floor(
+      (twapDuration * PERPS_TWAP_UI_CONFIG.SecondsPerMinute) /
+        PERPS_TWAP_UI_CONFIG.SuborderIntervalSeconds,
+    );
+    const usdAmount = Number.parseFloat(effectiveUsdAmount);
+    const baseSize =
+      effectiveInputPrice > 0 && Number.isFinite(usdAmount)
+        ? usdAmount / effectiveInputPrice
+        : 0;
+
+    if (suborderCount < 1 || baseSize <= 0) {
+      return `${PERPS_CONSTANTS.FallbackDataDisplay} ${symbol}`;
+    }
+
+    const sizePerSuborder = baseSize / suborderCount;
+    const smallestSize = 10 ** -szDecimals;
+
+    // Long runtimes split small orders below the asset's size precision;
+    // show the bound instead of a misleading zero.
+    if (sizePerSuborder < smallestSize) {
+      return `<${smallestSize.toFixed(szDecimals)} ${symbol}`;
+    }
+
+    return `${sizePerSuborder.toFixed(szDecimals)} ${symbol}`;
+  }, [
+    effectiveInputPrice,
+    effectiveUsdAmount,
+    symbol,
+    szDecimals,
+    twapDuration,
+  ]);
   const summary = useMemo<PerpsProOrderSummaryProps>(() => {
     // Limit-execution orders use a fixed default slippage in buildPerpsOrderParams
     // and the user-configured cap has no effect. Hide the row entirely.
@@ -3230,10 +3268,19 @@ export const usePerpsProOrderForm = ({
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
+      twapSummary: isTwapOrder
+        ? {
+            runtime: twapRuntimeSummary,
+            sizePerSuborder: twapSizePerSuborder,
+          }
+        : undefined,
     };
   }, [
     isMarketOrder,
     isTriggerMarketOrder,
+    isTwapOrder,
+    twapRuntimeSummary,
+    twapSizePerSuborder,
     hidesSlippage,
     effectiveMarginRequired,
     hasValidAmount,
@@ -3721,6 +3768,10 @@ export const usePerpsProOrderForm = ({
     (value: boolean) => setTwapRandomize(value),
     [],
   );
+  const onTwapRuntimeInfoPress = useCallback(
+    () => setSelectedTooltip('twap_runtime'),
+    [setSelectedTooltip],
+  );
   const twap = useMemo<PerpsProTwapModel>(
     () => ({
       days: twapDays,
@@ -3732,12 +3783,14 @@ export const usePerpsProOrderForm = ({
       onHoursChange: onTwapHoursChange,
       onMinutesChange: onTwapMinutesChange,
       onRandomizeChange: onTwapRandomizeChange,
+      onRuntimeInfoPress: onTwapRuntimeInfoPress,
     }),
     [
       onTwapDaysChange,
       onTwapHoursChange,
       onTwapMinutesChange,
       onTwapRandomizeChange,
+      onTwapRuntimeInfoPress,
       twapDays,
       twapDurationErrorMessage,
       twapHours,
@@ -3835,7 +3888,7 @@ export const usePerpsProOrderForm = ({
     onChaseMaxDistanceUnitChange,
     chaseReferencePrice:
       assetData.price > 0
-        ? formatPerpsFiat(assetData.price)
+        ? formatPerpsPrice(assetData.price, { szDecimals })
         : PERPS_CONSTANTS.FallbackPriceDisplay,
     onChaseMaxDistanceChange,
     onLimitPriceChange,

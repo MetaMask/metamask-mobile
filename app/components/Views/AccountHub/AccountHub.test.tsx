@@ -140,6 +140,15 @@ describe('AccountHub', () => {
     expect(getByTestId(AccountHubSelectorsIDs.ACCOUNT_LIST)).toBeOnTheScreen();
   });
 
+  it('tracks Account List Viewed when the hub opens', () => {
+    render(<AccountHub />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.ACCOUNT_LIST_VIEWED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
   it('navigates back from the header back button', () => {
     const { getByTestId } = render(<AccountHub />);
 
