@@ -203,11 +203,30 @@ describe('useBasicFunctionalityConsolidation', () => {
     renderHook(() => useBasicFunctionalityConsolidation());
 
     expect(mockToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: strings('basic_functionality_migration.title'),
-        hasNoTimeout: true,
-      }),
+      expect.objectContaining({ hasNoTimeout: true }),
     );
+
+    render(mockToast.mock.calls[0][0].title);
+
+    expect(
+      screen.getByText(strings('basic_functionality_migration.title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the description full width by closing from the title row', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    const toastCall = mockToast.mock.calls[0][0];
+
+    // A close button in the toast's own column would narrow every description
+    // line, so the notice renders one inside the title instead.
+    expect(toastCall.showCloseButton).toBe(false);
+    render(toastCall.title);
+    expect(
+      screen.getByLabelText(strings('navigation.close')),
+    ).toBeOnTheScreen();
   });
 
   it('shows the toast as soon as it is scheduled', () => {
@@ -262,7 +281,21 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     renderHook(() => useBasicFunctionalityConsolidation());
 
-    mockToast.mock.calls[0][0].onClose();
+    render(mockToast.mock.calls[0][0].title);
+    fireEvent.press(screen.getByLabelText(strings('navigation.close')));
+
+    expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
+    expect(mockToast.dismiss).toHaveBeenCalled();
+  });
+
+  it('acknowledges the notice when the toaster calls onClose', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    act(() => {
+      mockToast.mock.calls[0][0].onClose();
+    });
 
     expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
   });
@@ -392,14 +425,12 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     renderHook(() => useBasicFunctionalityConsolidation());
 
-    const toastCall = mockToast.mock.calls[0][0];
+    const { getByLabelText } = render(mockToast.mock.calls[0][0].title);
     mockTrackEvent.mockClear();
     mockAddProperties.mockClear();
     mockCreateEventBuilder.mockClear();
 
-    act(() => {
-      toastCall.onClose();
-    });
+    fireEvent.press(getByLabelText(strings('navigation.close')));
 
     expect(mockAddProperties).toHaveBeenCalledWith({
       name: 'bf_mixed_toast',

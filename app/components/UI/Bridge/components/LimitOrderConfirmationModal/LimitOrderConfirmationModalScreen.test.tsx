@@ -1,4 +1,5 @@
 import React from 'react';
+import { act, waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import renderWithProvider, {
   DeepPartial,
@@ -6,6 +7,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../../../reducers';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { createBridgeTestState } from '../../testUtils';
+import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
@@ -123,5 +125,86 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
     ).toHaveTextContent('(+6.63% from market)');
+  });
+
+  // The limit order screen writes the live comparison to
+  // `limitOrderMarketComparison` (see BridgeLimitOrderView) and keeps doing
+  // so while this modal is open on top of it. This screen just reads that
+  // same value rather than deriving its own, so the two surfaces can never
+  // disagree.
+  it('displays the market comparison from bridge state', () => {
+    const { getByTestId } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          limitOrderMarketComparison: {
+            label: '(+6.63% from market)',
+            isNegative: false,
+          },
+        },
+      }),
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toHaveTextContent('(+6.63% from market)');
+  });
+
+  it('updates the market comparison label as the background screen keeps writing to bridge state', async () => {
+    const { getByTestId, queryByTestId, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          limitOrderMarketComparison: {
+            label: '(+6.63% from market)',
+            isNegative: false,
+          },
+        },
+      }),
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toHaveTextContent('(+6.63% from market)');
+
+    // Simulates the limit order screen behind this modal continuing to
+    // dispatch a fresh comparison as its live rate ticks.
+    act(() => {
+      store.dispatch(
+        setLimitOrderMarketComparison({
+          label: '(+7.10% from market)',
+          isNegative: false,
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+      ).toHaveTextContent('(+7.10% from market)');
+    });
+
+    // And converging on the limit price clears it, in both places at once.
+    act(() => {
+      store.dispatch(setLimitOrderMarketComparison(undefined));
+    });
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(
+          LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON,
+        ),
+      ).toBeNull();
+    });
+  });
+
+  it('omits the comparison row while none is stored in bridge state', () => {
+    const { queryByTestId } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: { limitOrderMarketComparison: undefined },
+      }),
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toBeNull();
   });
 });

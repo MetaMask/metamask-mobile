@@ -30,10 +30,6 @@ export interface LimitOrderConfirmationModalParams {
    */
   triggerPrice: string;
   /**
-   * Comparison against the current market price. Omitted while at market.
-   */
-  triggerComparison?: LimitOrderConfirmationMarketComparison;
-  /**
    * Token the trigger price is quoted in, used for the trigger row avatar.
    */
   triggerToken?: BridgeToken;
@@ -62,6 +58,10 @@ export interface LimitOrderConfirmationModalProps
    * edits made in the cost tolerance modal are reflected here.
    */
   costTolerance: string;
+  /**
+   * Comparison against the current market price.
+   */
+  triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
    * Fired when the user confirms the order.
    */
