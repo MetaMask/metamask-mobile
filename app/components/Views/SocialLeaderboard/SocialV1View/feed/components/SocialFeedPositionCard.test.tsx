@@ -64,6 +64,31 @@ describe('SocialFeedPositionCard', () => {
       ).toBeOnTheScreen();
     });
 
+    // The marker is what tells the user a value is invented, so it must appear
+    // on a mocked win rate and stay off a real one.
+    it('marks the win-rate badge when the win rate is mocked', () => {
+      const item = mockOpenPerpsFeedItem({ mockedFields: ['winRate'] });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.getByText('social_leaderboard.win_rate_tag*'),
+      ).toBeOnTheScreen();
+    });
+
+    it('leaves the win-rate badge unmarked when the win rate is real', () => {
+      const item = mockOpenPerpsFeedItem({ mockedFields: [] });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.getByText('social_leaderboard.win_rate_tag'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText('social_leaderboard.win_rate_tag*'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('omits the win-rate badge when the author has no win rate', () => {
       const item = mockCompactSpotFeedItem();
 
