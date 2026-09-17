@@ -27,7 +27,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
-import superheroAvatar from '../../../images/socialV1/superhero.png';
+import superheroAvatar from '../../../../images/socialV1/superhero.png';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialFeedPositionCard from '../SocialV1View/feed/components/SocialFeedPositionCard';
