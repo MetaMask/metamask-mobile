@@ -84,12 +84,12 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
 import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
+import VbaSumSubKyc from '../../UI/Ramp/Views/VirtualBankAccount/VbaSumSubKyc';
 import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
 import {
   VbaKycPending,
   VbaKycRejected,
   VbaOnboardingError,
-  VbaProviderTerms,
 } from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
 
 import { colors as importedColors } from '../../../styles/common';
@@ -1233,8 +1233,8 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
-        name={Routes.RAMP.VBA_PROVIDER_TERMS}
-        component={VbaProviderTerms}
+        name={Routes.RAMP.VBA_SUMSUB_KYC}
+        component={VbaSumSubKyc}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen

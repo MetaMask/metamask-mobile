@@ -38,7 +38,6 @@ import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDeposi
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -55,6 +54,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { hydrateAndNavigateVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hydrateAndNavigateVbaOnboarding';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -167,7 +167,10 @@ const MoneyAddMoneySheet: React.FC = () => {
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
+      hydrateAndNavigateVbaOnboarding(
+        navigation,
+        'bank-account-entry',
+      ).catch(() => undefined);
     });
   }, [navigation, trackSurfaceClicked]);
 

@@ -1,14 +1,27 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import Engine from '../../../../../core/Engine';
+import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
+jest.mock('./hydrateAndNavigateVbaOnboarding', () => ({
+  hydrateAndNavigateVbaOnboarding: jest.fn(),
+}));
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    KycController: {
+      acceptProviderTerms: jest.fn(),
+    },
+  },
+}));
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
+const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
 const mockRetry = jest.fn();
 
 const mockNavigate = jest.fn();
@@ -48,6 +61,7 @@ describe('VbaVerifyIdentity', () => {
       error: null,
       retry: mockRetry,
     });
+    mockHydrateAndNavigate.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -216,11 +230,40 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('opens email collection when continue is pressed', () => {
+  it('records provider terms grouped by catalog then rehydrates when continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
+    await waitFor(() => {
+      expect(mockHydrateAndNavigate).toHaveBeenCalledTimes(1);
+    });
+    // idOS vs kycProvider links are split back into their groups and recorded
+    // as { key, version } consent records — SumSub is not launched here.
+    expect(
+      Engine.context.KycController.acceptProviderTerms,
+    ).toHaveBeenCalledWith({
+      providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
+      idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not record provider terms while disclaimers are still loading', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: true,
+      error: null,
+      retry: mockRetry,
+    });
+
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    expect(
+      Engine.context.KycController.acceptProviderTerms,
+    ).not.toHaveBeenCalled();
+    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
   });
 });

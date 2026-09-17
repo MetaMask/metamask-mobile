@@ -26,9 +26,11 @@ export const navigateToVbaOnboardingRoute = (
  * route for the returned stage. On failure, opens the recoverable error screen.
  *
  * @param navigation - App navigation.
+ * @param source - Caller/entry point, attached to error telemetry for context.
  */
 export const hydrateAndNavigateVbaOnboarding = async (
   navigation: AppNavigationProp,
+  source = 'unspecified',
 ): Promise<void> => {
   try {
     const walletAddress = selectSelectedVbaWalletAddress(
@@ -45,12 +47,14 @@ export const hydrateAndNavigateVbaOnboarding = async (
     const stage = await Engine.context.RampsController.hydrateVbaOnboarding({
       walletAddress,
     });
-    navigateToVbaOnboardingRoute(navigation, getVbaRouteForStage(stage));
+    const route = getVbaRouteForStage(stage);
+    navigateToVbaOnboardingRoute(navigation, route);
   } catch (error) {
     Logger.error(error as Error, {
       tags: { feature: 'vba-onboarding' },
       context: {
         name: 'hydrateAndNavigateVbaOnboarding',
+        source,
       },
     });
     navigateToVbaOnboardingRoute(navigation, Routes.RAMP.VBA_ONBOARDING_ERROR);
