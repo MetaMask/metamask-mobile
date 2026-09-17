@@ -375,6 +375,8 @@ describe('useDeviceConnectionFlow', () => {
 
     it('enters connecting mode when device ID provided', async () => {
       const mockAdapter = createMockAdapter({
+        isConnected: jest.fn().mockReturnValue(false),
+        getConnectedDeviceId: jest.fn().mockReturnValue(null),
         ensureDeviceReady: jest.fn().mockResolvedValue(false),
       });
       const options = createDefaultOptions({
@@ -386,6 +388,8 @@ describe('useDeviceConnectionFlow', () => {
       const { readyPromise } = await capturePendingReadiness(() =>
         result.current.ensureDeviceReady('device-123'),
       );
+
+      await flushPromises();
 
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Connecting,
@@ -452,7 +456,7 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
-    it('handles error in device ID path', async () => {
+    it('surfaces live-session readiness errors without starting a new connect', async () => {
       const mockAdapter = createMockAdapter({
         ensureDeviceReady: jest
           .fn()
@@ -471,7 +475,12 @@ describe('useDeviceConnectionFlow', () => {
 
       await flushPromises();
 
+      expect(options.handleError).toHaveBeenCalledTimes(1);
       expect(options.handleError).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledTimes(1);
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith({
+        status: ConnectionStatus.Connecting,
+      });
 
       await act(async () => {
         result.current.closeFlow();
@@ -612,17 +621,27 @@ describe('useDeviceConnectionFlow', () => {
       expect(options.flowActiveRef.current).toBe(false);
     });
 
-    it('falls through to guided flow when already connected but not ready', async () => {
+    it('waits on the live session when already-connected readiness returns false', async () => {
+      const options = createDefaultOptions({
+        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+      });
+      const awaitingAppState = {
+        status: ConnectionStatus.AwaitingApp,
+        deviceId: 'device-123',
+        appName: 'Ethereum',
+      };
       const mockAdapter = createMockAdapter({
         walletType: HardwareWalletType.Ledger,
         isConnected: jest.fn().mockReturnValue(true),
         getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
-        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+        ensureDeviceReady: jest.fn().mockImplementation(async () => {
+          options.updateConnectionState(awaitingAppState);
+          return false;
+        }),
       });
-      const options = createDefaultOptions({
-        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
-        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
-      });
+      options.createAdapterWithCallbacks = jest
+        .fn()
+        .mockReturnValue(mockAdapter);
 
       const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
@@ -633,16 +652,63 @@ describe('useDeviceConnectionFlow', () => {
 
       await flushPromises();
 
-      // Not-ready must not be treated as a terminal handleError — fall through
-      // so the bottom sheet can guide the user (open app / unlock).
       expect(options.handleError).not.toHaveBeenCalled();
-      expect(options.updateConnectionState).toHaveBeenCalledWith({
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledTimes(1);
+      expect(options.updateConnectionState).toHaveBeenCalledWith(
+        awaitingAppState,
+      );
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith({
         status: ConnectionStatus.Connecting,
       });
+      expect(options.flowActiveRef.current).toBe(true);
 
       await act(async () => {
         result.current.closeFlow();
-        await readyPromise;
+        await expect(readyPromise).resolves.toBe(false);
+      });
+    });
+
+    it('waits on the live session when background reconnect readiness returns false', async () => {
+      const options = createDefaultOptions({
+        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+      });
+      const awaitingAppState = {
+        status: ConnectionStatus.AwaitingApp,
+        deviceId: 'device-123',
+        appName: 'Ethereum',
+      };
+      const mockAdapter = createMockAdapter({
+        walletType: HardwareWalletType.Ledger,
+        isConnected: jest.fn().mockReturnValue(false),
+        getConnectedDeviceId: jest.fn().mockReturnValue(null),
+        backgroundReconnect: jest.fn().mockResolvedValue(true),
+        ensureDeviceReady: jest.fn().mockImplementation(async () => {
+          options.updateConnectionState(awaitingAppState);
+          return false;
+        }),
+      });
+      options.createAdapterWithCallbacks = jest
+        .fn()
+        .mockReturnValue(mockAdapter);
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady('device-123'),
+        { flushMicrotaskInAct: false },
+      );
+
+      await flushPromises();
+
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledTimes(1);
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith({
+        status: ConnectionStatus.Connecting,
+      });
+      expect(options.flowActiveRef.current).toBe(true);
+
+      await act(async () => {
+        result.current.closeFlow();
+        await expect(readyPromise).resolves.toBe(false);
       });
     });
 
@@ -1125,7 +1191,7 @@ describe('useDeviceConnectionFlow', () => {
       expect(options.handleError).not.toHaveBeenCalled();
     });
 
-    it('clears flowActiveRef when closeFlow runs during already-connected tryEnsureReady (before blocking promise)', async () => {
+    it('clears flowActiveRef when closeFlow runs during already-connected tryEnsureReady', async () => {
       let resolveReady: ((value: boolean) => void) | undefined;
       const mockAdapter = createMockAdapter({
         isConnected: jest.fn().mockReturnValue(true),

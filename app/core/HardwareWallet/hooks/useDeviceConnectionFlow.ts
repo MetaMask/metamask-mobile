@@ -105,8 +105,7 @@ export const useDeviceConnectionFlow = ({
   );
 
   /**
-   * Wire up the blocking promise refs. Both the "transport unavailable"
-   * and "normal" code paths share this setup.
+   * Waiter for Continue or cancel. `afterSetup` runs the readiness work.
    */
   const createBlockingPromise = useCallback(
     (afterSetup?: () => void): Promise<boolean> =>
@@ -170,6 +169,110 @@ export const useDeviceConnectionFlow = ({
       return isReady;
     },
     [updateConnectionState, flowActiveRef],
+  );
+
+  const runReadinessCheck = useCallback(
+    async (
+      adapter: HardwareWalletAdapter,
+      sessionDeviceId: string,
+    ): Promise<void> => {
+      refs.abortControllerRef.current = new AbortController();
+      try {
+        await tryEnsureReady(adapter, sessionDeviceId);
+      } catch (error) {
+        DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
+        if (flowActiveRef.current) {
+          handleError(error);
+        }
+      } finally {
+        refs.abortControllerRef.current = null;
+      }
+    },
+    // refs is not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tryEnsureReady, flowActiveRef, handleError],
+  );
+
+  /**
+   * Pick the device id to check, or `null` to leave the waiter pending
+   * (scanning, transport unavailable, or the flow was cancelled).
+   *
+   * Live session (already connected / silent reconnect) skips Connecting so
+   * it cannot overwrite AwaitingApp. Guided scan/connect sets Connecting.
+   */
+  const resolveReadinessTarget = useCallback(
+    async (
+      adapter: HardwareWalletAdapter,
+      targetDeviceId: string | null | undefined,
+    ): Promise<string | null> => {
+      if (
+        targetDeviceId &&
+        adapter.isConnected?.() &&
+        adapter.getConnectedDeviceId() === targetDeviceId
+      ) {
+        DevLogger.log(
+          '[HardwareWallet] Already connected to device, checking readiness directly',
+        );
+        return targetDeviceId;
+      }
+
+      if (
+        targetDeviceId &&
+        !adapter.isConnected?.() &&
+        adapter.backgroundReconnect
+      ) {
+        try {
+          refs.abortControllerRef.current = new AbortController();
+          const reconnected = await adapter.backgroundReconnect(targetDeviceId);
+          if (!flowActiveRef.current) {
+            return null;
+          }
+          if (reconnected) {
+            return targetDeviceId;
+          }
+        } catch {
+          // Continue to guided scan/connect.
+        } finally {
+          refs.abortControllerRef.current = null;
+        }
+      }
+
+      if (!flowActiveRef.current) {
+        return null;
+      }
+
+      // Avoid pre-gating scan mode on transport state. BLE state can be
+      // briefly unknown/stale on startup and wrongly show "Bluetooth required"
+      // before discovery starts.
+      if (targetDeviceId) {
+        const transportUnavailable =
+          await checkTransportEnabledOrShowError(adapter);
+        if (!flowActiveRef.current || transportUnavailable) {
+          return null;
+        }
+
+        DevLogger.log('[HardwareWallet] Have device ID, checking readiness...');
+        updateConnectionState({ status: ConnectionStatus.Connecting });
+        return targetDeviceId;
+      }
+
+      if (!adapter.requiresDeviceDiscovery) {
+        DevLogger.log(
+          '[HardwareWallet] No device ID but discovery not required - checking readiness',
+        );
+        updateConnectionState({ status: ConnectionStatus.Connecting });
+        return 'default';
+      }
+
+      DevLogger.log(
+        '[HardwareWallet] No device ID - starting device selection',
+      );
+      updateConnectionState({ status: ConnectionStatus.Scanning });
+      return null;
+    },
+    // refs is not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [checkTransportEnabledOrShowError, updateConnectionState],
   );
 
   const connect = useCallback(
@@ -282,132 +385,11 @@ export const useDeviceConnectionFlow = ({
         adapter.resetFlowState();
       }
 
-      if (
-        targetDeviceId &&
-        adapter.isConnected?.() &&
-        adapter.getConnectedDeviceId() === targetDeviceId
-      ) {
-        DevLogger.log(
-          '[HardwareWallet] Already connected to device, checking readiness directly',
-        );
-        try {
-          refs.abortControllerRef.current = new AbortController();
-          const isReady = await tryEnsureReady(adapter, targetDeviceId);
-          if (!flowActiveRef.current) {
-            return false;
-          }
-          if (isReady) {
-            flowActiveRef.current = false;
-            return true;
-          }
-        } catch (error) {
-          DevLogger.log(
-            '[HardwareWallet] Direct readiness check failed, falling through to full flow',
-            error,
-          );
-        } finally {
-          refs.abortControllerRef.current = null;
-        }
-      }
-
-      if (
-        targetDeviceId &&
-        !adapter.isConnected?.() &&
-        adapter.backgroundReconnect
-      ) {
-        try {
-          refs.abortControllerRef.current = new AbortController();
-          const reconnected = await adapter.backgroundReconnect(targetDeviceId);
-          if (!flowActiveRef.current) {
-            return false;
-          }
-          if (reconnected) {
-            const isReady = await tryEnsureReady(adapter, targetDeviceId);
-            if (!flowActiveRef.current) {
-              return false;
-            }
-            if (isReady) {
-              flowActiveRef.current = false;
-              return true;
-            }
-          }
-        } catch {
-          // Fall through to guided scanning/connecting UI.
-        } finally {
-          refs.abortControllerRef.current = null;
-        }
-      }
-
-      if (!flowActiveRef.current) {
-        return false;
-      }
-
-      // Avoid pre-gating scan mode on transport state. BLE state can be
-      // briefly unknown/stale on startup and wrongly show "Bluetooth required"
-      // before discovery starts.
-      if (targetDeviceId) {
-        const transportUnavailable =
-          await checkTransportEnabledOrShowError(adapter);
-        if (!flowActiveRef.current) {
-          return false;
-        }
-        if (transportUnavailable) {
-          return createBlockingPromise();
-        }
-      }
-
       return createBlockingPromise(() => {
-        if (!targetDeviceId) {
-          // For wallets that don't require device discovery (e.g., QR),
-          // we can skip device selection and go straight to connecting
-          if (!adapter.requiresDeviceDiscovery) {
-            DevLogger.log(
-              '[HardwareWallet] No device ID but discovery not required - checking readiness',
-            );
-            updateConnectionState({ status: ConnectionStatus.Connecting });
-
-            (async () => {
-              try {
-                refs.abortControllerRef.current = new AbortController();
-                // Use a default device ID for wallets without real device IDs
-                await tryEnsureReady(adapter, 'default');
-              } catch (error) {
-                DevLogger.log(
-                  '[HardwareWallet] ensureDeviceReady error:',
-                  error,
-                );
-                if (flowActiveRef.current) {
-                  handleError(error);
-                }
-              } finally {
-                refs.abortControllerRef.current = null;
-              }
-            })();
-            return;
-          }
-
-          DevLogger.log(
-            '[HardwareWallet] No device ID - starting device selection',
-          );
-          updateConnectionState({ status: ConnectionStatus.Scanning });
-          return;
-        }
-
-        DevLogger.log('[HardwareWallet] Have device ID, checking readiness...');
-
-        updateConnectionState({ status: ConnectionStatus.Connecting });
-
         (async () => {
-          try {
-            refs.abortControllerRef.current = new AbortController();
-            await tryEnsureReady(adapter, targetDeviceId);
-          } catch (error) {
-            DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
-            if (flowActiveRef.current) {
-              handleError(error);
-            }
-          } finally {
-            refs.abortControllerRef.current = null;
+          const checkId = await resolveReadinessTarget(adapter, targetDeviceId);
+          if (checkId) {
+            await runReadinessCheck(adapter, checkId);
           }
         })();
       });
@@ -415,12 +397,10 @@ export const useDeviceConnectionFlow = ({
     [
       refs,
       setters,
-      handleError,
       walletType,
-      updateConnectionState,
       resolveOrCreateAdapter,
-      tryEnsureReady,
-      checkTransportEnabledOrShowError,
+      resolveReadinessTarget,
+      runReadinessCheck,
       createBlockingPromise,
       onFlowStart,
       flowActiveRef,
@@ -465,9 +445,6 @@ export const useDeviceConnectionFlow = ({
   ]);
 
   const closeFlow = useCallback(() => {
-    // Always disarm the flow gate — ensureDeviceReady arms flowActiveRef
-    // before createBlockingPromise, so a cancel during the already-connected
-    // tryEnsureReady wait must still block late AppNotOpen / Ready updates.
     flowActiveRef.current = false;
     refs.abortControllerRef.current?.abort();
     refs.abortControllerRef.current = null;
