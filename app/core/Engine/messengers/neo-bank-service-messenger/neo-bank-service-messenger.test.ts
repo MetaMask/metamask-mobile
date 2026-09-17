@@ -1,45 +1,59 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import type { NeoBankServiceMessenger } from '@metamask/ramps-controller';
 import { getNeoBankServiceMessenger } from './neo-bank-service-messenger';
+import { Messenger } from '@metamask/messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<NeoBankServiceMessenger>,
-  MessengerEvents<NeoBankServiceMessenger>
->;
+jest.mock('@metamask/messenger', () => ({
+  Messenger: jest.fn().mockImplementation((opts) => ({
+    namespace: opts.namespace,
+    parent: opts.parent,
+  })),
+}));
 
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+function createMockRootMessenger() {
+  return { delegate: jest.fn() };
 }
 
 describe('getNeoBankServiceMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    const neoBankServiceMessenger = getNeoBankServiceMessenger(rootMessenger);
+  it('creates a Messenger with namespace NeoBankService', () => {
+    const mockRootMessenger = createMockRootMessenger();
 
-    expect(neoBankServiceMessenger).toBeInstanceOf(Messenger);
+    const result = getNeoBankServiceMessenger(mockRootMessenger as never);
+
+    expect(Messenger).toHaveBeenCalledWith({
+      namespace: 'NeoBankService',
+      parent: mockRootMessenger,
+    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        namespace: 'NeoBankService',
+        parent: mockRootMessenger,
+      }),
+    );
   });
 
-  it('delegates AuthenticationController:getBearerToken so NeoBankService can call it', async () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    rootMessenger.registerActionHandler(
-      'AuthenticationController:getBearerToken',
-      jest.fn().mockResolvedValue('test-bearer-token'),
-    );
-    const neoBankServiceMessenger = getNeoBankServiceMessenger(rootMessenger);
+  it('passes the root messenger as the parent', () => {
+    const mockRootMessenger = createMockRootMessenger();
 
-    const token = await neoBankServiceMessenger.call(
-      'AuthenticationController:getBearerToken',
-    );
+    getNeoBankServiceMessenger(mockRootMessenger as never);
 
-    expect(token).toBe('test-bearer-token');
+    expect(Messenger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        parent: mockRootMessenger,
+      }),
+    );
+  });
+
+  it('delegates AuthenticationController actions to the service messenger', () => {
+    const mockRootMessenger = createMockRootMessenger();
+
+    const result = getNeoBankServiceMessenger(mockRootMessenger as never);
+
+    expect(mockRootMessenger.delegate).toHaveBeenCalledWith({
+      actions: [
+        'AuthenticationController:getBearerToken',
+        'AuthenticationController:getSessionProfile',
+      ],
+      events: [],
+      messenger: result,
+    });
   });
 });

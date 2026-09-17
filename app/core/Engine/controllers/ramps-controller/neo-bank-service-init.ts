@@ -1,29 +1,25 @@
-import { MessengerClientInitFunction } from '../../types';
 import {
   NeoBankService,
-  NeoBankServiceMessenger,
+  type NeoBankServiceMessenger,
 } from '@metamask/ramps-controller';
+import type { MessengerClientInitFunction } from '../../types';
 import { getRampsContext, getRampsEnvironment } from './ramps-service-init';
 
 /**
- * Initialize the neo-bank service used by VBA wallet registration and autoramps.
+ * Initialize the neo-bank API service used by Money Account onboarding.
  *
- * @param request - The request object.
- * @param request.controllerMessenger - The messenger to use for the service.
+ * @param request - The initialization request.
+ * @param request.controllerMessenger - The service messenger.
  * @returns The initialized service.
  */
 export const neoBankServiceInit: MessengerClientInitFunction<
   NeoBankService,
   NeoBankServiceMessenger
-> = ({ controllerMessenger }) => {
-  const service = new NeoBankService({
+> = ({ controllerMessenger }) => ({
+  controller: new NeoBankService({
     messenger: controllerMessenger,
     environment: getRampsEnvironment(),
     context: getRampsContext(),
     fetch,
-  });
-
-  return {
-    controller: service,
-  };
-};
+  }),
+});
