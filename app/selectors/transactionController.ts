@@ -5,6 +5,7 @@ import {
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
+import { selectFirstPendingApproval } from './approvalController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
@@ -528,6 +529,22 @@ export const selectTransactionMetadataById = createSelector(
   selectTransactions,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
+);
+
+export const selectCurrentTransaction = createSelector(
+  [
+    (state: RootState) => state,
+    selectFirstPendingApproval,
+    (_: RootState, overrideTransactionId?: string | null) =>
+      overrideTransactionId,
+  ],
+  (state, approvalRequest, overrideTransactionId) => {
+    const transactionId = overrideTransactionId ?? approvalRequest?.id;
+
+    return transactionId === undefined
+      ? undefined
+      : selectTransactionMetadataById(state, transactionId);
+  },
 );
 
 export const makeSelectTransactionMetadataById =
