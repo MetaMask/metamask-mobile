@@ -6,6 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -44,6 +45,8 @@ import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/us
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
+import { filterSolanaPayTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { selectSolanaPayEnabled } from '../../../../../../selectors/featureFlagController/confirmations';
 
 export interface PayWithModalParams {
   /**
@@ -67,7 +70,8 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken } = useTransactionPayToken();
-  const { paySource, setPaySource } = useTransactionPaySource();
+  const { paySource, setPaySource, solanaSource } = useTransactionPaySource();
+  const isSolanaPayEnabled = useSelector(selectSolanaPayEnabled);
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -239,8 +243,14 @@ export function PayWithModal() {
 
   const tokenFilter = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
+      const admittedTokens = filterSolanaPayTokens(
+        tokens,
+        isSolanaPayEnabled,
+        solanaSource,
+      );
+
       if (isTransactionPayWithdraw(transactionMeta)) {
-        return withdrawTokenFilter(tokens);
+        return withdrawTokenFilter(admittedTokens);
       }
 
       // Standard deposit/payment token filtering
@@ -252,7 +262,7 @@ export function PayWithModal() {
               paySource.address)
             : undefined,
         requiredTokens,
-        tokens,
+        tokens: admittedTokens,
         blockedTokens,
         fiatPayment,
       });
@@ -274,6 +284,8 @@ export function PayWithModal() {
     [
       blockedTokens,
       fiatPayment,
+      isSolanaPayEnabled,
+      solanaSource,
       withdrawTokenFilter,
       paySource,
       payToken,

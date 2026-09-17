@@ -187,7 +187,7 @@ describe('Solana Pay callbacks', () => {
 
     expect(result).toEqual({
       outcome: 'not-submitted',
-      reason: 'preparation_mismatch',
+      errorCode: 'construction_failed',
     });
     expect(handleSnapRequest).not.toHaveBeenCalled();
   });
@@ -212,11 +212,31 @@ describe('Solana Pay callbacks', () => {
 
     const result = await signAndSendSolanaPayTransaction(submissionRequest);
 
-    expect(result).toEqual({
-      outcome: 'ambiguous',
-      reason: 'snap_request_failed',
-    });
+    expect(result).toEqual({ outcome: 'ambiguous' });
     expect(handleSnapRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('maps a rejected Snap request to a stable construction code', async () => {
+    jest
+      .mocked(handleSnapRequest)
+      .mockRejectedValue(
+        Object.assign(new Error('Invalid params'), { code: -32602 }),
+      );
+
+    const result = await signAndSendSolanaPayTransaction(submissionRequest);
+
+    expect(result).toEqual({
+      outcome: 'not-submitted',
+      errorCode: 'construction_failed',
+    });
+  });
+
+  it('omits raw response details when the Snap returns no transaction ID', async () => {
+    jest.mocked(handleSnapRequest).mockResolvedValue({ unexpected: 'value' });
+
+    const result = await signAndSendSolanaPayTransaction(submissionRequest);
+
+    expect(result).toEqual({ outcome: 'ambiguous' });
   });
 
   it('submits the sponsored Money Account follow-up as a separate batch', async () => {

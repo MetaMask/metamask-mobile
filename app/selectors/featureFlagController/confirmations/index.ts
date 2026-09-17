@@ -7,6 +7,10 @@ import {
   getRelayFixedSpreadFromConfig,
   RelayFixedSpreadConfig,
 } from '../../../components/Views/confirmations/utils/relayFixedSpread';
+import {
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -30,6 +34,7 @@ export const PAY_PREFILLED_AMOUNT_DEFAULT: PrefilledAmountFlags = {
 };
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
+export const SOLANA_PAY_ENABLED_DEFAULT = false;
 
 export interface PreferredToken {
   address: string;
@@ -111,6 +116,26 @@ export interface PayHardwareFlags {
   default: PayHardwareConfig;
   overrides?: Record<string, PayHardwareConfig>;
 }
+
+export const selectSolanaPayEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): boolean => {
+    const metaMaskPayFlags = featureFlags?.confirmations_pay as
+      | Record<string, Json>
+      | undefined;
+    const payStrategies = metaMaskPayFlags?.payStrategies as
+      | Record<string, Json>
+      | undefined;
+    const relay = payStrategies?.relay as Record<string, Json> | undefined;
+    const solana = relay?.solana as unknown as
+      | VersionGatedFeatureFlag
+      | undefined;
+
+    return (
+      validatedVersionGatedFeatureFlag(solana) ?? SOLANA_PAY_ENABLED_DEFAULT
+    );
+  },
+);
 
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
