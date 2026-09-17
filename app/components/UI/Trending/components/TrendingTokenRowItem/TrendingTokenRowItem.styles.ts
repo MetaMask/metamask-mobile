@@ -54,9 +54,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       alignSelf: 'center',
     },
-    watchlistAddButton: {
-      alignSelf: 'center',
-    },
   });
 };
 
