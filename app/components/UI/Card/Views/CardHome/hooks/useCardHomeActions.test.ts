@@ -113,7 +113,13 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-function setup({ isAuthenticated = true }: { isAuthenticated?: boolean } = {}) {
+function setup({
+  isAuthenticated = true,
+  providerId = 'baanx',
+}: {
+  isAuthenticated?: boolean;
+  providerId?: string;
+} = {}) {
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
   } as never);
@@ -123,7 +129,7 @@ function setup({ isAuthenticated = true }: { isAuthenticated?: boolean } = {}) {
       return isAuthenticated;
     }
     if (selector === selectCardActiveProviderId) {
-      return 'baanx';
+      return providerId;
     }
     // selectSelectedInternalAccountByScope returns a function
     if (typeof selector === 'function') {
@@ -181,6 +187,42 @@ describe('useCardHomeActions — transactionHistoryAction', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
       showAuthPrompt: true,
       postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
+    });
+  });
+});
+
+describe('useCardHomeActions — contactDetailsAction', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens contact details and reports the Immersve entry click', () => {
+    const { result } = setup({ providerId: 'immersve' });
+
+    act(() => {
+      result.current.contactDetailsAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CONTACT_DETAILS);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'immersve',
+      action: 'CONTACT_DETAILS_BUTTON',
+    });
+  });
+
+  it('opens authentication with a contact-details redirect when unauthenticated', () => {
+    const { result } = setup({
+      isAuthenticated: false,
+      providerId: 'immersve',
+    });
+
+    act(() => {
+      result.current.contactDetailsAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+      showAuthPrompt: true,
+      postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
     });
   });
 });
