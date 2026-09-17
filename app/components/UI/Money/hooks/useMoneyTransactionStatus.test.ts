@@ -151,18 +151,18 @@ jest.mock('../../../../selectors/transactionPayController', () => ({
     mockTransactionPayData[id]?.quotes,
 }));
 
-Object.defineProperty(Engine, 'context', {
-  value: {
-    TransactionController: {
-      state: {
-        transactions: mockControllerTransactions,
-        batchTransactionCounts: mockBatchTransactionCounts,
-      },
-    },
-  },
-  writable: true,
-  configurable: true,
-});
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactions: () => mockControllerTransactions,
+  selectBatchTransactionCounts: () => mockBatchTransactionCounts,
+  selectTransactionMetadataById: (_state: unknown, id: string) =>
+    mockControllerTransactions.find((tx) => tx.id === id),
+  selectRequiredTransactionIds: () =>
+    new Set(
+      mockControllerTransactions.flatMap(
+        (tx) => tx.requiredTransactionIds ?? [],
+      ),
+    ),
+}));
 
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
 
@@ -1732,7 +1732,6 @@ describe('useMoneyTransactionStatus', () => {
   describe('hardware payer deferral', () => {
     const parentId = 'hw-parent';
     const legA = 'hw-leg-a';
-    const legB = 'hw-leg-b';
 
     const seedHardwareDeposit = (
       requiredTransactionIds: string[],
@@ -1760,12 +1759,11 @@ describe('useMoneyTransactionStatus', () => {
       return parent;
     };
 
-    const seedLeg = (id: string, batchId?: TransactionMeta['batchId']) => {
+    const seedLeg = (id: string) => {
       const leg = buildTxMeta({
         id,
         type: TransactionType.simpleSend,
         status: TransactionStatus.unapproved,
-        batchId,
         txParams: { from: '0xLedger', data: '0x' },
       });
       mockControllerTransactions.push(leg);
@@ -1802,27 +1800,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).not.toHaveBeenCalled();
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('waits for every leg of a batch before showing in-progress', () => {
-      const parent = seedHardwareDeposit([legA, legB]);
-      const first = seedLeg(legA, '0xbatch');
-      const second = seedLeg(legB, '0xbatch');
-      mockBatchTransactionCounts['0xbatch'] = 2;
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({ transactionMeta: parent });
-      first.status = TransactionStatus.signed;
-      statusUpdatedHandler({ transactionMeta: first });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).not.toHaveBeenCalled();
-
-      second.status = TransactionStatus.signed;
-      statusUpdatedHandler({ transactionMeta: second });
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
     });
 
     it('schedules the toast once, even when several signed events arrive', () => {
@@ -2119,6 +2096,28 @@ describe('useMoneyTransactionStatus', () => {
           },
         } as unknown as Partial<TransactionMeta>),
       );
+
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
+    });
+
+    it('flushes engine state when a funding leg of a Money deposit updates', () => {
+      mockControllerTransactions.push(
+        buildTxMeta({
+          id: 'hw-parent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+          requiredTransactionIds: ['hw-leg'],
+        }),
+      );
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'hw-leg',
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.signed,
+        }),
+      });
 
       expect(mockFlushState).toHaveBeenCalledTimes(1);
     });

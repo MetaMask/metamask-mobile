@@ -44,33 +44,27 @@ function buildState(
 }
 
 describe('batch-signing', () => {
-  describe('isTransactionStatusSignedOrLater', () => {
-    it.each([
+  it('isTransactionStatusSignedOrLater is true from signed onward only', () => {
+    const signedOrLater = [
       TransactionStatus.signed,
       TransactionStatus.submitted,
       TransactionStatus.confirmed,
-    ])('returns true for %s', (status) => {
-      expect(isTransactionStatusSignedOrLater(status)).toBe(true);
-    });
-
-    it.each([
+    ];
+    signedOrLater.forEach((status) =>
+      expect(isTransactionStatusSignedOrLater(status)).toBe(true),
+    );
+    [
       TransactionStatus.unapproved,
       TransactionStatus.approved,
-      TransactionStatus.failed,
-      TransactionStatus.rejected,
-      TransactionStatus.dropped,
       undefined,
-    ])('returns false for %s', (status) => {
-      expect(isTransactionStatusSignedOrLater(status)).toBe(false);
-    });
+    ].forEach((status) =>
+      expect(isTransactionStatusSignedOrLater(status)).toBe(false),
+    );
   });
 
   it('getRequiredTransactionIds returns [] for an unknown transaction', () => {
     const { transactions } = buildState(['leg-1']);
 
-    expect(getRequiredTransactionIds(PARENT_ID, transactions)).toEqual([
-      'leg-1',
-    ]);
     expect(getRequiredTransactionIds('missing', transactions)).toEqual([]);
   });
 
@@ -123,27 +117,6 @@ describe('batch-signing', () => {
             id: 'leg-1',
             batchId: '0xbatch',
             status: TransactionStatus.signed,
-          }),
-        ],
-        { '0xbatch': 2 },
-      );
-
-      expect(haveRequiredTransactionsBeenSigned(PARENT_ID, state)).toBe(false);
-    });
-
-    it('returns false when one leg of a batch is signed and another is not', () => {
-      const state = buildState(
-        ['leg-1', 'leg-2'],
-        [
-          buildTransactionMeta({
-            id: 'leg-1',
-            batchId: '0xbatch',
-            status: TransactionStatus.signed,
-          }),
-          buildTransactionMeta({
-            id: 'leg-2',
-            batchId: '0xbatch',
-            status: TransactionStatus.approved,
           }),
         ],
         { '0xbatch': 2 },

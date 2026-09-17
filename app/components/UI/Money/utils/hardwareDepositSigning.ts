@@ -4,6 +4,10 @@ import {
 } from '@metamask/transaction-controller';
 import type { RootState } from '../../../../reducers';
 import {
+  selectBatchTransactionCounts,
+  selectTransactions,
+} from '../../../../selectors/transactionController';
+import {
   selectAccountOverrideByTransactionId,
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayRawQuotesByTransactionId,
@@ -12,7 +16,6 @@ import { isHardwareAccount } from '../../../../util/address';
 import {
   haveRequiredTransactionsBeenSigned,
   isTransactionStatusSignedOrLater,
-  type BatchSigningState,
 } from '../../../Views/confirmations/utils/batch-signing';
 import { isMoneyDepositTx } from './moneyTransactionGuards';
 
@@ -55,7 +58,6 @@ export function isHardwareFundedDeposit(
 export function isHardwareDepositSigningComplete(
   state: RootState,
   transactionMeta: TransactionMeta,
-  controllerState: BatchSigningState,
 ): boolean {
   if (isTransactionStatusSignedOrLater(transactionMeta.status)) {
     return true;
@@ -67,7 +69,10 @@ export function isHardwareDepositSigningComplete(
 
   return haveRequiredTransactionsBeenSigned(
     transactionMeta.id,
-    controllerState,
+    {
+      transactions: selectTransactions(state),
+      batchTransactionCounts: selectBatchTransactionCounts(state),
+    },
     expectedQuoteCount,
   );
 }
@@ -77,10 +82,10 @@ export function isHardwareDepositSigningComplete(
  * reaching `signed`: the deposit itself, or a deposit funded by that leg.
  */
 export function findDepositsAwaitingSignature(
+  state: RootState,
   transactionMeta: TransactionMeta,
-  transactions: TransactionMeta[],
 ): TransactionMeta[] {
-  return transactions.filter(
+  return selectTransactions(state).filter(
     (candidate) =>
       isMoneyDepositTx(candidate) &&
       SIGNING_IN_FLIGHT_STATUSES.includes(candidate.status) &&

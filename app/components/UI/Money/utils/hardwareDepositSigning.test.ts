@@ -11,6 +11,8 @@ import {
   isHardwareFundedDeposit,
 } from './hardwareDepositSigning';
 
+const mockTransactions: TransactionMeta[] = [];
+const mockBatchTransactionCounts: Record<string, number> = {};
 const mockTransactionPayData: Record<
   string,
   {
@@ -19,6 +21,11 @@ const mockTransactionPayData: Record<
     fiatPayment?: { selectedPaymentMethodId?: string };
   }
 > = {};
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactions: () => mockTransactions,
+  selectBatchTransactionCounts: () => mockBatchTransactionCounts,
+}));
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
   selectAccountOverrideByTransactionId: (_state: unknown, id: string) =>
@@ -50,9 +57,16 @@ const buildTx = (overrides: Partial<TransactionMeta>): TransactionMeta =>
     ...overrides,
   }) as unknown as TransactionMeta;
 
+const buildLeg = (id: string, status: TransactionStatus) =>
+  buildTx({ id, type: TransactionType.simpleSend, status });
+
 describe('hardwareDepositSigning', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTransactions.splice(0);
+    Object.keys(mockBatchTransactionCounts).forEach((key) => {
+      delete mockBatchTransactionCounts[key];
+    });
     Object.keys(mockTransactionPayData).forEach((key) => {
       delete mockTransactionPayData[key];
     });
@@ -116,120 +130,94 @@ describe('hardwareDepositSigning', () => {
   });
 
   describe('isHardwareDepositSigningComplete', () => {
-    const controllerState = (
-      legs: TransactionMeta[],
-      batchTransactionCounts: Record<string, number> = {},
-    ) => ({
-      batchTransactionCounts,
-      transactions: [
-        buildTx({ requiredTransactionIds: legs.map((leg) => leg.id) }),
-        ...legs,
-      ],
-    });
+    const seed = (legs: TransactionMeta[]) => {
+      const parent = buildTx({
+        requiredTransactionIds: legs.map((leg) => leg.id),
+      });
+      mockTransactions.push(parent, ...legs);
+      return parent;
+    };
 
     it.each([
       TransactionStatus.signed,
       TransactionStatus.submitted,
       TransactionStatus.confirmed,
     ])('returns true once the parent itself is %s', (status) => {
-      expect(
-        isHardwareDepositSigningComplete(
-          state,
-          buildTx({ status }),
-          controllerState([]),
-        ),
-      ).toBe(true);
+      expect(isHardwareDepositSigningComplete(state, buildTx({ status }))).toBe(
+        true,
+      );
     });
 
     it('returns false while an approved parent has an unsigned leg', () => {
-      const leg = buildTx({
-        id: 'leg-1',
-        type: TransactionType.simpleSend,
-        status: TransactionStatus.approved,
-      });
+      const parent = seed([buildLeg('leg-1', TransactionStatus.approved)]);
 
-      expect(
-        isHardwareDepositSigningComplete(
-          state,
-          buildTx({}),
-          controllerState([leg]),
-        ),
-      ).toBe(false);
+      expect(isHardwareDepositSigningComplete(state, parent)).toBe(false);
     });
 
     it('returns true once every leg is signed', () => {
-      const leg = buildTx({
-        id: 'leg-1',
-        type: TransactionType.simpleSend,
-        status: TransactionStatus.signed,
-      });
+      const parent = seed([buildLeg('leg-1', TransactionStatus.signed)]);
 
-      expect(
-        isHardwareDepositSigningComplete(
-          state,
-          buildTx({}),
-          controllerState([leg]),
-        ),
-      ).toBe(true);
+      expect(isHardwareDepositSigningComplete(state, parent)).toBe(true);
+    });
+
+    it('waits for every leg of a batch', () => {
+      mockBatchTransactionCounts['0xbatch'] = 2;
+      const parent = seed([
+        { ...buildLeg('leg-1', TransactionStatus.signed), batchId: '0xbatch' },
+      ]);
+
+      expect(isHardwareDepositSigningComplete(state, parent)).toBe(false);
     });
 
     it('waits for every quote when Pay has several', () => {
       mockTransactionPayData['deposit-1'] = { quotes: [{}, {}] };
-      const leg = buildTx({
-        id: 'leg-1',
-        type: TransactionType.simpleSend,
-        status: TransactionStatus.signed,
-      });
+      const parent = seed([buildLeg('leg-1', TransactionStatus.signed)]);
 
-      expect(
-        isHardwareDepositSigningComplete(
-          state,
-          buildTx({}),
-          controllerState([leg]),
-        ),
-      ).toBe(false);
+      expect(isHardwareDepositSigningComplete(state, parent)).toBe(false);
     });
   });
 
   describe('findDepositsAwaitingSignature', () => {
     const parent = buildTx({ requiredTransactionIds: ['leg-1'] });
-    const leg = buildTx({ id: 'leg-1', type: TransactionType.simpleSend });
+    const leg = buildLeg('leg-1', TransactionStatus.signed);
 
     it('returns the deposit funded by the given leg', () => {
-      expect(findDepositsAwaitingSignature(leg, [parent, leg])).toEqual([
-        parent,
-      ]);
+      mockTransactions.push(parent, leg);
+
+      expect(findDepositsAwaitingSignature(state, leg)).toEqual([parent]);
     });
 
     it('returns the deposit itself when it is the updated transaction', () => {
-      expect(findDepositsAwaitingSignature(parent, [parent, leg])).toEqual([
-        parent,
-      ]);
+      mockTransactions.push(parent, leg);
+
+      expect(findDepositsAwaitingSignature(state, parent)).toEqual([parent]);
     });
 
     it('ignores deposits that already reached a terminal status', () => {
-      const confirmed = buildTx({
-        requiredTransactionIds: ['leg-1'],
-        status: TransactionStatus.confirmed,
-      });
-      const rejected = buildTx({
-        requiredTransactionIds: ['leg-1'],
-        status: TransactionStatus.rejected,
-      });
+      mockTransactions.push(
+        buildTx({
+          requiredTransactionIds: ['leg-1'],
+          status: TransactionStatus.confirmed,
+        }),
+        buildTx({
+          requiredTransactionIds: ['leg-1'],
+          status: TransactionStatus.rejected,
+        }),
+        leg,
+      );
 
-      expect(
-        findDepositsAwaitingSignature(leg, [confirmed, rejected, leg]),
-      ).toEqual([]);
+      expect(findDepositsAwaitingSignature(state, leg)).toEqual([]);
     });
 
     it('ignores unrelated transactions', () => {
-      const other = buildTx({
-        id: 'other',
-        type: TransactionType.simpleSend,
-        status: TransactionStatus.signed,
-      });
+      mockTransactions.push(parent, leg);
 
-      expect(findDepositsAwaitingSignature(other, [parent, leg])).toEqual([]);
+      expect(
+        findDepositsAwaitingSignature(
+          state,
+          buildLeg('other', TransactionStatus.signed),
+        ),
+      ).toEqual([]);
     });
   });
 });
