@@ -16,6 +16,7 @@ import type {
   EarningsSummaryDto,
   OwnReferralCodesDto,
   ReferralFunnelDto,
+  ReferralLocalizedText,
   ReferralMeDto,
   RewardsMoneyControllerState,
 } from './types';
@@ -38,6 +39,9 @@ const mockReferralMe: ReferralMeDto = {
     revshare_earning_term_minutes: 525600,
     cashback_earning_term_minutes: null,
   },
+  // No assertion reads copy keys; the server always sends all of them.
+  localized_text: {} as ReferralLocalizedText,
+  invite_hero: null,
 };
 
 const mockFunnel: ReferralFunnelDto = {

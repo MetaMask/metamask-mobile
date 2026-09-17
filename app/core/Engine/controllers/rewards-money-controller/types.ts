@@ -70,6 +70,85 @@ export type EarnRatesView = {
   cashback_earning_term_minutes: number | null;
 };
 
+/**
+ * Copy keys the server resolves from Contentful for the referral screens.
+ *
+ * Mirrors `REFERRAL_CONTENTFUL_STRING_KEYS` in va-mmcx-rewards-money. The
+ * server fills any key Contentful is missing from its own English defaults, so
+ * every key is always present — never optional.
+ */
+export type ReferralLocalizedTextKey =
+  | 'waysToEarn'
+  | 'earningsTab'
+  | 'performanceTitle'
+  | 'earnEligibleFees'
+  | 'yourReferralCode'
+  | 'share'
+  | 'referrals'
+  | 'tradeCommissions'
+  | 'recordedEarnings'
+  | 'availableToClaim'
+  | 'claim'
+  | 'claimed'
+  | 'claimSuccessToast'
+  | 'last7Days'
+  | 'recordedEarningsLabel'
+  | 'breakdown'
+  | 'tradingRebates'
+  | 'history'
+  | 'historyReferrals'
+  | 'historyCommission'
+  | 'historyRebate'
+  | 'historyClaimed'
+  | 'historyPromo'
+  | 'shareCode'
+  | 'shareVia'
+  | 'copyLink'
+  | 'messages'
+  | 'telegram'
+  | 'last30DaysUpdatedDaily'
+  | 'eligibleFees'
+  | 'funnelCodeUses'
+  | 'funnelCodeUsesDescription'
+  | 'funnelConfirmed'
+  | 'funnelConfirmedDescription'
+  | 'funnelActive'
+  | 'funnelActiveDescription'
+  | 'funnelFeeGenerating'
+  | 'funnelFeeGeneratingDescription'
+  | 'tradingCommissionsSection'
+  | 'copiedOnce'
+  | 'copiedTimes'
+  | 'rebatePerpsVolume'
+  | 'rebateSwapsVolume'
+  | 'rebatePredictions'
+  | 'rebateSwaps'
+  | 'inviteTitle'
+  | 'inviteIllustrationLabel'
+  | 'inviteBody'
+  | 'inviteReferralCode'
+  | 'inviteUseDifferentCode'
+  | 'inviteCodePlaceholder'
+  | 'inviteCancelEdit'
+  | 'inviteDecline'
+  | 'inviteAccept'
+  | 'inviteAcceptedToast'
+  | 'invitedBenefitTitle'
+  | 'invitedReferredBy'
+  | 'invitedOptInDescription'
+  | 'invitedOptInAction'
+  | 'invitedOptInSuccessToast'
+  | 'invitedOptInLegal';
+
+/** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
+export type ReferralLocalizedText = Record<ReferralLocalizedTextKey, string>;
+
+/** Light/dark Contentful asset URLs. */
+export interface ThemeImage {
+  lightModeUrl: string;
+  darkModeUrl: string;
+}
+
 /** `GET /referral/me` — the single call that decides which screen renders. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralMeDto = {
@@ -80,6 +159,9 @@ export type ReferralMeDto = {
   referral_code: ReferralCodeView | null;
   referred_by: ReferredByView | null;
   earn_rates: EarnRatesView;
+  localized_text: ReferralLocalizedText;
+  /** Null when Contentful has no invite hero synced. */
+  invite_hero: ThemeImage | null;
 };
 
 /** `GET /referral/me/funnel` */
