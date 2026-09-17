@@ -78,15 +78,4 @@ export type Alert = {
   title?: string;
 } & MessageOrContent;
 
-/**
- * Shared empty result for inactive alert hooks.
- *
- * Returning a fresh `[]` allocates a new array and changes the identity of the
- * `useMemo` chain that `useConfirmationAlerts` aggregates, even when no alert
- * fired. This constant keeps the inactive case allocation-free and
- * referentially stable. On its own it does not remove confirmation renders,
- * which have other causes.
- *
- * Frozen because it is shared and must never be mutated in place.
- */
 export const NO_ALERTS: Alert[] = Object.freeze([]) as unknown as Alert[];
