@@ -11,7 +11,7 @@ type AllowedActions = MessengerActions<NeoBankServiceMessenger>;
 type AllowedEvents = MessengerEvents<NeoBankServiceMessenger>;
 
 /**
- * Get the NeoBankServiceMessenger for NeoBankService.
+ * Get the NeoBankServiceMessenger for the NeoBankService.
  *
  * @param rootMessenger - The root messenger.
  * @returns The NeoBankServiceMessenger.
