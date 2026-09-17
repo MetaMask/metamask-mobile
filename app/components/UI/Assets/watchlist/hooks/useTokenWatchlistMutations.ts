@@ -163,30 +163,34 @@ interface InvalidateOnSettledOptions {
   hydrated?: boolean;
 }
 
+/**
+ * Peer to `applyOptimistic` for the hydrated cache: given the current
+ * hydrated tokens and the new asset IDs from `applyOptimistic`, return the
+ * next hydrated list. Default reconciles against `nextAssets` with no seed.
+ */
+type ApplyOptimisticHydratedFn<TInput> = (
+  current: WatchlistTokenMetadata[] | undefined,
+  nextAssets: readonly string[],
+  input: TInput,
+) => WatchlistTokenMetadata[] | undefined;
+
+const defaultApplyOptimisticHydrated: ApplyOptimisticHydratedFn<unknown> = (
+  current,
+  nextAssets,
+) => applyOptimisticToHydrated(current, nextAssets);
+
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
+  applyOptimisticHydrated = defaultApplyOptimisticHydrated as ApplyOptimisticHydratedFn<TInput>,
   toOp,
   invalidateOnSettled = { blob: true, hydrated: true },
   shouldInvalidateHydrated,
-  seedSuggestedMetadata = false,
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
+  applyOptimisticHydrated?: ApplyOptimisticHydratedFn<TInput>;
   toOp: (input: TInput) => WatchlistOp;
   invalidateOnSettled?: InvalidateOnSettledOptions;
-  /**
-   * Optional gate for hydrated invalidation. Used by add to skip refetch when
-   * the added IDs were already removed before the mutation settled (quick
-   * watch→unwatch), which would otherwise race a late getTokens result back
-   * into the list.
-   */
   shouldInvalidateHydrated?: (input: TInput) => boolean;
-  /**
-   * When true, the optimistic hydrated update is seeded with metadata
-   * collected from cached suggested-pool queries, so tokens starred from a
-   * suggested surface render in the watchlist immediately instead of after
-   * the settled `getTokens` refetch.
-   */
-  seedSuggestedMetadata?: boolean;
 }) => {
   const queryClient = useQueryClient();
 
@@ -220,14 +224,7 @@ const useWatchlistMutation = <TInput>({
       );
       queryClient.setQueryData<WatchlistTokenMetadata[]>(
         tokenWatchlistQueryKeys.hydrated,
-        (old) =>
-          applyOptimisticToHydrated(
-            old,
-            nextAssets,
-            seedSuggestedMetadata
-              ? collectCachedSuggestedMetadata(queryClient)
-              : undefined,
-          ) ?? old,
+        (old) => applyOptimisticHydrated(old, nextAssets, input) ?? old,
       );
 
       return { prevBlob, prevHydrated };
@@ -275,10 +272,15 @@ export const useTokenWatchlistAddItemMutation = () => {
   return useWatchlistMutation<WatchlistAddInput>({
     applyOptimistic: (current, input) =>
       mergeAssets(current, toStrings(asArray(input))),
+    applyOptimisticHydrated: (current, nextAssets) =>
+      applyOptimisticToHydrated(
+        current,
+        nextAssets,
+        collectCachedSuggestedMetadata(queryClient),
+      ),
     toOp: (input) => ({ kind: 'add', ids: toStrings(asArray(input)) }),
     // Blob is already correct after onMutate; hydrated needs getTokens for metadata.
     invalidateOnSettled: { blob: false, hydrated: true },
-    seedSuggestedMetadata: true,
     shouldInvalidateHydrated: (input) => {
       const blob = queryClient.getQueryData<WatchlistBlob>(
         tokenWatchlistQueryKeys.blob,
