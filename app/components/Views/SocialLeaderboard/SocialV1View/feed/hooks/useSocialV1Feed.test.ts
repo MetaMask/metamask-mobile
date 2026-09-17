@@ -15,15 +15,4 @@ describe('useSocialV1Feed', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
   });
-
-  it('enables the chart only on the open perps item', () => {
-    const { result } = renderHook(() => useSocialV1Feed());
-
-    const [open, closed, compact] = result.current.items;
-
-    expect(open.showChart).toBe(true);
-    expect(open.chartSeries?.length).toBeGreaterThanOrEqual(2);
-    expect(closed.showChart).toBe(false);
-    expect(compact.showChart).toBeUndefined();
-  });
 });

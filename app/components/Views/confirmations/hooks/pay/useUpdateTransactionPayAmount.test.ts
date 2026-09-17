@@ -1,4 +1,11 @@
 import { merge } from 'lodash';
+import { act } from '@testing-library/react-native';
+import {
+  TransactionMeta,
+  updateEIP7702BatchData,
+} from '@metamask/transaction-controller';
+import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useUpdateTransactionPayAmount } from './useUpdateTransactionPayAmount';
 import {
@@ -7,87 +14,60 @@ import {
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
-import {
-  updateAtomicBatchData,
-  updateTransaction,
-} from '../../../../../util/transaction-controller';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
-import {
-  updateMoneyAccountDepositTokenAmount,
-  updateMoneyAccountWithdrawTokenAmount,
-} from '../../../../UI/Money/utils/moneyAccountTransactions';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
+import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import Engine from '../../../../../core/Engine';
 
-import {
-  useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
-} from './useTransactionPayData';
-import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
-import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
-import { getVersion } from 'react-native-device-info';
-
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('99.0.0'),
+jest.mock('@metamask/transaction-controller', () => ({
+  ...jest.requireActual('@metamask/transaction-controller'),
+  updateEIP7702BatchData: jest.fn(),
 }));
-jest.mock(
-  '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update',
-);
-jest.mock('../../../../../util/transaction-controller');
-jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent');
-jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
-jest.mock('../transactions/useUpdateTokenAmount');
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TransactionController: {
+      updateTransactionMetadata: jest.fn(),
+    },
+  },
+}));
+jest.mock('../../external/types/transaction-pay-amount');
 jest.mock('../transactions/useTransactionAccountOverride');
-
+jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('./useTransactionPayData');
 
-const moneyAccountDepositMeta: Partial<TransactionMeta> = {
-  type: TransactionType.moneyAccountDeposit,
-};
+const AMOUNT_MOCK = '1.23';
+const TOKEN_ADDRESS_MOCK = '0xToken' as Hex;
+const BATCH_DATA_MOCK = '0xbatch' as Hex;
+const OVERRIDE_ADDRESS_MOCK =
+  '0x1111111111111111111111111111111111111111' as Hex;
 
-const moneyAccountWithdrawMeta: Partial<TransactionMeta> = {
-  type: TransactionType.moneyAccountWithdraw,
+// Money account deposits and withdrawals both re-encode two nested calls.
+const CALLS_MOCK = [
+  { nestedTransactionIndex: 0, transactionData: '0xaaaa' as Hex },
+  { nestedTransactionIndex: 1, transactionData: '0xbbbb' as Hex },
+];
+
+const requiredAssetMock = {
+  address: TOKEN_ADDRESS_MOCK,
+  amount: '0x0' as Hex,
+  standard: 'erc20',
 };
 
 function runHook({
   transactionMeta,
-  quotePipelineEnabled = false,
-}: {
-  transactionMeta?: Partial<TransactionMeta>;
-  quotePipelineEnabled?: boolean;
-} = {}) {
+}: { transactionMeta?: Partial<TransactionMeta> } = {}) {
   return renderHookWithProvider(useUpdateTransactionPayAmount, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
-      {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                moneyAccountDepositQuotePipeline: {
-                  enabled: quotePipelineEnabled,
-                  minimumVersion: '0.0.0',
-                },
-              },
-            },
-          },
-        },
-      },
       transactionMeta
         ? {
             engine: {
               backgroundState: {
-                TransactionController: {
-                  transactions: [transactionMeta],
-                },
+                TransactionController: { transactions: [transactionMeta] },
               },
             },
           }
@@ -96,18 +76,25 @@ function runHook({
   });
 }
 
+/** Runs the metadata callback captured from `updateTransactionMetadata`. */
+function applyMetadataCallback(meta: Partial<TransactionMeta>) {
+  const [request] = jest.mocked(
+    Engine.context.TransactionController.updateTransactionMetadata,
+  ).mock.calls[0];
+
+  request.callback(meta as TransactionMeta);
+  return meta;
+}
+
 describe('useUpdateTransactionPayAmount', () => {
-  const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
-  const updateTransactionMock = jest.mocked(updateTransaction);
-  const getMoneyAccountDepositIntentMock = jest.mocked(
-    getMoneyAccountDepositIntent,
+  const updateTransactionMetadataMock = jest.mocked(
+    Engine.context.TransactionController.updateTransactionMetadata,
   );
-  const updateMoneyAccountDepositTokenAmountMock = jest.mocked(
-    updateMoneyAccountDepositTokenAmount,
+  const updateEIP7702BatchDataMock = jest.mocked(updateEIP7702BatchData);
+  const getTransactionPayAmountCallsMock = jest.mocked(
+    getTransactionPayAmountCalls,
   );
-  const updateMoneyAccountWithdrawTokenAmountMock = jest.mocked(
-    updateMoneyAccountWithdrawTokenAmount,
-  );
+  const updateTokenAmountMock = jest.fn();
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
@@ -115,506 +102,238 @@ describe('useUpdateTransactionPayAmount', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const useTransactionPayFiatPaymentMock = jest.mocked(
-    useTransactionPayFiatPayment,
-  );
-  const updateMoneyAccountDepositAmountMock = jest.mocked(
-    updateMoneyAccountDepositAmount,
-  );
-  const updateTokenAmountMock = jest.fn();
+
   beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(getVersion).mockReturnValue('99.0.0');
-    updateAtomicBatchDataMock.mockResolvedValue('0x0');
-    updateMoneyAccountDepositAmountMock.mockResolvedValue(true);
-    getMoneyAccountDepositIntentMock.mockReturnValue(undefined);
+
+    getTransactionPayAmountCallsMock.mockResolvedValue(CALLS_MOCK);
+    updateEIP7702BatchDataMock.mockReturnValue({
+      nestedTransactions: [],
+      transactionData: BATCH_DATA_MOCK,
+    });
+    updateTokenAmountMock.mockResolvedValue(undefined);
     useUpdateTokenAmountMock.mockReturnValue({
       updateTokenAmount: updateTokenAmountMock,
     });
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
-    useTransactionPayRequiredTokensMock.mockReturnValue([]);
-    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
-  });
-
-  it('calls updateAtomicBatchData for each update returned from updateMoneyAccountDepositTokenAmount', async () => {
-    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([
-      { nestedTransactionIndex: 0, transactionData: '0xaaaa' },
-      { nestedTransactionIndex: 2, transactionData: '0xbbbb' },
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      { decimals: 6 } as TransactionPayRequiredToken,
     ]);
-
-    const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
-
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledWith(
-      expect.any(Object),
-      '1.23',
-      undefined,
-    );
-    expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
-    expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
-      transactionId: expect.any(String),
-      transactionIndex: 0,
-      transactionData: '0xaaaa',
-    });
-    expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(2, {
-      transactionId: expect.any(String),
-      transactionIndex: 2,
-      transactionData: '0xbbbb',
-    });
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountDepositAmountMock).not.toHaveBeenCalled();
   });
 
-  it('uses one atomic update for enabled Money Account deposits', async () => {
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
-    });
+  describe('updateTransactionPayAmount', () => {
+    it('falls back to the token amount update when there are no external calls', async () => {
+      getTransactionPayAmountCallsMock.mockResolvedValue(undefined);
 
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(1);
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledWith(
-      expect.objectContaining({ id: transactionIdMock }),
-      '1.23',
-    );
-    expect(updateTransactionMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
-    expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(true);
-  });
-
-  it('reuses a completed optimized amount update for the same amount', async () => {
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
-    });
-
-    await result.current.updateTransactionPayAmount('1.23');
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('retries an optimized amount update after the previous request rejects', async () => {
-    const error = new Error('quote failed');
-    updateMoneyAccountDepositAmountMock
-      .mockRejectedValueOnce(error)
-      .mockResolvedValueOnce(true);
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
-    });
-
-    await expect(
-      result.current.updateTransactionPayAmount('1.23'),
-    ).rejects.toThrow('quote failed');
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
-  });
-
-  it('retries an optimized amount update when the quote is not published', async () => {
-    updateMoneyAccountDepositAmountMock
-      .mockResolvedValueOnce(false)
-      .mockResolvedValueOnce(true);
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
-    });
-
-    const unpublishedResult =
-      await result.current.updateTransactionPayAmount('1.23');
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(unpublishedResult).toBe(false);
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
-  });
-
-  it('starts a new optimized amount update when the amount changes', async () => {
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
-    });
-
-    await result.current.updateTransactionPayAmount('1.23');
-    await result.current.updateTransactionPayAmount('4.56');
-
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({ id: transactionIdMock }),
-      '4.56',
-    );
-  });
-
-  it.each(['addMusd', 'card'] as const)(
-    'keeps %s deposits on the existing pipeline',
-    async (depositIntent) => {
-      getMoneyAccountDepositIntentMock.mockReturnValue(depositIntent);
-      updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([]);
-      const { result } = runHook({
-        transactionMeta: moneyAccountDepositMeta,
-        quotePipelineEnabled: true,
+      const { result } = runHook();
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
       });
 
-      await result.current.updateTransactionPayAmount('1.23');
-
-      expect(updateMoneyAccountDepositAmountMock).not.toHaveBeenCalled();
-      expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
-      expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(false);
-    },
-  );
-
-  it('keeps a fiat payment selected from a generic deposit on the existing pipeline', async () => {
-    useTransactionPayFiatPaymentMock.mockReturnValue({
-      selectedPaymentMethodId: 'credit-debit-card',
-    });
-    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([]);
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
+      expect(updateTokenAmountMock).toHaveBeenCalledWith(AMOUNT_MOCK);
+      expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
     });
 
-    await result.current.updateTransactionPayAmount('1.23');
+    it('passes the account override to the external module', async () => {
+      useTransactionAccountOverrideMock.mockReturnValue(OVERRIDE_ADDRESS_MOCK);
 
-    expect(updateMoneyAccountDepositAmountMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(false);
-  });
+      const { result } = runHook({
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
+      });
 
-  it('uses the atomic update for an explicit convert intent', async () => {
-    getMoneyAccountDepositIntentMock.mockReturnValue('convert');
-    const { result } = runHook({
-      transactionMeta: moneyAccountDepositMeta,
-      quotePipelineEnabled: true,
+      expect(getTransactionPayAmountCallsMock).toHaveBeenCalledWith(
+        expect.objectContaining({ id: transactionIdMock }),
+        AMOUNT_MOCK,
+        OVERRIDE_ADDRESS_MOCK,
+      );
     });
 
-    await result.current.updateTransactionPayAmount('1.23');
+    it('commits calldata and required assets in a single state update', async () => {
+      const { result } = runHook({
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
+      });
 
-    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(1);
-    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
-  });
+      expect(updateTransactionMetadataMock).toHaveBeenCalledTimes(1);
+      expect(updateTransactionMetadataMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionId: transactionIdMock,
+          skipResimulate: true,
+        }),
+      );
 
-  it('does not use the atomic deposit update for withdrawals', async () => {
-    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
-    const { result } = runHook({
-      transactionMeta: moneyAccountWithdrawMeta,
-      quotePipelineEnabled: true,
-    });
+      const meta = applyMetadataCallback({
+        txParams: { from: '0xabc' as Hex },
+        requiredAssets: [requiredAssetMock],
+      });
 
-    await result.current.updateTransactionPayAmount('4.56');
-
-    expect(updateMoneyAccountDepositAmountMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call updateAtomicBatchData when no updates are returned', async () => {
-    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([]);
-
-    const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
-
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-  });
-
-  it('does not call updateMoneyAccountDepositTokenAmount when there is no transaction meta', async () => {
-    const { result } = renderHookWithProvider(useUpdateTransactionPayAmount, {
-      state: merge(
-        {},
-        transactionApprovalControllerMock,
-        otherControllersMock,
-        {
-          engine: {
-            backgroundState: {
-              TransactionController: { transactions: [] },
-            },
-          },
-        },
-      ),
-    });
-
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
-  });
-
-  it('delegates to updateTokenAmount for transactions that are neither money account deposit nor withdraw', async () => {
-    const { result } = runHook();
-
-    await result.current.updateTransactionPayAmount('1.23');
-
-    expect(updateTokenAmountMock).toHaveBeenCalledWith('1.23');
-    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-  });
-
-  it('waits for delegated nested amount updates', async () => {
-    let resolveUpdate: () => void = () => undefined;
-    updateTokenAmountMock.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveUpdate = resolve;
-      }),
-    );
-    const { result } = runHook();
-
-    const updatePromise = result.current.updateTransactionPayAmount('1.23');
-    let isSettled = false;
-    updatePromise.then(() => {
-      isSettled = true;
-    });
-    await Promise.resolve();
-
-    expect(isSettled).toBe(false);
-
-    resolveUpdate();
-    await updatePromise;
-
-    expect(isSettled).toBe(true);
-  });
-
-  it('rejects when a delegated nested amount update fails', async () => {
-    updateTokenAmountMock.mockRejectedValue(new Error('update failed'));
-    const { result } = runHook();
-
-    await expect(
-      result.current.updateTransactionPayAmount('1.23'),
-    ).rejects.toThrow('update failed');
-  });
-
-  it('rejects and logs when updateAtomicBatchData rejects', async () => {
-    const error = new Error('boom');
-    updateAtomicBatchDataMock.mockRejectedValue(error);
-    updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([
-      { nestedTransactionIndex: 0, transactionData: '0xaaaa' },
-    ]);
-
-    const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
-
-    await expect(
-      result.current.updateTransactionPayAmount('1.23'),
-    ).rejects.toThrow('boom');
-  });
-
-  it('rejects and logs when updateMoneyAccountDepositTokenAmount rejects', async () => {
-    const error = new Error('rpc failure');
-    updateMoneyAccountDepositTokenAmountMock.mockRejectedValue(error);
-
-    const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
-
-    await expect(
-      result.current.updateTransactionPayAmount('1.23'),
-    ).rejects.toThrow('rpc failure');
-
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-  });
-
-  it('calls updateAtomicBatchData for each update returned from updateMoneyAccountWithdrawTokenAmount', async () => {
-    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([
-      { nestedTransactionIndex: 0, transactionData: '0xcccc' },
-      { nestedTransactionIndex: 1, transactionData: '0xdddd' },
-    ]);
-
-    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
-
-    await result.current.updateTransactionPayAmount('4.56');
-
-    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledWith(
-      expect.any(Object),
-      '4.56',
-      undefined,
-    );
-    expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
-    expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
-      transactionId: expect.any(String),
-      transactionIndex: 0,
-      transactionData: '0xcccc',
-    });
-    expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(2, {
-      transactionId: expect.any(String),
-      transactionIndex: 1,
-      transactionData: '0xdddd',
-    });
-    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
-    expect(updateTokenAmountMock).not.toHaveBeenCalled();
-  });
-
-  it('does not call updateAtomicBatchData when withdraw updater returns no updates', async () => {
-    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
-
-    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
-
-    await result.current.updateTransactionPayAmount('4.56');
-
-    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-  });
-
-  it('passes accountOverride to updateMoneyAccountWithdrawTokenAmount', async () => {
-    const overrideAddress = '0x1111111111111111111111111111111111111111' as Hex;
-    useTransactionAccountOverrideMock.mockReturnValue(overrideAddress);
-    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
-
-    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
-
-    await result.current.updateTransactionPayAmount('4.56');
-
-    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledWith(
-      expect.any(Object),
-      '4.56',
-      overrideAddress,
-    );
-  });
-
-  it('rejects and logs when updateMoneyAccountWithdrawTokenAmount rejects', async () => {
-    const error = new Error('withdraw rpc failure');
-    updateMoneyAccountWithdrawTokenAmountMock.mockRejectedValue(error);
-
-    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
-
-    await expect(
-      result.current.updateTransactionPayAmount('4.56'),
-    ).rejects.toThrow('withdraw rpc failure');
-
-    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
-  });
-
-  describe('syncMoneyAccountDepositRequiredAssets', () => {
-    const TOKEN_ADDRESS_MOCK = '0xToken' as Hex;
-    const existingRequiredAsset = {
-      address: TOKEN_ADDRESS_MOCK,
-      amount: '0x0' as Hex,
-      standard: 'erc20',
-    };
-    const moneyAccountDepositMetaWithRequiredAssets = {
-      ...moneyAccountDepositMeta,
-      requiredAssets: [existingRequiredAsset],
-    };
-
-    beforeEach(() => {
-      updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([]);
-      useTransactionPayRequiredTokensMock.mockReturnValue([
-        { decimals: 6 } as TransactionPayRequiredToken,
+      expect(meta.txParams?.data).toBe(BATCH_DATA_MOCK);
+      // 1.23 at 6 decimals -> 1230000 -> 0x12c4b0
+      expect(meta.requiredAssets).toStrictEqual([
+        { ...requiredAssetMock, amount: '0x12c4b0' },
       ]);
     });
 
-    it('calls updateTransaction with hex-encoded amount when requiredAssets exist', async () => {
+    it('uses the call data directly when there is a single call', async () => {
+      getTransactionPayAmountCallsMock.mockResolvedValue([
+        { nestedTransactionIndex: 0, transactionData: '0xsingle' as Hex },
+      ]);
+
       const { result } = runHook({
-        transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
       });
 
-      await result.current.updateTransactionPayAmount('1');
+      const meta = applyMetadataCallback({
+        txParams: { from: '0xabc' as Hex },
+        nestedTransactions: [{ to: '0xdef' as Hex, data: '0xold' as Hex }],
+      } as Partial<TransactionMeta>);
 
-      expect(updateTransactionMock).toHaveBeenCalledTimes(1);
-      expect(updateTransactionMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4240' }],
-        }),
-        'Money Account deposit: sync requiredAssets amount',
-      );
+      expect(updateEIP7702BatchDataMock).not.toHaveBeenCalled();
+      expect(meta.txParams?.data).toBe('0xsingle');
+      expect(meta.nestedTransactions).toStrictEqual([
+        { to: '0xdef', data: '0xsingle' },
+      ]);
     });
 
-    it('rounds fractional atomic amounts down before encoding', async () => {
+    it('rounds the required asset amount down', async () => {
       const { result } = runHook({
-        transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount('1.0000005');
       });
 
-      await result.current.updateTransactionPayAmount('1.0000005');
+      const meta = applyMetadataCallback({
+        txParams: { from: '0xabc' as Hex },
+        requiredAssets: [requiredAssetMock],
+      });
 
-      expect(updateTransactionMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          // 1.0000005 floored to 6 decimals → 1000000 (0xf4240)
-          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4240' }],
-        }),
-        expect.any(String),
-      );
+      // 1.0000005 floored to 6 decimals -> 1000000 -> 0xf4240
+      expect(meta.requiredAssets?.[0].amount).toBe('0xf4240');
     });
 
-    it('does not call updateTransaction when transactionMeta has no requiredAssets', async () => {
-      const { result } = runHook({ transactionMeta: moneyAccountDepositMeta });
-
-      await result.current.updateTransactionPayAmount('1');
-
-      expect(updateTransactionMock).not.toHaveBeenCalled();
-    });
-
-    it('does not call updateTransaction when no required tokens are available', async () => {
+    it('leaves required assets untouched when decimals are unknown', async () => {
       useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
       const { result } = runHook({
-        transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
       });
 
-      await result.current.updateTransactionPayAmount('1');
+      const meta = applyMetadataCallback({
+        txParams: { from: '0xabc' as Hex },
+        requiredAssets: [requiredAssetMock],
+      });
 
-      expect(updateTransactionMock).not.toHaveBeenCalled();
+      expect(meta.requiredAssets).toStrictEqual([requiredAssetMock]);
     });
 
-    it('does not call updateTransaction when computed amount matches existing amount', async () => {
+    it('clears metadata derived from the previous amount', async () => {
+      const { result } = runHook({
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
+      });
+
+      const meta = applyMetadataCallback({
+        txParams: { from: '0xabc' as Hex, gas: '0x1' as Hex },
+        gasLimitNoBuffer: '0x2' as Hex,
+        gasUsed: '0x3' as Hex,
+        securityAlertResponse: { result_type: 'Benign', reason: '' },
+        simulationData: { tokenBalanceChanges: [] },
+        simulationFails: { debug: {}, reason: 'test' },
+      } as Partial<TransactionMeta>);
+
+      expect(meta.txParams?.gas).toBeUndefined();
+      expect(meta.gasLimitNoBuffer).toBeUndefined();
+      expect(meta.gasUsed).toBeUndefined();
+      expect(meta.securityAlertResponse).toBeUndefined();
+      expect(meta.simulationData).toBeUndefined();
+      expect(meta.simulationFails).toBeUndefined();
+    });
+
+    it('clears stale revert data but keeps a receipt-backed revert', async () => {
+      const { result } = runHook({
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
+      });
+      await act(async () => {
+        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
+      });
+
+      const meta = applyMetadataCallback({
+        txParams: { from: '0xabc' as Hex },
+        revert: { gas: '0x1', simulation: {}, receipt: { status: '0x0' } },
+      } as Partial<TransactionMeta>);
+
+      expect(meta.revert).toStrictEqual({ receipt: { status: '0x0' } });
+    });
+
+    it('does not commit when there are no calls and the required asset is unchanged', async () => {
+      getTransactionPayAmountCallsMock.mockResolvedValue([]);
+
       const { result } = runHook({
         transactionMeta: {
-          ...moneyAccountDepositMeta,
-          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4240' }],
+          requiredAssets: [{ ...requiredAssetMock, amount: '0x12c4b0' as Hex }],
         },
       });
 
-      await result.current.updateTransactionPayAmount('1');
+      let didCommit;
+      await act(async () => {
+        didCommit =
+          await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
+      });
 
-      expect(updateTransactionMock).not.toHaveBeenCalled();
+      expect(didCommit).toBe(false);
+      expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
     });
 
-    it('does not run sync logic for non-deposit transaction types', async () => {
-      updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
-
-      const { result } = runHook({
-        transactionMeta: {
-          ...moneyAccountWithdrawMeta,
-          requiredAssets: [existingRequiredAsset],
+    it('discards an update superseded by a newer amount', async () => {
+      getTransactionPayAmountCallsMock.mockImplementation(
+        async (_meta, amountHuman) => {
+          if (amountHuman === AMOUNT_MOCK) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          return CALLS_MOCK;
         },
-      });
-
-      await result.current.updateTransactionPayAmount('1');
-
-      expect(updateTransactionMock).not.toHaveBeenCalled();
-    });
-
-    it('rejects and logs when updateTransaction throws', async () => {
-      const error = new Error('updateTransaction failed');
-      updateTransactionMock.mockImplementation(() => {
-        throw error;
-      });
+      );
 
       const { result } = runHook({
-        transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
+        transactionMeta: { requiredAssets: [requiredAssetMock] },
       });
+
+      let staleResult;
+      await act(async () => {
+        const stale = result.current.updateTransactionPayAmount(AMOUNT_MOCK);
+        await result.current.updateTransactionPayAmount('9.99');
+        staleResult = await stale;
+      });
+
+      expect(staleResult).toBe(false);
+      expect(updateTransactionMetadataMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates errors from the external module', async () => {
+      getTransactionPayAmountCallsMock.mockRejectedValue(
+        new Error('Money Account Deposit: rpc failure'),
+      );
+
+      const { result } = runHook();
 
       await expect(
-        result.current.updateTransactionPayAmount('1'),
-      ).rejects.toThrow('updateTransaction failed');
-    });
-
-    it('still applies money account deposit updates after syncing requiredAssets', async () => {
-      updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([
-        { nestedTransactionIndex: 0, transactionData: '0xaaaa' },
-      ]);
-
-      const { result } = runHook({
-        transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
-      });
-
-      await result.current.updateTransactionPayAmount('1');
-
-      expect(updateTransactionMock).toHaveBeenCalledTimes(1);
-      expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(1);
+        result.current.updateTransactionPayAmount(AMOUNT_MOCK),
+      ).rejects.toThrow('Money Account Deposit: rpc failure');
+      expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
     });
   });
 });

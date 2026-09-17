@@ -158,7 +158,7 @@ describe('SocialFiltersBottomSheet', () => {
   it('renders the sheet title and show results CTA', () => {
     render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -201,10 +201,10 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-timeframe-1h')).toBeNull();
   });
 
-  it('shows the Time frame section on Feed and Leaderboard', () => {
+  it('shows the Time frame section on Trending and Leaderboard', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -240,10 +240,10 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
-  it('shows the Following cohort chip on Feed and Live trades but not Leaderboard', () => {
+  it('shows the Following cohort chip on Trending and Live trades but not Leaderboard', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -283,7 +283,7 @@ describe('SocialFiltersBottomSheet', () => {
     const onApply = jest.fn();
     render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={onApply}
@@ -302,7 +302,7 @@ describe('SocialFiltersBottomSheet', () => {
     const onChange = jest.fn();
     render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={onChange}
         onApply={jest.fn()}
@@ -315,10 +315,10 @@ describe('SocialFiltersBottomSheet', () => {
     expect(onChange).toHaveBeenCalledWith({ type: 'tokens' });
   });
 
-  it('renders market cap and 24h volume sliders on Feed and Live trades', () => {
+  it('renders market cap and 24h volume sliders on Trending and Live trades', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -355,7 +355,7 @@ describe('SocialFiltersBottomSheet', () => {
     const onClose = jest.fn();
     render(
       <SocialFiltersBottomSheet
-        tab="feed"
+        tab="trending"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}

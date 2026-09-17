@@ -1170,15 +1170,26 @@
     "sort_filter": {
       "title": "Sort by",
       "pnl": "P&L",
+      "profit": "Profit",
+      "volume": "Volume",
       "roi": "P&L %",
       "win_rate": "Win rate"
+    },
+    "cohort_filter": {
+      "title": "Trader cohort"
     },
     "feed": {
       "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed",
+        "trending": "Trending",
+        "following": "Following",
         "live_trades": "Live trades"
+      },
+      "live_stream": {
+        "paused": "Paused",
+        "live": "Live"
       },
       "following": "Following",
       "all": "All",
@@ -1477,6 +1488,14 @@
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
     "change_24h": "{{change}} 24h",
+    "trade_sheet": {
+      "settings": "Settings",
+      "order_summary": "Order summary",
+      "includes_fee": "Includes {{feePercentage}}% fee",
+      "amount_slider_accessibility_label": "Order amount",
+      "show_asset_value": "Show asset value",
+      "show_fiat_value": "Show fiat value"
+    },
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
@@ -2760,6 +2779,7 @@
       "tabs": {
         "all": "All",
         "crypto": "Crypto",
+        "memecoin": "Memecoins",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
         "new": "New",
@@ -2886,7 +2906,6 @@
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "watchlist": {
       "empty_title": "Start with the most-traded markets",
-      "empty_subtitle": "Tap + to add a market to your watchlist.",
       "show_more": "Show {{count}} more",
       "show_less": "Show less",
       "added": "Added {{symbol}} to watchlist",
@@ -4165,7 +4184,7 @@
     "settings_link": "manage other default settings."
   },
   "basic_functionality_migration": {
-    "title": "Your settings have changed",
+    "title": "We’ve updated our settings",
     "social_title": "Privacy and product updates",
     "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
     "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
@@ -4173,9 +4192,9 @@
     "social_body_2_suffix": ".",
     "blog_post_link": "blog post",
     "privacy_notice_link": "Privacy Notice",
-    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
-    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
-    "settings_link": "Settings > Privacy",
+    "toast_description": "Basic functionality now includes third-party APIs. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Basic functionality now includes third-party APIs. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy.",
     "accept_and_close": "Accept and close"
   },
   "onboarding_interest_questionnaire": {
@@ -10243,6 +10262,7 @@
       "category": "Category",
       "location": "Location",
       "decline_reason": "Decline reason",
+      "network_fee": "Network fee",
       "decline_reasons": {
         "insufficient_funds": "Insufficient funds"
       },
