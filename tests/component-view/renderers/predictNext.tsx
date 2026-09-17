@@ -1,6 +1,6 @@
 import '../mocks';
 import React from 'react';
-import { renderScreenWithRoutes } from '../render';
+import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePredictNext } from '../presets/predictNext';
 import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome';
 import { PredictEventScreen } from '../../../app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen';
@@ -34,6 +34,13 @@ const HomeScreen = withOrderFlow(PredictHome as unknown as React.ComponentType);
 const PortfolioScreen = withOrderFlow(
   PredictPortfolioScreen as unknown as React.ComponentType<object>,
 );
+
+export const renderPredictOrderFlow = (Component: React.ComponentType) =>
+  renderComponentViewScreen(
+    withOrderFlow(Component),
+    { name: PredictNextRoutes.HOME },
+    { state: initialStatePredictNext().build() },
+  );
 
 export const renderPredictNext = (
   initialParams?: PredictNextHomeParams,

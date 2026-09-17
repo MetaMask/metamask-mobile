@@ -1,36 +1,23 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { createUIQueryClient } from '@metamask/react-data-query';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import type { Json } from '@metamask/utils';
 import { Text, Button } from '@metamask/design-system-react-native';
 
+import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
-import { DATA_SERVICES } from '../../../../../constants/data-services';
 import { KalshiRemoteAdapter } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../adapters/remote/PredictApiReadClient';
 import {
   PREDICT_ORDER_PREVIEW_SERVICE_NAME,
   PredictOrderPreviewService,
 } from '../../services/PredictOrderPreviewService';
-import {
-  PredictOrderFlowProvider,
-  usePredictOrderFlow,
-} from './PredictOrderFlowProvider';
+import { usePredictOrderFlow } from './PredictOrderFlowProvider';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
 import {
   KALSHI_VENUE_ID,
@@ -63,6 +50,7 @@ const composeOrderPreviewService = (): PredictOrderPreviewService => {
     messenger,
     trading: adapter.trading,
     venueId: adapter.venueId,
+    submitDelayMs: 0,
   });
 };
 
@@ -93,35 +81,6 @@ const previewCalls = (): { url: string; body: unknown }[] =>
       url: String(url),
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
-
-const dataServiceMessenger = {
-  call: async (method: string, ...params: Json[]) =>
-    (
-      Engine.controllerMessenger.call as unknown as (
-        method: string,
-        ...params: Json[]
-      ) => Promise<void | Json>
-    )(method, ...params),
-  subscribe: () => undefined,
-  unsubscribe: () => undefined,
-};
-
-const QueryClientBoundary = ({ children }: { children: React.ReactNode }) => {
-  const [queryClient] = React.useState(() =>
-    createUIQueryClient(DATA_SERVICES, dataServiceMessenger, {
-      defaultOptions: { queries: { retry: false } },
-    }),
-  );
-  React.useEffect(
-    () => () => {
-      queryClient.clear();
-    },
-    [queryClient],
-  );
-  return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
 
 const stubBalance = (venueStatus?: { termsUrl?: string }) =>
   messengerCall.mockImplementation((action: string) => {
@@ -167,14 +126,7 @@ const Probe = () => {
   );
 };
 
-const renderProbe = () =>
-  render(
-    <QueryClientBoundary>
-      <PredictOrderFlowProvider>
-        <Probe />
-      </PredictOrderFlowProvider>
-    </QueryClientBoundary>,
-  );
+const renderProbe = () => renderPredictOrderFlow(Probe);
 
 const makePreview = (overrides: Record<string, unknown> = {}) => ({
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -230,7 +182,6 @@ const stubEchoingPreview = () =>
 
 describe('PredictOrderFlow', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
     fetchMock.mockClear();
     stubBalance();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
@@ -240,7 +191,6 @@ describe('PredictOrderFlow', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    jest.useRealTimers();
   });
 
   const openSheet = () => {
@@ -249,9 +199,7 @@ describe('PredictOrderFlow', () => {
   };
 
   const flushDebounce = () =>
-    act(async () => {
-      jest.advanceTimersByTime(600);
-    });
+    act(() => new Promise((resolve) => setTimeout(resolve, 600)));
 
   it('renders the event snapshot with the outcome priced in cents', async () => {
     stubFetch(() => ({ body: makePreview() }));
@@ -497,7 +445,11 @@ describe('PredictOrderFlow', () => {
   });
 
   it('marks an expired preview, refuses approval, and refreshes', async () => {
-    stubFetch(() => ({ body: makePreview() }));
+    stubFetch(() => ({
+      body: makePreview({
+        expiresAt: new Date(Date.now() + 25).toISOString(),
+      }),
+    }));
 
     openSheet();
     typeAmount('20');
@@ -506,13 +458,11 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
     );
 
-    act(() => {
-      jest.advanceTimersByTime(31_000);
-    });
-
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-    ).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
+      ).toBeOnTheScreen(),
+    );
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
@@ -559,10 +509,6 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
     ).toBeOnTheScreen();
-
-    await act(async () => {
-      jest.advanceTimersByTime(2_000);
-    });
 
     await waitFor(() =>
       expect(
