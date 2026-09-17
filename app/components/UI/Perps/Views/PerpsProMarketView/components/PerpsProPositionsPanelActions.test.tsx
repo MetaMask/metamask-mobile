@@ -26,6 +26,8 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockNavigateToClosePosition = jest.fn();
+const mockNavigateToAdjustMargin = jest.fn();
+const mockScreenVsBottomSheetAbTest = { useBottomSheet: true };
 const mockCancelOrder = jest.fn();
 const mockEditOrder = jest.fn();
 const mockShowToast = jest.fn();
@@ -47,11 +49,12 @@ jest.mock('../../../hooks/usePerpsEventTracking', () => ({
 jest.mock('../../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: () => ({
     navigateToClosePosition: mockNavigateToClosePosition,
+    navigateToAdjustMargin: mockNavigateToAdjustMargin,
   }),
 }));
 
 jest.mock('../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
-  usePerpsScreenVsBottomSheetAbTest: () => ({ useBottomSheet: true }),
+  usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
 jest.mock('../../../hooks/usePerpsTrading', () => ({
@@ -704,6 +707,7 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     mockCancelOrder.mockResolvedValue({ success: true });
     mockEditOrder.mockResolvedValue({ success: true });
+    mockScreenVsBottomSheetAbTest.useBottomSheet = true;
   });
 
   it('invokes position action callbacks from card controls', () => {
@@ -735,7 +739,9 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     expect(onShare).toHaveBeenCalledWith(position);
   });
 
-  it('opens adjust margin sheet when edit margin is pressed', async () => {
+  it('opens the action-choice sheet when edit margin is pressed for control', async () => {
+    mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
@@ -759,7 +765,35 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     });
     expect(
       screen.getByTestId('perps-select-adjust-margin-action-view'),
-    ).toHaveProp('accessibilityHint', 'bottom-sheet-treatment');
+    ).toHaveProp('accessibilityHint', 'screen-control');
+    expect(mockNavigateToAdjustMargin).not.toHaveBeenCalled();
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('skips the action-choice sheet when edit margin is pressed for treatment', async () => {
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleEditPositionMargin(position);
+    });
+
+    expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(position, 'add', {
+      enableHaptics: true,
+      useBottomSheet: true,
+    });
+    expect(
+      screen.queryByTestId('perps-select-adjust-margin-action-view'),
+    ).toBeNull();
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 

@@ -186,6 +186,54 @@ describe('usePerpsAdjustMarginData', () => {
 
       expect(result.current.spendableBalance).toBe(10000);
     });
+
+    it('uses safe finite values when live numeric data is malformed', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            marginUsed: 'invalid',
+            positionValue: 'Infinity',
+            liquidationPrice: 'NaN',
+            size: 'invalid',
+            entryPrice: 'invalid',
+            leverage: { value: Number.NaN, type: 'isolated' },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccount,
+          spendableBalance: 'Infinity',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: 'invalid',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 100,
+        }),
+      );
+
+      expect(result.current.currentMargin).toBe(0);
+      expect(result.current.positionValue).toBe(0);
+      expect(result.current.currentLiquidationPrice).toBe(0);
+      expect(result.current.currentPrice).toBe(0);
+      expect(result.current.spendableBalance).toBe(0);
+      expect(result.current.maxAmount).toBe(0);
+      expect(Number.isFinite(result.current.positionLeverage)).toBe(true);
+    });
   });
 
   describe('max amount calculation', () => {

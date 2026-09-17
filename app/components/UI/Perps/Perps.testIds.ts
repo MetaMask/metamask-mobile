@@ -1144,7 +1144,6 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-adjust-margin-bottom-sheet',
-  CLOSE_BUTTON: 'perps-adjust-margin-bottom-sheet-close-button',
   MODE_TOGGLE: 'perps-adjust-margin-bottom-sheet-mode-toggle',
   ADD_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-add-mode',
   REMOVE_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-remove-mode',

@@ -86,7 +86,8 @@ export interface UsePerpsProPositionsPanelActionsReturn {
 export const usePerpsProPositionsPanelActions =
   (): UsePerpsProPositionsPanelActionsReturn => {
     const navigation = useNavigation<AppNavigationProp>();
-    const { navigateToClosePosition } = usePerpsNavigation();
+    const { navigateToClosePosition, navigateToAdjustMargin } =
+      usePerpsNavigation();
     const isEligible = useSelector(selectPerpsEligibility);
     const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
     const { gate } = useComplianceGate(selectedAddress ?? '');
@@ -293,11 +294,28 @@ export const usePerpsProPositionsPanelActions =
           PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
           () => {
             playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+
+            // The bottom sheet treatment carries its own add/remove toggle, so
+            // the separate action-choice sheet is redundant there.
+            if (useBottomSheet) {
+              navigateToAdjustMargin(position, 'add', {
+                enableHaptics: true,
+                useBottomSheet: true,
+              });
+              return;
+            }
+
             setAdjustMarginPosition(position);
           },
         );
       },
-      [isPositionMarginEditable, playImpact, runGatedEligibleAction],
+      [
+        isPositionMarginEditable,
+        playImpact,
+        runGatedEligibleAction,
+        navigateToAdjustMargin,
+        useBottomSheet,
+      ],
     );
 
     const isOrderCancelable = useCallback(

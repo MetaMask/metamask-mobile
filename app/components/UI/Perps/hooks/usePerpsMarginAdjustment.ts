@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
+import { useCallback, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -9,6 +8,7 @@ import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
 } from '@metamask/perps-controller';
+import { translatePerpsError } from '../utils/translatePerpsError';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;
@@ -26,11 +26,17 @@ export function usePerpsMarginAdjustment(
 ) {
   const { updateMargin } = usePerpsTrading();
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const isAdjustingRef = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleMarginUpdate = useCallback(
     async (symbol: string, amount: number, action: 'add' | 'remove') => {
+      if (isAdjustingRef.current) {
+        return;
+      }
+
+      isAdjustingRef.current = true;
       setIsAdjusting(true);
       DevLogger.log(
         `usePerpsMarginAdjustment: Setting isAdjusting to true (action: ${action})`,
@@ -68,7 +74,7 @@ export function usePerpsMarginAdjustment(
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
-          const errorMessage = result.error || strings('perps.errors.unknown');
+          const errorMessage = translatePerpsError(result.error);
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -106,10 +112,7 @@ export function usePerpsMarginAdjustment(
           },
         });
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknown');
+        const errorMessage = translatePerpsError(error);
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -121,6 +124,7 @@ export function usePerpsMarginAdjustment(
         options?.onError?.(errorMessage);
       } finally {
         DevLogger.log('usePerpsMarginAdjustment: Setting isAdjusting to false');
+        isAdjustingRef.current = false;
         setIsAdjusting(false);
       }
     },

@@ -49,6 +49,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
+jest.mock('../utils/translatePerpsError', () => ({
+  translatePerpsError: (error: unknown) => {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return typeof error === 'string' ? error : 'perps.errors.unknownError';
+  },
+}));
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -116,6 +125,29 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockUpdateMargin).toHaveBeenCalledWith({
         symbol: 'ETH',
         amount: '100',
+      });
+    });
+
+    it('ignores duplicate submissions while an adjustment is pending', async () => {
+      let resolveMargin: (value: { success: boolean }) => void;
+      mockUpdateMargin.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveMargin = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      act(() => {
+        result.current.handleAddMargin('ETH', 100);
+        result.current.handleAddMargin('ETH', 100);
+      });
+
+      expect(mockUpdateMargin).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveMargin({ success: true });
       });
     });
 
@@ -236,7 +268,7 @@ describe('usePerpsMarginAdjustment', () => {
         await result.current.handleAddMargin('ETH', 100);
       });
 
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
     it('handles exceptions and logs via Logger.error', async () => {
@@ -327,7 +359,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
+      expect(mockOnError).toHaveBeenCalledWith('String error');
     });
   });
 

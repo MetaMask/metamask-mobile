@@ -8,6 +8,16 @@ const mockGoBack = jest.fn();
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
 const mockUsePerpsAdjustMarginData = jest.fn();
+const mockTrack = jest.fn();
+const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
+  track: mockTrack,
+}));
+let mockMarginAdjustmentOptions:
+  | {
+      onSuccess?: () => void;
+      onError?: (error: string) => void;
+    }
+  | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -15,11 +25,14 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsMarginAdjustment', () => ({
-  usePerpsMarginAdjustment: () => ({
-    handleAddMargin: mockHandleAddMargin,
-    handleRemoveMargin: mockHandleRemoveMargin,
-    isAdjusting: false,
-  }),
+  usePerpsMarginAdjustment: (options?: typeof mockMarginAdjustmentOptions) => {
+    mockMarginAdjustmentOptions = options;
+    return {
+      handleAddMargin: mockHandleAddMargin,
+      handleRemoveMargin: mockHandleRemoveMargin,
+      isAdjusting: false,
+    };
+  },
 }));
 
 jest.mock('../../hooks/usePerpsAdjustMarginData', () => ({
@@ -32,7 +45,8 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: jest.fn(),
+  usePerpsEventTracking: (options?: unknown) =>
+    mockUsePerpsEventTracking(options),
 }));
 
 jest.mock('../../../../../util/haptics', () => ({
@@ -71,6 +85,9 @@ jest.mock('../PerpsAmountDisplay', () => {
       amount,
     );
 });
+
+// Subscribes to the live price stream, which needs PerpsStreamProvider.
+jest.mock('../LivePriceDisplay/LivePriceHeader', () => 'LivePriceHeader');
 
 jest.mock('../PerpsBottomSheetTooltip', () => 'PerpsBottomSheetTooltip');
 
@@ -137,6 +154,7 @@ const createMarginData = (mode: 'add' | 'remove') => ({
 describe('PerpsAdjustMarginBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMarginAdjustmentOptions = undefined;
     mockHandleAddMargin.mockResolvedValue(undefined);
     mockHandleRemoveMargin.mockResolvedValue(undefined);
     mockUsePerpsAdjustMarginData.mockImplementation(
@@ -223,6 +241,13 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       ),
     );
 
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Perp UI Interaction' }),
+      expect.objectContaining({
+        interaction_type: 'remove_margin',
+        asset: 'ETH',
+      }),
+    );
     expect(
       screen.getByTestId(
         PerpsAdjustMarginBottomSheetSelectorsIDs.AVAILABLE_VALUE,
@@ -283,5 +308,84 @@ describe('PerpsAdjustMarginBottomSheet', () => {
 
     expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
     expect(mockHandleAddMargin).not.toHaveBeenCalled();
+  });
+
+  it('shows and tracks a backend adjustment error', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    act(() => {
+      mockMarginAdjustmentOptions?.onError?.('Margin update failed');
+    });
+
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.ERROR),
+    ).toHaveTextContent('Margin update failed');
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Perp Error' }),
+      expect.objectContaining({
+        error_type: 'backend',
+        error_message: 'Margin update failed',
+        screen_type: 'add_margin',
+        asset: 'ETH',
+      }),
+    );
+  });
+
+  it('clears a submission error when the amount changes', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    act(() => {
+      mockMarginAdjustmentOptions?.onError?.('Margin update failed');
+    });
+    expect(screen.getByText('Margin update failed')).toBeOnTheScreen();
+
+    const slider = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER,
+    );
+    act(() => {
+      (
+        slider.props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(25);
+    });
+
+    expect(screen.queryByText('Margin update failed')).not.toBeOnTheScreen();
+  });
+
+  it('shows an accessible error when the live position disappears', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      position: null,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(
+      screen.getByRole('alert', {
+        name: 'perps.errors.position_not_found',
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    ).toBeDisabled();
+    expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: expect.objectContaining({ category: 'Perp Error' }),
+        conditions: [true],
+        properties: expect.objectContaining({
+          error_type: 'validation',
+          error_message: 'perps.errors.position_not_found',
+          screen_type: 'remove_margin',
+          asset: 'ETH',
+        }),
+      }),
+    );
   });
 });

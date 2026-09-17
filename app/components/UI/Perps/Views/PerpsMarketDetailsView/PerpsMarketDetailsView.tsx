@@ -1321,9 +1321,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
+      // The bottom sheet treatment carries its own add/remove toggle, so the
+      // separate action-choice sheet is redundant there.
+      if (useBottomSheet) {
+        navigateToAdjustMargin(existingPosition, 'add', {
+          useBottomSheet: true,
+        });
+        return;
+      }
+
       openAdjustMarginSheet();
     });
-  }, [gate, existingPosition, openAdjustMarginSheet, isEligible, track]);
+  }, [
+    gate,
+    existingPosition,
+    openAdjustMarginSheet,
+    isEligible,
+    track,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
