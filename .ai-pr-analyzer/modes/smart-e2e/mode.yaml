@@ -13,8 +13,6 @@ comment:
       label: Risk
     - path: confidence
       label: AI Confidence
-    - path: reasoning
-      label: E2E reasoning
     - path: performance_tests.reasoning
       label: Performance reasoning
 # Do not apply risk:* labels — that belongs to pr-risk-analysis.
