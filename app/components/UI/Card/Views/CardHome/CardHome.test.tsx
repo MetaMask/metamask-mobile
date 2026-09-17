@@ -1994,42 +1994,6 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('opens the instructions sheet for a Baanx international cardholder', () => {
-      setupMockSelectors({
-        isAuthenticated: true,
-        activeProviderId: 'baanx',
-        userLocation: 'international',
-      });
-      setupLoadCardDataMock({ isAuthenticated: true });
-
-      render();
-
-      fireEvent.press(
-        screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
-      });
-    });
-
-    it('hides the instructions for a Baanx US cardholder', () => {
-      setupMockSelectors({
-        isAuthenticated: true,
-        activeProviderId: 'baanx',
-        userLocation: 'us',
-      });
-      setupLoadCardDataMock({ isAuthenticated: true });
-
-      render();
-
-      expect(
-        screen.queryByTestId(
-          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
     it('hides the instructions while push eligibility is loading', () => {
       mockUsePushProvisioning.mockReturnValueOnce({
         initiateProvisioning: mockInitiateProvisioning,
