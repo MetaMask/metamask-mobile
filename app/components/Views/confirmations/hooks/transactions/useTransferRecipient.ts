@@ -3,7 +3,7 @@ import {
   TransactionType,
   NestedTransactionMetadata,
 } from '@metamask/transaction-controller';
-import { parseStandardTokenTransactionData } from '../../utils/transaction';
+import { getTransactionDataRecipient } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 export function useTransferRecipient(): string | undefined {
@@ -61,12 +61,4 @@ function getRecipientByType(
     default:
       return undefined;
   }
-}
-
-function getTransactionDataRecipient(data: string): string | undefined {
-  const transactionData = parseStandardTokenTransactionData(data);
-
-  const transferTo = transactionData?.args?._to || transactionData?.args?.to;
-
-  return transferTo;
 }

@@ -7,6 +7,7 @@ import type {
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PostTradeBottomSheetParams } from '../../Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import type { BridgeToken } from '../../Bridge/types';
 
 /**
  * Signing-session origin. Bridge is the default; send activates only when
@@ -83,6 +84,17 @@ export interface FlowStrategy {
   displayedAmount?: string;
   /** Display symbol for step rows. Send: route-params displayContext; bridge: source selector. */
   displayedTokenSymbol?: string;
+  /** Bridge only: destination amount for same-chain swap step titles. */
+  displayedDestAmount?: string;
+  /** Bridge only: destination token symbol for same-chain swap step titles. */
+  displayedDestTokenSymbol?: string;
+  /**
+   * True when the bridge flow is a same-chain SWAP (source and dest token on
+   * the same chain) AND destination data is present. Send flows are never
+   * swaps. When true, the final transaction step shows swap copy instead of
+   * send copy.
+   */
+  isSwap: boolean;
   /** Send only: gas-fee token symbol for the FeeTransfer step (may differ from displayedTokenSymbol). */
   gasTokenSymbol?: string;
   /** Inputs for `useHwBatchSignTracker`. */
@@ -109,18 +121,40 @@ export interface FlowStrategy {
  * activates only when `routeParams.flow === 'send'`. Centralizing the fork
  * here means the screen never needs `isSendFlow ?` branches inline.
  *
+ * Same-chain swap detection (extension parity, extension-2 `9f7b4ffc9ef`):
+ * when the bridge source and dest tokens live on the same chain, the flow is
+ * a SWAP and the final transaction step is titled "Swap X FROM for Y TO".
+ * Missing destination data falls back to send copy.
+ *
+ * Destination data prefers the confirm-time-locked `postTradeModalParams`
+ * locked onto the route by `useBridgeConfirm` (extension lockedQuote parity
+ * — the locked quote is the source of truth, never live UI state). The live
+ * slice selectors passed via `destAmount`/`destToken` are fallback only:
+ * `state.destAmount` is not reliably populated in production.
  */
 export function resolveFlowStrategy(input: {
   routeParams?: HardwareWalletsSwapsRouteParams;
   bridgedWalletAddress?: string;
   sourceAmount?: string;
-  sourceToken?: { symbol?: string };
+  sourceToken?: BridgeToken;
+  /**
+   * Fallback destination amount for same-chain swap titles (bridge only).
+   * Locked `postTradeModalParams` dest data takes precedence.
+   */
+  destAmount?: string;
+  /**
+   * Fallback destination token for same-chain swap titles (bridge only).
+   * Locked `postTradeModalParams` dest data takes precedence.
+   */
+  destToken?: BridgeToken;
 }): FlowStrategy {
   const {
     routeParams = {},
     bridgedWalletAddress,
     sourceAmount,
     sourceToken,
+    destAmount,
+    destToken,
   } = input;
 
   if (routeParams.flow === Flow.Send) {
@@ -138,6 +172,8 @@ export function resolveFlowStrategy(input: {
     return {
       flow: Flow.Send,
       isSendFlow: true,
+      // Send flows are never swaps — even with dest data present, send copy wins.
+      isSwap: false,
       walletAddress: routeParams.preparedTxMeta?.txParams.from,
       displayedAmount: routeParams.displayContext?.amount,
       displayedTokenSymbol: routeParams.displayContext?.tokenSymbol,
@@ -160,12 +196,29 @@ export function resolveFlowStrategy(input: {
     };
   }
 
+  // Dest data prefers the confirm-time-locked postTradeModalParams (extension
+  // lockedQuote parity); the live slice selectors are fallback only, since
+  // state.destAmount is never populated in production.
+  const lockedDest = routeParams.submissionParams?.postTradeModalParams;
+  const effectiveDestAmount = lockedDest?.destAmount ?? destAmount;
+  const effectiveDestToken = lockedDest?.destToken ?? destToken;
+
+  // Same-chain swap: both chainIds must be defined and equal. Both tokens are
+  // `BridgeToken`, so `chainId` (Hex | CaipChainId) compares like-for-like.
+  // Missing dest token or dest amount degrades to send copy (extension parity).
+  const isSwap =
+    sourceToken?.chainId !== undefined &&
+    sourceToken?.chainId === effectiveDestToken?.chainId;
+
   return {
     flow: Flow.Bridge,
     isSendFlow: false,
     walletAddress: bridgedWalletAddress,
     displayedAmount: sourceAmount,
     displayedTokenSymbol: sourceToken?.symbol,
+    displayedDestAmount: effectiveDestAmount,
+    displayedDestTokenSymbol: effectiveDestToken?.symbol,
+    isSwap,
     gasTokenSymbol: undefined,
     trackerOptions: { flow: Flow.Bridge },
     submitOptions: { submissionParams: routeParams.submissionParams },

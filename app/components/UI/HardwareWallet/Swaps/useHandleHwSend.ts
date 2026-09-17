@@ -16,6 +16,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import { getTransactionDataRecipient } from '../../../Views/confirmations/utils/transaction';
 import { useSelectedGasFeeToken } from '../../../Views/confirmations/hooks/gas/useGasFeeToken';
 import { useTokenAmount } from '../../../Views/confirmations/hooks/useTokenAmount';
 import { useTokenAsset } from '../../../Views/confirmations/hooks/useTokenAsset';
@@ -66,6 +67,12 @@ export function useHandleHwSend() {
       const sendbundleGasTokenAddress =
         totalSteps > 1 ? gasTokenAddress : undefined;
 
+      // For token transfers `txParams.to` is the token contract; the real
+      // recipient must be decoded from the transfer calldata.
+      const sendRecipient =
+        getTransactionDataRecipient(transactionMetadata.txParams?.data) ??
+        transactionMetadata.txParams.to;
+
       dispatch(resetHardwareWalletsSwaps());
       dispatch(
         updateHardwareWalletsSwaps({
@@ -73,7 +80,7 @@ export function useHandleHwSend() {
           payload: {
             flow: Flow.Send,
             totalSteps,
-            recipientAddress: transactionMetadata.txParams.to,
+            recipientAddress: sendRecipient,
             gasTokenAddress: sendbundleGasTokenAddress,
           },
         }),
@@ -88,7 +95,7 @@ export function useHandleHwSend() {
           amount: displayAmount,
           tokenSymbol: displayTokenSymbol,
           gasTokenSymbol: selectedGasFeeToken?.symbol,
-          recipient: transactionMetadata.txParams.to,
+          recipient: sendRecipient,
         },
       });
     },

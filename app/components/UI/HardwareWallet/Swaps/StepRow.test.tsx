@@ -27,14 +27,35 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'bridge.hardware_wallet_progress.sent_token') {
       return `Sent ${params?.amount ?? ''} ${params?.symbol ?? ''}`;
     }
-    if (key === 'bridge.hardware_wallet_progress.approving_token') {
-      return `Approving ${params?.amount ?? ''} ${params?.symbol ?? ''}`;
+    if (key === 'bridge.hardware_wallet_progress.swap_amount') {
+      return `Swap ${params?.amount ?? ''} ${
+        params?.symbol ?? ''
+      } for ${params?.destAmount ?? ''} ${params?.destSymbol ?? ''}`;
+    }
+    if (key === 'bridge.hardware_wallet_progress.swapping_amount') {
+      return `Swapping ${params?.amount ?? ''} ${
+        params?.symbol ?? ''
+      } for ${params?.destAmount ?? ''} ${params?.destSymbol ?? ''}`;
+    }
+    if (key === 'bridge.hardware_wallet_progress.swapped_amount') {
+      return `Swapped ${params?.amount ?? ''} ${
+        params?.symbol ?? ''
+      } for ${params?.destAmount ?? ''} ${params?.destSymbol ?? ''}`;
+    }
+    if (key === 'bridge.hardware_wallet_progress.approve_token') {
+      return `Approve ${params?.amount ?? ''} ${params?.symbol ?? ''}`;
+    }
+    if (key === 'bridge.hardware_wallet_progress.approved_token') {
+      return `Approved ${params?.amount ?? ''} ${params?.symbol ?? ''}`;
     }
     if (key === 'bridge.hardware_wallet_progress.spender_address') {
-      return `Spender ${params?.address}`;
+      return `Spender: ${params?.address}`;
+    }
+    if (key === 'bridge.hardware_wallet_progress.token_address') {
+      return `Token: ${params?.address}`;
     }
     if (key === 'bridge.hardware_wallet_progress.recipient_address') {
-      return `Recipient ${params?.address}`;
+      return `To: ${params?.address}`;
     }
     if (key === 'bridge.hardware_wallet_progress.rejected') {
       return 'Rejected';
@@ -92,6 +113,45 @@ describe('StepRow', () => {
     expect(getByText('Send 10 ETH')).toBeOnTheScreen();
   });
 
+  it('renders the swap title for a transaction step with destination data', () => {
+    const { getByText, queryByText } = render(
+      <StepRow
+        index={0}
+        isLast
+        amount="5"
+        tokenSymbol="USDC"
+        destAmount="5.2"
+        destTokenSymbol="DAI"
+        step={{
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Signing,
+        }}
+      />,
+    );
+
+    expect(getByText('Swapping 5 USDC for 5.2 DAI')).toBeOnTheScreen();
+    expect(queryByText(/Sending/)).toBeNull();
+  });
+
+  it('renders the send title for a transaction step without destination data (regression)', () => {
+    const { getByText, queryByText } = render(
+      <StepRow
+        index={0}
+        isLast
+        amount="5"
+        tokenSymbol="USDC"
+        destAmount="5.2"
+        step={{
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        }}
+      />,
+    );
+
+    expect(getByText('Send 5 USDC')).toBeOnTheScreen();
+    expect(queryByText(/Swap/)).toBeNull();
+  });
+
   it('does not render a connector for the last step', () => {
     const { queryByTestId } = render(
       <StepRow
@@ -143,9 +203,7 @@ describe('StepRow', () => {
     expect(
       getByTestId(`${HardwareWalletsSwapsSelectorsIDs.INLINE_QR_CODE}-1`),
     ).toBeOnTheScreen();
-    expect(
-      getByText('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
-    ).toBeOnTheScreen();
+    expect(getByText('To: 0x70997...c79C8')).toBeOnTheScreen();
     expect(mockAnimatedQRCode).toHaveBeenCalledWith(
       expect.objectContaining({
         cbor: 'aabbccdd',
@@ -190,11 +248,11 @@ describe('StepRow', () => {
       />,
     );
 
-    expect(getByText('Approving 10 ETH')).toBeOnTheScreen();
+    expect(getByText('Approve 10 ETH')).toBeOnTheScreen();
     expect(getByText('Rejected')).toBeOnTheScreen();
   });
 
-  it('renders approval spender descriptions', () => {
+  it('renders approval spender description (shortened)', () => {
     const { getByText } = render(
       <StepRow
         index={0}
@@ -209,9 +267,28 @@ describe('StepRow', () => {
       />,
     );
 
-    expect(getByText('Approving 10 ETH')).toBeOnTheScreen();
-    expect(
-      getByText('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
-    ).toBeOnTheScreen();
+    expect(getByText('Approve 10 ETH')).toBeOnTheScreen();
+    expect(getByText('Spender: 0x3c44C...C6cDc')).toBeOnTheScreen();
+  });
+
+  it('renders both token and spender description lines for an approval with both addresses', () => {
+    const { getByText } = render(
+      <StepRow
+        index={0}
+        isLast
+        amount="10"
+        tokenSymbol="ETH"
+        step={{
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+          tokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+        }}
+      />,
+    );
+
+    expect(getByText('Approve 10 ETH')).toBeOnTheScreen();
+    expect(getByText('Token: 0x90F79...3b906')).toBeOnTheScreen();
+    expect(getByText('Spender: 0x3c44C...C6cDc')).toBeOnTheScreen();
   });
 });

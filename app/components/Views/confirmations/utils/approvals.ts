@@ -19,6 +19,7 @@ export interface ParsedApprovalTransactionData {
   isApproveAll?: boolean;
   isRevokeAll?: boolean;
   name: ApproveMethod;
+  spender?: Hex;
   tokenAddress?: Hex;
 }
 
@@ -48,11 +49,14 @@ export function parseApprovalTransactionData(
   const tokenAddress =
     name === APPROVAL_TYPES.approve ? args?.token : undefined;
 
+  const spender = args?.spender ?? args?._spender ?? args?.[0];
+
   return {
     amountOrTokenId,
     isApproveAll,
     isRevokeAll,
     name: name as ApproveMethod,
+    spender,
     tokenAddress,
   };
 }

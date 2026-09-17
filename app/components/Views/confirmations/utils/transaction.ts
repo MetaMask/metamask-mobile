@@ -81,6 +81,21 @@ export function parseStandardTokenTransactionData(data?: string) {
   return undefined;
 }
 
+/**
+ * Decodes the recipient address from ERC20/721/1155 transfer calldata.
+ *
+ * @param data - The transaction calldata to decode.
+ * @returns The recipient address, or `undefined` if the calldata could not be
+ * decoded as a standard token transfer.
+ */
+export function getTransactionDataRecipient(data?: string): string | undefined {
+  const transactionData = parseStandardTokenTransactionData(data);
+
+  const transferTo = transactionData?.args?._to || transactionData?.args?.to;
+
+  return transferTo;
+}
+
 export async function addMMOriginatedTransaction(
   txParams: TransactionParams,
   options: {

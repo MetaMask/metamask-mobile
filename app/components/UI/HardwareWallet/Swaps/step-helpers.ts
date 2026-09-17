@@ -1,5 +1,6 @@
 import { IconName, IconColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { renderShortAddress } from '../../../../util/address';
 import {
   HardwareWalletsSwapsStep,
   HardwareWalletsSwapsStepKind,
@@ -49,16 +50,24 @@ interface StepTitleOptions {
   amount?: string;
   /** Token symbol displayed in the step title. */
   tokenSymbol?: string;
+  /** Destination token amount; both dest values turn the transaction step into swap copy. */
+  destAmount?: string;
+  /** Destination token symbol; both dest values turn the transaction step into swap copy. */
+  destTokenSymbol?: string;
 }
 
 /**
  * Returns the localized title for a hardware wallet swap progress step.
  *
  * Title text varies by step kind (approval vs transaction) and status
- * (waiting, signing, signed, or rejected).
+ * (waiting, signing, signed, or rejected). Transaction steps additionally
+ * show same-chain swap copy ("Swap X FROM for Y TO") when destination
+ * amount and symbol are both provided; otherwise send copy is used
+ * (extension parity: missing dest data → send labels). Approval and
+ * fee-transfer steps ignore the destination options.
  *
  * @param step - The swap step to render.
- * @param options - Optional amount and token symbol for transaction titles.
+ * @param options - Optional amount/token symbol and swap destination values.
  * @returns Localized step title string.
  */
 export function getStepTitle(
@@ -75,7 +84,9 @@ export function getStepTitle(
         symbol,
       });
     }
-    return strings('bridge.hardware_wallet_progress.approving_token', {
+    // Extension parity: 'Approve' for pending, active, AND rejected approval
+    // steps — only Complete gets 'Approved' (no 'Approving' variant exists).
+    return strings('bridge.hardware_wallet_progress.approve_token', {
       amount,
       symbol,
     });
@@ -93,6 +104,27 @@ export function getStepTitle(
       'bridge.hardware_wallet_progress.paying_network_fee_with_symbol',
       { amount, symbol },
     );
+  }
+
+  // Same-chain swap copy for the Transaction step: only when BOTH dest values
+  // are present; otherwise fall back to send copy (extension parity).
+  if (options?.destAmount && options?.destTokenSymbol) {
+    const swapParams = {
+      amount,
+      symbol,
+      destAmount: options.destAmount,
+      destSymbol: options.destTokenSymbol,
+    };
+    if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
+      return strings('bridge.hardware_wallet_progress.swapped_amount', swapParams);
+    }
+    if (
+      step.status === HardwareWalletsSwapsStepStatus.Signing ||
+      step.status === HardwareWalletsSwapsStepStatus.Rejected
+    ) {
+      return strings('bridge.hardware_wallet_progress.swapping_amount', swapParams);
+    }
+    return strings('bridge.hardware_wallet_progress.swap_amount', swapParams);
   }
 
   if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
@@ -117,40 +149,54 @@ export function getStepTitle(
 }
 
 /**
- * Returns the localized secondary description for a swap progress step.
+ * Returns the localized secondary description lines for a swap progress step.
  *
- * Rejected steps show a generic rejection message. Approval steps show the
- * spender address when available; transaction steps show the recipient address.
+ * Rejected steps show a single generic rejection message (replacing any
+ * details). Approval steps show the approved token contract and the spender
+ * address, each on its own line when available. Transaction steps show the
+ * recipient address. All addresses are shortened for display.
  *
  * @param step - The swap step to render.
- * @returns Localized description, or `undefined` when no description applies.
+ * @returns Localized description lines; empty when no description applies.
  */
-export function getStepDescription(step: HardwareWalletsSwapsStep) {
+export function getStepDescription(step: HardwareWalletsSwapsStep): string[] {
   if (step.status === HardwareWalletsSwapsStepStatus.Rejected) {
-    return strings('bridge.hardware_wallet_progress.rejected');
+    return [strings('bridge.hardware_wallet_progress.rejected')];
   }
 
   if (step.kind === HardwareWalletsSwapsStepKind.Approval) {
-    if (step.address) {
-      return strings('bridge.hardware_wallet_progress.spender_address', {
-        address: step.address,
-      });
+    const lines: string[] = [];
+    if (step.tokenAddress) {
+      lines.push(
+        strings('bridge.hardware_wallet_progress.token_address', {
+          address: renderShortAddress(step.tokenAddress),
+        }),
+      );
     }
-    return undefined;
+    if (step.address) {
+      lines.push(
+        strings('bridge.hardware_wallet_progress.spender_address', {
+          address: renderShortAddress(step.address),
+        }),
+      );
+    }
+    return lines;
   }
 
   // Send-only FeeTransfer step: no description. The gas token's symbol is
   // already in the title; the gas-token address is intentionally not shown.
   if (step.kind === HardwareWalletsSwapsStepKind.FeeTransfer) {
-    return undefined;
+    return [];
   }
 
   if (step.address) {
-    return strings('bridge.hardware_wallet_progress.recipient_address', {
-      address: step.address,
-    });
+    return [
+      strings('bridge.hardware_wallet_progress.recipient_address', {
+        address: renderShortAddress(step.address),
+      }),
+    ];
   }
-  return undefined;
+  return [];
 }
 
 /** Visual state for the circular step indicator in {@link StepRow}. */

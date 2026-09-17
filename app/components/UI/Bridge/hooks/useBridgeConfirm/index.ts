@@ -60,7 +60,17 @@ export const useBridgeConfirm = ({
       dispatch(setIsSubmittingTx(true));
       try {
         dispatch(resetHardwareWalletsSwaps());
-        dispatch(updateHardwareWalletsSwaps(buildStartPayload(activeQuote)));
+        // Same-chain detection uses the selected TOKENS (the proven signal —
+        // V2 quotes dropped the V1 top-level quote.srcChainId/destChainId).
+        // Byte-identical expression to flowStrategy's isSwap.
+        const isSwap =
+          sourceToken?.chainId !== undefined &&
+          sourceToken?.chainId === destToken?.chainId;
+        dispatch(
+          updateHardwareWalletsSwaps(
+            buildStartPayload(activeQuote, { isSwap }),
+          ),
+        );
         navigation.navigate(Routes.BRIDGE.ROOT, {
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
           params: {

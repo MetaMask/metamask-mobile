@@ -1,4 +1,6 @@
 import BigNumber from 'bignumber.js';
+import { Interface } from '@ethersproject/abi';
+import { Hex } from '@metamask/utils';
 
 import {
   buildApproveTransactionData,
@@ -83,6 +85,7 @@ describe('Approvals Utils', () => {
         isApproveAll: false,
         isRevokeAll: false,
         name: 'approve',
+        spender: ADDRESS_MOCK,
         tokenAddress: undefined,
       });
     });
@@ -97,6 +100,7 @@ describe('Approvals Utils', () => {
         isApproveAll: false,
         isRevokeAll: false,
         name: 'increaseAllowance',
+        spender: ADDRESS_MOCK,
         tokenAddress: undefined,
       });
     });
@@ -111,6 +115,7 @@ describe('Approvals Utils', () => {
         isApproveAll: true,
         isRevokeAll: false,
         name: 'setApprovalForAll',
+        spender: ADDRESS_MOCK,
         tokenAddress: undefined,
       });
     });
@@ -125,6 +130,7 @@ describe('Approvals Utils', () => {
         isApproveAll: false,
         isRevokeAll: true,
         name: 'setApprovalForAll',
+        spender: ADDRESS_MOCK,
         tokenAddress: undefined,
       });
     });
@@ -144,8 +150,43 @@ describe('Approvals Utils', () => {
         isApproveAll: false,
         isRevokeAll: false,
         name: 'approve',
+        spender: ADDRESS_2_MOCK,
         tokenAddress: ADDRESS_MOCK,
       });
+    });
+
+    it('returns spender for ERC20 approve calldata', () => {
+      const data = new Interface([
+        'function approve(address spender, uint256 rawAmount)',
+      ]).encodeFunctionData('approve', [SPENDER_MOCK, AMOUNT_MOCK]) as Hex;
+
+      const result = parseApprovalTransactionData(data);
+
+      expect(result?.spender).toBe(SPENDER_MOCK);
+    });
+
+    it('returns spender and tokenAddress for Permit2 approve calldata', () => {
+      const data = buildPermit2ApproveTransactionData(
+        TOKEN_ADDRESS_MOCK,
+        SPENDER_MOCK,
+        AMOUNT_MOCK,
+        EXPIRATION_MOCK,
+      );
+
+      const result = parseApprovalTransactionData(data);
+
+      expect(result?.spender?.toLowerCase()).toBe(SPENDER_MOCK.toLowerCase());
+      expect(result?.tokenAddress?.toLowerCase()).toBe(
+        TOKEN_ADDRESS_MOCK.toLowerCase(),
+      );
+    });
+
+    it('returns undefined if ERC20 transfer calldata', () => {
+      const data = new Interface([
+        'function transfer(address to, uint256 amount)',
+      ]).encodeFunctionData('transfer', [ADDRESS_MOCK, AMOUNT_MOCK]) as Hex;
+
+      expect(parseApprovalTransactionData(data)).toBeUndefined();
     });
   });
 

@@ -30,6 +30,8 @@ import {
   selectHardwareWalletsSwaps,
   selectSourceAmount,
   selectSourceToken,
+  selectDestAmount,
+  selectDestToken,
 } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
@@ -63,6 +65,8 @@ export function HardwareWalletsSwaps() {
   const progress = useSelector(selectHardwareWalletsSwaps);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
+  const destAmount = useSelector(selectDestAmount);
+  const destToken = useSelector(selectDestToken);
   const bridgedWalletAddress = useSelector(selectSourceWalletAddress);
 
   // Resolve the bridge-vs-send fork once — see flowStrategy.ts.
@@ -76,8 +80,17 @@ export function HardwareWalletsSwaps() {
         bridgedWalletAddress: bridgedWalletAddress ?? undefined,
         sourceAmount: sourceAmount ?? undefined,
         sourceToken: sourceToken ?? undefined,
+        destAmount: destAmount ?? undefined,
+        destToken: destToken ?? undefined,
       }),
-    [routeParams, bridgedWalletAddress, sourceAmount, sourceToken],
+    [
+      routeParams,
+      bridgedWalletAddress,
+      sourceAmount,
+      sourceToken,
+      destAmount,
+      destToken,
+    ],
   );
 
   const {
@@ -254,6 +267,16 @@ export function HardwareWalletsSwaps() {
                   isFeeTransfer
                     ? strategy.gasTokenSymbol
                     : strategy.displayedTokenSymbol
+                }
+                // Dest props only flow through for same-chain swaps; with
+                // them present StepRow renders swap copy instead of send copy.
+                destAmount={
+                  strategy.isSwap ? strategy.displayedDestAmount : undefined
+                }
+                destTokenSymbol={
+                  strategy.isSwap
+                    ? strategy.displayedDestTokenSymbol
+                    : undefined
                 }
                 isQrWallet={
                   isQrHardwareWallet &&

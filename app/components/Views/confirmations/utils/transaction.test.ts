@@ -9,6 +9,7 @@ import {
   get4ByteCode,
   getErrorMessage,
   getSeverity,
+  getTransactionDataRecipient,
   hasGasFeeTokenSelected,
   getTransactionType,
   isRevokeDelegationTransaction,
@@ -169,6 +170,44 @@ describe('parseStandardTokenTransactionData', () => {
       ).toHaveBeenCalledTimes(1);
       expect(mockValidateRequest).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe('getTransactionDataRecipient', () => {
+  const erc20Interface = new Interface(abiERC20);
+
+  it('returns recipient for ERC20 transfer calldata', () => {
+    const recipient = '0x97cb1fdd071da9960d38306c07f146bc98b21231';
+    const transferData = erc20Interface.encodeFunctionData('transfer', [
+      recipient,
+      '1000000000000000000',
+    ]);
+
+    const result = getTransactionDataRecipient(transferData);
+
+    expect(result?.toLowerCase()).toBe(recipient.toLowerCase());
+  });
+
+  it('returns recipient for ERC20 transferFrom calldata', () => {
+    const sender = '0x1234567890123456789012345678901234567890';
+    const recipient = '0x97cb1fdd071da9960d38306c07f146bc98b21231';
+    const transferData = erc20Interface.encodeFunctionData('transferFrom', [
+      sender,
+      recipient,
+      '1000000000000000000',
+    ]);
+
+    const result = getTransactionDataRecipient(transferData);
+
+    expect(result?.toLowerCase()).toBe(recipient.toLowerCase());
+  });
+
+  it('returns undefined for empty data', () => {
+    expect(getTransactionDataRecipient('')).toBeUndefined();
+  });
+
+  it('returns undefined for undefined data', () => {
+    expect(getTransactionDataRecipient(undefined)).toBeUndefined();
   });
 });
 
