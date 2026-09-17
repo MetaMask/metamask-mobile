@@ -8,9 +8,7 @@ import {
   getVaultFromBackup,
   clearAllVaultBackups,
   scheduleVaultBackup,
-  resetVaultBackupDedupState,
 } from './backupVault';
-import { KeyringControllerState } from '@metamask/keyring-controller';
 import {
   getInternetCredentials,
   resetInternetCredentials,
@@ -19,6 +17,7 @@ import {
   STORAGE_TYPE,
 } from 'react-native-keychain';
 import Logger from '../../util/Logger';
+import { waitFor } from '@testing-library/react-native';
 
 let mockKeychainState: Record<string, { username: string; password: string }> =
   {};
@@ -62,7 +61,10 @@ describe('backupVault file', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKeychainState = {};
-    resetVaultBackupDedupState();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('clearAllVaultBackups', () => {
@@ -125,11 +127,7 @@ describe('backupVault file', () => {
           },
         );
       });
-      scheduleVaultBackup({
-        vault: 'old-vault-being-reset-away',
-        keyrings: [],
-        isUnlocked: true,
-      });
+      scheduleVaultBackup('old-vault-being-reset-away');
 
       // A wallet reset is requested while that backup is still in flight.
       const clearPromise = clearAllVaultBackups();
@@ -155,22 +153,23 @@ describe('backupVault file', () => {
 
       await expect(clearAllVaultBackups()).rejects.toThrow(resetError);
 
-      // Flush the internal .catch that keeps backupQueue alive for later work
-      await new Promise((resolve) => setImmediate(resolve));
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        resetError,
-        'clearAllVaultBackups failed',
-      );
+      // Wait for the internal .catch that keeps backupQueue alive for later work
+      await waitFor(() => {
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          resetError,
+          'clearAllVaultBackups failed',
+        );
+      });
 
       // A later backup must still be able to run through backupQueue itself
       // (calling backupVault directly here wouldn't prove anything about the
       // queue's health, since it never touches backupQueue).
       const vault = 'vault-after-failed-reset';
-      scheduleVaultBackup({ vault, keyrings: [], isUnlocked: true });
-      await new Promise((resolve) => setImmediate(resolve));
-      await new Promise((resolve) => setImmediate(resolve));
+      scheduleVaultBackup(vault);
 
-      expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
+      await waitFor(() => {
+        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
+      });
     });
   });
 
@@ -191,13 +190,7 @@ describe('backupVault file', () => {
       // Mock the setInternetCredentials function to return false, which simulates a failed vault backup
       (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
 
-      const keyringState: KeyringControllerState = {
-        vault: undefined,
-        keyrings: [],
-        isUnlocked: false,
-      };
-
-      const response = await backupVault(keyringState);
+      const response = await backupVault(undefined);
 
       expect(response).toEqual(mockedFailedResponse);
     });
@@ -211,13 +204,7 @@ describe('backupVault file', () => {
       // Mock the setInternetCredentials function to return false, which simulates a failed vault backup
       (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
 
-      const keyringState: KeyringControllerState = {
-        vault: undefined,
-        keyrings: [],
-        isUnlocked: false,
-      };
-
-      const response = await backupVault(keyringState);
+      const response = await backupVault(undefined);
 
       expect(response).toEqual(mockedFailedResponse);
     });
@@ -232,13 +219,7 @@ describe('backupVault file', () => {
         dummyPassword,
       );
 
-      const keyringState: KeyringControllerState = {
-        vault: undefined,
-        keyrings: [],
-        isUnlocked: false,
-      };
-
-      const response = await backupVault(keyringState);
+      const response = await backupVault(undefined);
 
       expect(response).toEqual(mockedSuccessResponse);
     });
@@ -251,11 +232,7 @@ describe('backupVault file', () => {
       (setInternetCredentials as jest.Mock).mockClear();
       (resetInternetCredentials as jest.Mock).mockClear();
 
-      const response = await backupVault({
-        vault,
-        keyrings: [],
-        isUnlocked: true,
-      });
+      const response = await backupVault(vault);
 
       expect(response).toEqual({
         success: true,
@@ -271,7 +248,7 @@ describe('backupVault file', () => {
       const vault = 'confirmed-vault';
 
       await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
-      await backupVault({ vault, keyrings: [], isUnlocked: true });
+      await backupVault(vault);
 
       // Simulate the keychain entry becoming unreadable in between calls
       // (e.g. Android Keystore key invalidated by a biometric enrollment
@@ -283,11 +260,7 @@ describe('backupVault file', () => {
         throw new Error('Android Keystore key permanently invalidated');
       });
 
-      const response = await backupVault({
-        vault,
-        keyrings: [],
-        isUnlocked: true,
-      });
+      const response = await backupVault(vault);
 
       expect(getInternetCredentials).toHaveBeenCalledTimes(1);
       expect(response).toEqual({ success: true, vault });
@@ -309,13 +282,7 @@ describe('backupVault file', () => {
         throw new Error('Android Keystore key permanently invalidated');
       });
 
-      const keyringState: KeyringControllerState = {
-        vault: newVault,
-        keyrings: [],
-        isUnlocked: false,
-      };
-
-      const response = await backupVault(keyringState);
+      const response = await backupVault(newVault);
 
       expect(response).toEqual({ success: true, vault: newVault });
     });
@@ -337,13 +304,7 @@ describe('backupVault file', () => {
         password: dummyPassword,
       });
 
-      const keyringState: KeyringControllerState = {
-        vault: undefined,
-        keyrings: [],
-        isUnlocked: false,
-      };
-
-      const response = await backupVault(keyringState);
+      const response = await backupVault(undefined);
 
       // First reset temporary, then primary, then temporary again
       expect(resetInternetCredentials).toHaveBeenCalledTimes(3);
@@ -353,57 +314,46 @@ describe('backupVault file', () => {
   });
 
   describe('scheduleVaultBackup', () => {
-    it('does not start a second backup when vault is unchanged', async () => {
-      const vault = 'same-vault';
-      await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
-      (setInternetCredentials as jest.Mock).mockClear();
-      (getInternetCredentials as jest.Mock).mockClear();
+    it('serializes sequential calls through the backup queue', async () => {
+      const firstVault = 'first-vault';
+      const secondVault = 'second-vault';
 
-      scheduleVaultBackup({
-        vault,
-        keyrings: [],
-        isUnlocked: false,
+      scheduleVaultBackup(firstVault);
+      scheduleVaultBackup(secondVault);
+
+      // Both calls are queued and executed — the second wins the keychain
+      // entry, since it runs after the first in FIFO order.
+      await waitFor(() => {
+        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(
+          secondVault,
+        );
       });
-      scheduleVaultBackup({
-        vault,
-        keyrings: [],
-        isUnlocked: true,
-      });
-
-      // Flush the serialized backup chain
-      await new Promise((resolve) => setImmediate(resolve));
-      await new Promise((resolve) => setImmediate(resolve));
-
-      // One getPrimary for the first schedule; second schedule skipped entirely
-      expect(getInternetCredentials).toHaveBeenCalledTimes(1);
-      expect(setInternetCredentials).not.toHaveBeenCalled();
     });
 
-    it('logs the failure and clears pendingVault when the underlying backup fails', async () => {
+    it('logs the failure when the underlying backup fails', async () => {
       const loggerErrorSpy = jest
         .spyOn(Logger, 'error')
         .mockImplementation(() => undefined);
       (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
 
       const vault = 'vault-that-fails-to-back-up';
-      scheduleVaultBackup({ vault, keyrings: [], isUnlocked: true });
+      scheduleVaultBackup(vault);
 
-      // Flush the serialized backup chain
-      await new Promise((resolve) => setImmediate(resolve));
-      await new Promise((resolve) => setImmediate(resolve));
+      await waitFor(() => {
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          new Error('Vault backup failed'),
+          'Engine Vault backup failed',
+        );
+      });
 
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        new Error('Vault backup failed'),
-        'Engine Vault backup failed',
-      );
-
-      // pendingVault must be cleared so a retry for the same vault can run.
+      // A later call for the same vault still runs — scheduleVaultBackup
+      // performs no dedup of its own, so a retry is always attempted.
       (setInternetCredentials as jest.Mock).mockClear();
-      scheduleVaultBackup({ vault, keyrings: [], isUnlocked: true });
-      await new Promise((resolve) => setImmediate(resolve));
-      await new Promise((resolve) => setImmediate(resolve));
+      scheduleVaultBackup(vault);
 
-      expect(setInternetCredentials).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(setInternetCredentials).toHaveBeenCalled();
+      });
     });
   });
 

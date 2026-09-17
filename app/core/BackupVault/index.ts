@@ -3,5 +3,4 @@ export {
   scheduleVaultBackup,
   getVaultFromBackup,
   clearAllVaultBackups,
-  resetVaultBackupDedupState,
 } from './backupVault';

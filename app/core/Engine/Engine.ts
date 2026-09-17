@@ -1017,19 +1017,31 @@ export class Engine {
   }
 
   handleVaultBackup() {
+    // Coalesces the burst of identical-vault stateChange events
+    // KeyringController fires during a single unlock into one backup
+    // attempt. Reset on lock so the *next* unlock still performs a fresh
+    // keychain check (needed to self-heal an Android Keystore-invalidated
+    // backup — see Engine.test.ts for the regression tests).
+    let lastVault: string | undefined;
+
+    this.controllerMessenger.subscribe('KeyringController:lock', () => {
+      lastVault = undefined;
+    });
+
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
         // Check if automatic backups are disabled (during wallet reset)
-        if (Engine.disableAutomaticVaultBackup) {
+        if (Engine.disableAutomaticVaultBackup || !state.vault) {
           return;
         }
 
-        if (!state.vault) {
+        if (state.vault === lastVault) {
           return;
         }
 
-        scheduleVaultBackup(state);
+        lastVault = state.vault;
+        scheduleVaultBackup(state.vault);
       },
     );
   }
