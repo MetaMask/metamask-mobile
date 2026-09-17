@@ -199,6 +199,17 @@ const emptyActivityStateWithGeo = () =>
     },
   } as never);
 
+const waitForTransactionsEmptyState = async (
+  queryByTestId: (testId: string) => unknown,
+  description: string,
+) => {
+  await waitFor(() => {
+    const emptyState = queryByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE);
+    expect(emptyState).toBeTruthy();
+    expect(within(emptyState).getByText(description)).toBeOnTheScreen();
+  });
+};
+
 const emptyActivityStateFunded = () =>
   initialStateActivityWithAccountsApi().withOverrides({
     engine: {
@@ -493,7 +504,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -506,12 +517,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    // Wait for Transactions empty copy — the list shows a spinner until the EVM
-    // query settles, so the empty-state testID is not mounted yet.
-    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
+    await waitForTransactionsEmptyState(queryByTestId, unfundedDescription);
 
     fireEvent.press(await findByText(addFundsLabel));
 
@@ -528,7 +534,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateFunded().build(),
         extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
@@ -541,10 +547,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    expect(await findByText(fundedDescription)).toBeOnTheScreen();
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
+    await waitForTransactionsEmptyState(queryByTestId, fundedDescription);
 
     fireEvent.press(await findByText(swapTokensLabel));
 
