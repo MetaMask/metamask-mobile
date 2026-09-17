@@ -10,16 +10,20 @@ const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 
 /**
  * Scan the address fields of a typed-data signature request.
+ *
+ * @param options - Request, chain, and phishing controller used to scan.
+ * @param options.request - JSON-RPC signature request.
+ * @param options.request.method - RPC method name.
+ * @param options.request.params - RPC params (`from`, typed data).
+ * @param options.chainId - Chain ID of the request.
+ * @param options.phishingController - Controller used to scan extracted addresses.
  */
-export function scanUnvalidatedSignatureAddresses({
-  request,
-  chainId,
-  phishingController,
-}: {
+export function scanUnvalidatedSignatureAddresses(options: {
   request: { method: string; params?: unknown };
   chainId: string;
   phishingController: PhishingController;
 }): void {
+  const { request, chainId, phishingController } = options;
   if (
     request.method !== METHOD_SIGN_TYPED_DATA_V3 &&
     request.method !== METHOD_SIGN_TYPED_DATA_V4

@@ -76,7 +76,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAddressTrustSignals.mockReturnValue([]);
-    mockParseTypedDataMessage.mockReturnValue(null);
+    mockParseTypedDataMessage.mockReturnValue(undefined);
   });
 
   it('returns empty array when security alerts are disabled', () => {
@@ -143,11 +143,11 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     expect(mockUseAddressTrustSignals).toHaveBeenCalledWith([]);
   });
 
-  it('returns empty array when parseTypedDataMessage returns null', () => {
+  it('returns empty array when parseTypedDataMessage returns undefined', () => {
     mockUseSignatureRequest.mockReturnValue(
       makeTypedSignRequest(SIMPLE_TYPED_DATA),
     );
-    mockParseTypedDataMessage.mockReturnValue(null);
+    mockParseTypedDataMessage.mockReturnValue(undefined);
 
     const { result } = renderHookWithProvider(
       () => useSignatureTrustSignalAlerts(),
