@@ -367,6 +367,63 @@ describe('PerpsSlider', () => {
     });
   });
 
+  describe('percent domain bounds', () => {
+    // `maximumValue` is a live float from price/balance feeds and is rarely a
+    // whole multiple of `step`, so the last index lands past the end of the
+    // track unless the percent is clamped.
+    it.each([
+      [34.7, 1],
+      [33.5, 1],
+      [11.88, 1],
+      [22.9, 1],
+      [143.61, 1],
+    ])(
+      'keeps the thumb within 0-100 for the fractional maximum %p step %i',
+      (maximumValue, step) => {
+        const { rerender } = render(
+          <PerpsSlider
+            {...defaultProps}
+            value={0}
+            minimumValue={0}
+            maximumValue={maximumValue}
+            step={step}
+          />,
+        );
+
+        for (let index = 0; index <= 40; index += 1) {
+          const value = (index / 40) * maximumValue;
+          rerender(
+            <PerpsSlider
+              {...defaultProps}
+              value={value}
+              minimumValue={0}
+              maximumValue={maximumValue}
+              step={step}
+            />,
+          );
+
+          const percent = getSliderProps().value;
+          expect(percent).toBeGreaterThanOrEqual(0);
+          expect(percent).toBeLessThanOrEqual(100);
+        }
+      },
+    );
+
+    it('clamps a value past the caller maximum to the end of the track', () => {
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          value={1000}
+          minimumValue={0}
+          maximumValue={33.5}
+          step={1}
+        />,
+      );
+
+      expect(getSliderProps().value).toBeLessThanOrEqual(100);
+    });
+  });
+
   describe('echo suppression', () => {
     // The slider matches echoes against its own emits with ===, so the percent
     // fed back must equal the percent emitted, not merely round to it.
@@ -374,8 +431,10 @@ describe('PerpsSlider', () => {
       [34, 1],
       [1866, 1],
       [19800, 1],
+      [33.5, 1],
+      [11.88, 1],
     ])(
-      'feeds back the exact percent it emitted for range 0..%i step %i',
+      'feeds back the exact percent it emitted for range 0..%p step %i',
       (maximumValue, step) => {
         const onValueChange = jest.fn();
         const { rerender } = render(

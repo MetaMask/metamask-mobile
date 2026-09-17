@@ -129,10 +129,20 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   // bit-identical to the emitted one. Rebuild it as `index * percentStep` —
   // the same expression the slider emits — rather than converting back through
   // percent, which lands a few ULPs off and silently misses the match.
+  // Clamped because `maximumValue` is a live float that is rarely a whole
+  // multiple of `step`: the last index then lands just past the end of the
+  // track (e.g. max 33.5 step 1 gives 101.49), which would push the thumb past
+  // the slider's own maximum.
   const percentValue =
     range > 0 && step > 0
-      ? Math.round((toDomain(toPercent(value)) - minimumValue) / step) *
-        percentStep
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round((toDomain(toPercent(value)) - minimumValue) / step) *
+              percentStep,
+          ),
+        )
       : 0;
 
   const handlePercentChange = useCallback(
