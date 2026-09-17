@@ -377,11 +377,11 @@ describe('PredictEventScreen', () => {
           updatedAt: updatedAt as PredictTimestamp,
         });
       });
+    resolveEvent();
+    const view = renderPredictEventScreen(routeParams);
     const yesLinePath = () =>
       view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props
         .d as string;
-    resolveEvent();
-    const view = renderPredictEventScreen(routeParams);
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
     fireEvent.press(
       view.getByTestId(PredictMarketHistoryTestIds.range('LIVE')),

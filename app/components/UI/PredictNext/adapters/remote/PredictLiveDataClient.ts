@@ -108,12 +108,14 @@ export interface PredictLiveDataTransport {
  * and the extras wait until a slot frees.
  */
 class TopicState {
+  readonly topic: PredictLiveDataTopic;
   readonly watchCounts = new Map<PredictEntityId, number>();
   readonly serverIds = new Set<PredictEntityId>();
   maxPerConnection: number;
   maxPerMessage: number;
 
-  constructor(readonly topic: PredictLiveDataTopic) {
+  constructor(topic: PredictLiveDataTopic) {
+    this.topic = topic;
     this.maxPerConnection = TOPICS[topic].defaultMaxPerConnection;
     this.maxPerMessage = TOPICS[topic].defaultMaxPerMessage;
   }
