@@ -412,6 +412,10 @@ export function transformFillsToTransactions(
   const fillsToTransform = aggregate
     ? aggregateFillsByOrder(fills)
     : [...fills].sort((left, right) => right.timestamp - left.timestamp);
+  // An aggregated row carries its last fill's orderId and timestamp, so without this the
+  // newest fill of the newest order would mint the same id as the row that combines it, and
+  // opening that row's details would show the combined trade instead of the single fill.
+  const idPrefix = aggregate ? '' : 'fill-';
 
   return fillsToTransform.reduce((acc: PerpsTransaction[], fill) => {
     const {
@@ -537,7 +541,7 @@ export function transformFillsToTransactions(
     }
 
     acc.push({
-      id: `${orderId || 'fill'}-${timestamp}-${acc.length}`,
+      id: `${idPrefix}${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
       category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,

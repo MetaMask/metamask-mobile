@@ -104,22 +104,6 @@ describe('usePerpsDetailsItem', () => {
     expect(result.current.transaction).toBe(individualFill);
   });
 
-  it('prefers the aggregated row when both views contain the id', () => {
-    usePerpsActivityQueryMock.mockImplementation(
-      (_accountId, _enabled, aggregateFills = true) =>
-        ({
-          transactions: aggregateFills
-            ? [trade]
-            : [{ id: 'fill-1', asset: 'other' } as PerpsTransaction],
-          isFetching: false,
-        }) as ReturnType<typeof usePerpsActivityQuery>,
-    );
-
-    const { result } = renderHook(() => usePerpsDetailsItem('fill-1'));
-
-    expect(result.current.transaction).toBe(trade);
-  });
-
   it('returns undefined when nothing matches', () => {
     const { result } = renderHook(() => usePerpsDetailsItem('missing'));
 

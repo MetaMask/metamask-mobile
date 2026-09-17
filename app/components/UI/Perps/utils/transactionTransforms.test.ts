@@ -952,6 +952,35 @@ describe('transactionTransforms', () => {
       ]);
     });
 
+    it('gives individual executions ids that cannot collide with the aggregated row', () => {
+      // The aggregated row carries its last fill's orderId and timestamp, so the newest fill
+      // of an order would otherwise mint exactly the same id as the row combining it.
+      const fills: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-A',
+          size: '2',
+          timestamp: 1700000002000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-A',
+          size: '3',
+          timestamp: 1700000001000,
+        },
+      ];
+
+      const aggregated = transformFillsToTransactions(fills);
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+
+      const aggregatedIds = new Set(aggregated.map((tx) => tx.id));
+      expect(individual.filter((tx) => aggregatedIds.has(tx.id))).toStrictEqual(
+        [],
+      );
+    });
+
     it('defaults to aggregating when no options are passed', () => {
       const fills: OrderFill[] = ['1', '2'].map((size, index) => ({
         ...mockFill,
