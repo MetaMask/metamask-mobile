@@ -1,14 +1,28 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import Engine from '../../../../../core/Engine';
+import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
+jest.mock('./hydrateAndNavigateVbaOnboarding', () => ({
+  hydrateAndNavigateVbaOnboarding: jest.fn(),
+}));
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    KycController: {
+      startSumSub: jest.fn(),
+      state: { sumsub: { status: 'complete' } },
+    },
+  },
+}));
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
+const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
 const mockRetry = jest.fn();
 
 const mockNavigate = jest.fn();
@@ -48,6 +62,11 @@ describe('VbaVerifyIdentity', () => {
       error: null,
       retry: mockRetry,
     });
+    mockHydrateAndNavigate.mockResolvedValue(undefined);
+    (Engine.context.KycController.startSumSub as jest.Mock).mockResolvedValue(
+      {},
+    );
+    Engine.context.KycController.state.sumsub.status = 'complete';
   });
 
   afterEach(() => {
@@ -216,11 +235,15 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('opens email collection when continue is pressed', () => {
+  it('launches SumSub then rehydrates when continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
+    await waitFor(() => {
+      expect(Engine.context.KycController.startSumSub).toHaveBeenCalled();
+      expect(mockHydrateAndNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

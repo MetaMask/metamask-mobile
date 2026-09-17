@@ -41,6 +41,11 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
     expect(Routes.RAMP.GET_PIX_KEY).toBeDefined();
     expect(Routes.RAMP.VBA_VERIFY_IDENTITY).toBeDefined();
+    expect(Routes.RAMP.VBA_KYC_EMAIL).toBeDefined();
+    expect(Routes.RAMP.VBA_PROVIDER_TERMS).toBeDefined();
+    expect(Routes.RAMP.VBA_KYC_PENDING).toBeDefined();
+    expect(Routes.RAMP.VBA_KYC_REJECTED).toBeDefined();
+    expect(Routes.RAMP.VBA_ONBOARDING_ERROR).toBeDefined();
   });
 
   it('has deposit routes defined', () => {

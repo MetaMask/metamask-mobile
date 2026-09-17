@@ -1,10 +1,11 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -18,7 +19,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./hooks/useKycDisclaimers');
+jest.mock('./hydrateAndNavigateVbaOnboarding', () => ({
+  hydrateAndNavigateVbaOnboarding: jest.fn(),
+}));
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
+const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
 const mockRetry = jest.fn();
 
 const loadedDisclaimer = {
@@ -37,6 +42,7 @@ describe('GetPixKey', () => {
       error: null,
       retry: mockRetry,
     });
+    mockHydrateAndNavigate.mockResolvedValue(undefined);
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -62,14 +68,17 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
+  it('rehydrates VBA onboarding when agree and continue is pressed after disclaimers load', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+    await waitFor(() => {
+      expect(mockHydrateAndNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {

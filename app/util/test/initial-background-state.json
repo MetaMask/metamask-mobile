@@ -967,6 +967,7 @@
   "RampsController": {
     "autoramps": [],
     "userRegion": null,
+    "vbaOnboardingStage": null,
     "countries": {
       "data": [],
       "selected": null,

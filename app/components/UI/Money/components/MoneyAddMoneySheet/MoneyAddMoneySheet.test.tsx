@@ -23,6 +23,7 @@ import {
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { hydrateAndNavigateVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hydrateAndNavigateVbaOnboarding';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -94,6 +95,13 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hydrateAndNavigateVbaOnboarding',
+  () => ({
+    hydrateAndNavigateVbaOnboarding: jest.fn(),
+  }),
+);
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -131,6 +139,7 @@ describe('MoneyAddMoneySheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
     });
+    (hydrateAndNavigateVbaOnboarding as jest.Mock).mockResolvedValue(undefined);
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1203.89',
       fiatBalanceAggregatedFormatted: '$1,203.89',
@@ -204,7 +213,8 @@ describe('MoneyAddMoneySheet', () => {
     // It is a standalone VBA screen, not part of the crypto deposit flow.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
+    expect(hydrateAndNavigateVbaOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {

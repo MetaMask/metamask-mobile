@@ -29,7 +29,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   METAMASK_PRIVACY_POLICY_URL,
@@ -39,6 +38,9 @@ import {
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
+import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -131,10 +133,12 @@ const VbaVerifyIdentity = () => {
     useKycSessionDisclaimers(VBA_KYC_COUNTRY_CODE);
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
   const chevronRotation = useSharedValue(0);
 
   // The user can't continue without seeing idOS / SumSub terms.
-  const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
+  const canContinue =
+    !isLoading && !error && Boolean(disclaimers?.length) && !isContinuing;
 
   const animatedChevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronRotation.value}deg` }],
@@ -142,9 +146,26 @@ const VbaVerifyIdentity = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
-  }, [navigation]);
+  const handleContinue = useCallback(async () => {
+    if (!canContinue) {
+      return;
+    }
+    setIsContinuing(true);
+    try {
+      await Engine.context.KycController.startSumSub();
+      if (Engine.context.KycController.state.sumsub.status === 'abandoned') {
+        Logger.log('[VBA KYC] Sumsub SDK abandoned');
+        return;
+      }
+      await hydrateAndNavigateVbaOnboarding(navigation);
+    } catch (continueError) {
+      Logger.error(continueError as Error, {
+        tags: { feature: 'vba-kyc', provider: 'sumsub' },
+      });
+    } finally {
+      setIsContinuing(false);
+    }
+  }, [canContinue, navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -345,6 +366,7 @@ const VbaVerifyIdentity = () => {
           size={ButtonSize.Lg}
           isFullWidth
           isDisabled={!canContinue}
+          isLoading={isContinuing}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >

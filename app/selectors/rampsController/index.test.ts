@@ -19,6 +19,7 @@ import {
   selectRampsOrders,
   selectRampsOrdersForSelectedAccountGroup,
   selectTransak,
+  selectVbaOnboardingStage,
 } from './index';
 
 const createDefaultResourceState = <TData, TSelected = null>(
@@ -511,6 +512,22 @@ describe('RampsController Selectors', () => {
 
       const result = selectTransak(state);
       expect(result.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe('selectVbaOnboardingStage', () => {
+    it('returns the persisted stage when set', () => {
+      const state = createMockState({
+        vbaOnboardingStage: 'EmailOtpRequired' as never,
+      });
+
+      expect(selectVbaOnboardingStage(state)).toBe('EmailOtpRequired');
+    });
+
+    it('returns null when the stage has not been hydrated', () => {
+      const state = createMockState();
+
+      expect(selectVbaOnboardingStage(state)).toBeNull();
     });
   });
 });
