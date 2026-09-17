@@ -25,11 +25,6 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   const { width: screenWidth, height: screenHeight } = dimensions;
 
   const widthScale = screenWidth / BASE_WIDTH;
-  const heightScale = screenHeight / baseHeight;
-
-  // Use more conservative scaling to prevent excessive padding
-  const scale = Math.min(widthScale, heightScale);
-  const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
 
   // For vertical spacing, use percentage of available height instead of pure scaling
   const scaleVertical = (size: number) => {
