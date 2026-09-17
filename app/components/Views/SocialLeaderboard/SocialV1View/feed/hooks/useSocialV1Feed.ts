@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { wrapMockFeedPosts } from '../mocks/wrapMockFeedPosts';
 import {
+  getSocialV1ComposedFeedRevision,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
+  getSocialV1PendingStartedAtMs,
   subscribeSocialV1ComposedFeed,
 } from '../store/socialV1ComposedFeedStore';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
@@ -14,11 +16,10 @@ import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
 ): UseSocialV1FeedResult => {
-  const [, setRevision] = useState(0);
-
-  useEffect(
-    () => subscribeSocialV1ComposedFeed(() => setRevision((n) => n + 1)),
-    [],
+  useSyncExternalStore(
+    subscribeSocialV1ComposedFeed,
+    getSocialV1ComposedFeedRevision,
+    getSocialV1ComposedFeedRevision,
   );
 
   const mockPosts = wrapMockFeedPosts();
@@ -27,6 +28,7 @@ export const useSocialV1Feed = (
     return {
       posts: mockPosts,
       pendingPost: null,
+      pendingStartedAtMs: null,
       isLoading: false,
       error: null,
     };
@@ -35,6 +37,7 @@ export const useSocialV1Feed = (
   return {
     posts: [...getSocialV1ComposedPosts(), ...mockPosts],
     pendingPost: getSocialV1PendingPost(),
+    pendingStartedAtMs: getSocialV1PendingStartedAtMs(),
     isLoading: false,
     error: null,
   };

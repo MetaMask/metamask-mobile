@@ -7,8 +7,17 @@ import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
-import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
+import { SocialFeedPostingBannerSelectorsIDs } from './feed/components/SocialFeedPostingBanner.testIds';
+import {
+  MOCK_SOCIAL_V1_FEED_ITEMS,
+  mockOpenPerpsFeedItem,
+} from './feed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
+import {
+  COMPOSER_POSTING_DELAY_MS,
+  resetSocialV1ComposedFeedStore,
+  submitSocialV1ComposedPost,
+} from './feed/store/socialV1ComposedFeedStore';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
@@ -58,11 +67,6 @@ jest.mock('./feed/components/SocialFeedPostShell', () => {
     ),
   };
 });
-
-jest.mock('./feed/components/SocialFeedPostingBanner', () => ({
-  __esModule: true,
-  default: () => null,
-}));
 
 jest.mock('../components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -178,11 +182,20 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    act(() => {
+      resetSocialV1ComposedFeedStore();
+    });
     mockUseMyProfile.mockReturnValue({
       profile: null,
       isLoading: false,
       error: null,
       refresh: mockRefreshMyProfile,
+    });
+  });
+
+  afterEach(() => {
+    act(() => {
+      resetSocialV1ComposedFeedStore();
     });
   });
 
@@ -255,6 +268,45 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
+  it('shows the posting progress banner then prepends the composed post', () => {
+    jest.useFakeTimers();
+    renderWithProvider(<SocialV1View />);
+
+    act(() => {
+      submitSocialV1ComposedPost({
+        id: 'composed-1',
+        authorHandle: 'giga-whale',
+        timestampMs: Date.now(),
+        likeCount: 0,
+        commentCount: 0,
+        item: mockOpenPerpsFeedItem({
+          id: 'composed-item',
+          comment: 'this is alpha',
+        }),
+      });
+    });
+
+    expect(
+      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.PROGRESS),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+    });
+
+    expect(
+      screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+    ).toBeNull();
+    expect(
+      screen.getByTestId('social-v1-feed-card-composed-item'),
+    ).toBeOnTheScreen();
+
+    jest.useRealTimers();
   });
 
   it('renders the Live trades filter icon on the Live trades page', () => {

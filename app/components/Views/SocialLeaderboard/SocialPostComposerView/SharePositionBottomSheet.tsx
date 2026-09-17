@@ -19,7 +19,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { useTraderPositions } from '../TraderProfileView/hooks/useTraderPositions';
+import { useComposerSharePositions } from './useComposerSharePositions';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../utils/perp';
@@ -53,7 +53,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     isLoadingClosed,
     error,
     refetch,
-  } = useTraderPositions(address);
+  } = useComposerSharePositions(address);
 
   const isLoading = tab === 'open' ? isLoadingOpen : isLoadingClosed;
   const positions = tab === 'open' ? openPositions : closedPositions;

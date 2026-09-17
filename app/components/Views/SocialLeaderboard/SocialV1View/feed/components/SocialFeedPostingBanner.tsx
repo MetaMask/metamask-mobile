@@ -9,35 +9,56 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useState } from 'react';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { COMPOSER_POSTING_DELAY_MS } from '../store/socialV1ComposedFeedStore';
+import superheroAvatar from '../../../../../../images/socialV1/superhero.png';
+import {
+  COMPOSER_POSTING_DELAY_MS,
+  commitSocialV1PendingPost,
+} from '../store/socialV1ComposedFeedStore';
 import { SocialFeedPostingBannerSelectorsIDs } from './SocialFeedPostingBanner.testIds';
 
 export interface SocialFeedPostingBannerProps {
   authorHandle: string;
+  authorImageUrl?: string | null;
+  startedAtMs: number;
 }
 
 const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
   authorHandle,
+  authorImageUrl,
+  startedAtMs,
 }) => {
   const tw = useTailwind();
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const startedAt = Date.now();
-    const intervalId = setInterval(() => {
+    const tick = () => {
       const next = Math.min(
         1,
-        (Date.now() - startedAt) / COMPOSER_POSTING_DELAY_MS,
+        Math.max(0, Date.now() - startedAtMs) / COMPOSER_POSTING_DELAY_MS,
       );
       setProgress(next);
-      if (next >= 1) {
+      return next;
+    };
+
+    if (tick() >= 1) {
+      // Fallback: if the store's own setTimeout was dropped (rare, but
+      // observed on Fast Refresh reloads), commit here so the pending banner
+      // never gets stuck at 100%.
+      commitSocialV1PendingPost();
+      return undefined;
+    }
+
+    const intervalId = setInterval(() => {
+      if (tick() >= 1) {
         clearInterval(intervalId);
+        commitSocialV1PendingPost();
       }
     }, 50);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [startedAtMs]);
 
   return (
     <Box
@@ -49,9 +70,25 @@ const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {authorHandle}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          twClassName="flex-1 min-w-0"
+        >
+          <Image
+            source={authorImageUrl ? { uri: authorImageUrl } : superheroAvatar}
+            style={tw.style('h-8 w-8 rounded-full')}
+            testID={SocialFeedPostingBannerSelectorsIDs.AVATAR}
+          />
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+          >
+            {authorHandle}
+          </Text>
+        </Box>
         <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
           {strings('social_leaderboard.composer.posting')}
         </Text>

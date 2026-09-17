@@ -6,12 +6,17 @@ import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 import {
-  COMPOSER_POSTING_DELAY_MS,
+  commitSocialV1PendingPost,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
   resetSocialV1ComposedFeedStore,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import { isComposerCommentValid } from './commentValidation';
+
+jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => true,
+}));
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
@@ -37,6 +42,7 @@ jest.mock('../utils/formatters', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 
 const openSpot: Position = {
@@ -61,7 +67,12 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      isFocused: jest.fn(() => true),
+      addListener: jest.fn(() => jest.fn()),
+    }),
   };
 });
 
@@ -79,10 +90,11 @@ jest.mock('../MyProfileView/hooks', () => ({
   }),
 }));
 
-const mockUseTraderPositions = jest.fn();
+const mockUseComposerSharePositions = jest.fn();
 
-jest.mock('../TraderProfileView/hooks/useTraderPositions', () => ({
-  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
+jest.mock('./useComposerSharePositions', () => ({
+  useComposerSharePositions: (...args: unknown[]) =>
+    mockUseComposerSharePositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -121,7 +133,7 @@ describe('SocialPostComposerView', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetSocialV1ComposedFeedStore();
-    mockUseTraderPositions.mockReturnValue({
+    mockUseComposerSharePositions.mockReturnValue({
       openPositions: [openSpot],
       closedPositions: [],
       isLoadingOpen: false,
@@ -211,6 +223,15 @@ describe('SocialPostComposerView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('focuses the comment field after the screen transition', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props
+        .autoFocus,
+    ).toBe(true);
+  });
+
   it('focuses the comment field from the GIF chip without attaching a gif', () => {
     renderWithProvider(<SocialPostComposerView />);
 
@@ -226,7 +247,7 @@ describe('SocialPostComposerView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('submits a pending post then pops the composer', () => {
+  it('submits a pending post then returns to the social home', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
@@ -242,9 +263,9 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(getSocialV1PendingPost()).not.toBeNull();
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalled();
 
-    jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+    commitSocialV1PendingPost();
 
     expect(getSocialV1PendingPost()).toBeNull();
     expect(getSocialV1ComposedPosts()).toHaveLength(1);

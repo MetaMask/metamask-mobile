@@ -146,7 +146,6 @@ const SocialV1View: React.FC = () => {
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
   // The landing tab is the first one, so the surface always opens on index 0.
   const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
-
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
@@ -430,12 +429,13 @@ const SocialV1View: React.FC = () => {
       if (!consumeSocialV1FocusTrending()) {
         return;
       }
-      if (activeIndex === trendingIndex) {
-        return;
-      }
       programmaticTabChangeRef.current = true;
       pagerRef.current?.setPage(trendingIndex);
-      changeTab(trendingIndex);
+      if (activeIndex !== trendingIndex) {
+        changeTab(trendingIndex);
+      } else {
+        trendingPageRef.current?.scrollToOffset(0, true);
+      }
     }, [activeIndex, changeTab, trendingIndex]),
   );
 

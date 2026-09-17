@@ -2,8 +2,9 @@ import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { ScrollView } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
+import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
@@ -42,7 +43,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
-  const { posts, pendingPost } = useSocialV1Feed(tab);
+  const { posts, pendingPost, pendingStartedAtMs } = useSocialV1Feed(tab);
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
   useEffect(() => {
@@ -50,6 +51,27 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       setHasBeenActive(true);
     }
   }, [isActive]);
+
+  useEffect(() => {
+    if (!pendingPost) {
+      return;
+    }
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [pendingPost]);
+
+  // Posts present on the first render are pre-existing feed content and must
+  // render at rest; anything that shows up later is a freshly committed
+  // composed post and gets the entrance animation. The ref is only written in
+  // an effect so a double-render never marks a new post as already seen.
+  const seenPostIdsRef = useRef<Set<string> | null>(null);
+  if (seenPostIdsRef.current === null) {
+    seenPostIdsRef.current = new Set(posts.map((post) => post.id));
+  }
+  const seenPostIds = seenPostIdsRef.current;
+
+  useEffect(() => {
+    posts.forEach((post) => seenPostIds.add(post.id));
+  }, [posts, seenPostIds]);
 
   useImperativeHandle(
     pageRef,
@@ -77,12 +99,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             {pendingPost ? (
               <SocialFeedPostingBanner
                 authorHandle={pendingPost.authorHandle}
+                authorImageUrl={pendingPost.authorImageUrl}
+                startedAtMs={pendingStartedAtMs ?? Date.now()}
               />
             ) : null}
             {posts.map((post) => (
-              <Animated.View key={post.id} entering={FadeInDown.duration(280)}>
+              <SocialFeedPostEntrance
+                key={post.id}
+                animate={!seenPostIds.has(post.id)}
+              >
                 <SocialFeedPostShell post={post} />
-              </Animated.View>
+              </SocialFeedPostEntrance>
             ))}
           </Box>
         ) : null}

@@ -49,10 +49,11 @@ const closedSpot: Position = {
   currentValueUSD: 0,
 };
 
-const mockUseTraderPositions = jest.fn();
+const mockUseComposerSharePositions = jest.fn();
 
-jest.mock('../TraderProfileView/hooks/useTraderPositions', () => ({
-  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
+jest.mock('./useComposerSharePositions', () => ({
+  useComposerSharePositions: (...args: unknown[]) =>
+    mockUseComposerSharePositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -118,7 +119,7 @@ describe('SharePositionBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTraderPositions.mockReturnValue({
+    mockUseComposerSharePositions.mockReturnValue({
       openPositions: [openSpot, openPerp],
       closedPositions: [closedSpot],
       isLoadingOpen: false,
@@ -157,7 +158,7 @@ describe('SharePositionBottomSheet', () => {
   });
 
   it('shows empty copy when both lists are empty', () => {
-    mockUseTraderPositions.mockReturnValue({
+    mockUseComposerSharePositions.mockReturnValue({
       openPositions: [],
       closedPositions: [],
       isLoadingOpen: false,
@@ -176,7 +177,7 @@ describe('SharePositionBottomSheet', () => {
   });
 
   it('shows an error with retry', () => {
-    mockUseTraderPositions.mockReturnValue({
+    mockUseComposerSharePositions.mockReturnValue({
       openPositions: [],
       closedPositions: [],
       isLoadingOpen: false,

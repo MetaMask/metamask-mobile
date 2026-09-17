@@ -76,6 +76,7 @@ export interface SocialV1FeedPost {
 export interface UseSocialV1FeedResult {
   posts: SocialV1FeedPost[];
   pendingPost: SocialV1FeedPost | null;
+  pendingStartedAtMs: number | null;
   isLoading: boolean;
   error: string | null;
 }

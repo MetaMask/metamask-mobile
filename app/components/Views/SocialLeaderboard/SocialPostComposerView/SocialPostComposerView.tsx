@@ -8,7 +8,9 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderBase,
+  Icon,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -16,7 +18,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -24,9 +32,15 @@ import {
   Pressable,
   ScrollView,
   TextInput,
+  type TextStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
+import { useTheme } from '../../../../util/theme';
 import superheroAvatar from '../../../../images/socialV1/superhero.png';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -51,7 +65,10 @@ interface ImageInsertEvent {
 
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
+  const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
   const inputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
@@ -96,9 +113,32 @@ const SocialPostComposerView: React.FC = () => {
     }
   }, []);
 
-  const handleGifChipPress = useCallback(() => {
+  const composerInputTypography = useMemo<TextStyle>(
+    () => ({
+      fontSize: typography.lBodyMD.fontSize,
+      lineHeight: typography.lBodyMD.lineHeight,
+      letterSpacing: typography.lBodyMD.letterSpacing,
+      fontWeight: typography.lBodyMD.fontWeight as TextStyle['fontWeight'],
+    }),
+    [typography.lBodyMD],
+  );
+
+  const focusComposer = useCallback(() => {
     inputRef.current?.focus();
   }, []);
+
+  const handleGifChipPress = useCallback(() => {
+    focusComposer();
+  }, [focusComposer]);
+
+  // Focusing mid-transition drops the keyboard on the native stack push, so
+  // wait until the screen has settled before raising it.
+  useEffect(() => {
+    if (!isScreenTransitionComplete) {
+      return;
+    }
+    focusComposer();
+  }, [isScreenTransitionComplete, focusComposer]);
 
   const handlePost = useCallback(() => {
     if (!selectedPosition || !canSubmit) {
@@ -118,6 +158,8 @@ const SocialPostComposerView: React.FC = () => {
       gifUri: gifUri ?? undefined,
       item,
     });
+    // Pop the composer off the native stack; V1 is already mounted underneath
+    // and its subscribed feed hook will react to the store update.
     navigation.goBack();
   }, [
     canSubmit,
@@ -147,29 +189,34 @@ const SocialPostComposerView: React.FC = () => {
           />
         }
         endAccessory={
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Sm}
-            isDisabled={!canSubmit}
-            onPress={handlePost}
-            testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            {strings('social_leaderboard.composer.post')}
-          </Button>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextMuted}
+              testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
+            >
+              {strings('social_leaderboard.composer.character_count', {
+                count: text.length,
+                limit: COMPOSER_COMMENT_MAX_LENGTH,
+              })}
+            </Text>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Sm}
+              isDisabled={!canSubmit}
+              onPress={handlePost}
+              testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
+            >
+              {strings('social_leaderboard.composer.post')}
+            </Button>
+          </Box>
         }
         testID={SocialPostComposerViewSelectorsIDs.HEADER}
-      >
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextMuted}
-          testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
-        >
-          {strings('social_leaderboard.composer.character_count', {
-            count: text.length,
-            limit: COMPOSER_COMMENT_MAX_LENGTH,
-          })}
-        </Text>
-      </HeaderBase>
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -178,28 +225,34 @@ const SocialPostComposerView: React.FC = () => {
         <ScrollView
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('px-4 pt-2 pb-4 gap-4')}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
-          <Image
-            source={
-              profile?.imageUrl ? { uri: profile.imageUrl } : superheroAvatar
-            }
-            style={tw.style('w-10 h-10 rounded-full')}
-          />
-          <TextInput
-            ref={inputRef}
-            value={text}
-            onChangeText={handleChangeText}
-            placeholder={strings('social_leaderboard.composer.placeholder')}
-            placeholderTextColor={tw.color('text-muted')}
-            multiline
-            autoFocus
-            style={tw.style('text-default text-s-body-md min-h-24')}
-            testID={SocialPostComposerViewSelectorsIDs.INPUT}
-            {...{
-              onImageChange: handleImageInsert,
-            }}
-          />
+          <Box gap={3} twClassName="w-full">
+            <Image
+              source={
+                profile?.imageUrl ? { uri: profile.imageUrl } : superheroAvatar
+              }
+              style={tw.style('w-10 h-10 rounded-full')}
+            />
+            <TextInput
+              ref={inputRef}
+              value={text}
+              onChangeText={handleChangeText}
+              placeholder={strings('social_leaderboard.composer.placeholder')}
+              placeholderTextColor={colors.text.alternative}
+              multiline
+              autoFocus={isScreenTransitionComplete}
+              showSoftInputOnFocus
+              style={[
+                tw.style('w-full text-default min-h-24'),
+                composerInputTypography,
+              ]}
+              testID={SocialPostComposerViewSelectorsIDs.INPUT}
+              {...{
+                onImageChange: handleImageInsert,
+              }}
+            />
+          </Box>
 
           {previewItem ? (
             <Box twClassName="relative">
@@ -211,15 +264,12 @@ const SocialPostComposerView: React.FC = () => {
                   'social_leaderboard.composer.remove_position',
                 )}
                 testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
+                hitSlop={8}
                 style={tw.style(
-                  'absolute top-2 right-2 w-7 h-7 rounded-full bg-default items-center justify-center',
+                  'absolute z-20 -top-3 -right-3 w-8 h-8 rounded-full bg-default border border-muted items-center justify-center',
                 )}
               >
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  size={ButtonIconSize.Sm}
-                  onPress={() => setSelectedPosition(null)}
-                />
+                <Icon name={IconName.Close} size={IconSize.Sm} />
               </Pressable>
             </Box>
           ) : null}
@@ -256,7 +306,8 @@ const SocialPostComposerView: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={2}
-          twClassName="px-4 py-3"
+          twClassName="px-4 pt-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
         >
           {selectedPosition ? null : (
             <Button

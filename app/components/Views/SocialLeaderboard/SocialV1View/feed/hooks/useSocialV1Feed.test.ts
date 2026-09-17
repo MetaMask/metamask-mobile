@@ -35,6 +35,7 @@ describe('useSocialV1Feed', () => {
       'spotCompact',
     ]);
     expect(result.current.pendingPost).toBeNull();
+    expect(result.current.pendingStartedAtMs).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
   });
@@ -82,12 +83,14 @@ describe('useSocialV1Feed', () => {
     });
 
     expect(result.current.pendingPost?.item.comment).toBe('this is alpha');
+    expect(result.current.pendingStartedAtMs).not.toBeNull();
 
     act(() => {
       jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
     });
 
     expect(result.current.pendingPost).toBeNull();
+    expect(result.current.pendingStartedAtMs).toBeNull();
     expect(result.current.posts[0].id).toBe(composed.id);
   });
 });

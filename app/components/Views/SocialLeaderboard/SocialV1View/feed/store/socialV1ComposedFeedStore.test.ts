@@ -1,5 +1,5 @@
 import {
-  COMPOSER_POSTING_DELAY_MS,
+  commitSocialV1PendingPost,
   consumeSocialV1FocusTrending,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
@@ -35,7 +35,7 @@ describe('socialV1ComposedFeedStore', () => {
     expect(consumeSocialV1FocusTrending()).toBe(true);
     expect(consumeSocialV1FocusTrending()).toBe(false);
 
-    jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+    commitSocialV1PendingPost();
 
     expect(getSocialV1PendingPost()).toBeNull();
     expect(getSocialV1ComposedPosts()[0].id).toBe('composed-1');
