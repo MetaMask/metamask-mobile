@@ -119,7 +119,6 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -996,36 +995,32 @@ const MainNavigator = () => {
        * without it the native stack slides the entire screen (overlay
        * included) from the bottom.
        */}
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-        component={RewardsInfoSheetModal}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={transparentModalStackOptions}
-      />
+      <NativeStack.Group screenOptions={transparentModalStackOptions}>
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+          component={RewardsBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+          component={RewardsInfoSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+          component={RewardsClaimBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+          component={RewardOptInAccountGroupModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+          component={EndOfSeasonClaimBottomSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_SELECT_SHEET}
+          component={RewardsSelectSheet}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
@@ -1066,7 +1061,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
-        options={slideFromLeftNativeOptions}
+        options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
         name="Asset"

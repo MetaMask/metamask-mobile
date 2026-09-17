@@ -1,8 +1,13 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { Dimensions, StyleSheet } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
-import { RiveErrorType, type RiveError } from '@rive-app/react-native';
+import { Fit, RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,11 +26,13 @@ import {
   __fireRiveTrigger,
   __getRivePropertySetter,
   __resetRiveMocks,
+  __setRivePropertyValue,
 } from '../../../../../__mocks__/rive-app-react-native';
 
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+let mockTimingCompletion: (() => void) | undefined;
 let mockIsUsUnauthenticatedNonCardholder = false;
 let mockIsE2EOrPerformanceTest = false;
 let mockRouteParams:
@@ -112,6 +119,13 @@ jest.mock('../../../../../util/test/utils', () => ({
   },
 }));
 
+jest.mock('react-native-worklets', () => ({
+  scheduleOnRN: jest.fn(
+    (callback: (...args: number[]) => void, ...args: number[]) =>
+      callback(...args),
+  ),
+}));
+
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
 
@@ -128,22 +142,40 @@ jest.mock('react-native-reanimated', () => {
 
       return sharedValue;
     }),
-    withTiming: jest.fn((toValue, config) => ({ config, toValue })),
+    withTiming: jest.fn(
+      (
+        toValue: number,
+        config: { duration: number },
+        callback?: (finished: boolean) => void,
+      ) => {
+        if (callback) {
+          mockTimingCompletion = () => callback(true);
+        }
+        return { config, toValue };
+      },
+    ),
   };
 });
 
+const mockWorklets = jest.requireMock(
+  'react-native-worklets',
+) as typeof import('react-native-worklets');
+
 // Local wrapper around the global Nitro Rive mock so the RiveView `onError`
 // prop is observable; triggers/setters are driven via the global mock helpers.
-const mockRiveViewProps: {
-  current?: {
-    onError?: (error: RiveError) => void;
-  };
-} = {};
+interface MockRiveViewProps {
+  fit?: Fit;
+  onError?: (error: RiveError) => void;
+  onLayout?: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+const mockRiveViewProps: { current?: MockRiveViewProps } = {};
 
 jest.mock('@rive-app/react-native', () => {
   const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
-  const MockRiveView = (props: { onError?: (error: RiveError) => void }) => {
+  const MockRiveView = (props: MockRiveViewProps) => {
     mockRiveViewProps.current = props;
     return ReactActual.createElement(actual.RiveView, props);
   };
@@ -154,53 +186,77 @@ jest.mock('@rive-app/react-native', () => {
   };
 });
 
-const STEP_TRANSITION_MS = 300;
-const FORWARD_NAVIGATION_INPUT_LOCK_MS = 3200;
-const BACKWARD_NAVIGATION_INPUT_LOCK_MS = 1600;
-const FINAL_STEP_ANIMATION_MS = 3200;
-
-// Steps are reconstructed from `continue`/`back` view-model triggers (no
-// `onStateChanged` in Nitro): fire a trigger, then settle the transition timer.
 const fireTrigger = (path: string) => {
   act(() => {
     __fireRiveTrigger(path);
   });
 };
 
-const settleTransition = () => {
+let mockCurrentStep = 1;
+
+const setCurrentStep = (step: number) => {
   act(() => {
-    jest.advanceTimersByTime(STEP_TRANSITION_MS);
+    mockCurrentStep = step;
+    __setRivePropertyValue('currentStep', step);
+  });
+};
+
+const completeOverlayFade = () => {
+  act(() => {
+    mockTimingCompletion?.();
+    mockTimingCompletion = undefined;
   });
 };
 
 const advanceStep = () => {
-  fireTrigger('continue');
-  settleTransition();
-  act(() => {
-    jest.advanceTimersByTime(
-      FORWARD_NAVIGATION_INPUT_LOCK_MS - STEP_TRANSITION_MS,
-    );
-  });
+  setCurrentStep(mockCurrentStep + 1);
 };
 
-/** Fires `continue` up to the final step and settles the last transition. */
+const goBack = () => {
+  setCurrentStep(mockCurrentStep - 1);
+};
+
+const setOnboardingCompleted = (completed: boolean) => {
+  if (completed) {
+    fireTrigger('onboardingCompleted');
+  }
+};
+
+/** Emits each Rive step and then the completion binding. */
 const completeOnboarding = async () => {
   advanceStep();
+  completeOverlayFade();
   advanceStep();
+  completeOverlayFade();
   advanceStep();
-  fireTrigger('continue');
-  await act(async () => {
-    jest.advanceTimersByTime(STEP_TRANSITION_MS + FINAL_STEP_ANIMATION_MS);
-  });
+  completeOverlayFade();
+  advanceStep();
+  completeOverlayFade();
+  setOnboardingCompleted(true);
 };
 
 const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
+const triggerRiveLayout = () => {
+  act(() => {
+    mockRiveViewProps.current?.onLayout?.();
+  });
+};
+
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(mockWorklets, 'scheduleOnRN')
+      .mockImplementation(
+        (callback: (...args: unknown[]) => unknown, ...args: unknown[]) =>
+          callback(...args),
+      );
     __resetRiveMocks();
     jest.useFakeTimers();
+    mockTimingCompletion = undefined;
+    mockCurrentStep = 1;
+    __setRivePropertyValue('currentStep', mockCurrentStep);
     mockRiveViewProps.current = undefined;
     mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
@@ -286,6 +342,52 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
+  describe('Rive initial layout', () => {
+    it('starts hidden with Cover fit before native layout', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(mockRiveViewProps.current?.fit).toBe(Fit.Cover);
+      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
+        0,
+      );
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+        ).opacity,
+      ).toBe(0);
+    });
+
+    it('switches to Layout fit after native layout while remaining hidden', () => {
+      renderMoneyOnboardingView();
+
+      triggerRiveLayout();
+
+      expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
+      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
+        0,
+      );
+    });
+
+    it('reveals Rive and overlay on the animation frame after layout', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      triggerRiveLayout();
+
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+
+      expect(
+        StyleSheet.flatten(mockRiveViewProps.current?.style).opacity,
+      ).toBeUndefined();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+        ).opacity,
+      ).toBe(1);
+    });
+  });
+
   describe('Onboarding view gate', () => {
     it('renders the standard onboarding view outside E2E and performance tests', () => {
       mockIsE2EOrPerformanceTest = false;
@@ -332,7 +434,7 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
-  describe('Step tracking (continue/back triggers)', () => {
+  describe('Step tracking (currentStep binding)', () => {
     it('tracks VIEWED event with step 1 once the view-model instance is bound', () => {
       renderMoneyOnboardingView();
 
@@ -345,7 +447,7 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('tracks VIEWED event with step 2 when the continue trigger settles', () => {
+    it('tracks VIEWED event with step 2 when currentStep changes', () => {
       renderMoneyOnboardingView();
 
       advanceStep();
@@ -359,7 +461,7 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('tracks VIEWED event with step 3 after two continue triggers', () => {
+    it('tracks VIEWED event with step 3 after two currentStep changes', () => {
       renderMoneyOnboardingView();
 
       advanceStep();
@@ -374,7 +476,7 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('tracks VIEWED event with step 4 after three continue triggers', () => {
+    it('tracks VIEWED event with step 4 after three currentStep changes', () => {
       renderMoneyOnboardingView();
 
       advanceStep();
@@ -390,69 +492,11 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('does not track the next step until the transition has settled', () => {
+    it('tracks the next step immediately when currentStep changes', () => {
       renderMoneyOnboardingView();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('continue');
-
-      expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
-    });
-
-    it('keeps Rive input disabled until the navigation lock expires', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
-      const getRiveInputContainer = () =>
-        getByTestId(MoneyOnboardingViewTestIds.RIVE_INPUT_CONTAINER);
-
-      expect(getRiveInputContainer()?.props.pointerEvents).toBe('auto');
-
-      fireTrigger('continue');
-
-      expect(getRiveInputContainer()?.props.pointerEvents).toBe('none');
-
-      act(() => {
-        jest.advanceTimersByTime(FORWARD_NAVIGATION_INPUT_LOCK_MS - 1);
-      });
-
-      expect(getRiveInputContainer()?.props.pointerEvents).toBe('none');
-
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
-      expect(getRiveInputContainer()?.props.pointerEvents).toBe('auto');
-    });
-
-    it('uses the shorter lock for backward navigation', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
-      const getRiveInputContainer = () =>
-        getByTestId(MoneyOnboardingViewTestIds.RIVE_INPUT_CONTAINER);
       advanceStep();
-      advanceStep();
-
-      fireTrigger('back');
-
-      act(() => {
-        jest.advanceTimersByTime(BACKWARD_NAVIGATION_INPUT_LOCK_MS - 1);
-      });
-
-      expect(getRiveInputContainer()?.props.pointerEvents).toBe('none');
-
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
-      expect(getRiveInputContainer()?.props.pointerEvents).toBe('auto');
-    });
-
-    it('tracks the previous step again when the back trigger settles', () => {
-      renderMoneyOnboardingView();
-      advanceStep();
-      advanceStep();
-      mockTrackOnboardingEvent.mockClear();
-
-      fireTrigger('back');
-      settleTransition();
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -462,31 +506,47 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('ignores the back trigger on the first step', () => {
+    it('tracks the previous step again when currentStep moves backward', () => {
+      renderMoneyOnboardingView();
+      advanceStep();
+      advanceStep();
+      mockTrackOnboardingEvent.mockClear();
+
+      goBack();
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        }),
+      );
+    });
+
+    it('ignores invalid currentStep values', () => {
       renderMoneyOnboardingView();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('back');
-      settleTransition();
+      goBack();
+      setCurrentStep(6);
+      setCurrentStep(1.5);
 
       expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
       expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('ignores further continue triggers on the final step', async () => {
+    it('does not retrack the current step when the binding repeats its value', async () => {
       renderMoneyOnboardingView();
       await completeOnboarding();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('continue');
-      settleTransition();
+      setCurrentStep(5);
 
       expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
   });
 
   describe('Completion (final step)', () => {
-    it('tracks VIEWED event when the final step settles', async () => {
+    it('tracks VIEWED event when currentStep reaches the final step', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -499,7 +559,7 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('tracks COMPLETED event when the final step settles', async () => {
+    it('tracks COMPLETED event when onboardingCompleted becomes true', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -513,7 +573,7 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('navigates to Money home when the final step settles', async () => {
+    it('navigates to Money home when onboardingCompleted becomes true', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -528,15 +588,14 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('waits for the final animation before completing onboarding', () => {
+    it('waits for onboardingCompleted after reaching the final step', () => {
       renderMoneyOnboardingView();
       advanceStep();
       advanceStep();
       advanceStep();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('continue');
-      settleTransition();
+      advanceStep();
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -551,17 +610,7 @@ describe('MoneyOnboardingView', () => {
       );
       expect(mockNavigate).not.toHaveBeenCalled();
 
-      act(() => {
-        jest.advanceTimersByTime(
-          FINAL_STEP_ANIMATION_MS - STEP_TRANSITION_MS - 1,
-        );
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
+      setOnboardingCompleted(true);
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -572,7 +621,7 @@ describe('MoneyOnboardingView', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('dispatches setMoneyOnboardingSeen when the final step settles', async () => {
+    it('dispatches setMoneyOnboardingSeen when onboardingCompleted becomes true', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -800,57 +849,57 @@ describe('MoneyOnboardingView', () => {
       expect(__getRivePropertySetter('apyAmountDigit')).toHaveBeenCalledWith(1);
     });
 
-    it('starts the overlay hidden and fades it in after Rive initializes', () => {
+    it('initializes overlay opacity for the initial step', () => {
       renderMoneyOnboardingView();
 
-      expect(useSharedValue).toHaveBeenCalledWith(0);
-      expect(withTiming).toHaveBeenCalledWith(1, {
-        duration: 200,
-      });
+      expect(useSharedValue).toHaveBeenCalledWith(1);
+      expect(withTiming).not.toHaveBeenCalled();
     });
   });
 
   describe('Transition haptics', () => {
-    it('plays page navigation haptic when the continue trigger fires', () => {
+    it('plays page navigation haptic when currentStep advances', () => {
       renderMoneyOnboardingView();
 
-      fireTrigger('continue');
+      advanceStep();
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
-    it('plays page navigation haptic when the back trigger fires past the first step', () => {
+    it('plays page navigation haptic when currentStep moves backward', () => {
       renderMoneyOnboardingView();
       advanceStep();
       (playImpact as jest.Mock).mockClear();
 
-      fireTrigger('back');
+      goBack();
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
-    it('does not play haptic while no navigation trigger fires', () => {
+    it('does not play haptic while currentStep does not change', () => {
       renderMoneyOnboardingView();
 
       expect(playImpact).not.toHaveBeenCalled();
     });
   });
 
-  describe('Overlay fade animation', () => {
-    it('fades out when the transition starts and fades in when the step settles', () => {
+  describe('Overlay updates', () => {
+    it('fades in after currentStep changes', () => {
       renderMoneyOnboardingView();
       (withTiming as jest.Mock).mockClear();
 
-      fireTrigger('continue');
+      advanceStep();
 
-      expect(withTiming).toHaveBeenCalledWith(0, {
-        duration: 200,
-      });
-
-      settleTransition();
-
+      expect(withTiming).toHaveBeenCalledWith(
+        0,
+        {
+          duration: 600,
+        },
+        expect.any(Function),
+      );
+      completeOverlayFade();
       expect(withTiming).toHaveBeenCalledWith(1, {
-        duration: 200,
+        duration: 600,
       });
     });
   });
@@ -906,19 +955,11 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Native text overlay', () => {
-    it('keeps step1 text during the forward transition and swaps when step 2 settles', () => {
+    it('updates text when currentStep changes', () => {
       const { getByTestId } = renderMoneyOnboardingView();
 
-      fireTrigger('continue');
-
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
-      ).toBe(strings('money.rive_onboarding.step1_title'));
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(strings('money.rive_onboarding.step1_body', { percentage: 4 }));
-
-      settleTransition();
+      advanceStep();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
@@ -931,20 +972,13 @@ describe('MoneyOnboardingView', () => {
       ).toBe(strings('money.rive_onboarding.step2_footer_text'));
     });
 
-    it('keeps step2 text during the backward transition and swaps when step 1 settles', () => {
+    it('updates text when currentStep moves backward', () => {
       const { getByTestId } = renderMoneyOnboardingView();
 
       advanceStep();
-      fireTrigger('back');
-
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
-      ).toBe(strings('money.rive_onboarding.step2_title'));
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(strings('money.rive_onboarding.step2_body'));
-
-      settleTransition();
+      completeOverlayFade();
+      goBack();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
@@ -957,9 +991,6 @@ describe('MoneyOnboardingView', () => {
     it('keeps the step4 overlay copy on the final step, which has no overlay content of its own', async () => {
       const { getByTestId } = renderMoneyOnboardingView();
 
-      advanceStep();
-      advanceStep();
-      advanceStep();
       await completeOnboarding();
 
       expect(
@@ -977,6 +1008,7 @@ describe('MoneyOnboardingView', () => {
 
       advanceStep();
       advanceStep();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
@@ -994,6 +1026,7 @@ describe('MoneyOnboardingView', () => {
 
       advanceStep();
       advanceStep();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
