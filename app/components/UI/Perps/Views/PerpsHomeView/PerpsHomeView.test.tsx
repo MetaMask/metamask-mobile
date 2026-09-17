@@ -109,8 +109,19 @@ jest.mock('../../components/PerpsModeToggle', () => {
 
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
+// Individual tests replace mockUseSelector wholesale with boolean-returning
+// implementations, so selectors that must yield a collection are answered here
+// rather than in each override.
+const mockRewardsCampaigns: unknown[] = [];
 jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockUseSelector(selector),
+  useSelector: (selector: unknown) => {
+    const { selectCampaigns } = jest.requireActual(
+      '../../../../../reducers/rewards/selectors',
+    );
+    return selector === selectCampaigns
+      ? mockRewardsCampaigns
+      : mockUseSelector(selector);
+  },
   useDispatch: () => jest.fn(),
 }));
 

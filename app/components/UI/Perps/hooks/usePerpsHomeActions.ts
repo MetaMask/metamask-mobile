@@ -184,6 +184,9 @@ export const usePerpsHomeActions = (
             Logger.error(errorObj, {
               tags: {
                 feature: PERPS_CONSTANTS.FeatureName,
+                component: 'usePerpsHomeActions',
+                action: 'financial_deposit',
+                operation: 'financial_operations',
               },
             });
 
@@ -253,6 +256,9 @@ export const usePerpsHomeActions = (
       Logger.error(errorObj, {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsHomeActions',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
         },
       });
 

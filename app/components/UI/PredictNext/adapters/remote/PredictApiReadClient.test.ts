@@ -38,11 +38,44 @@ describe('PredictApiReadClient', () => {
     });
   });
 
+  it('fails before HTTP when the API URL is not configured', async () => {
+    client = new PredictApiReadClient({
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+    });
+
+    await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
+      status: 503,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('fails before HTTP when the API URL is malformed', async () => {
+    client = new PredictApiReadClient({
+      baseUrl: 'not a URL',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+    });
+
+    await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
+      status: 503,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('requests Venue Status without authorization or content type headers', async () => {
+    const getBearerToken = jest.fn().mockResolvedValue('secret-token');
     fetchMock.mockResolvedValue(createResponse());
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken,
+    });
 
     await client.fetchVenueStatus(venueId);
 
+    expect(getBearerToken).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledWith(
       'https://predict.example/api/v1/venues/kalshi/status',
       {
@@ -55,6 +88,34 @@ describe('PredictApiReadClient', () => {
         signal: undefined,
       },
     );
+  });
+
+  it('authenticates Balance requests without retaining identity in the URL', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+    });
+
+    await client.fetchBalance(venueId);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/balance',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer secret-token',
+        }),
+      }),
+    );
+  });
+
+  it('fails Balance requests before HTTP when no bearer token is available', async () => {
+    await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+      status: 401,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('encodes event-list query parameters', async () => {

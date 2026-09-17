@@ -769,16 +769,23 @@ describe('PredictFeed', () => {
         'btc',
       );
 
+      // The Up/Down live card re-renders every second via a shared
+      // useSyncExternalStore clock, adding re-render pressure between the
+      // search debounce, the query fetch, and FlashList's first item render.
+      // Under contended CI runners these awaits need generous budgets
+      // (see also the re-query note before the press below).
       expect(
         await findByTestId(
           getPredictSearchSelector.resultCard(0),
           {},
-          { timeout: 3000 },
+          { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
       expect(
         await findByTestId(
           PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
+          {},
+          { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);

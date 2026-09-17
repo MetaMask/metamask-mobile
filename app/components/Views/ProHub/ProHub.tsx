@@ -19,7 +19,6 @@ import {
   IconName,
   IconSize,
   SectionDivider,
-  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -110,14 +109,9 @@ const ProHub = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // The hub is subscriber-only. Anyone without an entitlement is sent back
-  // rather than shown paid content, and `Loading` deliberately falls through
-  // so an entitled user is not bounced while their claims resolve.
+  // The hub is subscriber-only.
   useEffect(() => {
-    if (
-      proAccess === MoneyAccountPlusAccess.Disabled ||
-      proAccess === MoneyAccountPlusAccess.Eligible
-    ) {
+    if (proAccess !== MoneyAccountPlusAccess.Subscriber) {
       navigation.goBack();
     }
   }, [proAccess, navigation]);
@@ -159,16 +153,7 @@ const ProHub = () => {
         {strings('pro_hub.title')}
       </HeaderBase>
 
-      {proAccess !== MoneyAccountPlusAccess.Subscriber ? (
-        <Box
-          twClassName="px-4 pt-2 gap-y-4"
-          testID={ProHubTestIds.LOADING_SKELETON}
-        >
-          <Skeleton height={104} twClassName="w-full rounded-xl" />
-          <Skeleton height={72} twClassName="w-full rounded-xl" />
-          <Skeleton height={180} twClassName="w-full rounded-xl" />
-        </Box>
-      ) : (
+      {proAccess === MoneyAccountPlusAccess.Subscriber && (
         <ScrollView
           contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
           showsVerticalScrollIndicator={false}
