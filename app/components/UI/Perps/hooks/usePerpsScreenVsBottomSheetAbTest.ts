@@ -27,5 +27,5 @@ export function usePerpsScreenVsBottomSheetAbTest(): UsePerpsScreenVsBottomSheet
     SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
   );
 
-  return { useBottomSheet: variant.useBottomSheet };
+  return { useBottomSheet: variant?.useBottomSheet ?? false };
 }

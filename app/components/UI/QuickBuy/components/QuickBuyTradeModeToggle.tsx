@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    // Matches the buttons' rounded-lg (8px) so the fill tucks neatly behind them.
-    borderRadius: 8,
+    // Matches the buttons' rounded-full (pill shape) so the fill tucks neatly behind them.
+    borderRadius: 999,
   },
 });
 
@@ -113,7 +113,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="border border-muted rounded-xl p-1"
+      twClassName="border border-muted rounded-full p-1"
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
@@ -133,7 +133,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           accessibilityState={{ selected: tradeMode === 'buy' }}
           testID="quick-buy-trade-mode-buy"
         >
-          <Box twClassName="rounded-lg px-4 py-1">
+          <Box twClassName="rounded-full px-4 py-1">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={
@@ -166,7 +166,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           testID="quick-buy-trade-mode-sell"
         >
           <Box
-            twClassName={`rounded-lg px-4 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
+            twClassName={`rounded-full px-4 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
           >
             <Text
               variant={TextVariant.BodyMd}
