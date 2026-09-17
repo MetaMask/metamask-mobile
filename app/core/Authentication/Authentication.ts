@@ -51,6 +51,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
@@ -76,6 +77,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
@@ -109,6 +111,12 @@ import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
+import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
+import {
+  clearUnlockAppStartType,
+  getUnlockAppStartType,
+  resumeUnlockDeeplinkNavigatedAfterOptIn,
+} from '../Performance/unlockTraces';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -403,6 +411,8 @@ class AuthenticationService {
     // Restore vault with empty password
     await KeyringController.submitPassword('');
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       await SeedlessOnboardingController.clearState();
     }
     await this.resetPassword();
@@ -624,18 +634,11 @@ class AuthenticationService {
     isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      const primaryEntropySource = await this.newWalletVaultAndRestore(
-        password,
-        parsedSeed,
-        clearEngine,
-      );
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-          primaryEntropySource,
-        );
         await Engine.context.QrSyncController.importRemainingSecrets();
       }
 
@@ -875,6 +878,10 @@ class AuthenticationService {
             OPTIN_META_METRICS_UI_SEEN,
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            const deeplinkAppStartType = getUnlockAppStartType();
+            cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
+            clearUnlockAppStartType();
+
             NavigationService.navigation?.reset({
               routes: [
                 {
@@ -883,6 +890,14 @@ class AuthenticationService {
                     screen: Routes.ONBOARDING.NAV,
                     params: {
                       screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      params: {
+                        onContinue: async () => {
+                          resumeUnlockDeeplinkNavigatedAfterOptIn({
+                            appStartType: deeplinkAppStartType,
+                          });
+                          await navigateToPostUnlockHome();
+                        },
+                      },
                     },
                   },
                 },
@@ -1087,6 +1102,11 @@ class AuthenticationService {
     } catch (error) {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
+
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      // Must run before the temporary vault unlocks so pairing/sync cannot
+      // attach that wallet to the previous profile.
+      Engine.context.AuthenticationController.clearState();
 
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
@@ -1701,13 +1721,23 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
-    clearBrazeUser();
+    await clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
   };
+
+  /**
+   * Drops the auth session and unsets the Segment canonical profile trait.
+   */
+  private clearAuthSession(): void {
+    Engine.context.AuthenticationController.clearState();
+    analytics.identify({
+      [UserProfileProperty.CANONICAL_PROFILE_ID]: null,
+    });
+  }
 
   /**
    * Resets the wallet state by creating a new wallet and clearing all related state.
@@ -1731,6 +1761,17 @@ class AuthenticationService {
       // data (with the still-present old tokens) only to discard it in resetAll.
       Engine.context.CardController.setResetInProgress(true);
 
+      // Suppress Braze identity sync for the whole reset. The throwaway vault
+      // below is signed in by `useAutoSignIn` from a React effect on a later
+      // tick (after `dispatchLogin`), so the flag must stay set until the app
+      // is locked — clearing it when `newWalletAndKeychain` returns would let
+      // that deferred effect fire a `changeUser` + banner refresh for a wallet
+      // that is discarded immediately, which is pure request noise.
+      setBrazeResetInProgress(true);
+
+      // Previous profile must be gone before the throwaway vault unlocks.
+      this.clearAuthSession();
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -1751,6 +1792,12 @@ class AuthenticationService {
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
+        // Throwaway vault may have signed in while unlocked. Always wipe,
+        // including when a later step throws and resetWalletState swallows it.
+        this.clearAuthSession();
+        // The deferred `useAutoSignIn` effect has run by now (the app is
+        // locked), so Braze identity sync can react to sign-in again.
+        setBrazeResetInProgress(false);
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs

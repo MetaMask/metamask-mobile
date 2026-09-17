@@ -11,6 +11,7 @@
 - [Adding New Handlers](#adding-new-handlers)
 - [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)
 - [Analytics](#analytics) → [See Analytics Documentation](./deeplink-analytics.md)
+- [Performance (Sentry CUFs)](#performance-sentry-cufs) → [See Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md)
 - [Testing Links](#testing-links)
 - [Security Considerations](#security-considerations)
 - [Custom Schemes Explained](#custom-uri-schemes-explained)
@@ -464,6 +465,17 @@ MetaMask Mobile tracks deep link usage through a consolidated `DEEP_LINK_USED` a
 `DEEP_LINK_USED` still attaches those sensitive fields today, which triggers dual anonymous / non-anonymous emission. `addSensitiveProperties` is deprecated. New tracking, including new deep link routes, uses `addProperties` only. When you edit this event, review each sensitive field and drop it or move it to `addProperties` when that is safe.
 
 For the full property list and extraction, see [Deep Link Analytics](./deeplink-analytics.md).
+
+## Performance (Sentry CUFs)
+
+Sentry traces measure **how long** a deeplink takes to process and to commit navigation. They are separate from `DEEP_LINK_USED`.
+
+| Trace                | Measures                                                   |
+| -------------------- | ---------------------------------------------------------- |
+| `Deeplink Processed` | App-side processing until immediately before navigate      |
+| `Deeplink Navigated` | Unlock submit or link intake until navigation state commit |
+
+Catalog, tags, and how to extend: [Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md).
 
 ### Quick Overview
 

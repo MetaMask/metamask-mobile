@@ -33,10 +33,16 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
-import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockQrSyncResetState = jest.fn();
+
+jest.mock('@metamask/keyring-sdk', () => ({
+  encodeMnemonicWords: jest.fn(
+    () =>
+      'say devote wasp video cool lunch brief add fever uncover novel offer',
+  ),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
@@ -50,6 +56,13 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
+
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
@@ -1328,14 +1341,28 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            pendingSecretImports: [
-              {
-                index: 0,
-                value: qrSyncMnemonic,
-                type: QrSyncSecretTypes.MNEMONIC,
-                isPrimary: true,
-              },
-            ],
+            pendingSecretImports: {
+              version: 1 as const,
+              wallets: [
+                {
+                  id: 'wallet:test-primary' as `wallet:${string}`,
+                  type: 'mnemonic' as const,
+                  value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+                  metadata: { name: 'Extension Wallet' },
+                  groups: [
+                    {
+                      id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
+                      groupIndex: 0,
+                      metadata: {
+                        name: 'Account 1',
+                        pinned: false,
+                        hidden: false,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
           },
         },
       },

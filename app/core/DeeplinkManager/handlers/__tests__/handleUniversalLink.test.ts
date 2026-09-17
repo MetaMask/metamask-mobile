@@ -88,11 +88,9 @@ jest.mock('../../../redux', () => ({
   },
 }));
 jest.mock('react-native-quick-crypto', () => ({
-  webcrypto: {
-    subtle: {
-      importKey: jest.fn(),
-      verify: jest.fn(),
-    },
+  subtle: {
+    importKey: jest.fn(),
+    verify: jest.fn(),
   },
 }));
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -114,8 +112,8 @@ jest.mock('react-native-branch', () => ({
   getLatestReferringParams: jest.fn(),
 }));
 
-const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
-  typeof QuickCrypto.webcrypto.subtle
+const mockSubtle = QuickCrypto.subtle as jest.Mocked<
+  typeof QuickCrypto.subtle
 > & {
   verify: jest.Mock<Promise<boolean>>;
 };
@@ -153,17 +151,21 @@ describe('handleUniversalLink', () => {
     handleDeepLinkModalDisplay as jest.MockedFunction<
       typeof handleDeepLinkModalDisplay
     >;
-  // Default mock implementation that resolves with true
-  mockHandleDeepLinkModalDisplay.mockImplementation(async (callbackParams) => {
-    if (
-      callbackParams.linkType === 'invalid' ||
-      callbackParams.linkType === 'unsupported'
-    ) {
-      callbackParams.onContinue?.(); // Primary button action (navigate to home)
-    } else {
-      callbackParams.onContinue();
-    }
-  });
+
+  const applyDefaultDeepLinkModalDisplay = () => {
+    mockHandleDeepLinkModalDisplay.mockImplementation(
+      async (callbackParams) => {
+        if (
+          callbackParams.linkType === 'invalid' ||
+          callbackParams.linkType === 'unsupported'
+        ) {
+          callbackParams.onContinue?.();
+        } else {
+          callbackParams.onContinue();
+        }
+      },
+    );
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -185,7 +187,13 @@ describe('handleUniversalLink', () => {
       connect: jest.fn(),
     });
 
+    applyDefaultDeepLinkModalDisplay();
+
     url = 'https://metamask.app.link';
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('SDK action analytics', () => {

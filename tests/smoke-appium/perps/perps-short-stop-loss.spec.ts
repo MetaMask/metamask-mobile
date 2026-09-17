@@ -9,7 +9,7 @@ import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsProMarketView from '../../page-objects/Perps/PerpsProMarketView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
-import { TestSuiteParams, Utilities } from '../../framework/index.js';
+import { TestSuiteParams } from '../../framework/index.js';
 import {
   beginPerpsSmokeTestPlaywright,
   buildPerpsSmokeFixture,
@@ -46,19 +46,12 @@ appiumTest.describe(SmokePerps('Perps - Short stop loss trigger'), () => {
           await PerpsMarketDetailsView.waitForScreenReady();
           await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
-          await PerpsE2EModifiers.updateMarketPriceServer(
+          await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
             PERPS_SMOKE_MARKET_SYMBOL,
             '2750.00',
-          );
-
-          await Utilities.executeWithRetry(
-            async () => {
-              await PerpsMarketDetailsView.expectClosePositionButtonNotVisible();
-            },
+            () => PerpsMarketDetailsView.expectClosePositionButtonNotVisible(),
             {
-              interval: 1000,
-              timeout: 30000,
               description:
                 'wait for Close position to disappear after short stop loss trigger',
             },
@@ -102,21 +95,15 @@ appiumTest.describe(SmokePerps('Perps Pro - Short stop loss'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
           );
 
-          await PerpsE2EModifiers.updateMarketPriceServer(
+          await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
             PERPS_SMOKE_MARKET_SYMBOL,
             '2750.00',
-          );
-
-          await Utilities.executeWithRetry(
-            async () => {
-              await PerpsProMarketView.expectPositionRowNotVisible(
+            () =>
+              PerpsProMarketView.expectPositionRowNotVisible(
                 PERPS_SMOKE_MARKET_SYMBOL,
-              );
-            },
+              ),
             {
-              interval: 1000,
-              timeout: 30000,
               description:
                 'wait for Pro short position to close after stop loss trigger',
             },

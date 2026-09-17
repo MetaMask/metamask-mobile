@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -15,6 +16,7 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -42,10 +44,12 @@ import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
 import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import { truncateNumber } from '../../utils';
+import { formatEarnRatePercentage } from '../../utils';
 import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
 import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
-import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import useEarnOpportunityNavigation, {
+  getEarnAssetSelectionRedirectTarget,
+} from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
@@ -56,8 +60,26 @@ import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+import useExploreSectionVisibility from '../../../../Views/TrendingView/hooks/useExploreSectionVisibility';
 import { EarnSectionTestIds } from './EarnSection.testIds';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
+  SCREEN_NAMES as MONEY_SCREEN_NAMES,
+} from '../../../Money/constants/moneyEvents';
+import {
+  EARN_MODULE_BUTTON_INTENTS,
+  EARN_MODULE_BUTTON_TYPES,
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
+} from '../../constants/earnModuleEvents';
+import {
+  buildEarnModuleNavigationContext,
+  getEarnModuleAssetProperties,
+} from '../../utils/earnModuleAnalytics';
+import type { EarnModuleSurfaceLocation } from '../../types/earnModuleEvents.types';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -66,6 +88,7 @@ interface EarnSectionHomeAnalytics {
 
 export interface EarnSectionProps {
   tokenDetailsSource: TokenDetailsSource;
+  analyticsContext: EarnModuleSurfaceLocation;
   homeAnalytics?: EarnSectionHomeAnalytics;
   showDividers?: boolean;
   refresh?: RefreshConfig;
@@ -120,6 +143,7 @@ const renderAssetSecondaryText = ({
   return (
     <SensitiveText
       variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
     >
@@ -139,6 +163,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   (
     {
       tokenDetailsSource,
+      analyticsContext,
       homeAnalytics,
       showDividers = false,
       refresh: exploreFeedRefreshConfig,
@@ -179,8 +204,42 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       enabled: enabled && isMoneyAccountVisible,
     });
 
+    // Money and Earn analytics intentionally separate because Money events have additional properties injected that are not relevant to Earn.
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
       useMoneyNavigation();
+    const {
+      screen_name: earnScreenName,
+      entry_point: earnEntryPoint,
+      component_name: earnSectionComponentName,
+    } = analyticsContext;
+    const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics(
+      {
+        screen_name: earnScreenName,
+      },
+    );
+
+    const {
+      trackButtonClicked: trackEarnButtonClicked,
+      trackComponentViewed: trackEarnComponentViewed,
+      trackSurfaceClicked: trackEarnSurfaceClicked,
+    } = useEarnAnalytics(analyticsContext);
+    const hasTrackedNonHomepageViewRef = useRef(false);
+    const {
+      isVisible: isExploreSectionVisible,
+      onLayout: onExploreSectionLayout,
+    } = useExploreSectionVisibility(
+      sectionViewRef,
+      !isHomepageSection && enabled,
+      isLoading,
+    );
+    const earnListAnalyticsContext = useMemo(
+      () =>
+        buildEarnModuleNavigationContext({
+          entry_point: earnEntryPoint,
+          screen_name: earnScreenName,
+        }),
+      [earnEntryPoint, earnScreenName],
+    );
 
     const earnSectionItemCount =
       assetSlots.length +
@@ -219,6 +278,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    // Homepage section view tracking
     const { onLayout } = useHomeViewedEvent({
       sectionRef: homepageTelemetryEnabled ? sectionViewRef : null,
       isLoading,
@@ -228,7 +288,39 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       isEmpty: false,
       itemCount: earnSectionItemCount,
       fireImmediateWhenNoView: homepageTelemetryEnabled,
+      onSectionViewed: homepageTelemetryEnabled
+        ? () =>
+            trackEarnComponentViewed({
+              component_name: earnSectionComponentName,
+            })
+        : undefined,
     });
+
+    // Explore view tracking
+    useEffect(() => {
+      if (isHomepageSection) return;
+      if (!enabled) {
+        hasTrackedNonHomepageViewRef.current = false;
+        return;
+      }
+      if (
+        isLoading ||
+        !isExploreSectionVisible ||
+        hasTrackedNonHomepageViewRef.current
+      )
+        return;
+      hasTrackedNonHomepageViewRef.current = true;
+      trackEarnComponentViewed({
+        component_name: earnSectionComponentName,
+      });
+    }, [
+      enabled,
+      earnSectionComponentName,
+      isHomepageSection,
+      isExploreSectionVisible,
+      isLoading,
+      trackEarnComponentViewed,
+    ]);
 
     useSectionPerformance({
       sectionId: HomeSectionNames.EARN,
@@ -238,15 +330,69 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       enabled: homepageTelemetryEnabled,
     });
 
-    const handleViewAll = useCallback(() => {
+    const handleEarnSectionHeaderPress = useCallback(() => {
+      trackEarnSurfaceClicked({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_HEADER,
+        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+      });
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.SEARCH_LIST,
+        params: {
+          analyticsContext: earnListAnalyticsContext,
+        },
       });
-    }, [navigation]);
+    }, [earnListAnalyticsContext, navigation, trackEarnSurfaceClicked]);
+
+    const handleViewMore = useCallback(() => {
+      trackEarnSurfaceClicked({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_VIEW_MORE_CARD,
+        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+      });
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.SEARCH_LIST,
+        params: {
+          analyticsContext: earnListAnalyticsContext,
+        },
+      });
+    }, [earnListAnalyticsContext, navigation, trackEarnSurfaceClicked]);
 
     const handleAssetCardPress = useCallback(
-      (asset: EarnAsset) => navigateFromEarnAsset(asset, tokenDetailsSource),
-      [navigateFromEarnAsset, tokenDetailsSource],
+      (asset: EarnAsset, position: number) => {
+        const assetsInList = assetSlots.filter(
+          (slot) => slot.kind === 'asset',
+        ).length;
+
+        trackEarnSurfaceClicked({
+          component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
+          ...getEarnModuleAssetProperties(asset, position, assetsInList),
+          redirect_target: getEarnAssetSelectionRedirectTarget(
+            asset,
+            isOnboardingRedirectNeeded,
+          ),
+        });
+
+        navigateFromEarnAsset(
+          asset,
+          tokenDetailsSource,
+          buildEarnModuleNavigationContext(
+            {
+              entry_point: earnEntryPoint,
+              screen_name: earnScreenName,
+            },
+            position,
+            assetsInList,
+          ),
+        );
+      },
+      [
+        assetSlots,
+        earnEntryPoint,
+        earnScreenName,
+        isOnboardingRedirectNeeded,
+        navigateFromEarnAsset,
+        tokenDetailsSource,
+        trackEarnSurfaceClicked,
+      ],
     );
 
     const moneyAccountCardSecondaryText = useMemo(() => {
@@ -265,6 +411,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       return (
         <SensitiveText
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >
@@ -279,14 +426,31 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     ]);
 
     const handleMoneyAccountCardPress = useCallback(() => {
+      trackMoneySurfaceClicked({
+        component_name: MONEY_COMPONENT_NAMES.EARN_SECTION_MONEY_CARD,
+        redirect_target: isOnboardingRedirectNeeded
+          ? MONEY_SCREEN_NAMES.MONEY_ONBOARDING
+          : MONEY_SCREEN_NAMES.MONEY_HOME,
+      });
       navigateToMoneyHome();
-    }, [navigateToMoneyHome]);
+    }, [
+      isOnboardingRedirectNeeded,
+      navigateToMoneyHome,
+      trackMoneySurfaceClicked,
+    ]);
 
     const handleRetry = useCallback(async () => {
       if (isRetryingRef.current) {
         return;
       }
 
+      trackEarnButtonClicked({
+        button_type: EARN_MODULE_BUTTON_TYPES.TEXT,
+        button_intent: EARN_MODULE_BUTTON_INTENTS.RETRY,
+        label_key: 'earn_module.retry',
+        component_name:
+          EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ERROR_RETRY_BUTTON,
+      });
       isRetryingRef.current = true;
       setIsRetrying(true);
 
@@ -301,7 +465,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         isRetryingRef.current = false;
         setIsRetrying(false);
       }
-    }, [refresh]);
+    }, [refresh, trackEarnButtonClicked]);
 
     const renderedAssetCards = useMemo(
       () =>
@@ -331,7 +495,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               })}
               tertiaryText={highestRateCopy}
               testID={EarnSectionTestIds.ASSET_CARD(index)}
-              onPress={() => handleAssetCardPress(asset)}
+              onPress={() => handleAssetCardPress(asset, index + 1)}
             />
           );
         }),
@@ -339,13 +503,16 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     );
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View
+        ref={sectionViewRef}
+        onLayout={isHomepageSection ? onLayout : onExploreSectionLayout}
+      >
         <Box testID="earn-section">
           {showDividers && <SectionDivider />}
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive
-            onPress={handleViewAll}
+            onPress={handleEarnSectionHeaderPress}
             testID={homepageSectionTitleTestId(HomeSectionNames.EARN)}
           />
           {hasError && (
@@ -404,7 +571,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     strings('earn_module.rate_unavailable')
                   ) : (
                     strings('earn_module.rate_apy', {
-                      percentage: truncateNumber(moneyApyPercent),
+                      percentage: formatEarnRatePercentage(moneyApyPercent),
                     })
                   )
                 }
@@ -418,7 +585,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             {!isLoading && hasMoreAssets && (
               <EarnSectionCard
                 testID={EarnSectionTestIds.VIEW_MORE_CARD}
-                onPress={handleViewAll}
+                onPress={handleViewMore}
               >
                 <Box
                   alignItems={BoxAlignItems.Center}

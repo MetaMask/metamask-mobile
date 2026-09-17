@@ -714,12 +714,12 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
-  it('omits TWAP and Scale when controller v13 resolves a MYX route', () => {
+  it('omits TWAP and Scale when the controller resolves a Lighter route', () => {
     mockUsePerpsProvider.mockReturnValue({
       isLoadingOrderCapabilities: false,
       orderCapabilities: {
         status: 'ready',
-        providerId: 'myx',
+        providerId: 'lighter',
         supportedStrategies: ['twap', 'scale'],
       },
       supportsTwapOrders: true,

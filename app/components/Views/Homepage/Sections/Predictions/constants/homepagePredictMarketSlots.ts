@@ -1,12 +1,12 @@
 import type { PredictSeries } from '../../../../../UI/Predict/types';
 import { BTC_UP_OR_DOWN_5M_SERIES } from '../../../../../UI/Predict/constants/btcUpDown5mSeries';
 
-interface HomepagePredictSeriesSlot {
+export interface HomepagePredictSeriesSlot {
   type: 'series';
   series: PredictSeries;
 }
 
-interface HomepagePredictEventSlot {
+export interface HomepagePredictEventSlot {
   type: 'event';
   id: string;
   slug: string;
@@ -51,20 +51,22 @@ export const HOMEPAGE_PREDICT_MARKET_SLOTS = [
   },
 ] as const satisfies readonly HomepagePredictMarketSlot[];
 
-type HomepagePredictConfiguredSlot =
-  (typeof HOMEPAGE_PREDICT_MARKET_SLOTS)[number];
-
 export const isHomepagePredictEventSlot = (
-  slot: HomepagePredictConfiguredSlot,
-): slot is Extract<HomepagePredictConfiguredSlot, { type: 'event' }> =>
-  slot.type === 'event';
+  slot: HomepagePredictMarketSlot,
+): slot is HomepagePredictEventSlot => slot.type === 'event';
 
-export const HOMEPAGE_PREDICT_EVENT_SLOTS =
-  HOMEPAGE_PREDICT_MARKET_SLOTS.filter(isHomepagePredictEventSlot);
+export const getHomepagePredictEventSlots = (
+  slots: readonly HomepagePredictMarketSlot[],
+): HomepagePredictEventSlot[] => slots.filter(isHomepagePredictEventSlot);
 
-export const HOMEPAGE_PREDICT_EVENT_QUERY = [
-  'active=true',
-  'archived=false',
-  'closed=false',
-  ...HOMEPAGE_PREDICT_EVENT_SLOTS.map(({ id }) => `id=${id}`),
-].join('&');
+export const buildHomepagePredictEventQuery = (
+  slots: readonly HomepagePredictMarketSlot[],
+): string =>
+  [
+    'active=true',
+    'archived=false',
+    'closed=false',
+    ...getHomepagePredictEventSlots(slots).map(
+      ({ id }) => `id=${encodeURIComponent(id)}`,
+    ),
+  ].join('&');

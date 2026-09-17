@@ -21,6 +21,7 @@ import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { createAppiumLogger } from './appiumLogger.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { withAdbHostLockSync } from './services/appium/adbHostLock.ts';
 
 const logger = createAppiumLogger('AppiumUtilities');
 
@@ -804,8 +805,10 @@ class AppiumUtilities {
     const port = getMetroPort();
     const serial = currentDeviceDetails.udid?.trim();
     const adbFlag = serial ? `-s ${serial}` : '';
-    execSync(`adb ${adbFlag} reverse tcp:${port} tcp:${port}`, {
-      stdio: 'ignore',
+    withAdbHostLockSync(() => {
+      execSync(`adb ${adbFlag} reverse tcp:${port} tcp:${port}`, {
+        stdio: 'ignore',
+      });
     });
   }
 

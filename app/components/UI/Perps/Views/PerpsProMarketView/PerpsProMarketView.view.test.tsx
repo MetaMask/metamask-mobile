@@ -109,7 +109,7 @@ const completeTwapFill: TwapOrderFill = {
 };
 const completeTwap: TwapOrder = {
   ...activeTwap,
-  providerId: 'myx',
+  providerId: 'lighter',
   randomize: true,
   reduceOnly: true,
   startedAt: 1_700_000_000_000,
@@ -124,6 +124,7 @@ const triggeredOrderTypeIDs = [
 
 let connectionReadySpy: jest.SpyInstance;
 let connectionSubscriptionSpy: jest.SpyInstance;
+let dateNowSpy: jest.SpyInstance | undefined;
 const issuedTwapReadPromises = new Set<Promise<TwapOrder[]>>();
 const activeTwapSubscriptions = new Set<symbol>();
 const settledChaseReadPromises = new Set<Promise<ChaseOrder[]>>();
@@ -140,12 +141,6 @@ const mockTwapOrders = (orders: TwapOrder[]) => {
   jest
     .mocked(Engine.context.PerpsController.getTwapOrders)
     .mockImplementation(() => trackTwapRead(Promise.resolve(orders)));
-};
-
-const mockTwapOrdersFailure = (error: Error) => {
-  jest
-    .mocked(Engine.context.PerpsController.getTwapOrders)
-    .mockImplementation(() => trackTwapRead(Promise.reject(error)));
 };
 
 const mockNextTwapOrdersFailure = (error: Error) => {
@@ -219,9 +214,8 @@ const openTwapManagementTab = async () => {
   await screen.findByTestId(
     PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
   );
-  // Rollout-off discovery inserts the tab asynchronously. Drain that read and
-  // reacquire the current tab node so the press cannot target the instance
-  // replaced by the discovery render.
+  // Drain the issued read and reacquire the current tab node so the press
+  // cannot target an instance replaced by a re-render.
   await settleIssuedTwapReads();
   fireEvent.press(
     screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP),
@@ -328,6 +322,10 @@ afterEach(async () => {
     connectionSubscriptionSpy.mockRestore();
     resetPerpsChaseOrdersStoreForTests();
     resetChaseOrderVisibilityForTests();
+    // The TWAP elapsed journey pins Date.now; restore it here so a failed
+    // assertion cannot leak a frozen clock into the next test.
+    dateNowSpy?.mockRestore();
+    dateNowSpy = undefined;
   }
 });
 
@@ -373,7 +371,7 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
 
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
-  activeProvider: 'hyperliquid' | 'myx' = 'hyperliquid',
+  activeProvider: 'hyperliquid' | 'lighter' = 'hyperliquid',
 ) => {
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
@@ -386,7 +384,7 @@ const renderProMarketWithTwapFlag = (
           }
         : {
             status: 'unavailable',
-            providerId: 'myx',
+            providerId: 'lighter',
             reason: 'strategy_market_unsupported',
           },
     );
@@ -686,28 +684,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'discovers an active TWAP termination surface on cold-start rollback',
-    async () => {
-      mockTwapOrders([activeTwap]);
-      renderProMarketWithTwapFlag(false);
-
-      await openTwapManagementTab();
-
-      expect(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            getTwapOrderProviderId(activeTwap),
-            activeTwap.orderId,
-          ),
-        ),
-      ).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
     'renders complete TWAP data and switches a same-symbol provider row',
     async () => {
-      // Arrange
+      // Arrange: the elapsed row derives from the wall clock, so pin it to the
+      // one minute past `startedAt` this fixture's elapsedTimeMilliseconds
+      // describes. Without this the schedule reads as decades old and clamps
+      // to its full duration. A Date.now spy keeps timers real, which the
+      // async findBy* assertions below depend on.
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(completeTwap.startedAt + 60_000);
       mockTwapOrders([completeTwap]);
       renderProMarketWithTwapFlag(true);
 
@@ -775,7 +761,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED),
         ),
-      ).toHaveTextContent('1 minute / 30 minutes');
+      ).toHaveTextContent('00:01:00 / 00:30:00');
       expect(
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_RANDOMIZE),
@@ -790,8 +776,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect.stringContaining(strings('perps.market.close_short')),
       );
 
-      // Act / Assert: the route starts on Hyperliquid ETH. A MYX ETH TWAP must
-      // still switch venue, carrying its provider into the remounted form.
+      // Act / Assert: the route starts on Hyperliquid ETH. A Lighter ETH TWAP
+      // must still switch venue, carrying its provider into the remounted form.
       fireEvent.press(
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_MARKET_BUTTON),
@@ -801,7 +787,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(
           Engine.context.PerpsController.getOrderCapabilities,
         ).toHaveBeenCalledWith(
-          expect.objectContaining({ symbol: 'ETH', providerId: 'myx' }),
+          expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
         ),
       );
 
@@ -872,7 +858,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'retains an active TWAP termination surface when rollout turns off',
+    'withdraws the TWAP tab when rollout turns off mid-session',
     async () => {
       mockTwapOrders([activeTwap]);
       const { store } = renderProMarketWithTwapFlag(true);
@@ -901,43 +887,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
 
       expect(
-        screen.getByTestId(
+        screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
         ),
-      ).toBeOnTheScreen();
-      expect(screen.getByTestId(terminateTestID)).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
-    'keeps discovery retry available after rollback and recovers an active TWAP',
-    async () => {
-      const getTwapOrders = jest.mocked(
-        Engine.context.PerpsController.getTwapOrders,
-      );
-      mockTwapOrdersFailure(new Error('venue down'));
-      renderProMarketWithTwapFlag(false);
-
-      await openTwapManagementTab();
-      expect(
-        await screen.findByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
-      ).toBeOnTheScreen();
-      const retryButton = screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.TWAP_RETRY,
-      );
-      await waitFor(() => expect(retryButton).toBeEnabled());
-
-      mockTwapOrders([activeTwap]);
-      fireEvent.press(retryButton);
-
-      expect(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            getTwapOrderProviderId(activeTwap),
-            activeTwap.orderId,
-          ),
-        ),
-      ).toBeOnTheScreen();
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(terminateTestID)).not.toBeOnTheScreen();
     },
   );
 
@@ -960,7 +914,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
       cancelOrder.mockClear();
       cancelOrder.mockResolvedValueOnce({ success: true });
-      renderProMarketWithTwapFlag(false);
+      renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateTestID = getPerpsProTwapTerminateSelector(
         getTwapOrderProviderId(activeTwap),
@@ -1013,7 +967,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         Engine.context.PerpsController.getTwapOrders,
       );
       mockTwapOrders([activeTwap]);
-      renderProMarketWithTwapFlag(false);
+      renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateButton = await screen.findByTestId(
         getPerpsProTwapTerminateSelector(
@@ -1061,7 +1015,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       `closes TWAP termination when the ${identityChange} identity changes`,
       async () => {
         mockTwapOrders([activeTwap]);
-        const { store } = renderProMarketWithTwapFlag(false);
+        const { store } = renderProMarketWithTwapFlag(true);
         await openTwapManagementTab();
         fireEvent.press(
           await screen.findByTestId(
@@ -1150,7 +1104,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           syncEngineControllerState(store, 'PerpsController', {
             ...perpsController,
             ...(identityChange === 'provider'
-              ? { activeProvider: 'myx' }
+              ? { activeProvider: 'lighter' }
               : { isTestnet: true }),
           });
         });
@@ -2658,7 +2612,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'hides TWAP for a provider without TWAP placement support',
     async () => {
-      renderProMarketWithTwapFlag(true, 'myx');
+      renderProMarketWithTwapFlag(true, 'lighter');
       await findSizeInput();
 
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));

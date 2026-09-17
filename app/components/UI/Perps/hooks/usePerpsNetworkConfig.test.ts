@@ -239,7 +239,7 @@ describe('usePerpsNetworkConfig', () => {
     it('should handle switching between different providers', async () => {
       const providers: PerpsActiveProviderMode[] = [
         'hyperliquid',
-        'myx',
+        'lighter',
         'aggregated',
       ];
 

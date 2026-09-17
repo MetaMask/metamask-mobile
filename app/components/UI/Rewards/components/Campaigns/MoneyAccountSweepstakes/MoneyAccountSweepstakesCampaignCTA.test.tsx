@@ -7,6 +7,7 @@ import {
   type CampaignDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { ConfirmationLaunchSource } from '../../../../../Views/confirmations/components/confirm/confirm-component';
 import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
 
 const mockNavigate = jest.fn();
@@ -220,8 +221,11 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
 
     await waitFor(() => {
       expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+      // The Rewards launch source lands the funded user on Money home pushed
+      // over this campaign, so back returns to Rewards.
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        params: { launchedFrom: ConfirmationLaunchSource.Rewards },
       });
     });
   });
@@ -243,6 +247,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        params: { launchedFrom: ConfirmationLaunchSource.Rewards },
       });
     });
     expect(mockShowToast).not.toHaveBeenCalled();

@@ -89,6 +89,7 @@ import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
   formatPerpsFiat,
+  formatPerpsPrice,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -112,6 +113,7 @@ import {
   getPerpsOrderTpSlWarnings,
   type PerpsOrderTpSlWarnings,
 } from '../../../../utils/tpslValidation';
+import { getLimitPriceFarFromMarketWarning } from '../../../../utils/limitPriceFarFromMarket';
 import {
   canonicalizeOrderPrice,
   getLimitPriceCrossingWarning,
@@ -122,6 +124,8 @@ import {
 import {
   CHASE_ORDER_UI_CONFIG,
   CHASE_RETAINED_STATUSES,
+  FAR_FROM_MARKET_WARNING_INTERACTION,
+  FAR_FROM_MARKET_WARNING_TYPE,
   MAX_PERPS_INPUT_DIGITS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
@@ -131,7 +135,10 @@ import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
-import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsPositionModifyPreviewEnabledFlag,
+} from '../../../../selectors/featureFlags';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
@@ -141,6 +148,7 @@ import type {
   PerpsProSizeSliderModel,
   PerpsProTwapModel,
 } from './PerpsProOrderForm.types';
+import { formatTwapRuntimeSummary } from './PerpsProTwapFields';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 import { usePerpsProPositionModifyPreview } from './usePerpsProPositionModifyPreview';
 
@@ -581,6 +589,9 @@ export const usePerpsProOrderForm = ({
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const isPositionModifyPreviewEnabled = useSelector(
+    selectPerpsPositionModifyPreviewEnabledFlag,
+  );
   const chartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
 
   const { isInitialized } = usePerpsConnection();
@@ -635,6 +646,7 @@ export const usePerpsProOrderForm = ({
   const [scaleSizeSkew, setScaleSizeSkew] = useState(SCALE_DEFAULT_SKEW);
   const [hasScaleValidationInteraction, setHasScaleValidationInteraction] =
     useState(false);
+  const [hasBlurredScalePrice, setHasBlurredScalePrice] = useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
   const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled && isScreenFocused,
@@ -694,6 +706,7 @@ export const usePerpsProOrderForm = ({
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
+  const lastTrackedFarFromMarketRef = useRef<string | undefined>(undefined);
   const submissionStateRef = useRef('');
   const complianceStateRef = useRef('');
   const lifecycleGenerationRef = useRef(0);
@@ -1559,7 +1572,7 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: !isScaleOrder && !isTwapOrder,
+    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
   });
 
   const existingPositionLeverageForValidation =
@@ -2519,6 +2532,7 @@ export const usePerpsProOrderForm = ({
         setScaleTotalOrders('');
         setScaleSizeSkew(SCALE_DEFAULT_SKEW);
         setHasScaleValidationInteraction(false);
+        setHasBlurredScalePrice(false);
         setReduceOnly(false);
         return;
       }
@@ -2970,6 +2984,81 @@ export const usePerpsProOrderForm = ({
   const isTriggerOrderUnavailable =
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
 
+  const farFromMarketWarning = useMemo(() => {
+    // Wait for start/end blur. Change-time interaction is too early:
+    // a partial start ('8') still ladders if end and count are filled.
+    if (isScaleOrder && (!hasBlurredScalePrice || !scaleLadderResult.success)) {
+      return undefined;
+    }
+    // setLimitPrice updates every keystroke, so '9' of '90000' would warn.
+    if (!isScaleOrder && !hasBlurredLimitPrice) {
+      return undefined;
+    }
+    return getLimitPriceFarFromMarketWarning({
+      orderType: orderForm.type,
+      direction: orderForm.direction,
+      reduceOnly,
+      limitPrice: normalizedLimitPrice,
+      startPrice: scaleStartPrice,
+      endPrice: scaleEndPrice,
+      bestBid: currentTopOfBook?.bestBid
+        ? Number.parseFloat(currentTopOfBook.bestBid)
+        : undefined,
+      bestAsk: currentTopOfBook?.bestAsk
+        ? Number.parseFloat(currentTopOfBook.bestAsk)
+        : undefined,
+      szDecimals,
+    });
+  }, [
+    currentTopOfBook?.bestAsk,
+    currentTopOfBook?.bestBid,
+    hasBlurredLimitPrice,
+    hasBlurredScalePrice,
+    isScaleOrder,
+    normalizedLimitPrice,
+    orderForm.direction,
+    orderForm.type,
+    reduceOnly,
+    scaleEndPrice,
+    scaleLadderResult.success,
+    scaleStartPrice,
+    szDecimals,
+  ]);
+
+  useEffect(() => {
+    if (!farFromMarketWarning) {
+      lastTrackedFarFromMarketRef.current = undefined;
+      return;
+    }
+    if (lastTrackedFarFromMarketRef.current === farFromMarketWarning) {
+      return;
+    }
+
+    lastTrackedFarFromMarketRef.current = farFromMarketWarning;
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        FAR_FROM_MARKET_WARNING_INTERACTION,
+      [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
+      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: farFromMarketWarning,
+      // Limit orders must not inherit empty scale fields (Number('') is 0).
+      ...(isScaleOrder
+        ? scaleAnalyticsProperties
+        : {
+            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderForm.type,
+            [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: reduceOnly,
+          }),
+    });
+  }, [
+    farFromMarketWarning,
+    isScaleOrder,
+    orderForm.asset,
+    orderForm.type,
+    reduceOnly,
+    scaleAnalyticsProperties,
+    track,
+  ]);
+
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
       ...(scaleValidationNotice ? [scaleValidationNotice] : []),
@@ -3045,10 +3134,20 @@ export const usePerpsProOrderForm = ({
       });
     }
 
+    if (isScaleOrder && farFromMarketWarning) {
+      list.push({
+        id: 'far-from-market',
+        variant: 'banner',
+        message: farFromMarketWarning,
+      });
+    }
+
     return list;
   }, [
     reduceOnly,
     scaleValidationNotice,
+    farFromMarketWarning,
+    isScaleOrder,
     isReduceOnlyPositionLoading,
     isTriggerOrderUnavailable,
     marketDataBlockingReason,
@@ -3070,6 +3169,42 @@ export const usePerpsProOrderForm = ({
     isChaseMaxDistanceInvalid,
   ]);
 
+  const twapRuntimeSummary = useMemo(
+    () => formatTwapRuntimeSummary(twapDuration),
+    [twapDuration],
+  );
+  const twapSizePerSuborder = useMemo(() => {
+    const suborderCount = Math.floor(
+      (twapDuration * PERPS_TWAP_UI_CONFIG.SecondsPerMinute) /
+        PERPS_TWAP_UI_CONFIG.SuborderIntervalSeconds,
+    );
+    const usdAmount = Number.parseFloat(effectiveUsdAmount);
+    const baseSize =
+      effectiveInputPrice > 0 && Number.isFinite(usdAmount)
+        ? usdAmount / effectiveInputPrice
+        : 0;
+
+    if (suborderCount < 1 || baseSize <= 0) {
+      return `${PERPS_CONSTANTS.FallbackDataDisplay} ${symbol}`;
+    }
+
+    const sizePerSuborder = baseSize / suborderCount;
+    const smallestSize = 10 ** -szDecimals;
+
+    // Long runtimes split small orders below the asset's size precision;
+    // show the bound instead of a misleading zero.
+    if (sizePerSuborder < smallestSize) {
+      return `<${smallestSize.toFixed(szDecimals)} ${symbol}`;
+    }
+
+    return `${sizePerSuborder.toFixed(szDecimals)} ${symbol}`;
+  }, [
+    effectiveInputPrice,
+    effectiveUsdAmount,
+    symbol,
+    szDecimals,
+    twapDuration,
+  ]);
   const summary = useMemo<PerpsProOrderSummaryProps>(() => {
     // Limit-execution orders use a fixed default slippage in buildPerpsOrderParams
     // and the user-configured cap has no effect. Hide the row entirely.
@@ -3109,7 +3244,10 @@ export const usePerpsProOrderForm = ({
 
     let margin = orderMarginDisplay;
     let liquidationPriceDisplay = orderLiquidationDisplay;
-    if (positionModifySummaryDisplay.showBeforeAfter) {
+    if (
+      isPositionModifyPreviewEnabled &&
+      positionModifySummaryDisplay.showBeforeAfter
+    ) {
       margin = formatBeforeAfter(
         positionModifySummaryDisplay.currentMarginDisplay,
         positionModifySummaryDisplay.resultingMarginDisplay,
@@ -3130,10 +3268,19 @@ export const usePerpsProOrderForm = ({
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
+      twapSummary: isTwapOrder
+        ? {
+            runtime: twapRuntimeSummary,
+            sizePerSuborder: twapSizePerSuborder,
+          }
+        : undefined,
     };
   }, [
     isMarketOrder,
     isTriggerMarketOrder,
+    isTwapOrder,
+    twapRuntimeSummary,
+    twapSizePerSuborder,
     hidesSlippage,
     effectiveMarginRequired,
     hasValidAmount,
@@ -3145,6 +3292,7 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     onSlippagePress,
+    isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
   ]);
 
@@ -3212,10 +3360,12 @@ export const usePerpsProOrderForm = ({
       onStartPriceChange: (value) =>
         guardScaleMutation(() => {
           setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(false);
           normalizeScaleInput(value, scaleStartPrice, setScaleStartPrice);
         }),
       onStartPriceBlur: () =>
         guardScaleMutation(() => {
+          setHasBlurredScalePrice(true);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
           );
@@ -3223,10 +3373,12 @@ export const usePerpsProOrderForm = ({
       onEndPriceChange: (value) =>
         guardScaleMutation(() => {
           setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(false);
           normalizeScaleInput(value, scaleEndPrice, setScaleEndPrice);
         }),
       onEndPriceBlur: () =>
         guardScaleMutation(() => {
+          setHasBlurredScalePrice(true);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE,
           );
@@ -3460,13 +3612,18 @@ export const usePerpsProOrderForm = ({
       midPrice: assetData.price,
       szDecimals,
     });
-    if (!warning) {
+    if (warning) {
+      return { severity: 'warning' as const, message: warning };
+    }
+
+    if (!farFromMarketWarning) {
       return undefined;
     }
 
-    return { severity: 'warning' as const, message: warning };
+    return { severity: 'warning' as const, message: farFromMarketWarning };
   }, [
     assetData.price,
+    farFromMarketWarning,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     isScaleOrder,
@@ -3611,6 +3768,10 @@ export const usePerpsProOrderForm = ({
     (value: boolean) => setTwapRandomize(value),
     [],
   );
+  const onTwapRuntimeInfoPress = useCallback(
+    () => setSelectedTooltip('twap_runtime'),
+    [setSelectedTooltip],
+  );
   const twap = useMemo<PerpsProTwapModel>(
     () => ({
       days: twapDays,
@@ -3622,12 +3783,14 @@ export const usePerpsProOrderForm = ({
       onHoursChange: onTwapHoursChange,
       onMinutesChange: onTwapMinutesChange,
       onRandomizeChange: onTwapRandomizeChange,
+      onRuntimeInfoPress: onTwapRuntimeInfoPress,
     }),
     [
       onTwapDaysChange,
       onTwapHoursChange,
       onTwapMinutesChange,
       onTwapRandomizeChange,
+      onTwapRuntimeInfoPress,
       twapDays,
       twapDurationErrorMessage,
       twapHours,
@@ -3725,7 +3888,7 @@ export const usePerpsProOrderForm = ({
     onChaseMaxDistanceUnitChange,
     chaseReferencePrice:
       assetData.price > 0
-        ? formatPerpsFiat(assetData.price)
+        ? formatPerpsPrice(assetData.price, { szDecimals })
         : PERPS_CONSTANTS.FallbackPriceDisplay,
     onChaseMaxDistanceChange,
     onLimitPriceChange,

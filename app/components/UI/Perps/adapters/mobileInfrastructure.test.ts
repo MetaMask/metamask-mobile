@@ -482,13 +482,6 @@ describe('createMobileClientConfig', () => {
       'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
       'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
       'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
-      'MM_PERPS_MYX_PROVIDER_ENABLED',
-      'MM_PERPS_MYX_APP_ID_TESTNET',
-      'MM_PERPS_MYX_API_SECRET_TESTNET',
-      'MM_PERPS_MYX_BROKER_ADDRESS_TESTNET',
-      'MM_PERPS_MYX_APP_ID_MAINNET',
-      'MM_PERPS_MYX_API_SECRET_MAINNET',
-      'MM_PERPS_MYX_BROKER_ADDRESS_MAINNET',
     ];
     const saved: Record<string, string | undefined> = {};
     for (const key of envVars) {
@@ -509,15 +502,6 @@ describe('createMobileClientConfig', () => {
         hyperliquid: {
           builderAddressTestnet: '',
           builderAddressMainnet: '',
-        },
-        myx: {
-          enabled: false,
-          appIdTestnet: '',
-          apiSecretTestnet: '',
-          brokerAddressTestnet: '',
-          appIdMainnet: '',
-          apiSecretMainnet: '',
-          brokerAddressMainnet: '',
         },
       },
     });

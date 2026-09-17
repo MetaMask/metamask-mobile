@@ -6,7 +6,10 @@ import {
 import { Hex } from '@metamask/utils';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useDepositPrefillAmount } from './useDepositPrefillAmount';
+import {
+  DepositPrefillStatus,
+  useDepositPrefillAmount,
+} from './useDepositPrefillAmount';
 import {
   selectMetaMaskPayFlags,
   selectDepositLimits,
@@ -14,6 +17,9 @@ import {
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
+import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
@@ -44,6 +50,9 @@ jest.mock('../../utils/relayFixedSpread', () => ({
 }));
 
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../pay/useTransactionPayAvailableTokens');
+jest.mock('../pay/useTransactionPayBalance');
+jest.mock('../pay/useTransactionPayData');
 jest.mock('./useTransactionMetadataRequest');
 
 jest.mock('../../../../../selectors/transactionPayController', () => ({
@@ -62,6 +71,13 @@ const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
 const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+const useTransactionPayAvailableTokensMock = jest.mocked(
+  useTransactionPayAvailableTokens,
+);
+const useTransactionPayBalanceMock = jest.mocked(useTransactionPayBalance);
+const useTransactionPayFiatPaymentMock = jest.mocked(
+  useTransactionPayFiatPayment,
+);
 const selectMetaMaskPayFlagsMock =
   selectMetaMaskPayFlags as unknown as jest.Mock;
 const selectDepositLimitsMock = selectDepositLimits as unknown as jest.Mock;
@@ -106,14 +122,32 @@ function makePayToken(
   } as TransactionPaymentToken;
 }
 
+/**
+ * Sets the pay token together with the reactive balance the hook reads, so a
+ * token's `balanceUsd` keeps describing what the wallet holds.
+ */
+function setPayTokenWithBalance(payToken?: TransactionPaymentToken) {
+  useTransactionPayTokenMock.mockReturnValue({
+    payToken,
+  } as ReturnType<typeof useTransactionPayToken>);
+  useTransactionPayBalanceMock.mockReturnValue({
+    balanceRaw: '0',
+    balanceUsd: Number(payToken?.balanceUsd ?? 0),
+  });
+}
+
 function setupMocks(
   overrides: {
     prefilledAmountDefault?: { enabled: boolean };
     prefilledAmountOverrides?: Record<string, { enabled: boolean }>;
     depositLimits?: Record<string, number>;
     payToken?: TransactionPaymentToken | null;
+    /** Reactive balance, when it must differ from the pay token snapshot. */
+    payBalanceUsd?: number;
     transactionMeta?: TransactionMeta;
     accountOverride?: string;
+    availableTokenBalances?: number[];
+    fiatPaymentSelected?: boolean;
     stablecoin?: boolean;
     depositIntent?: string;
   } = {},
@@ -123,6 +157,7 @@ function setupMocks(
     prefilledAmountOverrides = { moneyAccountDeposit: { enabled: true } },
     depositLimits = {},
     transactionMeta = makeTransactionMeta(),
+    availableTokenBalances = [1000],
     stablecoin = true,
     depositIntent = 'convert',
   } = overrides;
@@ -133,9 +168,27 @@ function setupMocks(
       : makePayToken();
 
   useTransactionMetadataRequestMock.mockReturnValue(transactionMeta);
-  useTransactionPayTokenMock.mockReturnValue({
-    payToken: resolvedPayToken,
-  } as ReturnType<typeof useTransactionPayToken>);
+  setPayTokenWithBalance(resolvedPayToken);
+
+  if (overrides.payBalanceUsd !== undefined) {
+    useTransactionPayBalanceMock.mockReturnValue({
+      balanceRaw: '0',
+      balanceUsd: overrides.payBalanceUsd,
+    });
+  }
+  useTransactionPayAvailableTokensMock.mockReturnValue({
+    availableTokens: availableTokenBalances.map((balance, index) => ({
+      address: `${TOKEN_ADDRESS_MOCK}-${index}`,
+      chainId: CHAIN_ID_MOCK,
+      fiat: { balance },
+    })),
+    hasTokens: availableTokenBalances.length > 0,
+  } as ReturnType<typeof useTransactionPayAvailableTokens>);
+  useTransactionPayFiatPaymentMock.mockReturnValue(
+    overrides.fiatPaymentSelected
+      ? ({ selectedPaymentMethodId: 'fiat-method' } as never)
+      : undefined,
+  );
 
   selectMetaMaskPayFlagsMock.mockReturnValue({
     prefilledAmount: {
@@ -151,8 +204,10 @@ function setupMocks(
   );
 }
 
-function runHook() {
-  return renderHookWithProvider(() => useDepositPrefillAmount(), { state: {} });
+function runHook(options?: { autoSelectFiatPayment?: boolean }) {
+  return renderHookWithProvider(() => useDepositPrefillAmount(options), {
+    state: {},
+  });
 }
 
 describe('useDepositPrefillAmount', () => {
@@ -175,9 +230,7 @@ describe('useDepositPrefillAmount', () => {
         prefillAmount: undefined,
         percentage: undefined,
         isLimitCapped: false,
-        enabled: false,
-        isLoading: false,
-        hasPrefilled: false,
+        status: DepositPrefillStatus.Disabled,
       });
     });
 
@@ -192,8 +245,7 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       // addMusd amount autofill is owned by useTransactionCustomAmount at 100%.
-      expect(result.current.enabled).toBe(false);
-      expect(result.current.hasPrefilled).toBe(false);
+      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
     });
 
     it('returns disabled for card intent even when treatment and flag enabled', () => {
@@ -201,8 +253,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.enabled).toBe(false);
-      expect(result.current.hasPrefilled).toBe(false);
+      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
     });
 
     it('returns disabled for control A/B variant even when flag override enabled', () => {
@@ -211,8 +262,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.enabled).toBe(false);
-      expect(result.current.hasPrefilled).toBe(false);
+      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
     });
 
     it('returns enabled when flag has override for moneyAccountDeposit', () => {
@@ -220,7 +270,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBeDefined();
     });
 
@@ -238,8 +288,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.enabled).toBe(true);
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
   });
 
@@ -336,7 +385,7 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('500');
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
 
     it('sets isLoading to false after commit', () => {
@@ -344,7 +393,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
 
     it('only commits once when balance changes on same token', async () => {
@@ -355,18 +404,85 @@ describe('useDepositPrefillAmount', () => {
 
       const { result, rerender } = runHook();
 
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('500');
 
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: makePayToken({ balanceUsd: '9999' }),
-      } as ReturnType<typeof useTransactionPayToken>);
+      setPayTokenWithBalance(makePayToken({ balanceUsd: '9999' }));
 
       await act(async () => {
         rerender({});
       });
 
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+  });
+
+  describe('zero-balance pay token', () => {
+    it('settles instead of loading when the pay token has no balance', () => {
+      setupMocks({ payToken: makePayToken({ balanceUsd: '0' }) });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    // Regression (device): `payToken.balanceUsd` is snapshotted when the token
+    // is selected and reads 0 until AccountTracker catches up. Skipping on it
+    // opened the keypad on a funded wallet for the ~2s until the real balance
+    // landed, instead of holding the amount loader.
+    it('prefills from the reactive balance when the pay token snapshot reads zero', () => {
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '0' }),
+        payBalanceUsd: 59.64,
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('59.64');
+    });
+
+    it('keeps loading while the pay token is still unresolved', () => {
+      setupMocks({ payToken: null });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Loading);
+    });
+
+    it('does not skip when prefill is disabled', () => {
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '0' }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+    });
+
+    it('skips when fiat payment is selected without a pay token', () => {
+      setupMocks({ fiatPaymentSelected: true, payToken: null });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('skips when fiat payment auto-selection is requested', () => {
+      const { result } = runHook({ autoSelectFiatPayment: true });
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('skips when no pay token or funded available token exists', () => {
+      setupMocks({ availableTokenBalances: [], payToken: null });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
     });
   });
 
@@ -376,19 +492,19 @@ describe('useDepositPrefillAmount', () => {
 
       const { result, rerender } = runHook();
 
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
 
       selectAccountOverrideMock.mockReturnValue('new-account-override');
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: makePayToken({ balanceUsd: '0' }),
-      } as ReturnType<typeof useTransactionPayToken>);
+      setPayTokenWithBalance(makePayToken({ balanceUsd: '0' }));
 
       await act(async () => {
         rerender({});
       });
 
-      expect(result.current.hasPrefilled).toBe(false);
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      // Nothing to prefill from, so the amount settles at $0 rather than
+      // waiting on an amount that can never arrive.
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
     });
 
     it('recommits with new amount when payToken address changes', async () => {
@@ -399,23 +515,23 @@ describe('useDepositPrefillAmount', () => {
 
       const { result, rerender } = runHook();
 
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('500');
 
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: makePayToken({
+      setPayTokenWithBalance(
+        makePayToken({
           address: TOKEN_ADDRESS_B_MOCK,
           balanceUsd: '800',
         }),
-      } as ReturnType<typeof useTransactionPayToken>);
+      );
 
       await act(async () => {
         rerender({});
       });
 
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('800');
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
   });
 
@@ -425,7 +541,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Loading);
     });
 
     it('false when not enabled', () => {
@@ -436,7 +552,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
     });
 
     it('false after commit', () => {
@@ -444,8 +560,7 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasPrefilled).toBe(true);
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
   });
 });

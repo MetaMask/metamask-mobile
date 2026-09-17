@@ -61,6 +61,7 @@ import {
   getDepthRatio,
   getDepthWidth,
   getOrderBookPriceFormat,
+  getOrderBookPriceValue,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
@@ -123,7 +124,8 @@ interface OrderBookRowProps {
   side: 'bid' | 'ask';
   currency: OrderBookListCurrency;
   metric: OrderBookListMetric;
-  maxTotal: number;
+  /** Denominator the depth bar is scaled against, matching `metric`. */
+  depthMax: number;
   depthBarColor: string;
   szDecimals?: number;
   priceFormat: OrderBookPriceFormat | null;
@@ -138,7 +140,7 @@ const OrderBookRow = ({
   side,
   currency,
   metric,
-  maxTotal,
+  depthMax,
   depthBarColor,
   szDecimals,
   priceFormat,
@@ -147,7 +149,7 @@ const OrderBookRow = ({
   testID,
 }: OrderBookRowProps) => {
   const isMirrored = layout === 'left';
-  const depthWidth = getDepthWidth(level, maxTotal);
+  const depthWidth = getDepthWidth(level, depthMax, metric);
   const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
@@ -454,18 +456,6 @@ const PerpsProOrderBookPanel = ({
     setIsConfigOpen(true);
   }, [playSelection]);
 
-  const handleSelectPrice = useCallback(
-    (price: string) => {
-      if (!onSelectPrice) {
-        return;
-      }
-      playSelection().catch(() => undefined);
-      onSelectPrice(price);
-    },
-    [onSelectPrice, playSelection],
-  );
-  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
-
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
   const { orderBookPosition, setOrderBookPosition } =
     usePerpsProOrderBookPosition();
@@ -564,6 +554,22 @@ const PerpsProOrderBookPanel = ({
     [currentGrouping, midPriceValue, szDecimals],
   );
 
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      if (!onSelectPrice) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      // Fill the price the tapped row displayed rather than the venue's raw
+      // level: the ladder renders every price at `priceFormat`'s precision, so
+      // a level with more decimals than that would fill a decimal the market
+      // price never shows.
+      onSelectPrice(getOrderBookPriceValue(price, priceFormat));
+    },
+    [onSelectPrice, playSelection, priceFormat],
+  );
+  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
+
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
   const {
     orderBook: aggregatedOrderBook,
@@ -619,6 +625,11 @@ const PerpsProOrderBookPanel = ({
     () => (grouped ? getDepthRatio(grouped.bids, grouped.asks) : null),
     [grouped],
   );
+
+  // Listing by Size measures each level against the largest single level;
+  // listing by Total measures it against the deepest cumulative total.
+  const depthMax =
+    metric === 'size' ? (grouped?.maxSize ?? 0) : (grouped?.maxTotal ?? 0);
 
   const spreadDisplay = useMemo(() => {
     if (!rawOrderBook || rawOrderBookSymbol !== symbol) {
@@ -872,7 +883,7 @@ const PerpsProOrderBookPanel = ({
                   side="ask"
                   currency={currency}
                   metric={metric}
-                  maxTotal={grouped.maxTotal}
+                  depthMax={depthMax}
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
@@ -920,7 +931,7 @@ const PerpsProOrderBookPanel = ({
                   side="bid"
                   currency={currency}
                   metric={metric}
-                  maxTotal={grouped.maxTotal}
+                  depthMax={depthMax}
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}

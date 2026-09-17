@@ -1,5 +1,7 @@
 import '../mocks';
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { Pressable, Text } from 'react-native';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import {
@@ -9,6 +11,11 @@ import {
 } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import BridgeView from '../../../app/components/UI/Bridge/Views/BridgeView';
+import { BridgeModalStack } from '../../../app/components/UI/Bridge/routes';
+import RecurringOrderDetailsView from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView';
+import { RecurringOrderDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
+import type { RecurringOrderDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
+import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import BlockExplorersModal from '../../../app/components/UI/Bridge/components/TransactionDetails/BlockExplorersModal';
 import { initialStateBridge } from '../presets/bridge';
 import type { TransactionMeta } from '@metamask/transaction-controller';
@@ -17,6 +24,11 @@ import type { Transaction } from '@metamask/keyring-api';
 interface RenderBridgeViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+}
+
+interface RenderRecurringOrderDetailsViewOptions
+  extends RenderBridgeViewOptions {
+  orderId: string;
 }
 
 interface RenderBlockExplorersModalOptions {
@@ -45,6 +57,96 @@ export function renderBridgeView(
   return renderComponentViewScreen(
     BridgeView as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
+    { state },
+  );
+}
+
+export function renderBridgeViewWithModals(
+  options: RenderBridgeViewOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, deterministicFiat } = options;
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    BridgeView as unknown as React.ComponentType,
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    [
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: BridgeModalStack,
+      },
+    ],
+    { state },
+  );
+}
+
+export function renderBridgeViewWithRecurringOrderDetails(
+  options: RenderBridgeViewOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, deterministicFiat } = options;
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    BridgeView as unknown as React.ComponentType,
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    [
+      {
+        name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        Component:
+          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+      },
+    ],
+    { state },
+  );
+}
+
+function RecurringOrderDetailsTestEntry({
+  orderId,
+}: RecurringOrderDetailsRouteParams) {
+  const navigation = useNavigation<AppNavigationProp>();
+
+  return React.createElement(
+    Pressable,
+    {
+      onPress: () =>
+        navigation.navigate(Routes.BRIDGE.RECURRING_ORDER_DETAILS, { orderId }),
+      testID: RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
+    },
+    React.createElement(Text, null, 'Open recurring order details'),
+  );
+}
+
+export function renderRecurringOrderDetailsView({
+  orderId,
+  overrides,
+  deterministicFiat,
+}: RenderRecurringOrderDetailsViewOptions): ReturnType<
+  typeof renderScreenWithRoutes
+> {
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    () => React.createElement(RecurringOrderDetailsTestEntry, { orderId }),
+    { name: 'RecurringOrderDetailsTestEntry' },
+    [
+      {
+        name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        Component:
+          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+      },
+    ],
     { state },
   );
 }
