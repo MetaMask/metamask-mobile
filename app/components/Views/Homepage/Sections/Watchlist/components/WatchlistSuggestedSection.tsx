@@ -16,22 +16,11 @@ import WatchlistAnimatedRow, {
 } from './WatchlistAnimatedRow';
 
 interface WatchlistSuggestedSectionProps {
-  /** Suggested tokens to render (already count-capped by the caller). */
   tokens: WatchlistTokenWithBalance[];
-  /**
-   * Whether the user's watchlist has items. Mirrors the perps flow: an empty
-   * watchlist renders the rows silently, a non-empty one labels them
-   * "Suggested".
-   */
   hasWatchlist: boolean;
   onAddPress: (token: WatchlistTokenWithBalance) => void;
 }
 
-/**
- * Suggested tokens beneath the homepage watchlist rows, mirroring the perps
- * watchlist suggested section: rows only when the watchlist is empty, a
- * "Suggested" sub-header once the user watches at least one token.
- */
 const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   tokens,
   hasWatchlist,

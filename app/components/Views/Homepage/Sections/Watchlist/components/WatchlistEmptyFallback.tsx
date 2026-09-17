@@ -14,7 +14,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import WatchlistEmptyDarkIcon from '../../../../../../images/watchlist-empty-dark.svg';
 import WatchlistEmptyLightIcon from '../../../../../../images/watchlist-empty-light.svg';
 
-/** Static fallback when no suggested tokens are available. */
 const WatchlistEmptyFallback: React.FC = () => {
   const designSystemTheme = useDesignSystemTheme();
   const EmptyIcon =
