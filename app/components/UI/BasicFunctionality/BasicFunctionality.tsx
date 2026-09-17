@@ -17,6 +17,7 @@ import AppConstants from '../../../core/AppConstants';
 export default function BasicFunctionalityComponent({
   handleSwitchToggle,
   flushTop,
+  disabled = false,
 }: Readonly<BasicFunctionalityComponentProps>) {
   const theme = useTheme();
   const { colors } = theme;
@@ -35,6 +36,7 @@ export default function BasicFunctionalityComponent({
           {strings('default_settings.basic_functionality')}
         </Text>
         <Switch
+          disabled={disabled}
           value={isEnabled}
           onChange={handleSwitchToggle}
           trackColor={{

@@ -222,6 +222,9 @@ export const initialStateNetworkManager = (
               ETH: { conversionRate: 2000, usdConversionRate: 2000 },
             },
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+          },
           AccountTrackerController: {
             accountsByChainId: {
               [activeEvmChainId]: {
@@ -264,6 +267,12 @@ interface InitialStateTokenListOptions
 }
 
 const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
+const hexBalanceToDecimalAmount = (hex: string, decimals: number): string => {
+  const raw = BigInt(hex);
+  const divisor = 10n ** BigInt(decimals);
+  return (raw / divisor).toString();
+};
 
 /**
  * Preset for token list view tests.
@@ -368,10 +377,63 @@ export const initialStateTokenList = (
           MultichainTransactionsController: { nonEvmTransactions: {} },
           NftController: { allNfts: {}, allNftContracts: {} },
           AssetsController: {
+            selectedCurrency: 'usd',
             assets: {},
-            assetsBalance: {},
-            assetsInfo: {},
-            assetsPrice: {},
+            assetsBalance: {
+              'acc-1': {
+                'eip155:1/slip44:60': { amount: '10' },
+                ...Object.fromEntries(
+                  ethereumTokens.map((token) => [
+                    `eip155:1/erc20:${token.address.toLowerCase()}`,
+                    {
+                      amount: hexBalanceToDecimalAmount(
+                        tokenBalances[token.address] ?? '0x0',
+                        token.decimals,
+                      ),
+                    },
+                  ]),
+                ),
+              },
+            },
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+              ...Object.fromEntries(
+                ethereumTokens.map((token) => [
+                  `eip155:1/erc20:${token.address.toLowerCase()}`,
+                  {
+                    type: 'erc20',
+                    symbol: token.symbol,
+                    name: token.name,
+                    decimals: token.decimals,
+                  },
+                ]),
+              ),
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+              ...Object.fromEntries(
+                ethereumTokens.map((token) => [
+                  `eip155:1/erc20:${token.address.toLowerCase()}`,
+                  {
+                    assetPriceType: 'fungible',
+                    price: 1,
+                    usdPrice: 1,
+                    lastUpdated: 1700000000000,
+                  },
+                ]),
+              ),
+            },
             customAssets: {},
             assetPreferences: {},
           },

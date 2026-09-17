@@ -1,4 +1,7 @@
-import { formatCardAmount } from './cardTransactionAmount';
+import {
+  formatCardAmount,
+  formatNetworkFeeLabel,
+} from './cardTransactionAmount';
 
 jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en-US' },
@@ -74,5 +77,56 @@ describe('formatCardAmount', () => {
     const result = formatCardAmount({ value: '10.00', currency: 'INVALID' });
 
     expect(result).toBe('10.00 INVALID');
+  });
+});
+
+describe('formatNetworkFeeLabel', () => {
+  it('returns undefined when feeAmount is undefined', () => {
+    expect(formatNetworkFeeLabel(undefined)).toBeUndefined();
+  });
+
+  it('formats a numeric fee to two decimal places with the currency code', () => {
+    const result = formatNetworkFeeLabel({ value: '0.02', currency: 'USDC' });
+
+    expect(result).toBe('0.02 USDC');
+  });
+
+  it('rounds to two decimal places', () => {
+    const result = formatNetworkFeeLabel({ value: '1.5', currency: 'USDC' });
+
+    expect(result).toBe('1.50 USDC');
+  });
+
+  it('renders <0.01 when the fee is below the minimum displayable amount', () => {
+    const result = formatNetworkFeeLabel({ value: '0.005', currency: 'USDC' });
+
+    expect(result).toBe('<0.01 USDC');
+  });
+
+  it('renders <0.01 for a zero fee', () => {
+    const result = formatNetworkFeeLabel({ value: '0', currency: 'USDC' });
+
+    expect(result).toBe('<0.01 USDC');
+  });
+
+  it('falls back to the raw value string when the value is not numeric', () => {
+    const result = formatNetworkFeeLabel({ value: 'n/a', currency: 'USDC' });
+
+    expect(result).toBe('n/a USDC');
+  });
+
+  it('uses the assetSymbol override when provided', () => {
+    const result = formatNetworkFeeLabel(
+      { value: '0.02', currency: 'USD' },
+      'mUSD',
+    );
+
+    expect(result).toBe('0.02 mUSD');
+  });
+
+  it('falls back to feeAmount.currency when assetSymbol is omitted', () => {
+    const result = formatNetworkFeeLabel({ value: '0.02', currency: 'USDC' });
+
+    expect(result).toBe('0.02 USDC');
   });
 });

@@ -247,6 +247,7 @@ export type OutboundMessageType =
   | 'CHART_TRADINGVIEW_CLICKED'
   | 'CROSSHAIR_MOVE'
   | 'CHART_INTERACTED'
+  | 'VISIBLE_CANDLE_COUNT_CHANGED'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
@@ -300,6 +301,11 @@ export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';
 
 export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
+  candleCount?: number;
+}
+
+export interface VisibleCandleCountChangedPayload {
+  candleCount: number;
 }
 
 export interface IndicatorAddedPayload {
@@ -323,6 +329,7 @@ export interface OutboundPayloads {
   CHART_TRADINGVIEW_CLICKED: ChartTradingViewClickedPayload;
   CROSSHAIR_MOVE: CrosshairMovePayload;
   CHART_INTERACTED: ChartInteractedPayload;
+  VISIBLE_CANDLE_COUNT_CHANGED: VisibleCandleCountChangedPayload;
   INDICATOR_ADDED: IndicatorAddedPayload;
   INDICATOR_REMOVED: IndicatorRemovedPayload;
   LEGEND_RENDERED: LegendRenderedPayload;
