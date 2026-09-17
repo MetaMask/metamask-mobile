@@ -1,12 +1,15 @@
+import type { PredictGameLive } from '../contracts/v1/liveData';
 import type {
   PredictDecimal,
   PredictEntityId,
   PredictGame,
   PredictMarket,
   PredictTimestamp,
+  PredictVenueId,
 } from '../types';
 import {
   isOlderLiveFrame,
+  mergeGameLiveFrames,
   mergeGameLiveUpdate,
   mergeMarketQuote,
 } from './mergeLiveData';
@@ -79,6 +82,59 @@ describe('mergeGameLiveUpdate', () => {
     });
 
     expect(result?.status).toBe('scheduled');
+  });
+});
+
+describe('mergeGameLiveFrames', () => {
+  const base: PredictGameLive = {
+    venueId: 'kalshi' as PredictVenueId,
+    eventId: id('KXTEST-EVENT'),
+    type: 'football_game',
+    observedAt: at('2026-09-08T13:00:00.000Z'),
+  };
+
+  it('returns the incoming frame when nothing has been accumulated yet', () => {
+    const incoming = { ...base, status: 'in_progress' as const };
+
+    expect(mergeGameLiveFrames(undefined, incoming)).toBe(incoming);
+  });
+
+  it('keeps status, score, period, and clock that a later clock-only frame omits', () => {
+    const previous: PredictGameLive = {
+      ...base,
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      period: 'Q2',
+      clock: '08:00',
+    };
+
+    const result = mergeGameLiveFrames(previous, {
+      ...base,
+      clock: '07:42',
+      observedAt: at('2026-09-08T13:01:00.000Z'),
+    });
+
+    expect(result).toEqual({
+      ...previous,
+      clock: '07:42',
+      observedAt: '2026-09-08T13:01:00.000Z',
+    });
+  });
+
+  it('drops an incoming frame older than the accumulated patch', () => {
+    const previous: PredictGameLive = {
+      ...base,
+      score: { home: '14', away: '0' },
+      observedAt: at('2026-09-08T13:00:00.000Z'),
+    };
+
+    expect(
+      mergeGameLiveFrames(previous, {
+        ...base,
+        score: { home: '7', away: '0' },
+        observedAt: at('2026-09-08T12:30:00.000Z'),
+      }),
+    ).toBeUndefined();
   });
 });
 

@@ -254,6 +254,46 @@ describe('useEventsWithLiveData', () => {
     expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
   });
 
+  it('keeps earlier live status and score when a later frame only patches the clock', () => {
+    const { result } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA]),
+    );
+    const onUpdate = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+    ) as (live: PredictGameLive) => void;
+
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        status: 'in_progress',
+        score: { away: '17', home: '21' },
+        period: 'Q4',
+        clock: '08:42',
+        observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      });
+    });
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        clock: '08:10',
+        observedAt: '2026-09-08T13:01:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    expect(result.current[0]?.sports?.game).toEqual({
+      ...eventA.sports?.game,
+      status: 'in_progress',
+      score: { away: '17', home: '21' },
+      period: 'Q4',
+      clock: '08:10',
+      observedAt: '2026-09-08T13:01:00.000Z',
+    });
+  });
+
   it('watches the markets of watched Events, including Events without a Game', () => {
     renderHook(() => useEventsWithLiveData(venueId, [propsEvent, eventA]));
 

@@ -30,12 +30,47 @@ export const isOlderLiveFrame = (
 ): boolean => Date.parse(incoming.observedAt) < Date.parse(previous.observedAt);
 
 /**
+ * Accumulates two streamed Game patches. Omitted fields stay as they were on
+ * `previous`; a clock-only or score-only frame must not drop status, score,
+ * period, or clock that an earlier live frame already carried.
+ *
+ * Returns `undefined` when `incoming` is older than `previous`.
+ */
+export const mergeGameLiveFrames = (
+  previous: PredictGameLive | undefined,
+  incoming: PredictGameLive,
+): PredictGameLive | undefined => {
+  if (previous && isOlderLiveFrame(incoming, previous)) {
+    return undefined;
+  }
+  if (!previous) {
+    return incoming;
+  }
+
+  return {
+    ...previous,
+    venueId: incoming.venueId,
+    eventId: incoming.eventId,
+    type: incoming.type,
+    status: incoming.status ?? previous.status,
+    score: incoming.score ?? previous.score,
+    period: incoming.period ?? previous.period,
+    clock: incoming.clock ?? previous.clock,
+    observedAt: incoming.observedAt,
+  };
+};
+
+/**
  * Patches a streamed Game frame onto the REST-fetched Game.
  *
  * Sport- and venue-agnostic: the frame already uses `PredictGame`'s field
  * names, so this is a spread with two guards — a frame older than what the
  * read model already shows is dropped, and a status outside the client's
  * vocabulary falls back to the current one rather than corrupting it.
+ *
+ * `live` must already be the accumulated patch for this Event (see
+ * `mergeGameLiveFrames`). Merging a clock-only frame directly onto REST
+ * would restore snapshot values for every omitted field.
  */
 export const mergeGameLiveUpdate = (
   current: PredictGame,

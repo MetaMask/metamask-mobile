@@ -10,6 +10,7 @@ import type {
 } from '../types';
 import {
   isOlderLiveFrame,
+  mergeGameLiveFrames,
   mergeGameLiveUpdate,
   mergeMarketQuote,
 } from '../utils/mergeLiveData';
@@ -65,7 +66,7 @@ interface LiveTopic<TLive extends { venueId: PredictVenueId }> {
   subscribe: (listener: Listener<TLive>) => void;
   unsubscribe: (listener: Listener<TLive>) => void;
   keyOf: (live: TLive) => PredictEntityId;
-  observedAtOf: (live: TLive) => string;
+  merge: (previous: TLive | undefined, incoming: TLive) => TLive | undefined;
 }
 
 const GAME_TOPIC: LiveTopic<PredictGameLive> = {
@@ -92,7 +93,7 @@ const GAME_TOPIC: LiveTopic<PredictGameLive> = {
       listener,
     ),
   keyOf: (live) => live.eventId,
-  observedAtOf: (live) => live.observedAt,
+  merge: mergeGameLiveFrames,
 };
 
 const MARKET_TOPIC: LiveTopic<PredictQuote> = {
@@ -119,12 +120,24 @@ const MARKET_TOPIC: LiveTopic<PredictQuote> = {
       listener,
     ),
   keyOf: (live) => live.marketId,
-  observedAtOf: (live) => live.updatedAt,
+  merge: (previous, incoming) => {
+    if (
+      previous &&
+      isOlderLiveFrame(
+        { observedAt: incoming.updatedAt },
+        { observedAt: previous.updatedAt },
+      )
+    ) {
+      return undefined;
+    }
+    return incoming;
+  },
 };
 
 /**
- * Holds one topic's watches with the live-data service and collects its latest
- * frame per id. `idsToWatch` drives subscriptions (usually the viewport);
+ * Holds one topic's watches with the live-data service and collects its
+ * accumulated value per id. Game frames fold as patches; quotes replace as
+ * snapshots. `idsToWatch` drives subscriptions (usually the viewport);
  * `presentIds` bounds which frames are kept (everything rendered), so a frame
  * for a row that scrolled out of the viewport still lands when it scrolls back.
  */
@@ -156,19 +169,16 @@ const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
       }
       setUpdates((current) => {
         const previous = current.get(key);
-        if (
-          previous === live ||
-          (previous &&
-            isOlderLiveFrame(
-              { observedAt: topic.observedAtOf(live) },
-              { observedAt: topic.observedAtOf(previous) },
-            ))
-        ) {
+        if (previous === live) {
+          return current;
+        }
+        const merged = topic.merge(previous, live);
+        if (!merged || merged === previous) {
           return current;
         }
 
         const next = new Map(current);
-        next.set(key, live);
+        next.set(key, merged);
         return next;
       });
     };

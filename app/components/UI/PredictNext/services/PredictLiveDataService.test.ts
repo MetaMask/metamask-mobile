@@ -263,6 +263,72 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
+  it('replays the accumulated Game patch, not only the latest partial frame', () => {
+    const messenger = createMessenger();
+    const service = new PredictLiveDataService({
+      messenger,
+      createClient: () => createClient(),
+      venueId,
+    });
+    const listener = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      listener,
+    );
+
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+    service.onGameUpdate({
+      venueId,
+      eventId,
+      type: 'football_game',
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      period: 'Q2',
+      observedAt: at('2026-09-08T13:00:00.000Z'),
+    });
+    service.onGameUpdate({
+      venueId,
+      eventId,
+      type: 'football_game',
+      clock: '07:42',
+      observedAt: at('2026-09-08T13:01:00.000Z'),
+    });
+
+    expect(listener).toHaveBeenNthCalledWith(2, {
+      venueId,
+      eventId,
+      type: 'football_game',
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      period: 'Q2',
+      clock: '07:42',
+      observedAt: at('2026-09-08T13:01:00.000Z'),
+    });
+
+    const replay = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      replay,
+    );
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+
+    expect(replay).toHaveBeenCalledWith({
+      venueId,
+      eventId,
+      type: 'football_game',
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      period: 'Q2',
+      clock: '07:42',
+      observedAt: at('2026-09-08T13:01:00.000Z'),
+    });
+    service.destroy();
+  });
+
   it('publishes quote updates for watched markets of its venue', () => {
     const messenger = createMessenger();
     const service = new PredictLiveDataService({

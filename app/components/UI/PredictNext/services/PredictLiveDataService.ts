@@ -7,7 +7,7 @@ import type {
 } from '../contracts/v1/liveData';
 import { PredictError, PredictErrorCode } from '../errors';
 import type { PredictEntityId, PredictVenueId } from '../types';
-import { isOlderLiveFrame } from '../utils/mergeLiveData';
+import { isOlderLiveFrame, mergeGameLiveFrames } from '../utils/mergeLiveData';
 
 export const PREDICT_LIVE_DATA_SERVICE_NAME = 'PredictLiveDataService' as const;
 
@@ -188,12 +188,15 @@ export class PredictLiveDataService {
     if (!this.#games.watchCounts.has(game.eventId)) {
       return;
     }
-    const previous = this.#games.values.get(game.eventId);
-    if (previous && isOlderLiveFrame(game, previous)) {
+    const merged = mergeGameLiveFrames(
+      this.#games.values.get(game.eventId),
+      game,
+    );
+    if (!merged) {
       return;
     }
-    this.#games.values.set(game.eventId, game);
-    this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', game);
+    this.#games.values.set(game.eventId, merged);
+    this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', merged);
   }
 
   onQuoteUpdate(quote: PredictQuote): void {
