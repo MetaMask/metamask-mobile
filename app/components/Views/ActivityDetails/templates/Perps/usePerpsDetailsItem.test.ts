@@ -69,4 +69,16 @@ describe('usePerpsDetailsItem', () => {
 
     expect(result.current.transaction).toBeUndefined();
   });
+
+  it('fetches perps activity when resolving an Arbitrum identifier', () => {
+    renderHook(() => usePerpsDetailsItem('0xABC'));
+
+    expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(true, true);
+  });
+
+  it('does not fetch perps activity for a Monad identifier', () => {
+    renderHook(() => usePerpsDetailsItem('0xABC', 'eip155:143' as const));
+
+    expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(undefined, false);
+  });
 });

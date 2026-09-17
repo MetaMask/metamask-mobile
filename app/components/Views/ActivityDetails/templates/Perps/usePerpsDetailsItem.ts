@@ -49,7 +49,7 @@ export function usePerpsDetailsItem(
   );
   const { isFetching, transactions } = usePerpsActivityQuery(
     shouldResolve ? accountId : undefined,
-    false,
+    shouldResolve,
   );
   const transaction = useMemo(
     () =>
@@ -70,9 +70,11 @@ export function usePerpsDetailsItem(
     );
   }, [chainId, collateralAssetId, transaction]);
 
+  const isLoading = shouldResolve && !item && isFetching;
+
   return {
     item,
     transaction,
-    isLoading: shouldResolve && !item && isFetching,
+    isLoading,
   };
 }

@@ -124,10 +124,8 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-): {
-  item: ActivityListItem | undefined;
-  isFetching: boolean;
-} {
+  { enableSingleTxFetch = true }: { enableSingleTxFetch?: boolean } = {},
+) {
   const localByLookupKey = useSelector(selectLocalActivityItemsByIdentifier);
   const rampActivityItems = useRampActivityItems();
   const { data: evmTransactions, isFetching: isListFetching } =
@@ -143,10 +141,14 @@ export function useActivityDetailsItem(
   const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
+  const isValidHash = Boolean(
+    txIdentifier && isValidTransactionHash(txIdentifier),
+  );
   const txHash =
+    enableSingleTxFetch &&
     chainId?.startsWith('eip155:') &&
     txIdentifier &&
-    isValidTransactionHash(txIdentifier)
+    isValidHash
       ? txIdentifier
       : undefined;
   const { transaction: apiTransaction, isFetching: isSingleTxFetching } =

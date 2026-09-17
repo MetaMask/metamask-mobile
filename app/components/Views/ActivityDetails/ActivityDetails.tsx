@@ -48,12 +48,14 @@ function ActivityDetailsProviders({ children }: { children: ReactNode }) {
 
 function ActivityDetailsScreen() {
   const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
-  const { item: activityItem, isFetching: isActivityFetching } =
-    useActivityDetailsItem(txIdentifier, chainId);
   const { item: perpsItem, isLoading: isPerpsLoading } = usePerpsDetailsItem(
     txIdentifier,
     chainId,
   );
+  const { item: activityItem, isFetching: isActivityFetching } =
+    useActivityDetailsItem(txIdentifier, chainId, {
+      enableSingleTxFetch: !perpsItem && !isPerpsLoading,
+    });
   const { item: predictItem, isLoading: isPredictLoading } =
     usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
   const item = perpsItem ?? activityItem ?? predictItem;

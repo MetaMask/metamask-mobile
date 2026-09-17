@@ -476,6 +476,23 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.type).toBe('receive');
   });
 
+  it('does not request a single-transaction fetch when that fallback is disabled', () => {
+    setSources({});
+
+    renderHook(() =>
+      useActivityDetailsItem(
+        '0x0000000000000000000000000000000000000000000000000000000000000001',
+        'eip155:1',
+        { enableSingleTxFetch: false },
+      ),
+    );
+
+    expect(useApiTransactionMock).toHaveBeenCalledWith({
+      chainId: 'eip155:1',
+      txHash: undefined,
+    });
+  });
+
   it('reports fetching while the single-transaction fallback is loading', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
