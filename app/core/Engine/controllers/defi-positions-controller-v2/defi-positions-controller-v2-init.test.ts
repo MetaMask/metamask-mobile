@@ -10,6 +10,7 @@ import {
   DeFiPositionsControllerV2Messenger,
 } from '@metamask/assets-controllers';
 import { defiPositionsControllerV2Init } from './defi-positions-controller-v2-init';
+import { createApiPlatformClient } from '@metamask/core-backend';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -67,6 +68,57 @@ function getInitRequestMock(
 
   return requestMock;
 }
+
+describe('API platform client bearer token retrieval', () => {
+  // Placed before the `DeFiPositionsControllerV2Init` suite so the module-level
+  // `apiClient` singleton is created with this block's init messenger, whose
+  // `call` mock is asserted below.
+  const BEARER_TOKEN = 'mock-bearer-token';
+  const ORIGINAL_DISABLE_AUTH = process.env.MM_BACKEND_DISABLE_AUTH;
+
+  let getBearerToken: () => Promise<string | undefined>;
+  let initMessengerCall: jest.Mock;
+
+  beforeAll(() => {
+    const requestMock = getInitRequestMock();
+    initMessengerCall = requestMock.initMessenger.call as unknown as jest.Mock;
+    initMessengerCall.mockReturnValue(BEARER_TOKEN);
+    defiPositionsControllerV2Init(requestMock);
+    getBearerToken = jest.mocked(createApiPlatformClient).mock.calls[0][0]
+      .getBearerToken as () => Promise<string | undefined>;
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_DISABLE_AUTH === undefined) {
+      delete process.env.MM_BACKEND_DISABLE_AUTH;
+    } else {
+      process.env.MM_BACKEND_DISABLE_AUTH = ORIGINAL_DISABLE_AUTH;
+    }
+  });
+
+  describe('when backend auth is enabled', () => {
+    it('returns the AuthenticationController bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'false';
+
+      await expect(getBearerToken()).resolves.toBe(BEARER_TOKEN);
+      expect(initMessengerCall).toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
+    });
+  });
+
+  describe('when backend auth is disabled', () => {
+    it('omits the bearer token without contacting AuthenticationController', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'true';
+      initMessengerCall.mockClear();
+
+      await expect(getBearerToken()).resolves.toBeUndefined();
+      expect(initMessengerCall).not.toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
+    });
+  });
+});
 
 describe('DeFiPositionsControllerV2Init', () => {
   beforeEach(() => {
