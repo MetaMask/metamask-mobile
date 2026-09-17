@@ -640,6 +640,43 @@ describe('PredictFeedView', () => {
   });
 
   describe('fallbacks', () => {
+    it('uses the feed id as the header and empty-state title when copy is missing', () => {
+      mockRouteParams = { feedId: 'weather' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'weather',
+          titleKey: undefined,
+          label: undefined,
+          showTabBar: false,
+          tabs: [{ id: 'all' }],
+          activeTabId: 'all',
+          filters: [
+            {
+              id: 'all',
+              params: { tagSlugs: ['weather'] },
+              isDynamic: false,
+            },
+          ],
+          activeFilterId: 'all',
+          activeFilter: {
+            id: 'all',
+            params: { tagSlugs: ['weather'] },
+            isDynamic: false,
+          },
+        }),
+      );
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ markets: [] }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(screen.getByText('weather')).toBeOnTheScreen();
+      expect(
+        screen.getByText('No weather markets available'),
+      ).toBeOnTheScreen();
+    });
+
     it('navigates back when the feed is not found', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({

@@ -766,7 +766,7 @@ describe('feedConfig home category feeds (PRED-1226)', () => {
     }
 
     const weather = resolvePredictFeedConfig('weather', undefined, remote);
-    expect(weather?.label).toBeUndefined();
+    expect(weather?.label).toBe('weather');
     expect(weather?.titleKey).toBeUndefined();
   });
 

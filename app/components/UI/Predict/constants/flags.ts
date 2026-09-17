@@ -300,7 +300,7 @@ export const DEFAULT_PREDICT_HOME_CATEGORIES_FLAG: PredictHomeCategoriesConfig =
  * 1. Remote `label` — ops override, or a new tile with no i18n yet
  * 2. Remote `titleKey` — explicit i18n key from LD
  * 3. Locale bank `predict.category.<id>` if a translation exists, even when LD omits copy
- * 4. No copy — caller renders the raw id
+ * 4. Raw `id` as `label` so tiles and feed headers never render blank
  */
 export const resolvePredictHomeCategoryCopy = (
   category: PredictHomeCategoryConfig,
@@ -318,5 +318,5 @@ export const resolvePredictHomeCategoryCopy = (
   const bundledTitleKey = predictHomeCategoryTitleKey(category.id);
   return translateIfPresent(bundledTitleKey)
     ? { titleKey: bundledTitleKey }
-    : {};
+    : { label: category.id };
 };

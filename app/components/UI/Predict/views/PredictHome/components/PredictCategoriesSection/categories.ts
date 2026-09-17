@@ -44,8 +44,7 @@ export const resolvePredictHomeCategoryIcon = (
 
 /**
  * Tile label: remote `label` wins; otherwise remote/locale-bank `titleKey`;
- * finally the raw id. Shipped ids (politics, sports, crypto, esports,
- * culture, finance, tech) live in `predict.category.*` so LD can omit copy.
+ * finally the raw id. Shipped ids live in `predict.category.*` so LD can omit copy.
  */
 export const resolvePredictHomeCategoryTitle = (
   category: PredictHomeCategoryConfig,
