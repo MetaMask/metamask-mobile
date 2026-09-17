@@ -9,6 +9,7 @@ import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboardi
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockAcceptVendorTerms = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -16,6 +17,14 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    KycController: {
+      acceptVendorTerms: (...args: unknown[]) => mockAcceptVendorTerms(...args),
+    },
+  },
 }));
 
 jest.mock('./hooks/useKycDisclaimers');
@@ -78,7 +87,25 @@ describe('GetPixKey', () => {
     await waitFor(() => {
       expect(mockHydrateAndNavigate).toHaveBeenCalledTimes(1);
     });
+    expect(mockAcceptVendorTerms).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('records vendor-terms acceptance before rehydrating when agree and continue is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<GetPixKey />);
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockHydrateAndNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockAcceptVendorTerms).toHaveBeenCalledTimes(1);
+    // Acceptance must be recorded before the re-hydrate reads the stage.
+    expect(mockAcceptVendorTerms.mock.invocationCallOrder[0]).toBeLessThan(
+      mockHydrateAndNavigate.mock.invocationCallOrder[0],
+    );
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {

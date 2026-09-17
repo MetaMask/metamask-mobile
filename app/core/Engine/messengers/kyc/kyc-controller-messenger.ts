@@ -18,6 +18,7 @@ const KYC_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:checkKycRequired',
   'KycService:createVendorCustomer',
   'KycService:submitVendorDisclaimers',
+  'KycService:fetchRequiredSignings',
   'KycService:fetchSessionDisclaimersByCountry',
   'KycService:fetchSessionDisclaimersBySessionId',
   'KycService:submitSessionDisclaimers',

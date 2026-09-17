@@ -16,8 +16,7 @@ jest.mock('./hydrateAndNavigateVbaOnboarding', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      startSumSub: jest.fn(),
-      state: { sumsub: { status: 'complete' } },
+      acceptProviderTerms: jest.fn(),
     },
   },
 }));
@@ -63,10 +62,6 @@ describe('VbaVerifyIdentity', () => {
       retry: mockRetry,
     });
     mockHydrateAndNavigate.mockResolvedValue(undefined);
-    (Engine.context.KycController.startSumSub as jest.Mock).mockResolvedValue(
-      {},
-    );
-    Engine.context.KycController.state.sumsub.status = 'complete';
   });
 
   afterEach(() => {
@@ -235,15 +230,40 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('launches SumSub then rehydrates when continue is pressed', async () => {
+  it('records provider terms grouped by catalog then rehydrates when continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
     await waitFor(() => {
-      expect(Engine.context.KycController.startSumSub).toHaveBeenCalled();
       expect(mockHydrateAndNavigate).toHaveBeenCalledTimes(1);
     });
+    // idOS vs kycProvider links are split back into their groups and recorded
+    // as { key, version } consent records — SumSub is not launched here.
+    expect(
+      Engine.context.KycController.acceptProviderTerms,
+    ).toHaveBeenCalledWith({
+      providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
+      idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
+    });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not record provider terms while disclaimers are still loading', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: true,
+      error: null,
+      retry: mockRetry,
+    });
+
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    expect(
+      Engine.context.KycController.acceptProviderTerms,
+    ).not.toHaveBeenCalled();
+    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
   });
 });

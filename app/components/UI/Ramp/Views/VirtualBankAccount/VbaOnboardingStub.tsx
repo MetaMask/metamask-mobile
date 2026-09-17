@@ -18,7 +18,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
 export type VbaOnboardingStubVariant =
-  | 'provider_terms'
   | 'kyc_pending'
   | 'kyc_rejected'
   | 'error';
@@ -46,11 +45,11 @@ const VbaOnboardingStub = ({ variant }: VbaOnboardingStubProps) => {
     }
     setIsContinuing(true);
     try {
-      await hydrateAndNavigateVbaOnboarding(navigation);
+      await hydrateAndNavigateVbaOnboarding(navigation, `${variant}-retry`);
     } finally {
       setIsContinuing(false);
     }
-  }, [isContinuing, navigation]);
+  }, [isContinuing, navigation, variant]);
 
   return (
     <SafeAreaView
@@ -95,10 +94,6 @@ const VbaOnboardingStub = ({ variant }: VbaOnboardingStubProps) => {
     </SafeAreaView>
   );
 };
-
-export const VbaProviderTerms = () => (
-  <VbaOnboardingStub variant="provider_terms" />
-);
 
 export const VbaKycPending = () => <VbaOnboardingStub variant="kyc_pending" />;
 

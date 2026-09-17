@@ -557,7 +557,7 @@ export type RootStackParamList = {
   RampGetPixKey: undefined;
   RampVbaVerifyIdentity: undefined;
   RampVbaKycEmail: undefined;
-  RampVbaProviderTerms: undefined;
+  RampVbaSumSubKyc: undefined;
   RampVbaKycPending: undefined;
   RampVbaKycRejected: undefined;
   RampVbaOnboardingError: undefined;

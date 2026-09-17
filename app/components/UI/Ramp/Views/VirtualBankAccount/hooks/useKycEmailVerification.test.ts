@@ -19,6 +19,8 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
       createVendorCustomer: jest.fn(),
+      isCustomerCreated: jest.fn(),
+      state: { error: null },
     },
   },
 }));
@@ -37,6 +39,8 @@ jest.mock('../../../../../../util/Logger', () => ({
 
 const mockKycController = Engine.context.KycController as unknown as {
   createVendorCustomer: jest.Mock<Promise<void>, [unknown]>;
+  isCustomerCreated: jest.Mock<boolean, [string]>;
+  state: { error: string | null };
 };
 const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
 
@@ -52,6 +56,8 @@ describe('useKycEmailVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycController.createVendorCustomer.mockResolvedValue(undefined);
+    mockKycController.isCustomerCreated.mockReturnValue(true);
+    mockKycController.state.error = null;
     mockHydrateAndNavigate.mockResolvedValue(undefined);
   });
 
@@ -91,6 +97,21 @@ describe('useKycEmailVerification', () => {
     expect(alertSpy).toHaveBeenCalledWith(
       'Identity verification',
       'Customer creation failed.',
+    );
+    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
+  });
+
+  it('alerts without hydrating when the controller reports failure on state', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockKycController.isCustomerCreated.mockReturnValue(false);
+    mockKycController.state.error = 'Vendor customer creation failed.';
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await enterEmailAndStart(result);
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'Vendor customer creation failed.',
     );
     expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
   });

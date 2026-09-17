@@ -6,7 +6,6 @@ import {
   VbaKycRejected,
   VbaOnboardingError,
   VbaOnboardingStubSelectorsIDs,
-  VbaProviderTerms,
 } from './VbaOnboardingStub';
 import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
@@ -33,11 +32,6 @@ describe('VbaOnboardingStub', () => {
   });
 
   it.each([
-    [
-      'provider terms',
-      VbaProviderTerms,
-      'vba-onboarding-stub-container-provider_terms',
-    ],
     ['kyc pending', VbaKycPending, 'vba-onboarding-stub-container-kyc_pending'],
     [
       'kyc rejected',
@@ -56,7 +50,7 @@ describe('VbaOnboardingStub', () => {
   });
 
   it('rehydrates on continue instead of hardcoding the next screen', async () => {
-    const { getByTestId } = renderWithProvider(<VbaProviderTerms />);
+    const { getByTestId } = renderWithProvider(<VbaKycPending />);
 
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON));
 

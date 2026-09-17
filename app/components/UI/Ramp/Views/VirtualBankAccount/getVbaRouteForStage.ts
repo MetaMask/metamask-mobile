@@ -4,8 +4,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 export type VbaOnboardingRoute =
   | typeof Routes.RAMP.VBA_KYC_EMAIL
   | typeof Routes.RAMP.GET_PIX_KEY
-  | typeof Routes.RAMP.VBA_PROVIDER_TERMS
   | typeof Routes.RAMP.VBA_VERIFY_IDENTITY
+  | typeof Routes.RAMP.VBA_SUMSUB_KYC
   | typeof Routes.RAMP.VBA_KYC_PENDING
   | typeof Routes.RAMP.VBA_KYC_REJECTED
   | typeof Routes.RAMP.VBA_ONBOARDING_ERROR
@@ -14,8 +14,10 @@ export type VbaOnboardingRoute =
 const VBA_ROUTE_BY_STAGE: Record<VbaOnboardingStage, VbaOnboardingRoute> = {
   [VbaOnboardingStage.EmailOtpRequired]: Routes.RAMP.VBA_KYC_EMAIL,
   [VbaOnboardingStage.VendorTermsRequired]: Routes.RAMP.GET_PIX_KEY,
-  [VbaOnboardingStage.ProviderTermsRequired]: Routes.RAMP.VBA_PROVIDER_TERMS,
-  [VbaOnboardingStage.KycRequired]: Routes.RAMP.VBA_VERIFY_IDENTITY,
+  // Provider (idOS + SumSub) terms are presented and accepted on the Verify
+  // Identity screen; SumSub itself is launched later at KycRequired.
+  [VbaOnboardingStage.ProviderTermsRequired]: Routes.RAMP.VBA_VERIFY_IDENTITY,
+  [VbaOnboardingStage.KycRequired]: Routes.RAMP.VBA_SUMSUB_KYC,
   [VbaOnboardingStage.KycPending]: Routes.RAMP.VBA_KYC_PENDING,
   [VbaOnboardingStage.KycRejected]: Routes.RAMP.VBA_KYC_REJECTED,
   [VbaOnboardingStage.Completed]: Routes.MONEY.HOME,

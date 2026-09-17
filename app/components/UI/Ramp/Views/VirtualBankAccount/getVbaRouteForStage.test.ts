@@ -17,8 +17,8 @@ describe('getVbaRouteForStage', () => {
         "EmailOtpRequired": "RampVbaKycEmail",
         "KycPending": "RampVbaKycPending",
         "KycRejected": "RampVbaKycRejected",
-        "KycRequired": "RampVbaVerifyIdentity",
-        "ProviderTermsRequired": "RampVbaProviderTerms",
+        "KycRequired": "RampVbaSumSubKyc",
+        "ProviderTermsRequired": "RampVbaVerifyIdentity",
         "VendorTermsRequired": "RampGetPixKey",
       }
     `);

@@ -167,7 +167,10 @@ const MoneyAddMoneySheet: React.FC = () => {
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
     sheetRef.current?.onCloseBottomSheet(() => {
-      hydrateAndNavigateVbaOnboarding(navigation).catch(() => undefined);
+      hydrateAndNavigateVbaOnboarding(
+        navigation,
+        'bank-account-entry',
+      ).catch(() => undefined);
     });
   }, [navigation, trackSurfaceClicked]);
 

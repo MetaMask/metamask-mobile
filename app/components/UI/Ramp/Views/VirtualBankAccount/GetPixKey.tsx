@@ -24,6 +24,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import TagBase from '../../../../../component-library/base-components/TagBase';
 import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
@@ -76,7 +77,14 @@ const GetPixKey = () => {
     }
     setIsContinuing(true);
     try {
-      await hydrateAndNavigateVbaOnboarding(navigation);
+      // Sign the vendor terms on the customer's account before re-hydrating,
+      // so the stage machine advances past VendorTermsRequired instead of
+      // routing back to this screen.
+      await Engine.context.KycController.acceptVendorTerms();
+      await hydrateAndNavigateVbaOnboarding(
+        navigation,
+        'vendor-terms-continue',
+      );
     } finally {
       setIsContinuing(false);
     }

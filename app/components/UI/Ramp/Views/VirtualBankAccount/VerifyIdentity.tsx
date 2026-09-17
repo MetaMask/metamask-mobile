@@ -147,17 +147,32 @@ const VbaVerifyIdentity = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleContinue = useCallback(async () => {
-    if (!canContinue) {
+    if (!canContinue || !disclaimers) {
       return;
     }
     setIsContinuing(true);
     try {
-      await Engine.context.KycController.startSumSub();
-      if (Engine.context.KycController.state.sumsub.status === 'abandoned') {
-        Logger.log('[VBA KYC] Sumsub SDK abandoned');
-        return;
-      }
-      await hydrateAndNavigateVbaOnboarding(navigation);
+      // Split the flattened catalog back into its idOS / KYC-provider groups
+      // (the hook tags each link's id with its group) and record acceptance as
+      // `{ key, version }` consent records.
+      const idosDisclaimersAccepted = disclaimers
+        .filter((disclaimer) => disclaimer.id.startsWith('idOS:'))
+        .map(({ key, version }) => ({ key, version }));
+      const providerDisclaimersAccepted = disclaimers
+        .filter((disclaimer) => disclaimer.id.startsWith('kycProvider:'))
+        .map(({ key, version }) => ({ key, version }));
+      // Create the UKYC session and record provider-terms consent on the
+      // account so the stage machine advances past ProviderTermsRequired and
+      // never routes back here. SumSub is launched on its own screen
+      // (KycRequired), reusing this session.
+      await Engine.context.KycController.acceptProviderTerms({
+        providerDisclaimersAccepted,
+        idosDisclaimersAccepted,
+      });
+      await hydrateAndNavigateVbaOnboarding(
+        navigation,
+        'provider-terms-continue',
+      );
     } catch (continueError) {
       Logger.error(continueError as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -165,7 +180,7 @@ const VbaVerifyIdentity = () => {
     } finally {
       setIsContinuing(false);
     }
-  }, [canContinue, navigation]);
+  }, [canContinue, disclaimers, navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {

@@ -35,11 +35,20 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
 
     setIsVerifying(true);
     try {
-      await Engine.context.KycController.createVendorCustomer({
+      const { KycController } = Engine.context;
+      await KycController.createVendorCustomer({
         vendor: VBA_KYC_VENDOR,
         email: trimmedEmail,
       });
-      await hydrateAndNavigateVbaOnboarding(navigation);
+      // KycController reports failures on its state instead of throwing, so an
+      // unchecked call would silently re-route to this same screen.
+      if (!KycController.isCustomerCreated(VBA_KYC_VENDOR)) {
+        throw new Error(
+          KycController.state.error ??
+            strings('virtual_bank_account.kyc_email.error_description'),
+        );
+      }
+      await hydrateAndNavigateVbaOnboarding(navigation, 'email-continue');
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
