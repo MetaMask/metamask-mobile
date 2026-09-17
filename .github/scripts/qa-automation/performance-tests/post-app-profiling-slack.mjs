@@ -16,6 +16,8 @@
  *   SLACK_BOT_TOKEN   required
  *   SLACK_TARGET      user id (U.../W...) or channel id (C.../G...)
  *   GITHUB_RUN_URL    optional footer link
+ *   GITHUB_RUN_LABEL  optional footer link text, so a failure notice can say
+ *                     what it links to instead of a generic "GitHub run"
  */
 
 import fs from 'fs';
@@ -71,13 +73,13 @@ async function openDirectMessage(target, token, options = {}) {
   return channelId;
 }
 
-function buildText(markdown, runUrl) {
+function buildText(markdown, runUrl, runLabel = 'GitHub run') {
   let text = String(markdown || '').trim();
   if (text.length > MAX_TEXT_LENGTH) {
     text = `${text.slice(0, MAX_TEXT_LENGTH)}\n_Truncated for Slack._`;
   }
   if (runUrl) {
-    text = `${text}\n<${runUrl}|GitHub run>`;
+    text = `${text}\n<${runUrl}|${runLabel || 'GitHub run'}>`;
   }
   return text;
 }
@@ -102,8 +104,11 @@ async function post(channel, text, token, options) {
  * needs `chat:write`. Opening the DM explicitly needs the extra `im:write`
  * scope, so it is a fallback rather than the default path.
  */
-async function postSummary({ markdown, target, token, runUrl }, options = {}) {
-  const text = buildText(markdown, runUrl);
+async function postSummary(
+  { markdown, target, token, runUrl, runLabel },
+  options = {},
+) {
+  const text = buildText(markdown, runUrl, runLabel);
 
   try {
     return await post(target, text, token, options);
@@ -144,6 +149,7 @@ async function main() {
     target,
     token,
     runUrl: process.env.GITHUB_RUN_URL,
+    runLabel: process.env.GITHUB_RUN_LABEL,
   });
   console.log(`✅ Slack message sent to ${result.channel} (ts=${result.ts})`);
 }
