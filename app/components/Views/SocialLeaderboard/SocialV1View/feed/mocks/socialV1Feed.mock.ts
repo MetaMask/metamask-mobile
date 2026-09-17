@@ -44,6 +44,7 @@ export const mockOpenPerpsFeedItem = (
   leverageLabel: '40X',
   autoCloseLabel: 'TP $101,214 / SL $110,905',
   entryPriceLabel: '$107,675',
+  mockedFields: [],
   ...overrides,
 });
 
@@ -79,6 +80,7 @@ export const mockClosedPerpsFeedItem = (
   entryPriceLabel: '$1,890',
   exitPriceLabel: '$1,842',
   holdTimeLabel: '8h',
+  mockedFields: [],
   ...overrides,
 });
 
@@ -112,6 +114,7 @@ export const mockOpenSpotFeedItem = (
   valueLabel: '$128,400.00',
   pnlLabel: '+74.2%',
   isPnlPositive: true,
+  mockedFields: [],
   ...overrides,
 });
 
@@ -145,6 +148,7 @@ export const mockClosedSpotFeedItem = (
   valueLabel: '+$9,373.20',
   pnlLabel: '+14.6%',
   isPnlPositive: true,
+  mockedFields: [],
   ...overrides,
 });
 
