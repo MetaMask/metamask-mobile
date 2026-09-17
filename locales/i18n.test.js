@@ -9,13 +9,15 @@ describe('getLanguage', () => {
     expect(supportedTranslationsKeys.sort()).toEqual(getLanguagesKeys.sort());
   });
 
-  it('defines representable gas-limit copy in the source locale', () => {
+  it('defines supported gas-limit copy in the source locale', () => {
     const gasModal = supportedTranslations.en.transactions.gas_modal;
 
+    expect(gasModal.gas_limit_too_low).toBe(
+      'Gas limit must be at least 12000',
+    );
     expect(gasModal.gas_limit_too_high).toBe(
       'Gas limit exceeds the maximum supported value',
     );
-    expect(gasModal.gas_limit_too_low).toBeUndefined();
   });
 
   it('leaves new gas-limit copy to the translation pipeline', () => {

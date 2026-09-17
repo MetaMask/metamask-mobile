@@ -1,6 +1,8 @@
 import { strings } from '../../../../../../locales/i18n';
 import { normalizeGasInput } from '../gas';
 
+// Lowest intrinsic transaction cost defined by EIP-2780 (a self-transfer).
+const MIN_GAS_LIMIT = 12000n;
 const MAX_GAS_LIMIT = BigInt(
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 );
@@ -12,7 +14,7 @@ export const validateGas = (value: string): string | boolean => {
     validateValueIsNumber(value) ||
     validateValueIsInteger(value) ||
     validateValueIsPositive(value, field) ||
-    validateGasLimitIsRepresentable(value)
+    validateGasLimitIsWithinSupportedRange(value)
   );
 };
 
@@ -118,11 +120,20 @@ function validateValueIsPositive(
   return strings('transactions.gas_modal.negative_values_not_allowed');
 }
 
-function validateGasLimitIsRepresentable(value: string): string | boolean {
-  if (BigInt(value) <= MAX_GAS_LIMIT) {
-    return false;
+function validateGasLimitIsWithinSupportedRange(
+  value: string,
+): string | boolean {
+  const gasLimit = BigInt(value);
+
+  if (gasLimit < MIN_GAS_LIMIT) {
+    return strings('transactions.gas_modal.gas_limit_too_low');
   }
-  return strings('transactions.gas_modal.gas_limit_too_high');
+
+  if (gasLimit > MAX_GAS_LIMIT) {
+    return strings('transactions.gas_modal.gas_limit_too_high');
+  }
+
+  return false;
 }
 
 function validateValueIsInteger(value: string): string | boolean {

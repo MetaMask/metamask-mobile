@@ -40,8 +40,14 @@ describe('gas-validations', () => {
       expect(result).toBe('Only whole numbers are allowed');
     });
 
+    it('returns an error message below the EIP-2780 transaction base cost', () => {
+      const result = validateGas('11999');
+
+      expect(result).toBe('Gas limit must be at least 12000');
+    });
+
     it.each([
-      ['an upgraded-node response', '12000'],
+      ['the EIP-2780 transaction base cost', '12000'],
       ['a legacy-node response', '21000'],
       ['the maximum representable value', maximumGasLimit],
     ])('returns false for %s', (_description, gas) => {

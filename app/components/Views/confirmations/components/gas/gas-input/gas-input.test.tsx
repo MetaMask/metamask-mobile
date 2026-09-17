@@ -20,7 +20,7 @@ describe('GasInput', () => {
     expect(getByTestId('gas-input')).toHaveProp('value', '26190');
   });
 
-  it('accepts a positive integer gas limit below 21000', () => {
+  it('accepts the EIP-2780 transaction base cost', () => {
     const mockOnChange = jest.fn();
     const { getByTestId, queryByTestId } = renderWithProvider(
       <GasInput onChange={mockOnChange} onErrorChange={noop} />,
@@ -33,6 +33,21 @@ describe('GasInput', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith('0x2ee0');
     expect(queryByTestId('gas-error')).not.toBeOnTheScreen();
+  });
+
+  it('displays an error below the EIP-2780 transaction base cost', () => {
+    const { getByTestId } = renderWithProvider(
+      <GasInput onChange={noop} onErrorChange={noop} />,
+      {
+        state: transferTransactionStateMock,
+      },
+    );
+
+    fireEvent.changeText(getByTestId('gas-input'), '11999');
+
+    expect(getByTestId('gas-error')).toHaveTextContent(
+      'Gas limit must be at least 12000',
+    );
   });
 
   it('displays an error above the representable gas range', () => {
