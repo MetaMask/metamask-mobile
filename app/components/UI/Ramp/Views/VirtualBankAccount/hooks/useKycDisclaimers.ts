@@ -85,23 +85,42 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         vendor: VBA_KYC_VENDOR,
         product: VBA_KYC_PRODUCT,
       });
+      console.log('[VBA KYC] initialize complete', {
+        country,
+        phase: Engine.context.KycController.state.phase,
+        sessionId: Engine.context.KycController.state.sessionId,
+        sessionStatus: Engine.context.KycController.state.sessionStatus,
+      });
 
       try {
         const sessionStatus =
           await Engine.context.KycController.refreshKycStatus();
-        if (
+        const finalStatus = sessionStatus?.finalStatus ?? null;
+        const skipToStatus = Boolean(
           sessionStatus &&
-          SKIP_TO_STATUS_SESSION_STATUSES.has(sessionStatus.finalStatus)
-        ) {
+            SKIP_TO_STATUS_SESSION_STATUSES.has(sessionStatus.finalStatus),
+        );
+        console.log('[VBA KYC] refreshKycStatus', {
+          sessionStatus,
+          finalStatus,
+          skipToStatus,
+        });
+        if (skipToStatus) {
           return { skipToStatus: true };
         }
         // TODO: `retry` should skip onboarding and reopen the Sumsub flow.
         // Until that path is wired, fall through to load disclaimers.
-      } catch {
-        // Status is unavailable: continue into the first-time onboarding path.
+      } catch (refreshError) {
+        console.log('[VBA KYC] refreshKycStatus failed; continuing onboarding', {
+          error:
+            refreshError instanceof Error
+              ? refreshError.message
+              : String(refreshError),
+        });
       }
 
       await Engine.context.KycController.loadDisclaimers({ country });
+      console.log('[VBA KYC] skipToStatus false; loading disclaimers');
       return { skipToStatus: false };
     })();
 
@@ -121,6 +140,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         }
 
         if (loadResult.skipToStatus) {
+          console.log('[VBA KYC] applying skipToStatus true');
           setSkipToStatus(true);
           return;
         }
