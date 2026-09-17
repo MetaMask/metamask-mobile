@@ -67,7 +67,7 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
     swapId: `${MOCK_RECURRING_OPEN_ORDER.orderId}-3`,
     orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
     status: RecurringSwapStatus.Skipped,
-    skipReason: 'not_enough_gas',
+    skipReason: 'insufficient_balance',
     src: { amount: '0' },
     dest: { amount: '0' },
     scheduledAt: '2026-09-03T12:00:00.000Z',

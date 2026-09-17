@@ -169,7 +169,7 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
         renderResult.getByTestId(
           RecurringSwapDetailsViewSelectorsIDs.REASON_ROW,
         ),
-      ).getByText(strings('bridge.recurring.not_enough_gas')),
+      ).getByText(strings('bridge.recurring.insufficient_balance')),
     ).toBeOnTheScreen();
     expect(renderResult.getByText('-0 ETH')).toBeOnTheScreen();
     expect(renderResult.getByText('+0 USDC')).toBeOnTheScreen();

@@ -206,7 +206,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[2],
-        status: strings('bridge.recurring.not_enough_gas'),
+        status: strings('bridge.recurring.insufficient_balance'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
