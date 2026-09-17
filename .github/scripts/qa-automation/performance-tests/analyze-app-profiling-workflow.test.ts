@@ -12,6 +12,7 @@ type WorkflowStep = {
   env?: Record<string, string>;
   run?: string;
   if?: string;
+  'continue-on-error'?: boolean;
 };
 
 type Workflow = {
@@ -27,7 +28,9 @@ type Workflow = {
       if?: string;
       steps: WorkflowStep[];
     }
-  >;
+  > & {
+    'report-upstream-failure': { if?: string; steps: WorkflowStep[] };
+  };
 };
 
 const loadWorkflow = () =>
@@ -115,5 +118,49 @@ describe('Analyze App Profiling triggers', () => {
       "github.event_name != 'workflow_dispatch'",
     );
     expect(slackStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+  });
+
+  it('reports an unsuccessful performance run instead of going quiet', () => {
+    const workflow = loadWorkflow();
+    const job = workflow.jobs['report-upstream-failure'];
+
+    const condition = job.if ?? '';
+
+    expect(condition).toContain(
+      "github.event.workflow_run.conclusion != 'success'",
+    );
+    // A failed scheduled suite must stay as silent as a successful one.
+    expect(condition).toContain(
+      "github.event.workflow_run.event == 'workflow_dispatch'",
+    );
+
+    const notice = job.steps.find(
+      (step) => step.name === 'Post Slack failure notice',
+    );
+
+    expect(notice?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    // The link must point at the failed performance run, not this reporter.
+    expect(notice?.env?.GITHUB_RUN_URL).toBe(
+      '${{ github.event.workflow_run.html_url }}',
+    );
+    expect(notice?.env?.GITHUB_RUN_LABEL).toBe('Failed performance run');
+    expect(notice?.run).toContain('did not run');
+  });
+
+  it('reports a failed analysis job with a link to it', () => {
+    const workflow = loadWorkflow();
+    const failureStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Post Slack analysis failure',
+    );
+
+    expect(failureStep?.if).toBe('failure()');
+    // A Slack outage must not turn a failed analysis into a failed workflow.
+    expect(failureStep?.['continue-on-error']).toBe(true);
+    expect(failureStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    expect(failureStep?.env?.GITHUB_RUN_URL).toContain(
+      'actions/runs/${{ github.run_id }}',
+    );
+    expect(failureStep?.env?.GITHUB_RUN_LABEL).toBe('Failed analysis job');
+    expect(failureStep?.run).toContain('analysis failed');
   });
 });

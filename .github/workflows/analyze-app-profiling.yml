@@ -68,6 +68,50 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A failed performance suite produces no analysis, so without this the
+  # chained run would simply go quiet and look like nothing was ever requested.
+  report-upstream-failure:
+    name: Report unsuccessful performance run
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'workflow_dispatch' &&
+      github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Post Slack failure notice
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_TARGET: UEYQL2PEV
+          # Link to the performance run that failed, not to this reporter.
+          GITHUB_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          GITHUB_RUN_LABEL: 'Failed performance run'
+          PERFORMANCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          PERFORMANCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes CPU-profile analysis did not run*"
+            echo ":test_tube: Testing experiment, not a production alert."
+            echo
+            echo "The performance suite finished as \`${PERFORMANCE_CONCLUSION}\`, so there are no profiles to analyze."
+            echo
+            echo "_Performance run:_ \`${PERFORMANCE_RUN_ID}\`"
+            echo "_Retry the analysis:_ Actions → Analyze App Profiling → \`run_id\` = \`${PERFORMANCE_RUN_ID}\` (useful when only some scenarios failed)."
+          } > /tmp/analyze-app-profiling/upstream-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/upstream-failure.md
+
   analyze:
     name: Analyze per-scenario profiling
     # Chain only successful, manually dispatched performance runs. Scheduled
@@ -153,3 +197,29 @@ jobs:
         run: |
           node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
             /tmp/analyze-app-profiling/slack.md
+
+      # Without this, a broken analyzer or a missing artifact is indistinguishable
+      # from a run that was never requested.
+      - name: Post Slack analysis failure
+        if: failure()
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_TARGET: UEYQL2PEV
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_RUN_LABEL: 'Failed analysis job'
+          ANALYZED_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes CPU-profile analysis failed*"
+            echo ":test_tube: Testing experiment, not a production alert."
+            echo
+            echo "The performance suite finished, but this analysis job failed, so no digest was produced."
+            echo
+            echo "_Performance run analyzed:_ \`${ANALYZED_RUN_ID:-latest successful scheduled run}\`"
+            echo "_Check the failed job below for the failing step._"
+          } > /tmp/analyze-app-profiling/analysis-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/analysis-failure.md
