@@ -37,11 +37,14 @@ describe('TabBarFloatingTradeButton', () => {
     expect(backgroundOf(view)).toBe('transparent');
   });
 
-  it('paints a solid fill while the tray is open', () => {
+  it('keeps the surface showing through while the tray is open', () => {
     const view = renderButton();
 
     open(view);
 
-    expect(backgroundOf(view)).not.toBe('transparent');
+    expect(backgroundOf(view)).toBe('transparent');
+    expect(view.getByTestId(TEST_ID).props.accessibilityState).toEqual({
+      expanded: true,
+    });
   });
 });
