@@ -124,7 +124,7 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-  { enableSingleTxFetch = true }: { enableSingleTxFetch?: boolean } = {},
+  { fetchByHash = true }: { fetchByHash?: boolean } = {},
 ) {
   const localByLookupKey = useSelector(selectLocalActivityItemsByIdentifier);
   const rampActivityItems = useRampActivityItems();
@@ -145,10 +145,7 @@ export function useActivityDetailsItem(
     txIdentifier && isValidTransactionHash(txIdentifier),
   );
   const txHash =
-    enableSingleTxFetch &&
-    chainId?.startsWith('eip155:') &&
-    txIdentifier &&
-    isValidHash
+    fetchByHash && chainId?.startsWith('eip155:') && txIdentifier && isValidHash
       ? txIdentifier
       : undefined;
   const { transaction: apiTransaction, isFetching: isSingleTxFetching } =

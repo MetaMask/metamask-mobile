@@ -71,11 +71,9 @@ export function usePerpsDetailsItem(
     );
   }, [chainId, collateralAssetId, transaction]);
 
-  const isLoading = shouldResolve && !item && isFetching;
-
   return {
     item,
     transaction,
-    isLoading,
+    isLoading: shouldResolve && !item && isFetching,
   };
 }

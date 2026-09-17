@@ -483,7 +483,7 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem(
         '0x0000000000000000000000000000000000000000000000000000000000000001',
         'eip155:1',
-        { enableSingleTxFetch: false },
+        { fetchByHash: false },
       ),
     );
 

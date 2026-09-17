@@ -54,7 +54,7 @@ function ActivityDetailsScreen() {
   );
   const { item: activityItem, isFetching: isActivityFetching } =
     useActivityDetailsItem(txIdentifier, chainId, {
-      enableSingleTxFetch: !perpsItem && !isPerpsLoading,
+      fetchByHash: !perpsItem && !isPerpsLoading,
     });
   const { item: predictItem, isLoading: isPredictLoading } =
     usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);

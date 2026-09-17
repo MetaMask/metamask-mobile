@@ -339,7 +339,7 @@ describe('ActivityDetails screen', () => {
     expect(useActivityDetailsItemMock).toHaveBeenCalledWith(
       '0xhash',
       'eip155:1',
-      { enableSingleTxFetch: false },
+      { fetchByHash: false },
     );
   });
 });
