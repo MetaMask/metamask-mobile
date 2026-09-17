@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+import { isSubsidizedRoute } from '../../utils/relayFixedSpread';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -111,7 +114,7 @@ export function useTransactionCustomAmount({
       }, DEBOUNCE_DELAY),
     [],
   );
-
+  const relayFixedSpreadConfig = useSelector(selectRelayFixedSpread);
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -279,6 +282,12 @@ export function useTransactionCustomAmount({
     updateTransactionPayAmount,
   ]);
 
+  const isFixedSpreadRoute = isSubsidizedRoute(
+    relayFixedSpreadConfig,
+    { chainId: payToken?.chainId ?? '', address: payToken?.address ?? '' },
+    { chainId, address: tokenAddress ?? '' },
+  );
+
   const setIsMax = useCallback(
     (value: boolean) => {
       const { TransactionPayController } = Engine.context;
@@ -287,12 +296,31 @@ export function useTransactionCustomAmount({
         config.isMaxAmount = value;
 
         if (isMoneyAccountDeposit) {
-          config.atomic = value ? false : undefined;
+          // Route configuration is only a hint; Core verifies the returned
+          // subsidy and re-quotes if the hint does not match.
+          config.atomic = value && !isFixedSpreadRoute ? false : undefined;
         }
       });
     },
-    [isMoneyAccountDeposit, transactionId],
+    [
+      isMoneyAccountDeposit,
+      transactionId,
+      isFixedSpreadRoute,
+    ],
   );
+
+  useEffect(() => {
+    if (!isMoneyAccountDeposit || !isMaxAmount) {
+      return;
+    }
+
+    Engine.context.TransactionPayController.setTransactionConfig(
+      transactionId,
+      (config) => {
+        config.atomic = isFixedSpreadRoute ? undefined : false;
+      },
+    );
+  }, [isFixedSpreadRoute, isMaxAmount, isMoneyAccountDeposit, transactionId]);
 
   const updatePendingAmount = useCallback(
     (value: string) => {
