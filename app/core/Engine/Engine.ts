@@ -133,6 +133,7 @@ import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import {
+  predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
@@ -190,6 +191,7 @@ import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { kycServiceInit } from './controllers/kyc/kyc-service-init';
@@ -387,6 +389,7 @@ export class Engine {
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
+        PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
@@ -399,6 +402,7 @@ export class Engine {
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
+        NeoBankService: neoBankServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
@@ -480,6 +484,7 @@ export class Engine {
       messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
+    const neoBankService = messengerClientsByName.NeoBankService;
     const rampsController = messengerClientsByName.RampsController;
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
@@ -684,6 +689,7 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
@@ -692,6 +698,7 @@ export class Engine {
       ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
+      NeoBankService: neoBankService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,

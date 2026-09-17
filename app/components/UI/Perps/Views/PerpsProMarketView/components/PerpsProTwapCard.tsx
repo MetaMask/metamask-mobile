@@ -40,14 +40,12 @@ import {
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
-import {
-  formatTwapDuration,
-  formatTwapProgressPercent,
-} from '../../../utils/twapFormat';
+import { formatTwapProgressPercent } from '../../../utils/twapFormat';
 import {
   getTwapDirectionLabelKey,
   getTwapOrderProviderId,
 } from '../../../utils/twapOrderUtils';
+import PerpsProTwapElapsed from './PerpsProTwapElapsed';
 
 interface PerpsProTwapCardProps {
   twapOrder: TwapOrder;
@@ -111,8 +109,6 @@ const formatOptionalPrice = (price?: string): string => {
     : PERPS_CONSTANTS.FallbackPriceDisplay;
 };
 
-const MILLISECONDS_PER_MINUTE = 60_000;
-
 /**
  * Summary of one venue-native TWAP schedule in the Pro market view.
  *
@@ -139,9 +135,6 @@ const PerpsProTwapCard = ({
 
   const totalSize = formatPositionSize(twapOrder.size);
   const executedSize = formatPositionSize(twapOrder.executedSize);
-  const elapsedMinutes = Math.floor(
-    twapOrder.elapsedTimeMilliseconds / MILLISECONDS_PER_MINUTE,
-  );
 
   const handlePress = onPress ? () => onPress(twapOrder) : undefined;
   const getValueTestID = (baseTestID: string) =>
@@ -298,15 +291,25 @@ const PerpsProTwapCard = ({
                   PerpsProMarketViewSelectorsIDs.TWAP_PROGRESS,
                 )}
               />
-              <KeyValueItem
-                label={strings('perps.pro_positions_panel.twap_card.elapsed')}
-                value={`${formatTwapDuration(
-                  elapsedMinutes,
-                )} / ${formatTwapDuration(twapOrder.durationMinutes)}`}
-                testID={getValueTestID(
-                  PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED,
-                )}
-              />
+              <Box>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.pro_positions_panel.twap_card.elapsed')}
+                </Text>
+                <PerpsProTwapElapsed
+                  startedAt={twapOrder.startedAt}
+                  durationMinutes={twapOrder.durationMinutes}
+                  isActive={twapOrder.status === 'active'}
+                  snapshotElapsedMilliseconds={
+                    twapOrder.elapsedTimeMilliseconds
+                  }
+                  testID={getValueTestID(
+                    PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED,
+                  )}
+                />
+              </Box>
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.twap_card.randomize')}
                 value={

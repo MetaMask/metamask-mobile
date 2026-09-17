@@ -25,6 +25,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ProofOfOwnershipService',
   'RampsService',
   'TransakService',
+  'NeoBankService',
   'ComplianceService',
   'KycService',
   'QrSyncProvisioningService',
@@ -36,6 +37,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ChompApiService',
   'SentinelApiService',
   'PredictMarketDataService',
+  'PredictLiveDataService',
   'PredictPortfolioService',
 ] as const;
 

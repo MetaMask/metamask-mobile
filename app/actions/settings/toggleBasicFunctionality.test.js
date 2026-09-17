@@ -13,6 +13,7 @@ import {
   selectIsSocialLoginBasicFunctionalityLocked,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { MetaMetricsEvents } from '../../core/Analytics';
 
 const mockSyncConsolidatedBasicFunctionalityPreferences = jest.mocked(
   syncConsolidatedBasicFunctionalityPreferences,
@@ -28,6 +29,26 @@ const mockGetBasicFunctionalityConsolidationPlan = jest.fn(() => ({
   notification: 'toast',
 }));
 const mockIsBasicFunctionalitySocialLoginUser = jest.fn(() => false);
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'mock-event' });
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args) => mockTrackEvent(...args),
+  },
+}));
+
+jest.mock('../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: (...args) => mockCreateEventBuilder(...args),
+  },
+}));
 
 // Mock Engine
 const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
@@ -280,12 +301,19 @@ describe('consolidateBasicFunctionality action', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnThis();
+    mockBuild.mockReturnValue({ name: 'mock-event' });
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }));
     mockSetBasicFunctionality.mockResolvedValue(undefined);
     mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(true);
     mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
       landingState: true,
       notification: 'toast',
     });
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(false);
   });
 
   it('aligns preferences and schedules the one-time notification', async () => {
@@ -304,10 +332,10 @@ describe('consolidateBasicFunctionality action', () => {
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
     ).toHaveBeenCalledWith(true);
-    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
-    expect(dispatch).toHaveBeenCalledWith(
+    expect(dispatch.mock.calls[0][0]).toEqual(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
+    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
     expect(dispatch).toHaveBeenCalledWith(
       setBasicFunctionalityMigrationNotification('toast'),
     );
@@ -356,6 +384,60 @@ describe('consolidateBasicFunctionality action', () => {
     expect(dispatch).toHaveBeenCalledWith(
       setBasicFunctionalityMigrationNotification(null),
     );
+  });
+
+  it('tracks Basic Functionality Migrated for unaligned wallets', async () => {
+    const dispatch = jest.fn();
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.BASIC_FUNCTIONALITY_MIGRATED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      routed_bf_state: 'on',
+      is_social_login: false,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-event' });
+  });
+
+  it('skips Basic Functionality Migrated for aligned wallets', async () => {
+    const dispatch = jest.fn();
+    mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
+      landingState: true,
+      notification: null,
+    });
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        basicFunctionalityEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            useTransactionSimulations: true,
+            securityAlertsEnabled: true,
+          },
+          SeedlessOnboardingController: {},
+        },
+      },
+    }));
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('tracks social login on the migrated event for unaligned social wallets', async () => {
+    const dispatch = jest.fn();
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      routed_bf_state: 'on',
+      is_social_login: true,
+    });
   });
 
   it('creates the persisted dismissal action', () => {
