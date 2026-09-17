@@ -5022,6 +5022,85 @@ describe('PredictController', () => {
       });
     });
 
+    it('collapses address casings into a single claimable positions entry', async () => {
+      // Arrange: a confirmed-claim refetch keys by lowercased txParams.from,
+      // later fetches key by the checksummed signer address.
+      await withController(async ({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const lowercaseAddress = signerAddress.toLowerCase();
+        const checksumAddress = signerAddress.toUpperCase().replace('0X', '0x');
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({
+          address: lowercaseAddress,
+          claimable: true,
+        });
+
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions.mockResolvedValue([wonPosition]);
+
+        // Act
+        await controller.getPositions({
+          address: checksumAddress,
+          claimable: true,
+        });
+
+        // Assert: one key, holding the latest positions.
+        expect(Object.keys(controller.state.claimablePositions)).toEqual([
+          lowercaseAddress,
+        ]);
+        expect(controller.state.claimablePositions[lowercaseAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+      });
+    });
+
+    it('claims positions stored under a different casing of the signer address', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-casing';
+      await withController(async ({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        // Stored under an upper-cased key, as if written by a caller that
+        // passed a differently-cased address.
+        await controller.getPositions({
+          address: signerAddress.toUpperCase().replace('0X', '0x'),
+          claimable: true,
+        });
+        mockPolymarketProvider.getPositions.mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert: no refetch was needed, the existing entry was found.
+        expect(mockPolymarketProvider.getPositions).not.toHaveBeenCalled();
+        expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions: [expect.objectContaining(wonPosition)],
+          }),
+        );
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
     it('throws error when network client not found', async () => {
       // Arrange
       await withController(

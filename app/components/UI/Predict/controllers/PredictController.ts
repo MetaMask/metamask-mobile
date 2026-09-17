@@ -1230,10 +1230,16 @@ export class PredictController extends BaseController<
             if (this.findPendingClaimAddress(selectedAddress)) {
               return;
             }
+            // Callers pass this address in different casings (checksummed
+            // signer vs lowercased `txParams.from`). Write into the existing
+            // key so a single account never has two entries in the map.
+            const addressKey =
+              this.findClaimablePositionsAddress(selectedAddress) ??
+              selectedAddress;
             if (params.claimable === true) {
-              state.claimablePositions[selectedAddress] = [...positions];
+              state.claimablePositions[addressKey] = [...positions];
             } else if (params.claimable === undefined) {
-              state.claimablePositions[selectedAddress] = positions.filter(
+              state.claimablePositions[addressKey] = positions.filter(
                 (p) => p.claimable,
               );
             }
@@ -2481,7 +2487,9 @@ export class PredictController extends BaseController<
       // refresh once before deciding there is nothing to claim: controller
       // state is not persisted, so the map can be empty or stale even though
       // the CTA that brought us here was correct (PRED-1321).
-      let claimablePositions = this.state.claimablePositions[signer.address];
+      let claimablePositions = this.getClaimablePositionsByAddress(
+        signer.address,
+      );
 
       if (!claimablePositions?.some(isActionableClaimablePosition)) {
         claimablePositions = await this.getPositions({
@@ -2889,11 +2897,8 @@ export class PredictController extends BaseController<
   public confirmClaim({ address }: { address?: string }): void {
     const provider = this.provider;
 
-    const normalizedAddress = (
-      address ?? this.getSigner().address
-    ).toLowerCase();
-    const matchedAddress = Object.keys(this.state.claimablePositions).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    const matchedAddress = this.findClaimablePositionsAddress(
+      address ?? this.getSigner().address,
     );
 
     if (!matchedAddress) {
@@ -4056,16 +4061,7 @@ export class PredictController extends BaseController<
   }
 
   private getClaimAmountByAddress(address: string): number {
-    const normalizedAddress = address.toLowerCase();
-    const matchedAddress = Object.keys(this.state.claimablePositions).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
-    );
-
-    if (!matchedAddress) {
-      return 0;
-    }
-
-    return this.state.claimablePositions[matchedAddress]
+    return this.getClaimablePositionsByAddress(address)
       .filter(isActionableClaimablePosition)
       .reduce((sum, position) => sum + position.currentValue, 0);
   }
@@ -4500,6 +4496,26 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * `claimablePositions` is keyed by whichever casing first wrote it
+   * (checksummed signer address or lowercased `txParams.from`). Every read
+   * and write goes through this lookup so one account never ends up with two
+   * entries that the footer and the claim flow disagree on (PRED-1321).
+   */
+  private findClaimablePositionsAddress(address: string): string | undefined {
+    const normalizedAddress = address.toLowerCase();
+    return Object.keys(this.state.claimablePositions).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+  }
+
+  private getClaimablePositionsByAddress(address: string): PredictPosition[] {
+    const matchedAddress = this.findClaimablePositionsAddress(address);
+    return matchedAddress
+      ? (this.state.claimablePositions[matchedAddress] ?? [])
+      : [];
+  }
+
   private getPendingClaimContext(transactionMeta: TransactionMeta):
     | {
         senderAddress: string;
@@ -4538,8 +4554,9 @@ export class PredictController extends BaseController<
       throw new Error('Pending claim batch does not match transaction batch');
     }
 
-    const claimablePositions = this.state.claimablePositions[matchedAddress];
-    if (!claimablePositions || claimablePositions.length === 0) {
+    const claimablePositions =
+      this.getClaimablePositionsByAddress(matchedAddress);
+    if (claimablePositions.length === 0) {
       throw new Error('No claimable positions found for pending claim');
     }
 
