@@ -17,14 +17,15 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   TabsBar,
   type TabItem,
 } from '../../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../../locales/i18n';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { WalletType } from '../../pushProvisioning/types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
@@ -55,6 +56,7 @@ const DigitalWalletInstructionsSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedView = useRef(false);
   const navigation = useNavigation<AppNavigationProp>();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [activeIndex, setActiveIndex] = useState(
     Platform.OS === 'ios' ? APPLE_WALLET_INDEX : GOOGLE_WALLET_INDEX,
@@ -93,14 +95,14 @@ const DigitalWalletInstructionsSheet = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
+          withCardProvider(activeProviderId, {
             screen: CardScreens.DIGITAL_WALLET_INSTRUCTIONS_SHEET,
             wallet_type: walletType,
           }),
         )
         .build(),
     );
-  }, [createEventBuilder, trackEvent, walletType]);
+  }, [activeProviderId, createEventBuilder, trackEvent, walletType]);
 
   const handleTabPress = useCallback(
     (index: number) => {
@@ -113,7 +115,7 @@ const DigitalWalletInstructionsSheet = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
-            withCardProvider(CardProviderIds.Immersve, {
+            withCardProvider(activeProviderId, {
               action: CardActions.DIGITAL_WALLET_INSTRUCTIONS_PLATFORM_SWITCH,
               wallet_type: nextWalletType,
             }),
@@ -121,7 +123,7 @@ const DigitalWalletInstructionsSheet = () => {
           .build(),
       );
     },
-    [activeIndex, createEventBuilder, trackEvent],
+    [activeIndex, activeProviderId, createEventBuilder, trackEvent],
   );
 
   const handleClose = useCallback(() => {

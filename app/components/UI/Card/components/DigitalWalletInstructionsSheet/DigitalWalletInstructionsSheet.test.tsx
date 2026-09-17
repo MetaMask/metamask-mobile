@@ -1,12 +1,14 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import {
   createMockEventBuilder,
   createMockUseAnalyticsHook,
 } from '../../../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { CardActions, CardScreens } from '../../util/metrics';
 import DigitalWalletInstructionsSheet from './DigitalWalletInstructionsSheet';
 import { DigitalWalletInstructionsSheetSelectors } from './DigitalWalletInstructionsSheet.testIds';
@@ -20,6 +22,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -60,10 +67,20 @@ const getBuilder = (callIndex: number) =>
     typeof createMockEventBuilder
   >;
 
+const mockActiveProvider = (providerId: string) => {
+  jest.mocked(useSelector).mockImplementation((selector) => {
+    if (selector === selectCardActiveProviderId) {
+      return providerId;
+    }
+    return undefined;
+  });
+};
+
 describe('DigitalWalletInstructionsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setPlatform('ios');
+    mockActiveProvider('immersve');
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -108,6 +125,18 @@ describe('DigitalWalletInstructionsSheet', () => {
       wallet_type: 'apple_wallet',
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks the active Baanx provider for Exodus cardholders', () => {
+    mockActiveProvider('baanx');
+
+    render(<DigitalWalletInstructionsSheet />);
+
+    expect(getBuilder(0).addProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      screen: CardScreens.DIGITAL_WALLET_INSTRUCTIONS_SHEET,
+      wallet_type: 'apple_wallet',
+    });
   });
 
   it('switches to Google Wallet instructions and tracks the selection', () => {

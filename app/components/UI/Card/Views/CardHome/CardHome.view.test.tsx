@@ -97,6 +97,66 @@ describe('CardHome', () => {
         );
       });
 
+      it('opens digital wallet instructions for a Baanx international cardholder', async () => {
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'baanx',
+                  providerData: {
+                    baanx: { location: 'international' },
+                  },
+                },
+              },
+            },
+          },
+          extraRoutes: [
+            {
+              name: Routes.CARD.MODALS.ID,
+              Component: createRouteParamsProbe(Routes.CARD.MODALS.ID),
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        );
+
+        const paramsEl = await findByTestId(
+          getRouteParamsProbeTestId(Routes.CARD.MODALS.ID),
+        );
+        const params = JSON.parse(paramsEl.props.children as string);
+        expect(params.screen).toBe(
+          Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+        );
+      });
+
+      it('hides digital wallet instructions for a Baanx US cardholder', async () => {
+        const { queryByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'baanx',
+                  providerData: {
+                    baanx: { location: 'us' },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        await waitFor(() => {
+          expect(
+            queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+          ).not.toBeOnTheScreen();
+        });
+      });
+
       it('opens Spending Limit screen with flow=manage when Manage Spending Limit button is pressed', async () => {
         const { getByTestId, findByTestId } = renderCardHomeView({
           extraRoutes: [

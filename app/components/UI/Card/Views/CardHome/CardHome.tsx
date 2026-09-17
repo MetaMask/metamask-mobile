@@ -224,8 +224,13 @@ const CardHome = () => {
     isLoading: isPushProvisioningLoading,
     canAddToWallet,
   } = useCardProvisioning(data);
+  const isBaanxInternational =
+    activeProviderId === CardProviderIds.Baanx &&
+    userLocation === 'international';
   const showDigitalWalletInstructions =
-    isImmersve && !isPushProvisioningLoading && !canAddToWallet;
+    (isImmersve || isBaanxInternational) &&
+    !isPushProvisioningLoading &&
+    !canAddToWallet;
 
   const {
     pendingAction: immersvePendingAction,
