@@ -6021,7 +6021,6 @@
       "only_numbers_allowed": "केवल नंबरों की अनुमति है",
       "negative_values_not_allowed": "नेगेटिव वैल्यूज़ की अनुमति नहीं है",
       "max_base_fee_must_be_greater_than_priority_fee": "अधिकतम बेस फी को प्रायोरिटी फी से ज़्यादा होना चाहिए",
-      "gas_limit_too_low": "गैस की सीमा 21000 से ज्यादा होनी चाहिए",
       "priority_fee_too_high": "प्रायोरिटी फी को अधिकतम बेस फी से कम होना चाहिए",
       "no_zero_value": "{{field}} को 0 से ज़्यादा होना चाहिए",
       "speed": "स्पीड",
