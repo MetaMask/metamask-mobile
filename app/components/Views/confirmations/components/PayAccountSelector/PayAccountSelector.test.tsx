@@ -36,21 +36,40 @@ jest.mock('../AccountSelector', () => {
       onAccountSelected,
       selectedAddress,
       label,
+      isAccountAllowed,
     }: {
       onAccountSelected: (address: string) => void;
       selectedAddress?: string;
       label?: string;
+      isAccountAllowed?: (account: unknown) => boolean;
     }) => (
-      <TouchableOpacity
-        testID="account-selector"
-        onPress={() => onAccountSelected('0xSelectedAddress')}
-      >
-        <Text testID="account-selector-label">{label ?? 'To'}</Text>
-        <Text testID="account-selector-address">
-          {selectedAddress ?? 'No selection'}
-        </Text>
-      </TouchableOpacity>
-    ),
+        <TouchableOpacity
+          testID="account-selector"
+          onPress={() => onAccountSelected('0xSelectedAddress')}
+        >
+          <Text testID="account-selector-label">{label ?? 'To'}</Text>
+          <Text testID="account-selector-address">
+            {selectedAddress ?? 'No selection'}
+          </Text>
+          <Text testID="account-selector-filter">
+            {isAccountAllowed ? 'Filtered' : 'Unfiltered'}
+          </Text>
+          <Text testID="ledger-account-allowed">
+            {String(
+              isAccountAllowed?.({
+                metadata: { keyring: { type: 'Ledger Hardware' } },
+              }),
+            )}
+          </Text>
+          <Text testID="software-account-allowed">
+            {String(
+              isAccountAllowed?.({
+                metadata: { keyring: { type: 'HD Key Tree' } },
+              }),
+            )}
+          </Text>
+        </TouchableOpacity>
+      ),
   };
 });
 
@@ -139,6 +158,19 @@ describe('PayAccountSelector', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('account-selector-label')).toHaveTextContent('To');
+    expect(getByTestId('account-selector-filter')).toHaveTextContent(
+      'Filtered',
+    );
+    expect(getByTestId('ledger-account-allowed')).toHaveTextContent('false');
+    expect(getByTestId('software-account-allowed')).toHaveTextContent('true');
+  });
+
+  it('does not filter recipient accounts for deposit transactions', () => {
+    const { getByTestId } = render();
+
+    expect(getByTestId('account-selector-filter')).toHaveTextContent(
+      'Unfiltered',
+    );
   });
 
   it('calls setTransactionConfig with accountOverride on account selection', async () => {

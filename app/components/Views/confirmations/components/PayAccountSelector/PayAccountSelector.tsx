@@ -5,13 +5,18 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import AccountSelector from '../AccountSelector';
+
+const isNotLedgerAccount = (account: InternalAccount) =>
+  account.metadata.keyring.type !== ExtendedKeyringTypes.ledger;
 
 const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   style,
@@ -68,6 +73,7 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
       selectorTitle={selectorTitle}
       selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
+      isAccountAllowed={isMoneyAccountWithdraw ? isNotLedgerAccount : undefined}
       style={style}
     />
   );
