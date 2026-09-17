@@ -34,6 +34,7 @@ jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
 jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
+  ...jest.requireActual('../../ActivityList/helpers/transformations'),
   mapNonEvmTransactions: jest.fn(() => []),
 }));
 jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
@@ -504,18 +505,8 @@ describe('useActivityDetailsItem', () => {
         cumulativeGasUsed: 21000,
         value: '1',
         transactionCategory: 'TRANSFER',
-        valueTransfers: [
-          {
-            from: counterparty,
-            to: lowercaseSubject,
-            amount: '1',
-            decimal: 18,
-            contractAddress: '',
-            symbol: 'ETH',
-            name: 'Ether',
-            transferType: 'normal',
-          },
-        ],
+        // No valueTransfers: list keeps top-level to=subject receives, but skips
+        // rows that only match via incoming native valueTransfers.
       } as V1TransactionByHashResponse,
       isFetching: false,
     });
