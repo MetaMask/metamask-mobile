@@ -75,19 +75,37 @@ interface PerpsAdjustMarginBottomSheetProps {
   enableHaptics?: boolean;
 }
 
+interface SubmittedEstimate {
+  price: number;
+  distance: number;
+  currentMargin: number;
+  nextMargin: number;
+}
+
 const floorUsd = (value: number) => Math.floor(value * 100) / 100;
+
+const calculateNextMargin = (
+  currentMargin: number,
+  amount: number,
+  isAddMode: boolean,
+) => (isAddMode ? currentMargin + amount : Math.max(0, currentMargin - amount));
+
+const formatLiquidationDistance = (
+  distance: number,
+  liquidationPrice: number,
+) =>
+  !Number.isFinite(distance) ||
+  !Number.isFinite(liquidationPrice) ||
+  liquidationPrice <= 0
+    ? PERPS_CONSTANTS.FallbackDataDisplay
+    : `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
 
 const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
 > = ({ position: routePosition, initialMode, enableHaptics = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const submittedEstimateRef = useRef<{
-    price: number;
-    distance: number;
-    currentMargin: number;
-    nextMargin: number;
-  } | null>(null);
+  const submittedEstimateRef = useRef<SubmittedEstimate | null>(null);
   const adjustmentPendingRef = useRef(false);
   const hasNavigatedBackRef = useRef(false);
   const { playImpact: playHapticImpact } = useHaptics();
@@ -97,6 +115,14 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+  const screenType =
+    mode === 'add'
+      ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
+      : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN;
+  const eventContext = {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: screenType,
+    [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
+  };
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
@@ -135,11 +161,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
           [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
             PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
           [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            mode === 'remove'
-              ? PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN
-              : PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN,
-          [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
+          ...eventContext,
         });
         Logger.error(new Error(errorMessage), {
           tags: {
@@ -188,15 +210,13 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     [flooredMaxAmount, marginAmount],
   );
 
-  const validationErrors = useMemo(() => {
+  const validationError = useMemo(() => {
     if (isInputFocused || marginAmount <= flooredMaxAmount) {
-      return [];
+      return null;
     }
-    return [
-      isAddMode
-        ? strings('perps.adjust_margin.exceeds_available')
-        : strings('perps.errors.marginValidation.exceedsMaxRemovable'),
-    ];
+    return isAddMode
+      ? strings('perps.adjust_margin.exceeds_available')
+      : strings('perps.errors.marginValidation.exceedsMaxRemovable');
   }, [flooredMaxAmount, isAddMode, isInputFocused, marginAmount]);
 
   const isPositionGone = !isLoading && !position;
@@ -209,11 +229,15 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     ? strings('perps.adjust_margin.position_data_unavailable')
     : null;
   const displayedErrors = [
-    ...validationErrors,
-    ...(submissionError ? [submissionError] : []),
-    ...(positionError ? [positionError] : []),
-    ...(positionDataError ? [positionDataError] : []),
-  ];
+    validationError,
+    submissionError,
+    positionError,
+    positionDataError,
+  ].filter((error): error is string => Boolean(error));
+  const hasInvalidAmount =
+    marginAmount <= 0 ||
+    marginAmount > flooredMaxAmount ||
+    Boolean(validationError);
 
   usePerpsMeasurement({
     traceName: TraceName.PerpsAdjustMarginView,
@@ -224,27 +248,19 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     resetKey: mode,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
-        ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
-        : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
-      [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
-    },
+    properties: eventContext,
   });
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_ERROR,
-    conditions: [validationErrors.length > 0],
-    resetConditions: [validationErrors.length === 0],
+    conditions: [Boolean(validationError)],
+    resetConditions: [!validationError],
     resetKey: mode,
     properties: {
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
         PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: validationErrors[0],
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
-        ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
-        : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
-      [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: validationError,
+      ...eventContext,
     },
   });
 
@@ -256,10 +272,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
         PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
       [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: positionError,
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
-        ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
-        : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
-      [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
+      ...eventContext,
     },
   });
 
@@ -271,10 +284,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
         PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
       [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: positionDataError,
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
-        ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
-        : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
-      [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
+      ...eventContext,
     },
   });
 
@@ -303,55 +313,45 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     [routePosition.symbol, track],
   );
 
+  const updateMarginAmount = useCallback((value: string) => {
+    setSubmissionError(null);
+    setMarginAmountString(value);
+  }, []);
+
   const handleSliderChange = useCallback(
     (percentage: number) => {
       const amount = (flooredMaxAmount * percentage) / 100;
-      setSubmissionError(null);
-      setMarginAmountString(floorUsd(amount).toFixed(2));
+      updateMarginAmount(floorUsd(amount).toFixed(2));
     },
-    [flooredMaxAmount],
+    [flooredMaxAmount, updateMarginAmount],
   );
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      setSubmissionError(null);
-      setMarginAmountString(floorUsd(flooredMaxAmount * percentage).toFixed(2));
+      updateMarginAmount(floorUsd(flooredMaxAmount * percentage).toFixed(2));
     },
-    [flooredMaxAmount],
+    [flooredMaxAmount, updateMarginAmount],
   );
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string }) => {
       const numericValue = Number.parseFloat(value) || 0;
-      setSubmissionError(null);
-      if (!isAddMode && numericValue > flooredMaxAmount) {
-        setMarginAmountString(flooredMaxAmount.toFixed(2));
-        return;
-      }
-      setMarginAmountString(value || '0');
+      const nextValue =
+        !isAddMode && numericValue > flooredMaxAmount
+          ? flooredMaxAmount.toFixed(2)
+          : value || '0';
+      updateMarginAmount(nextValue);
     },
-    [flooredMaxAmount, isAddMode],
-  );
-
-  const formatLiquidationDistance = useCallback(
-    (distance: number, liquidationPrice: number) =>
-      !Number.isFinite(distance) ||
-      !Number.isFinite(liquidationPrice) ||
-      liquidationPrice <= 0
-        ? PERPS_CONSTANTS.FallbackDataDisplay
-        : `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`,
-    [],
+    [flooredMaxAmount, isAddMode, updateMarginAmount],
   );
 
   const handleConfirm = useCallback(async () => {
     if (
-      marginAmount <= 0 ||
+      hasInvalidAmount ||
       !position ||
       !hasValidPositionData ||
       isAdjusting ||
-      adjustmentPendingRef.current ||
-      validationErrors.length ||
-      marginAmount > flooredMaxAmount
+      adjustmentPendingRef.current
     ) {
       return;
     }
@@ -366,9 +366,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       price: newLiquidationPrice,
       distance: newLiquidationDistance,
       currentMargin,
-      nextMargin: isAddMode
-        ? currentMargin + marginAmount
-        : Math.max(0, currentMargin - marginAmount),
+      nextMargin: calculateNextMargin(currentMargin, marginAmount, isAddMode),
     };
 
     if (isAddMode) {
@@ -378,10 +376,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     await handleRemoveMargin(position.symbol, marginAmount);
   }, [
     enableHaptics,
-    flooredMaxAmount,
     handleAddMargin,
     handleRemoveMargin,
     hasValidPositionData,
+    hasInvalidAmount,
     currentMargin,
     isAddMode,
     isAdjusting,
@@ -390,7 +388,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     newLiquidationPrice,
     playHapticImpact,
     position,
-    validationErrors.length,
   ]);
 
   const submittedEstimate = submittedEstimateRef.current;
@@ -402,9 +399,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     submittedEstimate?.currentMargin ?? currentMargin;
   const nextMargin =
     submittedEstimate?.nextMargin ??
-    (isAddMode
-      ? currentMargin + marginAmount
-      : Math.max(0, currentMargin - marginAmount));
+    calculateNextMargin(currentMargin, marginAmount, isAddMode);
   const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   const renderTransitionValue = (
@@ -438,12 +433,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     );
 
   const isConfirmDisabled =
-    marginAmount <= 0 ||
-    isAdjusting ||
-    isPositionGone ||
-    isPositionDataInvalid ||
-    marginAmount > flooredMaxAmount ||
-    Boolean(validationErrors.length);
+    hasInvalidAmount || isAdjusting || isPositionGone || isPositionDataInvalid;
 
   return (
     <>
@@ -507,7 +497,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               amount={marginAmountString}
               onPress={() => setIsInputFocused(true)}
               isActive={isInputFocused}
-              hasError={Boolean(validationErrors.length)}
+              hasError={Boolean(validationError)}
               isLoading={isLoading}
               showMaxAmount={false}
               accessibilityLabel={`${strings(
@@ -636,30 +626,24 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               flexDirection={BoxFlexDirection.Row}
               gap={2}
             >
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                onPress={() => handlePercentagePress(0.25)}
-                twClassName="flex-1"
-              >
-                25%
-              </Button>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                onPress={() => handlePercentagePress(0.5)}
-                twClassName="flex-1"
-              >
-                50%
-              </Button>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                onPress={() => handlePercentagePress(1)}
-                twClassName="flex-1"
-              >
-                {strings('perps.deposit.max_button')}
-              </Button>
+              {[
+                { label: '25%', percentage: 0.25 },
+                { label: '50%', percentage: 0.5 },
+                {
+                  label: strings('perps.deposit.max_button'),
+                  percentage: 1,
+                },
+              ].map(({ label, percentage }) => (
+                <Button
+                  key={percentage}
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  onPress={() => handlePercentagePress(percentage)}
+                  twClassName="flex-1"
+                >
+                  {label}
+                </Button>
+              ))}
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}

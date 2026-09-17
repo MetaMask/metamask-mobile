@@ -86,20 +86,11 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       );
 
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
-      switch (action) {
-        case 'add_margin':
-          navigateToAdjustMargin(position, 'add', {
-            enableHaptics,
-            useBottomSheet,
-          });
-          break;
-        case 'reduce_margin':
-          navigateToAdjustMargin(position, 'remove', {
-            enableHaptics,
-            useBottomSheet,
-          });
-          break;
-      }
+      const mode = action === 'reduce_margin' ? 'remove' : 'add';
+      navigateToAdjustMargin(position, mode, {
+        enableHaptics,
+        useBottomSheet,
+      });
 
       // Close bottom sheet AFTER navigation is triggered
       sheetRef.current?.onCloseBottomSheet(handleClose);

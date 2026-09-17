@@ -70,6 +70,14 @@ const isFiniteNumber = (value: string | number | null | undefined): boolean => {
   return Number.isFinite(Number(value));
 };
 
+const isPositiveFiniteNumber = (
+  value: string | number | null | undefined,
+): boolean => isFiniteNumber(value) && Number(value) > 0;
+
+const isNonZeroFiniteNumber = (
+  value: string | number | null | undefined,
+): boolean => isFiniteNumber(value) && Number(value) !== 0;
+
 /**
  * Hook for margin adjustment data and calculations
  *
@@ -107,26 +115,13 @@ export function usePerpsAdjustMarginData(
       return false;
     }
 
-    const marginUsed = Number(position.marginUsed);
-    const positionValue = Number(position.positionValue);
-    const liquidationPrice = Number(position.liquidationPrice);
-    const size = Number(position.size);
-    const entryPrice = Number(position.entryPrice);
-    const leverage = Number(position.leverage?.value);
-
     return (
-      isFiniteNumber(position.marginUsed) &&
-      marginUsed > 0 &&
-      isFiniteNumber(position.positionValue) &&
-      positionValue > 0 &&
-      isFiniteNumber(position.liquidationPrice) &&
-      liquidationPrice > 0 &&
-      isFiniteNumber(position.size) &&
-      size !== 0 &&
-      isFiniteNumber(position.entryPrice) &&
-      entryPrice > 0 &&
-      isFiniteNumber(position.leverage?.value) &&
-      leverage > 0
+      isPositiveFiniteNumber(position.marginUsed) &&
+      isPositiveFiniteNumber(position.positionValue) &&
+      isPositiveFiniteNumber(position.liquidationPrice) &&
+      isNonZeroFiniteNumber(position.size) &&
+      isPositiveFiniteNumber(position.entryPrice) &&
+      isPositiveFiniteNumber(position.leverage?.value)
     );
   }, [position]);
 
@@ -144,36 +139,25 @@ export function usePerpsAdjustMarginData(
       ? parsedMaxLeverage
       : MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage;
 
-  // Derived values from live position
-  const currentMargin = useMemo(
-    () => parseFiniteNumber(position?.marginUsed),
-    [position],
-  );
-
-  const positionValue = useMemo(
-    () => parseFiniteNumber(position?.positionValue),
-    [position],
-  );
-
-  const currentLiquidationPrice = useMemo(
-    () => parseFiniteNumber(position?.liquidationPrice),
-    [position],
-  );
-
-  const positionSize = useMemo(
-    () => Math.abs(parseFiniteNumber(position?.size)),
-    [position],
-  );
-
-  const entryPrice = useMemo(
-    () => parseFiniteNumber(position?.entryPrice),
-    [position],
-  );
-
-  const isLong = useMemo(
-    () => parseFiniteNumber(position?.size) > 0,
-    [position],
-  );
+  // Parse the live position once so every derived calculation uses one snapshot.
+  const {
+    currentMargin,
+    positionValue,
+    currentLiquidationPrice,
+    positionSize,
+    entryPrice,
+    isLong,
+  } = useMemo(() => {
+    const signedPositionSize = parseFiniteNumber(position?.size);
+    return {
+      currentMargin: parseFiniteNumber(position?.marginUsed),
+      positionValue: parseFiniteNumber(position?.positionValue),
+      currentLiquidationPrice: parseFiniteNumber(position?.liquidationPrice),
+      positionSize: Math.abs(signedPositionSize),
+      entryPrice: parseFiniteNumber(position?.entryPrice),
+      isLong: signedPositionSize > 0,
+    };
+  }, [position]);
 
   const currentPrice = useMemo(
     () => parseFiniteNumber(livePrices?.[symbol]?.price),
