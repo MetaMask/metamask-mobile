@@ -79,7 +79,7 @@ const resolveOptimisticBaseAssets = (
  * blob. IDs not yet present in the hydrated cache (e.g. a freshly added
  * asset before `getTokens` resolves) are omitted until the settled refetch.
  */
-const applyOptimisticToHydrated = (
+const applyHydratedWatchlistAdditions = (
   hydrated: WatchlistTokenMetadata[] | undefined,
   newAssetIds: readonly string[],
   seedById?: ReadonlyMap<string, WatchlistTokenMetadata>,
@@ -177,7 +177,7 @@ type ApplyOptimisticHydratedFn<TInput> = (
 const defaultApplyOptimisticHydrated: ApplyOptimisticHydratedFn<unknown> = (
   current,
   nextAssets,
-) => applyOptimisticToHydrated(current, nextAssets);
+) => applyHydratedWatchlistAdditions(current, nextAssets);
 
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
@@ -273,7 +273,7 @@ export const useTokenWatchlistAddItemMutation = () => {
     applyOptimistic: (current, input) =>
       mergeAssets(current, toStrings(asArray(input))),
     applyOptimisticHydrated: (current, nextAssets) =>
-      applyOptimisticToHydrated(
+      applyHydratedWatchlistAdditions(
         current,
         nextAssets,
         collectCachedSuggestedMetadata(queryClient),
