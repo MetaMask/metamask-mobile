@@ -1495,6 +1495,17 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  it('opens the margin tooltip from the Trade sheet', () => {
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockTradeScreenProps().onMarginInfoPress());
+
+    expect(
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP),
+    ).toBeOnTheScreen();
+  });
+
   it('closes the Trade sheet back to its presenting market', () => {
     useTradeSheetRoute();
     render(<PerpsOrderView />, { wrapper: TestWrapper });

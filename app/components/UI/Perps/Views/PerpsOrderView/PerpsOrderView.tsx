@@ -2299,6 +2299,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           asset={orderForm.asset}
           direction={orderForm.direction}
         />
+        {selectedTooltip === 'margin' && (
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={handleTooltipClose}
+            contentKey="margin"
+            testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+            buttonLocation={
+              PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN
+            }
+          />
+        )}
       </>
     );
   }
