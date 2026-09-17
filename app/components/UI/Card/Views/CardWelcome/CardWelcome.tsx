@@ -262,11 +262,9 @@ const CardWelcome = () => {
           testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
           size={ButtonSize.Lg}
           isFullWidth
+          twClassName="bg-white"
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.getStartedButtonText}
-          >
+          <Text variant={TextVariant.BodyMd} twClassName="text-black">
             {strings(
               hasCardholderAccounts
                 ? 'card.card_onboarding.login_button'
@@ -281,8 +279,7 @@ const CardWelcome = () => {
           size={ButtonSize.Lg}
           isFullWidth
           textProps={{
-            variant: TextVariant.BodyMd,
-            style: styles.notNowButtonText,
+            twClassName: 'text-white',
           }}
         >
           {strings('card.card_onboarding.not_now_button')}
