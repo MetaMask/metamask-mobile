@@ -101,13 +101,35 @@ describe('useImmersveOnboardingRouter', () => {
           params: {},
         },
       },
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
+  });
+
+  it('resets to Card Home for funding when the user already has a card', () => {
+    getRoute()(
+      {
+        type: 'funding',
+        write: {
+          abi: [],
+          contractAddress: '0x',
+          method: 'approve',
+          params: {},
+        },
+      },
+      { countryKey: 'GB', hasExistingCard: true, fundingAddress: '0xFunding' },
+    );
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('resets to KYC_FAILED when rejected', () => {
@@ -181,13 +203,43 @@ describe('useImmersveOnboardingRouter', () => {
             params: {},
           },
         },
-        { countryKey: 'GB', navigateFromRoot: true },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          fundingAddress: '0xFunding',
+        },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-        params: { countryKey: 'GB' },
+        params: { countryKey: 'GB', fundingAddress: '0xFunding' },
       });
+    });
+
+    it('still resets to Card Home for funding when the user already has a card', () => {
+      getRoute()(
+        {
+          type: 'funding',
+          write: {
+            abi: [],
+            contractAddress: '0x',
+            method: 'approve',
+            params: {},
+          },
+        },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          hasExistingCard: true,
+          fundingAddress: '0xFunding',
+        },
+      );
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates into ONBOARDING.ROOT KYC_FAILED for rejected (no parent reset)', () => {

@@ -10,9 +10,13 @@
 # reporting per-run medians and how often each frame stayed hot. One run samples
 # a scenario once, which cannot separate a reproducible hotspot from noise.
 #
-# Manual only: dispatch from Actions → Analyze App Profiling for a run,
-# scenario, or custom lookback. Does not replace the 6-hour performance
-# suite or the weekly rollup automation.
+# Runs after a manually dispatched performance suite finishes, and can also be
+# dispatched on its own for a run, scenario, or custom lookback. Does not
+# replace the 6-hour performance suite or the weekly rollup automation.
+#
+# The `workflow_run` chain is deliberately limited to manually dispatched
+# performance runs. The performance suite is also on a 6-hourly cron, and
+# chaining those would turn this into four unsolicited digests a day.
 #
 # NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
 # on the default branch. After this lands on `main`, run it from Actions.
@@ -21,6 +25,10 @@
 name: Analyze App Profiling
 
 on:
+  workflow_run:
+    workflows: ['Run Performance E2E Tests Manually']
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       run_id:
@@ -54,12 +62,66 @@ permissions:
   actions: read
 
 concurrency:
-  group: analyze-app-profiling-${{ github.run_id }}
+  # Key on the performance run being analyzed so a chained run and a manual
+  # dispatch of the same run id collapse instead of racing. `inputs` is only
+  # set on workflow_dispatch; use github.event.inputs so a workflow_run event
+  # still evaluates.
+  group: analyze-app-profiling-${{ github.event.workflow_run.id || github.event.inputs.run_id || github.run_id }}
   cancel-in-progress: true
 
 jobs:
+  # A failed performance suite produces no analysis, so without this the
+  # chained run would simply go quiet and look like nothing was ever requested.
+  report-upstream-failure:
+    name: Report unsuccessful performance run
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'workflow_dispatch' &&
+      github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Post Slack failure notice
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_TARGET: UEYQL2PEV
+          # Link to the performance run that failed, not to this reporter.
+          GITHUB_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          GITHUB_RUN_LABEL: 'Failed performance run'
+          PERFORMANCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          PERFORMANCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes CPU-profile analysis did not run*"
+            echo ":test_tube: Testing experiment, not a production alert."
+            echo
+            echo "The performance suite finished as \`${PERFORMANCE_CONCLUSION}\`, so there are no profiles to analyze."
+            echo
+            echo "_Performance run:_ \`${PERFORMANCE_RUN_ID}\`"
+            echo "_Retry the analysis:_ Actions → Analyze App Profiling → \`run_id\` = \`${PERFORMANCE_RUN_ID}\` (useful when only some scenarios failed)."
+          } > /tmp/analyze-app-profiling/upstream-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/upstream-failure.md
+
   analyze:
     name: Analyze per-scenario profiling
+    # Chain only successful, manually dispatched performance runs. Scheduled
+    # performance runs are ignored on purpose (see the header note).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -77,7 +139,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
-          RUN_ID: ${{ inputs.run_id }}
+          # A chained run analyzes the performance run that just finished.
+          RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
           SCENARIO: ${{ inputs.scenario }}
           SKIP_AI: ${{ inputs.skip_ai }}
@@ -121,7 +184,10 @@ jobs:
           retention-days: 30
 
       - name: Post Slack summary
-        if: ${{ success() && inputs.post_to_slack }}
+        # Chained runs always post. Dispatch runs honour the checkbox.
+        if: >-
+          ${{ success() &&
+          (github.event_name != 'workflow_dispatch' || inputs.post_to_slack) }}
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -133,3 +199,29 @@ jobs:
         run: |
           node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
             /tmp/analyze-app-profiling/slack.md
+
+      # Without this, a broken analyzer or a missing artifact is indistinguishable
+      # from a run that was never requested.
+      - name: Post Slack analysis failure
+        if: failure()
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_TARGET: UEYQL2PEV
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_RUN_LABEL: 'Failed analysis job'
+          ANALYZED_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes CPU-profile analysis failed*"
+            echo ":test_tube: Testing experiment, not a production alert."
+            echo
+            echo "The performance suite finished, but this analysis job failed, so no digest was produced."
+            echo
+            echo "_Performance run analyzed:_ \`${ANALYZED_RUN_ID:-latest successful scheduled run}\`"
+            echo "_Check the failed job below for the failing step._"
+          } > /tmp/analyze-app-profiling/analysis-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/analysis-failure.md
