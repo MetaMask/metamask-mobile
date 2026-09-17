@@ -302,11 +302,7 @@ export function useTransactionCustomAmount({
         }
       });
     },
-    [
-      isMoneyAccountDeposit,
-      transactionId,
-      isFixedSpreadRoute,
-    ],
+    [isMoneyAccountDeposit, transactionId, isFixedSpreadRoute],
   );
 
   useEffect(() => {
