@@ -15,6 +15,7 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { formatPerpsPrice } from '../../../../utils/formatUtils';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
@@ -998,6 +999,37 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('formats the chase reference price with market entry-price decimals', () => {
+      // Arrange
+      mockLivePrice = '77288.50';
+      mockSizeDecimals = 5;
+      mockMarketData = { szDecimals: 5, maxLeverage: 40 };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.chaseReferencePrice).toBe(
+        formatPerpsPrice(77288.5, { szDecimals: 5 }),
+      );
+    });
+
+    it('keeps sub-cent chase prices instead of collapsing them to a 2-decimal floor', () => {
+      // Arrange
+      mockLivePrice = '0.001234';
+      mockSizeDecimals = 0;
+      mockMarketData = { szDecimals: 0, maxLeverage: 50 };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.chaseReferencePrice).toBe(
+        formatPerpsPrice(0.001234, { szDecimals: 0 }),
+      );
+      expect(result.current.chaseReferencePrice).not.toMatch(/<\s*\$0\.01/u);
+    });
+
     it('shows a failure message when market data loading fails', () => {
       // Arrange
       mockMarketDataError = 'Market data request failed';
@@ -1272,6 +1304,32 @@ describe('usePerpsProOrderForm', () => {
         hours: '',
         minutes: '30',
       });
+    });
+
+    it('shows the size precision bound when a TWAP suborder rounds below it', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onDaysChange('1');
+        result.current.twap.onHoursChange('0');
+        result.current.twap.onMinutesChange('0');
+      });
+
+      expect(result.current.summary.twapSummary?.sizePerSuborder).toBe(
+        '<0.001 BTC',
+      );
+    });
+
+    it('shows the TWAP size per suborder at the asset size precision', () => {
+      mockOrderForm.type = 'twap';
+      mockOrderForm.amount = '54000';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.twapSummary?.sizePerSuborder).toBe(
+        '0.010 BTC',
+      );
     });
 
     it('submits valid TWAP params with live mid price and Randomize', async () => {

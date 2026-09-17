@@ -14,6 +14,8 @@ process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
 process.env.KYC_API_URL = 'https://kyc-api.example.com';
+process.env.IDOS_ENCLAVE_URL = 'https://enclave.example.com';
+process.env.IDOS_RELAY_URL = 'https://relay.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -63,10 +65,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@expo(nent)?/.*',
   '@noble/.*',
   '@nktkas/hyperliquid',
+  '@metamask/abi-utils',
   '@metamask/assets-controller',
   '@metamask/assets-controllers',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  '@metamask/address-book-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
@@ -80,12 +84,18 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/phishing-controller',
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
+  '@metamask/profile-metrics-controller',
+  '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
+  '@signinwithethereum',
   '@metamask/design-system-twrnc-preset',
   '@metamask/design-system-react-native',
   '@metamask/messenger',
   '@metamask/native-utils',
+  '@metamask/perps-controller',
+  '@metamask/superstruct',
+  '@metamask/utils',
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
@@ -165,14 +175,15 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
+    // 17.x ships ESM-only under dist/*.js (16.x used dist/*.cjs).
     '^@metamask/perps-controller$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.js',
     '^@metamask/perps-controller/(constants|types|utils)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.js',
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.js',
     '^@metamask/perps-controller/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.js',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from

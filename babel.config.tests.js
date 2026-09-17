@@ -74,6 +74,8 @@ const newOverrides = [
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
       'app/core/devApiEnv.ts',
+      'app/core/coreBackendApiUrls.ts',
+      'app/core/coreBackendApiUrls.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',

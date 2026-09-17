@@ -152,11 +152,12 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
-  NeoBankServiceActions,
-  NeoBankServiceEvents,
   TransakService,
   TransakServiceActions,
   TransakServiceEvents,
+  NeoBankService,
+  NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -372,11 +373,21 @@ import type {
   UiSlotsControllerEvents,
   UiSlotsControllerState,
 } from './controllers/ui-slots-controller/types';
-import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
 import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
+  PredictLiveDataService,
+  PredictLiveDataServiceActions,
+  PredictLiveDataServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictLiveDataService';
+import {
+  PredictMarketDataService,
+  type PredictMarketDataServiceActions,
+  type PredictMarketDataServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictMarketDataService';
+import {
+  PredictPortfolioService,
+  type PredictPortfolioServiceActions,
+  type PredictPortfolioServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -691,6 +702,8 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | PredictMarketDataServiceActions
+  | PredictLiveDataServiceActions
+  | PredictPortfolioServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -717,7 +730,6 @@ export type GlobalActions =
   | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
-  | NeoBankServiceActions
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
@@ -727,6 +739,7 @@ export type GlobalActions =
   | KycControllerActions
   | KycServiceActions
   | TransakServiceActions
+  | NeoBankServiceActions
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
@@ -809,6 +822,8 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
+  | PredictLiveDataServiceEvents
+  | PredictPortfolioServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -826,7 +841,6 @@ export type GlobalEvents =
   | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
-  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -836,6 +850,7 @@ export type GlobalEvents =
   | KycControllerEvents
   | KycServiceEvents
   | TransakServiceEvents
+  | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
   | SentinelApiServiceEvents;
@@ -966,7 +981,9 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
-  PredictNextController: PredictNextController;
+  PredictMarketDataService: PredictMarketDataService;
+  PredictLiveDataService: PredictLiveDataService;
+  PredictPortfolioService: PredictPortfolioService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -990,6 +1007,7 @@ export type MessengerClients = {
   KycService: KycService;
   KycController: KycController;
   TransakService: TransakService;
+  NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };
@@ -1173,7 +1191,9 @@ export type MessengerClientsToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
-  | 'PredictNextController'
+  | 'PredictMarketDataService'
+  | 'PredictLiveDataService'
+  | 'PredictPortfolioService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
@@ -1188,6 +1208,7 @@ export type MessengerClientsToInitialize =
   | 'RampsController'
   | 'RampsService'
   | 'TransakService'
+  | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'

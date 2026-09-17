@@ -1,6 +1,9 @@
 import type { Ref } from 'react';
 import type { TextInputSelectionChangeEvent } from 'react-native';
-import type { LimitOrderExecutionType } from '../../constants/limitOrders';
+import type {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import type { InputSectionRef } from './InputSection/types';
 import type { ButtonPricePresetsSectionRef } from './ButtonPricePresetsSection/types';
 
@@ -30,6 +33,12 @@ export interface LimitOrderPriceAdjustCardProps {
    * When true the primary amount is fiat and a currency prefix is shown.
    */
   isLimitFiatMode: boolean;
+  /**
+   * Symbol of the counter token the limit price is quoted against, e.g.
+   * "ETH". Rendered as a non-editable suffix after the amount; omitted in
+   * fiat mode, where the amount is already labeled by a currency prefix.
+   */
+  priceUnitSymbol?: string;
   /**
    * Press handler for the quote-unit chip. When omitted the chip is not
    * interactive.
@@ -65,6 +74,16 @@ export interface LimitOrderPriceAdjustCardProps {
    * Market comparison shown after the secondary limit price.
    */
   marketComparison?: { label: string; isNegative: boolean };
+  /**
+   * When true, warns that the limit price sits close enough to market that the
+   * order may fill instantly.
+   */
+  isTriggerPriceNearMarket?: boolean;
+  /**
+   * Which way the trigger-price copy reads. Defaults to the order side's
+   * comparison when omitted.
+   */
+  priceComparisonDirection?: LimitOrderPriceComparisonDirection;
   /**
    * Percent offsets from market rendered as preset buttons, e.g. `[5, 10]`.
    */

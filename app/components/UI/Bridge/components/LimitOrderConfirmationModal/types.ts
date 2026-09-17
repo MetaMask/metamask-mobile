@@ -30,10 +30,6 @@ export interface LimitOrderConfirmationModalParams {
    */
   triggerPrice: string;
   /**
-   * Comparison against the current market price. Omitted while at market.
-   */
-  triggerComparison?: LimitOrderConfirmationMarketComparison;
-  /**
    * Token the trigger price is quoted in, used for the trigger row avatar.
    */
   triggerToken?: BridgeToken;
@@ -58,18 +54,22 @@ export interface LimitOrderConfirmationModalParams {
 export interface LimitOrderConfirmationModalProps
   extends LimitOrderConfirmationModalParams {
   /**
-   * Slippage label, e.g. "2%". Read from state by the host screen so edits
-   * made in the slippage modal are reflected here.
+   * Cost tolerance label, e.g. "2%". Read from state by the host screen so
+   * edits made in the cost tolerance modal are reflected here.
    */
-  slippage: string;
+  costTolerance: string;
+  /**
+   * Comparison against the current market price.
+   */
+  triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
    * Fired when the user confirms the order.
    */
   onConfirm: () => void;
   /**
-   * Fired when the user taps the edit icon on the slippage row.
+   * Fired when the user taps the edit icon on the cost tolerance row.
    */
-  onEditSlippagePress: () => void;
+  onEditCostTolerancePress: () => void;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

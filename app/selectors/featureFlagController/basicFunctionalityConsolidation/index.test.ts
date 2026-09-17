@@ -11,9 +11,15 @@ import {
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 import { AccountType } from '../../../constants/onboarding';
+import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.60.0'),
+}));
+
+jest.mock('../../../constants/featureFlags', () => ({
+  ...jest.requireActual('../../../constants/featureFlags'),
+  isBftcConsolidationBuildEnabled: jest.fn(() => false),
 }));
 
 describe('basicFunctionalityConsolidation selectors', () => {
@@ -36,29 +42,101 @@ describe('basicFunctionalityConsolidation selectors', () => {
 
   describe('selectMobileUxBftcConsolidationFlagEnabled', () => {
     it('returns true when remote flag is valid and enabled', () => {
-      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc({
-        [MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME]: {
-          enabled: true,
-          minimumVersion: '1.0.0',
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {
+          [MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME]: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
         },
-      });
+        true,
+        false,
+      );
 
       expect(result).toBe(true);
     });
 
     it('returns false when remote flag is disabled', () => {
-      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc({
-        [MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME]: {
-          enabled: false,
-          minimumVersion: '1.0.0',
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {
+          [MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME]: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
         },
-      });
+        true,
+        false,
+      );
 
       expect(result).toBe(false);
     });
 
     it('returns false when remote flag is missing', () => {
-      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc({});
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('falls back to the build flag when Basic Functionality is off', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        false,
+        false,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when Basic Functionality and the build flag are both off', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(false);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        false,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('keeps the build-flag cohort after migration lands Basic Functionality on', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        true,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('does not enroll an on wallet from the build flag alone', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a persisted on wallet when the build flag is off', () => {
+      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(false);
+
+      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
+        {},
+        true,
+        true,
+      );
 
       expect(result).toBe(false);
     });
@@ -170,27 +248,33 @@ describe('basicFunctionalityConsolidation selectors', () => {
   });
 
   describe('migration notification selectors', () => {
-    it('shows only the scheduled bottom sheet while the flag is enabled', () => {
+    it('shows only the scheduled bottom sheet', () => {
       expect(
         selectShouldShowBasicFunctionalityMigrationBottomSheet.resultFunc(
-          true,
           'bottom-sheet',
           false,
         ),
       ).toBe(true);
       expect(
         selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
-          true,
           'bottom-sheet',
           false,
         ),
       ).toBe(false);
     });
 
+    it('shows a pending toast after a feature-flag rollback', () => {
+      expect(
+        selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
+          'toast',
+          false,
+        ),
+      ).toBe(true);
+    });
+
     it('does not show a dismissed toast', () => {
       expect(
         selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
-          true,
           'toast',
           true,
         ),
@@ -203,6 +287,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
       expect(
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
           true,
+          true,
           AccountType.MetamaskGoogle,
           undefined,
           false,
@@ -210,9 +295,22 @@ describe('basicFunctionalityConsolidation selectors', () => {
       ).toBe(true);
     });
 
+    it('keeps an off social-login toggle enabled for recovery', () => {
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          false,
+          AccountType.MetamaskGoogle,
+          undefined,
+          false,
+        ),
+      ).toBe(false);
+    });
+
     it('does not lock Basic Functionality for an SRP user', () => {
       expect(
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
           true,
           AccountType.Metamask,
           undefined,

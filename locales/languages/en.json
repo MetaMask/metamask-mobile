@@ -66,6 +66,10 @@
       "title": "Inaccurate fee",
       "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Insufficient funds",
       "message": "You do not have enough {{nativeCurrency}} in your account to pay for network fees.",
@@ -1144,7 +1148,8 @@
       "input_placeholder": "Email address",
       "button": "Continue",
       "error_title": "Identity verification",
-      "error_description": "We couldn't start your identity verification. Try again."
+      "error_description": "We couldn't start your identity verification. Try again.",
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
     }
   },
   "social_leaderboard": {
@@ -1169,15 +1174,26 @@
     "sort_filter": {
       "title": "Sort by",
       "pnl": "P&L",
+      "profit": "Profit",
+      "volume": "Volume",
       "roi": "P&L %",
       "win_rate": "Win rate"
+    },
+    "cohort_filter": {
+      "title": "Trader cohort"
     },
     "feed": {
       "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed",
+        "trending": "Trending",
+        "following": "Following",
         "live_trades": "Live trades"
+      },
+      "live_stream": {
+        "paused": "Paused",
+        "live": "Live"
       },
       "following": "Following",
       "all": "All",
@@ -1224,19 +1240,75 @@
         "size_at_price": "{{size}} at {{price}}",
         "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
-      "no_data": "No data"
+      "no_data": "No data",
+      "position_card": {
+        "copy_trade": "Copy trade",
+        "leverage": "Leverage",
+        "auto_close": "Auto-close",
+        "entry_price": "Entry price",
+        "exit_price": "Exit price",
+        "max_hold_time": "Max hold time",
+        "status": "Status",
+        "closed": "Closed",
+        "buy": "Buy",
+        "sell": "Sell"
+      }
     },
     "shell": {
       "subnav": {
         "trending": "Trending",
-        "memecoins": "Memecoins",
-        "perps": "Perps",
-        "stocks": "Stocks",
-        "whales": "Only",
+        "hot_right_now": "Hot right now",
+        "pumping": "Pumping",
+        "top_gainers": "Top gainers",
+        "top_losers": "Top losers",
+        "new_markets": "New markets",
         "top_traders": "Top traders",
-        "top_perps": "Top perps",
-        "kols": "KOLs",
-        "top_tokens": "Top tokens"
+        "kols": "KOLs"
+      },
+      "filters": {
+        "title": "Filters",
+        "show_results": "Show results",
+        "section": {
+          "type": "Type",
+          "trader_cohort": "Trader cohort",
+          "timeframe": "Time frame",
+          "network": "Network",
+          "market_cap": "Market cap",
+          "volume_24h": "24h volume"
+        },
+        "type": {
+          "all": "All",
+          "tokens": "Tokens",
+          "perps": "Perps",
+          "predictions": "Predictions"
+        },
+        "trader_cohort": {
+          "all": "All",
+          "following": "Following",
+          "shrimp": "Shrimp",
+          "dolphin": "Dolphin",
+          "whale": "Whale",
+          "kol": "KOL"
+        },
+        "timeframe": {
+          "1h": "1H",
+          "24h": "24H",
+          "7d": "7D",
+          "30d": "30D"
+        },
+        "network": {
+          "all": "All",
+          "robinhood": "Robinhood",
+          "bnb": "BNB",
+          "solana": "Solana",
+          "base": "Base"
+        },
+        "range": {
+          "market_cap_min": "$0",
+          "market_cap_max": "$1000B",
+          "volume_24h_min": "$0",
+          "volume_24h_max": "$100M"
+        }
       }
     },
     "onboarding": {
@@ -1275,6 +1347,7 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "win_rate_tag": "{{winRate}} WR",
     "mute": {
       "on_accessibility_label": "Notifications on. Tap to mute this trader",
       "muted_accessibility_label": "Muted. Tap to turn notifications back on",
@@ -1302,6 +1375,43 @@
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }
+    },
+    "my_profile": {
+      "avatar_accessibility_label": "Your profile avatar",
+      "open_profile": "Open my profile",
+      "followers": "followers",
+      "following": "following",
+      "edit_profile": "Edit profile",
+      "share_profile": "Share profile",
+      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
+      "posts": "Posts",
+      "first_trade_prompt": "First trade?",
+      "empty_title": "Your feed starts here",
+      "empty_description": "Share a trade and it'll show up here for your followers",
+      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "share_first_trade": "Share your first trade",
+      "retry": "Try again"
+    },
+    "manage_profile": {
+      "title": "Manage profile",
+      "about": "About",
+      "privacy": "Privacy",
+      "display_name": "Display name",
+      "handle": "Handle",
+      "bio": "Bio",
+      "socials": "Socials",
+      "trading_activity": "Trading activity",
+      "trading_activity_on": "On",
+      "linked_social_account": "Linked social account",
+      "save": "Save",
+      "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
+      "socials_helper": "Your X handle appears on posts and your profile.",
+      "show_trading_activity": "Show trading activity",
+      "show_trading_activity_subtitle": "Public and available to copy",
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+      "trading_activity_info": "More information about trading activity",
+      "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
+      "avatar_accessibility_label": "Your profile avatar"
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -1381,6 +1491,14 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "trade_sheet": {
+      "settings": "Settings",
+      "order_summary": "Order summary",
+      "includes_fee": "Includes {{feePercentage}}% fee",
+      "amount_slider_accessibility_label": "Order amount",
+      "show_asset_value": "Show asset value",
+      "show_fiat_value": "Show fiat value"
+    },
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
@@ -1521,7 +1639,7 @@
         "view_transaction": "View transaction"
       },
       "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
+      "success_amount_added": "{{amount}} was added to Perps",
       "funds_are_ready_to_trade": "Funds are ready to trade",
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
@@ -1654,7 +1772,16 @@
         "randomize": "Randomize",
         "randomize_description": "Vary each suborder size by up to ±{{randomizeVariancePercent}}%.",
         "minimum_size": "TWAP total size must be at least ${{minNotionalUsd}}.",
-        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours."
+        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours.",
+        "summary_runtime": "Runtime",
+        "summary_size_per_suborder": "Size per suborder",
+        "runtime_info": "About TWAP runtime",
+        "duration_day": "1 day",
+        "duration_days": "{{count}} days",
+        "duration_hour": "1 hr",
+        "duration_hours": "{{count}} hrs",
+        "duration_minute": "1 min",
+        "duration_minutes": "{{count}} mins"
       }
     },
     "pro_positions_panel": {
@@ -1819,7 +1946,7 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
-        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
         "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
@@ -1892,15 +2019,12 @@
       },
       "leverage_modal": {
         "title": "Leverage",
+        "set": "Set",
         "confirm": "Confirm",
         "entry_price": "Entry price",
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x",
         "price_unavailable": "Price information unavailable"
       },
       "type": {
@@ -1922,7 +2046,7 @@
         },
         "chase": {
           "title": "Chase",
-          "description": "Post-only limit order that follows the best bid or ask"
+          "description": "Auto adjust limit order to the best price"
         },
         "stop_limit": {
           "title": "Stop limit",
@@ -2188,6 +2312,9 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
+      "gain_roe_placeholder": "% Gain",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
       "trigger_price_must_be_positive": "Trigger price must be greater than zero",
@@ -2285,10 +2412,10 @@
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
         "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range",
-        "marginModeInvalid": "Margin mode is invalid",
-        "marginModeUnsupported": "This margin mode isn't available on this market",
-        "marginModePositionOpen": "Can't change margin mode while a position is open",
-        "marginModeOrderOpen": "Can't change margin mode while an order is open"
+        "marginModeInvalid": "Choose a valid margin mode.",
+        "marginModeUnsupported": "The selected margin mode is not available for this market.",
+        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
+        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode."
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -2395,6 +2522,7 @@
         "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
+        "update_in_progress": "Updating TP/SL",
         "update_success": "TP/SL updated successfully",
         "update_failed": "Failed to update TP/SL"
       },
@@ -2477,6 +2605,14 @@
         "title": "Liquidation price",
         "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
       },
+      "cross_liquidation_price": {
+        "title": "Cross liquidation price",
+        "content": "This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance."
+      },
+      "cross_no_liquidation_price": {
+        "title": "No liquidation price",
+        "content": "At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance."
+      },
       "liquidation_distance": {
         "title": "Liquidation distance",
         "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
@@ -2497,6 +2633,10 @@
       "size_skew": {
         "title": "Size skew",
         "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+      },
+      "twap_runtime": {
+        "title": "Runtime",
+        "content": "Runtime is how long the TWAP order keeps working. The total size is split into suborders that are submitted at regular intervals until the runtime ends."
       },
       "closing_fees": {
         "title": "Closing fees",
@@ -2642,6 +2782,7 @@
       "tabs": {
         "all": "All",
         "crypto": "Crypto",
+        "memecoin": "Memecoins",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
         "new": "New",
@@ -2716,6 +2857,12 @@
       "cross_title": "Cross",
       "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
     },
+    "cross_position": {
+      "badge": "Cross",
+      "margin_used": "Position margin used",
+      "no_liquidation_price": "No liquidation price",
+      "liquidation_info": "About cross liquidation price"
+    },
     "crossMargin": {
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
@@ -2762,7 +2909,6 @@
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "watchlist": {
       "empty_title": "Start with the most-traded markets",
-      "empty_subtitle": "Tap + to add a market to your watchlist.",
       "show_more": "Show {{count}} more",
       "show_less": "Show less",
       "added": "Added {{symbol}} to watchlist",
@@ -2998,6 +3144,39 @@
       "additional_feedback_placeholder": "How can we improve?",
       "characters_remaining": "{{count}} characters remaining",
       "submit": "Submit"
+    }
+  },
+  "predict_next": {
+    "available_balance": "Available balance",
+    "balance_unavailable": {
+      "title": "Balance unavailable",
+      "description": "Unable to load your available balance.",
+      "retry": "Try again"
+    },
+    "home_title": "Predictions",
+    "portfolio": {
+      "title": "Portfolio",
+      "positions": "Positions",
+      "activity_empty": {
+        "title": "No activity yet",
+        "description": "Your fills and settlements will appear here."
+      },
+      "load_failed": "Couldn't load.",
+      "load_failed_retry": "Try again",
+      "outcome_shares": "{{outcome}} · {{shares}} shares",
+      "active_positions": "Active positions",
+      "add_funds": "Add Funds",
+      "withdraw": "Withdraw",
+      "empty": {
+        "title": "No positions yet",
+        "description": "Your active and resolved positions will appear here.",
+        "browse_markets": "Browse markets"
+      },
+      "activity": "History",
+      "activity_rows": {
+        "settled": "Settled",
+        "shares_at_price": "{{shares}} @ {{price}}"
+      }
     }
   },
   "predict": {
@@ -4008,7 +4187,7 @@
     "settings_link": "manage other default settings."
   },
   "basic_functionality_migration": {
-    "title": "Your settings have changed",
+    "title": "We’ve updated our settings",
     "social_title": "Privacy and product updates",
     "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
     "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
@@ -4016,9 +4195,9 @@
     "social_body_2_suffix": ".",
     "blog_post_link": "blog post",
     "privacy_notice_link": "Privacy Notice",
-    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
-    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
-    "settings_link": "Settings > Privacy",
+    "toast_description": "Basic functionality now includes third-party APIs. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Basic functionality now includes third-party APIs. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy.",
     "accept_and_close": "Accept and close"
   },
   "onboarding_interest_questionnaire": {
@@ -5847,7 +6026,7 @@
       "only_numbers_allowed": "Only numbers are allowed",
       "negative_values_not_allowed": "Negative values are not allowed",
       "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
-      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
       "no_zero_value": "{{field}} must be greater than 0",
       "speed": "Speed",
@@ -8929,6 +9108,7 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "(-{{percent}}% from market)",
       "from_market_above": "(+{{percent}}% from market)",
+      "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
       "market": "Market",
       "custom": "Custom",
       "expires": "Expires",
@@ -8948,7 +9128,7 @@
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
-      "edit_slippage": "Edit slippage"
+      "edit_cost_tolerance": "Edit cost tolerance"
     },
     "recurring": {
       "you_get": "You get",
@@ -8958,6 +9138,9 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "order_created_toast_title": "Order created",
+      "order_created_toast_body": "We'll let you know when it's filled.",
+      "order_canceled_toast_title": "Order canceled",
       "paying_all_orders": "Paying (all orders)",
       "paying_per_order": "Paying (per order)",
       "receiving": "Receiving",
@@ -8966,6 +9149,10 @@
       "expires_after": "Expires after",
       "slippage_all_orders": "Slippage (all orders)",
       "est_network_fee_per_order": "Est. network fee (per order)",
+      "delegation_fee_one_time": "Delegation fee (one time)",
+      "delegation_fee_info_title": "Delegation fee",
+      "delegation_fee_info_body": "placeholder",
+      "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
       "max_is": "Max is {{max}}",
@@ -9098,6 +9285,8 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
+    "gas_fee_deduction": "-{{fee}} for gas",
     "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
@@ -9218,6 +9407,10 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
+    "cost_tolerance": "Cost Tolerance",
+    "default_cost_tolerance_description": "Your transaction won't go through if the price changes more than the cost tolerance percent.",
+    "exceeding_lower_cost_tolerance_error": "Enter a cost tolerance greater than {{value}}%",
+    "exceeding_upper_cost_tolerance_error": "Enter a cost tolerance lower than {{value}}%",
     "confirm": "Confirm",
     "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
@@ -10072,6 +10265,7 @@
       "category": "Category",
       "location": "Location",
       "decline_reason": "Decline reason",
+      "network_fee": "Network fee",
       "decline_reasons": {
         "insufficient_funds": "Insufficient funds"
       },
@@ -11211,7 +11405,6 @@
     "ecosystems_subtitle": "Explore dApps, tokens, and NFTs across chains on MetaMask Portfolio",
     "all_sports": "Popular sports",
     "basketball": "Basketball",
-    "football": "Football",
     "soccer": "Soccer",
     "tennis": "Tennis",
     "f1": "F1",
@@ -11500,7 +11693,7 @@
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
   },
   "pro_hub": {
-    "title": "MetaMask Pro",
+    "title": "MetaMask Orange",
     "manage": "Manage subscription",
     "manage_membership": "Manage membership",
     "also_included": {
@@ -11519,8 +11712,8 @@
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
     "lifetime_earnings": "Lifetime earnings",
-    "money_balance": "Money balance",
-    "musd_back": "3% mUSD back",
+    "money_balance": "{{apy}} APY on Money balance",
+    "musd_back": "{{rate}} mUSD back",
     "member_pricing": {
       "title": "Member pricing on trades",
       "allowance_currency": "${{amount}}",

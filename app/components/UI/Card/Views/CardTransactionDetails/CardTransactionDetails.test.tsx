@@ -253,6 +253,59 @@ describe('CardTransactionDetails', () => {
     expect(getByText('card.transactions.load_error')).toBeOnTheScreen();
   });
 
+  it('renders the Network fee row when feeAmount is present', () => {
+    mockRouteParams = {
+      transactionId: 'tx-1',
+      transaction: createTransaction({
+        feeAmount: { value: '0.02', currency: 'USDC' },
+      }),
+    };
+
+    const { getByText } = render(<CardTransactionDetails />);
+
+    expect(getByText('card.transactions.network_fee')).toBeOnTheScreen();
+    // No funding source / primary token → hero falls back to mUSD.
+    expect(getByText('0.02 mUSD')).toBeOnTheScreen();
+  });
+
+  it('renders <0.01 when the fee is below the minimum displayable amount', () => {
+    mockRouteParams = {
+      transactionId: 'tx-1',
+      transaction: createTransaction({
+        feeAmount: { value: '0.005', currency: 'USDC' },
+      }),
+    };
+
+    const { getByText } = render(<CardTransactionDetails />);
+
+    expect(getByText('<0.01 mUSD')).toBeOnTheScreen();
+  });
+
+  it('labels the Network fee with the funding source currency when present', () => {
+    mockRouteParams = {
+      transactionId: 'tx-1',
+      transaction: createTransaction({
+        feeAmount: { value: '0.02', currency: 'USD' },
+        fundingSources: [{ currency: 'USDC' }],
+      }),
+    };
+
+    const { getByText } = render(<CardTransactionDetails />);
+
+    expect(getByText('0.02 USDC')).toBeOnTheScreen();
+  });
+
+  it('does not render the Network fee row when feeAmount is absent', () => {
+    mockRouteParams = {
+      transactionId: 'tx-1',
+      transaction: createTransaction(),
+    };
+
+    const { queryByText } = render(<CardTransactionDetails />);
+
+    expect(queryByText('card.transactions.network_fee')).toBeNull();
+  });
+
   it('navigates to the report screen when report is pressed', () => {
     const transaction = createTransaction();
     mockRouteParams = {

@@ -236,12 +236,19 @@ function useAddTransactionBatch() {
         stack: Routes.PREDICT.ROOT,
       });
 
+      const overwriteUpgrade =
+        transactionType === TransactionType.predictDeposit ||
+        transactionType === TransactionType.predictDepositAndOrder ||
+        transactionType === TransactionType.predictClaim ||
+        transactionType === TransactionType.predictWithdraw;
+
       addTransactionBatch({
         from: selectedAccount as Hex,
         origin: ORIGIN_METAMASK,
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        ...(overwriteUpgrade ? { overwriteUpgrade: true } : {}),
         transactions: [
           {
             params: {

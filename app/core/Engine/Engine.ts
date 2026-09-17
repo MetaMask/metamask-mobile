@@ -132,7 +132,11 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { predictNextControllerInit } from './controllers/predict-next-controller-init';
+import {
+  predictLiveDataServiceInit,
+  predictMarketDataServiceInit,
+  predictPortfolioServiceInit,
+} from './controllers/predict-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -187,6 +191,7 @@ import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { kycServiceInit } from './controllers/kyc/kyc-service-init';
@@ -383,7 +388,9 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PredictNextController: predictNextControllerInit,
+        PredictMarketDataService: predictMarketDataServiceInit,
+        PredictLiveDataService: predictLiveDataServiceInit,
+        PredictPortfolioService: predictPortfolioServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -395,6 +402,7 @@ export class Engine {
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
+        NeoBankService: neoBankServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
@@ -442,7 +450,6 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
-    const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
@@ -477,6 +484,7 @@ export class Engine {
       messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
+    const neoBankService = messengerClientsByName.NeoBankService;
     const rampsController = messengerClientsByName.RampsController;
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
@@ -680,7 +688,9 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
-      PredictNextController: predictNextController,
+      PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
+      PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
@@ -688,6 +698,7 @@ export class Engine {
       ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
+      NeoBankService: neoBankService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
