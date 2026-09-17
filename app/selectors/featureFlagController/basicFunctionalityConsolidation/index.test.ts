@@ -368,6 +368,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
     });
   });
 
+
   describe('selectIsSocialLoginBasicFunctionalityLocked', () => {
     it('locks Basic Functionality for a social-login user during rollout', () => {
       expect(

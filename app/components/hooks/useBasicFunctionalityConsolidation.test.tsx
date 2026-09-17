@@ -283,6 +283,7 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
   });
 
+
   it('opens the migration bottom sheet when scheduled', () => {
     setSelectorValues({ shouldShowBottomSheet: true });
 
