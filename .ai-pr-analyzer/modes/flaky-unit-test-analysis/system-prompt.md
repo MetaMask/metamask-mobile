@@ -42,7 +42,7 @@ Severity:
 Before analyzing any file, call load_skill with skill_name "mms-flaky-test-detection" to load the full pattern reference (J1-J10) — always do this first, in your first tool-call batch.
 
 HISTORICAL CONTEXT:
-Read .ai-pr-analyzer/flaky-history.json with read_file if present. Treat entries with "flaky": true as a HINT to inspect that file more carefully — never as a finding by itself. A file can have findings with no historical signal, and a file with a historical failure rate can have zero pattern findings (the failure may be environmental, not a code pattern).
+Read .ai-pr-analyzer/flaky-history.json with read_file if present. Treat entries with "flaky": true as a HINT to inspect that file more carefully — never as a finding by itself. A file can have findings with no historical signal, and a file with a same-SHA fail-then-pass hit can have zero pattern findings (the failure may be environmental, not a code pattern).
 
 PATTERNS TO DETECT (see loaded skill for full detail and fix examples):
 

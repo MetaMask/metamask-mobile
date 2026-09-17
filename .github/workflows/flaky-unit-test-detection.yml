@@ -3,9 +3,9 @@
 # Three sequential stages in one job, sharing files under .ai-pr-analyzer/
 # on the runner (no artifact upload/download):
 #
-#   1. Deterministic history — flaky-history-analysis.ts counts how often each
-#      modified test file failed on main over the last 30 days of completed
-#      ci.yml runs, bucketed into 7d/15d/30d windows.
+#   1. Deterministic history — flaky-history-analysis.ts looks for same-SHA
+#      unit-test fail-then-pass (Re-run jobs or a second ci.yml run on that
+#      commit) on any branch over the last 14 days of completed ci.yml runs.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
 #   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
@@ -17,7 +17,7 @@
 #      one PR comment under the <!-- metamask-flaky-test-detection --> marker,
 #      with 4-state create/update/no-op/all-clear logic.
 #
-# Historical failure rate is treated as a HINT — a file can be flagged in (1)
+# Same-SHA fail-then-pass is treated as a HINT — a file can be flagged in (1)
 # with zero AI findings, or have AI findings with no historical signal.
 #
 # The workflow is informational only: every step exits 0, no required check
@@ -76,15 +76,14 @@ jobs:
           command: cd .github/scripts && yarn --immutable
 
       # Stage 1: deterministic historical analysis. Identifies modified unit
-      # test files and counts their failures on main over the last 30 days of
-      # completed ci.yml runs, bucketed into 7d/15d/30d windows
-      # (failure+success runs only; cancelled/timed_out are excluded from the
-      # denominator). When no modified test file changed since its last-analyzed
-      # SHA (stored in the sticky comment), the step emits should_analyze=false
-      # and returns immediately, leaving the existing comment untouched.
-      # Never hard-fails — writes an empty-but-valid JSON artifact when there
-      # is nothing to analyze.
-      - name: Detect modified unit test files and historical failure rate
+      # test files and looks for same-SHA unit-test fail-then-pass on any
+      # branch over the last 14 days of completed ci.yml runs. Later SHAs are
+      # ignored because a new commit can be a real fix. When no modified test
+      # file changed since its last-analyzed SHA (stored in the sticky comment),
+      # the step emits should_analyze=false and returns immediately, leaving
+      # the existing comment untouched. Never hard-fails — writes an
+      # empty-but-valid JSON artifact when there is nothing to analyze.
+      - name: Detect modified unit test files and same-SHA fail-then-pass
         id: detect-history
         working-directory: .github/scripts
         continue-on-error: true

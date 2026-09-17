@@ -27,6 +27,7 @@ import {
   sourceSliceAtLine,
 } from './flaky-sticky-snippet';
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
+import { renderSameShaHistoryTable } from './flaky-same-sha-history';
 
 // Stable HTML comment on the first line — used to identify and update this
 // script's own comment across runs. Any change breaks stickiness (a new
@@ -57,26 +58,17 @@ const PRIOR_STATE_PATH = join(
   '.ai-pr-analyzer/flaky-prior-state.json',
 );
 
-// Failure counts bucketed by lookback window (nested: a failure in 7d also
-// counts in 30d). Kept as a permissive Record so a future window edit in
-// Stage 1 doesn't require a matching type change here.
-type WindowCounts = Record<string, number>;
-
 interface HistoryFile {
   path: string;
-  failures: WindowCounts;
   flaky: boolean;
+  sameShaFailThenPass?: number;
+  exampleRunUrl?: string;
   runHistoryUrl: string;
 }
 
 interface HistoryArtifact {
   windows?: number[];
-  // Denominator per window, shared across files (how many countable runs fell
-  // in each window). Used to render `failures/runs` cells.
-  runsSampled?: WindowCounts;
-  // Files re-analyzed in this run (subset of the full modified-file set).
   analyzedFiles?: string[];
-  // HEAD SHA at which this analysis was run.
   headSha?: string;
   files?: HistoryFile[];
 }
@@ -187,9 +179,7 @@ function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
   }
 }
 
-// Fallback window set used only if the Stage 1 artifact predates the `windows`
-// field; the live artifact always supplies its own list.
-const DEFAULT_WINDOWS = [7, 15, 30];
+const DEFAULT_WINDOWS = [14];
 
 // Serializes per-file state into a hidden HTML comment appended to the comment
 // body. Stage 1 reads this on the next push to decide which files need
@@ -206,32 +196,15 @@ function buildStateBlock(state: CommentState): string {
 // files and files carrying an AI finding — see buildCommentBody — so an
 // empty list here only happens if that union itself is empty, which is a
 // rare safety fallback rather than the common case.
-function buildHistoryTable(
-  tableFiles: HistoryFile[],
-  windows: number[],
-  runsSampled: WindowCounts,
-): string {
-  if (tableFiles.length === 0) {
-    const windowKeys = windows.map((d) => `${d}d`);
-    const noRunsSampled = windowKeys.every((key) => !runsSampled[key]);
-    return noRunsSampled
-      ? 'No previous run to analyse for these tests.'
-      : 'No historical failures found for the changed tests in the sampled runs.';
-  }
-  const windowKeys = windows.map((d) => `${d}d`);
-  const header = `| File | ${windowKeys.join(' | ')} |`;
-  const divider = `|---|${windowKeys.map(() => '---|').join('')}`;
-  const rows = tableFiles
-    .map((f) => {
-      // `failures/runs` — failures for the file over the number of countable
-      // runs sampled in that window.
-      const cells = windowKeys
-        .map((key) => `${f.failures[key] ?? 0}/${runsSampled[key] ?? 0}`)
-        .join(' | ');
-      return `| \`${f.path}\` | ${cells} |`;
-    })
-    .join('\n');
-  return `Failures / runs sampled per window:\n\n${header}\n${divider}\n${rows}\n`;
+function buildHistoryTable(tableFiles: HistoryFile[]): string {
+  return renderSameShaHistoryTable(
+    tableFiles.map((file) => ({
+      path: file.path,
+      flaky: file.flaky,
+      sameShaFailThenPass: file.sameShaFailThenPass ?? 0,
+      exampleRunUrl: file.exampleRunUrl ?? file.runHistoryUrl ?? '',
+    })),
+  );
 }
 
 // Every line of a fenced code block nested inside a list item must carry the
@@ -303,28 +276,20 @@ function buildCommentBody({
   historyFiles,
   findings,
   runHistoryUrl,
-  windows,
-  runsSampled,
   stateBlock,
   headSha,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
   runHistoryUrl: string;
-  windows: number[];
-  runsSampled: WindowCounts;
   stateBlock: string;
   headSha: string;
 }): string {
-  // A file surfaces in the run-history table if it's historically flaky OR
-  // an AI finding calls it out — otherwise an AI-only finding (zero
-  // historical failures) would make the table disappear even though the
-  // finding itself renders.
   const findingFiles = new Set(findings.map((f) => f.file));
   const tableFiles = historyFiles.filter(
     (f) => f.flaky || findingFiles.has(f.path),
   );
-  const historyTable = buildHistoryTable(tableFiles, windows, runsSampled);
+  const historyTable = buildHistoryTable(tableFiles);
   const findingsSection = buildFindingsSection(findings, headSha);
 
   return `${MARKER}
@@ -334,7 +299,7 @@ function buildCommentBody({
 
 [View recent run history](${runHistoryUrl})
 
-Historical failure rate is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
+Same-SHA fail-then-pass is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
 
 ${historyTable}
 
@@ -413,7 +378,6 @@ async function main(): Promise<void> {
   const windows = Array.isArray(history.windows)
     ? history.windows
     : DEFAULT_WINDOWS;
-  const runsSampled = history.runsSampled ?? {};
   const rawFindings = Array.isArray(aiAnalysis.findings)
     ? aiAnalysis.findings
     : [];
@@ -551,8 +515,9 @@ async function main(): Promise<void> {
     historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
 
   const runHistoryUrl =
+    historyFiles.find((file) => file.flaky)?.runHistoryUrl ??
     historyFiles[0]?.runHistoryUrl ??
-    `${env.serverUrl}/${env.repo}/actions/workflows/ci.yml?query=branch%3Amain`;
+    `${env.serverUrl}/${env.repo}/actions/workflows/ci.yml`;
 
   try {
     const existingComment = await findExistingStickyComment(
@@ -584,8 +549,6 @@ async function main(): Promise<void> {
           historyFiles,
           findings: mergedFindings,
           runHistoryUrl,
-          windows,
-          runsSampled,
           stateBlock,
           headSha,
         }),
@@ -609,8 +572,6 @@ async function main(): Promise<void> {
           historyFiles,
           findings: mergedFindings,
           runHistoryUrl,
-          windows,
-          runsSampled,
           stateBlock,
           headSha,
         }),

@@ -1,16 +1,22 @@
 /**
  * Stage 1 — Deterministic historical analysis (MCWP-474).
  *
- * Identifies Jest unit test files modified in the PR and counts how often each
- * one failed on main over the last LOOKBACK_DAYS of completed ci.yml runs,
- * bucketed into 7d/15d/30d windows. Writes a machine-readable JSON artifact
- * consumed by Stage 2 (AI analyzer) and Stage 3 (sticky PR comment).
+ * Identifies Jest unit test files modified in the PR and looks for a same-SHA
+ * unit-test fail-then-pass on any branch over LOOKBACK_DAYS of completed
+ * ci.yml runs. Writes a machine-readable JSON artifact consumed by Stage 2
+ * (AI analyzer) and Stage 3 (sticky PR comment).
  *
- * Historical failure is a HINT, not proof — a file can be flagged here with
- * zero AI findings, or have AI findings with no historical signal.
+ * Historical fail-then-pass is a HINT, not proof — a file can be flagged here
+ * with zero AI findings, or have AI findings with no historical signal.
  *
  * Failure modes are always downgraded to warnings + empty results so the
  * workflow stays informational and never blocks a PR.
+ *
+ * Why same SHA only: a later commit can change production code, Jest setup, or
+ * another test and make a previously failing unit test pass. That is
+ * indistinguishable from a real fix. An identical head SHA cannot be a code
+ * fix, so FAIL then PASS on that SHA (GitHub Re-run jobs, or a second ci.yml
+ * run on the same commit) is the history signal.
  *
  * Design note — why we rely on history + AI patterns only, and deliberately do
  * NOT execute the PR's changed tests or inspect the PR's own ci.yml unit-test
@@ -19,9 +25,9 @@
  *   - New test with a flaky pattern: a single PR unit-test run almost never
  *     reproduces the flake, so a run-based signal would usually miss it. AI
  *     pattern detection on the diff is what actually catches this case.
- *   - Existing test changed by the PR: AI detects the pattern AND the run
- *     history on main provides an independent signal, so both fire.
- *   - A modified test with an AI-detected pattern but zero historical failures
+ *   - Existing test changed by the PR: AI detects the pattern AND same-SHA
+ *     fail-then-pass on any branch provides an independent signal, so both fire.
+ *   - A modified test with an AI-detected pattern but zero historical hits
  *     is still worth flagging: passing so far may just be luck or ordering, and
  *     it can start failing under a different test order or in edge cases.
  *
@@ -41,6 +47,21 @@ import {
   unitTestLogsReadable,
   withRetryOnce,
 } from './flaky-github-request';
+import {
+  allUnitTestJobsSucceeded,
+  aggregateHitsByFile,
+  candidateShaGroupsNewestFirst,
+  collectSameShaHitsForGroup,
+  failedUnitTestJobs,
+  groupRunsByHeadSha,
+  parseJestFailPaths,
+  snapshotInspectOrder,
+  snapshotsToInspect,
+  type InspectedSnapshot,
+  type ListedWorkflowRun,
+  type RunAttemptSnapshot,
+  type WorkflowJob,
+} from './flaky-same-sha-history';
 import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
 
 type Octokit = ReturnType<typeof getOctokit>;
@@ -55,56 +76,22 @@ const STATE_MARKER = '<!-- metamask-flaky-test-detection-metadata=';
 const COMMENT_MARKER = '<!-- metamask-flaky-test-detection -->';
 
 const WORKFLOW = 'ci.yml';
-// JOB_NAME is written into the output artifact as metadata. It also drives
-// UNIT_TEST_JOB_PREFIX: only failed jobs whose name starts with this prefix
-// have their logs downloaded, which eliminates large e2e/build/lint logs that
-// can never contain a Jest FAIL line.
 const JOB_NAME = 'Unit tests';
-// ci.yml names unit-test shards "Unit tests (1)"…"Unit tests (10)" — any
-// failed job with this prefix is a unit-test shard whose log may contain FAIL
-// lines. All other jobs (e2e, build, lint) are skipped.
-const UNIT_TEST_JOB_PREFIX = 'Unit tests';
-// How far back the historical window extends. Failures are bucketed into the
-// nested windows below, so a failure 5 days ago counts in both windows and
-// one 20 days ago counts only in the 30d bucket.
-const LOOKBACK_DAYS = 30;
-const WINDOWS_DAYS = [7, 15, 30] as const;
-type WindowKey = `${(typeof WINDOWS_DAYS)[number]}d`;
-const WINDOW_KEYS = WINDOWS_DAYS.map((d) => `${d}d` as WindowKey);
-type WindowCounts = Record<WindowKey, number>;
-// Listing runs is cheap (metadata only, 100 per page); the created>= filter is
-// the real bound. This cap is just a safety valve against an unbounded page
-// walk on an extremely busy repo.
-const MAX_RUNS_LISTED = 3000;
-// Upper bound on failed runs whose unit-test-shard logs we download. With the
-// UNIT_TEST_JOB_PREFIX filter each download is small (one shard's Jest output),
-// so 50 is ample for a 30d window with MIN_RUNS_FOR_RATE = 5.
+// All-branch volume is much higher than main-only sampling, so the window is
+// shorter than the old 30d main walk.
+const LOOKBACK_DAYS = 14;
+const MAX_RUNS_LISTED = 2000;
+const MAX_JOB_LIST_CALLS = 200;
 const MAX_FAILED_LOG_FETCHES = 50;
-// Number of concurrent Octokit requests when fetching job lists and logs.
-// High enough to saturate the 30d window quickly; low enough to avoid hitting
-// GitHub's secondary rate limits.
 const DOWNLOAD_CONCURRENCY = 8;
-// A window needs at least this many countable runs before its failure rate is
-// trusted for the flaky flag, so a single early failure in a nearly-empty
-// window cannot flag the file on its own.
-const MIN_RUNS_FOR_RATE = 5;
-// 20% comes from the Jira acceptance criteria: a file is flagged flaky when its
-// failure rate reaches this threshold in any window with enough sampled runs.
-const FLAKY_THRESHOLD_PERCENT = 20;
 
-// GITHUB_WORKSPACE is always set in Actions; fall back to process.cwd() so
-// the script can also be run locally from any directory.
 const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const OUTPUT_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
-// Prior per-file state written here for Stage 3 to merge with fresh findings.
 const PRIOR_STATE_PATH = join(
   WORKSPACE_ROOT,
   '.ai-pr-analyzer/flaky-prior-state.json',
 );
 
-// Per-file state persisted inside the sticky comment body. The findings field
-// is typed as unknown[] here because Stage 1 only passes it through — Stage 3
-// owns the Finding type and casts accordingly.
 interface PerFileState {
   analyzedSha: string;
   findings: unknown[];
@@ -116,16 +103,11 @@ interface CommentState {
   files: Record<string, PerFileState>;
 }
 
-interface WorkflowRun {
-  id: number;
-  conclusion: string | null;
-  createdAt: string;
-}
-
 interface HistoryFile {
   path: string;
-  failures: WindowCounts;
   flaky: boolean;
+  sameShaFailThenPass: number;
+  exampleRunUrl: string;
   runHistoryUrl: string;
 }
 
@@ -133,35 +115,14 @@ interface HistoryResult {
   generatedAt: string;
   workflow: string;
   job: string;
-  branch: string;
   lookbackDays: number;
-  windows: number[];
-  // Denominator per window (identical across files: it only counts how many
-  // countable runs happened in each window, independent of the file).
-  runsSampled: WindowCounts;
-  threshold: number;
-  // Files re-analyzed in this run (subset of files). Stage 3 uses this to
-  // decide which entries get fresh AI findings vs. prior findings.
+  sampledRunCount: number;
+  candidateShaCount: number;
+  jobListCalls: number;
+  unreadFailedRuns: number;
   analyzedFiles: string[];
-  // HEAD SHA at which this analysis was run. Embedded per-file so Stage 3
-  // can record when each file was last analyzed.
   headSha: string;
   files: HistoryFile[];
-}
-
-function emptyWindowCounts(): WindowCounts {
-  return WINDOW_KEYS.reduce((acc, key) => {
-    acc[key] = 0;
-    return acc;
-  }, {} as WindowCounts);
-}
-
-// The windows a run of the given age (in days) contributes to — every window
-// at least as wide as the run's age.
-function windowKeysForAge(ageDays: number): WindowKey[] {
-  return WINDOWS_DAYS.filter((d) => ageDays <= d).map(
-    (d) => `${d}d` as WindowKey,
-  );
 }
 
 const env = {
@@ -173,10 +134,23 @@ const env = {
   headSha: process.env.HEAD_SHA ?? '',
 };
 
-// The diff filter is TS-only because repo policy requires all new code to be
-// TypeScript — a modified .js test file in a PR is essentially never expected.
-// The failure-log regex still tolerates .js so that legacy pre-migration
-// entries in old CI logs don't silently break history sampling.
+function workflowRunsUrl(): string {
+  return `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}`;
+}
+
+function runUrl(runId: number): string {
+  return `${env.serverUrl}/${env.repo}/actions/runs/${runId}`;
+}
+
+function emptyHistoryFile(path: string): HistoryFile {
+  return {
+    path,
+    flaky: false,
+    sameShaFailThenPass: 0,
+    exampleRunUrl: '',
+    runHistoryUrl: workflowRunsUrl(),
+  };
+}
 
 function sh(cmd: string, args: string[]): string {
   return execFileSync(cmd, args, { encoding: 'utf8' }).trim();
@@ -191,11 +165,6 @@ function commitExists(sha: string): boolean {
   }
 }
 
-// Old sticky comments stored GitHub merge-ref SHAs. After checkout switched to
-// head.sha those objects are often absent; a plain (non-shallow) fetch of the
-// SHA brings the merge commit without writing .git/shallow into this
-// fetch-depth: 0 clone. If origin still does not have it, the caller
-// re-analyzes the group instead of warning.
 function ensureCommitReachable(sha: string): boolean {
   if (commitExists(sha)) {
     return true;
@@ -244,8 +213,6 @@ function setStage1Outputs({
   core.setOutput('missing_prior_sha_count', String(missingPriorShaCount));
 }
 
-// Runs fn over each item with at most `limit` concurrent promises at a time.
-// Preserves input order in the returned results array.
 async function mapWithConcurrency<T, R>(
   items: T[],
   limit: number,
@@ -267,10 +234,6 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-// Extracts the per-file state JSON block embedded in a sticky comment body.
-// The payload is base64-encoded, so decoding it is safe even if the AI
-// findings inside contain a literal `-->` — that sequence cannot occur inside
-// base64 output, only in the (correctly detected) closing delimiter.
 function parseStateFromComment(body: string): CommentState | null {
   const idx = body.indexOf(STATE_MARKER);
   if (idx === -1) return null;
@@ -286,9 +249,6 @@ function parseStateFromComment(body: string): CommentState | null {
   }
 }
 
-// Fetches the existing sticky comment and parses its embedded per-file state.
-// Returns null when there is no comment yet or the state block is missing/invalid
-// (e.g. comments created before this feature shipped).
 async function fetchPriorState(
   octokit: Octokit,
   owner: string,
@@ -313,11 +273,6 @@ async function fetchPriorState(
   }
 }
 
-// Returns the subset of modifiedFiles that changed since their last-analyzed SHA.
-// Files with no prior state always need analysis. Files whose prior SHA is no
-// longer reachable (force-push/rebase or an old merge commit) are also treated
-// as changed. missingPriorShaCount is the number of unique analyzed SHAs that
-// were still absent after fetch — used by the job summary, not by the rate.
 function computeNeedsAnalysis(
   modifiedFiles: string[],
   priorState: CommentState | null,
@@ -325,7 +280,6 @@ function computeNeedsAnalysis(
   if (!priorState)
     return { files: [...modifiedFiles], missingPriorShaCount: 0 };
 
-  // Group by prior analyzedSha to batch git diff calls per unique SHA.
   const byAnalyzedSha = new Map<string, string[]>();
   const nopriorFiles: string[] = [];
 
@@ -405,21 +359,20 @@ function getModifiedUnitTestFiles(): string[] {
     .filter((f) => isFlakyWorkflowUnitTestPath(f));
 }
 
-async function collectCompletedRuns(octokit: Octokit): Promise<WorkflowRun[]> {
+async function collectCompletedRuns(
+  octokit: Octokit,
+): Promise<ListedWorkflowRun[]> {
   const [owner, repo] = env.repo.split('/');
   const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
-  const runs: WorkflowRun[] = [];
-  // paginate.iterator walks the Link header page-by-page so we can stop at
-  // MAX_RUNS_LISTED instead of buffering the whole (potentially huge) year.
+  const runs: ListedWorkflowRun[] = [];
   const iterator = octokit.paginate.iterator(
     octokit.rest.actions.listWorkflowRuns,
     {
       owner,
       repo,
       workflow_id: WORKFLOW,
-      branch: 'main',
       status: 'completed',
       created: `>=${since}`,
       per_page: 100,
@@ -431,6 +384,8 @@ async function collectCompletedRuns(octokit: Octokit): Promise<WorkflowRun[]> {
         id: r.id,
         conclusion: r.conclusion,
         createdAt: r.created_at,
+        headSha: r.head_sha,
+        runAttempt: r.run_attempt,
       });
       if (runs.length >= MAX_RUNS_LISTED) return runs;
     }
@@ -440,7 +395,7 @@ async function collectCompletedRuns(octokit: Octokit): Promise<WorkflowRun[]> {
 
 async function getCompletedRunsInLookback(
   octokit: Octokit,
-): Promise<WorkflowRun[]> {
+): Promise<ListedWorkflowRun[]> {
   try {
     return await withRetryOnce(() => collectCompletedRuns(octokit));
   } catch (error) {
@@ -449,50 +404,51 @@ async function getCompletedRunsInLookback(
   }
 }
 
+type JobListResult = { ok: true; jobs: WorkflowJob[] } | { ok: false };
+
+async function listJobsForSnapshot(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  snapshot: RunAttemptSnapshot,
+): Promise<JobListResult> {
+  try {
+    const jobs = await withRetryOnce(() =>
+      octokit.paginate(octokit.rest.actions.listJobsForWorkflowRunAttempt, {
+        owner,
+        repo,
+        run_id: snapshot.runId,
+        attempt_number: snapshot.attempt,
+        per_page: 100,
+      }),
+    );
+    return {
+      ok: true,
+      jobs: jobs.map((job) => ({
+        id: job.id,
+        name: job.name,
+        conclusion: job.conclusion,
+      })),
+    };
+  } catch (error) {
+    core.info(
+      `listJobsForWorkflowRunAttempt ${snapshot.runId} attempt ${snapshot.attempt} failed: ${(error as Error).message}`,
+    );
+    return { ok: false };
+  }
+}
+
 type FailedLogFetch = {
   files: string[];
   logsReadable: boolean;
 };
 
-// Extracts every `FAIL <path>` line Jest emits at the top of a failed test
-// file's output. For each failed run, lists its jobs via Octokit, keeps only
-// failed unit-test-shard jobs (by UNIT_TEST_JOB_PREFIX), then downloads their
-// plaintext logs concurrently. Skipping e2e/build/lint jobs eliminates the
-// dominant download cost — those logs can never contain a Jest FAIL line.
-// downloadJobLogsForWorkflowRun returns plaintext (not a zip archive) so no
-// extra dependency is needed and there is no spawnSync buffer cap.
-// logsReadable is false when jobs/logs could not be read so the caller can
-// drop the run from the rate denominator (same idea as MAX_FAILED_LOG_FETCHES).
-async function getFailedTestFilesForRun(
+async function downloadFailedUnitLogs(
   octokit: Octokit,
   owner: string,
   repo: string,
-  runId: number,
+  failedUnitJobs: WorkflowJob[],
 ): Promise<FailedLogFetch> {
-  let jobs: { id: number; name: string; conclusion: string | null }[];
-  try {
-    jobs = await withRetryOnce(() =>
-      octokit.paginate(octokit.rest.actions.listJobsForWorkflowRun, {
-        owner,
-        repo,
-        run_id: runId,
-        filter: 'latest',
-        per_page: 100,
-      }),
-    );
-  } catch (error) {
-    core.info(
-      `listJobsForWorkflowRun ${runId} failed: ${(error as Error).message}`,
-    );
-    return { files: [], logsReadable: false };
-  }
-
-  // Only unit-test shards ("Unit tests (N)") can contain Jest FAIL lines.
-  const failedUnitJobs = jobs.filter(
-    (j) =>
-      j.conclusion === 'failure' && j.name.startsWith(UNIT_TEST_JOB_PREFIX),
-  );
-
   const logParts = await mapWithConcurrency(
     failedUnitJobs,
     DOWNLOAD_CONCURRENCY,
@@ -532,126 +488,148 @@ async function getFailedTestFilesForRun(
     .filter((part): part is { ok: true; text: string } => part.ok)
     .map((part) => part.text)
     .join('\n');
-  // Alternation order: try the longest extension first so "tsx" isn't
-  // truncated to "ts" by an early match.
-  const matches = logOutput.matchAll(
-    /FAIL\s+(\S+\.(?:test|spec)\.(?:tsx|ts|js))(?=\s|$)/gm,
-  );
-  return { files: [...matches].map((m) => m[1]), logsReadable: true };
+  return { files: parseJestFailPaths(logOutput), logsReadable: true };
 }
 
-// Intersects failed-file names from the sampled runs with the PR's modified
-// files, bucketing each failure into every window it falls in. The denominator
-// is failure+success runs only — cancelled/timed_out runs don't tell us whether
-// the suite passed, so counting them inflates the sample and deflates the rate.
-// When MAX_FAILED_LOG_FETCHES is hit, failed runs beyond the cap are excluded
-// from the denominator too (not just the numerator) — otherwise runsSampled
-// would include failed runs whose per-file failures could never be counted,
-// biasing every rate downward.
+async function inspectSnapshot(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  snapshot: RunAttemptSnapshot,
+  budget: { jobListCalls: number; logFetches: number },
+): Promise<{
+  inspected: InspectedSnapshot | null;
+  unreadFailed: boolean;
+}> {
+  if (budget.jobListCalls >= MAX_JOB_LIST_CALLS) {
+    return { inspected: null, unreadFailed: false };
+  }
+  budget.jobListCalls += 1;
+  const listed = await listJobsForSnapshot(octokit, owner, repo, snapshot);
+  if (!listed.ok) {
+    return { inspected: null, unreadFailed: false };
+  }
+
+  const failedUnit = failedUnitTestJobs(listed.jobs);
+  if (failedUnit.length > 0) {
+    if (budget.logFetches >= MAX_FAILED_LOG_FETCHES) {
+      return { inspected: null, unreadFailed: true };
+    }
+    budget.logFetches += 1;
+    const logs = await downloadFailedUnitLogs(octokit, owner, repo, failedUnit);
+    if (!logs.logsReadable) {
+      return { inspected: null, unreadFailed: true };
+    }
+    return {
+      inspected: {
+        ...snapshot,
+        unitFailPaths: logs.files,
+        unitAllPassed: false,
+      },
+      unreadFailed: false,
+    };
+  }
+
+  return {
+    inspected: {
+      ...snapshot,
+      unitFailPaths: [],
+      unitAllPassed: allUnitTestJobsSucceeded(listed.jobs),
+    },
+    unreadFailed: false,
+  };
+}
+
 async function buildHistory(
   octokit: Octokit,
   owner: string,
   repo: string,
   modifiedFiles: string[],
-  runs: WorkflowRun[],
+  runs: ListedWorkflowRun[],
 ): Promise<{
   files: HistoryFile[];
-  runsSampled: WindowCounts;
   unreadFailedRuns: number;
+  candidateShaCount: number;
+  jobListCalls: number;
 }> {
-  const now = Date.now();
-  const ageInDays = (createdAt: string) =>
-    (now - new Date(createdAt).getTime()) / (24 * 60 * 60 * 1000);
+  const groups = groupRunsByHeadSha(runs);
+  const candidates = candidateShaGroupsNewestFirst(groups);
+  const budget = { jobListCalls: 0, logFetches: 0 };
+  let unreadFailedRuns = 0;
+  const allHits: { path: string; failRunId: number }[] = [];
 
-  const countableRuns = runs.filter(
-    (r) => r.conclusion === 'failure' || r.conclusion === 'success',
-  );
-  const successRuns = countableRuns.filter((r) => r.conclusion === 'success');
-
-  // Newest-first so the failed-log budget is spent on recent runs, keeping the
-  // short windows accurate if the cap is ever hit.
-  const failedRuns = countableRuns
-    .filter((r) => r.conclusion === 'failure')
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
-    .slice(0, MAX_FAILED_LOG_FETCHES);
-
-  // Fetch failed-file lists for all failed runs concurrently. Each run only
-  // downloads unit-test-shard logs (small), so the total download time is now
-  // bounded by the slowest batch of DOWNLOAD_CONCURRENCY runs rather than by
-  // the serial sum of all 50.
-  const fetchResults = await mapWithConcurrency(
-    failedRuns,
-    DOWNLOAD_CONCURRENCY,
-    (run) => getFailedTestFilesForRun(octokit, owner, repo, run.id),
-  );
-
-  // Denominator = success runs (all) + failed runs whose unit-test logs were
-  // actually readable. Unreadable failed runs (missing blob, 5xx after retry)
-  // and uninspected failed runs (past the cap) are excluded from both
-  // numerator and denominator so the reported rate stays consistent.
-  const readableFailedRuns = failedRuns.filter(
-    (_, i) => fetchResults[i].logsReadable,
-  );
-  const unreadFailedRuns = failedRuns.length - readableFailedRuns.length;
-
-  const runsSampled = emptyWindowCounts();
-  for (const run of [...successRuns, ...readableFailedRuns]) {
-    for (const key of windowKeysForAge(ageInDays(run.createdAt)))
-      runsSampled[key]++;
-  }
-
-  // Reduce sequentially to keep deterministic bucketing — the order of
-  // failedRuns (newest-first) is meaningful for the log-fetch budget.
-  const failuresByFile = new Map<string, WindowCounts>();
-  for (let i = 0; i < failedRuns.length; i++) {
-    if (!fetchResults[i].logsReadable) continue;
-    const run = failedRuns[i];
-    const keys = windowKeysForAge(ageInDays(run.createdAt));
-    for (const file of fetchResults[i].files) {
-      if (!modifiedFiles.includes(file)) continue;
-      if (!failuresByFile.has(file))
-        failuresByFile.set(file, emptyWindowCounts());
-      const counts = failuresByFile.get(file) as WindowCounts;
-      for (const key of keys) counts[key]++;
+  for (const { runs: runsForSha } of candidates) {
+    if (budget.jobListCalls >= MAX_JOB_LIST_CALLS) {
+      break;
     }
+    const ordered = snapshotInspectOrder(
+      snapshotsToInspect(runsForSha),
+      runsForSha,
+    );
+    const inspected: InspectedSnapshot[] = [];
+    for (const snapshot of ordered) {
+      const result = await inspectSnapshot(
+        octokit,
+        owner,
+        repo,
+        snapshot,
+        budget,
+      );
+      if (result.unreadFailed) {
+        unreadFailedRuns += 1;
+      }
+      if (result.inspected) {
+        inspected.push(result.inspected);
+      }
+    }
+    allHits.push(...collectSameShaHitsForGroup(inspected, modifiedFiles));
   }
 
-  const runHistoryUrl = `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}?query=branch%3Amain`;
+  const byFile = aggregateHitsByFile(allHits, runUrl);
 
   const files = modifiedFiles.map((path) => {
-    const failures = failuresByFile.get(path) ?? emptyWindowCounts();
-    const flaky = WINDOW_KEYS.some((key) => {
-      const denominator = runsSampled[key];
-      return (
-        denominator >= MIN_RUNS_FOR_RATE &&
-        (failures[key] / denominator) * 100 >= FLAKY_THRESHOLD_PERCENT
-      );
-    });
-    return { path, failures, flaky, runHistoryUrl };
+    const hit = byFile.get(path);
+    if (!hit) {
+      return emptyHistoryFile(path);
+    }
+    return {
+      path,
+      flaky: hit.count >= 1,
+      sameShaFailThenPass: hit.count,
+      exampleRunUrl: hit.exampleRunUrl,
+      runHistoryUrl: hit.exampleRunUrl,
+    };
   });
 
-  return { files, runsSampled, unreadFailedRuns };
+  return {
+    files,
+    unreadFailedRuns,
+    candidateShaCount: candidates.length,
+    jobListCalls: budget.jobListCalls,
+  };
 }
 
 function writeHistoryFile(
   files: HistoryFile[],
-  runsSampled: WindowCounts,
   analyzedFiles: string[],
   headSha: string,
+  meta: {
+    sampledRunCount: number;
+    candidateShaCount: number;
+    jobListCalls: number;
+    unreadFailedRuns: number;
+  },
 ): HistoryResult {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const result: HistoryResult = {
     generatedAt: new Date().toISOString(),
     workflow: WORKFLOW,
     job: JOB_NAME,
-    branch: 'main',
     lookbackDays: LOOKBACK_DAYS,
-    windows: [...WINDOWS_DAYS],
-    runsSampled,
-    threshold: FLAKY_THRESHOLD_PERCENT,
+    sampledRunCount: meta.sampledRunCount,
+    candidateShaCount: meta.candidateShaCount,
+    jobListCalls: meta.jobListCalls,
+    unreadFailedRuns: meta.unreadFailedRuns,
     analyzedFiles,
     headSha,
     files,
@@ -664,7 +642,7 @@ function writePriorStateFile(state: CommentState | null): void {
   mkdirSync(dirname(PRIOR_STATE_PATH), { recursive: true });
   const empty: CommentState = {
     version: 1,
-    windows: [...WINDOWS_DAYS],
+    windows: [LOOKBACK_DAYS],
     files: {},
   };
   writeFileSync(PRIOR_STATE_PATH, JSON.stringify(state ?? empty, null, 2));
@@ -676,16 +654,13 @@ async function main(): Promise<void> {
     `📁 Found ${modifiedFiles.length} modified unit test file(s): ${modifiedFiles.join(', ') || 'none'}`,
   );
 
-  // `has_test_files` gates the AI analyzer invocation — when there is no unit
-  // test in the PR we skip it to avoid LLM cost and noise. It also lets
-  // Stage 3 run when it is false, so the sticky comment can flip to an
-  // all-clear state once a PR no longer modifies any unit test file. Stage 2
-  // is scoped separately via `files_to_analyze`, the space-separated list of
-  // files that actually need re-analysis (so the two stages agree on scope —
-  // the AI must not analyze production code or e2e).
-
   if (modifiedFiles.length === 0) {
-    writeHistoryFile([], emptyWindowCounts(), [], env.headSha);
+    writeHistoryFile([], [], env.headSha, {
+      sampledRunCount: 0,
+      candidateShaCount: 0,
+      jobListCalls: 0,
+      unreadFailedRuns: 0,
+    });
     writePriorStateFile(null);
     setStage1Outputs({
       hasTestFiles: false,
@@ -703,17 +678,16 @@ async function main(): Promise<void> {
 
   if (!env.token) {
     core.warning('No GitHub token — skipping history sampling');
-    // Cannot fetch prior state without a token; re-analyze everything.
     writeHistoryFile(
-      modifiedFiles.map((path) => ({
-        path,
-        failures: emptyWindowCounts(),
-        flaky: false,
-        runHistoryUrl: `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}?query=branch%3Amain`,
-      })),
-      emptyWindowCounts(),
+      modifiedFiles.map((path) => emptyHistoryFile(path)),
       modifiedFiles,
       env.headSha,
+      {
+        sampledRunCount: 0,
+        candidateShaCount: 0,
+        jobListCalls: 0,
+        unreadFailedRuns: 0,
+      },
     );
     writePriorStateFile(null);
     setStage1Outputs({
@@ -732,10 +706,6 @@ async function main(): Promise<void> {
   const [owner, repo] = env.repo.split('/');
   const octokit = getOctokit(env.token);
 
-  // Fetch the prior per-file state embedded in the existing sticky comment.
-  // This determines which modified test files actually changed since they were
-  // last analyzed — only those files trigger a re-run of history sampling and
-  // AI analysis, leaving the comment untouched for unrelated pushes.
   const priorState = await fetchPriorState(octokit, owner, repo);
   const { files: needsAnalysis, missingPriorShaCount } = computeNeedsAnalysis(
     modifiedFiles,
@@ -743,9 +713,6 @@ async function main(): Promise<void> {
   );
 
   if (needsAnalysis.length === 0 && priorState !== null) {
-    // No modified test file changed since it was last analyzed.
-    // Skip all expensive work — history sampling, AI, and comment update —
-    // so an unrelated push leaves the existing sticky comment exactly as-is.
     console.log(
       '⏭️  No modified test files changed since last analysis — skipping',
     );
@@ -762,28 +729,22 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Persist prior state for Stage 3 to merge findings for untouched files.
   writePriorStateFile(priorState);
 
   const runs = await getCompletedRunsInLookback(octokit);
-  const { files, runsSampled, unreadFailedRuns } = await buildHistory(
-    octokit,
-    owner,
-    repo,
-    modifiedFiles,
-    runs,
-  );
+  const { files, unreadFailedRuns, candidateShaCount, jobListCalls } =
+    await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
-    `🔍 Sampled ${runs.length} completed ci.yml run(s) on main over the last ${LOOKBACK_DAYS}d ` +
-      `(${runsSampled['30d']} failure/success within window)`,
+    `🔍 Sampled ${runs.length} completed ci.yml run(s) on any branch over the last ${LOOKBACK_DAYS}d ` +
+      `(${candidateShaCount} candidate SHA(s), ${jobListCalls} job-list call(s))`,
   );
 
-  const result = writeHistoryFile(
-    files,
-    runsSampled,
-    needsAnalysis,
-    env.headSha,
-  );
+  const result = writeHistoryFile(files, needsAnalysis, env.headSha, {
+    sampledRunCount: runs.length,
+    candidateShaCount,
+    jobListCalls,
+    unreadFailedRuns,
+  });
 
   const flakyCount = files.filter((f) => f.flaky).length;
   setStage1Outputs({
@@ -804,9 +765,6 @@ async function main(): Promise<void> {
 
 main().catch((error: Error) => {
   core.warning(`Stage 1 failed: ${error.message}`);
-  // A crash after should_analyze was emitted must not let Stage 3 run against a
-  // missing history artifact and post a false all-clear. Leave has_test_files
-  // unset so the Stage 3 `has_test_files == 'false'` branch does not fire.
   core.setOutput('should_analyze', 'false');
   core.setOutput('files_to_analyze', '');
   core.setOutput('skip_reason', 'stage1_crash');
