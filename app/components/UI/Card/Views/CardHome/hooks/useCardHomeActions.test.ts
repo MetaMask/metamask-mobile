@@ -51,15 +51,18 @@ jest.mock('../../../hooks/useCardFreeze', () => ({
   default: () => ({ freeze: jest.fn(), unfreeze: jest.fn() }),
 }));
 
-jest.mock('../../../hooks/useCardDetailsToken', () => ({
-  __esModule: true,
-  default: () => ({
-    fetchCardDetailsToken: jest.fn(),
-    isLoading: false,
-    isImageLoading: false,
-    onImageLoad: jest.fn(),
-    imageUrl: undefined,
-    clearImageUrl: jest.fn(),
+jest.mock('../../../hooks/useRevealCardDetails', () => ({
+  useRevealCardDetails: () => ({
+    isCardDetailsLoading: false,
+    isCardDetailsImageLoading: false,
+    onCardDetailsImageLoad: jest.fn(),
+    cardDetailsImageUrl: undefined,
+    onCardDetailsImageError: jest.fn(),
+    cardSensitiveDetails: null,
+    isSensitiveDetailsLoading: false,
+    clearCardSensitiveDetails: jest.fn(),
+    copyCardDetail: jest.fn(),
+    viewCardDetailsAction: jest.fn(),
   }),
 }));
 

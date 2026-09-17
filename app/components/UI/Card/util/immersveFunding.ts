@@ -52,6 +52,43 @@ export function immersveNetworkToFundingToken(
   }
 }
 
+const ERC20_APPROVE_ABI = [
+  {
+    name: 'approve',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: '_spender', type: 'address' },
+      { name: '_value', type: 'uint256' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+];
+
+/**
+ * Builds a local ERC-20 approve write for Immersve funding (e.g. revoke via
+ * amountBaseUnits `'0'`). Used when no spending-prerequisites payload exists.
+ */
+export function buildImmersveApproveWrite({
+  tokenAddress,
+  spenderAddress,
+  amountBaseUnits,
+}: {
+  tokenAddress: string;
+  spenderAddress: string;
+  amountBaseUnits: string;
+}): CardSmartContractWriteParams {
+  return {
+    abi: ERC20_APPROVE_ABI,
+    contractAddress: tokenAddress,
+    method: 'approve',
+    params: {
+      _spender: spenderAddress,
+      _value: amountBaseUnits,
+    },
+  };
+}
+
 /**
  * Clones a smart-contract write and overrides its ERC-20 approve amount
  * (the single uint256 ABI input), preserving spender and other params.

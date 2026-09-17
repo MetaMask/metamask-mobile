@@ -146,25 +146,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       paddingBottom: scaleVertical(2),
       zIndex: 3,
     },
-    getStartedButton: {
-      borderRadius: scaleSize(12),
-      backgroundColor: importedColors.white,
-    },
-    getStartedButtonText: {
-      color: importedColors.btnBlack,
-      fontWeight: '600',
-      fontSize: scaleFont(16),
-    },
-    notNowButton: {
-      borderRadius: scaleSize(12),
-      backgroundColor: importedColors.transparent,
-      borderWidth: 0,
-    },
-    notNowButtonText: {
-      color: importedColors.white,
-      fontWeight: '500',
-      fontSize: scaleFont(16),
-    },
   });
 };
 

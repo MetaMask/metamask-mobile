@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
@@ -16,6 +16,7 @@ import {
   selectIsCardholder,
 } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
+import LockManagerService from '../../../../core/LockManagerService';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -31,6 +32,7 @@ import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal
 import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
+import ImmersveRevokeAllowanceSheet from '../components/ImmersveRevokeAllowanceSheet';
 import UkMigrationBottomSheet from '../components/UkMigrationBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
@@ -41,6 +43,7 @@ import CardReportTransaction from '../Views/CardReportTransaction/CardReportTran
 import ContactDetails from '../Views/ContactDetails/ContactDetails';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
+import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -212,27 +215,44 @@ const CardModalsRoutes = () => (
       component={MoneyUnlinkCardSheet}
     />
     <ModalsStack.Screen
+      name={Routes.CARD.MODALS.REVOKE_ALLOWANCE}
+      component={ImmersveRevokeAllowanceSheet}
+    />
+    <ModalsStack.Screen
       name={Routes.CARD.MODALS.UK_MIGRATION}
       component={UkMigrationBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS}
+      component={DigitalWalletInstructionsSheet}
     />
   </ModalsStack.Navigator>
 );
 
-const CardRoutes = () => (
-  <RootStack.Navigator
-    initialRouteName={Routes.CARD.HOME}
-    screenOptions={{ headerShown: false }}
-  >
-    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-    <RootStack.Screen
-      name={Routes.CARD.MODALS.ID}
-      component={CardModalsRoutes}
-      options={{
-        ...clearNativeStackNavigatorOptions,
-        ...transparentModalScreenOptions,
-      }}
-    />
-  </RootStack.Navigator>
-);
+const CardRoutes = () => {
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
+  return (
+    <RootStack.Navigator
+      initialRouteName={Routes.CARD.HOME}
+      screenOptions={{ headerShown: false }}
+    >
+      <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+      <RootStack.Screen
+        name={Routes.CARD.MODALS.ID}
+        component={CardModalsRoutes}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
+    </RootStack.Navigator>
+  );
+};
 
 export default withCardSDK(CardRoutes);
