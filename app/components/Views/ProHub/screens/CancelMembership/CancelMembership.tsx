@@ -3,9 +3,22 @@ import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  PRODUCT_TYPES,
+  type Subscription,
+} from '@metamask/subscription-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
+import { strings } from '../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
-import { buildPostCancellationResetState } from './CancelMembership.utils';
+import {
+  buildPostCancellationResetState,
+  formatCancellationEndDate,
+  getCancellationTiming,
+  type CancellationTiming,
+} from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelSuccessStep from './components/CancelSuccessStep';
 
@@ -18,6 +31,12 @@ const CancelMembership = () => {
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
   const [otherReasonText, setOtherReasonText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cancelledSubscription, setCancelledSubscription] = useState<{
+    timing: CancellationTiming;
+    endDate: string;
+  } | null>(null);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
@@ -28,8 +47,63 @@ const CancelMembership = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleCancelConfirm = useCallback(() => {
-    setStep('success');
+  const handleCancelConfirm = useCallback(async () => {
+    const controller = Engine.context.SubscriptionController;
+    const subscription: Subscription | undefined =
+      controller.getSubscriptionByProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+    const timing = subscription
+      ? getCancellationTiming(subscription.cancelType)
+      : undefined;
+
+    if (!subscription || !timing) {
+      setErrorMessage(
+        strings('pro_hub.cancel_membership.cancellation_unavailable'),
+      );
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      await controller.cancelSubscription({
+        subscriptionId: subscription.id,
+        cancelAtPeriodEnd: timing === 'period_end',
+      });
+
+      try {
+        await controller.getSubscriptions();
+      } catch (error) {
+        Logger.error(
+          ensureError(
+            error,
+            'CancelMembership.refreshSubscriptionsAfterCancellation',
+          ),
+          {
+            tags: {
+              feature: 'money_account_plus',
+              operation: 'refresh_after_cancellation',
+            },
+          },
+        );
+      }
+
+      setCancelledSubscription({
+        timing,
+        endDate: formatCancellationEndDate(subscription.currentPeriodEnd),
+      });
+      setStep('success');
+    } catch (error) {
+      Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
+        tags: {
+          feature: 'money_account_plus',
+          operation: 'cancel_subscription',
+        },
+      });
+      setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
+    } finally {
+      setIsSubmitting(false);
+    }
   }, []);
 
   const handleReasonSelect = useCallback((id: string) => {
@@ -47,13 +121,18 @@ const CancelMembership = () => {
   const handleDone = useCallback(() => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    // Reset instead of navigate: navigate() pushes another Pro Hub on top of
-    // this success step, so Header back would return here. Reset keeps Pro Hub
-    // on top of the screen that started the flow (Money, Wallet, etc.).
+    // Reset instead of navigate so the stale cancel and membership screens are
+    // removed. Period-end cancellation keeps Pro Hub above the origin screen;
+    // immediate cancellation returns directly to the origin.
     navigation.dispatch((state) =>
-      CommonActions.reset(buildPostCancellationResetState(state)),
+      CommonActions.reset(
+        buildPostCancellationResetState(
+          state,
+          cancelledSubscription?.timing === 'period_end',
+        ),
+      ),
     );
-  }, [navigation]);
+  }, [cancelledSubscription?.timing, navigation]);
 
   // Once the membership is cancelled (success step), disable iOS swipe-back
   // so the user cannot accidentally return to the now-stale Membership screen.
@@ -108,9 +187,17 @@ const CancelMembership = () => {
           onBack={handleBack}
           onKeepMembership={handleKeepMembership}
           onCancelConfirm={handleCancelConfirm}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
         />
       ) : (
-        <CancelSuccessStep onDone={handleDone} />
+        cancelledSubscription && (
+          <CancelSuccessStep
+            onDone={handleDone}
+            timing={cancelledSubscription.timing}
+            cancellationEndDate={cancelledSubscription.endDate}
+          />
+        )
       )}
     </SafeAreaView>
   );
