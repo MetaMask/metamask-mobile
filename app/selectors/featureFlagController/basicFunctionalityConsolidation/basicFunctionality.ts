@@ -10,6 +10,7 @@ import {
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 import { selectOnboardingAccountType } from '../../onboarding';
+import { isImportedSocialAccountType } from '../../../constants/onboarding';
 import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
 import {
   BFT_CHILD_PREFERENCES,
@@ -41,19 +42,17 @@ export type BasicFunctionalityMigrationNotification =
 type BftChildPreferenceValues = Record<BftChildPreference, boolean>;
 
 /**
- * Remote rollout flag for consolidated Basic Functionality (version-gated).
- * Default OFF in production; acts as kill-switch when disabled.
+ * Enrollment flag for consolidated Basic Functionality (version-gated).
+ * Default OFF in production.
  *
  * Wallets with Basic Functionality off cannot read LaunchDarkly, so they use
- * the build flag. Mixed and social-login wallets in that cohort may land ON;
- * keep them on the build-flag rollout after that so child toggles stay
- * consolidated until LaunchDarkly is reachable or the build flag is turned off.
+ * the build flag. Wallets with Basic Functionality on use the remote flag,
+ * including during mobile onboarding.
  */
 export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
   selectRemoteFeatureFlags,
   selectBasicFunctionalityEnabled,
-  selectIsBasicFunctionalityConsolidatedEnabled,
-  (remoteFeatureFlags, basicFunctionalityEnabled, isPersistedConsolidated) => {
+  (remoteFeatureFlags, basicFunctionalityEnabled) => {
     if (!basicFunctionalityEnabled) {
       return isBftcConsolidationBuildEnabled();
     }
@@ -62,12 +61,18 @@ export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
       MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME
     ] as unknown as VersionGatedFeatureFlag;
 
-    if (validatedVersionGatedFeatureFlag(remoteFlag) === true) {
-      return true;
-    }
-
-    return isBftcConsolidationBuildEnabled() && isPersistedConsolidated;
+    return validatedVersionGatedFeatureFlag(remoteFlag) === true;
   },
+);
+
+/**
+ * True when this wallet arrived through social rehydration. That restore runs
+ * inside onboarding but is never enrolled by it, so consolidation migrates it
+ * as an existing wallet in the same session.
+ */
+export const selectIsExistingSocialWalletRestore = createSelector(
+  selectOnboardingAccountType,
+  isImportedSocialAccountType,
 );
 
 const selectPreferencesControllerState = (state: RootState) =>
@@ -130,16 +135,36 @@ export const selectIsBasicFunctionalityConsistent = createSelector(
 
 /**
  * True when the user should see consolidated Basic Functionality settings.
- * The remote flag controls rollout. Persisted cohort users and legacy users
- * with a consistent all-on or all-off configuration are eligible.
+ *
+ * The marker is one-way: once enrolled, a wallet remains consolidated even if
+ * the rollout flag becomes unavailable or is disabled. The enrollment flag is
+ * still required for unmarked, consistent legacy wallets.
  */
 export const selectIsBasicFunctionalityConsolidationEnabled = createSelector(
   selectMobileUxBftcConsolidationFlagEnabled,
   selectIsBasicFunctionalityConsolidatedEnabled,
   selectIsBasicFunctionalityConsistent,
   (isRemoteFlagEnabled, isPersistedConsolidatedUser, isConsistentLegacyUser) =>
-    isRemoteFlagEnabled &&
-    (isPersistedConsolidatedUser || isConsistentLegacyUser),
+    isPersistedConsolidatedUser ||
+    (isRemoteFlagEnabled && isConsistentLegacyUser),
+);
+
+/**
+ * True when Basic Functionality behaves as one consolidated control, covering
+ * both enrolled wallets and wallets the enrollment flag is about to migrate.
+ *
+ * Broader than `selectIsBasicFunctionalityConsolidationEnabled`, which decides
+ * what Settings renders: this also covers a mixed wallet whose background
+ * migration has not finished, so a toggle it makes in the meantime still moves
+ * every child preference. The persisted marker keeps it true after the
+ * enrollment flag is disabled or becomes unreadable, otherwise an enrolled
+ * wallet would leave hidden child preferences behind at their old values.
+ */
+export const selectIsInBasicFunctionalityConsolidationRollout = createSelector(
+  selectIsBasicFunctionalityConsolidatedEnabled,
+  selectMobileUxBftcConsolidationFlagEnabled,
+  (isPersistedConsolidatedUser, isEnrollmentFlagEnabled) =>
+    isPersistedConsolidatedUser || isEnrollmentFlagEnabled,
 );
 
 const selectBasicFunctionalityMigrationNotification = (state: RootState) =>
@@ -152,9 +177,8 @@ const selectIsBasicFunctionalityMigrationNotificationDismissed = (
 
 /**
  * A scheduled notice survives a feature-flag rollback. The migration may have
- * already changed the user's preferences, so the flag remains a gate for
- * starting migrations and showing consolidated settings, but not for
- * acknowledging a completed migration.
+ * already changed the user's preferences, so acknowledging it must not depend
+ * on the enrollment flag still being enabled.
  */
 export const selectShouldShowBasicFunctionalityMigrationBottomSheet =
   createSelector(
@@ -171,28 +195,50 @@ export const selectShouldShowBasicFunctionalityMigrationToast = createSelector(
 );
 
 /**
- * Lock social-login Basic Functionality only after it is on. If migration has
- * not completed (or failed), keeping an OFF toggle operable gives the user and
- * the next migration attempt a recovery path instead of trapping it OFF.
+ * True when this wallet reached consolidation through a social login, from
+ * either onboarding metadata or SeedlessOnboardingController state.
  */
-export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
-  selectMobileUxBftcConsolidationFlagEnabled,
-  selectBasicFunctionalityEnabled,
+export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
   selectOnboardingAccountType,
   selectSeedlessAuthConnection,
   selectHasSeedlessVault,
-  (
-    isFlagEnabled,
-    isBasicFunctionalityEnabled,
-    accountType,
-    authConnection,
-    hasSeedlessVault,
-  ) =>
-    isFlagEnabled &&
-    isBasicFunctionalityEnabled &&
+  (accountType, authConnection, hasSeedlessVault) =>
     isBasicFunctionalitySocialLoginUser({
       accountType,
       authConnection,
       hasSeedlessVault,
     }),
+);
+
+/**
+ * Social-login wallets in the consolidated cohort keep Basic Functionality on,
+ * so the toggle is locked only while it is already on.
+ *
+ * An off social wallet keeps a usable switch. Consolidation repairs it, but
+ * that repair writes no state if the service call rejects and only re-runs on
+ * unlock, so locking the off state would leave the user with a greyed-out
+ * switch and no way back from Settings.
+ */
+export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
+  selectIsBasicFunctionalityConsolidationEnabled,
+  selectBasicFunctionalityEnabled,
+  selectIsBasicFunctionalitySocialLoginUser,
+  (isConsolidationEnabled, isBasicFunctionalityEnabled, isSocialLoginUser) =>
+    isConsolidationEnabled && isBasicFunctionalityEnabled && isSocialLoginUser,
+);
+
+/**
+ * True when an already-consolidated social-login wallet still has Basic
+ * Functionality off. Consolidation re-runs for these wallets to put them back
+ * on, covering a failed migration or an off state written before the cohort
+ * marker landed.
+ */
+export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
+  selectIsBasicFunctionalityConsolidatedEnabled,
+  selectBasicFunctionalityEnabled,
+  selectIsBasicFunctionalitySocialLoginUser,
+  (isPersistedConsolidated, isBasicFunctionalityEnabled, isSocialLoginUser) =>
+    isPersistedConsolidated &&
+    !isBasicFunctionalityEnabled &&
+    isSocialLoginUser,
 );

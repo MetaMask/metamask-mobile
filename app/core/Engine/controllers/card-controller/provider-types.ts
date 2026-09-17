@@ -263,6 +263,8 @@ export interface CardAccountStatus {
 export type CardAlertType =
   | 'kyc_pending'
   | 'card_provisioning'
+  /** Cardholder zeroed their on-chain allowance; the card needs re-approval. */
+  | 'allowance_revoked'
   | 'close_to_spending_limit'
   | 'limited_allowance';
 
