@@ -57,7 +57,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
       onPress={handlePress}
       testID={testID}
     >
-      {strings('activity.aggregated')}
+      {strings('activity_view.aggregated')}
     </ButtonBase>
   );
 };
