@@ -934,7 +934,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('530.8608');
+      expect(result.current.amountFiat).toBe('530.86');
     });
 
     it('to percentage of token balance converted to usd if overridden', async () => {
@@ -946,7 +946,27 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('530.8608');
+      expect(result.current.amountFiat).toBe('530.86');
+    });
+
+    it('rounds a sub-100% amount down to cents so Total matches the amount plus fee shown', async () => {
+      // The input truncates to cents but Total prices the committed amount in
+      // full, so sub-cent digits left Total a cent above amount + fee.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '58.841171',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      expect(result.current.amountFiat).toBe('29.42');
     });
 
     it('to 100 percent of balance when selecting max', async () => {
@@ -977,7 +997,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1858.1289');
+      expect(result.current.amountFiat).toBe('1858.12');
     });
 
     it('to total predict balance when selecting max', async () => {
@@ -1029,7 +1049,7 @@ describe('useTransactionCustomAmount', () => {
       });
 
       // Predict balance is treated as USD 1:1, ignoring the pay-token fiat rate.
-      expect(result.current.amountFiat).toBe('2160.615');
+      expect(result.current.amountFiat).toBe('2160.61');
     });
 
     it('uses full predict balance for predictWithdraw max even when payment override is MoneyAccount', async () => {
@@ -1509,8 +1529,9 @@ describe('useTransactionCustomAmount', () => {
         result.current.updateTokenAmount();
       });
 
-      // 50% of 2.246912 committed as 1.123456 mUSD (par).
-      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
+      // 50% of 2.246912 is rounded down to the displayed cents and committed
+      // as 1.12 mUSD (par).
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.12');
     });
 
     it('manual input clears the deposit max override', async () => {

@@ -349,17 +349,28 @@ export function useTransactionCustomAmount({
         .dividedBy(100)
         .multipliedBy(balanceUsd);
 
+      // Max keeps every digit so the sweep still encodes the whole balance.
+      // Any smaller percentage applies the cents the input displays: the
+      // input truncates to cents while Total prices the committed amount in
+      // full, so sub-cent digits made Total a cent more than the amount plus
+      // fee on screen. Round down so the amount never exceeds the share of
+      // balance the user asked for.
+      const appliedAmount =
+        percentage === 100
+          ? rawAmount
+          : rawAmount.decimalPlaces(2, BigNumber.ROUND_DOWN);
+
       // Pad a lone decimal to cents (`500.1` -> `500.10`).
       // Anything more precise keeps every digit.
       const newAmount =
-        rawAmount.decimalPlaces() === 1
-          ? rawAmount.toFixed(2)
-          : rawAmount.toFixed();
+        appliedAmount.decimalPlaces() === 1
+          ? appliedAmount.toFixed(2)
+          : appliedAmount.toFixed();
 
       // Sub-cent dust renders as $0.00 and cannot produce a usable quote, so
       // treat it like no balance rather than arming auto-submit and stranding
-      // the page on Loading. Checked against the raw amount because the
-      // applied amount deliberately keeps full precision.
+      // the page on Loading. Checked against the raw amount because Max
+      // deliberately applies it in full precision.
       if (rawAmount.lt(MIN_FIAT_AMOUNT)) {
         return false;
       }
