@@ -651,6 +651,9 @@ describe('MoneyHomeView', () => {
       getByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
     ).toBeOnTheScreen();
     expect(
+      getByText('Add 2-step verification for your Money account transactions.'),
+    ).toBeOnTheScreen();
+    expect(
       queryByTestId(MoneyFinishSetupCardTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
     expect(

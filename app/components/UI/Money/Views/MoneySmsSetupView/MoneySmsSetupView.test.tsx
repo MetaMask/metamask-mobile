@@ -196,7 +196,7 @@ describe('MoneySmsSetupView', () => {
     fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.BACK_BUTTON));
 
     expect(mockShowToast).toHaveBeenCalledWith(
-      'Transaction needs to be verified before sending funds.',
+      'Verify this transaction to send funds.',
       'error',
     );
   });
