@@ -25,7 +25,7 @@ import Animated, {
 import { AnimationDuration } from '@metamask/design-tokens';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
-export type PerpsTradeSheetScreen = 'trade' | 'settings' | 'leverage';
+export type PerpsTradeSheetScreen = 'trade' | 'leverage';
 
 type ScreenDirection = 1 | -1;
 const SCREEN_SLIDE_OFFSET = 24;
@@ -124,6 +124,8 @@ export const PerpsTradeSheetTitleBanner: React.FC<{
 
 export interface PerpsTradeBottomSheetProps<Screen extends string> {
   onClose: () => void;
+  onInteractive?: () => void;
+  onCancelBeforeInteractive?: () => void;
   screens: Record<Screen, React.ReactNode>;
   rootScreen: Screen;
   screenDepth: Record<Screen, number>;
@@ -135,6 +137,8 @@ export interface PerpsTradeBottomSheetProps<Screen extends string> {
 
 const PerpsTradeBottomSheet = <Screen extends string>({
   onClose,
+  onInteractive,
+  onCancelBeforeInteractive,
   title,
   banner,
   screens,
@@ -143,7 +147,8 @@ const PerpsTradeBottomSheet = <Screen extends string>({
 }: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
-  const [isReady, setIsReady] = useState(false);
+  const hasClosedRef = useRef(false);
+  const hasReportedInteractiveRef = useRef(false);
   const [isClosing, setIsClosing] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [rootHeight, setRootHeight] = useState<number | null>(null);
@@ -153,10 +158,6 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     () => makeScreenTransitions(direction),
     [direction],
   );
-
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenDialog(() => setIsReady(true));
-  }, []);
 
   const navigateTo = useCallback(
     (next: Screen) => {
@@ -193,21 +194,53 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     ({ nativeEvent }: LayoutChangeEvent) => {
       if (activeScreen === rootScreen && nativeEvent.layout.height > 0) {
         setRootHeight(nativeEvent.layout.height);
+        if (!hasReportedInteractiveRef.current) {
+          hasReportedInteractiveRef.current = true;
+          onInteractive?.();
+        }
       }
     },
-    [activeScreen, rootScreen],
+    [activeScreen, onInteractive, rootScreen],
   );
   const isHeightLocked = activeScreen !== rootScreen && rootHeight !== null;
 
+  const reportCancelBeforeInteractive = useCallback(() => {
+    if (!hasReportedInteractiveRef.current) {
+      hasReportedInteractiveRef.current = true;
+      onCancelBeforeInteractive?.();
+    }
+  }, [onCancelBeforeInteractive]);
+
+  useEffect(
+    () => () => {
+      reportCancelBeforeInteractive();
+    },
+    [reportCancelBeforeInteractive],
+  );
+
+  const handleClose = useCallback(() => {
+    if (hasClosedRef.current) {
+      return;
+    }
+    hasClosedRef.current = true;
+    reportCancelBeforeInteractive();
+    onClose();
+  }, [onClose, reportCancelBeforeInteractive]);
+
   const close = useCallback(() => {
+    if (isClosing || hasClosedRef.current) {
+      return;
+    }
     setIsClosing(true);
     const sheet = bottomSheetRef.current;
     if (sheet?.onCloseDialog) {
-      sheet.onCloseDialog(onClose);
+      // BottomSheetDialog invokes its own onClose prop after the exit
+      // animation. Passing handleClose as a callback would invoke it twice.
+      sheet.onCloseDialog();
     } else {
-      onClose();
+      handleClose();
     }
-  }, [onClose]);
+  }, [handleClose, isClosing]);
 
   const contextValue = useMemo(
     () => ({ activeScreen, navigateTo, goBack, close, title, banner }),
@@ -217,31 +250,29 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   return (
     <BottomSheetDialog
       ref={bottomSheetRef}
-      onClose={onClose}
+      onClose={handleClose}
       testID={PerpsTradeSheetSelectorsIDs.SHEET}
     >
-      {isReady ? (
-        <PerpsTradeSheetContext.Provider
-          value={contextValue as unknown as PerpsTradeSheetContextValue<string>}
+      <PerpsTradeSheetContext.Provider
+        value={contextValue as unknown as PerpsTradeSheetContextValue<string>}
+      >
+        <Box
+          accessible={false}
+          testID={PerpsTradeSheetSelectorsIDs.CONTENT}
+          onLayout={handleContentLayout}
+          twClassName="overflow-hidden"
+          style={isHeightLocked ? { height: rootHeight } : undefined}
         >
-          <Box
-            accessible={false}
-            testID={PerpsTradeSheetSelectorsIDs.CONTENT}
-            onLayout={handleContentLayout}
-            twClassName="overflow-hidden"
-            style={isHeightLocked ? { height: rootHeight } : undefined}
+          <Animated.View
+            key={activeScreen}
+            entering={hasNavigated ? entering : undefined}
+            exiting={isClosing ? undefined : exiting}
+            style={tw.style('w-full', isHeightLocked && 'flex-1')}
           >
-            <Animated.View
-              key={activeScreen}
-              entering={hasNavigated ? entering : undefined}
-              exiting={isClosing ? undefined : exiting}
-              style={tw.style('w-full', isHeightLocked && 'flex-1')}
-            >
-              {screens[activeScreen]}
-            </Animated.View>
-          </Box>
-        </PerpsTradeSheetContext.Provider>
-      ) : null}
+            {screens[activeScreen]}
+          </Animated.View>
+        </Box>
+      </PerpsTradeSheetContext.Provider>
     </BottomSheetDialog>
   );
 };

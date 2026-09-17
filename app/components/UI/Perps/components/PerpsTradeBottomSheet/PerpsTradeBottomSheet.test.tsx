@@ -15,7 +15,6 @@ const tradeSheetConfig = {
   screenDepth: {
     trade: 0,
     leverage: 1,
-    settings: 1,
   },
 };
 
@@ -38,7 +37,10 @@ jest.mock('@metamask/design-system-react-native', () => {
           onOpenDialog: (callback: () => void) => {
             openCallback = callback;
           },
-          onCloseDialog: (callback: () => void) => callback(),
+          onCloseDialog: (callback?: () => void) => {
+            onClose();
+            callback?.();
+          },
         }));
         return ReactMock.createElement(
           MockView,
@@ -127,7 +129,6 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
-          settings: <Text>Settings</Text>,
         }}
       />,
     );
@@ -150,7 +151,6 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
-          settings: <Text>Settings</Text>,
         }}
       />,
     );
@@ -172,7 +172,6 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
-          settings: <Text>Settings</Text>,
         }}
       />,
     );
@@ -194,15 +193,16 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('closes the dialog through the nested screen API', () => {
     const onClose = jest.fn();
+    const onCancelBeforeInteractive = jest.fn();
 
     render(
       <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={onClose}
+        onCancelBeforeInteractive={onCancelBeforeInteractive}
         {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
           leverage: null,
-          settings: null,
         }}
       />,
     );
@@ -211,6 +211,36 @@ describe('PerpsTradeBottomSheet', () => {
     fireEvent.press(screen.getByTestId('close-trade'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onCancelBeforeInteractive).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the root screen interactive once after layout', () => {
+    const onInteractive = jest.fn();
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        onInteractive={onInteractive}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <TradeTestScreen />,
+          leverage: null,
+        }}
+      />,
+    );
+
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+
+    expect(onInteractive).toHaveBeenCalledTimes(1);
   });
 
   it('does not render a title or banner when the parent omits them', () => {
@@ -221,7 +251,6 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: null,
-          settings: null,
         }}
       />,
     );
@@ -242,7 +271,6 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TitleBannerScreen />,
           leverage: null,
-          settings: null,
         }}
       />,
     );

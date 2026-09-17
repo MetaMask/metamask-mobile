@@ -290,6 +290,14 @@ const mockDefaultUsePerpsMaxSlippage = () => ({
   setMaxSlippage: jest.fn(),
 });
 
+const mockPerpsTrack = jest.fn();
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: mockPerpsTrack,
+  })),
+}));
+
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
   useBottomSafeAreaInset: jest.fn(() => 0),
@@ -389,7 +397,7 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   usePerpsEventTracking: jest.fn(() => ({
-    track: jest.fn(),
+    track: mockPerpsTrack,
   })),
   usePerpsRewards: jest.fn(() => mockDefaultUsePerpsRewards()),
   usePerpsToasts: jest.fn(() => mockDefaultUsePerpsToasts()),
@@ -848,6 +856,11 @@ interface MockTradeScreenProps {
     value: string;
     valueAsNumber: number;
   }) => void;
+  onLimitPricePresetPress: (
+    preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
+  ) => void;
+  onLimitPriceDonePress: () => void;
+  onPayWithPress: () => void;
   onSubmit: () => void;
 }
 
@@ -856,15 +869,9 @@ interface MockLeverageScreenProps {
   onConfirm: (leverage: number, inputMethod?: string) => void;
 }
 
-interface MockSettingsScreenProps {
-  currentValueBps: number;
-  onSave: (valueBps: number) => void;
-}
-
 let mockTradeScreenProps: MockTradeScreenProps | undefined;
 let mockTradeSheetOnClose: (() => void) | undefined;
 let mockLeverageScreenProps: MockLeverageScreenProps | undefined;
-let mockSettingsScreenProps: MockSettingsScreenProps | undefined;
 
 const getMockTradeScreenProps = (): MockTradeScreenProps => {
   if (!mockTradeScreenProps) {
@@ -878,13 +885,6 @@ const getMockLeverageScreenProps = (): MockLeverageScreenProps => {
     throw new Error('Leverage screen did not render');
   }
   return mockLeverageScreenProps;
-};
-
-const getMockSettingsScreenProps = (): MockSettingsScreenProps => {
-  if (!mockSettingsScreenProps) {
-    throw new Error('Settings screen did not render');
-  }
-  return mockSettingsScreenProps;
 };
 
 jest.mock(
@@ -907,9 +907,6 @@ jest.mock(
         ).props;
         mockLeverageScreenProps = (
           screens.leverage as React.ReactElement<MockLeverageScreenProps>
-        ).props;
-        mockSettingsScreenProps = (
-          screens.settings as React.ReactElement<MockSettingsScreenProps>
         ).props;
         return ReactActual.createElement(View, {
           testID: 'perps-trade-sheet',
@@ -949,18 +946,11 @@ jest.mock('../../hooks/usePerpsMaxSlippage', () => ({
   usePerpsMaxSlippage: jest.fn(() => mockDefaultUsePerpsMaxSlippage()),
 }));
 
-const mockUsePerpsAssetMetadata = jest.fn((_assetSymbol?: string) => ({
-  assetUrl: 'https://icons.test/ETH.svg',
-}));
-
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: (assetSymbol?: string) =>
-    mockUsePerpsAssetMetadata(assetSymbol),
-}));
-
 // Test setup
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockParentGoBack = jest.fn();
+const mockParentCanGoBack = jest.fn(() => true);
 
 const defaultMockRoute = {
   params: {
@@ -1236,7 +1226,6 @@ describe('PerpsOrderView', () => {
     mockTradeScreenProps = undefined;
     mockTradeSheetOnClose = undefined;
     mockLeverageScreenProps = undefined;
-    mockSettingsScreenProps = undefined;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1246,6 +1235,10 @@ describe('PerpsOrderView', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      getParent: () => ({
+        canGoBack: mockParentCanGoBack,
+        goBack: mockParentGoBack,
+      }),
       addListener: jest.fn(() => jest.fn()),
     });
 
@@ -1358,21 +1351,6 @@ describe('PerpsOrderView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('skips asset icon resolution on the full-screen route', () => {
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-    expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith(undefined);
-    expect(mockUsePerpsAssetMetadata).not.toHaveBeenCalledWith('ETH');
-  });
-
-  it('resolves the asset icon on the Trade sheet route', () => {
-    useTradeSheetRoute();
-
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-    expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('ETH');
-  });
-
   it('keeps limit orders editable inside the Trade sheet', () => {
     const setLimitPrice = jest.fn();
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
@@ -1399,6 +1377,75 @@ describe('PerpsOrderView', () => {
     expect(setLimitPrice).toHaveBeenCalledWith('2950');
   });
 
+  it('falls back to the market price when the order book is unavailable', () => {
+    const setLimitPrice = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+      },
+      setLimitPrice,
+    });
+    (usePerpsTopOfBook as jest.Mock).mockReturnValue(undefined);
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockTradeScreenProps().onLimitPricePresetPress('book'));
+
+    expect(setLimitPrice).toHaveBeenCalledWith('3000');
+  });
+
+  it('tracks the completed limit price input method once', () => {
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => {
+      getMockTradeScreenProps().onLimitPriceKeypadChange({
+        value: '2950',
+        valueAsNumber: 2950,
+      });
+      getMockTradeScreenProps().onLimitPriceDonePress();
+      getMockTradeScreenProps().onLimitPriceDonePress();
+    });
+
+    expect(mockPerpsTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          // eslint-disable-next-line @typescript-eslint/no-deprecated -- Verify parity with the existing limit-price analytics contract.
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
+        [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
+        [PERPS_EVENT_PROPERTY.INPUT_METHOD]:
+          PERPS_EVENT_VALUE.INPUT_METHOD.KEYBOARD,
+      }),
+    );
+    expect(
+      mockPerpsTrack.mock.calls.filter(
+        ([, properties]) =>
+          properties[PERPS_EVENT_PROPERTY.SETTING_TYPE] === 'limit_price',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('tracks opening the payment token selector from the Trade sheet', () => {
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockTradeScreenProps().onPayWithPress());
+
+    expect(mockPerpsTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+      }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+    );
+  });
+
   it('closes the Trade sheet back to its presenting market', () => {
     useTradeSheetRoute();
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1408,19 +1455,14 @@ describe('PerpsOrderView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('saves slippage from the nested Trade settings screen', () => {
-    const setMaxSlippage = jest.fn();
-    (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
-      maxSlippageBps: 300,
-      maxSlippageSource: 'default',
-      setMaxSlippage,
-    });
-    useTradeSheetRoute();
+  it('closes the Trade sheet back to token details for token entry', () => {
+    useTradeSheetRoute({ fromTokenDetails: true });
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    act(() => getMockSettingsScreenProps().onSave(125));
+    mockTradeSheetOnClose?.();
 
-    expect(setMaxSlippage).toHaveBeenCalledWith(125);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('clamps the order amount after reducing leverage in the Trade sheet', () => {

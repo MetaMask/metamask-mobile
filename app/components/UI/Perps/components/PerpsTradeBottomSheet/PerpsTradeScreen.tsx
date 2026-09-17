@@ -1,6 +1,4 @@
 import {
-  AvatarToken,
-  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -19,6 +17,7 @@ import {
   SelectButton,
   SelectButtonSize,
   SelectButtonVariant,
+  Skeleton,
   Tag,
   TagSeverity,
   Text,
@@ -35,6 +34,8 @@ import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
@@ -43,9 +44,10 @@ import {
 interface PerpsTradeScreenProps {
   asset: string;
   oiCapSymbol: string;
-  assetIconUrl?: string;
   direction: 'long' | 'short';
   leverage: number;
+  currentPrice: number;
+  percentChange24h: number | null;
   orderType: Extract<OrderType, 'market' | 'limit'>;
   limitPrice?: string;
   autoCloseText: string;
@@ -55,6 +57,12 @@ interface PerpsTradeScreenProps {
   sliderMaximum: number;
   isAmountDisabled: boolean;
   isAmountLoading: boolean;
+  isHeaderLoading: boolean;
+  isPayWithLoading: boolean;
+  isMarginLoading: boolean;
+  isFeeLoading: boolean;
+  isOrderTypeDisabled: boolean;
+  areLimitPricePresetsDisabled: boolean;
   hasAmountError: boolean;
   showAmountWarning: boolean;
   amountWarningMessage?: string;
@@ -193,9 +201,10 @@ const ActionRow: React.FC<ActionRowProps> = ({
 const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   asset,
   oiCapSymbol,
-  assetIconUrl,
   direction,
   leverage,
+  currentPrice,
+  percentChange24h,
   orderType,
   limitPrice,
   autoCloseText,
@@ -205,6 +214,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   sliderMaximum,
   isAmountDisabled,
   isAmountLoading,
+  isHeaderLoading,
+  isPayWithLoading,
+  isMarginLoading,
+  isFeeLoading,
+  isOrderTypeDisabled,
+  areLimitPricePresetsDisabled,
   hasAmountError,
   showAmountWarning,
   amountWarningMessage,
@@ -268,15 +283,35 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           gap={2}
           twClassName="min-w-0 flex-1"
         >
-          <AvatarToken
-            name={asset}
-            src={assetIconUrl ? { uri: assetIconUrl } : undefined}
-            size={AvatarTokenSize.Md}
-          />
-          <Text variant={TextVariant.HeadingSm} twClassName="shrink">
-            {directionLabel}
-          </Text>
-          <Tag severity={TagSeverity.Neutral}>{leverage}x</Tag>
+          <PerpsTokenLogo symbol={oiCapSymbol} size={32} />
+          <Box accessible={false} twClassName="min-w-0 flex-1">
+            <Box
+              accessible={false}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text variant={TextVariant.HeadingSm} twClassName="shrink">
+                {directionLabel}
+              </Text>
+              <Tag severity={TagSeverity.Neutral}>{leverage}x</Tag>
+            </Box>
+            {isHeaderLoading ? (
+              <Skeleton
+                testID={PerpsTradeSheetSelectorsIDs.HEADER_SKELETON}
+                width={112}
+                height={18}
+              />
+            ) : (
+              <LivePriceHeader
+                symbol={oiCapSymbol}
+                currentPrice={currentPrice}
+                percentChange24h={percentChange24h}
+                testIDPrice={PerpsTradeSheetSelectorsIDs.HEADER_PRICE}
+                testIDChange={PerpsTradeSheetSelectorsIDs.HEADER_CHANGE}
+              />
+            )}
+          </Box>
         </Box>
         <SelectButton
           testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
@@ -288,10 +323,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             'perps.trade_sheet.order_type_accessibility_label',
             { orderType: orderTypeLabel },
           )}
+          isDisabled={isOrderTypeDisabled}
           onPress={onOrderTypePress}
-          endAccessory={
-            <Icon name={IconName.SwapHorizontal} size={IconSize.Xs} />
-          }
+          endArrowDirection="down"
         />
       </Box>
 
@@ -454,18 +488,26 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                       'confirm.label.pay_with',
                     )}, ${payWithLabel}`}
                     value={
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Medium}
-                      >
-                        {payWithName}{' '}
+                      isPayWithLoading ? (
+                        <Skeleton
+                          testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_SKELETON}
+                          width={152}
+                          height={20}
+                        />
+                      ) : (
                         <Text
                           variant={TextVariant.BodyMd}
-                          color={TextColor.TextAlternative}
+                          fontWeight={FontWeight.Medium}
                         >
-                          ({payWithBalance})
+                          {payWithName}{' '}
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                          >
+                            ({payWithBalance})
+                          </Text>
                         </Text>
-                      </Text>
+                      )
                     }
                     onPress={onPayWithPress}
                   />
@@ -489,12 +531,20 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                     </>
                   }
                   value={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {margin}
-                    </Text>
+                    isMarginLoading ? (
+                      <Skeleton
+                        testID={PerpsTradeSheetSelectorsIDs.MARGIN_SKELETON}
+                        width={64}
+                        height={20}
+                      />
+                    ) : (
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {margin}
+                      </Text>
+                    )
                   }
                   showEndIcon={false}
                 />
@@ -526,9 +576,20 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               ).map(([preset, label]) => (
                 <Button
                   key={preset}
+                  testID={
+                    {
+                      mid: PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_PRESET_MID,
+                      book: PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_PRESET_BOOK,
+                      'percentage-1':
+                        PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_PRESET_PERCENTAGE_1,
+                      'percentage-2':
+                        PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_PRESET_PERCENTAGE_2,
+                    }[preset]
+                  }
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   twClassName="flex-1"
+                  isDisabled={areLimitPricePresetsDisabled}
                   onPress={() => onLimitPricePresetPress(preset)}
                 >
                   {label}
@@ -603,7 +664,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             >
               {submitLabel ?? directionLabel}
             </ButtonSemantic>
-            {feePercentage ? (
+            {isFeeLoading ? (
+              <Skeleton
+                testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
+                width={112}
+                height={16}
+                twClassName="self-center"
+              />
+            ) : feePercentage ? (
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}

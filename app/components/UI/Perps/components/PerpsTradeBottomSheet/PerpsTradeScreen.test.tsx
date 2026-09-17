@@ -5,6 +5,10 @@ import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigateTo = jest.fn();
 const mockClose = jest.fn();
+let mockLivePriceHeaderProps:
+  | { currentPrice: number; percentChange24h: number | null }
+  | undefined;
+let mockPerpsTokenLogoProps: { symbol: string; size: number } | undefined;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
@@ -31,11 +35,32 @@ jest.mock('../PerpsServiceInterruptionBanner', () => ({
   default: () => null,
 }));
 
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: (props: { symbol: string; size: number }) => {
+    mockPerpsTokenLogoProps = props;
+    return null;
+  },
+}));
+
+jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
+  __esModule: true,
+  default: (props: {
+    currentPrice: number;
+    percentChange24h: number | null;
+  }) => {
+    mockLivePriceHeaderProps = props;
+    return null;
+  },
+}));
+
 const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   asset: 'SOL',
   oiCapSymbol: 'SOL',
   direction: 'long',
   leverage: 3,
+  currentPrice: 98.5,
+  percentChange24h: 3.02,
   orderType: 'market',
   autoCloseText: 'TP Off, SL Off',
   margin: '$3.41',
@@ -44,6 +69,12 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   sliderMaximum: 100,
   isAmountDisabled: false,
   isAmountLoading: false,
+  isHeaderLoading: false,
+  isPayWithLoading: false,
+  isMarginLoading: false,
+  isFeeLoading: false,
+  isOrderTypeDisabled: false,
+  areLimitPricePresetsDisabled: false,
   hasAmountError: false,
   showAmountWarning: false,
   isInputFocused: false,
@@ -77,6 +108,8 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 describe('PerpsTradeScreen errors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLivePriceHeaderProps = undefined;
+    mockPerpsTokenLogoProps = undefined;
   });
 
   it('propagates every form error to an accessible alert', () => {
@@ -160,6 +193,48 @@ describe('PerpsTradeScreen errors', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('passes coherent live market data to the compact header', () => {
+    render(
+      <PerpsTradeScreen {...defaultProps} asset="PEPE" oiCapSymbol="kPEPE" />,
+    );
+
+    expect(mockLivePriceHeaderProps).toEqual(
+      expect.objectContaining({
+        currentPrice: 98.5,
+        percentChange24h: 3.02,
+      }),
+    );
+    expect(mockPerpsTokenLogoProps).toEqual({
+      symbol: 'kPEPE',
+      size: 32,
+    });
+  });
+
+  it('renders skeletons for unresolved dynamic values', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isHeaderLoading
+        isPayWithLoading
+        isMarginLoading
+        isFeeLoading
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
+    ).toBeOnTheScreen();
+  });
+
   it('shows the limit price row for a limit order', () => {
     render(
       <PerpsTradeScreen
@@ -194,6 +269,27 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['LIMIT_PRICE_PRESET_MID', 'mid'],
+    ['LIMIT_PRICE_PRESET_BOOK', 'book'],
+    ['LIMIT_PRICE_PRESET_PERCENTAGE_1', 'percentage-1'],
+    ['LIMIT_PRICE_PRESET_PERCENTAGE_2', 'percentage-2'],
+  ] as const)('applies the %s quick pick', (selector, preset) => {
+    const onLimitPricePresetPress = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        isLimitPriceFocused
+        onLimitPricePresetPress={onLimitPricePresetPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs[selector]));
+
+    expect(onLimitPricePresetPress).toHaveBeenCalledWith(preset);
   });
 
   it('propagates an order execution error to the footer', () => {
