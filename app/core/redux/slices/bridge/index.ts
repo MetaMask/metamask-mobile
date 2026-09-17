@@ -142,10 +142,7 @@ export interface BridgeState {
   limitOrderCostTolerance: string | undefined;
   /**
    * Live market-comparison label for the in-progress limit order (e.g.
-   * "(-5% from market)"), continuously recomputed by the limit order screen
-   * from a real-time rate. The confirmation modal reads this directly rather
-   * than deriving its own value, so both surfaces always show the same
-   * number. `undefined` while at market or before a price is available.
+   * "(-5% from market)"). `undefined` while at market or before a price is available.
    */
   limitOrderMarketComparison:
     | LimitOrderConfirmationMarketComparison
