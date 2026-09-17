@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import renderWithProvider, {
   DeepPartial,
@@ -152,7 +152,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     ).toHaveTextContent('(+6.63% from market)');
   });
 
-  it('updates the market comparison label as the background screen keeps writing to bridge state', () => {
+  it('updates the market comparison label as the background screen keeps writing to bridge state', async () => {
     const { getByTestId, queryByTestId, store } = renderScreen(
       createBridgeTestState({
         bridgeReducerOverrides: {
@@ -170,23 +170,33 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
     // Simulates the limit order screen behind this modal continuing to
     // dispatch a fresh comparison as its live rate ticks.
-    store.dispatch(
-      setLimitOrderMarketComparison({
-        label: '(+7.10% from market)',
-        isNegative: false,
-      }),
-    );
+    act(() => {
+      store.dispatch(
+        setLimitOrderMarketComparison({
+          label: '(+7.10% from market)',
+          isNegative: false,
+        }),
+      );
+    });
 
-    expect(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
-    ).toHaveTextContent('(+7.10% from market)');
+    await waitFor(() => {
+      expect(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+      ).toHaveTextContent('(+7.10% from market)');
+    });
 
     // And converging on the limit price clears it, in both places at once.
-    store.dispatch(setLimitOrderMarketComparison(undefined));
+    act(() => {
+      store.dispatch(setLimitOrderMarketComparison(undefined));
+    });
 
-    expect(
-      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
-    ).toBeNull();
+    await waitFor(() => {
+      expect(
+        queryByTestId(
+          LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON,
+        ),
+      ).toBeNull();
+    });
   });
 
   it('omits the comparison row while none is stored in bridge state', () => {
