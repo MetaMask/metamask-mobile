@@ -34,7 +34,6 @@ export const LimitOrderConfirmationModal = ({
   feeToken,
   feeDisclaimer,
   onConfirm,
-  onEditCostTolerancePress,
   onClose,
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
@@ -120,16 +119,6 @@ export const LimitOrderConfirmationModal = ({
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {costTolerance}
             </Text>
-            <ButtonIcon
-              iconName={IconName.Edit}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconAlternative }}
-              onPress={onEditCostTolerancePress}
-              accessibilityLabel={strings('bridge.limit.edit_cost_tolerance')}
-              testID={
-                LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_EDIT
-              }
-            />
           </Box>
         </DetailRow>
         <DetailRow label={strings('bridge.limit.est_network_fee')}>
