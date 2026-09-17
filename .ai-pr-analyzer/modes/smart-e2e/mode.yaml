@@ -9,8 +9,6 @@ comment:
       label: Selected E2E tags
     - path: performance_tests.selected_tags
       label: Selected Performance tags
-    - path: risk_level
-      label: Risk
     - path: confidence
       label: AI Confidence
     - path: performance_tests.reasoning
