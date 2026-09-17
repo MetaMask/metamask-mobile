@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import WatchlistSection from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
@@ -31,6 +31,19 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../UI/Assets/selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(),
 }));
+
+const mockToast = jest.fn();
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign((...args: unknown[]) => mockToast(...args), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 const mockUseTokenWatchlistQuery = jest.fn();
 jest.mock(
@@ -322,6 +335,30 @@ describe('WatchlistSection', () => {
       'eip155:1/erc20:0xbitcoin',
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
+  });
+
+  it('does not toast on a successful homepage add — the optimistic move is the feedback', () => {
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [makeSuggestedToken('bitcoin')],
+      isLoading: false,
+    });
+
+    const { getByTestId } = renderSection();
+
+    fireEvent.press(getByTestId('row-add-bitcoin'));
+
+    // Run the success path the mutation would invoke on settle.
+    const { onSuccess } = mockMutate.mock.calls[0][1] as {
+      onSuccess: () => void;
+    };
+    act(() => {
+      onSuccess();
+    });
+
+    expect(mockToast).not.toHaveBeenCalled();
+    // Analytics still fire alongside the silent optimistic update.
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock' });
   });
 
   it('shows suggested-token skeletons while suggestions are loading', () => {
