@@ -124,6 +124,7 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
+  { fetchByHash = true }: { fetchByHash?: boolean } = {},
 ): {
   item: ActivityListItem | undefined;
   isFetching: boolean;
@@ -144,6 +145,7 @@ export function useActivityDetailsItem(
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const txHash =
+    fetchByHash &&
     chainId?.startsWith('eip155:') &&
     txIdentifier &&
     isValidTransactionHash(txIdentifier)
