@@ -78,7 +78,6 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-// Mock LockManagerService - kept so onboarding tests do not load the real service
 jest.mock('../../../../core/LockManagerService', () => ({
   __esModule: true,
   default: {

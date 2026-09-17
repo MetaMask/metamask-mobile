@@ -122,9 +122,7 @@ const DigitalWalletInstructionsSheet = () => {
       return;
     }
     hasAutoRevealed.current = true;
-    runReveal().catch(() => {
-      // Errors surface via toast / retry UI from useRevealCardDetails.
-    });
+    runReveal().catch(() => undefined);
   }, [runReveal]);
 
   const handleClose = useCallback(() => {
@@ -138,14 +136,9 @@ const DigitalWalletInstructionsSheet = () => {
   }, [clearCardDetails, navigation]);
 
   const handleRetryReveal = useCallback(() => {
-    runReveal().catch(() => {
-      // Errors surface via toast / retry UI from useRevealCardDetails.
-    });
+    runReveal().catch(() => undefined);
   }, [runReveal]);
 
-  // Shimmer only while fetching details after auth succeeds — not during Face ID /
-  // password verification. Keep the retry button visible during auth to avoid
-  // hide/show jank; disable it so a second tap cannot start a parallel reveal.
   const showDetailsSkeleton =
     isSensitiveDetailsLoading ||
     isCardDetailsLoading ||

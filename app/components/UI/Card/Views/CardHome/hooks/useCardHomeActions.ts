@@ -188,8 +188,6 @@ export function useCardHomeActions({
     showFreezeSuccessToast,
   ]);
 
-  // --- Card details (see useRevealCardDetails) ---
-
   // --- PIN ---
 
   const fetchAndShowPin = useCallback(async () => {

@@ -220,8 +220,6 @@ const CardModalsRoutes = () => (
 );
 
 const CardRoutes = () => {
-  // Suspend auto-lock for the full Card feature lifecycle (home, onboarding,
-  // and modals). Restores listening when the user exits Card entirely.
   useEffect(() => {
     LockManagerService.stopListening();
     return () => {

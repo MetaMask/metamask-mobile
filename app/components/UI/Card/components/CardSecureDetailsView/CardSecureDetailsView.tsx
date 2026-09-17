@@ -67,10 +67,6 @@ const DetailField = ({
   </Box>
 );
 
-/**
- * Renders authenticated MetaMask Card details: Immersve structured fields
- * (PAN with copy) or Baanx/Exodus secure image URL.
- */
 const CardSecureDetailsView = ({
   isLoading = false,
   cardDetailsImageUrl = null,

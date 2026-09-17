@@ -234,7 +234,6 @@ describe('useRevealCardDetails', () => {
         try {
           await reauthenticate();
         } catch {
-          // password sheet path: onSuccess deferred
           return;
         }
         await onSuccess();

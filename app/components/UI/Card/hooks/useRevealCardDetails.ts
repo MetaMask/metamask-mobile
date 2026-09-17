@@ -33,10 +33,6 @@ interface UseRevealCardDetailsParams {
   capabilities: CardProviderCapabilities | null;
 }
 
-/**
- * Shared biometric-gated reveal for MetaMask Card details.
- * Immersve returns structured PAN/CVV fields; Baanx/Exodus return a secure image URL.
- */
 export function useRevealCardDetails({
   cardType,
   capabilities,
@@ -211,9 +207,6 @@ export function useRevealCardDetails({
     clearCardDetails();
   }, [isDetailsVisible, trackHideDetails, clearCardDetails]);
 
-  /**
-   * Card Home toggle: hide when visible, otherwise reveal behind biometrics.
-   */
   const viewCardDetailsAction = useCallback(async () => {
     if (!isAuthenticated) {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
