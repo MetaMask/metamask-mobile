@@ -22,13 +22,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockUseBridgeQuoteData = jest.fn();
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: () => mockUseBridgeQuoteData(),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: () => mockUseBridgeQuoteData(),
 }));
 
-const mockUseLatestBalance = jest.fn();
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: (params: unknown) => mockUseLatestBalance(params),
+const mockUseBridgeSession = jest.fn();
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: () => mockUseBridgeSession(),
 }));
 
 const mockFormatFiat = jest.fn();
@@ -205,7 +205,9 @@ describe('QuoteSelectorView', () => {
       quoteFetchError: null,
       isExpired: false,
     });
-    mockUseLatestBalance.mockReturnValue(mockLatestBalance);
+    mockUseBridgeSession.mockReturnValue({
+      latestSourceBalance: mockLatestBalance,
+    });
     mockFormatFiat.mockReturnValue('$2,020.00');
     mockIsGaslessQuote.mockReturnValue(false);
     mockUseTrackAllQuotesSortedEvent.mockReturnValue(
@@ -324,33 +326,6 @@ describe('QuoteSelectorView', () => {
       const { getByTestId } = render(<QuoteSelectorView />);
 
       expect(getByTestId('quote-list')).toBeTruthy();
-    });
-  });
-
-  describe('useLatestBalance integration', () => {
-    it('calls useLatestBalance hook with correct parameters', () => {
-      render(<QuoteSelectorView />);
-
-      expect(mockUseLatestBalance).toHaveBeenCalledWith({
-        address: mockSourceToken.address,
-        decimals: mockSourceToken.decimals,
-        chainId: mockSourceToken.chainId,
-      });
-    });
-
-    it('uses latestBalance in quote data', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: [mockQuote],
-        bestQuote: mockQuote,
-        isLoading: false,
-        blockaidError: null,
-        quoteFetchError: null,
-        isExpired: false,
-      });
-
-      render(<QuoteSelectorView />);
-
-      expect(mockUseLatestBalance).toHaveBeenCalled();
     });
   });
 

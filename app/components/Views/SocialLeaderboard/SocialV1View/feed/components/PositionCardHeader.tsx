@@ -61,7 +61,7 @@ const TitleMeta: React.FC<{
     twClassName="flex-1 min-w-0"
   >
     <Text
-      variant={TextVariant.BodyMd}
+      variant={TextVariant.BodyLg}
       fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
       numberOfLines={1}
@@ -70,11 +70,11 @@ const TitleMeta: React.FC<{
     </Text>
     {direction ? (
       <>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+        <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
           {' \u00b7 '}
         </Text>
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodyLg}
           fontWeight={FontWeight.Medium}
           twClassName={directionClassName(direction)}
         >
@@ -111,7 +111,7 @@ const PnlValues: React.FC<{
   return (
     <Box alignItems={isClosedHero ? BoxAlignItems.Start : BoxAlignItems.End}>
       <Text
-        variant={isClosedHero ? TextVariant.HeadingMd : TextVariant.BodyMd}
+        variant={isClosedHero ? TextVariant.HeadingMd : TextVariant.BodyLg}
         fontWeight={FontWeight.Medium}
         color={isClosedHero ? undefined : TextColor.TextDefault}
         twClassName={isClosedHero ? pnlClassName(isPnlPositive) : undefined}
@@ -120,7 +120,7 @@ const PnlValues: React.FC<{
         {valueLabel}
       </Text>
       <Text
-        variant={isClosedHero ? TextVariant.BodyMd : TextVariant.BodySm}
+        variant={TextVariant.BodyMd}
         twClassName={pnlClassName(isPnlPositive)}
         numberOfLines={1}
       >
@@ -164,13 +164,13 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
           side={side}
         />
         {layout === 'open' && markPriceLabel ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {markPriceLabel}
           </Text>
         ) : null}
         {layout === 'compact' && subHeaderLabel ? (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
