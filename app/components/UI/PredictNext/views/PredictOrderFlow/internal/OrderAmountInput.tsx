@@ -1,75 +1,72 @@
 import React from 'react';
+import { Pressable, View } from 'react-native';
 import {
   Box,
-  Button,
-  ButtonBase,
-  ButtonSize,
-  ButtonVariant,
   Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
-const QUICK_AMOUNTS = ['$20', '$50', '$100', '$250'] as const;
-
-const AMOUNT_TEXT_TW = 'text-[54px] font-semibold leading-[60px]';
-
 interface OrderAmountInputProps {
   amount: string;
+  /** Shows the blinking caret while the keypad is open. */
+  isActive: boolean;
   /** Opens the in-sheet keypad. */
   onAmountPress: () => void;
-  onAmountChange: (amount: string) => void;
 }
 
+/** Legacy PredictAmountDisplay sizing: shrink as the figure grows. */
+const fontSizeFor = (length: number) => {
+  if (length <= 8) return 60;
+  if (length <= 10) return 48;
+  if (length <= 12) return 32;
+  return 24;
+};
+
 /**
- * USD amount entry: the big centered figure (pressable to open the keypad)
- * with quick amount chips beneath it.
+ * USD amount entry: the big centered figure with a caret while the
+ * keypad is open, matching the legacy Predict amount display. The caret
+ * is deliberately static: animated carets (native-driver Animated.loop or
+ * Reanimated withRepeat) deadlock the main thread inside the worklets
+ * frame pipeline when this sheet mounts.
  */
 export const OrderAmountInput = ({
   amount,
+  isActive,
   onAmountPress,
-  onAmountChange,
 }: OrderAmountInputProps) => {
   const tw = useTailwind();
 
+  const label = `$${amount || '0'}`;
+  const fontSize = fontSizeFor(label.length);
+
   return (
-    <Box twClassName="gap-3">
-      {/* The $ and the amount are one centered group, per the design. */}
-      <ButtonBase
-        twClassName="w-full rounded-none bg-transparent py-2"
-        onPress={onAmountPress}
-        testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
-        accessibilityLabel={strings('predict_next.order_preview.amount')}
-      >
-        <Box twClassName="flex-row items-center justify-center">
-          <Text twClassName={`${AMOUNT_TEXT_TW} text-default`}>$</Text>
-          <Text
-            twClassName={
-              amount
-                ? `${AMOUNT_TEXT_TW} text-default`
-                : `${AMOUNT_TEXT_TW} text-alternative`
-            }
-          >
-            {amount || '0'}
-          </Text>
-        </Box>
-      </ButtonBase>
-      <Box twClassName="flex-row gap-2">
-        {QUICK_AMOUNTS.map((quickAmount) => (
-          <Button
-            key={quickAmount}
-            testID={PredictOrderFlowTestIds.QUICK_AMOUNT(quickAmount)}
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={() => onAmountChange(quickAmount.replace('$', ''))}
-            twClassName="h-12 flex-1 min-w-0"
-          >
-            <Text>{quickAmount}</Text>
-          </Button>
-        ))}
+    <Pressable
+      onPress={onAmountPress}
+      testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
+      accessibilityRole="button"
+      accessibilityLabel={strings('predict_next.order_preview.amount')}
+    >
+      <Box twClassName="flex-row items-center justify-center px-6">
+        <Text
+          variant={TextVariant.DisplayMd}
+          color={amount ? TextColor.TextDefault : TextColor.TextAlternative}
+          twClassName={`text-[${fontSize}px] leading-[${fontSize + 10}px] tracking-tight px-1`}
+        >
+          {label}
+        </Text>
+        {isActive ? (
+          <View
+            style={tw.style(
+              `w-0.5 h-[${Math.round(fontSize * 0.72)}px] bg-text-default`,
+            )}
+          />
+        ) : null}
       </Box>
-    </Box>
+    </Pressable>
   );
 };

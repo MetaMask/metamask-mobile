@@ -2,11 +2,13 @@ import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -27,7 +29,11 @@ const KeyValueRow = ({ label, onInfoPress, children }: KeyValueRowProps) => (
   <Box twClassName="flex-row items-center justify-between gap-4 py-2">
     <Box twClassName="self-start">
       <Box twClassName="flex-row items-center gap-1">
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {label}
         </Text>
         {onInfoPress ? (
@@ -47,7 +53,6 @@ const KeyValueRow = ({ label, onInfoPress, children }: KeyValueRowProps) => (
           </TouchableOpacity>
         ) : null}
       </Box>
-      <Box twClassName="h-0 w-full border-b border-dashed border-muted" />
     </Box>
     <Box twClassName="min-w-0 flex-row items-center gap-2">{children}</Box>
   </Box>
@@ -77,28 +82,36 @@ export const OrderSummaryRows = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="gap-2">
+    <Box twClassName="gap-0">
       <KeyValueRow label={strings('predict_next.order_preview.pay_with')}>
         {/* TODO(PRED): Take the currency icon and label from the backend
          * balance payload (pUSD for Polymarket, base USDC for Kalshi)
          * instead of this hardcoded USDC placeholder. */}
-        <Image source={images.USDC} style={tw.style('h-4 w-4')} />
-        {/* TODO(PRED): Make this row the payment-method selector once
-         * "pay with any token" (PWAT) support lands. */}
-        <Text
-          variant={TextVariant.BodySm}
+        <Box
+          twClassName="flex-row items-center gap-2"
           testID={PredictOrderFlowTestIds.PAY_WITH}
         >
-          {strings('predict_next.order_preview.predict_balance')}
-          {balance ? ` ($${balance})` : ''}
-        </Text>
+          <Image source={images.USDC} style={tw.style('h-5 w-5')} />
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('predict_next.order_preview.predict_balance')}
+          </Text>
+          {balance ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {` ($${balance})`}
+            </Text>
+          ) : null}
+        </Box>
       </KeyValueRow>
       <KeyValueRow
         label={strings('predict_next.order_preview.total')}
         onInfoPress={canShowBreakdown ? onBreakdownPress : undefined}
       >
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
           testID={PredictOrderFlowTestIds.TOTAL}
         >
           {total}

@@ -13,18 +13,10 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-// The gesture-handler ScrollView participates in the sheet's own pan
-// gestures; the react-native one can refuse to scroll inside a
-// gesture-handler BottomSheet on Android.
-import {
-  GestureHandlerRootView,
-  ScrollView,
-} from 'react-native-gesture-handler';
 import {
   BottomSheet,
   Box,
   Button,
-  ButtonBase,
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
@@ -34,11 +26,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  Theme,
-  ThemeProvider,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import ModalSafeAreaProvider from '../../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -59,18 +47,13 @@ import type { PredictOrderPreviewService } from '../../../services/PredictOrderP
 import { OrderAmountInput } from './OrderAmountInput';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
 import { OrderKeypad } from './OrderKeypad';
+import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderSummaryRows } from './OrderSummaryRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
-/** How long typing pauses before the changed amount is re-quoted. */
 const QUOTE_DEBOUNCE_MS = 500;
-
-/** The entered amount must be at least this many whole dollars. */
 const MINIMUM_AMOUNT = 1;
-
-// TODO(PRED): Wire the venue terms URL from the backend venue information
-// once it exposes it; the blank target is intentional for now.
 const TERMS_URL = '';
 
 export interface PredictOrderFlowIntent {
@@ -78,10 +61,8 @@ export interface PredictOrderFlowIntent {
   marketId: PredictEntityId;
   side: PredictOutcomeSide;
   outcomeLabel: string;
-  /** Display snapshot: the Event the traded Market belongs to. */
   eventTitle: string;
   eventImageUrl?: string;
-  /** The Outcome's last displayed ask price, shown before a quote arrives. */
   askPrice?: PredictDecimal;
 }
 
@@ -94,20 +75,9 @@ interface PredictOrderFlowSheetProps {
 type SubmitPhase = 'input' | 'submitting' | 'success';
 
 const styles = StyleSheet.create({
-  gestureRoot: {
-    flex: 1,
-  },
-  modalHost: {
-    ...StyleSheet.absoluteFill,
-  },
+  modalHost: { ...StyleSheet.absoluteFill },
 });
 
-/**
- * The Order Flow sheet: a big USD amount entry over a compact summary, the
- * server-authoritative quote, and the approve flow. Form input stays local
- * to React; every quoted value comes from the backend, and the full quote
- * breakdown lives behind the Total row's info affordance.
- */
 export const PredictOrderFlowSheet = ({
   intent,
   service,
@@ -135,7 +105,6 @@ export const PredictOrderFlowSheet = ({
     sheetRef.current?.onOpenBottomSheet();
   }, []);
 
-  // Reset the flow whenever a new intent is opened.
   useEffect(() => {
     setAmount('');
     setQuoteNonce(0);
@@ -148,10 +117,6 @@ export const PredictOrderFlowSheet = ({
     requestIdRef.current += 1;
   }, [intent]);
 
-  // Digits with at most one dot and two decimals, at most 9 integer digits,
-  // in canonical form: no leading zeros ('05' becomes '5', matching the
-  // backend amount contract) and a bare leading dot gets a zero ('.5'
-  // becomes '0.5').
   const sanitizeAmount = useCallback((next: string) => {
     const cleaned = next.replace(/[^0-9.]/gu, '');
     const dotIndex = cleaned.indexOf('.');
@@ -170,16 +135,8 @@ export const PredictOrderFlowSheet = ({
 
   const isQuotable =
     /^\d{1,9}(\.\d{1,2})?$/u.test(amount) && Number(amount) >= MINIMUM_AMOUNT;
-
-  // A dot with a zero whole part can never grow past the minimum ($0.99 at
-  // best), so that input is settled below the minimum. Anything else
-  // non-quotable is partial input still being typed and must not read as an
-  // error.
   const isBelowMinimum = /^0\./u.test(amount);
 
-  // Re-quote whenever the amount changes; stale responses are discarded. The
-  // request id is bumped before the quotable check so an in-flight quote is
-  // also discarded when the amount stops being quotable.
   useEffect(() => {
     requestIdRef.current += 1;
     if (!isQuotable) {
@@ -222,7 +179,6 @@ export const PredictOrderFlowSheet = ({
     return () => clearTimeout(timeout);
   }, [amount, intent, isQuotable, quoteNonce, service]);
 
-  // Flip the live preview to expired the moment its expiry passes.
   useEffect(() => {
     if (!preview) {
       return;
@@ -236,13 +192,11 @@ export const PredictOrderFlowSheet = ({
   }, [preview, now]);
 
   const isExpired = preview !== null && service.isExpired(preview, now);
-  // A fresh quote loading for the changed amount hides the previous preview:
-  // Approve must wait for the quote the user can actually see.
   const canApprove =
     phase === 'input' && preview !== null && !isQuoting && !isExpired;
+  const canRefresh = isExpired || Boolean(quoteError);
 
   const handleRefresh = useCallback(() => {
-    // Re-quote the unchanged intent by restarting the quote effect.
     setQuoteNonce((nonce) => nonce + 1);
   }, []);
 
@@ -258,33 +212,33 @@ export const PredictOrderFlowSheet = ({
       });
       setPhase('success');
     } catch {
-      // The stub submission does not fail; re-enable the form if it ever does.
       setPhase('input');
     }
   }, [canApprove, intent.venueId, preview, service]);
 
-  const handleBreakdownPress = useCallback(() => {
-    setIsBreakdownVisible(true);
-  }, []);
-
-  const handleBreakdownClose = useCallback(() => {
-    setIsBreakdownVisible(false);
-  }, []);
-
-  const handleKeypadPress = useCallback(
+  const handleKeypadOpen = useCallback(() => setIsKeypadOpen(true), []);
+  const handleBreakdownPress = useCallback(
+    () => setIsBreakdownVisible(true),
+    [],
+  );
+  const handleBreakdownClose = useCallback(
+    () => setIsBreakdownVisible(false),
+    [],
+  );
+  const handleKeyPress = useCallback(
     (key: string) => {
-      setAmount((current) => sanitizeAmount(`${current}${key}`));
+      setAmount((current) => {
+        const next = sanitizeAmount(`${current}${key}`);
+        const digitCount = next.match(/\d/gu)?.length ?? 0;
+        return digitCount > 9 ? current : next;
+      });
     },
     [sanitizeAmount],
   );
-
-  const handleKeypadDelete = useCallback(() => {
-    setAmount((current) => sanitizeAmount(current.slice(0, -1)));
-  }, [sanitizeAmount]);
-
-  const handleKeypadDone = useCallback(() => {
-    setIsKeypadOpen(false);
-  }, []);
+  const handleDelete = useCallback(
+    () => setAmount((current) => sanitizeAmount(current.slice(0, -1))),
+    [sanitizeAmount],
+  );
 
   useEffect(() => {
     if (isBreakdownVisible) {
@@ -298,15 +252,10 @@ export const PredictOrderFlowSheet = ({
     }
   }, []);
 
-  // The header shows the Outcome's ask price until a quote lands, then the
-  // quoted average; while a fresh quote loads the stale average is dropped.
   const displayedPrice = isQuoting
     ? intent.askPrice
     : (preview?.averagePrice ?? intent.askPrice);
-
   const toWinLabel = formatUsd(preview?.potentialPayout ?? '0.00');
-  // Legacy parity: the Total reads as the entered amount until the quote
-  // lands, then as the backend-owned total debit.
   const totalLabel =
     preview && !isQuoting
       ? formatUsd(preview.totalDebit)
@@ -315,15 +264,13 @@ export const PredictOrderFlowSheet = ({
     ? Number(balanceQuery.data.available).toFixed(2)
     : undefined;
 
-  const statusContent = useMemo(() => {
-    if (isQuotable && isQuoting) {
-      return null;
-    }
+  const statusMessage = useMemo(() => {
     if (!isQuotable) {
       return isBelowMinimum ? (
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-center text-error-default"
+          color={TextColor.ErrorDefault}
+          twClassName="text-center"
         >
           {strings('predict_next.order_preview.minimum_amount', {
             amount: MINIMUM_AMOUNT,
@@ -331,62 +278,76 @@ export const PredictOrderFlowSheet = ({
         </Text>
       ) : null;
     }
+    if (isQuoting) {
+      return null;
+    }
     if (quoteError) {
       return (
-        <Box twClassName="items-center gap-2">
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-center text-error-default"
-            testID={PredictOrderFlowTestIds.ERROR}
-          >
-            {quoteError.message}
-          </Text>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            onPress={handleRefresh}
-            twClassName="w-full"
-            testID={PredictOrderFlowTestIds.RETRY}
-          >
-            <Text>{strings('predict_next.order_preview.retry')}</Text>
-          </Button>
-        </Box>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          twClassName="text-center"
+          testID={PredictOrderFlowTestIds.ERROR}
+        >
+          {quoteError.message}
+        </Text>
       );
     }
     if (preview && isExpired) {
       return (
-        <Box
-          twClassName="items-center gap-2"
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
           testID={PredictOrderFlowTestIds.EXPIRED}
         >
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-center text-alternative"
-          >
-            {strings('predict_next.order_preview.expired')}
-          </Text>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            onPress={handleRefresh}
-            twClassName="w-full"
-            testID={PredictOrderFlowTestIds.REFRESH}
-          >
-            <Text>{strings('predict_next.order_preview.refresh')}</Text>
-          </Button>
-        </Box>
+          {strings('predict_next.order_preview.expired')}
+        </Text>
       );
     }
     return null;
-  }, [
-    handleRefresh,
-    isBelowMinimum,
-    isExpired,
-    isQuoting,
-    isQuotable,
-    preview,
-    quoteError,
-  ]);
+  }, [isBelowMinimum, isExpired, isQuoting, isQuotable, preview, quoteError]);
+
+  const renderCta = () => {
+    if (phase === 'submitting') {
+      return (
+        <Box
+          twClassName="h-12 flex-row items-center justify-center gap-2"
+          testID={PredictOrderFlowTestIds.SUBMITTING}
+        >
+          <ActivityIndicator size="small" />
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('predict_next.order_preview.submitting')}
+          </Text>
+        </Box>
+      );
+    }
+    if (canRefresh) {
+      return (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleRefresh}
+          testID={PredictOrderFlowTestIds.REFRESH}
+        >
+          {strings('predict_next.order_preview.refresh')}
+        </Button>
+      );
+    }
+    return (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={handleApprove}
+        isDisabled={!canApprove}
+        testID={PredictOrderFlowTestIds.APPROVE}
+      >
+        {strings('predict_next.order_preview.confirm')}
+      </Button>
+    );
+  };
 
   return (
     <View pointerEvents="box-none" style={styles.modalHost}>
@@ -398,204 +359,149 @@ export const PredictOrderFlowSheet = ({
         onRequestClose={onClose}
       >
         <ModalSafeAreaProvider>
-          <GestureHandlerRootView style={styles.gestureRoot}>
-            <BottomSheet
-              ref={sheetRef}
-              onClose={onClose}
-              testID={PredictOrderFlowTestIds.SHEET}
-            >
-              {/* Custom header row: the design pins content to the 16pt
-                  margin, which the shared BottomSheetHeader's centered-title
-                  layout (and its accessory-width slot) does not honor. */}
-              <Box twClassName="flex-row items-center gap-3 px-4 pb-2 pt-3">
-                {intent.eventImageUrl ? (
-                  <Image
-                    source={{ uri: intent.eventImageUrl }}
-                    style={tw.style('h-12 w-12 rounded-lg')}
-                  />
-                ) : (
-                  <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
-                )}
-                <Box twClassName="min-w-0 flex-1">
+          <BottomSheet
+            ref={sheetRef}
+            onClose={onClose}
+            testID={PredictOrderFlowTestIds.SHEET}
+          >
+            <Box twClassName="flex-row items-center gap-3 px-4 pb-3 pt-1">
+              {intent.eventImageUrl ? (
+                <Image
+                  source={{ uri: intent.eventImageUrl }}
+                  style={tw.style('h-12 w-12 rounded-lg')}
+                />
+              ) : (
+                <Box twClassName="h-12 w-12 rounded-lg bg-muted" />
+              )}
+              <Box twClassName="min-w-0 flex-1">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {intent.eventTitle}
+                </Text>
+                <Box
+                  twClassName="min-w-0 flex-row items-center"
+                  testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+                >
                   <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
+                    variant={TextVariant.BodyLg}
+                    fontWeight={FontWeight.Bold}
+                    color={TextColor.TextDefault}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    {intent.eventTitle}
+                    {intent.outcomeLabel}
                   </Text>
-                  <Box
-                    twClassName="min-w-0 flex-row items-center"
-                    testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
-                  >
+                  {displayedPrice ? (
                     <Text
-                      variant={TextVariant.BodySm}
+                      variant={TextVariant.BodyLg}
                       fontWeight={FontWeight.Bold}
-                      color={
-                        intent.side === 'yes'
-                          ? TextColor.SuccessDefault
-                          : TextColor.ErrorDefault
-                      }
+                      color={TextColor.TextDefault}
                       numberOfLines={1}
-                      ellipsizeMode="tail"
                     >
-                      {intent.outcomeLabel}
+                      {` · ${formatCents(displayedPrice)}`}
                     </Text>
-                    {displayedPrice ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Bold}
-                        color={
-                          intent.side === 'yes'
-                            ? TextColor.SuccessDefault
-                            : TextColor.ErrorDefault
-                        }
-                        numberOfLines={1}
-                      >
-                        {` · ${formatCents(displayedPrice)}`}
-                      </Text>
-                    ) : null}
-                  </Box>
+                  ) : null}
                 </Box>
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  onPress={onClose}
-                  accessibilityLabel={strings(
-                    'predict_next.order_preview.close',
-                  )}
-                />
               </Box>
-              <ScrollView
-                contentContainerStyle={tw.style('gap-4 px-4 pb-6 pt-2')}
-              >
-                {phase === 'success' ? (
-                  <Box
-                    twClassName="items-center justify-center gap-3 py-8"
-                    testID={PredictOrderFlowTestIds.SUCCESS}
+              <ButtonIcon
+                iconName={IconName.Close}
+                onPress={onClose}
+                accessibilityLabel={strings('predict_next.order_preview.close')}
+              />
+            </Box>
+            <Box twClassName="px-4">
+              {phase === 'success' ? (
+                <Box
+                  twClassName="items-center justify-center gap-3 py-8"
+                  testID={PredictOrderFlowTestIds.SUCCESS}
+                >
+                  <Text variant={TextVariant.HeadingSm}>
+                    {strings('predict_next.order_preview.success_title')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={onClose}
+                    testID={PredictOrderFlowTestIds.DONE}
                   >
-                    <Text
-                      variant={TextVariant.HeadingSm}
-                      fontWeight={FontWeight.Bold}
-                    >
-                      {strings('predict_next.order_preview.success_title')}
-                    </Text>
-                    <Button
-                      variant={ButtonVariant.Primary}
-                      size={ButtonSize.Lg}
-                      onPress={onClose}
-                      testID={PredictOrderFlowTestIds.DONE}
-                    >
-                      <Text>{strings('predict_next.order_preview.done')}</Text>
-                    </Button>
-                  </Box>
-                ) : (
-                  <>
+                    {strings('predict_next.order_preview.done')}
+                  </Button>
+                </Box>
+              ) : (
+                <>
+                  <Box twClassName="items-center justify-center gap-2 py-6">
                     <OrderAmountInput
                       amount={amount}
-                      onAmountPress={() => setIsKeypadOpen(true)}
-                      onAmountChange={(next) => setAmount(sanitizeAmount(next))}
+                      isActive={isKeypadOpen}
+                      onAmountPress={handleKeypadOpen}
                     />
-                    <Box twClassName="items-center gap-2">
-                      {isQuoting ? (
-                        <Skeleton width={140} height={22} />
-                      ) : (
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Bold}
-                          color={TextColor.SuccessDefault}
-                          testID={PredictOrderFlowTestIds.TO_WIN}
-                        >
-                          {strings('predict_next.order_preview.to_win', {
-                            amount: toWinLabel,
-                          })}
-                        </Text>
-                      )}
-                    </Box>
-                    {isKeypadOpen ? (
-                      <>
-                        {/* Quote errors stay visible while typing. */}
-                        {statusContent}
-                        <OrderKeypad
-                          onKeyPress={handleKeypadPress}
-                          onDelete={handleKeypadDelete}
-                          onDone={handleKeypadDone}
-                        />
-                      </>
+                    {isQuoting ? (
+                      <Skeleton width={140} height={24} />
                     ) : (
-                      <>
-                        <OrderSummaryRows
-                          balance={balanceLabel}
-                          total={totalLabel}
-                          canShowBreakdown={preview !== null && !isQuoting}
-                          onBreakdownPress={handleBreakdownPress}
-                        />
-                        {statusContent}
-                        {phase === 'submitting' ? (
-                          <Box
-                            twClassName="items-center gap-2"
-                            testID={PredictOrderFlowTestIds.SUBMITTING}
-                          >
-                            <ActivityIndicator size="small" />
-                            <Text
-                              variant={TextVariant.BodySm}
-                              twClassName="text-alternative"
-                            >
-                              {strings('predict_next.order_preview.submitting')}
-                            </Text>
-                          </Box>
-                        ) : (
-                          /* The white pill CTA is locked to the light theme
-                           * so bg-default/text-default resolve to the
-                           * design's white-on-near-black pairing. */
-                          <ThemeProvider theme={Theme.Light}>
-                            <ButtonBase
-                              isFullWidth
-                              twClassName="h-12 bg-default"
-                              onPress={handleApprove}
-                              isDisabled={!canApprove}
-                              testID={PredictOrderFlowTestIds.APPROVE}
-                            >
-                              <Text
-                                variant={TextVariant.BodyMd}
-                                fontWeight={FontWeight.Medium}
-                                color={TextColor.TextDefault}
-                              >
-                                {strings('predict_next.order_preview.confirm')}
-                              </Text>
-                            </ButtonBase>
-                          </ThemeProvider>
-                        )}
-                        <Box twClassName="flex-row flex-wrap justify-center gap-1">
-                          <Text
-                            variant={TextVariant.BodyXs}
-                            twClassName="text-alternative"
-                          >
-                            {strings('predict_next.order_preview.terms')}
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodyXs}
-                            twClassName="text-info-default"
-                            onPress={handleTermsPress}
-                            suppressHighlighting
-                          >
-                            {strings('predict_next.order_preview.learn_more')}
-                          </Text>
-                        </Box>
-                      </>
+                      <Text
+                        variant={TextVariant.BodyLg}
+                        fontWeight={FontWeight.Medium}
+                        color={TextColor.SuccessDefault}
+                        testID={PredictOrderFlowTestIds.TO_WIN}
+                      >
+                        {strings('predict_next.order_preview.to_win', {
+                          amount: toWinLabel,
+                        })}
+                      </Text>
                     )}
-                  </>
-                )}
-              </ScrollView>
-            </BottomSheet>
-            {isBreakdownVisible && preview && (
-              <OrderBreakdownSheet
-                ref={breakdownSheetRef}
-                preview={preview}
-                onClose={handleBreakdownClose}
+                  </Box>
+                  <OrderQuickAmounts
+                    onAmountChange={(next) => setAmount(sanitizeAmount(next))}
+                  />
+                  <Box twClassName="py-3">
+                    <OrderSummaryRows
+                      balance={balanceLabel}
+                      total={totalLabel}
+                      canShowBreakdown={preview !== null && !isQuoting}
+                      onBreakdownPress={handleBreakdownPress}
+                    />
+                  </Box>
+                  <Box twClassName="gap-2">
+                    {statusMessage}
+                    {renderCta()}
+                    <Box twClassName="flex-row flex-wrap justify-center gap-1">
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings('predict_next.order_preview.terms')}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.InfoDefault}
+                        onPress={handleTermsPress}
+                        suppressHighlighting
+                      >
+                        {strings('predict_next.order_preview.learn_more')}
+                      </Text>
+                    </Box>
+                  </Box>
+                </>
+              )}
+            </Box>
+            {isKeypadOpen && phase === 'input' && (
+              <OrderKeypad
+                onKeyPress={handleKeyPress}
+                onDelete={handleDelete}
               />
             )}
-          </GestureHandlerRootView>
+          </BottomSheet>
+          {isBreakdownVisible && preview && (
+            <OrderBreakdownSheet
+              ref={breakdownSheetRef}
+              preview={preview}
+              onClose={handleBreakdownClose}
+            />
+          )}
         </ModalSafeAreaProvider>
       </Modal>
     </View>
