@@ -1,20 +1,20 @@
-import type { MetamaskPayIntent } from '@metamask/transaction-controller';
+import type { MetamaskPaySolanaExecution } from '@metamask/transaction-controller';
 import { strings } from '../../../../locales/i18n';
+import { getSolanaPayOutcome } from '../../../util/transactions/solana-pay';
 
 export function getSolanaPayStatusLabel(
-  intent: MetamaskPayIntent | undefined,
+  execution: MetamaskPaySolanaExecution | undefined,
 ): string | undefined {
-  if (!intent?.sourceChainId.startsWith('solana:')) {
+  if (!execution) {
     return undefined;
   }
 
-  if (intent.outcome?.type === 'unknown') {
+  const outcome = getSolanaPayOutcome(execution);
+  if (outcome === 'unknown') {
     return strings('confirm.solana_pay.status_unavailable');
   }
-
-  if (intent.outcome?.type === 'refunded') {
+  if (outcome === 'refunded') {
     return strings('confirm.solana_pay.refunded');
   }
-
   return undefined;
 }

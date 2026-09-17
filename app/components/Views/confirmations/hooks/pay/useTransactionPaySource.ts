@@ -1,13 +1,13 @@
-import type {
-  CaipAccountId,
-  CaipAssetType,
-  CaipChainId,
+import {
+  parseCaipAccountId,
+  type CaipAccountId,
+  type CaipAssetType,
 } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   PaymentOverride,
-  type TransactionPayIntent,
+  type TransactionPaySource,
 } from '@metamask/transaction-pay-controller';
 import {
   hasTransactionType,
@@ -22,9 +22,7 @@ import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
 import Logger from '../../../../../util/Logger';
 import { requestSolanaPayQuote } from '../../../../../core/Engine/controllers/transaction-pay-controller/request-solana-pay-quote';
-import type { RootState } from '../../../../../reducers';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import { selectTransactionPayIntentByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { AssetType } from '../../types/token';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -39,50 +37,54 @@ export function isSolanaPayAsset(token: { chainId?: string }): boolean {
   return token.chainId === SolScope.Mainnet;
 }
 
-function getSourceAmountRaw(token: AssetType): string {
+export function getSourceAmountRaw(token: AssetType): string {
   return new BigNumber(token.balance)
     .shiftedBy(token.decimals)
     .integerValue(BigNumber.ROUND_DOWN)
     .toString(10);
 }
 
-export function buildSolanaPayIntent(
+export function buildSolanaPaySource(
   token: AssetType,
   account: InternalAccount,
-): TransactionPayIntent {
-  const sourceChainId = token.chainId as CaipChainId;
+): TransactionPaySource {
+  const sourceChainId = token.chainId as typeof SolScope.Mainnet;
 
   return {
-    sourceAmountRaw: getSourceAmountRaw(token),
     sourceAccountId: `${sourceChainId}:${account.address}` as CaipAccountId,
     sourceAssetId: (token.assetId ?? token.address) as CaipAssetType,
-    sourceChainId,
-    sourceWalletAccountId: account.id,
-    version: 2,
   };
 }
 
 export function useTransactionPaySource() {
   const transaction = useTransactionMetadataRequest();
   const transactionId = transaction?.id ?? '';
-  const intent = useSelector((state: RootState) =>
-    selectTransactionPayIntentByTransactionId(state, transactionId),
-  );
+  const source = transaction?.metamaskPay?.source;
   const accounts = useSelector(selectInternalAccountsById);
   const assets = useAccountTokens({ includeNoBalance: true });
   const { payToken, setPayToken } = useTransactionPayToken();
-  const solanaIntent =
-    intent?.sourceChainId === SolScope.Mainnet ? intent : undefined;
+  const solanaSource = source?.sourceAccountId.startsWith(
+    `${SolScope.Mainnet}:`,
+  )
+    ? source
+    : undefined;
+  const solanaAccountAddress = solanaSource
+    ? parseCaipAccountId(solanaSource.sourceAccountId).address
+    : undefined;
   const solanaAsset = useMemo(
     () =>
-      solanaIntent
-        ? assets.find(
-            (asset) =>
-              asset.accountId === solanaIntent.sourceWalletAccountId &&
-              (asset.assetId ?? asset.address) === solanaIntent.sourceAssetId,
-          )
+      solanaSource
+        ? assets.find((asset) => {
+            const account = asset.accountId
+              ? accounts[asset.accountId]
+              : undefined;
+            return (
+              account?.address === solanaAccountAddress &&
+              (asset.assetId ?? asset.address) === solanaSource.sourceAssetId
+            );
+          })
         : undefined,
-    [assets, solanaIntent],
+    [accounts, assets, solanaAccountAddress, solanaSource],
   );
 
   const setPaySource = useCallback(
@@ -95,7 +97,7 @@ export function useTransactionPaySource() {
       const account = accountId ? accounts[accountId] : undefined;
 
       if (!isSolanaPayAsset(token)) {
-        if (solanaIntent) {
+        if (solanaSource) {
           Engine.context.TransactionPayController.setTransactionConfig(
             transactionId,
             (config) => {
@@ -107,19 +109,15 @@ export function useTransactionPaySource() {
         if (account) {
           const chainId = token.chainId as `0x${string}`;
           const sourceChainId = toEvmCaipChainId(chainId);
-          Engine.context.TransactionPayController.setPayIntent({
+          Engine.context.TransactionPayController.setPaySource({
             transactionId,
-            intent: {
+            source: {
               sourceAccountId:
                 `${sourceChainId}:${account.address}` as CaipAccountId,
               sourceAssetId: buildEvmCaip19AssetId(
                 token.address,
                 chainId,
               ) as CaipAssetType,
-              sourceAmountRaw: getSourceAmountRaw(token as AssetType),
-              sourceChainId,
-              sourceWalletAccountId: account.id,
-              version: 2,
             },
           });
         }
@@ -146,9 +144,10 @@ export function useTransactionPaySource() {
         );
       }
 
-      Engine.context.TransactionPayController.setPayIntent({
+      const solanaToken = token as AssetType;
+      Engine.context.TransactionPayController.setPaySource({
         transactionId,
-        intent: buildSolanaPayIntent(token as AssetType, account),
+        source: buildSolanaPaySource(solanaToken, account),
       });
       Engine.context.TransactionPayController.updateFiatPayment({
         transactionId,
@@ -162,21 +161,26 @@ export function useTransactionPaySource() {
           transactionId
         ]?.tokens[0]?.amountRaw;
       if (targetAmount && targetAmount !== '0') {
-        requestSolanaPayQuote(transactionId).catch((error) => {
+        requestSolanaPayQuote({
+          sourceAmountRaw: getSourceAmountRaw(solanaToken),
+          sourceWalletAccountId: account.id,
+          transactionId,
+        }).catch((error) => {
           Logger.error(error as Error, 'Failed to update Solana Pay quote');
         });
       }
 
       EngineService.flushState();
     },
-    [accounts, setPayToken, solanaIntent, transaction, transactionId],
+    [accounts, setPayToken, solanaSource, transaction, transactionId],
   );
 
   return {
-    isSolana: Boolean(solanaIntent),
+    isSolana: Boolean(solanaSource),
     paySource: solanaAsset ?? payToken,
     setPaySource,
     solanaAsset,
-    solanaIntent,
+    solanaExecution: transaction?.metamaskPay?.solanaExecution,
+    solanaSource,
   };
 }

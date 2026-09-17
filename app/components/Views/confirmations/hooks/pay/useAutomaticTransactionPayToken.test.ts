@@ -169,7 +169,8 @@ describe('useAutomaticTransactionPayToken', () => {
             chainId: token.chainId as Hex,
           }),
         solanaAsset: undefined,
-        solanaIntent: undefined,
+        solanaExecution: undefined,
+        solanaSource: undefined,
       };
     });
 

@@ -1,23 +1,32 @@
-import type { MetamaskPayIntent } from '@metamask/transaction-controller';
+import type { MetamaskPaySolanaExecution } from '@metamask/transaction-controller';
 import { strings } from '../../../../locales/i18n';
 import { getSolanaPayStatusLabel } from './solana-pay-status';
 
-function buildIntent(outcome: MetamaskPayIntent['outcome']): MetamaskPayIntent {
+function buildExecution(
+  overrides: Partial<MetamaskPaySolanaExecution>,
+): MetamaskPaySolanaExecution {
   return {
-    outcome,
-    sourceAccountId: 'solana:mainnet:account',
+    atomicProductActionIncluded: true,
+    atomicProductActionRequired: true,
+    followUpStatus: 'not-required',
+    notificationStatus: 'success',
+    phase: 'submitted',
+    relayStatus: 'pending',
+    requestId: 'relay-request-id',
+    requiresNonAtomicFollowUp: false,
     sourceAmountRaw: '1',
-    sourceAssetId: 'solana:mainnet/slip44:501',
     sourceChainId: 'solana:mainnet',
+    sourceStatus: 'pending',
+    sourceTransactionId: 'solana-signature',
     sourceWalletAccountId: 'wallet-account-id',
-    version: 2,
-  } as MetamaskPayIntent;
+    ...overrides,
+  } as MetamaskPaySolanaExecution;
 }
 
 describe('getSolanaPayStatusLabel', () => {
   it('labels ambiguous source observation as status unavailable', () => {
     const result = getSolanaPayStatusLabel(
-      buildIntent({ type: 'unknown', phase: 'source' }),
+      buildExecution({ phase: 'unknown', sourceStatus: 'unknown' }),
     );
 
     expect(result).toBe(strings('confirm.solana_pay.status_unavailable'));
@@ -25,14 +34,16 @@ describe('getSolanaPayStatusLabel', () => {
 
   it('labels a Relay refund distinctly from failure', () => {
     const result = getSolanaPayStatusLabel(
-      buildIntent({ type: 'refunded', reason: 'provider_refund' }),
+      buildExecution({ relayStatus: 'refund' }),
     );
 
     expect(result).toBe(strings('confirm.solana_pay.refunded'));
   });
 
   it('uses the parent lifecycle label for successful settlement', () => {
-    const result = getSolanaPayStatusLabel(buildIntent({ type: 'succeeded' }));
+    const result = getSolanaPayStatusLabel(
+      buildExecution({ relayStatus: 'success', sourceStatus: 'confirmed' }),
+    );
 
     expect(result).toBeUndefined();
   });

@@ -32,11 +32,17 @@ describe('requestSolanaPayQuote', () => {
     );
     getQuote.mockReturnValue(deferred.promise as never);
 
-    const first = requestSolanaPayQuote('transaction-id');
-    const second = requestSolanaPayQuote('transaction-id');
+    const quoteRequest = {
+      sourceAmountRaw: '1000000',
+      sourceWalletAccountId: 'solana-account-id',
+      transactionId: 'transaction-id',
+    };
+    const first = requestSolanaPayQuote(quoteRequest);
+    const second = requestSolanaPayQuote(quoteRequest);
     deferred.resolve({});
     await Promise.all([first, second]);
 
     expect(getQuote).toHaveBeenCalledTimes(1);
+    expect(getQuote).toHaveBeenCalledWith(quoteRequest);
   });
 });

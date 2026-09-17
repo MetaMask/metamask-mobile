@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
+import { selectTransactionMetadataById } from './transactionController';
 
 /**
  * Check whether a quote is a no-op quote. The controller stores one when a
@@ -148,11 +149,14 @@ export const selectTransactionPaymentTokenByTransactionId = createSelector(
   (transactionData) => transactionData?.paymentToken,
 );
 
-export const selectTransactionPayIntentByTransactionId = createSelector(
-  selectTransactionPayControllerState,
-  (_state: RootState, transactionId: string) => transactionId,
-  (transactionPayControllerState, transactionId) =>
-    transactionPayControllerState.payIntents?.[transactionId],
+export const selectTransactionPaySourceByTransactionId = createSelector(
+  selectTransactionMetadataById,
+  (transaction) => transaction?.metamaskPay?.source,
+);
+
+export const selectSolanaPayExecutionByTransactionId = createSelector(
+  selectTransactionMetadataById,
+  (transaction) => transaction?.metamaskPay?.solanaExecution,
 );
 
 export const selectSolanaPayQuoteByTransactionId = createSelector(
@@ -204,12 +208,13 @@ export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
 
 export const selectIsTransactionPaySubmitReadyByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  selectTransactionPayIntentByTransactionId,
-  (transactionData, intent) =>
-    intent?.sourceChainId.startsWith('solana:')
+  selectTransactionPaySourceByTransactionId,
+  selectSolanaPayExecutionByTransactionId,
+  (transactionData, source, execution) =>
+    source?.sourceAccountId.startsWith('solana:')
       ? transactionData?.solanaPayQuote?.preflight.affordability
           .isAffordable === true &&
-        (intent.atomicProductActionRequired !== true ||
+        (execution?.atomicProductActionRequired !== true ||
           transactionData.solanaPayQuote.route.atomicProductActionIncluded)
       : isPayTokenSubmitReady(transactionData),
 );

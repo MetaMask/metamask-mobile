@@ -46,8 +46,10 @@ describe('useSolanaPayPresentation', () => {
       paySource: usdcAsset,
       setPaySource: jest.fn(),
       solanaAsset: usdcAsset,
-      solanaIntent: {
-        sourceWalletAccountId: 'solana-account-id',
+      solanaExecution: undefined,
+      solanaSource: {
+        sourceAccountId: `${SolScope.Mainnet}:account`,
+        sourceAssetId: USDC_ASSET_ID,
       },
     } as never);
     jest.mocked(useSolanaPayQuote).mockReturnValue({

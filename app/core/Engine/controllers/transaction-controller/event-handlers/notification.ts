@@ -6,11 +6,13 @@ import {
 import NotificationManager from '../../../../NotificationManager';
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../../components/Views/confirmations/constants/confirmations';
 import { strings } from '../../../../../../locales/i18n';
+import { getSolanaPayOutcome } from '../../../../../util/transactions/solana-pay';
 
 export function handleShowSolanaPayStatusNotification(
   transactionMeta: TransactionMeta,
 ) {
-  if (transactionMeta.metamaskPay?.intent?.outcome?.type !== 'unknown') {
+  const execution = transactionMeta.metamaskPay?.solanaExecution;
+  if (!execution || getSolanaPayOutcome(execution) !== 'unknown') {
     return;
   }
 

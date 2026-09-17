@@ -98,7 +98,8 @@ describe('useTransactionPayBalance', () => {
       paySource: undefined,
       setPaySource: jest.fn(),
       solanaAsset: undefined,
-      solanaIntent: undefined,
+      solanaExecution: undefined,
+      solanaSource: undefined,
     });
   });
 
@@ -121,7 +122,8 @@ describe('useTransactionPayBalance', () => {
         decimals: 6,
         fiat: { balance: 12.5 },
       },
-      solanaIntent: undefined,
+      solanaExecution: undefined,
+      solanaSource: undefined,
     } as never);
 
     const { result } = runHook();

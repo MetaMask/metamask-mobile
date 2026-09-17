@@ -23,6 +23,7 @@ import {
   type ActivityAdapterEnvironment,
 } from './environment';
 import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
+import { getSolanaPayOutcome } from '../../transactions/solana-pay';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -665,8 +666,9 @@ function enrichPayOutcome(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
 ): ActivityListItem {
-  const payOutcome =
-    transactionGroup.initialTransaction.metamaskPay?.intent?.outcome?.type;
+  const execution =
+    transactionGroup.initialTransaction.metamaskPay?.solanaExecution;
+  const payOutcome = execution ? getSolanaPayOutcome(execution) : undefined;
 
   return payOutcome ? { ...activity, payOutcome } : activity;
 }

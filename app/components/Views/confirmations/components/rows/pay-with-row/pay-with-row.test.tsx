@@ -151,7 +151,8 @@ describe('PayWithRow', () => {
       paySource: jest.mocked(useTransactionPayToken)().payToken,
       setPaySource: jest.fn(),
       solanaAsset: undefined,
-      solanaIntent: undefined,
+      solanaExecution: undefined,
+      solanaSource: undefined,
     }));
     jest.mocked(useSolanaPayPresentation).mockReturnValue(undefined);
 
