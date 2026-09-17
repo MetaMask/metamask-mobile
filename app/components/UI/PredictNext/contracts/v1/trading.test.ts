@@ -11,8 +11,8 @@ const validPreview = {
   averagePrice: '0.4000',
   fee: '0.20',
   feeBreakdown: [
-    { label: 'Kalshi fee', amount: '0.10' },
-    { label: 'MetaMask fee', amount: '0.10' },
+    { source: 'venue', amount: '0.10' },
+    { source: 'metamask', amount: '0.10' },
   ],
   totalDebit: '4.20',
   potentialPayout: '10.00',

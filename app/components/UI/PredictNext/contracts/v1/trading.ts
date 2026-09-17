@@ -27,12 +27,12 @@ const positiveInteger = refine(
   (value) => Number.isInteger(value) && value > 0,
 );
 
+const feeSource = enums(['venue', 'metamask'] as const);
+
 const feeComponentSchema = object({
-  label: refine(
-    string(),
-    'PredictFeeComponentLabel',
-    (value) => value.length > 0,
-  ),
+  // Structured source, never a display label: the client keys the source
+  // into its own localized fee names.
+  source: feeSource,
   amount,
 });
 

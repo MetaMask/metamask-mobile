@@ -12,7 +12,7 @@ export const PredictOrderFlowTestIds = {
   POTENTIAL_PAYOUT: 'predict-order-flow-potential-payout',
   POTENTIAL_PROFIT: 'predict-order-flow-potential-profit',
   FEE: 'predict-order-flow-fee',
-  FEE_COMPONENT: (label: string) => `predict-order-flow-fee-${label}`,
+  FEE_COMPONENT: (source: string) => `predict-order-flow-fee-${source}`,
   TOTAL_DEBIT: 'predict-order-flow-total-debit',
   PAY_WITH: 'predict-order-flow-pay-with',
   TOTAL: 'predict-order-flow-total',

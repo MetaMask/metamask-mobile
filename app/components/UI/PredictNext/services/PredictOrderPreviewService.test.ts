@@ -22,8 +22,8 @@ const preview: PredictOrderPreview = {
   averagePrice: '0.4000' as PredictDecimal,
   fee: '0.20' as PredictAmount,
   feeBreakdown: [
-    { label: 'Kalshi fee', amount: '0.10' as PredictAmount },
-    { label: 'MetaMask fee', amount: '0.10' as PredictAmount },
+    { source: 'venue', amount: '0.10' as PredictAmount },
+    { source: 'metamask', amount: '0.10' as PredictAmount },
   ],
   totalDebit: '4.20' as PredictAmount,
   potentialPayout: '10.00' as PredictAmount,

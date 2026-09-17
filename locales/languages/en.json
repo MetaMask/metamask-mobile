@@ -3163,6 +3163,8 @@
       "potential_payout": "Potential payout",
       "potential_profit": "Potential profit",
       "fee": "Fee",
+      "exchange_fee": "Exchange fee",
+      "metamask_fee": "MetaMask fee",
       "total_debit": "Total debit",
       "to_win": "To win {{amount}}",
       "pay_with": "Pay with",

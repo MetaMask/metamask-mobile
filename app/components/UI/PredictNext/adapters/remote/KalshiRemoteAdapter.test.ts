@@ -526,8 +526,8 @@ describe('KalshiRemoteAdapter', () => {
       averagePrice: '0.4651',
       fee: '0.86',
       feeBreakdown: [
-        { label: 'Kalshi fee', amount: '0.43' },
-        { label: 'MetaMask fee', amount: '0.43' },
+        { source: 'venue', amount: '0.43' },
+        { source: 'metamask', amount: '0.43' },
       ],
       totalDebit: '20.86',
       potentialPayout: '43.00',

@@ -205,8 +205,12 @@ export interface FetchOrderPreviewParams {
   amount: string;
 }
 
+/** Structured fee component source, keyed by the client into localized
+ * labels; the server never sends display strings. */
+export type PredictOrderPreviewFeeSource = 'venue' | 'metamask';
+
 export interface PredictOrderPreviewFeeComponent {
-  label: string;
+  source: PredictOrderPreviewFeeSource;
   amount: PredictAmount;
 }
 

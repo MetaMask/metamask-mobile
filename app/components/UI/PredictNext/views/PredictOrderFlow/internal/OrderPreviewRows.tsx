@@ -8,10 +8,20 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import type { PredictOrderPreview } from '../../../types';
+import type {
+  PredictOrderPreview,
+  PredictOrderPreviewFeeSource,
+} from '../../../types';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
+
+/** Localized fee name per server-quoted fee source. Exhaustive over the
+ * source union: a new backend source must be mapped here to render. */
+const FEE_SOURCE_LABELS: Record<PredictOrderPreviewFeeSource, string> = {
+  venue: 'exchange_fee',
+  metamask: 'metamask_fee',
+};
 
 const QuoteRow = ({
   label,
@@ -85,10 +95,12 @@ export const OrderPreviewRows = ({
         />
         {preview.feeBreakdown.map((component) => (
           <QuoteRow
-            key={component.label}
-            label={component.label}
+            key={component.source}
+            label={strings(
+              `predict_next.order_preview.${FEE_SOURCE_LABELS[component.source]}`,
+            )}
             value={formatUsd(component.amount)}
-            testID={PredictOrderFlowTestIds.FEE_COMPONENT(component.label)}
+            testID={PredictOrderFlowTestIds.FEE_COMPONENT(component.source)}
           />
         ))}
       </Box>

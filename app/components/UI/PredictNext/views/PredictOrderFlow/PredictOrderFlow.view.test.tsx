@@ -137,8 +137,8 @@ const makePreview = (overrides: Record<string, unknown> = {}) => ({
   averagePrice: '0.4651',
   fee: '0.86',
   feeBreakdown: [
-    { label: 'Kalshi fee', amount: '0.43' },
-    { label: 'MetaMask fee', amount: '0.43' },
+    { source: 'venue', amount: '0.43' },
+    { source: 'metamask', amount: '0.43' },
   ],
   totalDebit: '20.86',
   potentialPayout: '43.00',
@@ -247,6 +247,14 @@ describe('PredictOrderFlow', () => {
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
       '$20.86',
     );
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Price details')).toBeOnTheScreen();
+    expect(screen.getByText('Exchange fee')).toBeOnTheScreen();
+    expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
   });
 
   it('sends the exact intent with the authenticated request', async () => {
