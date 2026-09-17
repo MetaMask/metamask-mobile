@@ -261,7 +261,8 @@ export function aggregateOrderBookLevels(
 
 /**
  * Apply price grouping to an order book, returning trimmed bid/ask ladders and
- * a recomputed `maxTotal` used to scale the depth bars.
+ * the two denominators used to scale the depth bars: `maxTotal` for the
+ * cumulative ladder and `maxSize` for the per-level one.
  *
  * When `grouping` is null (e.g. the stream is already server-aggregated), levels
  * are only trimmed — no client-side re-bucketing.
@@ -270,7 +271,12 @@ export function groupOrderBook(
   orderBook: OrderBookData,
   grouping: number | null,
   maxLevels: number = ORDER_BOOK_AGGREGATED_LEVELS,
-): { bids: OrderBookLevel[]; asks: OrderBookLevel[]; maxTotal: number } {
+): {
+  bids: OrderBookLevel[];
+  asks: OrderBookLevel[];
+  maxTotal: number;
+  maxSize: number;
+} {
   const bids = grouping
     ? aggregateOrderBookLevels(orderBook.bids, grouping, 'bid')
     : orderBook.bids;
@@ -281,26 +287,43 @@ export function groupOrderBook(
   const trimmedBids = bids.slice(0, maxLevels);
   const trimmedAsks = asks.slice(0, maxLevels);
 
-  const maxTotal = [...trimmedBids, ...trimmedAsks].reduce((max, level) => {
+  const trimmed = [...trimmedBids, ...trimmedAsks];
+
+  const maxTotal = trimmed.reduce((max, level) => {
     const total = Number.parseFloat(level.total);
     return Number.isFinite(total) && total > max ? total : max;
   }, 0);
 
-  return { bids: trimmedBids, asks: trimmedAsks, maxTotal };
+  const maxSize = trimmed.reduce((max, level) => {
+    const size = Number.parseFloat(level.size);
+    return Number.isFinite(size) && size > max ? size : max;
+  }, 0);
+
+  return { bids: trimmedBids, asks: trimmedAsks, maxTotal, maxSize };
 }
 
 /**
- * Depth-bar width (0-100) for a level relative to the deepest level.
+ * Depth-bar width (0-100) for a level, scaled against whichever quantity the
+ * ladder is listing by.
+ *
+ * `total` measures the level against the deepest cumulative total, so the bars
+ * climb toward the edge of the book. `size` measures each level against the
+ * largest single level, so a bar reads as that tick's own share of the ladder
+ * rather than everything resting in front of it (TAT-3966).
  */
-export function getDepthWidth(level: OrderBookLevel, maxTotal: number): number {
-  if (!Number.isFinite(maxTotal) || maxTotal <= 0) {
+export function getDepthWidth(
+  level: OrderBookLevel,
+  max: number,
+  metric: OrderBookListMetric,
+): number {
+  if (!Number.isFinite(max) || max <= 0) {
     return 0;
   }
-  const total = Number.parseFloat(level.total);
-  if (!Number.isFinite(total)) {
+  const value = Number.parseFloat(metric === 'size' ? level.size : level.total);
+  if (!Number.isFinite(value)) {
     return 0;
   }
-  return Math.min((total / maxTotal) * 100, 100);
+  return Math.min((value / max) * 100, 100);
 }
 
 function formatUsd(value: number): string {

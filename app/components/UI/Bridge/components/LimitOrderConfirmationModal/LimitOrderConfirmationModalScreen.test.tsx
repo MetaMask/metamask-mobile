@@ -96,37 +96,36 @@ describe('LimitOrderConfirmationModalScreen', () => {
     mockUseParams.mockReturnValue(mockParams);
   });
 
-  it('displays the slippage from bridge state', () => {
+  it('displays the cost tolerance from bridge state', () => {
     const { getByText } = renderScreen(
-      createBridgeTestState({ bridgeReducerOverrides: { slippage: '0.5' } }),
+      createBridgeTestState({
+        bridgeReducerOverrides: { limitOrderCostTolerance: '0.5' },
+      }),
     );
 
     expect(getByText('0.5%')).toBeOnTheScreen();
   });
 
-  it('displays the default slippage when none is set in bridge state', () => {
+  it('displays the default cost tolerance when none is set in bridge state', () => {
     const { getByText } = renderScreen(
       createBridgeTestState({
-        bridgeReducerOverrides: { slippage: undefined },
+        bridgeReducerOverrides: { limitOrderCostTolerance: undefined },
       }),
     );
 
     expect(getByText('2%')).toBeOnTheScreen();
   });
 
-  it('navigates to the swap default slippage modal when edit is pressed', () => {
+  it('navigates to the limit order default cost tolerance modal when edit is pressed', () => {
     const { getByTestId } = renderScreen(createBridgeTestState({}));
 
     fireEvent.press(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.SLIPPAGE_EDIT),
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_EDIT),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: mockSourceToken.chainId,
-        destChainId: mockDestToken.chainId,
-      },
+      screen:
+        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
     });
   });
 });

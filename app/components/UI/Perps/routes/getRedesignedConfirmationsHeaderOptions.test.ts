@@ -1,4 +1,7 @@
-import { getRedesignedConfirmationsHeaderOptions } from './index';
+import {
+  getRedesignedConfirmationsHeaderOptions,
+  shouldRenderPerpsConfirmationLoader,
+} from './index';
 
 describe('getRedesignedConfirmationsHeaderOptions', () => {
   it('returns push-style options without modal presentation when showPerpsHeader is false', () => {
@@ -42,5 +45,19 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
     const options = getRedesignedConfirmationsHeaderOptions();
 
     expect(options.headerShown).toBe(true);
+  });
+});
+
+describe('shouldRenderPerpsConfirmationLoader', () => {
+  it('renders the existing confirmation loader while a sheet approval is pending', () => {
+    expect(shouldRenderPerpsConfirmationLoader(true, undefined)).toBe(true);
+  });
+
+  it('does not render the loader after the sheet approval attaches', () => {
+    expect(shouldRenderPerpsConfirmationLoader(true, {})).toBe(false);
+  });
+
+  it('does not change the control confirmation path', () => {
+    expect(shouldRenderPerpsConfirmationLoader(false, undefined)).toBe(false);
   });
 });

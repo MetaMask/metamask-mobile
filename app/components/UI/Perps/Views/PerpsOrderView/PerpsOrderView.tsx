@@ -60,7 +60,8 @@ import {
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { usePayTokenAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance';
+import { usePayTokenOrMoneyAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenOrMoneyAccountBalance';
+import { useMoneyAccountDepositAndOrder } from '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
@@ -305,7 +306,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
-  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
@@ -1787,10 +1788,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
 
-  const handlePayWithPress = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [navigation]);
-
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
       setMaxSlippage(valueBps);
@@ -1809,6 +1806,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   useInitPerpsPaymentToken(orderForm.asset ?? '');
+
+  // Money Account is not reachable through this view's own pay-token
+  // defaulting, so opt this flow into the shared money-account selection.
+  useMoneyAccountDepositAndOrder();
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
@@ -1924,15 +1925,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
-    const payWithName = isPayTokenPerpsBalance
-      ? strings('perps.adjust_margin.perps_balance')
-      : (payToken?.symbol ?? '');
-    const payWithBalance = formatPerpsFiat(
-      isPayTokenPerpsBalance
-        ? (account?.totalBalance ?? '0')
-        : payTokenBalanceUsd,
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    );
     const submitDisabled =
       !orderValidation.isValid ||
       isPlacingOrder ||
@@ -2051,8 +2043,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : undefined
               }
               liquidationPercentage={liquidationPercentage}
-              payWithName={payWithName}
-              payWithBalance={payWithBalance}
               feePercentage={feePercentage}
               isSubmitting={isPlacingOrder}
               isSubmitDisabled={submitDisabled}
@@ -2067,7 +2057,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPercentagePress={handlePercentagePress}
               onMaxPress={handleMaxPress}
               onDonePress={handleDonePress}
-              onPayWithPress={handlePayWithPress}
               onSubmit={() => handlePlaceOrder()}
             />
           ),
@@ -2731,7 +2720,7 @@ PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const { payToken } = useTransactionPayToken();
-  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
 
   // Get navigation params to pass to context provider
@@ -2751,8 +2740,9 @@ const PerpsOrderView: React.FC = () => {
   // token is selected, so it reads 0 until the next quote refresh whenever the
   // token's balance was not yet tracked. Because 0 is treated as a real cap
   // (not "unknown"), that snapshot would zero out the sizing slider. Read the
-  // live wallet balance instead, matching the pay-with row and the blocking
-  // insufficient-balance alert.
+  // resolved pay balance instead, matching the pay-with row and the blocking
+  // insufficient-balance alert. It also resolves the Money Account redeemable
+  // balance, which the wallet token balance does not cover.
   const effectiveAvailableBalance = useMemo(() => {
     if (!hasCustomTokenSelected || !payToken) return undefined;
     const amount = Number(payTokenBalanceUsd);

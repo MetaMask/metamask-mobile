@@ -8,9 +8,9 @@ import {
   mockOpenPerpsFeedItem,
 } from '../mocks/socialV1Feed.mock';
 import {
-  getSocialFeedPositionCardChartTestId,
   getSocialFeedPositionCardCommentTestId,
   getSocialFeedPositionCardCopyTradeTestId,
+  getSocialFeedPositionCardSectionDividerTestId,
   getSocialFeedPositionCardStatTestId,
   getSocialFeedPositionCardTestId,
 } from './SocialFeedPositionCard.testIds';
@@ -20,20 +20,12 @@ jest.mock('../../../components/PositionTokenAvatar', () => ({
   default: () => null,
 }));
 
-jest.mock(
-  '../../../../Homepage/Sections/Perpetuals/components/SparklineChart',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
-
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
 describe('SocialFeedPositionCard', () => {
-  it('renders open perps comment, stats, chart, and copy trade', () => {
+  it('renders open perps comment, stats, and copy trade', () => {
     const item = mockOpenPerpsFeedItem();
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
@@ -45,10 +37,12 @@ describe('SocialFeedPositionCard', () => {
       screen.getByTestId(getSocialFeedPositionCardCommentTestId(item.id)),
     ).toHaveTextContent('Leverage is a lifestyle.');
     expect(
-      screen.getByTestId(getSocialFeedPositionCardChartTestId(item.id)),
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      screen.getByTestId(
+        getSocialFeedPositionCardSectionDividerTestId(item.id),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
@@ -92,32 +86,6 @@ describe('SocialFeedPositionCard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('omits the chart when showChart is false', () => {
-    const item = mockOpenPerpsFeedItem({
-      showChart: false,
-      chartSeries: [1, 2, 3],
-    });
-
-    renderWithProvider(<SocialFeedPositionCard item={item} />);
-
-    expect(
-      screen.queryByTestId(getSocialFeedPositionCardChartTestId(item.id)),
-    ).toBeNull();
-  });
-
-  it('omits the chart when the series is too short', () => {
-    const item = mockOpenPerpsFeedItem({
-      showChart: true,
-      chartSeries: [104213],
-    });
-
-    renderWithProvider(<SocialFeedPositionCard item={item} />);
-
-    expect(
-      screen.queryByTestId(getSocialFeedPositionCardChartTestId(item.id)),
-    ).toBeNull();
-  });
-
   it('renders closed perps fields without copy trade', () => {
     const item = mockClosedPerpsFeedItem();
 
@@ -130,8 +98,10 @@ describe('SocialFeedPositionCard', () => {
       screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
     ).toBeNull();
     expect(
-      screen.queryByTestId(getSocialFeedPositionCardChartTestId(item.id)),
-    ).toBeNull();
+      screen.getByTestId(
+        getSocialFeedPositionCardSectionDividerTestId(item.id),
+      ),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(getSocialFeedPositionCardStatTestId(item.id, 'exit')),
     ).toBeOnTheScreen();

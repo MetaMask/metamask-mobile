@@ -92,6 +92,16 @@ export const PerpsPositionCardSelectorsIDs = {
   FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
+export const getPerpsCrossMarginTagSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `cross-margin-tag-${mode}-${symbol}`;
+
+export const getPerpsCrossLiquidationInfoSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `cross-liquidation-info-${mode}-${symbol}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -371,6 +381,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
   TAKE_PROFIT_ERROR: 'perps-tpsl-tp-error',
   STOP_LOSS_ERROR: 'perps-tpsl-sl-error',
+  TAKE_PROFIT_ROE_SIGN_BADGE: 'perps-tpsl-tp-roe-sign-badge',
+  STOP_LOSS_ROE_SIGN_BADGE: 'perps-tpsl-sl-roe-sign-badge',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -1008,7 +1020,6 @@ export const PerpsTradeSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-trade-sheet-close-button',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
-  PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
   LIQUIDATION_ROW: 'perps-trade-sheet-liquidation-row',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
@@ -1343,3 +1354,17 @@ export const PerpsTooltipViewSelectorsIDs = {
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
+
+// ========================================
+// PERPS TRADE ACTIVITY LIST SELECTORS
+// ========================================
+
+export const PerpsMarketTradesListSelectorsIDs = {
+  LIST: 'perps-market-trades-list',
+  ROW: (index: number) => `perps-market-trades-row-${index}`,
+} as const;
+
+export const PerpsRecentActivityListSelectorsIDs = {
+  LIST: 'perps-recent-activity-list',
+  ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;
