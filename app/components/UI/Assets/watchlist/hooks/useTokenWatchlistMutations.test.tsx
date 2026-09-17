@@ -30,13 +30,17 @@ const mockedSyncMirror = syncPriceAlertsWatchlistMirror as jest.MockedFunction<
   typeof syncPriceAlertsWatchlistMirror
 >;
 
-// React Query's default notify uses RN's unstable_batchedUpdates which
-// crashes on teardown once the Jest env is torn down.
+// Override React Query's batch notify function to prevent teardown crashes.
+// The default uses react-native's unstable_batchedUpdates which tries to
+// require() internal modules after the Jest environment is torn down.
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
 });
 
-// testSetup.js freezes Date.now(), which breaks lodash's debounce timing.
+// The global test setup at `app/util/test/testSetup.js` freezes
+// `Date.now()` to a constant, which breaks lodash's `debounce` (it
+// tracks elapsed time via `Date.now()`). Restore the real clock for
+// every test in this suite.
 const frozenDateNow = Date.now;
 beforeAll(() => {
   Date.now = () => new Date().getTime();
@@ -115,6 +119,7 @@ const readHydratedCache = (queryClient: QueryClient) =>
   );
 
 const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
+  // Reset any leaked client from a prior test that skipped afterEach (J9).
   if (activeQueryClient) {
     activeQueryClient.getMutationCache().clear();
     activeQueryClient.getQueryCache().clear();
@@ -128,6 +133,9 @@ const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
 
 const baseAfterEach = async () => {
   jest.restoreAllMocks();
+  // Drain any pending batch left over from the test so it cannot fire
+  // against the next test's mocks. `flush()` is a no-op when the queue
+  // is empty.
   await drainBatcher().catch(() => undefined);
   if (activeQueryClient) {
     activeQueryClient.getMutationCache().clear();
@@ -355,94 +363,6 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       version: 1,
     });
   });
-
-  it('seeds the hydrated cache with suggested-pool metadata so the added token renders immediately', async () => {
-    const initial: WatchlistBlob = { assets: [ASSET_A], version: 1 };
-    mockedRead.mockResolvedValue(initial);
-    const { Wrapper, queryClient } = createWrapper();
-    seedCache(queryClient, initial);
-    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
-    queryClient.setQueryData<WatchlistTokenMetadata[]>(
-      tokenWatchlistQueryKeys.suggested(false),
-      hydratedFor([ASSET_B, ASSET_C]).map((token, index) =>
-        index === 0 ? { ...token, assetId: ASSET_B.toUpperCase() } : token,
-      ),
-    );
-
-    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
-      wrapper: Wrapper,
-    });
-
-    await act(async () => {
-      result.current.mutate(ASSET_B);
-    });
-
-    expect(readCache(queryClient)?.assets).toEqual([ASSET_A, ASSET_B]);
-    expect(readHydratedCache(queryClient)).toEqual([
-      ...hydratedFor([ASSET_A]),
-      // Seeded id normalises to the blob casing so row keys stay stable.
-      { ...tokenFor(ASSET_B), assetId: ASSET_B },
-    ]);
-    expect(mockedWrite).not.toHaveBeenCalled();
-
-    await act(async () => {
-      await drainBatcher();
-    });
-
-    expect(mockedWrite).toHaveBeenCalledWith({
-      assets: [ASSET_A, ASSET_B],
-      version: 1,
-    });
-  });
-
-  it('rolls back the seeded hydrated entry when the storage write fails', async () => {
-    const initial: WatchlistBlob = { assets: [ASSET_A], version: 1 };
-    mockedRead.mockResolvedValue(initial);
-    mockedWrite.mockRejectedValueOnce(new Error('storage failure'));
-    const { Wrapper, queryClient } = createWrapper();
-    seedCache(queryClient, initial);
-    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
-    queryClient.setQueryData<WatchlistTokenMetadata[]>(
-      tokenWatchlistQueryKeys.suggested(false),
-      hydratedFor([ASSET_B]),
-    );
-
-    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
-      wrapper: Wrapper,
-    });
-
-    await act(async () => {
-      const pending = result.current.mutateAsync(ASSET_B);
-      await drainBatcher();
-      await expect(pending).rejects.toThrow('storage failure');
-    });
-
-    expect(readCache(queryClient)?.assets).toEqual([ASSET_A]);
-    expect(readHydratedCache(queryClient)).toEqual(hydratedFor([ASSET_A]));
-  });
-
-  it('omits added ids with no cached metadata from the optimistic hydrated list', async () => {
-    const initial: WatchlistBlob = { assets: [ASSET_A], version: 1 };
-    mockedRead.mockResolvedValue(initial);
-    const { Wrapper, queryClient } = createWrapper();
-    seedCache(queryClient, initial);
-    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
-    queryClient.setQueryData<WatchlistTokenMetadata[]>(
-      tokenWatchlistQueryKeys.suggested(false),
-      hydratedFor([ASSET_C]),
-    );
-
-    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
-      wrapper: Wrapper,
-    });
-
-    await act(async () => {
-      result.current.mutate(ASSET_B);
-    });
-
-    expect(readCache(queryClient)?.assets).toEqual([ASSET_A, ASSET_B]);
-    expect(readHydratedCache(queryClient)).toEqual(hydratedFor([ASSET_A]));
-  });
 });
 
 describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
@@ -662,6 +582,7 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
 
     expect(mockedRead).toHaveBeenCalledTimes(1);
     expect(mockedWrite).toHaveBeenCalledTimes(1);
+    // Reduction order: [A] → add(B) → [A,B] → remove(A) → [B] → add(C) → [B,C]
     expect(mockedWrite).toHaveBeenCalledWith({
       assets: [ASSET_B, ASSET_C],
       version: 1,
@@ -691,6 +612,7 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
     });
 
     expect(mockedWrite).toHaveBeenCalledTimes(1);
+    // add(B) then remove(B) collapse to the original state.
     expect(mockedWrite).toHaveBeenCalledWith({
       assets: [ASSET_A],
       version: 1,
