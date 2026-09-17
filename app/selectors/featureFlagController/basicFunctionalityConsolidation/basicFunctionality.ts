@@ -10,7 +10,7 @@ import {
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 import { selectOnboardingAccountType } from '../../onboarding';
-import { AccountType } from '../../../constants/onboarding';
+import { isImportedSocialAccountType } from '../../../constants/onboarding';
 import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
 import {
   BFT_CHILD_PREFERENCES,
@@ -72,27 +72,13 @@ export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
 );
 
 /**
- * Account types the OAuth result assigns when a social login matched an
- * account that already had a wallet.
- */
-const EXISTING_SOCIAL_ACCOUNT_TYPES: string[] = [
-  AccountType.ImportedGoogle,
-  AccountType.ImportedApple,
-  AccountType.ImportedTelegram,
-];
-
-/**
- * True when this wallet arrived through social rehydration, which restores a
- * wallet that already exists. Such a wallet runs onboarding but is never
- * enrolled by it, so consolidation migrates it as an existing wallet instead
- * of waiting for the next launch. SRP import is excluded: it reports an
- * imported account type too, but onboarding does enrol it.
+ * True when this wallet arrived through social rehydration. That restore runs
+ * inside onboarding but is never enrolled by it, so consolidation migrates it
+ * as an existing wallet in the same session.
  */
 export const selectIsExistingSocialWalletRestore = createSelector(
   selectOnboardingAccountType,
-  (accountType) =>
-    accountType !== undefined &&
-    EXISTING_SOCIAL_ACCOUNT_TYPES.includes(accountType),
+  isImportedSocialAccountType,
 );
 
 const selectPreferencesControllerState = (state: RootState) =>

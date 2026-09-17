@@ -7,7 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { isMainNet } from '../../../util/networks';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 // Mock the necessary modules
 jest.mock('react-redux', () => ({
@@ -34,7 +34,7 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock(
   '../../../selectors/featureFlagController/basicFunctionalityConsolidation',
   () => ({
-    selectIsBasicFunctionalityConsolidationEnabled: jest.fn(),
+    selectMobileUxBftcConsolidationFlagEnabled: jest.fn(),
   }),
 );
 
@@ -43,16 +43,16 @@ describe('useCheckNftAutoDetectionModal', () => {
   const navigateMock = jest.fn();
 
   const mockSelectors = ({
-    isConsolidationEnabled = false,
-  }: { isConsolidationEnabled?: boolean } = {}) => {
+    isConsolidationRolloutEnabled = false,
+  }: { isConsolidationRolloutEnabled?: boolean } = {}) => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
         case selectUseNftDetection:
           return false;
         case selectProviderConfig:
           return { chainId: '1' };
-        case selectIsBasicFunctionalityConsolidationEnabled:
-          return isConsolidationEnabled;
+        case selectMobileUxBftcConsolidationFlagEnabled:
+          return isConsolidationRolloutEnabled;
         default:
           return false;
       }
@@ -90,8 +90,8 @@ describe('useCheckNftAutoDetectionModal', () => {
     expect(dispatchMock).not.toHaveBeenCalled();
   });
 
-  it('does not show the modal when Basic Functionality consolidation is enabled', () => {
-    mockSelectors({ isConsolidationEnabled: true });
+  it('does not show the modal while the Basic Functionality consolidation rollout is on', () => {
+    mockSelectors({ isConsolidationRolloutEnabled: true });
 
     renderHook(() => useCheckNftAutoDetectionModal());
 
