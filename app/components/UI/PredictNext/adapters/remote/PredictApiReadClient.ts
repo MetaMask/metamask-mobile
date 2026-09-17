@@ -1,6 +1,9 @@
 import type {
-  FetchEventsParams,
+  FetchFeedParams,
+  FetchPortfolioPageParams,
   PredictEntityId,
+  PredictFeedId,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -10,9 +13,24 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
-  fetchEvents(
+  fetchBalance(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchFeed(
+    venueId: PredictVenueId,
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchEvent(
@@ -20,13 +38,35 @@ export interface PredictApiReadTransport {
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
+type PredictApiReadQueryParams = FetchFeedParams & {
+  range?: PredictMarketHistoryRange;
+};
+
 export interface PredictApiReadClientOptions {
-  baseUrl: string;
+  baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
+  getBearerToken: () => Promise<string | undefined>;
 }
+
+const parseBaseUrl = (baseUrl?: string): URL | undefined => {
+  if (!baseUrl) {
+    return undefined;
+  }
+  try {
+    return new URL(baseUrl);
+  } catch {
+    return undefined;
+  }
+};
 
 export class PredictHttpError extends Error {
   readonly status: number;
@@ -39,18 +79,21 @@ export class PredictHttpError extends Error {
 }
 
 export class PredictApiReadClient implements PredictApiReadTransport {
-  readonly #baseUrl: URL;
+  readonly #baseUrl?: URL;
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
+  readonly #getBearerToken: () => Promise<string | undefined>;
 
   constructor({
     baseUrl,
     clientVersion,
     fetch: fetchFn = global.fetch,
+    getBearerToken,
   }: PredictApiReadClientOptions) {
-    this.#baseUrl = new URL(baseUrl);
+    this.#baseUrl = parseBaseUrl(baseUrl);
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
+    this.#getBearerToken = getBearerToken;
   }
 
   fetchVenueStatus(
@@ -60,12 +103,40 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
   }
 
-  fetchEvents(
+  fetchBalance(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'events'], params, options);
+    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options);
+  }
+
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'positions'], params, options);
+  }
+
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
+  }
+
+  fetchFeed(
+    venueId: PredictVenueId,
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'feeds', feedId],
+      params,
+      options,
+    );
   }
 
   fetchEvent(
@@ -80,21 +151,49 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
-  async #get(
-    segments: readonly string[],
-    params?: FetchEventsParams,
+  fetchMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'markets', marketId, 'history'],
+      { range },
+      options,
+    );
+  }
+
+  /**
+   * Every predict-api route requires a bearer token, so one is resolved for
+   * each request rather than per endpoint.
+   */
+  async #resolveBearerToken(): Promise<string> {
+    // A missing or failing token provider is an authentication failure, not a
+    // malformed response. Never let the provider's error text escape.
+    const token = await this.#getBearerToken().catch(() => undefined);
+    if (!token?.trim()) {
+      throw new PredictHttpError(401);
+    }
+    return token;
+  }
+
+  async #get(
+    segments: readonly string[],
+    params?: PredictApiReadQueryParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
 
-    if (params?.cursor !== undefined) {
-      url.searchParams.set('cursor', params.cursor);
-    }
-    if (params?.limit !== undefined) {
-      url.searchParams.set('limit', String(params.limit));
+    for (const [key, value] of Object.entries(params ?? {})) {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
     }
 
     const response = await this.#fetch(url.toString(), {
@@ -103,6 +202,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         Accept: 'application/json',
         'x-metamask-clientproduct': 'metamask-mobile',
         'x-metamask-clientversion': this.#clientVersion,
+        Authorization: `Bearer ${bearerToken}`,
       },
       signal: options?.signal,
     });
@@ -122,6 +222,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   #baseUrlWithTrailingSlash(): URL {
+    if (!this.#baseUrl) {
+      throw new PredictHttpError(503);
+    }
     const url = new URL(this.#baseUrl.toString());
     url.pathname = `${url.pathname.replace(/\/$/u, '')}/`;
     return url;

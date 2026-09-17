@@ -52,11 +52,10 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
   useIsFocused: jest.fn(() => true),
-  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
-    children,
 }));
 
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
@@ -604,7 +603,7 @@ function setupPredictMarketDetailsTest(
 
   usePredictMarket.mockReturnValue({
     data: mockMarket,
-    isLoading: false,
+    isPending: false,
     isFetching: false,
     error: null,
     refetch: jest.fn(),
@@ -821,7 +820,7 @@ describe('PredictMarketDetails', () => {
         {},
         {},
         {
-          market: { data: null, isLoading: true, isFetching: true },
+          market: { data: null, isPending: true, isFetching: true },
         },
       );
 
@@ -885,7 +884,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowLeft')),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -905,7 +904,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isLoading: true, isFetching: true, data: null } },
+        { market: { isPending: true, isFetching: true, data: null } },
       );
 
       expect(
@@ -1036,7 +1035,7 @@ describe('PredictMarketDetails', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
 
       const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+        PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
       );
       fireEvent.press(backButton);
 
@@ -1758,7 +1757,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const yesButton = findActionButtonByPrice(65);
@@ -1803,7 +1808,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const noButton = findActionButtonByPrice(35);

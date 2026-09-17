@@ -1,36 +1,133 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { render, act } from '@testing-library/react-native';
-import FoxAnimation from './FoxAnimation';
+import FoxAnimation, { getSafeBottomPosition } from './FoxAnimation';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import {
-  __getLastMockedMethods,
-  __clearLastMockedMethods,
-  __resetAllMocks,
-} from '../../../__mocks__/rive-react-native';
+  __getLastRiveViewMethods,
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../__mocks__/rive-app-react-native';
 
 // Mock dependencies
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/device');
-// Use the proper mock from __mocks__ directory
-jest.mock('rive-react-native', () =>
-  jest.requireActual('../../../__mocks__/rive-react-native'),
-);
 
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
 const mockedDevice = Device as jest.Mocked<typeof Device>;
 
+const insets = (bottom: number) => ({
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom,
+});
+
+describe('getSafeBottomPosition', () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => originalOS,
+    });
+  });
+
+  const setPlatformOS = (os: typeof Platform.OS) => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => os,
+    });
+  };
+
+  it('returns iOS footer offset using bottom inset plus 60', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(true, insets(50))).toBe(110);
+  });
+
+  it('returns minimum 100 for iOS footer when inset is small', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(true, insets(0))).toBe(100);
+  });
+
+  it('returns Android footer offset with large inset', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(true, insets(48))).toBe(108);
+  });
+
+  it('returns Android footer offset with small inset', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(true, insets(10))).toBe(100);
+  });
+
+  it('returns 100 for footer on non-iOS non-Android platforms', () => {
+    setPlatformOS('web');
+
+    expect(getSafeBottomPosition(true, insets(0))).toBe(100);
+  });
+
+  it('returns negative iOS offset when home indicator inset is present', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(false, insets(34))).toBe(-24);
+  });
+
+  it('clamps iOS no-footer offset to -40 for large home indicator', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(false, insets(80))).toBe(-40);
+  });
+
+  it('returns -20 for iOS with no bottom inset', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
+  });
+
+  it('tucks Android full-bleed fox into the gesture inset like iOS', () => {
+    setPlatformOS('android');
+
+    expect(
+      getSafeBottomPosition(false, insets(48), { fullBleedBottom: true }),
+    ).toBe(-38);
+  });
+
+  it('uses a small negative Android full-bleed offset when inset is missing', () => {
+    setPlatformOS('android');
+
+    expect(
+      getSafeBottomPosition(false, undefined, { fullBleedBottom: true }),
+    ).toBe(-20);
+  });
+
+  it('returns 0 for Android when parent already applied bottom safe area', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(false, insets(48))).toBe(0);
+  });
+
+  it('returns -20 for no-footer on non-iOS non-Android platforms', () => {
+    setPlatformOS('web');
+
+    expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
+  });
+});
+
 describe('FoxAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
-    __resetAllMocks();
+    __resetRiveMocks();
     mockedDevice.isMediumDevice.mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
-    __clearLastMockedMethods();
+    __resetRiveMocks();
   });
 
   describe('rendering', () => {
@@ -46,23 +143,23 @@ describe('FoxAnimation', () => {
       // Arrange & Act
       const { getByTestId } = render(<FoxAnimation hasFooter={false} />);
 
-      // Assert - The testID is passed through to the Rive component mock
+      // Assert - The testID is passed through to the RiveView mock
       expect(getByTestId('fox-animation')).toBeTruthy();
     });
 
-    it('renders Rive component with correct props', () => {
+    it('renders RiveView with correct props', () => {
       // Arrange & Act
       const { getByTestId } = render(<FoxAnimation hasFooter={false} />);
 
-      // Assert - Verify the Rive component is rendered with the expected testID
+      // Assert - Verify the RiveView is rendered with the expected testID
       const riveElement = getByTestId('fox-animation');
       expect(riveElement).toBeTruthy();
 
       // Verify that the Rive mock methods are available
-      const mockedMethods = __getLastMockedMethods();
+      const mockedMethods = __getLastRiveViewMethods();
       expect(mockedMethods).toBeDefined();
-      expect(mockedMethods?.fireState).toBeDefined();
-      expect(mockedMethods?.setInputState).toBeDefined();
+      expect(mockedMethods?.triggerInput).toBeDefined();
+      expect(mockedMethods?.setBooleanInputValue).toBeDefined();
     });
 
     it('renders with correct styles when hasFooter is true', () => {
@@ -115,76 +212,53 @@ describe('FoxAnimation', () => {
       // Arrange & Act
       render(<FoxAnimation hasFooter={false} />);
 
-      await act(async () => {
-        // Wait for useEffect to trigger
-      });
+      await act(async () => Promise.resolve());
 
       // Assert - No trigger means no animation
-      const mockedMethods = __getLastMockedMethods();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).not.toHaveBeenCalled();
-      }
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
     });
 
     it('fires Start trigger when trigger prop is "Start"', async () => {
       // Arrange & Act
       render(<FoxAnimation trigger="Start" hasFooter={false} />);
 
-      await act(async () => {
-        // Wait for useEffect to trigger
-      });
+      await act(async () => Promise.resolve());
 
-      // Assert
-      const mockedMethods = __getLastMockedMethods();
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).toHaveBeenCalledWith(
-          'FoxRaiseUp',
-          'Start',
-        );
-      }
+      // Assert - triggerInput takes only the trigger name; the state machine
+      // is configured via the stateMachineName view prop
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
     });
 
     it('fires Loader trigger when trigger prop is "Loader"', async () => {
       // Arrange & Act
       render(<FoxAnimation trigger="Loader" hasFooter={false} />);
 
-      await act(async () => {
-        // Wait for useEffect to trigger
-      });
+      await act(async () => Promise.resolve());
 
       // Assert
-      const mockedMethods = __getLastMockedMethods();
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).toHaveBeenCalledWith(
-          'FoxRaiseUp',
-          'Loader',
-        );
-      }
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Loader');
     });
 
-    it('handles Rive animation errors gracefully', async () => {
+    it('logs an error when triggerInput throws', async () => {
       // Arrange
       const mockError = new Error('Animation failed');
+      __mockRiveTriggerInput.mockImplementationOnce(() => {
+        throw mockError;
+      });
+
+      // Act
       const { getByTestId } = render(
         <FoxAnimation trigger="Start" hasFooter={false} />,
       );
 
-      // Act
-      await act(async () => {
-        const mockedMethods = __getLastMockedMethods();
-        if (mockedMethods) {
-          // Simulate error by making fireState throw
-          mockedMethods.fireState.mockImplementationOnce(() => {
-            throw mockError;
-          });
-        }
-      });
+      await act(async () => Promise.resolve());
 
-      // Assert - Component should still render despite error
+      // Assert - Component still renders and the error is logged
       expect(getByTestId('fox-animation')).toBeTruthy();
-      expect(mockedLogger.error).toBeDefined();
+      expect(mockedLogger.error).toHaveBeenCalledWith(
+        mockError,
+        'Error triggering Fox Rive animation',
+      );
     });
   });
 
@@ -238,7 +312,7 @@ describe('FoxAnimation', () => {
     it('triggers animation when trigger changes from undefined to "Start"', async () => {
       // Arrange
       const { rerender } = render(<FoxAnimation hasFooter={false} />);
-      __clearLastMockedMethods();
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
 
       // Act
       await act(async () => {
@@ -246,14 +320,7 @@ describe('FoxAnimation', () => {
       });
 
       // Assert
-      const mockedMethods = __getLastMockedMethods();
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).toHaveBeenCalledWith(
-          'FoxRaiseUp',
-          'Start',
-        );
-      }
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
     });
 
     it('triggers animation when trigger changes from "Start" to "Loader"', async () => {
@@ -261,7 +328,7 @@ describe('FoxAnimation', () => {
       const { rerender } = render(
         <FoxAnimation trigger="Start" hasFooter={false} />,
       );
-      __clearLastMockedMethods();
+      __mockRiveTriggerInput.mockClear();
 
       // Act
       await act(async () => {
@@ -269,14 +336,7 @@ describe('FoxAnimation', () => {
       });
 
       // Assert
-      const mockedMethods = __getLastMockedMethods();
-      expect(mockedMethods).toBeDefined();
-      if (mockedMethods) {
-        expect(mockedMethods.fireState).toHaveBeenCalledWith(
-          'FoxRaiseUp',
-          'Loader',
-        );
-      }
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Loader');
     });
 
     it('adapts styles when hasFooter prop changes', () => {

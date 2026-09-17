@@ -272,15 +272,15 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       eventStartTime: targetPriceEventStartTime ?? '',
       variant: getVariant(selectedMarket.series.recurrence),
       endDate: selectedMarket.endDate ?? '',
+      twapWindowSeconds: selectedMarket.twapWindowSeconds,
       enabled:
-        !selectedMarket.twapWindowSeconds &&
         !!targetPriceSymbol &&
         !!targetPriceEventStartTime &&
         !!selectedMarket.endDate,
     });
   const validatedTargetPrice = resolveCryptoTargetPrice(
     selectedMarket,
-    selectedMarket.twapWindowSeconds ? undefined : targetPrice,
+    targetPrice,
   );
 
   // The chart is always anchored to the currently-live market so its data

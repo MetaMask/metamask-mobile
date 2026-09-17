@@ -1,6 +1,12 @@
 import { BrokenCircuitError } from '@metamask/controller-utils';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
-import { KALSHI_VENUE_ID, type PredictEntityId } from '../types';
+import {
+  KALSHI_VENUE_ID,
+  type PredictEntityId,
+  type PredictFeedId,
+} from '../types';
+
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
 
 const status = {
   venueId: 'kalshi',
@@ -16,11 +22,41 @@ const event = {
     {
       id: 'market-1',
       question: 'Will the team win?',
-      status: 'open',
+      status: 'active',
       outcomes: [
         { id: 'yes', side: 'yes', label: 'Yes', askPrice: '0.42' },
         { id: 'no', side: 'no', label: 'No', askPrice: '0.61' },
       ],
+    },
+  ],
+};
+
+const marketHistory = {
+  venueId: 'kalshi',
+  marketId: 'market-1',
+  range: 'LIVE',
+  observedAt: '2026-03-01T00:00:00.000Z',
+  points: [
+    {
+      timestamp: '2026-03-01T00:00:00.000Z',
+      yesPrice: '0.42',
+      noPrice: '0.58',
+    },
+  ],
+};
+
+const groupedEvent = {
+  ...event,
+  markets: [
+    {
+      ...event.markets[0],
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: 220.5 },
+        displayOrder: 0,
+      },
     },
   ],
 };
@@ -40,7 +76,134 @@ describe('PredictNext public market data', () => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
   });
 
-  it('reads venue status through the real controller-to-transport chain', async () => {
+  it('reads Balance through the authenticated service-to-transport chain', async () => {
+    const balance = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.125',
+    };
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: balance,
+    }));
+
+    const result = await harness.messenger.call(
+      'PredictPortfolioService:getBalance',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual(balance);
+    expect(harness.getBearerTokenMock).toHaveBeenCalledTimes(1);
+    expect(harness.fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/v1/venues/kalshi/balance',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-bearer-token',
+        }),
+      }),
+    );
+    harness.destroy();
+  });
+
+  it('maps a rejected Balance request to UNAUTHENTICATED without retrying', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({ status: 401 }));
+
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('keeps Feeds working when Balance failures exhaust their own policy', async () => {
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/balance')
+        ? { status: 503 }
+        : {
+            body: {
+              venueId: 'kalshi',
+              id: feedId,
+              title: 'NFL Games',
+              events: [event],
+            },
+          },
+    );
+
+    // One exhausted Balance read (three attempts) opens the portfolio circuit.
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+    // Balance now fails fast on its own open circuit without new requests.
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toBeInstanceOf(BrokenCircuitError);
+    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+    // The market-data circuit never saw a Balance failure.
+    const feed = await harness.messenger.call(
+      'PredictMarketDataService:getFeed',
+      KALSHI_VENUE_ID,
+      feedId,
+      {},
+    );
+    expect(feed.events).toHaveLength(1);
+    harness.destroy();
+  });
+
+  it('keeps Balance working when market-data failures open their circuit', async () => {
+    const balance = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '42',
+    };
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/balance') ? { body: balance } : { status: 503 },
+    );
+
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getVenueStatus',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    const result = await harness.messenger.call(
+      'PredictPortfolioService:getBalance',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual(balance);
+    harness.destroy();
+  });
+
+  it('treats a failing bearer token provider as UNAUTHENTICATED before HTTP', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: { venueId: 'kalshi', currency: 'USD', available: '1' },
+    }));
+    harness.getBearerTokenMock.mockRejectedValue(new Error('not signed in'));
+
+    await expect(
+      harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+    harness.destroy();
+  });
+
+  it('reads venue status through the real service-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: status,
     }));
@@ -55,27 +218,59 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
+  it('reads Market history through the real service-to-transport chain', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: marketHistory,
+    }));
+
+    const result = await harness.messenger.call(
+      'PredictMarketDataService:getMarketHistory',
+      KALSHI_VENUE_ID,
+      marketHistory.marketId as PredictEntityId,
+      'LIVE',
+    );
+
+    expect(result).toEqual(marketHistory);
+    expect(harness.fetchMock.mock.calls[0][0]).toBe(
+      'https://predict.example/v1/venues/kalshi/markets/market-1/history?range=LIVE',
+    );
+    harness.destroy();
+  });
+
   it('progresses event-list pages with cursor outside stable query identity', async () => {
     const harness = buildPredictNextIntegrationHarness((url) => ({
       body: url.includes('cursor=next')
-        ? { items: [{ ...event, id: 'event-2', title: 'Second event' }] }
-        : { items: [event], nextCursor: 'next' },
+        ? {
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [{ ...event, id: 'event-2', title: 'Second event' }],
+          }
+        : {
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+            nextCursor: 'next',
+          },
     }));
 
     const first = await harness.messenger.call(
-      'PredictMarketDataService:getEvents',
+      'PredictMarketDataService:getFeed',
       KALSHI_VENUE_ID,
+      feedId,
       { limit: 20 },
     );
     const second = await harness.messenger.call(
-      'PredictMarketDataService:getEvents',
+      'PredictMarketDataService:getFeed',
       KALSHI_VENUE_ID,
+      feedId,
       { limit: 20 },
       first.nextCursor,
     );
 
-    expect(first.items[0].id).toBe('event-1');
-    expect(second.items[0].id).toBe('event-2');
+    expect(first.events[0].id).toBe('event-1');
+    expect(second.events[0].id).toBe('event-2');
     expect(harness.fetchMock.mock.calls[1][0]).toContain('cursor=next');
     harness.destroy();
   });
@@ -109,9 +304,38 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
+  it('preserves grouped Market metadata through the cached Event read path', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: groupedEvent,
+    }));
+
+    const first = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id as PredictEntityId,
+    );
+    const cached = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id as PredictEntityId,
+    );
+
+    expect(first.markets[0].group).toEqual(groupedEvent.markets[0].group);
+    expect(cached.markets[0].group).toEqual(groupedEvent.markets[0].group);
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
   it('reads venue status and Events independently without a status preflight', async () => {
     const harness = buildPredictNextIntegrationHarness((url) => ({
-      body: url.endsWith('/status') ? status : { items: [event] },
+      body: url.endsWith('/status')
+        ? status
+        : {
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+          },
     }));
 
     await Promise.all([
@@ -120,8 +344,9 @@ describe('PredictNext public market data', () => {
         KALSHI_VENUE_ID,
       ),
       harness.messenger.call(
-        'PredictMarketDataService:getEvents',
+        'PredictMarketDataService:getFeed',
         KALSHI_VENUE_ID,
+        feedId,
         {},
       ),
     ]);
@@ -174,8 +399,9 @@ describe('PredictNext public market data', () => {
     ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
     await expect(
       harness.messenger.call(
-        'PredictMarketDataService:getEvents',
+        'PredictMarketDataService:getFeed',
         KALSHI_VENUE_ID,
+        feedId,
         {},
       ),
     ).rejects.toBeInstanceOf(BrokenCircuitError);
@@ -186,12 +412,16 @@ describe('PredictNext public market data', () => {
 
   it('forwards cancellation to fetch and preserves AbortError', async () => {
     const abort = Object.assign(new Error('cancelled'), { name: 'AbortError' });
-    const harness = buildPredictNextIntegrationHarness(
-      (_url, init) =>
-        new Promise((_resolve, reject) => {
-          init?.signal?.addEventListener('abort', () => reject(abort));
-        }),
-    );
+    let markFetchReached: () => void = () => undefined;
+    const fetchReached = new Promise<void>((resolve) => {
+      markFetchReached = resolve;
+    });
+    const harness = buildPredictNextIntegrationHarness((_url, init) => {
+      markFetchReached();
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(abort));
+      });
+    });
     const controller = new AbortController();
 
     const result = harness.messenger.call(
@@ -199,6 +429,9 @@ describe('PredictNext public market data', () => {
       KALSHI_VENUE_ID,
       { signal: controller.signal },
     );
+    // The transport resolves a bearer token before fetching; wait for the
+    // request to reach fetch so the abort exercises the in-flight path.
+    await fetchReached;
     controller.abort();
 
     await expect(result).rejects.toBe(abort);

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -10,7 +10,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -41,21 +47,20 @@ const SearchingForDevice = ({
   isBluetoothOff = false,
 }: SearchingForDeviceProps) => {
   const tw = useTailwind();
-  const riveRef = useRef<RiveRef>(null);
+  const { riveFile } = useRiveFile(HardwareWalletRive);
+  const { riveViewRef, setHybridRef } = useRive();
 
-  const handleRivePlay = useCallback(() => {
+  useEffect(() => {
+    if (!riveViewRef) return;
     try {
-      riveRef.current?.fireState(
-        LEDGER_STATE_MACHINE_NAME,
-        LEDGER_RIVE_STATE_TRIGGER.Reset,
-      );
+      riveViewRef.triggerInput(LEDGER_RIVE_STATE_TRIGGER.Reset);
     } catch (error) {
       Logger.error(
         error as Error,
         'Error triggering Ledger searching Rive animation',
       );
     }
-  }, []);
+  }, [riveViewRef]);
 
   return (
     <SafeAreaView
@@ -69,18 +74,19 @@ const SearchingForDevice = ({
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="px-4">
           <View style={styles.riveContainer}>
-            <Rive
-              ref={riveRef}
-              style={styles.rive}
-              source={HardwareWalletRive}
-              autoplay
-              fit={Fit.Contain}
-              alignment={Alignment.Center}
-              artboardName={LEDGER_ARTBOARD_NAME}
-              stateMachineName={LEDGER_STATE_MACHINE_NAME}
-              testID="ledger-searching-animation"
-              onPlay={handleRivePlay}
-            />
+            {riveFile && (
+              <RiveView
+                hybridRef={setHybridRef}
+                style={styles.rive}
+                file={riveFile}
+                autoPlay
+                fit={Fit.Contain}
+                alignment={Alignment.Center}
+                artboardName={LEDGER_ARTBOARD_NAME}
+                stateMachineName={LEDGER_STATE_MACHINE_NAME}
+                testID="ledger-searching-animation"
+              />
+            )}
           </View>
           <Box
             alignItems={BoxAlignItems.Center}

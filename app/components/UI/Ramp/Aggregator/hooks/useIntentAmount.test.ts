@@ -161,7 +161,7 @@ describe('useIntentAmount', () => {
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
       [
         [
-          "254c8454e",
+          10012345678n,
         ],
       ]
     `);
@@ -198,7 +198,7 @@ describe('useIntentAmount', () => {
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
       [
         [
-          "f4712",
+          1001234n,
         ],
       ]
     `);
@@ -235,7 +235,7 @@ describe('useIntentAmount', () => {
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
       [
         [
-          "64",
+          100n,
         ],
       ]
     `);
@@ -273,7 +273,7 @@ describe('useIntentAmount', () => {
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
       [
         [
-          "1871b",
+          100123n,
         ],
       ]
     `);

@@ -16,8 +16,12 @@ import {
   ACTIVITY_CV_RAMP_CREATED_AT,
   ACTIVITY_CV_RAMP_SELL_ORDER_ID,
   ACTIVITY_CV_RAMP_SELL_TX_HASH,
+  ACTIVITY_CV_SOLANA_ADDRESS,
+  ACTIVITY_CV_SOLANA_ASSET_ID,
   ACTIVITY_CV_SOLANA_CHAIN_ID,
   ACTIVITY_CV_SOLANA_SEND_ID,
+  ACTIVITY_CV_SOLANA_SWAP_ID,
+  ACTIVITY_CV_SOLANA_USDC_ASSET_ID,
   ACTIVITY_CV_USDC,
   activityCvBridgeEthToMusdLineaHistoryEntry,
   activityCvBridgeEthToSolHistoryEntry,
@@ -26,6 +30,7 @@ import {
   activityCvMusdConversionHistoryEntry,
   activityCvPendingCrossChainSwapBridgeHistoryEntry,
   activityCvSolanaSendStateOverrides,
+  activityCvSolanaSwapStateOverrides,
   activityLineaMusdTokenRatesOverride,
   activityLineaNetworkOverride,
   activityMusdTokenRatesOverride,
@@ -41,6 +46,7 @@ import {
   buildConfirmedLocalMusdConversionTransaction,
   buildConfirmedLocalMusdSendTransaction,
   buildConfirmedLocalSmartAccountUpgradeTransaction,
+  buildConfirmedLocalStakingDepositTransaction,
   buildConfirmedLocalUsdtIncreaseAllowanceTransaction,
   buildConfirmedLocalUsdtUnlimitedApproveTransaction,
   buildPendingLocalCrossChainSwapTransaction,
@@ -53,6 +59,11 @@ import {
   clearAccountsTransactionsApiMocks,
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearActivityTokenApiMocks,
+  isActivityTokenApiMockDone,
+  setupActivityTokenApiMock,
+} from '../../../../tests/component-view/api-mocking/activity';
 import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
 import { getRouteParamsProbeTestId } from '../../../../tests/component-view/render';
 import Routes from '../../../constants/navigation/Routes';
@@ -90,6 +101,7 @@ const {
   TOTAL_ROW,
   FEE_TOKEN_AVATAR,
   BLOCK_EXPLORER_BUTTON,
+  DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
 
 const MAINNET_CAIP = 'eip155:1';
@@ -104,7 +116,6 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
   it('shows confirmed Sent mUSD details with fee, total, and copyable tx id', async () => {
     const sendTransaction = buildConfirmedLocalMusdSendTransaction();
     const state = initialStateActivityWithLocalTransactions([sendTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityMusdTokenRatesOverride)
       .build();
 
@@ -204,9 +215,7 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
       },
     ]);
 
-    const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    const state = initialStateActivityWithAccountsApi().build();
 
     const {
       findByTestId,
@@ -424,9 +433,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalContractInteractionWithFeesTransaction();
     const state = initialStateActivityWithLocalTransactions([
       contractTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -490,9 +497,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalUsdtUnlimitedApproveTransaction();
     const state = initialStateActivityWithLocalTransactions([
       approveTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -549,9 +554,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalUsdtIncreaseAllowanceTransaction();
     const state = initialStateActivityWithLocalTransactions([
       increaseTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -608,9 +611,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalSmartAccountUpgradeTransaction();
     const state = initialStateActivityWithLocalTransactions([
       upgradeTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -682,7 +683,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
   it('shows confirmed Swapped ETH → mUSD dual header with fee and total', async () => {
     const swapTransaction = buildConfirmedLocalEthToMusdSwapTransaction();
     const state = initialStateActivityWithLocalTransactions([swapTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityMusdTokenRatesOverride)
       .withOverrides(
         bridgeHistoryOverride(
@@ -765,7 +765,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
     const state = initialStateActivityWithLocalTransactions([
       convertTransaction,
     ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityUsdcTokenRatesOverride)
       .withOverrides(
         bridgeHistoryOverride(
@@ -836,7 +835,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
     const bridgeTransaction =
       buildConfirmedLocalBridgeEthToMusdLineaTransaction();
     const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityLineaNetworkOverride)
       .withOverrides(activityMusdTokenRatesOverride)
       .withOverrides(
@@ -913,7 +911,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
   it('shows confirmed Bridged ETH → SOL with dual network and explorer sheet CTA', async () => {
     const bridgeTransaction = buildConfirmedLocalBridgeEthToSolTransaction();
     const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(
         bridgeHistoryOverride(
           bridgeTransaction.id,
@@ -1012,7 +1009,6 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
   it('shows confirmed Claimed mUSD bonus with fee and total', async () => {
     const claimTransaction = buildConfirmedLocalMusdClaimTransaction();
     const state = initialStateActivityWithLocalTransactions([claimTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityLineaNetworkOverride)
       .withOverrides(activityLineaMusdTokenRatesOverride)
       .withOverrides({
@@ -1089,7 +1085,7 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
   });
 
-  it('shows confirmed Deposited USDC with fee and total', async () => {
+  it('shows confirmed Deposited USDC with total and no fee row', async () => {
     setupAccountsTransactionsApiMock([
       {
         hash: ACTIVITY_CV_DEPOSIT_USDC_HASH,
@@ -1119,18 +1115,22 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     ]);
 
     const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityUsdcTokenRatesOverride)
       .build();
 
-    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
-      renderActivityDetailsView({
-        state,
-        params: {
-          chainId: MAINNET_CAIP,
-          txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
-        },
-      });
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      UNSAFE_getAllByType,
+    } = renderActivityDetailsView({
+      state,
+      params: {
+        chainId: MAINNET_CAIP,
+        txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
+      },
+    });
 
     expect(await findByTestId(SCREEN)).toBeOnTheScreen();
     expect(await findByText('Deposited USDC')).toBeOnTheScreen();
@@ -1139,9 +1139,9 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     expect(
       within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
     ).toBeOnTheScreen();
-    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
-    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*USDC/)).toBe(
-      TextColor.SuccessDefault,
+    expect(within(amountHeader).getByText(/^-.*USDC/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^-.*USDC/)).toBe(
+      TextColor.TextDefault,
     );
 
     expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
@@ -1175,10 +1175,90 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
       fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
     });
 
+    expect(queryByTestId(FEE_ROW)).not.toBeOnTheScreen();
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
+  });
+});
+
+describeForPlatforms('ActivityDetails — stake', () => {
+  it('shows confirmed Staked ETH with fee, total, tx id, and explorer', async () => {
+    const stakeTransaction = buildConfirmedLocalStakingDepositTransaction();
+    const state = initialStateActivityWithLocalTransactions([
+      stakeTransaction,
+    ]).build();
+
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      UNSAFE_getAllByType,
+    } = renderActivityDetailsView({
+      state,
+      params: {
+        chainId: MAINNET_CAIP,
+        txIdentifier: stakeTransaction.id,
+      },
+    });
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
+    expect(await findByText('Staked ETH')).toBeOnTheScreen();
+    expect(getByTestId(HEADER)).toBeOnTheScreen();
+
+    const amountHeader = await findByTestId(AMOUNT_HEADER);
+    expect(
+      within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^-.*ETH/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^-.*ETH/)).toBe(
+      TextColor.TextDefault,
+    );
+
+    expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
+      strings('transaction.confirmed'),
+    );
+
+    const expectedDate = formatTimestampToDateTime(stakeTransaction.time);
+    expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate as string, {
+      exact: false,
+    });
+
+    const accountRow = getByTestId(ACCOUNT_ROW);
+    expect(accountRow).toHaveTextContent('Group 1', { exact: false });
+    expect(accountRow).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_ACCOUNT),
+      { exact: false },
+    );
+
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent(
+      'Ethereum Main Network',
+      { exact: false },
+    );
+
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent(
+      renderShortAddress(stakeTransaction.hash as string),
+      { exact: false },
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
+    });
+
     await waitFor(() => {
       expect(getByTestId(FEE_ROW)).toHaveTextContent(/\$/);
     });
+    expect(
+      within(getByTestId(FEE_ROW)).getByTestId(FEE_TOKEN_AVATAR),
+    ).toBeOnTheScreen();
+    expect(within(getByTestId(FEE_ROW)).getByText('ETH')).toBeOnTheScreen();
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
+
+    expect(queryByTestId(DO_IT_AGAIN_BUTTON)).toBeNull();
+
+    const blockExplorer = getByTestId(BLOCK_EXPLORER_BUTTON);
+    expect(blockExplorer).toHaveTextContent(
+      strings('activity_details.view_on_block_explorer'),
+    );
+    fireEvent.press(blockExplorer);
   });
 });
 
@@ -1314,7 +1394,10 @@ describeForPlatforms(
         ActivityDetailsSelectorsIDs.TOTAL_ROW,
       );
       // 2 SOL * multichain rate 4 → $8.00 (formatCurrencyWithMinThreshold)
-      expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen();
+      // The row renders before the rate resolves, so poll for the converted value.
+      await waitFor(() =>
+        expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen(),
+      );
 
       expect(
         await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
@@ -1322,3 +1405,116 @@ describeForPlatforms(
     });
   },
 );
+
+describeForPlatforms('ActivityDetails — Solana swap', () => {
+  beforeEach(() => {
+    setupActivityTokenApiMock([
+      {
+        assetId: ACTIVITY_CV_SOLANA_ASSET_ID,
+        decimals: 9,
+        iconUrl: 'https://example.com/sol.png',
+        name: 'Solana',
+        symbol: 'SOL',
+      },
+      {
+        assetId: ACTIVITY_CV_SOLANA_USDC_ASSET_ID,
+        decimals: 6,
+        iconUrl: 'https://example.com/usdc.png',
+        name: 'USD Coin',
+        symbol: 'USDC',
+      },
+    ]);
+  });
+
+  afterEach(() => {
+    clearActivityTokenApiMocks();
+  });
+
+  it('shows confirmed Swapped SOL → USDC with fee, explorer, and Swap again', async () => {
+    const state = initialStateActivity()
+      .withOverrides(activityCvSolanaSwapStateOverrides)
+      .build();
+
+    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
+      renderActivityDetailsView({
+        state,
+        params: {
+          chainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+          txIdentifier: ACTIVITY_CV_SOLANA_SWAP_ID,
+        },
+      });
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
+    expect(await findByText('Swapped')).toBeOnTheScreen();
+
+    const amountHeader = await findByTestId(AMOUNT_HEADER);
+    expect(
+      within(amountHeader).getByText(strings('activity_details.you_sent')),
+    ).toBeOnTheScreen();
+    expect(
+      within(amountHeader).getByText(strings('activity_details.you_received')),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^-.*SOL/)).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*USDC/)).toBe(
+      TextColor.SuccessDefault,
+    );
+
+    expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
+      strings('transaction.confirmed'),
+    );
+
+    const expectedDate = formatTimestampToDateTime(1_716_367_796_000);
+    expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate as string, {
+      exact: false,
+    });
+
+    const accountRow = getByTestId(ACCOUNT_ROW);
+    expect(accountRow).toHaveTextContent('AccountGroup 1', {
+      exact: false,
+    });
+    expect(accountRow).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_SOLANA_ADDRESS),
+      { exact: false },
+    );
+
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Solana', {
+      exact: false,
+    });
+
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('activit', {
+      exact: false,
+    });
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('-swap', {
+      exact: false,
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
+    });
+
+    expect(await findByTestId(FEE_ROW)).toHaveTextContent('0.01', {
+      exact: false,
+    });
+    expect(within(getByTestId(FEE_ROW)).getByText('SOL')).toBeOnTheScreen();
+    // Wait until API metadata (including decimals) has been applied. Display
+    // still reads the keyring amount directly, so 1 SOL must not become 1e-9.
+    await waitFor(() => expect(isActivityTokenApiMockDone()).toBe(true));
+    await act(async () => undefined);
+    expect(within(amountHeader).getByText('-1 SOL')).toBeOnTheScreen();
+    expect(within(amountHeader).getByText('+100 USDC')).toBeOnTheScreen();
+    const totalRow = await findByTestId(TOTAL_ROW);
+    // 1 SOL × multichain rate 4 → $4.00. The row can render before the rate
+    // resolves, so poll for the converted value (same pattern as Solana send).
+    await waitFor(() =>
+      expect(within(totalRow).getByText('$4.00')).toBeOnTheScreen(),
+    );
+
+    expect(getByTestId(BLOCK_EXPLORER_BUTTON)).toHaveTextContent(
+      strings('activity_details.view_on_block_explorer'),
+    );
+
+    const swapAgain = getByTestId(DO_IT_AGAIN_BUTTON);
+    expect(swapAgain).toHaveTextContent(strings('activity_details.swap_again'));
+    fireEvent.press(swapAgain);
+  });
+});

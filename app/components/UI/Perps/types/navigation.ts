@@ -27,6 +27,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsModeSelection: undefined;
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
   PerpsSelectAdjustMarginAction: {
     position: Position;
@@ -75,6 +76,8 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  useBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -147,6 +150,16 @@ export type PerpsStackParamList = {
          * Used by the header slide-up picker.
          */
         replaceOnSelect?: boolean;
+        /**
+         * When true, fires selection haptics on market row taps.
+         * Defaults off so Lite entry points stay silent.
+         */
+        enableHaptics?: boolean;
+        /**
+         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * Extra params otherwise compile, which is how earlier resets dropped it.
+         */
+        homeDroppedFromHistory?: true;
       }
     | undefined;
 
@@ -163,9 +176,16 @@ export type PerpsStackParamList = {
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
     source_section?: string;
+    /** Telemetry-only reason when the header picker replaces the active market. */
+    detailGenerationTrigger?: 'market_switch';
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    /**
+     * Stamped when Perps Home was removed from this stack (TAT-3786).
+     * Extra params otherwise compile, which is how earlier resets dropped it.
+     */
+    homeDroppedFromHistory?: true;
   };
 
   PerpsPositions: undefined;
@@ -180,16 +200,19 @@ export type PerpsStackParamList = {
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
 
   PerpsAdjustMargin: {
     position: Position;
     mode: 'add' | 'remove';
+    enableHaptics?: boolean;
   };
 
   // Action selection routes
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
 
   PerpsSelectAdjustMarginAction: {
@@ -251,6 +274,11 @@ export type PerpsStackParamList = {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * When true, fires catalog haptics for meaningful TP/SL gestures.
+     * Defaults off so Lite entry points stay silent.
+     */
+    enableHaptics?: boolean;
     /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
@@ -325,6 +353,11 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        /**
+         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
+         */
+        homeDroppedFromHistory?: true;
       }
     | undefined;
   PerpsOrderDetailsView: {

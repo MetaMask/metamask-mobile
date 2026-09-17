@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
@@ -10,7 +11,6 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
 
 interface UseDeviceConnectionFlowOptions {
@@ -248,6 +248,51 @@ export const useDeviceConnectionFlow = ({
 
       if (adapter.resetFlowState) {
         adapter.resetFlowState();
+      }
+
+      if (
+        targetDeviceId &&
+        adapter.isConnected?.() &&
+        adapter.getConnectedDeviceId() === targetDeviceId
+      ) {
+        DevLogger.log(
+          '[HardwareWallet] Already connected to device, checking readiness directly',
+        );
+        try {
+          refs.abortControllerRef.current = new AbortController();
+          const isReady = await tryEnsureReady(adapter, targetDeviceId);
+          if (isReady) {
+            return true;
+          }
+        } catch (error) {
+          DevLogger.log(
+            '[HardwareWallet] Direct readiness check failed, falling through to full flow',
+            error,
+          );
+        } finally {
+          refs.abortControllerRef.current = null;
+        }
+      }
+
+      if (
+        targetDeviceId &&
+        !adapter.isConnected?.() &&
+        adapter.backgroundReconnect
+      ) {
+        try {
+          refs.abortControllerRef.current = new AbortController();
+          const reconnected = await adapter.backgroundReconnect(targetDeviceId);
+          if (reconnected) {
+            const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            if (isReady) {
+              return true;
+            }
+          }
+        } catch {
+          // Fall through to guided scanning/connecting UI.
+        } finally {
+          refs.abortControllerRef.current = null;
+        }
       }
 
       // Avoid pre-gating scan mode on transport state. BLE state can be

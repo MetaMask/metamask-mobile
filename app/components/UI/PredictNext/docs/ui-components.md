@@ -1,6 +1,6 @@
 # PredictNext UI component architecture
 
-PredictNext core UI uses composition to keep product variants explicit and reusable without accumulating mode props. Apply this guidance to complex, reusable structures such as Event cards, Event detail, Market groups, and charts. Keep simple leaf components simple.
+PredictNext core UI uses composition to keep product variants explicit and reusable without accumulating mode props. Apply this guidance to complex, reusable structures such as Event cards, Event Screens, Market groups, and charts. Keep simple leaf components simple.
 
 ## Rules
 
@@ -22,13 +22,13 @@ Create explicit product compositions instead, such as `EventCardStandard` and `E
 A compound API is appropriate when a reusable structure has independently useful parts or sibling parts share state. For example:
 
 ```tsx
-<EventDetail.Root>
-  <EventDetail.Header />
-  <EventDetail.Content>
+<EventScreen.Root>
+  <EventScreen.Header />
+  <EventScreen.Content>
     <MarketList />
-    <EventDetail.About />
-  </EventDetail.Content>
-</EventDetail.Root>
+    <EventScreen.About />
+  </EventScreen.Content>
+</EventScreen.Root>
 ```
 
 When sibling parts need shared state, expose the smallest typed provider contract needed by current callers. Separate it into `state`, `actions`, and presentation metadata where that distinction is useful. The provider owns the state mechanism; presentational parts consume the interface rather than importing product hooks or services.
@@ -46,6 +46,14 @@ Do not add context merely to avoid passing one or two ordinary props. Do not cre
 
 Build the parts and variants required by the active vertical slice. Do not create widget registries, universal section schemas, speculative variants, or extension APIs for hypothetical callers.
 
+## Visual reference when no designs exist
+
+When a ticket or slice ships without Figma designs, use the legacy Polymarket implementation under `../Predict/` as the visual and behavioral guideline for the equivalent surface (for example, `PredictPosition` and `PredictActivity` rows for portfolio lists). Treat it strictly as a reference:
+
+- rebuild the UI as composable PredictNext components per this document, never copying legacy components or their styling wholesale;
+- bind rows to canonical PredictNext contracts and omit values the contract does not carry rather than importing legacy data assumptions;
+- keep legacy-only affordances (detail modals, venue-specific flows) out unless the active Jira slice requires them.
+
 ## Story and review expectations
 
 For each complex core UI story:
@@ -58,3 +66,7 @@ For each complex core UI story:
 - use MetaMask design-system components and tokens first.
 
 The goal is not to make every component compound. The goal is to make complex product UI flexible through visible composition while leaving simple code simple.
+
+## Ownership and visibility
+
+Composition does not determine project-wide visibility. Public variants belong at their owning feature or domain module boundary; primitives and compound parts used only to implement those variants stay under that module's `internal/` directory. Consumers outside the module import through its deliberate `index.ts` API and never deep-import internal parts. See [`module-structure.md`](./module-structure.md).

@@ -19,6 +19,7 @@ import { useAssetFiatFormatter } from '../pay/useAssetFiatFormatter';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { useEnsureAccountGroupAssets } from './useEnsureAccountGroupAssets';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -80,7 +81,17 @@ jest.mock('../../../../../selectors/settings', () => ({
 jest.mock('../../../../hooks/useTokensData/useTokensData');
 jest.mock('../../../../../util/multichain/buildEvmCaip19AssetId');
 
+// Asset fetching for a non-selected account group is covered by
+// useEnsureAccountGroupAssets' own tests; stubbed here to keep this suite
+// focused on token derivation.
+jest.mock('./useEnsureAccountGroupAssets', () => ({
+  useEnsureAccountGroupAssets: jest.fn(() => false),
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
+const mockUseEnsureAccountGroupAssets = jest.mocked(
+  useEnsureAccountGroupAssets,
+);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
 const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
   selectAssetsBySelectedAccountGroup,
@@ -974,6 +985,42 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(2);
       expect(result.current[0].symbol).toBe('TOKEN1');
+    });
+
+    it('requests an asset load for the override account group', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xEmptyAddress' as never,
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mockAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectInternalAccountsById) {
+          return { 'acc-empty': { address: '0xEmptyAddress' } };
+        }
+        if (selector === selectAccountToGroupMap) {
+          return { 'acc-empty': { id: 'group-empty' } };
+        }
+        return {};
+      });
+
+      renderHook(() => useAccountTokens());
+
+      expect(mockUseEnsureAccountGroupAssets).toHaveBeenCalledWith(
+        'group-empty',
+      );
+    });
+
+    it('does not request an asset load when no override is active', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+      renderHook(() => useAccountTokens());
+
+      expect(mockUseEnsureAccountGroupAssets).toHaveBeenCalledWith(undefined);
     });
   });
 

@@ -1,10 +1,8 @@
 import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
-import { FrameworkDetector } from '../../../framework/FrameworkDetector';
+import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import PlaywrightGestures from '../../../framework/PlaywrightGestures';
-import PlaywrightWebMatchers from '../../../framework/PlaywrightWebMatchers';
 import { EnsWebsiteSelectorsXPath } from '../../../selectors/Browser/EnsWebsite.selectors';
 
 const ENS_GENERAL_LINK_ID = 'ens-general-link';
@@ -15,44 +13,35 @@ class EnsWebsite {
    * @param pageUrl - Full page URL (required for Appium WebView context switching).
    */
   async tapGeneralButton(pageUrl?: string): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      if (!pageUrl) {
+    if (!pageUrl) {
+      throw new Error(
+        'pageUrl is required for EnsWebsite.tapGeneralButton under Appium',
+      );
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      // Android Chromedriver context switch fails under LavaMoat ShadowRoot
+      // scuttling — click the fixture link via CDP in the MetaMask WebView.
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        pageUrl,
+        ENS_GENERAL_LINK_ID,
+      );
+      if (!clicked) {
         throw new Error(
-          'pageUrl is required for EnsWebsite.tapGeneralButton under Appium',
+          `Failed to click #${ENS_GENERAL_LINK_ID} via CDP on ${pageUrl}`,
         );
       }
-
-      if (PlatformDetector.isAndroid()) {
-        // Android Chromedriver context switch fails under LavaMoat ShadowRoot
-        // scuttling — click the fixture link via CDP in the MetaMask WebView.
-        const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-          pageUrl,
-          ENS_GENERAL_LINK_ID,
-        );
-        if (!clicked) {
-          throw new Error(
-            `Failed to click #${ENS_GENERAL_LINK_ID} via CDP on ${pageUrl}`,
-          );
-        }
-        return;
-      }
-
-      await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
-        await PlaywrightGestures.waitAndTap(
-          await PlaywrightWebMatchers.getElementByXPath(
-            EnsWebsiteSelectorsXPath.GENERAL_LINK,
-            pageUrl,
-          ),
-        );
-      });
       return;
     }
 
     const generalLink = await Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EnsWebsiteSelectorsXPath.GENERAL_LINK,
+      pageUrl,
     );
-    await generalLink.tap();
+    await Gestures.waitAndTap(generalLink, {
+      elemDescription: 'ENS website General link',
+    });
   }
 }
 

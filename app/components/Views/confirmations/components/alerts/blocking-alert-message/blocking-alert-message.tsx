@@ -1,12 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useAlerts } from '../../../context/alert-system-context';
 import styleSheet from './blocking-alert-message.styles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 /**
  * Renders the first blocking alert message from the alert context.
@@ -27,8 +28,8 @@ export const BlockingAlertMessage: React.FC = React.memo(() => {
     <View style={styles.container}>
       {typeof blockingAlertMessage === 'string' ? (
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Error}
+          variant={TextVariant.BodyMd}
+          color={TextColor.ErrorDefault}
           style={styles.message}
         >
           {blockingAlertMessage}

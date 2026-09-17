@@ -1,18 +1,17 @@
+import { mapLocalTransaction } from '@metamask/client-utils';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
 import {
+  enrichLocalActivity,
   getActivityFromTo,
   getActivityValue,
-  mapLocalTransaction,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
+  prepareLocalTransactionGroup,
   type ActivityListItem,
   type TransactionGroup,
 } from '../../../util/activity-adapters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity enrichment, kept next to the Activity list that owns it; route-isolation backlog
-import {
-  getBridgeActivityStatus,
-  getSwapTokenEnrichment,
-} from '../../Views/ActivityList/hooks/useLocalActivityItems';
 
 export type TransactionWithImportTime = TransactionMeta & {
   insertImportTime?: boolean;
@@ -37,13 +36,8 @@ export const mapTransactionToActivityItem = ({
   nativeAssetSymbol?: string;
   currentChainId?: Hex;
   tokenChainId?: Hex;
-  /**
-   * Bridge/swaps history entry for this tx. Carries the quote that names both
-   * swap legs — without it a unified swap has no resolvable destination and the
-   * adapter degrades the row to `swapIncomplete`.
-   */
   bridgeHistoryItem?: BridgeHistoryItem;
-}) => {
+}): ActivityListItem => {
   const chainId = tx.chainId ?? tokenChainId ?? currentChainId;
   const transaction = {
     ...tx,
@@ -93,7 +87,17 @@ export const mapTransactionToActivityItem = ({
       : {}),
   };
 
-  return mapLocalTransaction(transactionGroup);
+  const prepared = prepareLocalTransactionGroup(transactionGroup);
+
+  return {
+    ...enrichLocalActivity(
+      mapLocalTransaction(
+        prepared as Parameters<typeof mapLocalTransaction>[0],
+      ) as ActivityListItem,
+      prepared,
+    ),
+    raw: { type: 'localTransaction' as const, data: transactionGroup },
+  };
 };
 
 export const getTransactionDetailsParams = ({

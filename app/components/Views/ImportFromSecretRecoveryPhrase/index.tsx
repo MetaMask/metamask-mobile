@@ -42,6 +42,7 @@ import { captureException } from '@sentry/react-native';
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import type {
@@ -84,13 +85,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
 import type { AuthData } from '../../../core/Authentication/Authentication';
-import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
@@ -106,21 +108,21 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import {
   TraceName,
   endTrace,
   trace,
   TraceOperation,
   TraceContext,
+  getTraceContext,
 } from '../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
-import {
-  selectQrSyncImportMnemonic,
-  selectQrSyncPrimaryMnemonic,
-} from '../../../selectors/qrSyncController';
+import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
@@ -138,7 +140,6 @@ interface HandleWalletImportFailureParams {
   track: TrackFn;
   navigation: NativeStackNavigationProp<ParamListBase>;
   isMetricsEnabled: () => boolean;
-  onboardingTraceCtx?: TraceContext;
 }
 
 function handleWalletImportFailure({
@@ -146,18 +147,21 @@ function handleWalletImportFailure({
   track,
   navigation,
   isMetricsEnabled,
-  onboardingTraceCtx,
 }: HandleWalletImportFailureParams) {
   track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
     wallet_setup_type: 'import',
     error_type: importError.toString(),
   });
 
-  if (onboardingTraceCtx) {
+  // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+  const journeyCtx = getTraceContext({
+    name: TraceName.OnboardingJourneyOverall,
+  });
+  if (journeyCtx) {
     trace({
       name: TraceName.OnboardingPasswordSetupError,
       op: TraceOperation.OnboardingUserJourney,
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
       tags: { errorMessage: importError.toString() },
     });
     endTrace({ name: TraceName.OnboardingPasswordSetupError });
@@ -197,7 +201,6 @@ function handleWalletImportFailure({
 
 interface ImportFromSecretRecoveryPhraseRouteParams {
   qrSyncImport?: boolean;
-  onboardingTraceCtx?: TraceContext;
   oauthLoginSuccess?: boolean;
   previous_screen?: string;
 }
@@ -229,15 +232,14 @@ const PasswordVisibilityToggle = ({
  */
 const ImportFromSecretRecoveryPhrase = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const route =
     useRoute<
       RouteProp<{ params: ImportFromSecretRecoveryPhraseRouteParams }, 'params'>
     >();
   const dispatch = useDispatch();
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
-  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
-  const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
-  const qrSyncMnemonic = qrSyncImportMnemonic ?? qrSyncPrimaryMnemonic;
+  const qrSyncMnemonic = useSelector(selectQrSyncImportMnemonic);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -256,6 +258,18 @@ const ImportFromSecretRecoveryPhrase = () => {
     null,
   );
   const [loading, setLoading] = useState(false);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.IMPORT_SRP,
+    properties: {
+      wallet_setup_type: 'import',
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
@@ -308,9 +322,9 @@ const ImportFromSecretRecoveryPhrase = () => {
   // Ownership marker: this screen is also reachable outside onboarding (e.g. the QR device-sync
   // flow in AddDeviceToWallet). Onboarding traces must only be ended by the flow that owns them,
   // so gate cleanup on the explicit PREVIOUS_SCREEN === ONBOARDING marker set by
-  // Onboarding.onPressImport. Do NOT infer ownership from route.params.onboardingTraceCtx:
-  // buffered tracing (consent not yet decided) legitimately returns undefined for a trace that is
-  // still owned by onboarding.
+  // Onboarding.onPressImport. Do NOT infer ownership from getTraceContext: buffered tracing
+  // (consent not yet decided) legitimately returns undefined for a trace that is still owned
+  // by onboarding.
   const isOnboardingFlow = route?.params?.[PREVIOUS_SCREEN] === ONBOARDING;
 
   // Fix 2: if the user leaves this screen without completing the import, close the spans this
@@ -419,7 +433,9 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   const onBackPress = () => {
     if (isQrSyncImport) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
     if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();
@@ -516,13 +532,15 @@ const ImportFromSecretRecoveryPhrase = () => {
       return;
     }
     animateToStep(currentStep + 1);
-    // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
-    if (onboardingTraceCtx) {
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
+    if (journeyCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
+        parentContext: journeyCtx,
       });
     }
   };
@@ -587,7 +605,10 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
 
     setLoading(true);
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
 
     let authData: AuthData;
@@ -595,7 +616,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       trace({
         name: TraceName.OnboardingSRPAccountImportTime,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
+        parentContext: journeyCtx,
         tags: {
           is_social_login: oauthLoginSuccess,
           account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
@@ -626,7 +647,6 @@ const ImportFromSecretRecoveryPhrase = () => {
         track,
         navigation,
         isMetricsEnabled,
-        onboardingTraceCtx,
       });
       return;
     }
@@ -683,8 +703,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
   };
 
-  const isError =
-    password !== '' && confirmPassword !== '' && password !== confirmPassword;
+  const isError = shouldShowPasswordMismatchError(password, confirmPassword);
 
   const showWhatIsSeedPhrase = () => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {

@@ -39,6 +39,7 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { useRoute } from '@react-navigation/native';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { fireEvent } from '@testing-library/react-native';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
@@ -54,6 +55,7 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -87,6 +89,12 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+// Reaches the Money Account balance query via `useIsMoneyAccountFlagDefault`,
+// which the `usePayWithMoneyAccountSection` mock above does not intercept.
+jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
+  // Not a jest.fn(): `jest.resetAllMocks()` below would wipe its return value.
+  usePayMoneyAccountAvailable: () => ({ isAvailable: true, isPending: false }),
+}));
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
@@ -319,6 +327,24 @@ describe('CustomAmountInfo', () => {
   const useTransactionCustomAmountMock = jest.mocked(
     useTransactionCustomAmount,
   );
+  type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
+  const createCustomAmountMock = (
+    overrides: Partial<CustomAmountMock> = {},
+  ): CustomAmountMock => ({
+    amountFiat: '123.45',
+    amountHuman: '0',
+    amountHumanDebounced: '0',
+    amountFiatDebounced: '0',
+    depositPrefillStatus: DepositPrefillStatus.Disabled,
+    hasInput: true,
+    hasPrefetchedQuote: false,
+    isInputChanged: false,
+    isPrefillPending: false,
+    updatePendingAmount: noop,
+    updatePendingAmountPercentage: () => false,
+    updateTokenAmount: jest.fn(),
+    ...overrides,
+  });
 
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -379,22 +405,7 @@ describe('CustomAmountInfo', () => {
       setPayToken: noop as never,
     });
 
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: jest.fn(),
-    });
+    useTransactionCustomAmountMock.mockReturnValue(createCustomAmountMock());
 
     useConfirmationContextMock.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
@@ -419,10 +430,7 @@ describe('CustomAmountInfo', () => {
       fieldAlerts: [] as Alert[],
     } as AlertsContextParams);
 
-    useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: undefined,
-      alertMessage: undefined,
-    });
+    useTransactionCustomAmountAlertsMock.mockReturnValue({});
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayAvailableTokensMock.mockReturnValue({
@@ -464,6 +472,27 @@ describe('CustomAmountInfo', () => {
     expect(getByText('0 TST')).toBeDefined();
   });
 
+  it('edits the keypad from the truncated amount rather than the full-precision one', () => {
+    // Regression: Max stores the exact balance, so feeding the raw value to
+    // the keypad left hidden decimals that had to be backspaced away one at a
+    // time before the displayed amount changed.
+    const updatePendingAmount = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '50.389',
+        updatePendingAmount,
+      }),
+    );
+
+    const { getByText, getByTestId } = render();
+
+    expect(getByText('50.38')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
+
+    expect(updatePendingAmount).toHaveBeenCalledWith('50.3');
+  });
+
   it('sets up back swipe rejection', () => {
     render();
 
@@ -488,10 +517,9 @@ describe('CustomAmountInfo', () => {
       txParams: { from: '0x123' },
     } as never);
     setControllerTransactions([{ id: 'withdraw-tx-id' }]);
-    useTransactionCustomAmountMock.mockReturnValue({
-      ...useTransactionCustomAmountMock(),
-      updateTokenAmount,
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ updateTokenAmount }),
+    );
     // No quotes for a direct transfer, and the required-token amount never
     // resolves (missing fiat rate on device), so hasAmount stays false. The
     // Loading override must still settle purely because disablePay is set.
@@ -523,35 +551,24 @@ describe('CustomAmountInfo', () => {
     ).not.toBeDisabled();
   });
 
-  it('renders alert', () => {
+  it('renders help text under the amount when a blocking error is present', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: 'Test Alert Title',
-      alertMessage: 'Test Alert Message',
+      alertMessage: 'Test Help Text',
     });
 
-    const { getByText } = render();
+    const { getByTestId, getByText } = render();
 
-    expect(getByText('Test Alert Title')).toBeDefined();
-    expect(getByText('Test Alert Message')).toBeDefined();
+    expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
+    expect(getByText('Test Help Text')).toBeDefined();
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '0',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: false,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: jest.fn(),
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        hasInput: false,
+      }),
+    );
     useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render({
@@ -730,10 +747,9 @@ describe('CustomAmountInfo', () => {
         txParams: { from: '0x123' },
       } as never);
       setControllerTransactions([{ id: transactionId }]);
-      useTransactionCustomAmountMock.mockReturnValue({
-        ...useTransactionCustomAmountMock(),
-        updateTokenAmount,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({ updateTokenAmount }),
+      );
 
       return { deferred, updateTokenAmount };
     }
@@ -815,6 +831,11 @@ describe('CustomAmountInfo', () => {
         deferred.resolve();
         await deferred.promise;
       });
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
       expect(view.queryByTestId('bridge-fee-row')).not.toBeOnTheScreen();
@@ -986,7 +1007,7 @@ describe('CustomAmountInfo', () => {
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
-    it('keeps preparation active while the amount update is pending', async () => {
+    it('unblocks review rows when quote loading starts before the amount update settles', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -1007,7 +1028,7 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
-      ).toBe('none');
+      ).toBe('auto');
 
       await act(async () => {
         deferred.resolve();
@@ -1069,7 +1090,7 @@ describe('CustomAmountInfo', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the universal loading review until Redux observes controller loading', async () => {
+    it('unblocks non-Money review rows once quote loading starts', async () => {
       const deferred = createDeferredPromise();
       const nonMoneyTransactionId = 'non-money-transaction';
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -1077,10 +1098,11 @@ describe('CustomAmountInfo', () => {
         type: TransactionType.contractInteraction,
         txParams: { from: '0x123' },
       } as never);
-      useTransactionCustomAmountMock.mockReturnValue({
-        ...useTransactionCustomAmountMock(),
-        updateTokenAmount: jest.fn(() => deferred.promise),
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          updateTokenAmount: jest.fn(() => deferred.promise),
+        }),
+      );
       const view = render();
 
       fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
@@ -1108,7 +1130,7 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
-      ).toBe('none');
+      ).toBe('auto');
 
       // A fresh, non-empty quote settles the override into the populated review.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -1134,22 +1156,9 @@ describe('CustomAmountInfo', () => {
 
   it('calls updateTokenAmount when Done is pressed', async () => {
     const updateTokenAmountMock = jest.fn();
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: updateTokenAmountMock,
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ updateTokenAmount: updateTokenAmountMock }),
+    );
 
     const { getByText } = render();
 
@@ -1201,22 +1210,9 @@ describe('CustomAmountInfo', () => {
       txParams: { from: '0x123' },
     } as never);
     setControllerTransactions([{ id: TRANSACTION_ID_MOCK }]);
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: updateTokenAmountMock,
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ updateTokenAmount: updateTokenAmountMock }),
+    );
 
     const { getByText, queryByText, getByTestId } = render({
       onAmountSubmit: mockOnAmountSubmit,
@@ -1254,22 +1250,9 @@ describe('CustomAmountInfo', () => {
     } as never);
     // Confirmation dismissed by back navigation: the transaction is gone.
     setControllerTransactions([]);
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: updateTokenAmountMock,
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ updateTokenAmount: updateTokenAmountMock }),
+    );
 
     const { getByText } = render({
       onAmountSubmit: mockOnAmountSubmit,
@@ -1295,22 +1278,9 @@ describe('CustomAmountInfo', () => {
     } as never);
     // Tracked transaction is gone; an unrelated one still lingers in state.
     setControllerTransactions([{ id: 'unrelated-tx-id' }]);
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: updateTokenAmountMock,
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({ updateTokenAmount: updateTokenAmountMock }),
+    );
 
     const { getByText } = render({
       onAmountSubmit: mockOnAmountSubmit,
@@ -1349,7 +1319,6 @@ describe('CustomAmountInfo', () => {
     });
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: strings('confirm.custom_amount.insufficient_funds'),
       alertMessage: strings('alert_system.account_no_funds.message'),
     });
 
@@ -1357,8 +1326,7 @@ describe('CustomAmountInfo', () => {
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
-    // The alert message appears in AlertMessage and in the keyboard's alertMessage
-    // prop now that hasFiatOption=true (asset-provider path). Check at least one.
+    // The help text renders under the amount for the blocking error.
     expect(
       getAllByText(strings('alert_system.account_no_funds.message'))[0],
     ).toBeOnTheScreen();
@@ -1410,22 +1378,9 @@ describe('CustomAmountInfo', () => {
   describe('hasMax percentage button', () => {
     beforeEach(() => {
       // Percentage buttons only render when hasInput is false.
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '0',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: jest.fn(),
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({ amountFiat: '0', hasInput: false }),
+      );
     });
 
     it('renders Max when hasMax=true and pay token is non-native', () => {
@@ -1548,22 +1503,14 @@ describe('CustomAmountInfo', () => {
 
     beforeEach(() => {
       updatePendingAmountPercentageMock.mockReturnValue(true);
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '0',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          hasInput: false,
+          updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
     });
 
     it('hides keyboard immediately when Max is pressed', async () => {
@@ -1595,22 +1542,15 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText('Max'));
       });
 
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '50',
-        amountHuman: '0.05',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          amountHuman: '0.05',
+          hasInput: false,
+          updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       await act(async () => {
         rerender(
@@ -1634,22 +1574,15 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText('Max'));
       });
 
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '50',
-        amountHuman: '0.05',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          amountHuman: '0.05',
+          hasInput: false,
+          updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       await act(async () => {
         rerender(
@@ -1701,22 +1634,15 @@ describe('CustomAmountInfo', () => {
       // amountFiat is already the max (e.g. defaultAmount / prefill) while
       // percentage buttons are still shown. Max must commit via the Loading
       // stage transition, not wait for amountFiat to change.
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '50',
-        amountHuman: '0.05',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          amountHuman: '0.05',
+          hasInput: false,
+          updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       const { getByText } = render({ hasMax: true });
 
@@ -1854,10 +1780,11 @@ describe('CustomAmountInfo', () => {
     it('does not fire RAMPS_ORDER_PROPOSED and shows toast when applying the amount throws on Done', async () => {
       setMoneyFlow();
       const error = new Error('update failed');
-      useTransactionCustomAmountMock.mockReturnValue({
-        ...useTransactionCustomAmountMock(),
-        updateTokenAmount: jest.fn().mockRejectedValue(error),
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          updateTokenAmount: jest.fn().mockRejectedValue(error),
+        }),
+      );
 
       const { getByText } = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -1926,13 +1853,12 @@ describe('CustomAmountInfo', () => {
     });
 
     // Money-account deposit is the only wired surface; perps / prediction /
-    // withdraw / mUSD render this shared screen but resolve to an undefined
+    // withdraw render this shared screen but resolve to an undefined
     // surface, so the funnel stays inert (reverts FIX 1).
     it.each([
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.moneyAccountWithdraw,
-      TransactionType.musdConversion,
     ])('fires no RAMPS funnel events for %s on Done', async (type) => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
@@ -2126,22 +2052,11 @@ describe('CustomAmountInfo', () => {
     } as never);
     setControllerTransactions([{ id: TRANSACTION_ID_MOCK }]);
 
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: false,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: jest.fn().mockRejectedValue(new Error('fail')),
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        updateTokenAmount: jest.fn().mockRejectedValue(new Error('fail')),
+      }),
+    );
 
     const { getByText } = render();
 
@@ -2194,22 +2109,11 @@ describe('CustomAmountInfo', () => {
   });
 
   it('shows keyboard immediately when autoSelectFiatPayment is set even with prefill enabled', () => {
-    useTransactionCustomAmountMock.mockReturnValue({
-      amountFiat: '123.45',
-      amountHuman: '0',
-      amountHumanDebounced: '0',
-      amountFiatDebounced: '0',
-      hasInput: true,
-      hasPrefetchedQuote: false,
-      isDepositPrefillEnabled: true,
-      isDepositPrefilled: false,
-      isInputChanged: false,
-      isPrefillPending: false,
-      isDepositPrefillLoading: false,
-      updatePendingAmount: noop,
-      updatePendingAmountPercentage: () => false,
-      updateTokenAmount: jest.fn(),
-    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        depositPrefillStatus: DepositPrefillStatus.Skipped,
+      }),
+    );
 
     const { getByTestId } = render({ autoSelectFiatPayment: true });
 
@@ -2234,6 +2138,67 @@ describe('CustomAmountInfo', () => {
     expect(
       getByText(strings('confirm.custom_amount.buy_predict')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders headless buy error when no alert message is present', () => {
+    const headlessBuyError = 'Unable to complete purchase';
+
+    useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
+      headlessBuyError,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
+      setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
+    } as ReturnType<typeof useConfirmationContext>);
+
+    const { getByText } = render();
+
+    expect(getByText(headlessBuyError)).toBeOnTheScreen();
+  });
+
+  it('keeps Done enabled and final confirm disabled when only a headless buy error is present', async () => {
+    const headlessBuyError = 'Unable to complete purchase';
+
+    useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
+      headlessBuyError,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
+      setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
+    } as ReturnType<typeof useConfirmationContext>);
+
+    const { getByTestId } = render();
+
+    // Continue is allowed: the headless buy error does not disable Done.
+    const doneButton = getByTestId('deposit-keyboard-done-button');
+    expect(doneButton).not.toBeDisabled();
+
+    // Advance to the review stage and assert the final confirm is blocked.
+    await act(async () => {
+      fireEvent.press(doneButton);
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('resets submitting state when onConfirm rejects', async () => {
@@ -2275,43 +2240,25 @@ describe('CustomAmountInfo', () => {
   describe('prefill auto-submit', () => {
     it('calls handleDone when isPrefillPending transitions to false', async () => {
       const updateTokenAmountMock = jest.fn();
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '50',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: true,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: true,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: true,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          isPrefillPending: true,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       const { rerender } = render();
 
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
 
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '50',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: true,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: true,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          isPrefillPending: false,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       await act(async () => {
         rerender(
@@ -2327,22 +2274,13 @@ describe('CustomAmountInfo', () => {
     it('auto-submits when prefill is ready and keyboard is hidden', async () => {
       const updateTokenAmountMock = jest.fn();
       const onAmountSubmitMock = jest.fn();
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: true,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: true,
-        isDepositPrefilled: true,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '100',
+          depositPrefillStatus: DepositPrefillStatus.Prefilled,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       render({ onAmountSubmit: onAmountSubmitMock });
       await act(async () => {
@@ -2355,22 +2293,12 @@ describe('CustomAmountInfo', () => {
 
     it('does not auto-submit while the keyboard is visible', () => {
       const updateTokenAmountMock = jest.fn();
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: true,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: true,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '100',
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       render();
 
@@ -2380,22 +2308,12 @@ describe('CustomAmountInfo', () => {
     it('does not duplicate handleDone when user taps Done with a pending prefill', async () => {
       const updateTokenAmountMock = jest.fn();
       const onAmountSubmitMock = jest.fn();
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '100',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: true,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: false,
-        isDepositPrefilled: true,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: updateTokenAmountMock,
-      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '100',
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
 
       const { getByText } = render({ onAmountSubmit: onAmountSubmitMock });
 
@@ -2413,28 +2331,21 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  describe('skipDepositPrefill – keyboard and loading for fiat flows', () => {
-    function setupDepositPrefillEnabled() {
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '0',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: true,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: false,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: jest.fn(),
-      });
+  describe('deposit prefill status', () => {
+    function setupDepositPrefill(
+      status: DepositPrefillStatus = DepositPrefillStatus.Loading,
+    ) {
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          hasInput: false,
+          depositPrefillStatus: status,
+        }),
+      );
     }
 
     it('shows keyboard when autoSelectFiatPayment is true and deposit prefill is enabled', () => {
-      setupDepositPrefillEnabled();
+      setupDepositPrefill(DepositPrefillStatus.Skipped);
 
       const { getByTestId } = render({ autoSelectFiatPayment: true });
 
@@ -2442,7 +2353,7 @@ describe('CustomAmountInfo', () => {
     });
 
     it('shows keyboard when fiat payment is selected with no pay token', () => {
-      setupDepositPrefillEnabled();
+      setupDepositPrefill(DepositPrefillStatus.Skipped);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: undefined,
         setPayToken: noop as never,
@@ -2457,7 +2368,7 @@ describe('CustomAmountInfo', () => {
     });
 
     it('shows keyboard when no tokens are available and no pay token is set', () => {
-      setupDepositPrefillEnabled();
+      setupDepositPrefill(DepositPrefillStatus.Skipped);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: undefined,
         setPayToken: noop as never,
@@ -2481,24 +2392,8 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
     });
 
-    it('does not show amount skeleton when autoSelectFiatPayment is true and prefill is loading', () => {
-      setupDepositPrefillEnabled();
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '0',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: true,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: true,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: jest.fn(),
-      });
+    it('does not show amount skeleton when fiat auto-selection skips prefill', () => {
+      setupDepositPrefill(DepositPrefillStatus.Skipped);
 
       const { queryByTestId, getByTestId } = render({
         autoSelectFiatPayment: true,
@@ -2508,23 +2403,34 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
     });
 
-    it('does not show amount skeleton when no tokens and no pay token even if prefill loading', () => {
-      useTransactionCustomAmountMock.mockReturnValue({
-        amountFiat: '0',
-        amountHuman: '0',
-        amountHumanDebounced: '0',
-        amountFiatDebounced: '0',
-        hasInput: false,
-        hasPrefetchedQuote: false,
-        isDepositPrefillEnabled: true,
-        isDepositPrefilled: false,
-        isInputChanged: false,
-        isPrefillPending: false,
-        isDepositPrefillLoading: true,
-        updatePendingAmount: noop,
-        updatePendingAmountPercentage: () => false,
-        updateTokenAmount: jest.fn(),
+    it('does not show amount skeleton when no tokens skips prefill', () => {
+      setupDepositPrefill(DepositPrefillStatus.Skipped);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
       });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      const { queryByTestId, getByTestId } = render();
+
+      expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+    });
+
+    it('shows amount skeleton while tokens have not loaded yet and prefill is enabled', () => {
+      setupDepositPrefill();
       useTransactionPayTokenMock.mockReturnValue({
         payToken: undefined,
         setPayToken: noop as never,
@@ -2534,14 +2440,48 @@ describe('CustomAmountInfo', () => {
         hasTokens: false,
       });
 
-      const { queryByTestId, getByTestId } = render();
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
+      expect(queryByTestId('custom-amount-input')).toBeNull();
+    });
+
+    it('shows the zero amount and keyboard when the pay token has no balance', () => {
+      setupDepositPrefill(DepositPrefillStatus.Skipped);
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
 
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
+    it('shows the zero amount and keeps it pressable after prefill finishes with no value', () => {
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          hasInput: false,
+          depositPrefillStatus: DepositPrefillStatus.Prefilled,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
+        expect.any(Function),
+      );
     });
 
     it('hides keyboard when deposit prefill is enabled and tokens are available', () => {
-      setupDepositPrefillEnabled();
+      setupDepositPrefill();
 
       const { queryByTestId } = render();
 

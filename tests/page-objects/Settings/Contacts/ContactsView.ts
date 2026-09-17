@@ -2,14 +2,14 @@ import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settin
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class ContactsView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ContactsViewSelectorIDs.CONTAINER);
   }
 
-  get addButton(): EncapsulatedElementType {
+  get addButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON);
   }
 

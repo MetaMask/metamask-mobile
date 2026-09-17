@@ -26,6 +26,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RampsService',
   'TransakService',
   'ComplianceService',
+  'KycService',
   'QrSyncProvisioningService',
   'SocialService',
   'AuthenticatedUserStorageService',
@@ -34,7 +35,9 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ConfigRegistryApiService',
   'ChompApiService',
   'SentinelApiService',
-  'PredictNextController',
+  'PredictMarketDataService',
+  'PredictLiveDataService',
+  'PredictPortfolioService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -109,10 +112,12 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
+  'UiSlotsController:stateChanged',
   'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
+  'KycController:stateChange',
   'SocialController:stateChange',
   'QrSyncController:stateChange',
 ] as const;

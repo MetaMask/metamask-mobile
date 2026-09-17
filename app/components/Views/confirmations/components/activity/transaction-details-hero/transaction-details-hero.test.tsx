@@ -434,7 +434,7 @@ describe('TransactionDetailsHero', () => {
 
         const { getByText, queryByText } = render();
 
-        expect(getByText(/^-\$1$/)).toBeDefined();
+        expect(getByText(/^-\$1\.00$/)).toBeDefined();
         expect(getByText(/\+\$0\.75/)).toBeDefined();
         expect(queryByText(/\$1\.25/)).toBeNull();
       });
@@ -534,7 +534,7 @@ describe('TransactionDetailsHero', () => {
 
       const { getByText, queryByText } = render();
 
-      expect(getByText(/-\$1$/)).toBeDefined();
+      expect(getByText(/-\$1\.00$/)).toBeDefined();
       expect(queryByText(/\$0/)).toBeNull();
     });
 
@@ -621,6 +621,23 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+\$100/)).toBeDefined();
       expect(queryByText('You sent')).toBeNull();
       expect(queryByText('You received')).toBeNull();
+    });
+
+    it('keeps two decimals on a whole-dollar deposit', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            targetFiat: '1',
+            fiat: { orderId: 'order-123' },
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText(/^\+\$1\.00$/)).toBeDefined();
     });
 
     it('renders single-row mUSD deposit hero with Money Account icon', () => {

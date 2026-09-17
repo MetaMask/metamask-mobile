@@ -3,6 +3,7 @@ import { useCurrentCryptoUpDownMarketData } from './useCurrentCryptoUpDownMarket
 import { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFromSeries';
 import { useCryptoTargetPrice } from './useCryptoTargetPrice';
 import { useCryptoUpDownChartData } from './useCryptoUpDownChartData';
+import { useLiveCryptoPrice } from './useLiveCryptoPrice';
 import { Recurrence, type PredictMarket, type PredictSeries } from '../types';
 
 jest.mock('./useCurrentPredictMarketFromSeries', () => ({
@@ -17,10 +18,15 @@ jest.mock('./useCryptoUpDownChartData', () => ({
   useCryptoUpDownChartData: jest.fn(),
 }));
 
+jest.mock('./useLiveCryptoPrice', () => ({
+  useLiveCryptoPrice: jest.fn(),
+}));
+
 const mockUseCurrentPredictMarketFromSeries =
   useCurrentPredictMarketFromSeries as jest.Mock;
 const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
 const mockUseCryptoUpDownChartData = useCryptoUpDownChartData as jest.Mock;
+const mockUseLiveCryptoPrice = useLiveCryptoPrice as jest.Mock;
 
 const SERIES: PredictSeries = {
   id: 'btc-series',
@@ -70,6 +76,7 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       isLive: true,
       window: 300,
     });
+    mockUseLiveCryptoPrice.mockReturnValue({ value: undefined });
   });
 
   afterEach(() => {
@@ -91,6 +98,7 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       eventStartTime: '2026-01-01T00:00:00.000Z',
       variant: 'fiveminute',
       endDate: MARKET.endDate,
+      twapWindowSeconds: undefined,
       enabled: true,
     });
     expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(MARKET, 93000, {
@@ -176,6 +184,29 @@ describe('useCurrentCryptoUpDownMarketData', () => {
     expect(result.current.currentPrice).toBe(93025);
   });
 
+  it('fetches the target price using the market TWAP window', () => {
+    const twapMarket = {
+      ...MARKET,
+      twapWindowSeconds: 60 as const,
+    };
+    mockUseCurrentPredictMarketFromSeries.mockReturnValue({
+      market: twapMarket,
+      marketId: twapMarket.id,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    renderHook(() => useCurrentCryptoUpDownMarketData({ series: SERIES }));
+
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        twapWindowSeconds: 60,
+      }),
+    );
+  });
+
   it('keeps downstream price hooks disabled until the series market resolves', () => {
     mockUseCurrentPredictMarketFromSeries.mockReturnValue({
       market: undefined,
@@ -195,5 +226,72 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       undefined,
       { enabled: false },
     );
+  });
+
+  describe('withChartData: false', () => {
+    it('sources currentPrice from useLiveCryptoPrice instead of the chart data', () => {
+      mockUseLiveCryptoPrice.mockReturnValue({ value: 93042 });
+
+      const { result } = renderHook(() =>
+        useCurrentCryptoUpDownMarketData({
+          series: SERIES,
+          withChartData: false,
+        }),
+      );
+
+      expect(mockUseLiveCryptoPrice).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        enabled: true,
+        twapWindowSeconds: undefined,
+        updateIntervalMs: undefined,
+      });
+      expect(result.current.currentPrice).toBe(93042);
+    });
+
+    it('disables the chart data hook so it never builds a point-history array', () => {
+      renderHook(() =>
+        useCurrentCryptoUpDownMarketData({
+          series: SERIES,
+          withChartData: false,
+        }),
+      );
+
+      expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(MARKET, 93000, {
+        enabled: false,
+      });
+    });
+
+    it('does not factor chart loading state into isLoading', () => {
+      mockUseCryptoUpDownChartData.mockReturnValue({
+        data: [],
+        value: 0,
+        loading: true,
+        isLive: true,
+        window: 300,
+      });
+
+      const { result } = renderHook(() =>
+        useCurrentCryptoUpDownMarketData({
+          series: SERIES,
+          withChartData: false,
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('forwards a custom price update interval to useLiveCryptoPrice', () => {
+      renderHook(() =>
+        useCurrentCryptoUpDownMarketData({
+          series: SERIES,
+          withChartData: false,
+          priceUpdateIntervalMs: 2000,
+        }),
+      );
+
+      expect(mockUseLiveCryptoPrice).toHaveBeenCalledWith(
+        expect.objectContaining({ updateIntervalMs: 2000 }),
+      );
+    });
   });
 });

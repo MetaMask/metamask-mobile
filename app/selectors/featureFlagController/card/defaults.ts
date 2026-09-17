@@ -1,6 +1,7 @@
 import type {
   CardFeatureFlag,
   CardProviderChains,
+  CardUkMigrationFlag,
   ImmersveProgramConfig,
 } from './types';
 
@@ -171,10 +172,18 @@ export const DEFAULT_IMMERSVE_CONFIG: ImmersveProgramConfig = {
   fundingChannelId: '',
   spenderAddress: '',
   secureApiBaseUrl: '',
+  reportTransactionUrl:
+    'https://help.immersve.com/hc/en-us/requests/new?ticket_form_id=22905679582745',
 };
 
 /** Fallback for the `cardImmersveCountries` flag. */
 export const DEFAULT_IMMERSVE_COUNTRIES: string[] = ['GB'];
+
+/** Fallback for the `cardUkMigration` flag (off until remote enables it). */
+export const defaultCardUkMigrationFlag: CardUkMigrationFlag = {
+  enabled: false,
+  minimumVersion: '0.0.0',
+};
 
 /**
  * Fallback for the `cardImmersveChains` flag — mirrors the networks and USDC

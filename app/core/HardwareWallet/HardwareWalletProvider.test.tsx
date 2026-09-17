@@ -7,7 +7,12 @@ import { HardwareWalletProvider } from './HardwareWalletProvider';
 import { useHardwareWallet } from './contexts';
 import { getHardwareWalletTypeForAddress } from './helpers';
 import { createAdapter } from './adapters';
-import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletType,
+  ConnectionStatus,
+  DeviceEvent,
+  DeviceEventPayload,
+} from '@metamask/hw-wallet-sdk';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -210,6 +215,7 @@ describe('HardwareWalletProvider', () => {
             onDisconnect: expect.any(Function),
             onDeviceEvent: expect.any(Function),
           }),
+          expect.any(Boolean),
         );
       });
     });
@@ -226,6 +232,7 @@ describe('HardwareWalletProvider', () => {
           onDisconnect: expect.any(Function),
           onDeviceEvent: expect.any(Function),
         }),
+        expect.any(Boolean),
       );
     });
   });
@@ -278,6 +285,230 @@ describe('HardwareWalletProvider', () => {
 
         const adapter = mockCreateAdapter.mock.results[0]?.value;
         expect(adapter?.connect).toHaveBeenCalledWith('device-123');
+      });
+    });
+
+    describe('adapter lifecycle (regression: deviceId change must not destroy adapter)', () => {
+      it('destroys the Ledger adapter when switching to software after signing', async () => {
+        const { result, rerender } = renderWithActions();
+
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+          result.current.actions.showAwaitingConfirmation('transaction');
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        // The selected account is now software, while the stale device ID
+        // remains in provider state after the signing UI is dismissed.
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('destroys the Ledger adapter when switching to software while connected', async () => {
+        const { result, rerender } = renderWithActions();
+
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('destroys the Ledger adapter when switching to software while ready', async () => {
+        const { result, rerender } = renderWithActions();
+
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+          await result.current.actions.ensureDeviceReady('device-123');
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not destroy the adapter when a Connected event sets deviceId mid-flow', async () => {
+        renderWithActions();
+
+        // The Ledger adapter is created on mount (walletType=ledger). Grab the
+        // onDeviceEvent callback the provider registered with createAdapter.
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        expect(onDeviceEvent).toBeDefined();
+
+        // A Connected event is exactly what fires setters.setDeviceId(<mac>)
+        // in useDeviceEventHandlers during a real connect. Before the fix,
+        // deviceId was a dependency of the adapter-lifecycle effect, so this
+        // state change tore the adapter down (destroy) while an operation such
+        // as getAppNameAndNumber was still in flight, surfacing as
+        // "Adapter has been destroyed".
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+      });
+
+      it('keeps the adapter across an effectiveWalletType ledger→null→ledger blip (send account-context switch)', async () => {
+        const { result } = renderWithActions();
+
+        // Ledger adapter created on mount; simulate the device connecting and
+        // completing readiness (the precondition for the transient-null keep).
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+        });
+        await act(async () => {
+          await result.current.actions.ensureDeviceReady('device-123');
+        });
+
+        // Prime pendingOperationWalletType=Ledger. Later setPending calls with
+        // a lookup miss increment the pin count but must not clear this type.
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        const initialCreateCalls = mockCreateAdapter.mock.calls.length;
+
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(undefined);
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+        // Factory must not churn — the same adapter instance is retained.
+        expect(mockCreateAdapter.mock.calls.length).toBe(initialCreateCalls);
+      });
+
+      it('still destroys + recreates on a genuine wallet-type change (ledger → qr)', async () => {
+        const { result } = renderWithActions();
+
+        // Wait for the Ledger adapter to be created on mount.
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Ledger,
+            expect.any(Object),
+            expect.any(Boolean),
+          );
+        });
+
+        // Switch to a QR account: effectiveWalletType ledger → qr. This is a
+        // real type change, so the Ledger adapter MUST be destroyed. (The
+        // shared mock keeps walletType='Ledger', so isSameAdapterType is false.)
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Qr);
+          result.current.actions.setPendingOperationAddress('0xqr');
+        });
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalled();
+      });
+
+      it('keeps the Ledger adapter when switching to software during a pending operation', async () => {
+        const { result, rerender } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+      });
+
+      it('keeps the adapter until the last nested pending operation is cleared', async () => {
+        const { result, rerender } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0x1234');
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress(null);
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress(null);
+        });
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('keeps the Ledger adapter when targetWalletType changes to QR during a pending operation', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0x1234');
+          result.current.actions.setTargetWalletType(HardwareWalletType.Qr);
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
       });
     });
 
@@ -350,6 +581,7 @@ describe('HardwareWalletProvider', () => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Ledger,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
 
@@ -614,13 +846,14 @@ describe('HardwareWalletProvider', () => {
         );
       });
 
-      it('disconnects the active adapter so Ledger BLE is released after signing', async () => {
+      it('marks the connection disconnected without tearing down the adapter after signing', async () => {
         const { result } = renderWithActions();
 
         await waitFor(() => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Ledger,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
 
@@ -632,7 +865,12 @@ describe('HardwareWalletProvider', () => {
           result.current.actions.hideAwaitingConfirmation();
         });
 
-        expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+        // The adapter (and its BLE transport) is intentionally kept alive;
+        // only the connection status resets to Disconnected.
+        expect(mockAdapterInstance.disconnect).not.toHaveBeenCalled();
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
       });
     });
   });
@@ -1041,7 +1279,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('handleAwaitingConfirmationCancel (internal, via bottom sheet props)', () => {
-    it('disconnects adapter, invokes rejection callback, and hides confirmation', async () => {
+    it('invokes rejection callback and hides confirmation without disconnecting the adapter', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -1078,8 +1316,9 @@ describe('HardwareWalletProvider', () => {
         internalCancel();
       });
 
-      // Adapter should disconnect once via hideAwaitingConfirmation
-      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      // The adapter must NOT be disconnected — hideAwaitingConfirmation only
+      // resets the connection status.
+      expect(mockAdapterInstance.disconnect).not.toHaveBeenCalled();
       // Rejection callback should fire
       expect(onReject).toHaveBeenCalled();
       // State should return to disconnected
@@ -1088,7 +1327,7 @@ describe('HardwareWalletProvider', () => {
       );
     });
 
-    it('still hides confirmation and disconnects when rejection callback throws', async () => {
+    it('still hides confirmation when rejection callback throws', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -1115,6 +1354,7 @@ describe('HardwareWalletProvider', () => {
         expect(mockCreateAdapter).toHaveBeenCalledWith(
           HardwareWalletType.Ledger,
           expect.any(Object),
+          expect.any(Boolean),
         );
       });
 
@@ -1137,7 +1377,7 @@ describe('HardwareWalletProvider', () => {
       });
 
       expect(thrownError).toEqual(new Error('reject failed'));
-      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockAdapterInstance.disconnect).not.toHaveBeenCalled();
       expect(result.current.state.connectionState.status).toBe(
         ConnectionStatus.Disconnected,
       );

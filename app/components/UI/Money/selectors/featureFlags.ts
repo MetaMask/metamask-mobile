@@ -43,6 +43,17 @@ export const selectMoneyEnableActivityDetailsFlag = createSelector(
   },
 );
 
+export const selectMoneyEnableCardActivityEnrichmentFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableCardActivityEnrichment as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 /**
  * Selects whether the tilt-driven parallax animation is shown on the Money
  * onboarding "Next Best Action" card. Defaults to off (opt-in) so the feature
@@ -256,6 +267,24 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Selects whether the card education screen plays the Rive cards entrance.
+ * Defaults to off (opt-in) so the animation stays disabled unless the remote
+ * flag or MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED turns it on; the static
+ * image is used otherwise, when reduce-motion is enabled, or when Rive fails
+ * to load.
+ */
+export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local =
+      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

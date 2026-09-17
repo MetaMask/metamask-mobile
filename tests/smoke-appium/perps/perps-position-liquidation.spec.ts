@@ -2,10 +2,15 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokePerps } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
+import PerpsProMarketView from '../../page-objects/Perps/PerpsProMarketView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
 import { TestSuiteParams, Utilities } from '../../framework/index.js';
 import CommandQueueServer from '../../framework/fixtures/CommandQueueServer.js';
-import { openPosition } from '../../flows/perps.flow.js';
+import {
+  openPosition,
+  navigateToPerpsProEntry,
+  openPositionInPro,
+} from '../../flows/perps.flow.js';
 import {
   beginPerpsSmokeTestPlaywright,
   buildPerpsSmokeFixture,
@@ -82,6 +87,64 @@ appiumTest.describe(SmokePerps('Perps Position Liquidation'), () => {
               timeout: 30000,
               description:
                 'wait for Close position to disappear after liquidation',
+            },
+          );
+        },
+      );
+    },
+  );
+});
+
+appiumTest.describe(SmokePerps('Perps Pro - Position liquidation'), () => {
+  appiumTest(
+    'liquidates a long in Pro mode when mark price drops below the liquidation price',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildPerpsSmokeFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          permissions: PERPS_SMOKE_PERMISSIONS,
+          testSpecificMock: setupPerpsSmokeMocks,
+          useCommandQueueServer: true,
+        },
+        async ({ commandQueueServer }: TestSuiteParams) => {
+          if (!commandQueueServer) {
+            throw new Error('Command queue server not found');
+          }
+
+          await beginPerpsSmokeTestPlaywright();
+
+          await navigateToPerpsProEntry(PERPS_SMOKE_MARKET_SYMBOL);
+          await openPositionInPro(PERPS_SMOKE_MARKET_SYMBOL, 'long');
+
+          await queueLiquidationCheckAtPrice(
+            commandQueueServer,
+            PERPS_SMOKE_MARKET_SYMBOL,
+            NON_LIQUIDATING_MARK_PRICE,
+          );
+          await waitForCommandQueueToProcess(commandQueueServer);
+          await PerpsProMarketView.expectPositionRowVisible(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
+
+          await queueLiquidationCheckAtPrice(
+            commandQueueServer,
+            PERPS_SMOKE_MARKET_SYMBOL,
+            LIQUIDATING_MARK_PRICE,
+          );
+
+          await Utilities.executeWithRetry(
+            async () => {
+              await PerpsProMarketView.expectPositionRowNotVisible(
+                PERPS_SMOKE_MARKET_SYMBOL,
+              );
+            },
+            {
+              interval: 1000,
+              timeout: 30000,
+              description:
+                'wait for Pro long position to disappear after liquidation',
             },
           );
         },

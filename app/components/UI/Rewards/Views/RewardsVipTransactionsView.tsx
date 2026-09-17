@@ -107,8 +107,7 @@ const RewardsVipTransactionsView: React.FC = () => {
     isRefreshing,
   } = useGetVipTransactions(selectedType);
 
-  const headerTitle =
-    dashboard?.localizedText.transactionsTitle || 'Transactions';
+  const headerTitle = dashboard?.localizedText.transactionsTitle ?? '';
 
   const typeOptions = useMemo(
     () => [

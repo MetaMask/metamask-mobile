@@ -13,6 +13,7 @@ import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
 import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import { usePerpsDroppedHomeBack } from './usePerpsDroppedHomeBack';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
@@ -56,7 +57,7 @@ export const usePerpsMarketHeaderActions = ({
   const {
     navigateBack,
     navigateToWallet,
-    navigateToHome,
+    resetToHome,
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
@@ -74,14 +75,9 @@ export const usePerpsMarketHeaderActions = ({
   );
   const isWatchlist = useSelector(selectIsWatchlist);
 
-  const handleBackPress = useCallback(() => {
-    if (canGoBack) {
-      navigateBack();
-      return;
-    }
-
+  const leaveViaFallback = useCallback(() => {
     if (backFallback === 'home') {
-      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      resetToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
       return;
     }
 
@@ -89,7 +85,14 @@ export const usePerpsMarketHeaderActions = ({
     // Pro mode is active is itself a market screen, so falling back to it
     // here would often be a no-op. Leave Perps entirely instead.
     navigateToWallet();
-  }, [backFallback, canGoBack, navigateBack, navigateToHome, navigateToWallet]);
+  }, [backFallback, resetToHome, navigateToWallet]);
+
+  const handleBackPress = usePerpsDroppedHomeBack({
+    canGoBack,
+    navigateBack,
+    navigation,
+    leaveViaFallback,
+  });
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
@@ -108,8 +111,10 @@ export const usePerpsMarketHeaderActions = ({
 
     navigateToMarketListFromHeader({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      // Selection haptics on list rows are Pro-only; Lite stays silent.
+      enableHaptics: perpsMode === PerpsMode.Pro,
     });
-  }, [symbol, track, navigateToMarketListFromHeader]);
+  }, [symbol, track, navigateToMarketListFromHeader, perpsMode]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {
@@ -130,7 +135,6 @@ export const usePerpsMarketHeaderActions = ({
 
   const handlePerpsModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
-      // The market-header pill owns the shimmer delay; this fires once it ends.
       // The chooser gates every header toggle, so a user who reaches a market
       // without ever seeing it gets the sheet here and it owns the switch.
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {

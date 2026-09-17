@@ -2,7 +2,7 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type {
   PerpsNavigationParamList,
@@ -40,7 +40,7 @@ import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
 import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
 import PerpsOrderBookView from '../Views/PerpsOrderBookView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
-import ActivityView from '../../../Views/ActivityView';
+import ActivityScreen from '../../../Views/ActivityScreen';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
@@ -50,6 +50,7 @@ import { PayWithModal } from '../../../Views/confirmations/components/modals/pay
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { selectPerpsLastViewedMarketSymbol } from '../selectors/perpsController';
 import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
@@ -63,6 +64,13 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
+import { ConfirmationContextProvider } from '../../../Views/confirmations/context/confirmation-context';
+import { AlertsContextProvider } from '../../../Views/confirmations/context/alert-system-context';
+import { QRHardwareContextProvider } from '../../../Views/confirmations/context/qr-hardware-context';
+import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/components/confirmation-asset-polling-provider/confirmation-asset-polling-provider';
+import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
@@ -76,6 +84,14 @@ const styles = StyleSheet.create({
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
 ): NativeStackNavigationOptions {
+  if (params?.useBottomSheet) {
+    return {
+      ...transparentModalScreenOptions,
+      ...clearNativeStackNavigatorOptions,
+      title: '',
+      headerBackVisible: false,
+    };
+  }
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
@@ -92,13 +108,57 @@ export function getRedesignedConfirmationsHeaderOptions(
   };
 }
 
+const PerpsConfirmationAlerts = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
+  );
+};
+
+export const shouldRenderPerpsConfirmationLoader = (
+  useBottomSheet: boolean | undefined,
+  approvalRequest: unknown,
+) => Boolean(useBottomSheet && !approvalRequest);
+
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+  const { approvalRequest } = useApprovalRequest();
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
+
+  useEffect(() => {
+    if (params?.useBottomSheet) {
+      navigation.setOptions({ gestureEnabled: Boolean(approvalRequest) });
+    }
+  }, [approvalRequest, navigation, params?.useBottomSheet]);
+
+  if (
+    shouldRenderPerpsConfirmationLoader(params?.useBottomSheet, approvalRequest)
+  ) {
+    return <Confirm />;
+  }
+
+  if (params?.useBottomSheet) {
+    return (
+      <ConfirmationContextProvider>
+        <ConfirmationAssetPollingProvider>
+          <PerpsConfirmationAlerts>
+            <QRHardwareContextProvider>
+              <ConfirmationInfo />
+            </QRHardwareContextProvider>
+          </PerpsConfirmationAlerts>
+        </ConfirmationAssetPollingProvider>
+      </ConfirmationContextProvider>
+    );
+  }
 
   // When showPerpsHeader is false (deposit-and-trade / long-short flow), Confirm internally
   // calls navigation.setOptions({ headerShown: true }) for full-screen confirmations, which
@@ -256,6 +316,7 @@ const PerpsScreenStack = () => {
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
     : Routes.PERPS.PERPS_HOME;
@@ -333,7 +394,7 @@ const PerpsScreenStack = () => {
                 initialParams={
                   isProModeActive
                     ? {
-                        market: buildDefaultProMarket(),
+                        market: buildDefaultProMarket(lastViewedMarketSymbol),
                       }
                     : undefined
                 }
@@ -419,7 +480,7 @@ const PerpsScreenStack = () => {
               />
               <Stack.Screen
                 name={Routes.PERPS.ACTIVITY}
-                component={ActivityView}
+                component={ActivityScreen}
                 options={{
                   title: strings('activity_view.title'),
                   headerShown: false,

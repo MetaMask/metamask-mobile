@@ -179,6 +179,26 @@ describe('getCardDeclineReasonLabel', () => {
     ).toBe('Card blocked by issuer');
   });
 
+  it('humanizes the decline code when there is no message', () => {
+    expect(
+      getCardDeclineReasonLabel(
+        createTransaction({
+          declineReason: { code: 'cvv-invalid' },
+        }),
+      ),
+    ).toBe('Cvv invalid');
+  });
+
+  it('prefers the message over the code when both are present', () => {
+    expect(
+      getCardDeclineReasonLabel(
+        createTransaction({
+          declineReason: { code: 'cvv-invalid', message: 'CVV invalid' },
+        }),
+      ),
+    ).toBe('CVV invalid');
+  });
+
   it('returns undefined when there is no decline reason', () => {
     expect(getCardDeclineReasonLabel(createTransaction())).toBeUndefined();
     expect(getCardDeclineReasonLabel(undefined)).toBeUndefined();

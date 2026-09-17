@@ -24,20 +24,6 @@ export interface MarketRateLookupToken {
   chainId: Hex;
 }
 
-export function calculateFiatFromMarketRates(
-  amount: string | undefined,
-  token: MarketRateLookupToken | undefined,
-  marketRates: Record<number, Record<string, number>>,
-) {
-  if (amount === undefined || !token) {
-    return undefined;
-  }
-
-  const parsed = Number.parseFloat(amount);
-  const rate = marketRates[Number.parseInt(token.chainId, 16)]?.[token.address];
-  return rate === undefined ? undefined : parsed * rate;
-}
-
 export function getDisplaySignPrefix(
   direction: TokenAmount['direction'],
   { showPlus }: { showPlus: boolean },
@@ -57,8 +43,21 @@ export function getDisplaySignPrefix(
 export function getHumanReadableTokenAmount(
   token: TokenAmount,
 ): string | undefined {
-  if (!token.amount) {
+  if (
+    token.amount === undefined ||
+    token.amount === null ||
+    token.amount === ''
+  ) {
+    if (token.symbol || token.assetId) {
+      return '0';
+    }
     return undefined;
+  }
+
+  // Keyring amounts are already display units. Applying metadata decimals
+  // would treat "1" SOL as one lamport (1e-9).
+  if (token.amountIsHumanReadable) {
+    return unsignedAmount(token.amount);
   }
 
   let value: string;
@@ -68,7 +67,11 @@ export function getHumanReadableTokenAmount(
     value = token.amount;
   }
 
-  return value.startsWith('-') ? value.slice(1) : value;
+  return unsignedAmount(value);
+}
+
+function unsignedAmount(amount: string): string {
+  return amount.startsWith('-') ? amount.slice(1) : amount;
 }
 
 // Applies display + or - sign to a formatted display value
@@ -95,7 +98,7 @@ export function applyDisplaySign(
   return formattedDisplay;
 }
 
-export function getTokenAddressForMarketRates(
+function getTokenAddressForMarketRates(
   assetId: CaipAssetType | undefined,
 ): string | undefined {
   if (!assetId) {

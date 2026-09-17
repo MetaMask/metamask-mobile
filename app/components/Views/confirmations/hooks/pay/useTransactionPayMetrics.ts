@@ -24,12 +24,20 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import {
+  CRYPTO_PAY_SECTION_ID,
+  usePaySectionSourceMetrics,
+} from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
 import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { OnboardingCompletedAccountType } from '../../../../../util/analytics/onboardingCompletedAnalytics';
+
+const CRYPTO_ACCOUNT_TYPES = new Set<string>(
+  Object.values(OnboardingCompletedAccountType),
+);
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -70,7 +78,10 @@ export function useTransactionPayMetrics() {
 
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
-  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+  const recipientSource = CRYPTO_ACCOUNT_TYPES.has(source.selected)
+    ? CRYPTO_PAY_SECTION_ID
+    : source.selected;
+  const recipient = usePaySectionRecipientMetrics(recipientSource, hasPayToken);
 
   const isQuoteRequested =
     (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
@@ -174,31 +185,19 @@ export function useTransactionPayMetrics() {
   const isInfoLoaded =
     hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
 
+  // Anchors the *start* of "time to load info". `confirmation_time_to_open_ms`
+  // is owned by `useConfirmationLoadMetrics`, which anchors it at the
+  // confirmation body's first paint rather than at this hook's mount.
   const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
-
-  const didDispatchTimeToOpen = useRef(false);
   useEffect(() => {
     if (
-      didDispatchTimeToOpen.current ||
+      confirmationOpenedAtMs.current !== undefined ||
       typeof transactionMeta?.time !== 'number' ||
       transactionMeta.time <= 0
     )
       return;
     confirmationOpenedAtMs.current = Date.now();
-    didDispatchTimeToOpen.current = true;
-    dispatch(
-      updateConfirmationMetric({
-        id: transactionId,
-        params: {
-          properties: {
-            confirmation_time_to_open_ms: Math.round(
-              confirmationOpenedAtMs.current - transactionMeta.time,
-            ),
-          },
-        },
-      }),
-    );
-  }, [transactionMeta?.time, dispatch, transactionId]);
+  }, [transactionMeta?.time]);
 
   const didDispatchTimeToLoadInfo = useRef(false);
   useEffect(() => {
@@ -379,7 +378,6 @@ const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
     [TransactionType.moneyAccountDeposit, TransactionType.moneyAccountWithdraw],
     'money_account',
   ],
-  [[TransactionType.musdConversion], 'money_hub'],
 ];
 
 function getEntryPoint(

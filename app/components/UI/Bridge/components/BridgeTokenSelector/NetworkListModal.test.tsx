@@ -2,19 +2,31 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
-import NetworkListModal from './NetworkListModal';
+import NetworkListModal, {
+  type NetworkListModalFilterTarget,
+} from './NetworkListModal';
 import {
   selectAllowedChainRanking,
+  selectOrdersNetworkFilter,
   selectTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import { useABTest } from '../../../../../hooks';
 import { useChainValueOrder } from '../../hooks/useChainValueOrder';
 
 const mockOnCloseBottomSheet = jest.fn();
+let mockRouteParams: {
+  enabledChainIds?: CaipChainId[];
+  filterTarget?: NetworkListModalFilterTarget;
+} = {};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../../../../hooks', () => ({
@@ -73,8 +85,13 @@ jest.mock(
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectAllowedChainRanking: jest.fn(),
   selectTokenSelectorNetworkFilter: jest.fn(),
+  selectOrdersNetworkFilter: jest.fn(),
   setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
     type: 'bridge/setTokenSelectorNetworkFilter',
+    payload: chainId,
+  })),
+  setOrdersNetworkFilter: jest.fn((chainId) => ({
+    type: 'bridge/setOrdersNetworkFilter',
     payload: chainId,
   })),
 }));
@@ -118,6 +135,7 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
 describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     jest.mocked(useABTest).mockReturnValue({
       variant: { orderByValue: false },
@@ -125,16 +143,16 @@ describe('NetworkListModal', () => {
       isActive: true,
     });
     jest.mocked(useChainValueOrder).mockReturnValue(mockChainRanking);
-
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectAllowedChainRanking) {
-        return mockChainRanking;
-      }
-      if (selector === selectTokenSelectorNetworkFilter) {
-        return undefined;
-      }
-      return undefined;
-    });
+    jest.mocked(selectAllowedChainRanking).mockReturnValue(mockChainRanking);
+    jest.mocked(selectTokenSelectorNetworkFilter).mockReturnValue(undefined);
+    jest.mocked(selectOrdersNetworkFilter).mockReturnValue(undefined);
+    // NetworkListModal calls useSelector(selectTokenSelectorNetworkFilter)
+    // directly, and wraps selectAllowedChainRanking in an inline lambda (to
+    // forward the optional enabledChainIds route param) — invoke whatever
+    // selector is passed so both routes resolve through the mocks above.
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => selector({}),
+    );
   });
 
   describe('rendering', () => {
@@ -188,6 +206,29 @@ describe('NetworkListModal', () => {
     });
   });
 
+  describe('enabledChainIds route param', () => {
+    it('forwards enabledChainIds from route params to selectAllowedChainRanking', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      mockRouteParams = { enabledChainIds };
+
+      render(<NetworkListModal />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        enabledChainIds,
+      );
+    });
+
+    it('calls selectAllowedChainRanking with undefined when no route params are provided', () => {
+      render(<NetworkListModal />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+      );
+    });
+  });
+
   describe('interactions', () => {
     it('dispatches setTokenSelectorNetworkFilter with undefined when "All" is pressed', () => {
       const { getByTestId } = render(<NetworkListModal />);
@@ -221,6 +262,42 @@ describe('NetworkListModal', () => {
       fireEvent.press(getByTestId('network-option-all'));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    });
+  });
+
+  describe('orders filterTarget', () => {
+    it('dispatches setOrdersNetworkFilter with undefined when "All" is pressed', () => {
+      mockRouteParams = { filterTarget: 'orders' };
+
+      const { getByTestId } = render(<NetworkListModal />);
+      fireEvent.press(getByTestId('network-option-all'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setOrdersNetworkFilter',
+        payload: undefined,
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'bridge/setTokenSelectorNetworkFilter',
+        }),
+      );
+    });
+
+    it('dispatches setOrdersNetworkFilter with chainId when a network is pressed', () => {
+      mockRouteParams = { filterTarget: 'orders' };
+
+      const { getByTestId } = render(<NetworkListModal />);
+      fireEvent.press(getByTestId('network-option-eip155:137'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setOrdersNetworkFilter',
+        payload: 'eip155:137',
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'bridge/setTokenSelectorNetworkFilter',
+        }),
+      );
     });
   });
 });

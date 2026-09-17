@@ -4449,6 +4449,7 @@ describe('RewardsDataService', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -4465,6 +4466,7 @@ describe('RewardsDataService', () => {
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',
@@ -5282,68 +5284,6 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('getFirstPredictOnUs', () => {
-    const mockFirstPredictOnUs = {
-      name: 'First Predict On Us',
-      image: {
-        lightModeUrl: 'https://images.example.com/light.png',
-        darkModeUrl: 'https://images.example.com/dark.png',
-      },
-      localizedText: {
-        cta: 'Predict now',
-        description: 'Your first prediction is on us.',
-      },
-      usdAmount: 5,
-      markets: [{ eventId: '30615', conditionId: '0xabc' }],
-      termsUrl: 'https://example.com/terms',
-    };
-
-    it('fetches first predict on us from the correct public endpoint', async () => {
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        json: jest.fn().mockResolvedValue(mockFirstPredictOnUs),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getFirstPredictOnUs();
-
-      expect(result).toEqual(mockFirstPredictOnUs);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL.UAT}/public/first-predict-on-us`,
-        {
-          credentials: 'omit',
-          method: 'GET',
-          headers: {
-            'Accept-Language': 'en-US',
-            'Content-Type': 'application/json',
-            'rewards-client-id': 'mobile-7.50.1',
-          },
-          signal: expect.any(AbortSignal),
-        },
-      );
-    });
-
-    it('returns null when no visible entry exists', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-      } as Response);
-
-      const result = await service.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-    });
-
-    it('throws when response is not ok and not 404', async () => {
-      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
-
-      await expect(service.getFirstPredictOnUs()).rejects.toThrow(
-        'Get first predict on us failed: 500',
-      );
-    });
-  });
-
   describe('getOndoCampaignActivity', () => {
     const mockCampaignId = 'campaign-ondo-activity';
     const mockSubscriptionId = 'sub-activity-1';
@@ -5770,6 +5710,43 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getPerpsTradingCampaignPrizePool', () => {
+    const mockCampaignId = 'perps-campaign-api-4';
+    const mockPrizePool = {
+      totalVolumeUsd: 7500000,
+      unlockedPoolUsd: 15000,
+      thresholdsUsd: [0, 5000000],
+      poolScheduleUsd: [10000, 15000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPrizePool),
+      } as unknown as Response);
+    });
+
+    it('calls the public prize pool endpoint with GET and returns data', async () => {
+      const result =
+        await service.getPerpsTradingCampaignPrizePool(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/prize-pool`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockPrizePool);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignPrizePool(mockCampaignId),
+      ).rejects.toThrow('Get perps trading campaign prize pool failed: 404');
+    });
+  });
+
   describe('Predict The Pitch endpoints', () => {
     const mockCampaignId = 'predict-campaign-1';
     const mockSubscriptionId = 'sub-predict-1';
@@ -5947,6 +5924,82 @@ describe('RewardsDataService', () => {
       await expect(
         service.getPredictThePitchPrizePool(mockCampaignId),
       ).rejects.toThrow('Get Predict The Pitch prize pool failed: 503');
+    });
+  });
+
+  describe('registerMoneyAccountBinding', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('POSTs the money account address and returns bound on 201', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 201,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/wr/money-account/binding',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ moneyAccountAddress: mockAddress }),
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toBe('bound');
+    });
+
+    it('returns bound on 200 (idempotent re-assert)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(result).toBe('bound');
+    });
+
+    it('returns conflict on 409', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 409,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(result).toBe('conflict');
+    });
+
+    it('throws on other non-ok statuses', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as unknown as Response);
+
+      await expect(
+        service.registerMoneyAccountBinding(mockSubscriptionId, mockAddress),
+      ).rejects.toThrow('Register Money Account binding failed: 500');
     });
   });
 });

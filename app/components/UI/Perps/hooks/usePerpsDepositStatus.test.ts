@@ -568,7 +568,105 @@ describe('usePerpsDepositStatus', () => {
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
-      ).toHaveBeenCalledWith('1500.00');
+      ).toHaveBeenCalledWith('500');
+    });
+
+    it('should pass the credited amount rather than the resulting balance when the account already had funds', () => {
+      // Arrange - account already funded with 50.00 before the deposit settles
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '50.00',
+          withdrawableBalance: '50.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0',
+          totalBalance: '50.00',
+        },
+        isInitialLoading: false,
+      });
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
+
+      // Act - a $1 deposit nets 0.97 after fees
+      act(() => {
+        const transactionHandler = mockSubscribe.mock.calls.find(
+          (call) =>
+            call[0] === 'TransactionController:transactionStatusUpdated',
+        )?.[1];
+        transactionHandler?.({
+          transactionMeta: {
+            id: 'test-tx-id',
+            type: TransactionType.perpsDeposit,
+            status: TransactionStatus.approved,
+          } as TransactionMeta,
+        });
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '50.97',
+          withdrawableBalance: '50.97',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0',
+          totalBalance: '50.97',
+        },
+        isInitialLoading: false,
+      });
+      rerender({});
+
+      // Assert
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.success,
+      ).toHaveBeenCalledWith('0.97');
+    });
+
+    it('should compute the credited amount without floating point artifacts', () => {
+      // Arrange - a delta that loses precision under binary subtraction
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0.07',
+          withdrawableBalance: '0.07',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0',
+          totalBalance: '0.07',
+        },
+        isInitialLoading: false,
+      });
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
+
+      // Act
+      act(() => {
+        const transactionHandler = mockSubscribe.mock.calls.find(
+          (call) =>
+            call[0] === 'TransactionController:transactionStatusUpdated',
+        )?.[1];
+        transactionHandler?.({
+          transactionMeta: {
+            id: 'test-tx-id',
+            type: TransactionType.perpsDeposit,
+            status: TransactionStatus.approved,
+          } as TransactionMeta,
+        });
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1.14',
+          withdrawableBalance: '1.14',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0',
+          totalBalance: '1.14',
+        },
+        isInitialLoading: false,
+      });
+      rerender({});
+
+      // Assert - 1.14 - 0.07 is 1.0699999999999998 in float arithmetic
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.success,
+      ).toHaveBeenCalledWith('1.07');
     });
 
     it('should not show success toast when balance decreases', () => {

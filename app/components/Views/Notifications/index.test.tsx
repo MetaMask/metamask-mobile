@@ -24,6 +24,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
+import { useNotificationListPerformance } from '../../../util/notifications/hooks/useNotificationListPerformance';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -39,6 +40,13 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
+
+jest.mock(
+  '../../../util/notifications/hooks/useNotificationListPerformance',
+  () => ({
+    useNotificationListPerformance: jest.fn(),
+  }),
+);
 
 const mockMetrics = {
   trackEvent: jest.fn(),
@@ -140,6 +148,29 @@ describe('NotificationsView - content', () => {
     expect(
       getByTestId(NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('reports the deduplicated notification count for performance tracing', () => {
+    const notification = processNotification(createMockNotificationEthSent());
+    const state: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NotificationServicesController: {
+            isNotificationServicesEnabled: true,
+            metamaskNotificationsList: [notification, notification],
+          },
+        },
+      },
+    };
+
+    renderWithProvider(<NotificationsView navigation={navigationMock} />, {
+      state,
+    });
+
+    expect(jest.mocked(useNotificationListPerformance)).toHaveBeenCalledWith(
+      expect.objectContaining({ notificationCount: 1 }),
+    );
   });
 
   it('shows enable prompt and opens settings when notifications are disabled', () => {

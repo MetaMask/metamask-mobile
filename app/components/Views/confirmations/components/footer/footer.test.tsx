@@ -28,7 +28,10 @@ import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useIsTransactionPaySubmitReady,
+} from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-questionnaire/scam-questionnaire.constants';
@@ -113,6 +116,9 @@ describe('Footer', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useIsTransactionPaySubmitReadyMock = jest.mocked(
+    useIsTransactionPaySubmitReady,
+  );
   const useIsTransactionPayAmountStaleMock = jest.mocked(
     useIsTransactionPayAmountStale,
   );
@@ -149,6 +155,7 @@ describe('Footer', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(true);
     useIsTransactionPayAmountStaleMock.mockReturnValue(false);
     useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
   });
@@ -205,23 +212,27 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('should open Terms of Use URL when terms link is pressed', () => {
-    const { getByText } = renderWithProvider(<Footer />, {
+  it('opens Terms of Use URL when terms link is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Terms of Use'));
+    fireEvent.press(
+      getByTestId(ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.TERMS_OF_USE,
     );
   });
 
-  it('should open Risk Disclosure URL when risk disclosure link is pressed', () => {
-    const { getByText } = renderWithProvider(<Footer />, {
+  it('opens Risk Disclosure URL when risk disclosure link is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Footer />, {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Risk disclosure'));
+    fireEvent.press(
+      getByTestId(ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON),
+    );
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.STAKING_RISK_DISCLOSURE,
     );
@@ -335,6 +346,69 @@ describe('Footer', () => {
 
   it('keeps confirm button enabled when pay amount is stale for a non-MM Pay transaction', () => {
     useIsTransactionPayAmountStaleMock.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('disables confirm button when a predict deposit is not submit-ready', () => {
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(false);
+
+    const predictDepositConfirmation = {
+      chainId: '0x89',
+      id: 'predict-deposit-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.predictDeposit,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(predictDepositConfirmation),
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('keeps confirm button enabled when a predict deposit is submit-ready', () => {
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(true);
+
+    const predictDepositConfirmation = {
+      chainId: '0x89',
+      id: 'predict-deposit-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.predictDeposit,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(predictDepositConfirmation),
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('does not gate confirm on pay submit readiness for non-pay-token transactions', () => {
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(false);
 
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -488,7 +562,7 @@ describe('Footer', () => {
       });
 
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
-      expect(getByText('High risk request')).toBeDefined();
+      expect(getByText('High-risk request')).toBeDefined();
       expect(
         getByText(
           'We suggest you reject this request. If you continue, you might put your assets at risk.',

@@ -1,15 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Animated, Platform, Dimensions } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Rive, {
-  Fit,
+import {
   Alignment,
-  RiveRef,
-  RiveRenderer,
-  RiveRendererIOS,
-  RiveRendererAndroid,
-  RNRiveError,
-} from 'rive-react-native';
+  Fit,
+  RiveErrorType,
+  RiveView,
+  useRive,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
@@ -23,10 +23,14 @@ import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 const splashRiveFile = require('../../../animations/splash_screen.riv');
 
 const SPLASH_STATE_MACHINE = 'Splash_animation';
-const SPLASH_IDLE_STATE = 'Blink and look around (Shorter)';
 // Maximum time to wait for the animation to complete before forcing the app to show.
 // Guards against silent failures: corrupted .riv file, stuck state machine, unsupported renderer.
 const ANIMATION_TIMEOUT_MS = 3_000;
+// The Nitro runtime has no `onStateChanged`, so reaching the authored
+// `ExitState` can't be observed. Completion is timed instead: after firing the
+// `Stop` trigger, the app is revealed once the exit animation has had time to
+// play out (the global timeout above still caps the worst case).
+const EXIT_ANIMATION_MS = 800;
 
 // Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
@@ -63,9 +67,9 @@ const FoxLoaderAnimation = ({
   const screenH = screenDims.height;
   const screenW = screenDims.width;
   const { styles } = useStyles(styleSheet, { screenH, screenW });
-  const riveRef = useRef<RiveRef>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isIdle, setIsIdle] = useState(false);
+  const { riveFile } = useRiveFile(splashRiveFile);
+  const { riveRef, riveViewRef, setHybridRef } = useRive();
+  const isPlaying = riveViewRef != null;
   const exitTriggered = useRef(false);
   const isCompleteRef = useRef(animationComplete);
   const isPlayingRef = useRef(false);
@@ -78,47 +82,56 @@ const FoxLoaderAnimation = ({
     timeoutMs: ANIMATION_TIMEOUT_MS,
   });
 
+  const completeAnimation = useCallback(() => {
+    if (isCompleteRef.current) return;
+    // eslint-disable-next-line react-compiler/react-compiler
+    animationComplete = true;
+    isCompleteRef.current = true;
+    onAnimationCompleteRef.current?.();
+  }, []);
+
   const startAnimation = useCallback(() => {
     if (animationStarted) return;
     try {
       // eslint-disable-next-line react-compiler/react-compiler
       animationStarted = true;
-      riveRef.current?.fireState(SPLASH_STATE_MACHINE, 'Start');
+      riveRef.current?.triggerInput('Start');
     } catch (error) {
       Logger.error(
         error as Error,
         'Error triggering splash screen Rive animation',
       );
     }
-  }, []);
+  }, [riveRef]);
 
   const stopAnimation = useCallback(() => {
     if (exitTriggered.current) return;
     try {
       exitTriggered.current = true;
-      riveRef.current?.fireState(SPLASH_STATE_MACHINE, 'Stop');
+      riveRef.current?.triggerInput('Stop');
     } catch (error) {
       Logger.error(
         error as Error,
         'Error stopping splash screen Rive animation',
       );
     }
-  }, []);
+  }, [riveRef]);
 
   useEffect(() => {
-    if (isPlaying) {
-      startAnimation();
-      // Show Rive immediately, then fade the static fox out over a short duration.
-      // Instant setValue(0) causes a single blank frame on Android because Rive's
-      // canvas needs a frame or two to composite after onPlay fires.
-      riveOpacity.setValue(1);
-      Animated.timing(staticFoxOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isPlaying, startAnimation, staticFoxOpacity, riveOpacity]);
+    if (!isPlaying) return;
+    riveHandlers.onPlay();
+    isPlayingRef.current = true;
+    startAnimation();
+    // Show Rive immediately, then fade the static fox out over a short duration.
+    // Instant setValue(0) causes a single blank frame on Android because Rive's
+    // canvas needs a frame or two to composite after playback starts.
+    riveOpacity.setValue(1);
+    Animated.timing(staticFoxOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [isPlaying, riveHandlers, startAnimation, staticFoxOpacity, riveOpacity]);
 
   // Skip animation if it already completed this session (remount)
   useEffect(() => {
@@ -145,22 +158,24 @@ const FoxLoaderAnimation = ({
             'Failed to hide splash screen in timeout fallback',
           ),
         );
-        // eslint-disable-next-line react-compiler/react-compiler
-        animationComplete = true;
-        isCompleteRef.current = true;
-        onAnimationCompleteRef.current?.();
+        completeAnimation();
       }
     }, ANIMATION_TIMEOUT_MS);
 
     return () => clearTimeout(timeout);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [completeAnimation]);
 
-  // Once both the app is ready and the fox is in its idle loop, fire the exit animation
+  // Once app is ready and the fox is playing, fire the exit trigger and
+  // complete on a timer. Legacy observed `onStateChanged`/`ExitState`;
+  // Nitro exposes neither signal, so completion is timed instead.
   useEffect(() => {
-    if (appServicesReady && isIdle) {
-      stopAnimation();
+    if (!appServicesReady || !isPlaying || exitTriggered.current) {
+      return undefined;
     }
-  }, [appServicesReady, isIdle, stopAnimation]);
+    stopAnimation();
+    const timer = setTimeout(completeAnimation, EXIT_ANIMATION_MS);
+    return () => clearTimeout(timer);
+  }, [appServicesReady, isPlaying, stopAnimation, completeAnimation]);
 
   return (
     <SafeAreaView
@@ -190,51 +205,40 @@ const FoxLoaderAnimation = ({
           testID={FoxLoaderSelectorsIDs.RIVE_WRAPPER}
           style={[styles.riveAnimation, { opacity: riveOpacity }]}
         >
-          <Rive
-            ref={riveRef}
-            source={splashRiveFile}
-            style={styles.riveAnimation}
-            autoplay
-            fit={Fit.Contain}
-            alignment={Alignment.Center}
-            stateMachineName={SPLASH_STATE_MACHINE}
-            onPlay={() => {
-              riveHandlers.onPlay();
-              isPlayingRef.current = true;
-              setIsPlaying(true);
-            }}
-            onError={(riveError: RNRiveError) => {
-              riveHandlers.onError(riveError);
-              // Only bail out if Rive never started — runtime errors during playback are non-fatal
-              if (!isCompleteRef.current && !isPlayingRef.current) {
-                Logger.error(
-                  new Error(riveError.message),
-                  `FoxLoader: Rive failed before playback (${riveError.type})`,
-                );
-                // onLoad may not have fired if Rive errored before the image rendered
-                hideAsync().catch((error: unknown) =>
+          {riveFile && (
+            <RiveView
+              hybridRef={setHybridRef}
+              file={riveFile}
+              style={styles.riveAnimation}
+              autoPlay
+              fit={Fit.Contain}
+              alignment={Alignment.Center}
+              stateMachineName={SPLASH_STATE_MACHINE}
+              onError={(riveError: RiveError) => {
+                riveHandlers.onError({
+                  message: riveError.message,
+                  type: RiveErrorType[riveError.type],
+                });
+                // Only bail out if Rive never started — runtime errors during playback are non-fatal
+                if (!isCompleteRef.current && !isPlayingRef.current) {
                   Logger.error(
-                    error as Error,
-                    'Failed to hide splash screen on Rive error',
-                  ),
-                );
-                // eslint-disable-next-line react-compiler/react-compiler
-                animationComplete = true;
-                isCompleteRef.current = true;
-                onAnimationCompleteRef.current?.();
-              }
-            }}
-            onStateChanged={(_machineName, stateName) => {
-              if (isCompleteRef.current) return;
-              setIsIdle(stateName === SPLASH_IDLE_STATE);
-              if (exitTriggered.current && stateName === 'ExitState') {
-                // eslint-disable-next-line react-compiler/react-compiler
-                animationComplete = true;
-                isCompleteRef.current = true;
-                onAnimationCompleteRef.current?.();
-              }
-            }}
-          />
+                    new Error(riveError.message),
+                    `FoxLoader: Rive failed before playback (${
+                      RiveErrorType[riveError.type]
+                    })`,
+                  );
+                  // onLoad may not have fired if Rive errored before the image rendered
+                  hideAsync().catch((error: unknown) =>
+                    Logger.error(
+                      error as Error,
+                      'Failed to hide splash screen on Rive error',
+                    ),
+                  );
+                  completeAnimation();
+                }
+              }}
+            />
+          )}
         </Animated.View>
       </View>
     </SafeAreaView>

@@ -52,6 +52,23 @@ jest.mock('../../MarketInsights', () => ({
     testID?: string;
   }) => <MockPressable onPress={onPress} testID={testID} />,
   useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+  useMarketInsightsEntryTrace: () =>
+    'token_details:entry_card:eip155:1/erc20:0x123',
+  getMarketInsightsTraceId: (
+    assetIdentifier: string,
+    source: string,
+    stage: string,
+  ) => `${source}:${stage}:${assetIdentifier}`,
+  getMarketInsightsTraceTags: (
+    context: { source: string; stage: string; assetType: string },
+    cacheState: string,
+  ) => ({
+    feature: 'market_insights',
+    source: context.source,
+    stage: context.stage,
+    asset_type: context.assetType,
+    cache_state: cacheState,
+  }),
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
@@ -114,13 +131,17 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
-    useFocusEffect: jest.fn((cb: () => void) => cb()),
+    // Defer via useEffect to match real useFocusEffect timing.
+    useFocusEffect: jest.fn((cb: () => void) => {
+      actualReact.useEffect(cb, []);
+    }),
   };
 });
 
@@ -233,6 +254,7 @@ const defaultMarketInsightsResult = {
   isLoading: false,
   error: null,
   timeAgo: '5m ago',
+  cacheState: 'cold',
 };
 
 describe('AssetOverviewContent', () => {
@@ -333,11 +355,15 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        // Flush the gate().finally() microtask that releases the nav lock,
+        // so the next press below isn't blocked by it.
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
@@ -354,11 +380,13 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();

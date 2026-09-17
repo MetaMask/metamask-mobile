@@ -43,21 +43,18 @@ appiumTest.describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
 
           await Assertions.expectElementToBeVisible(NotificationMenuView.title);
           await NotificationMenuView.waitForListReady();
-          // Feature announcements can render before wallet rows are merged into
-          // the list. Wait for a wallet item before scrolling/tapping so we do
-          // not burn the suite timeout searching for a row that is not loaded.
-          await Assertions.expectElementToExist(
-            NotificationMenuView.selectNotificationItem(
-              firstWalletNotificationId,
-            ),
-            {
-              description: 'First wallet notification loaded in list',
-              timeout: 30_000,
-            },
+          // FlatList virtualizes off-screen rows. A bare hierarchy existence
+          // check for a wallet item can time out even after mocks merge — scroll
+          // into view instead (bounded) to prove wallet rows are loaded.
+          await NotificationMenuView.waitForNotificationItem(
+            firstWalletNotificationId,
+            { direction: 'down' },
           );
-
+          // Feature announcements sit above wallet rows; after scrolling down,
+          // seek the announcement upward.
           await NotificationMenuView.scrollToNotificationItem(
             featureAnnouncementItemId,
+            { direction: 'up' },
           );
           await Assertions.expectElementToBeVisible(
             NotificationMenuView.selectNotificationItem(
@@ -80,14 +77,9 @@ appiumTest.describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           );
           await NotificationDetailsView.tapOnBackButton();
           await NotificationMenuView.waitForListReady();
-          await Assertions.expectElementToExist(
-            NotificationMenuView.selectNotificationItem(
-              firstWalletNotificationId,
-            ),
-            {
-              description: 'Wallet notification visible after details back',
-              timeout: 30_000,
-            },
+          await NotificationMenuView.waitForNotificationItem(
+            firstWalletNotificationId,
+            { direction: 'down' },
           );
 
           // Wallet Announcement Details

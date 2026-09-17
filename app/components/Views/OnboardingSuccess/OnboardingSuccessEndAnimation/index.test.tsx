@@ -2,27 +2,25 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import OnboardingSuccessEndAnimation from './index';
 
-// Mock Rive
-let mockRiveRef: unknown = null;
-jest.mock('rive-react-native', () => {
-  const MockReact = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+// Controllable riveViewRef so tests can simulate the view not being ready.
+// Extends the global @rive-app/react-native mock (whose riveViewRef is
+// non-null immediately and whose methods are private).
+let mockRiveViewRef: {
+  setBooleanInputValue: jest.Mock;
+  triggerInput: jest.Mock;
+} | null = null;
 
-  const MockRive = MockReact.forwardRef(
-    (props: { testID?: string; style?: unknown }, ref: React.Ref<unknown>) => {
-      MockReact.useImperativeHandle(ref, () => mockRiveRef);
-      return MockReact.createElement(View, {
-        testID: props.testID || 'mock-rive',
-        style: props.style, // Pass through the style prop
-      });
-    },
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual(
+    '../../../../__mocks__/rive-app-react-native',
   );
-
   return {
-    __esModule: true,
-    default: MockRive,
-    Fit: { Cover: 'cover' },
-    Alignment: { Center: 'center' },
+    ...actual,
+    useRive: () => ({
+      riveRef: { current: mockRiveViewRef },
+      riveViewRef: mockRiveViewRef,
+      setHybridRef: { f: jest.fn() },
+    }),
   };
 });
 
@@ -51,14 +49,14 @@ describe('OnboardingSuccessEndAnimation', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockHasTestOverridesValue = false;
-    // Reset mock Rive ref
-    mockRiveRef = null;
+    // Reset mock Rive view ref
+    mockRiveViewRef = null;
   });
 
   afterEach(() => {
     jest.useRealTimers();
     mockHasTestOverridesValue = false;
-    mockRiveRef = null;
+    mockRiveViewRef = null;
   });
 
   it('renders successfully', () => {
@@ -95,14 +93,14 @@ describe('OnboardingSuccessEndAnimation', () => {
   it('skips animation setup in E2E mode', () => {
     // Arrange
     mockHasTestOverridesValue = true;
-    const mockSetInputState = jest.fn();
-    const mockFireState = jest.fn();
+    const mockSetBooleanInputValue = jest.fn();
+    const mockTriggerInput = jest.fn();
 
-    // Mock Rive ref with methods
-    mockRiveRef = {
-      setInputState: mockSetInputState,
-      fireState: mockFireState,
-    } as unknown;
+    // Mock Rive view ref with methods
+    mockRiveViewRef = {
+      setBooleanInputValue: mockSetBooleanInputValue,
+      triggerInput: mockTriggerInput,
+    };
 
     const mockOnAnimationComplete = jest.fn();
 
@@ -114,14 +112,14 @@ describe('OnboardingSuccessEndAnimation', () => {
     );
 
     // Assert - In E2E mode, no Rive methods should be called
-    expect(mockSetInputState).not.toHaveBeenCalled();
-    expect(mockFireState).not.toHaveBeenCalled();
+    expect(mockSetBooleanInputValue).not.toHaveBeenCalled();
+    expect(mockTriggerInput).not.toHaveBeenCalled();
   });
 
-  it('handles early return when riveRef is null in non-E2E mode', () => {
+  it('handles early return when riveViewRef is null in non-E2E mode', () => {
     // Arrange
     mockHasTestOverridesValue = false;
-    mockRiveRef = null;
+    mockRiveViewRef = null;
     const mockOnAnimationComplete = jest.fn();
 
     // Act
@@ -131,23 +129,23 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    // Advance timers to trigger setTimeout
+    // Advance timers to flush any scheduled work
     jest.advanceTimersByTime(100);
 
     // Assert
     expect(mockOnAnimationComplete).toBeDefined();
   });
 
-  it('clears existing timeout before setting new one', () => {
+  it('triggers the animation once and not again on rerender', () => {
     // Arrange
     mockHasTestOverridesValue = false;
-    const mockSetInputState = jest.fn();
-    const mockFireState = jest.fn();
+    const mockSetBooleanInputValue = jest.fn();
+    const mockTriggerInput = jest.fn();
 
-    mockRiveRef = {
-      setInputState: mockSetInputState,
-      fireState: mockFireState,
-    } as unknown;
+    mockRiveViewRef = {
+      setBooleanInputValue: mockSetBooleanInputValue,
+      triggerInput: mockTriggerInput,
+    };
 
     const mockOnAnimationComplete = jest.fn();
 
@@ -158,28 +156,20 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    // Verify initial timeout is set (advance partially)
-    jest.advanceTimersByTime(50);
-
-    // Re-render
+    // Re-render — effect deps (isDarkMode, riveViewRef) are unchanged
     rerender(
       <OnboardingSuccessEndAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
 
-    // Advance remaining time
-    jest.advanceTimersByTime(100);
-
-    // Assert
-    expect(mockSetInputState).toHaveBeenCalledTimes(1);
-    expect(mockFireState).toHaveBeenCalledTimes(1);
-    expect(mockSetInputState).toHaveBeenCalledWith(
-      'OnboardingLoader',
-      'Dark mode',
-      false,
-    );
-    expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Only_End');
+    // Assert - triggerInput takes only the trigger name; the state machine is
+    // now the stateMachineName view prop, and dark mode is set via
+    // setBooleanInputValue
+    expect(mockSetBooleanInputValue).toHaveBeenCalledTimes(1);
+    expect(mockTriggerInput).toHaveBeenCalledTimes(1);
+    expect(mockSetBooleanInputValue).toHaveBeenCalledWith('Dark mode', false);
+    expect(mockTriggerInput).toHaveBeenCalledWith('Only_End');
   });
 
   it('handles animation lifecycle without memory leaks', () => {
@@ -213,15 +203,15 @@ describe('OnboardingSuccessEndAnimation', () => {
   it('handles Rive animation errors gracefully', () => {
     // Arrange
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-    const mockSetInputState = jest.fn(() => {
+    const mockSetBooleanInputValue = jest.fn(() => {
       throw new Error('Rive animation error');
     });
-    const mockFireState = jest.fn();
+    const mockTriggerInput = jest.fn();
 
-    mockRiveRef = {
-      setInputState: mockSetInputState,
-      fireState: mockFireState,
-    } as unknown;
+    mockRiveViewRef = {
+      setBooleanInputValue: mockSetBooleanInputValue,
+      triggerInput: mockTriggerInput,
+    };
 
     const mockOnAnimationComplete = jest.fn();
 
@@ -231,8 +221,6 @@ describe('OnboardingSuccessEndAnimation', () => {
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
-
-    jest.advanceTimersByTime(100);
 
     // Assert
     expect(consoleSpy).toHaveBeenCalledWith(
@@ -244,15 +232,15 @@ describe('OnboardingSuccessEndAnimation', () => {
     consoleSpy.mockRestore();
   });
 
-  it('triggers animation when isDarkMode dependency changes', () => {
+  it('applies the current theme when triggering the animation', () => {
     // Arrange
-    const mockSetInputState = jest.fn();
-    const mockFireState = jest.fn();
+    const mockSetBooleanInputValue = jest.fn();
+    const mockTriggerInput = jest.fn();
 
-    mockRiveRef = {
-      setInputState: mockSetInputState,
-      fireState: mockFireState,
-    } as unknown;
+    mockRiveViewRef = {
+      setBooleanInputValue: mockSetBooleanInputValue,
+      triggerInput: mockTriggerInput,
+    };
 
     const mockOnAnimationComplete = jest.fn();
 
@@ -263,18 +251,12 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    jest.advanceTimersByTime(100);
-
     // Verify light theme was used
-    expect(mockSetInputState).toHaveBeenCalledWith(
-      'OnboardingLoader',
-      'Dark mode',
-      false,
-    );
-    expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Only_End');
+    expect(mockSetBooleanInputValue).toHaveBeenCalledWith('Dark mode', false);
+    expect(mockTriggerInput).toHaveBeenCalledWith('Only_End');
 
-    // Assert - useEffect was triggered
-    expect(mockSetInputState).toHaveBeenCalledTimes(1);
-    expect(mockFireState).toHaveBeenCalledTimes(1);
+    // Assert - useEffect was triggered exactly once
+    expect(mockSetBooleanInputValue).toHaveBeenCalledTimes(1);
+    expect(mockTriggerInput).toHaveBeenCalledTimes(1);
   });
 });

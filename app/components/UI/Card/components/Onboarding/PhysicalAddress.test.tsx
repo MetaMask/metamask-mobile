@@ -51,7 +51,7 @@ jest.mock('../../../../../core/Engine', () => ({
   default: {
     context: {
       CardController: {
-        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
+        syncSessionAfterExternalAuth: jest.fn().mockResolvedValue(undefined),
       },
     },
   },

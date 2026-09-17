@@ -26,7 +26,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
@@ -37,7 +36,11 @@ import {
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsNetwork,
+  usePerpsTransactionHistory,
+} from '../../hooks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
@@ -52,6 +55,7 @@ import {
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { PerpsTransactionsViewSelectorsIDs } from '../../Perps.testIds';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -75,6 +79,7 @@ const PerpsTransactionsView: React.FC = () => {
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const accountId = useMemo(() => {
     if (!selectedAddress || !currentChainId) {
       return undefined;
@@ -326,26 +331,7 @@ const PerpsTransactionsView: React.FC = () => {
         .build(),
     );
 
-    switch (transaction.type) {
-      case 'trade':
-        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-          transaction,
-        });
-        break;
-      case 'order':
-        navigation.navigate(Routes.PERPS.ORDER_TRANSACTION, {
-          transaction,
-        });
-        break;
-      case 'funding':
-        navigation.navigate(Routes.PERPS.FUNDING_TRANSACTION, {
-          transaction,
-        });
-        break;
-      default:
-        // Unknown transaction type - do nothing
-        break;
-    }
+    navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
   };
 
   // Render right content based on transaction type

@@ -347,6 +347,23 @@ export function getPolymarketTeamLeague(league: PredictSportsLeague): string {
   return LEAGUE_SLUG_CONFIGS[league].teamsApiLeague ?? league;
 }
 
+const PREDICT_LEAGUE_BY_TEAM_API_LEAGUE = new Map(
+  (Object.keys(LEAGUE_SLUG_CONFIGS) as PredictSportsLeague[]).map((league) => [
+    getPolymarketTeamLeague(league).toLowerCase(),
+    league,
+  ]),
+);
+
+export function getPredictSportsLeagueFromTeamApi(
+  apiLeague?: string,
+): PredictSportsLeague | undefined {
+  if (!apiLeague) {
+    return undefined;
+  }
+
+  return PREDICT_LEAGUE_BY_TEAM_API_LEAGUE.get(apiLeague.toLowerCase());
+}
+
 export type TeamLookup = (
   league: PredictSportsLeague,
   abbreviation: string,

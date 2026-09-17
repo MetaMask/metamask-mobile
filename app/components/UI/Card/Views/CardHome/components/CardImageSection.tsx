@@ -32,7 +32,6 @@ interface CardImageSectionProps {
   onImageError: () => void;
   cardType: CardType | undefined;
   cardStatus: CardStatus | undefined;
-  walletAddress: string | undefined;
   cardSensitiveDetails?: CardSensitiveDetails | null;
   onCopyDetail?: (value: string) => void;
 }
@@ -50,7 +49,7 @@ const formatExpiry = (expiry: string): string => {
 };
 
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const CARD_DETAILS_ORANGE = '#FF5C16';
+const CARD_DETAILS_ORANGE = '#FA4B00';
 
 const DetailField = ({
   label,
@@ -85,7 +84,6 @@ const CardImageSection = ({
   onImageError,
   cardType,
   cardStatus,
-  walletAddress,
   cardSensitiveDetails,
   onCopyDetail,
 }: CardImageSectionProps) => {
@@ -214,8 +212,6 @@ const CardImageSection = ({
     <CardImage
       type={cardType ?? CardType.VIRTUAL}
       status={cardStatus ?? CardStatus.ACTIVE}
-      address={walletAddress}
-      testID={walletAddress ? CardHomeSelectors.CARD_WALLET_ADDRESS : undefined}
     />
   );
 };

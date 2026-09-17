@@ -42,6 +42,8 @@ import {
 } from '../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
@@ -56,6 +58,7 @@ import {
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -87,6 +90,7 @@ import {
   trace,
   TraceOperation,
   TraceContext,
+  getTraceContext,
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -107,13 +111,11 @@ import generateDeviceAnalyticsMetaData, {
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
-import {
-  resolveFirstPredictOnUsLaunch,
-  type ResolvedFirstPredictOnUsLaunch,
-} from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
-import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 interface KeyringState {
   type: string;
@@ -182,6 +184,7 @@ const ChoosePassword = () => {
 
   const dispatch = useDispatch();
   const metrics = useAnalytics();
+  const messenger = useMessenger<RouteMessengerInstance>();
 
   const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -197,6 +200,25 @@ const ChoosePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const stallOauthProvider = route.params?.provider;
+  const stallAccountType = stallOauthProvider
+    ? getSocialAccountType(stallOauthProvider, false)
+    : AccountType.Metamask;
+  const walletSetupType =
+    route.params?.[PREVIOUS_SCREEN] === ONBOARDING ? 'new' : 'import';
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.CREATE_PASSWORD,
+    properties: {
+      wallet_setup_type: walletSetupType,
+      account_type: stallAccountType,
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
@@ -207,6 +229,7 @@ const ChoosePassword = () => {
     contentReady: true,
     isEmpty: false,
     isLoading: isSocialLoginUser && !isGeolocationResolved,
+    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
   });
 
   useNavigationPerformance({
@@ -219,11 +242,6 @@ const ChoosePassword = () => {
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
-  // Off-screen resolution of the First Predict On Us onboarding splash. Kicked
-  // off early (for social login) so the result is typically ready by the time
-  // the wallet is created and we navigate into the success flow.
-  const firstPredictOnUsLaunchRef =
-    useRef<Promise<ResolvedFirstPredictOnUsLaunch | null> | null>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
   const { shouldShowQuestionnaire } =
@@ -233,13 +251,6 @@ const ChoosePassword = () => {
     () => route.params?.oauthLoginSuccess,
     [route.params?.oauthLoginSuccess],
   );
-
-  useEffect(() => {
-    if (!isSocialLoginUser || firstPredictOnUsLaunchRef.current) {
-      return;
-    }
-    firstPredictOnUsLaunchRef.current = resolveFirstPredictOnUsLaunch();
-  }, [isSocialLoginUser]);
 
   useEffect(() => {
     if (!isSocialLoginUser) {
@@ -255,9 +266,7 @@ const ChoosePassword = () => {
     let cancelled = false;
     setIsGeolocationResolved(false);
 
-    Promise.resolve(
-      Engine.context.GeolocationController?.refreshGeolocation?.(),
-    )
+    Promise.resolve(messenger.call('GeolocationController:refreshGeolocation'))
       .then((location) => {
         if (!cancelled) {
           setResolvedGeolocationLocation(location);
@@ -274,7 +283,7 @@ const ChoosePassword = () => {
     return () => {
       cancelled = true;
     };
-  }, [isSocialLoginUser, geoLocation]);
+  }, [isSocialLoginUser, geoLocation, messenger]);
 
   const marketingOptInChecked = useMemo(() => {
     if (isSocialLoginUser) {
@@ -401,10 +410,10 @@ const ChoosePassword = () => {
     if (loading) return { valid: false, shouldTrack: false };
 
     if (!canSubmit) {
-      const shouldTrackMismatch =
-        password !== '' &&
-        confirmPassword !== '' &&
-        password !== confirmPassword;
+      const shouldTrackMismatch = shouldShowPasswordMismatchError(
+        password,
+        confirmPassword,
+      );
 
       if (shouldTrackMismatch) {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
@@ -455,34 +464,7 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  const onContinueNavigation = useCallback(async () => {
-    // The First Predict On Us splash is a flat onboarding step shown after any
-    // survey and before the "wallet ready" success screen. Its off-screen gating
-    // was kicked off on mount; if it resolved we reset to the splash (which
-    // dismisses forward to OnboardingSuccess). Otherwise we reset straight to
-    // the success flow. The flow stays linear either way.
-    const firstPredictOnUsLaunch = firstPredictOnUsLaunchRef.current
-      ? await firstPredictOnUsLaunchRef.current
-      : null;
-
-    if (firstPredictOnUsLaunch) {
-      dispatch(markFirstPredictionOnUsOfferViewed());
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH,
-            params: {
-              content: firstPredictOnUsLaunch.content,
-              markets: firstPredictOnUsLaunch.markets,
-              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-            },
-          },
-        ],
-      });
-      return;
-    }
-
+  const onContinueNavigation = useCallback(() => {
     navigation.reset({
       index: 0,
       routes: [
@@ -497,7 +479,7 @@ const ChoosePassword = () => {
         },
       ],
     });
-  }, [navigation, dispatch]);
+  }, [navigation]);
 
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, isMarketingOptedIn: boolean) => {
@@ -608,12 +590,14 @@ const ChoosePassword = () => {
         ...(socialAccountType && { account_type: socialAccountType }),
       });
 
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingPasswordSetupError,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
           tags: { errorMessage: caughtError.toString() },
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
@@ -660,12 +644,14 @@ const ChoosePassword = () => {
       );
       authType.oauth2Login = isSocialLogin;
 
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingSRPAccountCreationTime,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
           tags: {
             is_social_login: Boolean(provider),
             account_type: accountType,
@@ -786,19 +772,21 @@ const ChoosePassword = () => {
   }, []);
 
   const checkError = useCallback(
-    () =>
-      password !== '' && confirmPassword !== '' && password !== confirmPassword,
+    () => shouldShowPasswordMismatchError(password, confirmPassword),
     [password, confirmPassword],
   );
 
   useEffect(() => {
     const initBiometrics = async () => {
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         passwordSetupAttemptTraceCtx.current = trace({
           name: TraceName.OnboardingPasswordSetupAttempt,
           op: TraceOperation.OnboardingUserJourney,
-          parentContext: onboardingTraceCtx,
+          parentContext: journeyCtx,
         });
       }
 
@@ -819,7 +807,7 @@ const ChoosePassword = () => {
     };
 
     initBiometrics();
-  }, [route.params?.onboardingTraceCtx]);
+  }, []);
 
   // End password-setup trace on unmount
   useEffect(
@@ -878,6 +866,8 @@ const ChoosePassword = () => {
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
             keyboardShouldPersistTaps="handled"
+            // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
+            mode="layout"
           >
             <Box
               flexDirection={BoxFlexDirection.Column}
@@ -1118,6 +1108,7 @@ const ChoosePassword = () => {
             </Box>
           </KeyboardAwareScrollView>
         )}
+        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );
   };

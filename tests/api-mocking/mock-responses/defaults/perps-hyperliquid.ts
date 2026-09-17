@@ -13,12 +13,29 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: [],
     },
+    {
+      // Generic E2E fixtures use the deterministic provider mocks below.
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v2\/perpetuals/,
+      responseCode: 503,
+      response: {},
+    },
   ],
   POST: [
     {
+      // Must include statuses — HyperLiquidProvider reads resting/filled oid.
+      // Bare `{ status: 'ok' }` surfaces as Order failed in the UI.
       urlEndpoint: hyperliquidExchangeEndpoint,
       responseCode: 200,
-      response: { status: 'ok' },
+      response: {
+        status: 'ok',
+        response: {
+          type: 'order',
+          data: {
+            statuses: [{ resting: { oid: 100001 } }],
+          },
+        },
+      },
       priority: hyperliquidMockPriority,
     },
     {
@@ -105,6 +122,16 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       ignoreFields: ['user'],
       responseCode: 200,
       response: JSON.stringify('unifiedAccount'),
+      priority: hyperliquidMockPriority,
+    },
+    // Catch-all for info POSTs whose `type` is not listed above. Without this,
+    // findMatchingPostEvent finds no body match and no no-body fallback, so the
+    // request is recorded as live and fixture cleanup fails even when the test
+    // assertions already passed (permission / getSession Appium smokes).
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
+      responseCode: 200,
+      response: {},
       priority: hyperliquidMockPriority,
     },
   ],

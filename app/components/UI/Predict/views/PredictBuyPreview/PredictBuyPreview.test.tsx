@@ -250,8 +250,11 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
   navigate: jest.fn(),
+  navigateDeprecated: jest.fn(),
+  preload: jest.fn(),
   reset: jest.fn(),
   setParams: jest.fn(),
+  replaceParams: jest.fn(),
   setOptions: jest.fn(),
   addListener: jest.fn(),
   removeListener: jest.fn(),
@@ -550,6 +553,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$50'));
       fireEvent.press(screen.getByText('Done'));
       fireEvent.press(screen.getAllByText('Total')[0]);
 

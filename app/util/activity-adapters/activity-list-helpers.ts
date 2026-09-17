@@ -1,13 +1,8 @@
-import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../locales/i18n';
-import {
-  mobileActivityAdapterEnvironment,
-  type ActivityAdapterEnvironment,
-} from './adapters/environment';
 import { mergeActivityItemSponsoredFees } from './fees';
 import type { ActivityListItem, TokenAmount } from './types';
 
-export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
+const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
@@ -17,11 +12,17 @@ export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
 
 const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
 
+const STAKING_KINDS = new Set<ActivityListItem['type']>([
+  'stake',
+  'unstake',
+  'claim',
+]);
+
 /**
  * True when a spending-cap item carries a cap amount — an explicit `amount` or
  * an unlimited approval.
  */
-export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
+function isSpendingCapWithAmount(item: ActivityListItem): boolean {
   if (!SPENDING_CAP_KINDS.has(item.type)) {
     return false;
   }
@@ -44,12 +45,20 @@ function hasNonZeroFeeAmount(amount: string | undefined): boolean {
   }
 }
 
+/** Fallback for staking payloads with no gas data to rebuild a fee from. */
+function isStakingWithNetworkFee(item: ActivityListItem): boolean {
+  if (!STAKING_KINDS.has(item.type) || !('fees' in item.data)) {
+    return false;
+  }
+  return Boolean(item.data.fees?.length);
+}
+
 /**
  * True when the item has a gas-token fee (ERC-20 gas payment) with a non-zero
  * amount. Used to prefer local Activity rows over confirmed API copies that
  * only have a native network fee (TMCU-1064).
  */
-export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
+function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
   if (!('fees' in item.data) || !item.data.fees?.length) {
     return false;
   }
@@ -66,14 +75,12 @@ export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
  * Gas-token preference requires matching types so a degraded local
  * `contractInteraction` cannot permanently beat a richer API `send`/`swap`.
  */
-export function shouldPreferLocalActivityItem(
+function shouldPreferLocalActivityItem(
   localItem: ActivityListItem,
   apiItem: ActivityListItem,
 ): boolean {
   const localOutCategorizesApi =
-    apiItem.type !== localItem.type &&
-    localItem.type !== 'contractInteraction' &&
-    localItem.type !== 'swapIncomplete';
+    apiItem.type !== localItem.type && localItem.type !== 'contractInteraction';
 
   const localHasRicherSpendingCap =
     apiItem.type === localItem.type &&
@@ -85,8 +92,16 @@ export function shouldPreferLocalActivityItem(
     isGasTokenFeeWithAmount(localItem) &&
     !isGasTokenFeeWithAmount(apiItem);
 
+  const localHasStakingNetworkFee =
+    apiItem.type === localItem.type &&
+    isStakingWithNetworkFee(localItem) &&
+    !isStakingWithNetworkFee(apiItem);
+
   return (
-    localOutCategorizesApi || localHasRicherSpendingCap || localHasGasTokenFee
+    localOutCategorizesApi ||
+    localHasRicherSpendingCap ||
+    localHasGasTokenFee ||
+    localHasStakingNetworkFee
   );
 }
 
@@ -104,10 +119,6 @@ export function preferLocalOrApiActivityItem(
     ? localItem
     : mergeActivityItemSponsoredFees(localItem, apiItem);
 }
-
-export type ActivityListFilter =
-  | { assetId: CaipAssetType }
-  | { networks: string[] };
 
 export type GroupedActivityListItem =
   | { type: 'pending-header' }
@@ -131,7 +142,7 @@ export function isFailedOrCancelledTransfer(item: ActivityListItem): boolean {
   );
 }
 
-export const isSameLocalDay = (date: Date, otherDate: Date) =>
+const isSameLocalDay = (date: Date, otherDate: Date) =>
   date.getFullYear() === otherDate.getFullYear() &&
   date.getMonth() === otherDate.getMonth() &&
   date.getDate() === otherDate.getDate();
@@ -205,46 +216,38 @@ export function enrichTokenFromApi(
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;
-  const rawFrom = (() => {
-    if (item.raw?.type === 'apiEvmTransaction') {
-      return item.raw.data.from;
-    }
-
-    if (item.raw?.type === 'localTransaction') {
-      return item.raw.data.initialTransaction.txParams.from;
-    }
-
-    if (item.raw?.type === 'keyringTransaction') {
-      return item.raw.data.from[0]?.address;
-    }
-
-    return undefined;
-  })();
-
-  const rawTo = (() => {
-    if (item.raw?.type === 'apiEvmTransaction') {
-      return item.raw.data.to;
-    }
-
-    if (item.raw?.type === 'localTransaction') {
-      return item.raw.data.initialTransaction.txParams.to;
-    }
-
-    if (item.raw?.type === 'keyringTransaction') {
-      return item.raw.data.to[0]?.address;
-    }
-
-    return undefined;
-  })();
-
   return {
-    from:
-      'from' in data && typeof data.from === 'string'
-        ? data.from
-        : (rawFrom ?? ''),
-    to: 'to' in data && typeof data.to === 'string' ? data.to : (rawTo ?? ''),
+    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
+    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
   };
 };
+
+function getItemHash(item: ActivityListItem) {
+  return item.hash?.toLowerCase();
+}
+
+export function getLastEvmItemIndex(
+  groupedItems: GroupedActivityListItem[],
+  evmItems: ActivityListItem[],
+) {
+  const evmItemHashes = new Set(
+    evmItems.flatMap((item) => {
+      const hash = getItemHash(item);
+      return hash ? [hash] : [];
+    }),
+  );
+
+  for (let index = groupedItems.length - 1; index >= 0; index -= 1) {
+    const row = groupedItems[index];
+    const hash = row?.type === 'item' ? getItemHash(row.item) : undefined;
+
+    if (hash && evmItemHashes.has(hash)) {
+      return index;
+    }
+  }
+
+  return -1;
+}
 
 export const getGroupedActivityListItemKey = (
   item: GroupedActivityListItem,
@@ -258,49 +261,11 @@ export const getGroupedActivityListItemKey = (
     return `date-header-${item.date}`;
   }
 
-  const raw = item.item.raw;
-  const { chainId } = item.item;
-  if (raw?.type === 'localTransaction') {
-    const txId =
-      raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
-    if (txId) {
-      return `local-transaction-${chainId}-${txId}`;
-    }
-  }
+  const { chainId = '', timestamp, type, hash } = item.item;
+  const identity = hash ?? String(index);
 
-  if (raw?.type === 'keyringTransaction' && raw.data.id) {
-    return `keyring-transaction-${chainId}-${raw.data.id}`;
-  }
-
-  if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
-    return `api-evm-transaction-${chainId}-${item.item.hash}`;
-  }
-
-  if (item.item.hash) {
-    return `${chainId}-${item.item.type}-${item.item.hash}`;
-  }
-
-  return `${chainId}-${item.item.type}-${item.item.timestamp}-${index}`;
+  return `${chainId}:${timestamp}:${type}:${identity}`;
 };
-
-export function activityMatchesAssetId(
-  item: ActivityListItem,
-  assetId: CaipAssetType,
-  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
-) {
-  const { data } = item;
-  const tokenAssetIds = [
-    'token' in data ? data.token?.assetId : undefined,
-    'sourceToken' in data ? data.sourceToken?.assetId : undefined,
-    'destinationToken' in data ? data.destinationToken?.assetId : undefined,
-  ];
-
-  return tokenAssetIds.some(
-    (tokenAssetId) =>
-      tokenAssetId !== undefined &&
-      environment.equalsIgnoreCase(tokenAssetId, assetId),
-  );
-}
 
 function parseDate(timestamp: number) {
   const date = new Date(timestamp);

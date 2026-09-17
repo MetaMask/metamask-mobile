@@ -1,5 +1,10 @@
+import { PREDICT_MARKET_TYPES } from '../../constants';
 import { PredictErrorCode } from '../../errors';
-import type { PredictEntityId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictFeedId,
+  PredictMarketHistoryRange,
+} from '../../types';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
   type PredictApiReadTransport,
@@ -7,6 +12,9 @@ import {
 } from './PredictApiReadClient';
 
 const eventId = 'event-1' as PredictEntityId;
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
+const marketId = 'market-1' as PredictEntityId;
+const range: PredictMarketHistoryRange = '1D';
 
 const createEvent = (overrides = {}) => ({
   venueId: 'kalshi',
@@ -16,7 +24,7 @@ const createEvent = (overrides = {}) => ({
     {
       id: 'market-1',
       question: 'Will the team win?',
-      status: 'open',
+      status: 'active',
       outcomes: [
         {
           id: 'market-1-yes',
@@ -38,10 +46,29 @@ const createEvent = (overrides = {}) => ({
   ...overrides,
 });
 
+const createMarketHistory = (overrides = {}) => ({
+  venueId: 'kalshi',
+  marketId: 'market-1',
+  range,
+  observedAt: '2026-08-07T12:00:00Z',
+  points: [
+    {
+      timestamp: '2026-08-07T11:00:00Z',
+      yesPrice: '0.42',
+      noPrice: '0.58',
+    },
+  ],
+  ...overrides,
+});
+
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
-  fetchEvents: jest.fn(),
+  fetchBalance: jest.fn(),
+  fetchPositions: jest.fn(),
+  fetchActivity: jest.fn(),
+  fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
+  fetchMarketHistory: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -54,37 +81,107 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it('parses canonical Events from the Predict API', async () => {
-    client.fetchEvents.mockResolvedValue({ items: [createEvent()] });
+    client.fetchFeed.mockResolvedValue({
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+    });
 
-    const result = await adapter.marketData.fetchEvents({ limit: 20 });
+    const result = await adapter.marketData.fetchFeed(feedId, { limit: 20 });
 
-    expect(result.items[0].markets[0].outcomes[0].askPrice).toBe('0.42');
+    expect(result.events[0].markets[0].outcomes[0].askPrice).toBe('0.42');
+  });
+
+  it('preserves grouped Market metadata from the Predict API', async () => {
+    const group = {
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: PREDICT_MARKET_TYPES.TOTAL,
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    };
+    client.fetchEvent.mockResolvedValue(
+      createEvent({
+        markets: [{ ...createEvent().markets[0], group }],
+      }),
+    );
+
+    const result = await adapter.marketData.fetchEvent(eventId);
+
+    expect(result.markets[0].group).toEqual(group);
+  });
+
+  it('parses combined moneyline, total, and spread Markets', async () => {
+    const totalGroup = {
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    };
+    const spreadGroup = {
+      key: 'spread-home',
+      groupType: 'marketSelector',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: { type: 'number', value: 1.5 },
+      displayOrder: 0,
+    };
+    const baseMarkets = createEvent().markets;
+
+    client.fetchEvent.mockResolvedValue(
+      createEvent({
+        markets: [
+          baseMarkets[0],
+          { ...baseMarkets[0], id: 'total-market', group: totalGroup },
+          { ...baseMarkets[0], id: 'spread-market', group: spreadGroup },
+        ],
+      }),
+    );
+
+    const result = await adapter.marketData.fetchEvent(eventId);
+
+    expect(result.markets).toHaveLength(3);
+    expect(result.markets.map((market) => market.group?.marketType)).toEqual([
+      undefined,
+      PREDICT_MARKET_TYPES.TOTAL,
+      PREDICT_MARKET_TYPES.SPREAD,
+    ]);
   });
 
   it('forwards Event query parameters and cancellation', async () => {
-    client.fetchEvents.mockResolvedValue({ items: [createEvent()] });
+    client.fetchFeed.mockResolvedValue({
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+    });
     const signal = new AbortController().signal;
 
-    await adapter.marketData.fetchEvents({ limit: 20 }, { signal });
+    await adapter.marketData.fetchFeed(feedId, { limit: 20 }, { signal });
 
-    expect(client.fetchEvents).toHaveBeenCalledWith(
+    expect(client.fetchFeed).toHaveBeenCalledWith(
       adapter.venueId,
+      feedId,
       { limit: 20 },
       { signal },
     );
   });
 
   it('rejects an Event list containing another Venue', async () => {
-    client.fetchEvents.mockResolvedValue({
-      items: [createEvent({ venueId: 'other' })],
+    client.fetchFeed.mockResolvedValue({
+      venueId: 'kalshi',
+      id: feedId,
+      title: 'NFL Games',
+      events: [createEvent({ venueId: 'other' })],
     });
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
 
-  it('parses Event detail from the Predict API', async () => {
+  it('parses an immutable Event from the Predict API', async () => {
     client.fetchEvent.mockResolvedValue(createEvent());
 
     const result = await adapter.marketData.fetchEvent(eventId);
@@ -92,10 +189,47 @@ describe('KalshiRemoteAdapter', () => {
     expect(result.id).toBe(eventId);
   });
 
-  it('rejects Event detail with another Event ID', async () => {
+  it('rejects an immutable Event with another Event ID', async () => {
     client.fetchEvent.mockResolvedValue(createEvent({ id: 'event-2' }));
 
     await expect(adapter.marketData.fetchEvent(eventId)).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('parses Market history', async () => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory());
+
+    const result = await adapter.marketData.fetchMarketHistory(marketId, range);
+
+    expect(result.points[0].yesPrice).toBe('0.42');
+    expect(result.points[0].noPrice).toBe('0.58');
+  });
+
+  it('forwards Market history cancellation', async () => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory());
+    const signal = new AbortController().signal;
+
+    await adapter.marketData.fetchMarketHistory(marketId, range, { signal });
+
+    expect(client.fetchMarketHistory).toHaveBeenCalledWith(
+      adapter.venueId,
+      marketId,
+      range,
+      { signal },
+    );
+  });
+
+  it.each([
+    ['Venue ID', { venueId: 'other' }],
+    ['Market ID', { marketId: 'market-2' }],
+    ['range', { range: '1W' }],
+  ])('rejects Market history with another %s', async (_field, overrides) => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory(overrides));
+
+    const result = adapter.marketData.fetchMarketHistory(marketId, range);
+
+    await expect(result).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
@@ -125,9 +259,9 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it('maps HTTP 429 to RATE_LIMITED without response data', async () => {
-    client.fetchEvents.mockRejectedValue(new PredictHttpError(429));
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(429));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.RATE_LIMITED,
         metadata: undefined,
@@ -136,9 +270,9 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it('maps HTTP 503 to VENUE_UNAVAILABLE', async () => {
-    client.fetchEvents.mockRejectedValue(new PredictHttpError(503));
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(503));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.VENUE_UNAVAILABLE,
       }),
@@ -146,17 +280,17 @@ describe('KalshiRemoteAdapter', () => {
   });
 
   it.each([500, 502, 504])('maps HTTP %s to NETWORK_ERROR', async (status) => {
-    client.fetchEvents.mockRejectedValue(new PredictHttpError(status));
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.NETWORK_ERROR }),
     );
   });
 
   it('maps other transport failures to INVALID_RESPONSE', async () => {
-    client.fetchEvents.mockRejectedValue(new Error('network detail'));
+    client.fetchFeed.mockRejectedValue(new Error('network detail'));
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
@@ -164,8 +298,218 @@ describe('KalshiRemoteAdapter', () => {
   it('preserves AbortError', async () => {
     const abortError = new Error('aborted');
     abortError.name = 'AbortError';
-    client.fetchEvents.mockRejectedValue(abortError);
+    client.fetchFeed.mockRejectedValue(abortError);
 
-    await expect(adapter.marketData.fetchEvents({})).rejects.toBe(abortError);
+    await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toBe(
+      abortError,
+    );
+  });
+
+  it('parses canonical Balance from the Predict API', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.13',
+    });
+
+    const result = await adapter.portfolio.fetchBalance();
+
+    expect(result.available).toBe('123.13');
+  });
+
+  it('forwards Balance cancellation', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.13',
+    });
+    const signal = new AbortController().signal;
+
+    await adapter.portfolio.fetchBalance({ signal });
+
+    expect(client.fetchBalance).toHaveBeenCalledWith(adapter.venueId, {
+      signal,
+    });
+  });
+
+  it('rejects Balance for another Venue', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'other',
+      currency: 'USD',
+      available: '123.13',
+    });
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects a malformed Balance payload', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: 'free',
+    });
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Balance HTTP 401 to UNAUTHENTICATED', async () => {
+    client.fetchBalance.mockRejectedValue(new PredictHttpError(401));
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+    );
+  });
+
+  it('maps Balance HTTP 503 to VENUE_UNAVAILABLE', async () => {
+    client.fetchBalance.mockRejectedValue(new PredictHttpError(503));
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
+    );
+  });
+
+  it('parses canonical Positions from the Predict API', async () => {
+    const page = {
+      venueId: 'kalshi',
+      positions: [
+        {
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          side: 'yes',
+          shares: '75.00',
+          marketExposure: '41.25',
+          realizedPnl: '-2.50',
+          context: {
+            eventId: 'event-1',
+            eventTitle: 'Lakers vs Celtics',
+            marketQuestion: 'Will the Lakers win?',
+          },
+        },
+      ],
+      nextCursor: 'opaque',
+    };
+    client.fetchPositions.mockResolvedValue(page);
+
+    const result = await adapter.portfolio.fetchPositions({ limit: 20 });
+
+    expect(result).toEqual(page);
+    expect(client.fetchPositions).toHaveBeenCalledWith(
+      adapter.venueId,
+      { limit: 20 },
+      undefined,
+    );
+  });
+
+  it('forwards Positions cancellation', async () => {
+    client.fetchPositions.mockResolvedValue({
+      venueId: 'kalshi',
+      positions: [],
+    });
+    const signal = new AbortController().signal;
+
+    await adapter.portfolio.fetchPositions({ limit: 20 }, { signal });
+
+    expect(client.fetchPositions).toHaveBeenCalledWith(
+      adapter.venueId,
+      { limit: 20 },
+      { signal },
+    );
+  });
+
+  it('rejects Positions for another Venue', async () => {
+    client.fetchPositions.mockResolvedValue({
+      venueId: 'other',
+      positions: [],
+    });
+
+    await expect(adapter.portfolio.fetchPositions({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects a malformed Positions payload', async () => {
+    client.fetchPositions.mockResolvedValue({
+      venueId: 'kalshi',
+      positions: [{ marketId: 'market-1' }],
+    });
+
+    await expect(adapter.portfolio.fetchPositions({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Positions HTTP 401 to UNAUTHENTICATED', async () => {
+    client.fetchPositions.mockRejectedValue(new PredictHttpError(401));
+
+    await expect(adapter.portfolio.fetchPositions({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+    );
+  });
+
+  it('parses canonical Activity from the Predict API', async () => {
+    const page = {
+      venueId: 'kalshi',
+      activity: [
+        {
+          type: 'fill',
+          id: 'fill-1',
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          outcomeSide: 'yes',
+          shares: '75.00',
+          price: '0.55',
+          timestamp: '2026-09-01T12:00:00.000Z',
+        },
+        {
+          type: 'settlement',
+          id: 'market-1:2026-09-02T00:00:00.000Z',
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          result: 'yes',
+          side: 'yes',
+          proceeds: '75.00',
+          timestamp: '2026-09-02T00:00:00.000Z',
+        },
+      ],
+    };
+    client.fetchActivity.mockResolvedValue(page);
+
+    const result = await adapter.portfolio.fetchActivity({ limit: 20 });
+
+    expect(result).toEqual(page);
+  });
+
+  it('rejects Activity for another Venue', async () => {
+    client.fetchActivity.mockResolvedValue({
+      venueId: 'other',
+      activity: [],
+    });
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects a malformed Activity payload', async () => {
+    client.fetchActivity.mockResolvedValue({
+      venueId: 'kalshi',
+      activity: [{ type: 'fill', id: 'fill-1' }],
+    });
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Activity HTTP 503 to VENUE_UNAVAILABLE', async () => {
+    client.fetchActivity.mockRejectedValue(new PredictHttpError(503));
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
+    );
   });
 });

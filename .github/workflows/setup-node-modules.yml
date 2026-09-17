@@ -120,7 +120,8 @@ jobs:
            inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
           vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      CACHE_GENERATION: v1
+      # Must match build.yml's CACHE_GENERATION; the two compose the same cache key.
+      CACHE_GENERATION: v2
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
       cache-key: ${{ steps.cache-key.outputs.key }}
@@ -133,13 +134,16 @@ jobs:
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      # node_modules must not be cached here: nscloud-cache-action mounts cached paths as
+      # symlinks into /Volumes/cache, and the cache/tarball this workflow produces would
+      # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -147,12 +151,11 @@ jobs:
           path: |
             ~/.cache/yarn
             .metamask
-            node_modules
             .yarn/cache
 
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') || '' }}
@@ -201,7 +204,7 @@ jobs:
       - name: Restore .metamask folder
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.platform != '' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -268,7 +271,7 @@ jobs:
 
       - name: Save node_modules cache
         if: inputs.use-cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             node_modules
@@ -308,7 +311,7 @@ jobs:
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: node-modules-${{ inputs.platform }}.tar.zst
@@ -319,7 +322,7 @@ jobs:
 
       - name: Upload node_modules artifact (zip)
         if: inputs.upload-artifact && !inputs.use-tarball
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: |

@@ -17,6 +17,7 @@ export interface HomepageBalanceBreakdownProps {
   hideRows?: boolean;
   accountGroupBalanceProps?: React.ComponentProps<typeof AccountGroupBalance>;
   layout: HomepageBalanceBreakdownLayout;
+  showRowArrows?: boolean;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   children?: React.ReactNode;
 }
@@ -25,6 +26,7 @@ const HomepageBalanceBreakdown = ({
   hideRows = false,
   accountGroupBalanceProps,
   layout,
+  showRowArrows = false,
   transactionActiveAbTests,
   children,
 }: HomepageBalanceBreakdownProps) => {
@@ -58,6 +60,7 @@ const HomepageBalanceBreakdown = ({
               key={key}
               layout={layout}
               onPress={() => openSlice(key, SLICE_ORDER.indexOf(key))}
+              showArrow={showRowArrows}
               slice={slices[key]}
               userCurrency={hero.userCurrency}
             />

@@ -17,9 +17,13 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import {
+  setDestToken,
   setSlippage,
   setSourceAmount,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { BridgeViewMode, type BridgeToken } from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -47,6 +51,44 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/trending';
 import { merge } from 'lodash';
 
+const HOUR_MS = 60 * 60 * 1000;
+
+const createStockRwaToken = ({
+  nowMs,
+  inRegularHours,
+  inOffHours,
+}: {
+  nowMs: number;
+  inRegularHours: boolean;
+  inOffHours: boolean;
+}): BridgeToken => ({
+  address: '0x1111111111111111111111111111111111111111',
+  symbol: 'AAPL',
+  name: 'Apple',
+  decimals: 18,
+  chainId: '0x1',
+  rwaData: {
+    instrumentType: 'stock',
+    market: inRegularHours
+      ? {
+          nextOpen: new Date(nowMs - HOUR_MS).toISOString(),
+          nextClose: new Date(nowMs + 6 * HOUR_MS).toISOString(),
+        }
+      : {
+          nextOpen: new Date(nowMs + 12 * HOUR_MS).toISOString(),
+          nextClose: new Date(nowMs + 20 * HOUR_MS).toISOString(),
+        },
+    ...(inOffHours
+      ? {
+          offhours: {
+            nextOpen: new Date(nowMs - HOUR_MS).toISOString(),
+            nextClose: new Date(nowMs + 2 * HOUR_MS).toISOString(),
+          },
+        }
+      : {}),
+  } as BridgeToken['rwaData'],
+});
+
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
   return renderBridgeView({
@@ -67,6 +109,10 @@ describeForPlatforms('BridgeView', () => {
     // (timeSinceLastCall = 123 - 123 = 0 never reaches the wait threshold).
     // Restore it to a real implementation so debounce-based tests work correctly.
     Date.now = () => new Date().getTime();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders input areas and hides confirm button without tokens or amount', () => {
@@ -169,6 +215,159 @@ describeForPlatforms('BridgeView', () => {
       expect(
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('re-anchors the destination to the source token default pair when returning to the market tab', async () => {
+      // The user picks a Robinhood-chain pair on the Limit tab and goes back to
+      // Market, which anchors its source token from the route params. The
+      // destination has to follow that source instead of being left behind on
+      // the Robinhood chain, which would turn a swap into a cross-chain bridge.
+      const robinhoodChainId = '0x1237';
+      const robinhoodEth: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ether',
+      };
+      const robinhoodUsde: BridgeToken = {
+        address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'USDe',
+        name: 'Ethena USDe',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+          sourceToken: ETH_SOURCE,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(robinhoodEth));
+        store.dispatch(setDestToken(robinhoodUsde));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken?.chainId).toBe('0x1');
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+        );
+      });
+      expect(store.getState().bridge.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('re-anchors the destination to the source token chain when returning to the market tab without a route source token', async () => {
+      // Same as above, but Market has no source token on its route params, so it
+      // keeps the source the Limit tab left in Redux. The destination has to
+      // follow that source's chain rather than the bip44 default pair, whose
+      // dest asset always sits on Ethereum.
+      const bscUsdt: BridgeToken = {
+        address: '0x55d398326f99059ff775485246999027b3197955',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'USDT',
+        name: 'Tether USD',
+      };
+      const bscNative: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'BNB',
+        name: 'BNB',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  // The bip44 default pair is what a source token left on
+                  // another chain could wrongly get paired with.
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'eip155:1': { isActiveSrc: true, isActiveDest: true },
+                      'eip155:56': { isActiveSrc: true, isActiveDest: true },
+                    },
+                    bip44DefaultPairs: {
+                      eip155: {
+                        other: {},
+                        standard: {
+                          'eip155:1/slip44:60':
+                            'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(bscNative));
+        store.dispatch(setDestToken(bscUsdt));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'USDT', chainId: '0x38' }),
+        );
+      });
+      expect(store.getState().bridge.sourceToken?.chainId).toBe('0x38');
     });
 
     it('clears the amount inputs and stops controller polling after switching away from the market tab, keeping the selected tokens', async () => {
@@ -401,7 +600,7 @@ describeForPlatforms('BridgeView', () => {
       bridgeControllerState.quotes = [quoteWithTrade];
     }
 
-    const { getByTestId, getByText } = renderComponentViewScreen(
+    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
       BridgeView as unknown as React.ComponentType,
       { name: Routes.BRIDGE.BRIDGE_VIEW },
       { state },
@@ -413,6 +612,9 @@ describeForPlatforms('BridgeView', () => {
       ).toBe('$1.00');
     });
     expect(getByText('1 USDC')).toBeOnTheScreen();
+    expect(
+      queryByText(strings('bridge.recurring.you_get')),
+    ).not.toBeOnTheScreen();
   });
 
   it('resets source cursor to the end when input is focused again', async () => {
@@ -543,10 +745,8 @@ describeForPlatforms('BridgeView', () => {
           expect.anything(),
         );
       },
-      { timeout: 1000 },
+      { timeout: 5000 },
     );
-
-    updateQuoteSpy.mockRestore();
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
@@ -715,6 +915,159 @@ describeForPlatforms('BridgeView', () => {
       expect(
         await findByText(strings('bridge.quote_stream_complete_retry')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Off-hours trading banner', () => {
+    it('shows the warning when dest stock is in off-hours and hides it after switching dest', async () => {
+      const nowMs = Date.now();
+      const stockInRegularHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: true,
+        inOffHours: false,
+      });
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const { queryByTestId, findByTestId, findByText, store } =
+        defaultBridgeWithTokens({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [RWA_FEATURE_FLAG_NAME]: true,
+                },
+              },
+            },
+          },
+        });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInRegularHours));
+      });
+
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken?.symbol).toBe('AAPL');
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(strings('bridge.off_hours_trading.title')),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(strings('bridge.off_hours_trading.description')),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(USDC_DEST as BridgeToken));
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('replaces the off-hours warning with the market-closed banner when dest stock becomes fully closed', async () => {
+      const nowMs = Date.now();
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+      const { queryByTestId, findByTestId, store } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockFullyClosed));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the market-unavailable quote error when the dest stock market is fully closed', async () => {
+      const nowMs = Date.now();
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+
+      const { queryByTestId, findByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          destToken: stockFullyClosed,
+          sourceAmount: '1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: nowMs,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RWA_MARKET_UNAVAILABLE,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.NO_QUOTES_BANNER),
+      ).not.toBeOnTheScreen();
     });
   });
 

@@ -6,6 +6,7 @@ import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import {
+  FeatureId,
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNativeAddress,
@@ -31,7 +32,6 @@ import {
   setIsDestTokenManuallySet,
   setAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
-import { trace, TraceName } from '../../../../../util/trace';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Engine from '../../../../../core/Engine';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
@@ -39,8 +39,8 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   getNativeSourceToken,
   getDefaultDestToken,
+  isSameBridgeToken,
 } from '../../utils/tokenUtils';
-import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
@@ -48,6 +48,7 @@ import {
   ARC_HEX_CHAIN_ID,
   ARC_USDC_BRIDGE_TOKEN,
 } from '../../../../../enablement/assets/arc';
+import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
 
 /**
  * Allows to manually set the default Swap token when clicking on the Swap CTA from
@@ -84,6 +85,8 @@ export interface BridgeRouteParams {
    * to transactions when the user submits (not stored in Redux).
    */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Correlates a fresh page-load trace started before navigation. */
+  swapViewTraceId?: string;
 }
 
 export enum SwapBridgeNavigationLocation {
@@ -198,6 +201,7 @@ export const useSwapBridgeNavigation = ({
       chainIds: enabledChainRanking.map(
         (chain: { chainId: CaipChainId }) => chain.chainId,
       ),
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     }).catch(() => undefined);
   }, [enabledChainRanking, fetchPopularTokens]);
 
@@ -306,7 +310,7 @@ export const useSwapBridgeNavigation = ({
       let isExplicitDestTokenSelection = false;
       if (
         validDestTokenBase &&
-        !areAddressesEqual(sourceToken.address, validDestTokenBase.address)
+        !isSameBridgeToken(sourceToken, validDestTokenBase)
       ) {
         destTokenToSet = validDestTokenBase;
         isExplicitDestTokenSelection = true;
@@ -314,14 +318,12 @@ export const useSwapBridgeNavigation = ({
         const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
         if (
           defaultDestToken &&
-          !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+          !isSameBridgeToken(sourceToken, defaultDestToken)
         ) {
           destTokenToSet = defaultDestToken;
         } else {
           const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
-          if (
-            !areAddressesEqual(sourceToken.address, nativeDestToken.address)
-          ) {
+          if (!isSameBridgeToken(sourceToken, nativeDestToken)) {
             destTokenToSet = nativeDestToken;
           }
         }
@@ -352,7 +354,7 @@ export const useSwapBridgeNavigation = ({
         effectiveSourceTokenBase || effectiveDestTokenBase,
       );
 
-      const params: BridgeRouteParams = {
+      const params = startSwapBridgePageLoadTrace({
         sourceToken,
         sourcePage,
         bridgeViewMode,
@@ -362,18 +364,23 @@ export const useSwapBridgeNavigation = ({
           autoFocusSourceAmountInput: true,
         }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-      };
+      });
 
       // Prefetch popular tokens
       if (isBasicFunctionalityEnabled) {
         prefetchPopularTokens();
       }
+
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
-      navigation.navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params,
-      });
+      navigation.navigate(
+        Routes.BRIDGE.ROOT,
+        {
+          screen: Routes.BRIDGE.BRIDGE_VIEW,
+          params,
+        },
+        { pop: true },
+      );
 
       dispatch(setIsDestTokenManuallySet(isExplicitDestTokenSelection));
       dispatch(setAbTestContext(abTestContext));
@@ -420,11 +427,6 @@ export const useSwapBridgeNavigation = ({
           .addProperties(swapEventProperties)
           .build(),
       );
-
-      trace({
-        name: TraceName.SwapViewLoaded,
-        startTime: Date.now(),
-      });
     },
     [
       navigation,

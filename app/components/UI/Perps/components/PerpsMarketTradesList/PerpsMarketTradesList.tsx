@@ -36,6 +36,9 @@ import {
   PERPS_BALANCE_CHAIN_ID,
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { PerpsMarketTradesListSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -48,6 +51,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
@@ -88,12 +92,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      // Navigate to the position transaction detail screen
-      navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-        transaction,
-      });
+      navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades
@@ -115,11 +116,12 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction }) => {
-      const { item } = props;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
 
       return (
         <TouchableOpacity
+          testID={PerpsMarketTradesListSelectorsIDs.ROW(index)}
           style={styles.tradeItem}
           onPress={() => handleTradePress(item)}
           activeOpacity={0.7}
@@ -183,6 +185,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
     return (
       <FlatList
+        testID={PerpsMarketTradesListSelectorsIDs.LIST}
         data={trades}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.id || index}`}

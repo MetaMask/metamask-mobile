@@ -163,7 +163,7 @@ const createMockPosition = (
   outcomeIndex: 0,
   amount: 25,
   price: 0.67,
-  status: PredictPositionStatus.OPEN,
+  status: PredictPositionStatus.WON,
   size: 50,
   cashPnl: 15.5,
   percentPnl: 5.25,
@@ -415,10 +415,28 @@ describe('PredictSportCardFooter', () => {
   });
 
   describe('claimable positions - resolved market', () => {
+    it('does not show a claim CTA for a resolved losing position', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
+      const losingPosition = createMockPosition({
+        claimable: true,
+        currentValue: 0,
+        status: PredictPositionStatus.LOST,
+      });
+      setupPositionsMock({ claimablePositions: [losingPosition] });
+
+      render(<PredictSportCardFooter market={market} testID="footer" />);
+
+      expect(screen.queryByText(/Claim/)).toBeNull();
+      expect(screen.queryByTestId('footer-picks')).toBeNull();
+    });
     it('renders claim button when positions are claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          currentValue: 50,
+          status: PredictPositionStatus.WON,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,

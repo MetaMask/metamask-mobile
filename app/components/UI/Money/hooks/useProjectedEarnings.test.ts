@@ -1,5 +1,6 @@
+import { EthAccountType } from '@metamask/keyring-api';
 import { renderHook } from '@testing-library/react-native';
-import { AssetType } from '../../../Views/confirmations/types/token';
+import type { MoneyDepositAsset } from '../selectors/depositTokens';
 import { useProjectedEarnings } from './useProjectedEarnings';
 import { PROJECTION_YEARS } from '../utils/projections';
 import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
@@ -8,11 +9,22 @@ const makeToken = (
   fiat: number,
   symbol = 'USDC',
   currency?: string,
-): AssetType =>
+): MoneyDepositAsset =>
   ({
+    accountType: EthAccountType.Eoa,
+    accountId: 'account-id',
+    assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: '0x1',
+    decimals: 6,
+    image: '',
+    name: symbol,
     symbol,
-    fiat: { balance: fiat, currency },
-  }) as unknown as AssetType;
+    balance: '1',
+    rawBalance: '0x1',
+    isNative: false,
+    fiat: { balance: fiat, currency: currency ?? 'USD', conversionRate: 1 },
+  }) as MoneyDepositAsset;
 
 describe('useProjectedEarnings', () => {
   it('returns zeros and empty list when tokens is undefined', () => {
