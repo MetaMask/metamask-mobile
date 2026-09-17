@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import MemberPricingOnTrades from './MemberPricingOnTrades';
 import TradeAllowanceRow from './TradeAllowanceRow';
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
@@ -50,9 +50,6 @@ describe('MemberPricingOnTrades', () => {
       status: MoneyAccountPlusBenefitsStatus.Ready,
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
-      retry: jest.fn(),
     });
   });
 
@@ -91,50 +88,19 @@ describe('MemberPricingOnTrades', () => {
     );
   });
 
-  it('renders skeletons instead of rows while benefits load', () => {
+  it('omits rows when persisted benefits are empty', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
-      status: MoneyAccountPlusBenefitsStatus.Loading,
+      status: MoneyAccountPlusBenefitsStatus.Empty,
       items: [],
       resetsOn: undefined,
-      isRefreshing: true,
-      hasError: false,
-      retry: jest.fn(),
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
 
-    expect(
-      getByTestId(MemberPricingOnTradesTestIds.LOADING_SKELETON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
-    ).not.toBeOnTheScreen();
     expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
-  });
-
-  it('renders an error with retry when benefits cannot be loaded', () => {
-    const retry = jest.fn();
-    mockUseMoneyAccountPlusBenefits.mockReturnValue({
-      status: MoneyAccountPlusBenefitsStatus.Failed,
-      items: [],
-      resetsOn: undefined,
-      isRefreshing: false,
-      hasError: true,
-      retry,
-    });
-
-    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
-
-    expect(getByTestId(MemberPricingOnTradesTestIds.ERROR)).toHaveTextContent(
-      toRegex(strings('pro_hub.member_pricing.load_error')),
-    );
     expect(
       queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
     ).not.toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON));
-
-    expect(retry).toHaveBeenCalledTimes(1);
   });
 
   it('omits a product that was not mapped from benefits', () => {
@@ -142,9 +108,6 @@ describe('MemberPricingOnTrades', () => {
       status: MoneyAccountPlusBenefitsStatus.Incomplete,
       items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
-      retry: jest.fn(),
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();

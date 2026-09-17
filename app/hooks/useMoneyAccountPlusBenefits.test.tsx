@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, renderHook } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import {
   PRODUCT_TYPES,
@@ -9,8 +9,6 @@ import {
 } from '@metamask/subscription-controller';
 import type { RootState } from '../reducers';
 import configureStore from '../util/test/configureStore';
-import Engine from '../core/Engine';
-import { __resetForTest } from '../core/Subscription/benefitsResolution';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -20,36 +18,12 @@ import {
   useMoneyAccountPlusBenefits,
 } from './useMoneyAccountPlusBenefits';
 
-jest.mock('../core/Engine', () => ({
-  context: {
-    SubscriptionController: {
-      getBenefits: jest.fn(),
-    },
-  },
-}));
-
-jest.mock('../util/Logger', () => ({
-  error: jest.fn(),
-}));
-
 jest.mock('./useMoneyAccountPlusAccess', () => ({
   ...jest.requireActual('./useMoneyAccountPlusAccess'),
   useMoneyAccountPlusAccess: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => {
-  const ReactNav = jest.requireActual('react');
-  return {
-    useFocusEffect: (callback: () => void) => {
-      ReactNav.useEffect(callback, [callback]);
-    },
-  };
-});
-
 const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
-const mockGetBenefits = jest.mocked(
-  Engine.context.SubscriptionController.getBenefits,
-);
 
 const BENEFITS: SubscriptionBenefitsState = {
   billingPeriodId: 'bp_2026_08_15',
@@ -94,19 +68,13 @@ const createPlusSubscription = (): Subscription =>
   }) as Subscription;
 
 const createState = ({
-  isSignedIn = true,
-  isUnlocked = true,
   benefits,
 }: {
-  isSignedIn?: boolean;
-  isUnlocked?: boolean;
   benefits?: SubscriptionBenefitsState;
 } = {}) =>
   ({
     engine: {
       backgroundState: {
-        AuthenticationController: { isSignedIn },
-        KeyringController: { isUnlocked, keyrings: [] },
         SubscriptionController: {
           subscriptions: [createPlusSubscription()],
           trialedProducts: [],
@@ -124,56 +92,36 @@ const renderBenefits = (state: RootState) => {
   return renderHook(() => useMoneyAccountPlusBenefits(), { wrapper: Wrapper });
 };
 
-const flush = async () => {
-  await act(async () => {
-    await Promise.resolve();
-  });
-};
-
 describe('useMoneyAccountPlusBenefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __resetForTest();
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
-    mockGetBenefits.mockResolvedValue({
-      eligible: true,
-      billingPeriodId: BENEFITS.billingPeriodId,
-      products: {
-        swaps: BENEFITS.swaps,
-        perps: BENEFITS.perps,
-        predict: BENEFITS.predict,
-      },
-    });
   });
 
-  it('does not fetch benefits for a non-subscriber', async () => {
+  it('returns empty for a non-subscriber', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
 
-    const { result } = renderBenefits(createState());
-    await flush();
+    const { result } = renderBenefits(createState({ benefits: BENEFITS }));
 
-    expect(mockGetBenefits).not.toHaveBeenCalled();
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
+    expect(result.current.items).toEqual([]);
+    expect(result.current.resetsOn).toBeUndefined();
   });
 
-  it('reports loading while benefits are unresolved and uncached', () => {
-    mockGetBenefits.mockReturnValue(new Promise(() => undefined));
-
+  it('returns empty when persisted benefits are missing', () => {
     const { result } = renderBenefits(createState());
 
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
     expect(result.current.items).toEqual([]);
   });
 
-  it('maps cached benefits after a successful fetch', async () => {
+  it('maps cached benefits for a subscriber', () => {
     const { result } = renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
 
-    expect(mockGetBenefits).toHaveBeenCalledTimes(1);
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
     expect(result.current.resetsOn).toBe(
@@ -184,7 +132,7 @@ describe('useMoneyAccountPlusBenefits', () => {
     );
   });
 
-  it('reports partial when a product cannot be mapped', async () => {
+  it('reports partial when a product cannot be mapped', () => {
     const { result } = renderBenefits(
       createState({
         benefits: {
@@ -197,7 +145,6 @@ describe('useMoneyAccountPlusBenefits', () => {
         },
       }),
     );
-    await flush();
 
     expect(result.current.status).toBe(
       MoneyAccountPlusBenefitsStatus.Incomplete,
@@ -206,67 +153,5 @@ describe('useMoneyAccountPlusBenefits', () => {
       'swaps',
       'perps',
     ]);
-  });
-
-  it('reports error when the fetch fails and no cache exists', async () => {
-    mockGetBenefits.mockRejectedValue(new Error('network down'));
-
-    const { result } = renderBenefits(createState());
-    await flush();
-
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed);
-    expect(result.current.hasError).toBe(true);
-    expect(result.current.items).toEqual([]);
-  });
-
-  it('keeps cached rows when a refresh fails', async () => {
-    const { result } = renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
-
-    mockGetBenefits.mockRejectedValue(new Error('network down'));
-    await act(async () => {
-      result.current.retry();
-      await Promise.resolve();
-    });
-
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
-    expect(result.current.hasError).toBe(true);
-    expect(result.current.items).toHaveLength(3);
-  });
-
-  it('retries a failed fetch from the error state', async () => {
-    mockGetBenefits.mockRejectedValueOnce(new Error('network down'));
-
-    const { result } = renderBenefits(createState());
-    await flush();
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed);
-
-    await act(async () => {
-      result.current.retry();
-      await Promise.resolve();
-    });
-
-    expect(mockGetBenefits).toHaveBeenCalledTimes(2);
-  });
-
-  it('clears resolution when the session ends so the next user re-fetches', async () => {
-    renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
-    expect(mockGetBenefits).toHaveBeenCalledTimes(1);
-
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Eligible,
-    );
-    renderBenefits(createState({ isSignedIn: false, benefits: BENEFITS }));
-    await flush();
-
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Subscriber,
-    );
-    renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
-
-    expect(mockGetBenefits).toHaveBeenCalledTimes(2);
   });
 });
