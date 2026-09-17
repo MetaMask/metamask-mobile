@@ -16,41 +16,15 @@ import {
   setSharedSessionRecreateHandler,
 } from '../../services/appium/sessionRecovery.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
-import type { ServiceProvider } from '../../services';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
+import {
+  configureImplicitWait,
+  createSession,
+  recreateInProcessSession,
+  resolveLiveDriver,
+} from './sessionLifecycle.ts';
 
 const logger = createAppiumLogger('driver');
-
-async function configureImplicitWait(
-  drv: WebdriverIO.Browser,
-  implicitMs: number,
-): Promise<void> {
-  // Wrapped in retry because BrowserStack sessions can transiently reject
-  // the setTimeout command before the session is fully initialised.
-  const maxRetries = 5;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      await drv.setTimeout({ implicit: implicitMs });
-      return;
-    } catch (err) {
-      if (attempt === maxRetries) throw err;
-      const backoff = Math.min(2 ** attempt * 1000, 15000);
-      logger.warn(
-        `driver.setTimeout failed (attempt ${attempt}/${maxRetries}), retrying in ${backoff}ms`,
-      );
-      await new Promise((r) => setTimeout(r, backoff));
-    }
-  }
-}
-
-async function createSession(
-  deviceProvider: ServiceProvider,
-  sharedSession: SharedAppiumSession,
-): Promise<WebdriverIO.Browser> {
-  const drv = await deviceProvider.getDriver();
-  sharedSession.drv = drv;
-  return drv;
-}
 
 export const driverFixture = {
   driver: async (
@@ -172,22 +146,17 @@ export const driverFixture = {
         logger.warn(
           `In-process WebDriver session recreate for "${testInfo.title}"`,
         );
-        try {
-          if (drv) {
-            await deviceProvider.cleanupSession?.(drv);
-          }
-        } catch (error) {
-          logger.error(
-            'Failed to cleanup session before in-process recreate:',
-            error,
-          );
-        }
-        sharedSession.drv = undefined;
-        const newDrv = await createSession(deviceProvider, sharedSession);
-        await configureImplicitWait(newDrv, implicitMs);
-        globalThis.driver = newDrv;
-        drv = newDrv;
-        sessionRecreated = true;
+        const newDrv = await recreateInProcessSession({
+          currentDrv: drv,
+          deviceProvider,
+          sharedSession,
+          implicitMs,
+          adoptSession: (session) => {
+            drv = session;
+            globalThis.driver = session;
+            sessionRecreated = true;
+          },
+        });
         logger.info(
           `In-process WebDriver session ready: sessionId=${deviceProvider.sessionId ?? newDrv.sessionId ?? 'unknown'}`,
         );
@@ -202,15 +171,16 @@ export const driverFixture = {
     } finally {
       const testStatus = testInfo.status;
       const testError = testInfo.error?.message;
+      const liveDrv = resolveLiveDriver(drv, sharedSession);
 
       logger.info(
         `Tearing down driver fixture for "${testInfo.title}" (status: ${testStatus ?? 'unknown'}, reuse=${reuseEnabled})`,
       );
 
       try {
-        if (drv) {
+        if (liveDrv) {
           await stopFailureRecordingAndAttach(
-            drv,
+            liveDrv,
             testInfo,
             recordingBackend,
             platform,
@@ -237,8 +207,8 @@ export const driverFixture = {
       ) {
         requestSharedSessionRecreate();
         try {
-          if (drv) {
-            await deviceProvider.cleanupSession?.(drv);
+          if (liveDrv) {
+            await deviceProvider.cleanupSession?.(liveDrv);
           }
         } catch (error) {
           logger.error(
@@ -252,14 +222,14 @@ export const driverFixture = {
 
       if (!reuseEnabled) {
         try {
-          if (drv) {
+          if (liveDrv) {
             // Always pass drv so providers (including BrowserStack via
             // BaseServiceProvider) actually deleteSession — a no-arg /
             // missing cleanupSession must not leave cloud sessions open.
             if (deviceProvider.cleanupSession) {
-              await deviceProvider.cleanupSession(drv);
+              await deviceProvider.cleanupSession(liveDrv);
             } else {
-              await drv.deleteSession();
+              await liveDrv.deleteSession();
               logger.info('WebDriver session deleted');
             }
           }

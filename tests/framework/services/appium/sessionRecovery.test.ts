@@ -95,6 +95,19 @@ describe('shared session recreate requests', () => {
     expect(consumeSharedSessionRecreate()).toBe(false);
   });
 
+  it('leaves a recreate request when the in-process handler throws', async () => {
+    const handler = jest
+      .fn()
+      .mockRejectedValue(new Error('setTimeout rejected during startup'));
+    setSharedSessionRecreateHandler(handler);
+
+    await expect(recreateSharedSessionNow()).rejects.toThrow(
+      'setTimeout rejected during startup',
+    );
+
+    expect(consumeSharedSessionRecreate()).toBe(true);
+  });
+
   it('recreateSharedSessionNow returns undefined without a handler', async () => {
     requestSharedSessionRecreate();
     await expect(recreateSharedSessionNow()).resolves.toBeUndefined();

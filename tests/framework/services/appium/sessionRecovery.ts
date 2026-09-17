@@ -69,7 +69,8 @@ export function setSharedSessionRecreateHandler(
 /**
  * Recreate the shared WebDriver session now (same Playwright attempt).
  * Returns undefined when no handler is registered (e.g. unit tests without the fixture).
- * Clears the pending recreate flag so the next fixture setup does not double-recreate.
+ * Clears the pending recreate flag only after the handler succeeds, so a failed
+ * recreate still forces the next fixture setup to drop the shared session.
  */
 export async function recreateSharedSessionNow(): Promise<
   WebdriverIO.Browser | undefined
@@ -78,9 +79,17 @@ export async function recreateSharedSessionNow(): Promise<
   if (!handler) {
     return undefined;
   }
-  // In-process recreate consumes the flag; the new session is already healthy.
-  recreateRequested = false;
-  return handler();
+  try {
+    const newDrv = await handler();
+    // Consume the flag only after the handler returns a live session.
+    // If configureImplicitWait (or session create) still throws, the next
+    // fixture setup must drop whatever was left in sharedSession.drv.
+    recreateRequested = false;
+    return newDrv;
+  } catch (error) {
+    recreateRequested = true;
+    throw error;
+  }
 }
 
 /** Test-only reset. */
