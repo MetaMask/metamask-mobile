@@ -1,6 +1,12 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import {
   Messenger,

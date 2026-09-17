@@ -1388,12 +1388,16 @@ describe('PredictEventScreen', () => {
     );
 
     expect(view.getByTestId(PredictEventScreenTestIds.VIEW)).toBeOnTheScreen();
-    // Opening the Order Flow reads the venue Balance (cached across the two
-    // opens); pressing Outcomes may request nothing else from the services.
+    // Opening the Order Flow reads venue Balance and Venue Status (cached
+    // across the two opens); pressing Outcomes must not leave the Event Screen
+    // or request anything else from the services.
     const newCalls = messengerCall.mock.calls.slice(serviceCallCount);
     expect(newCalls.length).toBeGreaterThan(0);
     for (const [action] of newCalls) {
-      expect(action).toBe('PredictPortfolioService:getBalance');
+      expect([
+        'PredictPortfolioService:getBalance',
+        'PredictMarketDataService:getVenueStatus',
+      ]).toContain(action);
     }
   });
 
