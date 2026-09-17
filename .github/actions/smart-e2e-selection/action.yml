@@ -110,6 +110,15 @@ runs:
       working-directory: .ai-analyzer-action
       run: npm ci
 
+    - name: Generate smart-e2e catalog from tags
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      working-directory: ${{ github.workspace }}
+      shell: bash
+      env:
+        NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
+      run: |
+        node -r esbuild-register .ai-pr-analyzer/modes/smart-e2e/generate-catalog.ts
+
     - name: Run Smart E2E analysis
       id: run-analysis
       if: steps.check-skip-label.outputs.SKIP != 'true'

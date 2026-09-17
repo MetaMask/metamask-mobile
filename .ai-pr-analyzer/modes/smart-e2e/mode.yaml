@@ -33,10 +33,10 @@ skills:
 # Pin both tiers so repo escalationPatterns cannot switch the model.
 # Prefer a tight budget; raise only if continue hard-rules need more room.
 config:
-  maxIterations: 12
+  maxIterations: 20
   models:
-    default: claude-sonnet-5
-    escalation: claude-sonnet-5
+    default: claude-sonnet-4-6
+    escalation: claude-sonnet-4-6
 summaryFields:
   - selected_tags
   - performance_tests.selected_tags

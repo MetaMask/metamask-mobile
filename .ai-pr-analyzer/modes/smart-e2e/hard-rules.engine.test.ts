@@ -5,6 +5,8 @@ import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { writeSmartE2eCatalog } from './catalog-from-tags';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..', '..');
 const analyzerRoot =
@@ -32,6 +34,7 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
   };
 
   function evaluate(changedFiles: string[]) {
+    writeSmartE2eCatalog();
     const { evaluateHardRules, loadMode } = loadAnalyzer();
     const mode = loadMode('smart-e2e', join(repoRoot, '.ai-pr-analyzer'));
     const evaluation = evaluateHardRules(
