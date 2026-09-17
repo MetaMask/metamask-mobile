@@ -23,17 +23,6 @@ import {
   LLMToolResultBlock,
 } from '../providers';
 import {
-  buildSystemPrompt as buildSelectTagsSystemPrompt,
-  buildTaskPrompt as buildSelectTagsTaskPrompt,
-} from '../modes/select-tags/prompt';
-import {
-  processAnalysis as processSelectTagsAnalysis,
-  createConservativeResult as createSelectTagsConservativeResult,
-  createEmptyResult as createSelectTagsEmptyResult,
-  outputAnalysis as outputSelectTagsAnalysis,
-  checkHardRules as checkSelectTagsHardRules,
-} from '../modes/select-tags/handlers';
-import {
   buildSystemPrompt as buildTestPlanSystemPrompt,
   buildTaskPrompt as buildTestPlanTaskPrompt,
 } from '../modes/generate-test-plan/prompt';
@@ -55,17 +44,6 @@ import {
 export const MODES: {
   [K in keyof ModeAnalysisTypes]: ModeConfig<ModeAnalysisTypes[K]>;
 } = {
-  'select-tags': {
-    description: 'Analyze code changes and select E2E test tags to run',
-    finalizeToolName: 'finalize_tag_selection',
-    systemPromptBuilder: buildSelectTagsSystemPrompt,
-    taskPromptBuilder: buildSelectTagsTaskPrompt,
-    processAnalysis: processSelectTagsAnalysis,
-    createConservativeResult: createSelectTagsConservativeResult,
-    createEmptyResult: createSelectTagsEmptyResult,
-    outputAnalysis: outputSelectTagsAnalysis,
-    checkHardRules: checkSelectTagsHardRules,
-  },
   'generate-test-plan': {
     description: 'Generate exploratory test plan for release testing',
     finalizeToolName: 'finalize_test_plan_generation',
@@ -86,7 +64,7 @@ type ModeAnalysisResult<M extends ModeKey> = ModeAnalysisTypes[M];
  * Validates and returns the mode
  */
 export function validateMode(modeInput?: string): ModeKey {
-  if (!modeInput) return 'select-tags';
+  if (!modeInput) return 'generate-test-plan';
 
   if (!(modeInput in MODES)) {
     const validModes = Object.keys(MODES).join(', ');
