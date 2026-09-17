@@ -14,14 +14,13 @@ import {
   Box,
   SectionDivider,
   SectionHeader,
-  toast,
-  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import WatchlistSuggestedSection from './components/WatchlistSuggestedSection';
 import WatchlistEmptyFallback from './components/WatchlistEmptyFallback';
+import WatchlistAnimatedRow from './components/WatchlistAnimatedRow';
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { useSuggestedWatchlistItemsQuery } from '../../../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery';
@@ -102,14 +101,10 @@ const WatchlistSection = forwardRef<
     (token: WatchlistTokenWithBalance) => {
       const assetId = String(token.assetId) as CaipAssetType;
 
+      // No toast here on purpose: the optimistic move into the watchlist
+      // rows (seeded from the suggested-pool metadata) is the feedback.
       addMutation.mutate(assetId, {
         onSuccess: () => {
-          toast({
-            title: strings('token_watchlist.added_to_watchlist'),
-            severity: ToastSeverity.Success,
-            hasNoTimeout: false,
-            showCloseButton: false,
-          });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
               .addProperties({
@@ -176,12 +171,13 @@ const WatchlistSection = forwardRef<
         ) : (
           <>
             {displayTokens.map((token, index) => (
-              <TrendingTokenRowItem
-                key={token.assetId}
-                token={token}
-                position={index}
-                tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-              />
+              <WatchlistAnimatedRow key={token.assetId}>
+                <TrendingTokenRowItem
+                  token={token}
+                  position={index}
+                  tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+                />
+              </WatchlistAnimatedRow>
             ))}
             {showSuggestedSkeletons ? (
               <Box testID="watchlist-suggested-skeleton">

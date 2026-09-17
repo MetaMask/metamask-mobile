@@ -363,6 +363,102 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       version: 1,
     });
   });
+
+  it('seeds the hydrated cache with suggested-pool metadata so the added token renders immediately', async () => {
+    const initial: WatchlistBlob = { assets: [ASSET_A], version: 1 };
+    mockedRead.mockResolvedValue(initial);
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, initial);
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+    // Homepage empty state: the suggested pool is already hydrated, with a
+    // different casing than the blob to prove case-insensitive matching.
+    queryClient.setQueryData<WatchlistTokenMetadata[]>(
+      tokenWatchlistQueryKeys.suggested(false),
+      hydratedFor([ASSET_B, ASSET_C]).map((token, index) =>
+        index === 0 ? { ...token, assetId: ASSET_B.toUpperCase() } : token,
+      ),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      result.current.mutate(ASSET_B);
+    });
+
+    // Optimistic blob and hydrated updates land before any storage write:
+    // the starred token is already renderable in the watchlist rows.
+    expect(readCache(queryClient)?.assets).toEqual([ASSET_A, ASSET_B]);
+    expect(readHydratedCache(queryClient)).toEqual([
+      ...hydratedFor([ASSET_A]),
+      // Seeded id is normalised to the blob casing to keep row keys stable.
+      { ...tokenFor(ASSET_B), assetId: ASSET_B },
+    ]);
+    expect(mockedWrite).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await drainBatcher();
+    });
+
+    expect(mockedWrite).toHaveBeenCalledWith({
+      assets: [ASSET_A, ASSET_B],
+      version: 1,
+    });
+  });
+
+  it('rolls back the seeded hydrated entry when the storage write fails', async () => {
+    const initial: WatchlistBlob = { assets: [ASSET_A], version: 1 };
+    mockedRead.mockResolvedValue(initial);
+    mockedWrite.mockRejectedValueOnce(new Error('storage failure'));
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, initial);
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+    queryClient.setQueryData<WatchlistTokenMetadata[]>(
+      tokenWatchlistQueryKeys.suggested(false),
+      hydratedFor([ASSET_B]),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      const pending = result.current.mutateAsync(ASSET_B);
+      await drainBatcher();
+      await expect(pending).rejects.toThrow('storage failure');
+    });
+
+    // Failed write reverts both the blob and the seeded hydrated row, so
+    // the token re-appears in the suggested section.
+    expect(readCache(queryClient)?.assets).toEqual([ASSET_A]);
+    expect(readHydratedCache(queryClient)).toEqual(hydratedFor([ASSET_A]));
+  });
+
+  it('omits added ids with no cached metadata from the optimistic hydrated list', async () => {
+    const initial: WatchlistBlob = { assets: [ASSET_A], version: 1 };
+    mockedRead.mockResolvedValue(initial);
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, initial);
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+    // Suggested pool hydrated, but it does not contain ASSET_B.
+    queryClient.setQueryData<WatchlistTokenMetadata[]>(
+      tokenWatchlistQueryKeys.suggested(false),
+      hydratedFor([ASSET_C]),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      result.current.mutate(ASSET_B);
+    });
+
+    // Blob is optimistic, hydrated waits for the settled getTokens refetch.
+    expect(readCache(queryClient)?.assets).toEqual([ASSET_A, ASSET_B]);
+    expect(readHydratedCache(queryClient)).toEqual(hydratedFor([ASSET_A]));
+  });
 });
 
 describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {

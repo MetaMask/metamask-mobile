@@ -1,9 +1,5 @@
 import React from 'react';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-} from 'react-native-reanimated';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import {
   Box,
   Text,
@@ -15,9 +11,9 @@ import TrendingTokenRowItem from '../../../../../UI/Trending/components/Trending
 import type { WatchlistTokenWithBalance } from '../../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/constants';
 import { mapWatchlistTokenToTrendingAsset } from '../utils/mapWatchlistTokenToTrendingAsset';
-
-/** Matches the perps watchlist suggested-section animation timing. */
-const ANIMATION_DURATION = 250;
+import WatchlistAnimatedRow, {
+  WATCHLIST_ROW_ANIMATION_DURATION_MS,
+} from './WatchlistAnimatedRow';
 
 interface WatchlistSuggestedSectionProps {
   /** Suggested tokens to render (already count-capped by the caller). */
@@ -52,20 +48,17 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
         {strings('token_watchlist.suggested')}
       </Text>
     ) : null}
-    <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
+    <Animated.View
+      layout={LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
+    >
       {tokens.map((token) => (
-        <Animated.View
-          key={String(token.assetId)}
-          entering={FadeIn.duration(ANIMATION_DURATION)}
-          exiting={FadeOut.duration(ANIMATION_DURATION)}
-          layout={LinearTransition.duration(ANIMATION_DURATION)}
-        >
+        <WatchlistAnimatedRow key={String(token.assetId)}>
           <TrendingTokenRowItem
             token={mapWatchlistTokenToTrendingAsset(token)}
             tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
             endAction={{ type: 'watchlist', onPress: () => onAddPress(token) }}
           />
-        </Animated.View>
+        </WatchlistAnimatedRow>
       ))}
     </Animated.View>
   </Box>
