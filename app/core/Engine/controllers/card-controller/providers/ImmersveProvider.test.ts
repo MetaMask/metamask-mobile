@@ -1484,7 +1484,7 @@ describe('ImmersveProvider', () => {
         status: 'completed',
         type: 'purchase',
         billingAmount: { value: '314.12', currency: 'USD' },
-        feeAmount: { value: '0.12', currency: 'USD' },
+        feeAmount: { value: '0.12', currency: 'USDC' },
         merchant: {
           name: 'Air NZ Online',
           city: 'Auckland',
