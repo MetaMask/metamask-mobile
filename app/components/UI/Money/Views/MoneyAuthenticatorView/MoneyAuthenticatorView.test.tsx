@@ -269,7 +269,7 @@ describe('MoneyAuthenticatorView', () => {
       expect.objectContaining({
         labelOptions: [
           expect.objectContaining({
-            label: 'Verify this transaction to send funds.',
+            label: 'Verify this transaction to send funds',
           }),
         ],
       }),

@@ -25,6 +25,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
+import { formatMoneySecurityMethodAddedAt } from '../../utils/formatMoneySecurityMethodAddedAt';
 import { MoneyAuthenticatorDetailsViewTestIds } from './MoneyAuthenticatorDetailsView.testIds';
 
 const styles = StyleSheet.create({
@@ -96,13 +97,8 @@ const MoneyAuthenticatorDetailsView = () => {
     return null;
   }
 
-  const createdOn = (authenticatorCreatedAt ?? new Date()).toLocaleDateString(
-    'en-US',
-    {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    },
+  const addedAt = formatMoneySecurityMethodAddedAt(
+    authenticatorCreatedAt ?? new Date(),
   );
 
   return (
@@ -160,7 +156,7 @@ const MoneyAuthenticatorDetailsView = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-0.5"
               >
-                {strings('money.passkeys.created_on')} {createdOn}
+                {addedAt}
               </Text>
             </Box>
           </Box>

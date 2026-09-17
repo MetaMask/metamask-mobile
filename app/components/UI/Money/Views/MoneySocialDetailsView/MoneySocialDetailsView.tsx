@@ -22,6 +22,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { strings } from '../../../../../../locales/i18n';
 import { SocialLoginProviderIcon } from '../../../SocialLoginProviderButtons';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
+import { formatMoneySecurityMethodAddedAt } from '../../utils/formatMoneySecurityMethodAddedAt';
 import { MoneySocialDetailsViewTestIds } from './MoneySocialDetailsView.testIds';
 
 const styles = StyleSheet.create({
@@ -81,13 +82,8 @@ const MoneySocialDetailsView = () => {
     return null;
   }
 
-  const createdOn = (socialCreatedAt ?? new Date()).toLocaleDateString(
-    'en-US',
-    {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    },
+  const addedAt = formatMoneySecurityMethodAddedAt(
+    socialCreatedAt ?? new Date(),
   );
 
   return (
@@ -144,7 +140,7 @@ const MoneySocialDetailsView = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-0.5"
               >
-                {strings('money.social.linked_on')} {createdOn}
+                {addedAt}
               </Text>
             </Box>
           </Box>

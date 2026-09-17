@@ -17,7 +17,7 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     isSocialAdded: true,
     socialAccount: 'money.user@gmail.com',
-    socialCreatedAt: new Date('2026-09-03T12:00:00.000Z'),
+    socialCreatedAt: new Date(2026, 8, 3, 12),
     socialProvider: 'google',
   }),
 }));
@@ -34,7 +34,7 @@ describe('MoneySocialDetailsView', () => {
       'google',
     );
     expect(getByText('money.user@gmail.com')).toBeTruthy();
-    expect(getByText('Linked on Sep 3, 2026')).toBeTruthy();
+    expect(getByText('Added Sep 3, 2026 at 12:00 PM')).toBeTruthy();
     expect(queryByText('Last used')).toBeNull();
     expect(queryByText('Today')).toBeNull();
     expect(getByText('Wallet recovery')).toBeTruthy();

@@ -31,6 +31,7 @@ import type { MoneyNavigationParamList } from '../../types/navigation';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
+import { formatMoneySecurityMethodAddedAt } from '../../utils/formatMoneySecurityMethodAddedAt';
 import { MoneyPasskeyDetailsSheetTestIds } from './MoneyPasskeyDetailsSheet.testIds';
 
 type DetailsMode = 'details' | 'rename';
@@ -157,13 +158,8 @@ const MoneyPasskeyDetailsView = () => {
     return null;
   }
 
-  const createdOn = (passkey.createdAt ?? new Date()).toLocaleDateString(
-    'en-US',
-    {
-      weekday: 'short',
-      month: 'short',
-      day: '2-digit',
-    },
+  const addedAt = formatMoneySecurityMethodAddedAt(
+    passkey.createdAt ?? new Date(),
   );
   const headerTitle =
     mode === 'rename'
@@ -254,7 +250,7 @@ const MoneyPasskeyDetailsView = () => {
                     color={TextColor.TextAlternative}
                     twClassName="mt-0.5"
                   >
-                    {strings('money.passkeys.created_on')} {createdOn}
+                    {addedAt}
                   </Text>
                 </Box>
               </Box>

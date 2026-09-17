@@ -315,7 +315,7 @@ describe('MoneySecurityVerificationSheet', () => {
     fireEvent.press(getByTestId('mock-header-close'));
 
     expect(mockShowSuccessToast).toHaveBeenCalledWith(
-      'Verify this transaction to send funds.',
+      'Verify this transaction to send funds',
       'error',
     );
   });

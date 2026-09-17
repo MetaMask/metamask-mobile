@@ -49,7 +49,7 @@ describe('MoneyPasskeyDetailsSheet', () => {
     );
 
     expect(getByText('Passkey #1 - 1Password')).toBeOnTheScreen();
-    expect(getByText('Created on Wed, Sep 02')).toBeOnTheScreen();
+    expect(getByText('Added Sep 2, 2026 at 12:00 PM')).toBeOnTheScreen();
     expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(queryByText('Today')).not.toBeOnTheScreen();
 

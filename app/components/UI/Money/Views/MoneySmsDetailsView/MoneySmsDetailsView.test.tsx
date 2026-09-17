@@ -35,7 +35,7 @@ describe('MoneySmsDetailsView', () => {
 
     expect(getByText('+1 ••• ••• 0123')).toBeOnTheScreen();
     expect(queryByText('Verified phone number')).not.toBeOnTheScreen();
-    expect(getByText('Created on Sep 8, 2026')).toBeOnTheScreen();
+    expect(getByText('Added Sep 8, 2026 at 12:00 PM')).toBeOnTheScreen();
     expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(queryByText('Today')).not.toBeOnTheScreen();
     expect(getByText('Wallet recovery')).toBeOnTheScreen();

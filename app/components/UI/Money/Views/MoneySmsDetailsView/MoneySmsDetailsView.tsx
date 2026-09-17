@@ -26,6 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { maskMoneySmsPhoneNumber } from '../../constants/moneySms';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
+import { formatMoneySecurityMethodAddedAt } from '../../utils/formatMoneySecurityMethodAddedAt';
 import { MoneySmsDetailsViewTestIds } from './MoneySmsDetailsView.testIds';
 
 const styles = StyleSheet.create({
@@ -87,11 +88,7 @@ const MoneySmsDetailsView = () => {
     return null;
   }
 
-  const createdOn = (smsCreatedAt ?? new Date()).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const addedAt = formatMoneySecurityMethodAddedAt(smsCreatedAt ?? new Date());
 
   return (
     <Box
@@ -148,7 +145,7 @@ const MoneySmsDetailsView = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-0.5"
               >
-                {strings('money.passkeys.created_on')} {createdOn}
+                {addedAt}
               </Text>
             </Box>
           </Box>
