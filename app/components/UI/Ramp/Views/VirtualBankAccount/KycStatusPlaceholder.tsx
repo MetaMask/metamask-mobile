@@ -14,9 +14,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  selectKycUserStatus,
-  selectKycUserStatusErrorCode,
-  selectKycUserStatusSumsubSessionId,
+  selectKycSessionId,
+  selectKycSessionStatus,
+  selectKycSessionStatusMessage,
 } from '../../../../../selectors/kycController';
 import { KycStatusPlaceholderSelectorsIDs } from './KycStatusPlaceholder.testIds';
 
@@ -42,15 +42,13 @@ const StatusRow = ({
   </Box>
 );
 
-/** Temporary post-Sumsub screen that surfaces KycController user-status fields. */
+/** Temporary post-Sumsub screen that surfaces KycController session-status fields. */
 const KycStatusPlaceholder = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const userStatus = useSelector(selectKycUserStatus);
-  const userStatusSumsubSessionId = useSelector(
-    selectKycUserStatusSumsubSessionId,
-  );
-  const userStatusErrorCode = useSelector(selectKycUserStatusErrorCode);
+  const sessionStatus = useSelector(selectKycSessionStatus);
+  const sessionId = useSelector(selectKycSessionId);
+  const sessionStatusMessage = useSelector(selectKycSessionStatusMessage);
 
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -82,25 +80,21 @@ const KycStatusPlaceholder = () => {
         </Box>
         <Box marginTop={6} gap={4}>
           <StatusRow
-            label={strings('virtual_bank_account.kyc_status.user_status')}
-            value={userStatus}
-            testID={KycStatusPlaceholderSelectorsIDs.USER_STATUS}
+            label={strings('virtual_bank_account.kyc_status.session_status')}
+            value={sessionStatus}
+            testID={KycStatusPlaceholderSelectorsIDs.SESSION_STATUS}
+          />
+          <StatusRow
+            label={strings('virtual_bank_account.kyc_status.session_id')}
+            value={sessionId}
+            testID={KycStatusPlaceholderSelectorsIDs.SESSION_ID}
           />
           <StatusRow
             label={strings(
-              'virtual_bank_account.kyc_status.user_status_sumsub_session_id',
+              'virtual_bank_account.kyc_status.session_status_message',
             )}
-            value={userStatusSumsubSessionId}
-            testID={
-              KycStatusPlaceholderSelectorsIDs.USER_STATUS_SUMSUB_SESSION_ID
-            }
-          />
-          <StatusRow
-            label={strings(
-              'virtual_bank_account.kyc_status.user_status_error_code',
-            )}
-            value={userStatusErrorCode}
-            testID={KycStatusPlaceholderSelectorsIDs.USER_STATUS_ERROR_CODE}
+            value={sessionStatusMessage}
+            testID={KycStatusPlaceholderSelectorsIDs.SESSION_STATUS_MESSAGE}
           />
         </Box>
       </Box>

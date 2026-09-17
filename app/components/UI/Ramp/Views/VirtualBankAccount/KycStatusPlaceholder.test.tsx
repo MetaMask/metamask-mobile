@@ -36,23 +36,28 @@ describe('KycStatusPlaceholder', () => {
     jest.clearAllMocks();
   });
 
-  it('renders KycController user status fields', () => {
+  it('renders KycController session status fields', () => {
     const { getByTestId } = renderPlaceholder({
-      userStatus: 'pending',
-      userStatusSumsubSessionId: 'sumsub-session-1',
-      userStatusErrorCode: 'need_more_info',
+      sessionId: 'session-1',
+      sessionStatus: {
+        finalStatus: 'pending',
+        statusMessage: 'need_more_info',
+        externalUserId: 'user-1',
+        kycStatus: 'pending',
+        vendor: 'iron',
+        vendorStatus: 'pending',
+        sessionId: 'session-1',
+      },
     });
 
     expect(
-      getByTestId(KycStatusPlaceholderSelectorsIDs.USER_STATUS),
+      getByTestId(KycStatusPlaceholderSelectorsIDs.SESSION_STATUS),
     ).toHaveTextContent('pending');
     expect(
-      getByTestId(
-        KycStatusPlaceholderSelectorsIDs.USER_STATUS_SUMSUB_SESSION_ID,
-      ),
-    ).toHaveTextContent('sumsub-session-1');
+      getByTestId(KycStatusPlaceholderSelectorsIDs.SESSION_ID),
+    ).toHaveTextContent('session-1');
     expect(
-      getByTestId(KycStatusPlaceholderSelectorsIDs.USER_STATUS_ERROR_CODE),
+      getByTestId(KycStatusPlaceholderSelectorsIDs.SESSION_STATUS_MESSAGE),
     ).toHaveTextContent('need_more_info');
   });
 
@@ -60,15 +65,13 @@ describe('KycStatusPlaceholder', () => {
     const { getByTestId } = renderPlaceholder();
 
     expect(
-      getByTestId(KycStatusPlaceholderSelectorsIDs.USER_STATUS),
+      getByTestId(KycStatusPlaceholderSelectorsIDs.SESSION_STATUS),
     ).toHaveTextContent('null');
     expect(
-      getByTestId(
-        KycStatusPlaceholderSelectorsIDs.USER_STATUS_SUMSUB_SESSION_ID,
-      ),
+      getByTestId(KycStatusPlaceholderSelectorsIDs.SESSION_ID),
     ).toHaveTextContent('null');
     expect(
-      getByTestId(KycStatusPlaceholderSelectorsIDs.USER_STATUS_ERROR_CODE),
+      getByTestId(KycStatusPlaceholderSelectorsIDs.SESSION_STATUS_MESSAGE),
     ).toHaveTextContent('null');
   });
 
