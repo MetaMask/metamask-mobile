@@ -321,4 +321,25 @@ describe('ActivityDetails screen', () => {
     expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
     expect(queryByTestId('mock-template-loader')).toBeNull();
   });
+
+  it('skips evm by-hash rematch when a perps withdraw already resolved', () => {
+    const perpsWithdrawItem = {
+      ...sendItem,
+      type: 'perpsWithdraw',
+      chainId: 'eip155:42161',
+    } as ActivityListItem;
+    usePerpsDetailsItemMock.mockReturnValue({
+      item: perpsWithdrawItem,
+      transaction: undefined,
+      isLoading: false,
+    });
+
+    renderWithProvider(<ActivityDetails />);
+
+    expect(useActivityDetailsItemMock).toHaveBeenCalledWith(
+      '0xhash',
+      'eip155:1',
+      { fetchByHash: false },
+    );
+  });
 });

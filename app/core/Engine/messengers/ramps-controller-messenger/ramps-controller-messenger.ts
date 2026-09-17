@@ -45,8 +45,13 @@ export function getRampsControllerMessenger(
   rootMessenger.delegate({
     messenger,
     actions: [
-      ...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
+      // Spread the package-owned required list so new service actions
+      // (e.g. getDefaultRedirectCallbackUrl / NeoBankService) cannot be
+      // forgotten at upgrade.
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
+      // The onboarding stage lookup refreshes KYC and resolves the customer
+      // before reading wallet and autoramp status.
+      ...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
     ],
     events: [],
   });
@@ -85,7 +90,7 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
     ],
     events: [
       'RampsController:orderStatusChanged',
-      'RemoteFeatureFlagController:stateChange',
+      'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
       'KeyringController:unlock',
     ],
     messenger,
