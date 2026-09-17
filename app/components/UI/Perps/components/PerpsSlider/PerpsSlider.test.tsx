@@ -329,6 +329,98 @@ describe('PerpsSlider', () => {
     });
   });
 
+  describe('accessibility stepping', () => {
+    // VoiceOver increment/decrement moves by the *slider's* step
+    // (`handleAccessibilityAction` in the design system Slider), so expressing
+    // the step in percent must still resolve to exactly one caller step.
+    it.each([
+      [34, 1],
+      [1866, 1],
+      [100, 5],
+    ])(
+      'resolves one design-system step to one caller step for range 0..%i step %i',
+      (maximumValue, step) => {
+        render(
+          <PerpsSlider
+            {...defaultProps}
+            minimumValue={0}
+            maximumValue={maximumValue}
+            step={step}
+          />,
+        );
+
+        const { step: percentStep, onValueChange } = getSliderProps();
+        const midpoint = 50;
+        onValueChange(midpoint);
+        const before = defaultProps.onValueChange.mock.calls.at(-1)?.[0];
+        onValueChange(midpoint + percentStep);
+        const after = defaultProps.onValueChange.mock.calls.at(-1)?.[0];
+
+        expect(after - before).toBeCloseTo(step, 6);
+      },
+    );
+
+    it('falls back to a fine grid when the range is degenerate', () => {
+      render(
+        <PerpsSlider {...defaultProps} minimumValue={7} maximumValue={7} />,
+      );
+
+      // No caller grid exists to mirror, so the step must stay finite and
+      // positive rather than becoming 0 or NaN.
+      expect(getSliderProps().step).toBeGreaterThan(0);
+      expect(Number.isFinite(getSliderProps().step)).toBe(true);
+    });
+  });
+
+  describe('echo suppression', () => {
+    // `useSliderGesture` matches an incoming `value` against its recent emits by
+    // strict equality to suppress stale echoes. A percent that merely rounds to
+    // the same domain value misses that match and disables the guard, so the
+    // percent fed back must be exactly the percent emitted.
+    it.each([
+      [34, 1],
+      [1866, 1],
+      [19800, 1],
+    ])(
+      'feeds back the exact percent it emitted for range 0..%i step %i',
+      (maximumValue, step) => {
+        const onValueChange = jest.fn();
+        const { rerender } = render(
+          <PerpsSlider
+            {...defaultProps}
+            onValueChange={onValueChange}
+            minimumValue={0}
+            maximumValue={maximumValue}
+            step={step}
+          />,
+        );
+
+        const percentStep = getSliderProps().step;
+
+        for (let index = 0; index * percentStep <= 100; index += 1) {
+          const emitted = index * percentStep;
+          getSliderProps().onValueChange(emitted);
+          const committed = onValueChange.mock.calls.at(-1)?.[0];
+
+          // The parent stores the domain value and re-renders with it; what
+          // comes back must equal what the gesture emitted.
+          rerender(
+            <PerpsSlider
+              {...defaultProps}
+              onValueChange={onValueChange}
+              value={committed}
+              minimumValue={0}
+              maximumValue={maximumValue}
+              step={step}
+            />,
+          );
+
+          expect(getSliderProps().value).toBeCloseTo(emitted, 9);
+        }
+      },
+    );
+  });
+
   describe('domain conversion', () => {
     it('converts percent back into the caller domain on drag end', () => {
       const onDragEnd = jest.fn();

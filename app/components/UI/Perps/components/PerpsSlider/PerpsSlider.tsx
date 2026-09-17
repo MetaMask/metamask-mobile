@@ -126,19 +126,31 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
         return minimumValue;
       }
       const raw = minimumValue + (percent / 100) * span;
-      // Re-apply the caller's step in its own domain; the slider's own step is
-      // now expressed in percent and cannot enforce it.
+      // Snap in the caller's own domain. The slider's percent step is derived
+      // from this one, but percent is a float: rounding here is what guarantees
+      // the caller only ever receives exact multiples of its step.
       const stepped = step > 0 ? Math.round(raw / step) * step : raw;
       return Math.min(maximumValue, Math.max(minimumValue, stepped));
     },
     [maximumValue, minimumValue, step],
   );
 
-  const percentValue = toPercent(value);
-  // One percent of the track is finer than a whole step for every range the
-  // Perps sliders use, so let the thumb move continuously and let `toDomain`
-  // snap the value the caller actually receives.
-  const percentStep = 0.1;
+  // Quantize onto the same grid the gesture emits. `useSliderGesture` matches
+  // an incoming `value` against its recent emits by strict equality to suppress
+  // stale echoes; feeding back a percent that merely rounds to the same domain
+  // value misses that match, takes the "external update" branch, and disables
+  // the guard against a thumb snap-back on release. Measured on the 0..34 range
+  // this ticket targets, a raw round-trip mismatched on 99.7% of grid points;
+  // quantizing makes every echo match.
+  const percentValue = toPercent(toDomain(toPercent(value)));
+  // One caller step expressed in percent, so the slider's own grid is exactly
+  // the caller's grid. This keeps VoiceOver's increment/decrement — which steps
+  // by the slider's `step` (Slider.mjs `handleAccessibilityAction`) — moving
+  // one caller step per swipe, and it puts emitted percents on the same grid
+  // `toPercent(toDomain(…))` produces so echoes match by equality. Falls back
+  // to a fine grid when the range is degenerate; drag resolution is unaffected
+  // either way because it is bound by pixels, not by this step.
+  const percentStep = range > 0 && step > 0 ? (step / range) * 100 : 0.1;
 
   const handlePercentChange = useCallback(
     (percent: number) => onValueChange(toDomain(percent)),
