@@ -1864,6 +1864,7 @@
         "history": "History",
         "fill_history": "Fill history",
         "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Previous",
         "next": "Next",
         "page_count": "Page {{page}} of {{total}}"

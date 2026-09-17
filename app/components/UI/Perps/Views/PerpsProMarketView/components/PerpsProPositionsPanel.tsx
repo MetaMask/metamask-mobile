@@ -1357,7 +1357,9 @@ const PerpsProPositionsPanel = ({
             onPress={() => setIsActivityFilterSheetOpen(true)}
             accessibilityLabel={strings(ACTIVITY_VIEW_LABEL_KEYS[activityView])}
             accessibilityHint={strings(
-              'perps.pro_positions_panel.twap_views.toggle_hint',
+              isTwapTab
+                ? 'perps.pro_positions_panel.twap_views.toggle_hint'
+                : 'perps.pro_positions_panel.twap_views.toggle_hint_without_fills',
             )}
             testID={PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE}
           >
