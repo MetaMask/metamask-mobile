@@ -279,7 +279,7 @@ const CardWelcome = () => {
           size={ButtonSize.Lg}
           isFullWidth
           textProps={{
-            twClassName: 'text-white',
+            twClassName: 'text-white mb-2',
           }}
         >
           {strings('card.card_onboarding.not_now_button')}
