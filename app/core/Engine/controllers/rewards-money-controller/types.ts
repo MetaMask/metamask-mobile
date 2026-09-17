@@ -141,13 +141,16 @@ export type ReferralLocalizedTextKey =
   | 'invitedOptInLegal';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
-export type ReferralLocalizedText = Record<ReferralLocalizedTextKey, string>;
+export type ReferralLocalizedText = {
+  [key in ReferralLocalizedTextKey]: string;
+};
 
-/** Light/dark Contentful asset URLs. */
-export interface ThemeImage {
+/** Light/dark Contentful asset URLs. Type alias (not interface) for Json/StateConstraint. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ThemeImage = {
   lightModeUrl: string;
   darkModeUrl: string;
-}
+};
 
 /** `GET /referral/me` — the single call that decides which screen renders. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -225,7 +228,7 @@ export type EarnedByOthersFamilyTotalsDto = SummaryTotalsDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {
-  by_claim_family: Record<string, F>;
+  by_claim_family: { [family: string]: F };
 };
 
 /** `GET /earnings/summary` — live backend SummaryView shape. */
@@ -383,10 +386,12 @@ export type CommissionEntryView = {
   copied_times: number | null;
 };
 
-export type MechanismsView = Record<
-  ReferrerOriginType,
-  { claim_open: boolean; reason: 'MECHANISM_NOT_CLAIMABLE' | null }
->;
+export type MechanismsView = {
+  [K in ReferrerOriginType]: {
+    claim_open: boolean;
+    reason: 'MECHANISM_NOT_CLAIMABLE' | null;
+  };
+};
 
 /** `GET /referral/me/commissions` — a breakdown, never a balance. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -468,21 +473,25 @@ export const CLAIM_BY_ID_CACHE_MAX_ENTRIES = 20;
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsMoneyControllerState = {
   /** Keyed by Hydra profileId. */
-  referralMe: Record<string, CacheEntry<ReferralMeDto>>;
+  referralMe: { [profileId: string]: CacheEntry<ReferralMeDto> };
   /** Keyed by Hydra profileId. */
-  referralCodes: Record<string, CacheEntry<OwnReferralCodesDto>>;
+  referralCodes: { [profileId: string]: CacheEntry<OwnReferralCodesDto> };
   /** Keyed by Hydra profileId. */
-  referralFunnel: Record<string, CacheEntry<ReferralFunnelDto>>;
+  referralFunnel: { [profileId: string]: CacheEntry<ReferralFunnelDto> };
   /** Keyed by `${profileId}:${originTypeScope}`. */
-  earningsSummary: Record<string, CacheEntry<EarningsSummaryDto>>;
+  earningsSummary: { [scopeKey: string]: CacheEntry<EarningsSummaryDto> };
   /** Page 1 only. Keyed by `${profileId}:${ledgerScope}`. */
-  earningsLedgerFirstPage: Record<string, CacheEntry<EarningsLedgerPageDto>>;
+  earningsLedgerFirstPage: {
+    [scopeKey: string]: CacheEntry<EarningsLedgerPageDto>;
+  };
   /** Keyed by Hydra profileId. */
-  claimHistoryFirstPage: Record<string, CacheEntry<ClaimHistoryPageDto>>;
+  claimHistoryFirstPage: {
+    [profileId: string]: CacheEntry<ClaimHistoryPageDto>;
+  };
   /** Page 1 only. Keyed by `${profileId}:${commissionsScope}`. */
-  commissionsFirstPage: Record<string, CacheEntry<CommissionsPageDto>>;
+  commissionsFirstPage: { [scopeKey: string]: CacheEntry<CommissionsPageDto> };
   /** Keyed by `${profileId}:${claimId}`. */
-  claimById: Record<string, CacheEntry<ClaimDto>>;
+  claimById: { [scopeKey: string]: CacheEntry<ClaimDto> };
   /** Persisted env URL override (non-production builds only). */
   rewardsMoneyEnvUrl: string | null;
 };

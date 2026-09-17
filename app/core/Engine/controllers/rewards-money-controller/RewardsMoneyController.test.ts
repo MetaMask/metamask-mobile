@@ -715,7 +715,8 @@ describe('RewardsMoneyController', () => {
 
       expect(
         dataServiceCalls(mockMessenger.call).filter(
-          (call) => call[0] === 'RewardsMoneyDataService:getCommissions',
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getCommissions',
         ),
       ).toHaveLength(1);
     });
@@ -752,7 +753,8 @@ describe('RewardsMoneyController', () => {
       expect(page.mechanisms.SOCIAL_FOLLOW_TRADE.claim_open).toBe(false);
       expect(
         dataServiceCalls(mockMessenger.call).filter(
-          (call) => call[0] === 'RewardsMoneyDataService:getCommissions',
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getCommissions',
         ),
       ).toHaveLength(0);
     });
