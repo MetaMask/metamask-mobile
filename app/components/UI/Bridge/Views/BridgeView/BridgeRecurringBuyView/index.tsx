@@ -63,6 +63,7 @@ const HISTORY_ORDER_STATUSES = [
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
 
+
 const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
