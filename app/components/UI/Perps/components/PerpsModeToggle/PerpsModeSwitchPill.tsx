@@ -219,7 +219,7 @@ const PerpsModeSwitchPill = ({
     styles.border,
     isPro ? styles.proBorder : tw.style('border-default'),
   ];
-  const pillBorderRadius = (tw.style('rounded-lg') as ViewStyle).borderRadius;
+  const pillBorderRadius = (tw.style('rounded-full') as ViewStyle).borderRadius;
   const innerBorderRadius =
     typeof pillBorderRadius === 'number'
       ? Math.max(0, pillBorderRadius - BORDER_WIDTH)
@@ -245,7 +245,7 @@ const PerpsModeSwitchPill = ({
       <ButtonBase
         size={ButtonBaseSize.Sm}
         twClassName={(pressed) =>
-          `h-8 rounded-lg border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
+          `h-8 rounded-full border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
         }
         style={[borderStyle, { minWidth: MIN_WIDTH }]}
         onPress={handlePress}
@@ -263,7 +263,7 @@ const PerpsModeSwitchPill = ({
           accessible={false}
           pointerEvents="none"
           style={[
-            tw.style('absolute inset-0 overflow-hidden rounded-lg'),
+            tw.style('absolute inset-0 overflow-hidden rounded-full'),
             overlayStyle,
           ]}
         >
