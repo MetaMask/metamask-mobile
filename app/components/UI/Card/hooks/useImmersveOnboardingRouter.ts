@@ -22,7 +22,13 @@ interface RouteContext {
   showAccountExistsToast?: boolean;
   /** Callers outside the OnboardingNavigator (CardAuthentication) hop via ONBOARDING.ROOT. */
   navigateFromRoot?: boolean;
+  /**
+   * Returning users with a card and a `funding` next-action land on Card Home
+   * (Enable card / transaction history) instead of onboarding funding approval.
+   */
   hasExistingCard?: boolean;
+  /** Authenticated SIWE / funding wallet to use for approval transactions. */
+  fundingAddress?: string;
 }
 
 function destinationForAction(
@@ -58,6 +64,10 @@ function destinationForAction(
  * Note: `kyc` and `pending` are handled in-screen by ImmersveKYCProcessing
  * (open the webview / keep polling); it must not pass those here or it would
  * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
+ *
+ * Returning users with an existing card and a `funding` next-action are sent
+ * to Card Home so Enable card / transaction history remain available; first-time
+ * funding still opens FUNDING_APPROVAL.
  */
 export const useImmersveOnboardingRouter = () => {
   const navigation = useNavigation();
@@ -72,6 +82,7 @@ export const useImmersveOnboardingRouter = () => {
         showAccountExistsToast,
         navigateFromRoot,
         hasExistingCard,
+        fundingAddress,
       } = ctx;
 
       trackEvent(
@@ -123,6 +134,7 @@ export const useImmersveOnboardingRouter = () => {
           }
           goToOnboarding(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
             countryKey,
+            ...(fundingAddress ? { fundingAddress } : {}),
           });
           break;
         case 'rejected':

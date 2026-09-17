@@ -25,6 +25,27 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: 'select-account-by-scope',
 }));
 
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardHomeData: 'select-card-home-data',
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  getMemoizedInternalAccountByAddress: jest.fn(
+    (_state: unknown, address: string) => ({
+      address,
+      id: `id-${address}`,
+      metadata: { name: 'Funding Account' },
+    }),
+  ),
+}));
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: 'select-account-to-group-map',
+  }),
+);
+
 jest.mock('../../../../../selectors/settings', () => ({
   selectAvatarAccountType: 'select-avatar-account-type',
 }));
@@ -48,6 +69,10 @@ jest.mock('react-redux', () => ({
         return mockSelectAccountByScope;
       case 'select-avatar-account-type':
         return 'default';
+      case 'select-card-home-data':
+        return null;
+      case 'select-account-to-group-map':
+        return {};
       default:
         return undefined;
     }
@@ -212,8 +237,27 @@ const setFundingState = (isLoading = false, error: string | null = null) => {
 };
 
 describe('ImmersveFundingApproval', () => {
+  const mockUseSelectorImplementation = (selector: unknown) => {
+    switch (selector) {
+      case 'select-funding-source-id':
+        return 'fs-1';
+      case 'select-account-by-scope':
+        return mockSelectAccountByScope;
+      case 'select-avatar-account-type':
+        return 'default';
+      case 'select-card-home-data':
+        return null;
+      case 'select-account-to-group-map':
+        return {};
+      default:
+        return undefined;
+    }
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(mockUseSelectorImplementation);
     (useParams as jest.Mock).mockReturnValue({ countryKey: 'GB' });
     (useNavigation as jest.Mock).mockReturnValue({
       reset: mockReset,
@@ -327,6 +371,26 @@ describe('ImmersveFundingApproval', () => {
     });
   });
 
+  it('skips createCard and resets to Card Home when a card already exists', async () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === 'select-card-home-data') {
+        return { card: { id: 'existing-card' } };
+      }
+      return mockUseSelectorImplementation(selector);
+    });
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+    expect(mockCreateCard).not.toHaveBeenCalled();
+  });
+
   it('does not re-create the card on re-render while still active', async () => {
     setNextAction({ type: 'active' });
     const { rerender } = render(<ImmersveFundingApproval />);
@@ -402,10 +466,18 @@ describe('ImmersveFundingApproval', () => {
     });
 
     it('builds a local approve, submits it, refetches home data, and resets to Card Home', async () => {
+      (useParams as jest.Mock).mockReturnValue({
+        countryKey: 'GB',
+        mode: 'reapprove',
+        fundingAddress: '0xFunding',
+      });
       const { getByTestId } = render(<ImmersveFundingApproval />);
 
       fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
 
+      expect(useImmersveFunding).toHaveBeenCalledWith({
+        fundingAddress: '0xFunding',
+      });
       expect(mockBuildApproveWrite).toHaveBeenCalledWith('2199023255551');
       expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
       expect(mockCreateCard).not.toHaveBeenCalled();

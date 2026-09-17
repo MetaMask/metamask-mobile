@@ -16,8 +16,15 @@ jest.mock('../../../../core/Engine', () => ({
     TransactionController: {
       addTransaction: jest.fn(),
     },
+    AccountsController: {
+      getAccountByAddress: jest.fn((address: string) => ({
+        address,
+        id: `account-${address}`,
+      })),
+    },
   },
   controllerMessenger: {},
+  setSelectedAddress: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({ error: jest.fn() }));
@@ -27,15 +34,21 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: (fn: () => unknown) => fn(),
+  useSelector: (fn: (state?: unknown) => unknown) => fn(),
 }));
 
 const MOCK_ACCOUNT_ADDRESS = '0x1111111111111111111111111111111111111111';
+const FUNDING_ACCOUNT_ADDRESS = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const FUNDING_ACCOUNT_CHECKSUM = '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa';
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => ({
     address: '0x1111111111111111111111111111111111111111',
   })),
+}));
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectCardHomeData: jest.fn(() => null),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
@@ -69,6 +82,11 @@ const accountsModule = jest.requireMock(
   '../../../../selectors/multichainAccounts/accounts',
 ) as {
   selectSelectedInternalAccountByScope: jest.Mock;
+};
+const cardControllerSelectors = jest.requireMock(
+  '../../../../selectors/cardController',
+) as {
+  selectCardHomeData: jest.Mock;
 };
 const cardFeatureFlagsModule = jest.requireMock(
   '../../../../selectors/featureFlagController/card',
@@ -120,10 +138,17 @@ describe('useImmersveFunding', () => {
         address: MOCK_ACCOUNT_ADDRESS,
       }),
     );
+    cardControllerSelectors.selectCardHomeData.mockReturnValue(null);
     cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
       network: 'base-sepolia',
       spenderAddress: '0x2222222222222222222222222222222222222222',
     });
+    (
+      Engine.context.AccountsController.getAccountByAddress as jest.Mock
+    ).mockImplementation((address: string) => ({
+      address,
+      id: `account-${address}`,
+    }));
   });
 
   afterEach(() => {
@@ -185,6 +210,7 @@ describe('useImmersveFunding', () => {
 
     expect(mockTx.addTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
+        from: MOCK_ACCOUNT_ADDRESS,
         to: APPROVE_WRITE.contractAddress,
         data: expect.stringMatching(/^0x/),
       }),
@@ -259,6 +285,65 @@ describe('useImmersveFunding', () => {
           }),
         }),
       }),
+    );
+  });
+
+  it('executeFunding submits from the Card Home funding wallet when selection differs', async () => {
+    cardControllerSelectors.selectCardHomeData.mockReturnValue({
+      primaryFundingAsset: { walletAddress: FUNDING_ACCOUNT_ADDRESS },
+    });
+    mockAwait.mockImplementation(async ({ submit }) => {
+      await submit();
+      return { txHash: '0xtxhash', transactionMeta: {} };
+    });
+    (mockTx.addTransaction as jest.Mock).mockResolvedValue({
+      result: Promise.resolve('0xtxhash'),
+      transactionMeta: {},
+    });
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await result.current.executeFunding(APPROVE_WRITE);
+    });
+
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+      FUNDING_ACCOUNT_CHECKSUM,
+    );
+    expect(mockTx.addTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: FUNDING_ACCOUNT_CHECKSUM,
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it('revokeFunding submits from an explicit fundingAddress over the selected account', async () => {
+    mockAwait.mockImplementation(async ({ submit }) => {
+      await submit();
+      return { txHash: '0xrevokehash', transactionMeta: {} };
+    });
+    (mockTx.addTransaction as jest.Mock).mockResolvedValue({
+      result: Promise.resolve('0xrevokehash'),
+      transactionMeta: {},
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveFunding({ fundingAddress: FUNDING_ACCOUNT_ADDRESS }),
+    );
+
+    await act(async () => {
+      await result.current.revokeFunding();
+    });
+
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+      FUNDING_ACCOUNT_CHECKSUM,
+    );
+    expect(mockTx.addTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: FUNDING_ACCOUNT_CHECKSUM,
+      }),
+      expect.any(Object),
     );
   });
 

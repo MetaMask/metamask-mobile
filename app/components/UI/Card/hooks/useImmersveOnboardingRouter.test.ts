@@ -101,12 +101,12 @@ describe('useImmersveOnboardingRouter', () => {
           params: {},
         },
       },
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
   });
 
@@ -121,7 +121,7 @@ describe('useImmersveOnboardingRouter', () => {
           params: {},
         },
       },
-      { countryKey: 'GB', hasExistingCard: true },
+      { countryKey: 'GB', hasExistingCard: true, fundingAddress: '0xFunding' },
     );
 
     expect(mockReset).toHaveBeenCalledWith({
@@ -203,12 +203,16 @@ describe('useImmersveOnboardingRouter', () => {
             params: {},
           },
         },
-        { countryKey: 'GB', navigateFromRoot: true },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          fundingAddress: '0xFunding',
+        },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-        params: { countryKey: 'GB' },
+        params: { countryKey: 'GB', fundingAddress: '0xFunding' },
       });
     });
 
@@ -227,6 +231,7 @@ describe('useImmersveOnboardingRouter', () => {
           countryKey: 'GB',
           navigateFromRoot: true,
           hasExistingCard: true,
+          fundingAddress: '0xFunding',
         },
       );
 

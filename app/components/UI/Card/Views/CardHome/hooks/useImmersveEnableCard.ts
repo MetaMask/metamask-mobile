@@ -86,7 +86,13 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
       );
       navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-        params: { mode: 'reapprove', countryKey: kycRegion },
+        params: {
+          mode: 'reapprove',
+          countryKey: kycRegion,
+          ...(data?.primaryFundingAsset?.walletAddress
+            ? { fundingAddress: data.primaryFundingAsset.walletAddress }
+            : {}),
+        },
       });
       return;
     }
@@ -97,6 +103,7 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
     createEventBuilder,
     navigation,
     kycRegion,
+    data?.primaryFundingAsset?.walletAddress,
     resumePendingAction,
   ]);
 

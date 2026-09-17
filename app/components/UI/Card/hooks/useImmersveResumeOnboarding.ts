@@ -93,6 +93,7 @@ export const useImmersveResumeOnboarding = () => {
           showAccountExistsToast,
           navigateFromRoot,
           hasExistingCard: Boolean(resume),
+          fundingAddress: address,
         });
       } catch (error) {
         // SIWE already emits CARD_SIWE_AUTH_FAILED (incl. user_cancelled).

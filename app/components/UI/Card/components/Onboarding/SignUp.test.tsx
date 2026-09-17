@@ -1066,6 +1066,7 @@ describe('SignUp Component', () => {
           email: 'gb@example.com',
           countryKey: 'GB',
           hasExistingCard: false,
+          fundingAddress: expect.any(String),
         }),
       );
     });
@@ -1102,6 +1103,7 @@ describe('SignUp Component', () => {
           email: 'gb@example.com',
           countryKey: 'GB',
           hasExistingCard: false,
+          fundingAddress: expect.any(String),
         }),
       );
     });

@@ -32,11 +32,16 @@ import { useTheme } from '../../../../../util/theme';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import type { RootState } from '../../../../../reducers';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { areAddressesEqual } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
@@ -45,6 +50,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { resolveCardFundingAddress } from '../../util/resolveCardFundingAddress';
 import {
   KYC_REDIRECT_URL,
   BAANX_MAX_LIMIT,
@@ -156,9 +162,14 @@ const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const theme = useTheme();
-  const { countryKey, mode = 'onboarding' } = useParams<{
+  const {
+    countryKey,
+    mode = 'onboarding',
+    fundingAddress,
+  } = useParams<{
     countryKey?: string;
     mode?: FundingApprovalMode;
+    fundingAddress?: string;
   }>();
   const isReapprove = mode === 'reapprove';
   const headerHandlers = useCardHeaderHandlers(
@@ -174,8 +185,30 @@ const ImmersveFundingApproval = () => {
     selectSelectedInternalAccountByScope,
   );
   const selectedAccount = selectAccountByScope('eip155:0');
+  const cardHomeData = useSelector(selectCardHomeData);
+  const resolvedFundingAddress = resolveCardFundingAddress({
+    preferredAddress: fundingAddress,
+    primaryFundingWalletAddress:
+      cardHomeData?.primaryFundingAsset?.walletAddress,
+    selectedEvmAddress: selectedAccount?.address,
+  });
+  const fundingAccount = useSelector((state: RootState) =>
+    resolvedFundingAddress
+      ? getMemoizedInternalAccountByAddress(state, resolvedFundingAddress)
+      : undefined,
+  );
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+  const displayAccount = fundingAccount ?? selectedAccount ?? null;
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  const accountGroupName = useAccountGroupName();
+  const selectedGroupName = useAccountGroupName();
+  const accountGroupName =
+    displayAccount &&
+    selectedAccount &&
+    areAddressesEqual(displayAccount.address, selectedAccount.address)
+      ? selectedGroupName
+      : ((displayAccount
+          ? accountToGroupMap[displayAccount.id]?.metadata.name
+          : null) ?? null);
 
   const { nextAction, error, isLoading, refresh } =
     useImmersveSpendingPrerequisites({
@@ -189,7 +222,7 @@ const ImmersveFundingApproval = () => {
     buildApproveWrite,
     isLoading: fundingIsLoading,
     error: fundingError,
-  } = useImmersveFunding();
+  } = useImmersveFunding({ fundingAddress: resolvedFundingAddress });
 
   useEffect(() => {
     trackEvent(
@@ -231,6 +264,13 @@ const ImmersveFundingApproval = () => {
     if (!fundingSourceId) {
       return;
     }
+    if (cardHomeData?.card) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+      return;
+    }
     hasCreatedCard.current = true;
     try {
       await createCard(fundingSourceId);
@@ -241,7 +281,7 @@ const ImmersveFundingApproval = () => {
     } catch {
       hasCreatedCard.current = false;
     }
-  }, [createCard, fundingSourceId, navigation]);
+  }, [cardHomeData?.card, createCard, fundingSourceId, navigation]);
 
   const runApprove = useCallback(() => {
     if (isReapprove) {
@@ -462,7 +502,7 @@ const ImmersveFundingApproval = () => {
 
         <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
           <ReadOnlyAccountRow
-            selectedAccount={selectedAccount ?? null}
+            selectedAccount={displayAccount}
             avatarAccountType={avatarAccountType}
             accountGroupName={accountGroupName}
           />

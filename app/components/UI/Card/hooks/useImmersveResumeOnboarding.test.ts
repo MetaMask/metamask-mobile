@@ -133,6 +133,7 @@ describe('useImmersveResumeOnboarding', () => {
         email: 'user@example.com',
         countryKey: 'GB',
         hasExistingCard: false,
+        fundingAddress: '0xabc',
       },
     );
   });
@@ -155,6 +156,7 @@ describe('useImmersveResumeOnboarding', () => {
         email: 'user@example.com',
         countryKey: 'GB',
         hasExistingCard: false,
+        fundingAddress: '0xabc',
       },
     );
   });
@@ -270,6 +272,7 @@ describe('useImmersveResumeOnboarding', () => {
         email: 'user@example.com',
         countryKey: 'GB',
         hasExistingCard: false,
+        fundingAddress: '0xabc',
       },
     );
   });
@@ -306,6 +309,7 @@ describe('useImmersveResumeOnboarding', () => {
         email: 'user@example.com',
         countryKey: 'GB',
         hasExistingCard: false,
+        fundingAddress: '0xabc',
       },
     );
   });
@@ -343,6 +347,7 @@ describe('useImmersveResumeOnboarding', () => {
         email: 'user@example.com',
         countryKey: 'GB',
         hasExistingCard: true,
+        fundingAddress: '0xabc',
       },
     );
   });
@@ -366,6 +371,7 @@ describe('useImmersveResumeOnboarding', () => {
         email: 'user@example.com',
         countryKey: 'GB',
         hasExistingCard: false,
+        fundingAddress: '0xabc',
       },
     );
   });

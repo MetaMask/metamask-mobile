@@ -113,6 +113,7 @@ describe('useImmersveEnableCard', () => {
     const { result } = renderHook(() =>
       useImmersveEnableCard({
         alerts: [{ type: 'allowance_revoked', dismissable: false }],
+        primaryFundingAsset: { walletAddress: '0xFunding' },
       } as never),
     );
 
@@ -132,7 +133,11 @@ describe('useImmersveEnableCard', () => {
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
       screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-      params: { mode: 'reapprove', countryKey: 'GB' },
+      params: {
+        mode: 'reapprove',
+        countryKey: 'GB',
+        fundingAddress: '0xFunding',
+      },
     });
     expect(mockResumePendingAction).not.toHaveBeenCalled();
   });
