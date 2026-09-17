@@ -16,6 +16,7 @@ import { BridgeModalStack } from '../../../app/components/UI/Bridge/routes';
 import RecurringOrderDetailsView from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import type { RecurringOrderDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
+import RecurringSwapDetailsView from '../../../app/components/UI/Bridge/Views/RecurringSwapDetailsView';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import BlockExplorersModal from '../../../app/components/UI/Bridge/components/TransactionDetails/BlockExplorersModal';
 import { initialStateBridge } from '../presets/bridge';
@@ -146,6 +147,11 @@ export function renderBridgeViewWithRecurringOrderDetails(
         Component:
           RecurringOrderDetailsView as unknown as React.ComponentType<object>,
       },
+      {
+        name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
+        Component:
+          RecurringSwapDetailsView as unknown as React.ComponentType<object>,
+      },
     ],
     state,
   );
@@ -202,6 +208,17 @@ export function renderRecurringOrderDetailsView({
         name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
         Component:
           RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
+        Component:
+          RecurringSwapDetailsView as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.WEBVIEW.MAIN,
+        Component: createRouteParamsProbe(
+          Routes.WEBVIEW.MAIN,
+        ) as React.ComponentType<object>,
       },
     ],
     { state },

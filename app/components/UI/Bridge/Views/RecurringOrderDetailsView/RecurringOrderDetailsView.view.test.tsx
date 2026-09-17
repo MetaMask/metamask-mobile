@@ -27,6 +27,7 @@ import {
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
 import ToastService from '../../../../../core/ToastService';
+import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
 async function openInProgressOrderDetails(
@@ -248,6 +249,27 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
           filledOrderCount: 2,
           totalOrderCount: 5,
         }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens swap details when a history row is pressed', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+    await openOrderDetails(renderResult);
+
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+        ),
+      ),
+    );
+
+    expect(
+      await renderResult.findByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.SCREEN,
       ),
     ).toBeOnTheScreen();
   });
