@@ -911,6 +911,7 @@ const CardHome = () => {
                     )
                 : undefined
             }
+            showTransactionHistoryDuringSetup={isImmersve && hasSetupActions}
           />
         )}
 

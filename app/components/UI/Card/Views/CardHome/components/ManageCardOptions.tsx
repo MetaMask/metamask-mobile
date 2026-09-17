@@ -45,6 +45,7 @@ interface ManageCardOptionsProps {
   onCashback: () => void;
   onTravel: () => void;
   onTransactionHistory?: () => void;
+  showTransactionHistoryDuringSetup?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -79,6 +80,7 @@ const ManageCardOptions = ({
   onCashback,
   onTravel,
   onTransactionHistory,
+  showTransactionHistoryDuringSetup = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -114,6 +116,14 @@ const ManageCardOptions = ({
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
     : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
+
+  const showTransactionHistory =
+    Boolean(onTransactionHistory) &&
+    !isLoading &&
+    isAuthenticated &&
+    Boolean(card) &&
+    !hideManageOptions &&
+    (isFullySetUp || showTransactionHistoryDuringSetup);
 
   return (
     <>
@@ -251,15 +261,6 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
-        {isFullySetUp && !hideManageOptions && onTransactionHistory ? (
-          <ManageCardListItem
-            title={strings('card.transactions.manage_entry_title')}
-            description={strings('card.transactions.manage_entry_description')}
-            rightIcon={IconName.ArrowRight}
-            onPress={onTransactionHistory}
-            testID="card-transaction-history-item"
-          />
-        ) : null}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(
@@ -288,6 +289,15 @@ const ManageCardOptions = ({
           />
         )}
       </Box>
+      {showTransactionHistory ? (
+        <ManageCardListItem
+          title={strings('card.transactions.manage_entry_title')}
+          description={strings('card.transactions.manage_entry_description')}
+          rightIcon={IconName.ArrowRight}
+          onPress={onTransactionHistory}
+          testID={CardHomeSelectors.TRANSACTION_HISTORY_ITEM}
+        />
+      ) : null}
       {capabilities?.supportsTravel &&
         ((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
           <ManageCardListItem

@@ -45,4 +45,5 @@ export const CardHomeSelectors = {
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
   UK_MIGRATION_REQUIRED_BANNER: 'card-home-uk-migration-required-banner',
   UK_MIGRATION_SOFT_BANNER: 'card-home-uk-migration-soft-banner',
+  TRANSACTION_HISTORY_ITEM: 'card-transaction-history-item',
 };
