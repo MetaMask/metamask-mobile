@@ -12,6 +12,7 @@ import Routes from '../../constants/navigation/Routes';
 import {
   selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldRepairSocialLoginBasicFunctionality,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -96,6 +97,7 @@ function setSelectorValues({
   basicFunctionalityEnabled = true,
   completedOnboarding = true,
   isExistingSocialWalletRestore = false,
+  shouldRepairSocialLogin = false,
   shouldShowBottomSheet = false,
   shouldShowToast = false,
 }: {
@@ -105,6 +107,7 @@ function setSelectorValues({
   basicFunctionalityEnabled?: boolean;
   completedOnboarding?: boolean;
   isExistingSocialWalletRestore?: boolean;
+  shouldRepairSocialLogin?: boolean;
   shouldShowBottomSheet?: boolean;
   shouldShowToast?: boolean;
 } = {}) {
@@ -121,6 +124,10 @@ function setSelectorValues({
   mockSelectorValues.set(
     selectIsExistingSocialWalletRestore,
     isExistingSocialWalletRestore,
+  );
+  mockSelectorValues.set(
+    selectShouldRepairSocialLoginBasicFunctionality,
+    shouldRepairSocialLogin,
   );
   mockSelectorValues.set(
     selectBasicFunctionalityEnabled,
@@ -201,6 +208,50 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
+  it('repairs a consolidated social-login wallet left with Basic Functionality off', () => {
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      shouldRepairSocialLogin: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
+  it('repairs a social-login wallet even when the session started in onboarding', () => {
+    // The wallet is already enrolled, so the onboarding latch must not hold the
+    // repair back to the next launch.
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      completedOnboarding: false,
+      shouldRepairSocialLogin: true,
+    });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      completedOnboarding: true,
+      shouldRepairSocialLogin: true,
+    });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves a consolidated wallet alone when no repair is needed', () => {
+    setSelectorValues({ isConsolidated: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
   });
 
   it('opens the migration bottom sheet when scheduled', () => {
