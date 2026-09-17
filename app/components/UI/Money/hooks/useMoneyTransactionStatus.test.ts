@@ -129,7 +129,6 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 });
 
 const mockControllerTransactions: TransactionMeta[] = [];
-const mockBatchTransactionCounts: Record<string, number> = {};
 const mockTransactionPayData: Record<
   string,
   {
@@ -153,7 +152,7 @@ jest.mock('../../../../selectors/transactionPayController', () => ({
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactions: () => mockControllerTransactions,
-  selectBatchTransactionCounts: () => mockBatchTransactionCounts,
+  selectBatchTransactionCounts: () => ({}),
   selectTransactionMetadataById: (_state: unknown, id: string) =>
     mockControllerTransactions.find((tx) => tx.id === id),
   selectRequiredTransactionIds: () =>
@@ -298,9 +297,6 @@ describe('useMoneyTransactionStatus', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockControllerTransactions.length = 0;
-    Object.keys(mockBatchTransactionCounts).forEach((key) => {
-      delete mockBatchTransactionCounts[key];
-    });
     Object.keys(mockTransactionPayData).forEach((key) => {
       delete mockTransactionPayData[key];
     });

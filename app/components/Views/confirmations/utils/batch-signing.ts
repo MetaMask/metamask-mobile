@@ -48,7 +48,11 @@ export function haveRequiredTransactionsBeenSigned(
     transactions,
   ).map((id) => transactions.find((transaction) => transaction.id === id));
 
-  if (requiredTransactions.some((transaction) => !transaction)) {
+  // No legs yet means nothing has been signed, whatever the quote count says.
+  if (
+    requiredTransactions.length === 0 ||
+    requiredTransactions.some((transaction) => !transaction)
+  ) {
     return false;
   }
 

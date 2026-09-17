@@ -21,10 +21,7 @@ import {
   selectRequiredTransactionIds,
   selectTransactionMetadataById,
 } from '../../../../selectors/transactionController';
-import {
-  isHardwareAccount,
-  renderShortAddress,
-} from '../../../../util/address';
+import { renderShortAddress } from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   TOAST_TRACKING_CLEANUP_DELAY_MS,

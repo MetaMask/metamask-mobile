@@ -76,15 +76,11 @@ describe('hardwareDepositSigning', () => {
   });
 
   describe('isHardwareFundedDeposit', () => {
-    it('returns true when accountOverride is a hardware account', () => {
+    it('follows the accountOverride keyring type', () => {
       mockTransactionPayData['deposit-1'] = { accountOverride: LEDGER };
-
       expect(isHardwareFundedDeposit(state, buildTx({}))).toBe(true);
-    });
 
-    it('returns false when accountOverride is a software account', () => {
       mockTransactionPayData['deposit-1'] = { accountOverride: SOFTWARE };
-
       expect(isHardwareFundedDeposit(state, buildTx({}))).toBe(false);
     });
 
@@ -165,6 +161,13 @@ describe('hardwareDepositSigning', () => {
       const parent = seed([
         { ...buildLeg('leg-1', TransactionStatus.signed), batchId: '0xbatch' },
       ]);
+
+      expect(isHardwareDepositSigningComplete(state, parent)).toBe(false);
+    });
+
+    it('treats an empty quotes array with no legs as not signed', () => {
+      mockTransactionPayData['deposit-1'] = { quotes: [] };
+      const parent = seed([]);
 
       expect(isHardwareDepositSigningComplete(state, parent)).toBe(false);
     });

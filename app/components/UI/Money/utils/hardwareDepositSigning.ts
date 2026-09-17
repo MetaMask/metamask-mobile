@@ -20,11 +20,11 @@ import {
 import { isMoneyDepositTx } from './moneyTransactionGuards';
 
 /** Parent statuses during which funding legs may still be awaiting signature. */
-const SIGNING_IN_FLIGHT_STATUSES: TransactionStatus[] = [
+const SIGNING_IN_FLIGHT_STATUSES = new Set<TransactionStatus>([
   TransactionStatus.approved,
   TransactionStatus.signed,
   TransactionStatus.submitted,
-];
+]);
 
 /**
  * A Money Account deposit whose funding legs a hardware wallet signs on-device.
@@ -63,9 +63,12 @@ export function isHardwareDepositSigningComplete(
     return true;
   }
 
-  const expectedQuoteCount =
+  // Pay may hold an empty quotes array; a deposit still needs at least one leg.
+  const expectedQuoteCount = Math.max(
+    1,
     selectTransactionPayRawQuotesByTransactionId(state, transactionMeta.id)
-      ?.length ?? 1;
+      ?.length ?? 0,
+  );
 
   return haveRequiredTransactionsBeenSigned(
     transactionMeta.id,
@@ -88,7 +91,7 @@ export function findDepositsAwaitingSignature(
   return selectTransactions(state).filter(
     (candidate) =>
       isMoneyDepositTx(candidate) &&
-      SIGNING_IN_FLIGHT_STATUSES.includes(candidate.status) &&
+      SIGNING_IN_FLIGHT_STATUSES.has(candidate.status) &&
       (candidate.id === transactionMeta.id ||
         (candidate.requiredTransactionIds ?? []).includes(transactionMeta.id)),
   );
