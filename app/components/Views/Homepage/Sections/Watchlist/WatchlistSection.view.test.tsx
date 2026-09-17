@@ -46,7 +46,7 @@ afterEach(() => {
 });
 
 describeForPlatforms('WatchlistSection', () => {
-  it('loads and displays name, price, and percent change for each homepage row (newest first, max 3)', async () => {
+  it('loads and displays name, price, and percent change for each homepage row (newest first)', async () => {
     const { findByTestId } = renderWatchlistSectionWithRoutes({
       deterministicFiat: true,
     });
@@ -233,6 +233,80 @@ describeForPlatforms('WatchlistSection', () => {
         ),
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('caps the homepage at 5 rows and hides suggestions entirely once the watchlist is full', async () => {
+    // Watch 6 tokens: the 3 mock defaults plus BTC, SOL, BNB.
+    const extraWatchedIds = [
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      'eip155:56/slip44:714',
+    ];
+    setupWatchlistStorageMock({
+      assets: [...mockWatchlistAssetIds, ...extraWatchedIds],
+      version: 1,
+    });
+    // Replace the default beforeEach interceptors (they stack, so clear first).
+    clearAllNockMocks();
+    setupWatchlistTokenApiMock([
+      ...mockWatchlistTokensResponse,
+      {
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        decimals: 18,
+        marketData: {
+          price: '90000.00',
+          pricePercentChange1d: '1.10',
+          marketCap: 900_000_000_000,
+          totalVolume: 20_000_000_000,
+        },
+      },
+      {
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        symbol: 'SOL',
+        name: 'Solana',
+        decimals: 18,
+        marketData: {
+          price: '150.00',
+          pricePercentChange1d: '-2.00',
+          marketCap: 80_000_000_000,
+          totalVolume: 4_000_000_000,
+        },
+      },
+      {
+        assetId: 'eip155:56/slip44:714',
+        symbol: 'BNB',
+        name: 'BNB',
+        decimals: 18,
+        marketData: {
+          price: '600.00',
+          pricePercentChange1d: '0.50',
+          marketCap: 90_000_000_000,
+          totalVolume: 2_000_000_000,
+        },
+      },
+    ]);
+
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderWatchlistSectionWithRoutes();
+
+    // Newest-first: the 5 most recently watched render…
+    for (const assetId of [...extraWatchedIds].reverse()) {
+      expect(await findByTestId(getRowTestId(assetId))).toBeOnTheScreen();
+    }
+    expect(
+      getByTestId(getRowTestId(mockWatchlistAssetIds[1])),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getRowTestId(mockWatchlistAssetIds[2])),
+    ).toBeOnTheScreen();
+    // …the oldest (ETH, watched first) is pushed out of the 5-row window.
+    expect(
+      queryByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).not.toBeOnTheScreen();
+    // A full watchlist (5+) offers no suggestions — the section hides.
+    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
   });
 
   it('adds a suggested token to the watchlist from the empty state', async () => {
