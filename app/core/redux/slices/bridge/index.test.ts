@@ -11,6 +11,8 @@ import reducer, {
   resetBridgeDestToken,
   setSlippage,
   setSlippageUserOverride,
+  setLimitOrderCostTolerance,
+  selectLimitOrderCostTolerance,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -258,6 +260,62 @@ describe('bridge slice', () => {
       const state = reducer(initialState, setSlippageUserOverride(undefined));
 
       expect(state.isSlippageUserOverride).toBe(true);
+    });
+  });
+
+  describe('setLimitOrderCostTolerance', () => {
+    it('defaults the limit order cost tolerance to undefined', () => {
+      expect(initialState.limitOrderCostTolerance).toBeUndefined();
+    });
+
+    it('sets the limit order cost tolerance', () => {
+      const state = reducer(initialState, setLimitOrderCostTolerance('0.5'));
+
+      expect(state.limitOrderCostTolerance).toBe('0.5');
+    });
+
+    it('clears the limit order cost tolerance for the Auto option', () => {
+      const stateWithCostTolerance = reducer(
+        initialState,
+        setLimitOrderCostTolerance('0.5'),
+      );
+
+      const state = reducer(
+        stateWithCostTolerance,
+        setLimitOrderCostTolerance(undefined),
+      );
+
+      expect(state.limitOrderCostTolerance).toBeUndefined();
+    });
+
+    it('leaves the swap slippage untouched', () => {
+      const stateWithSlippage = reducer(initialState, setSlippage('2'));
+
+      const state = reducer(
+        stateWithSlippage,
+        setLimitOrderCostTolerance('0.5'),
+      );
+
+      expect(state.slippage).toBe('2');
+      expect(state.limitOrderCostTolerance).toBe('0.5');
+    });
+  });
+
+  describe('selectLimitOrderCostTolerance', () => {
+    it('returns the stored limit order cost tolerance', () => {
+      const state = {
+        ...mockRootState,
+        bridge: {
+          ...mockRootState.bridge,
+          limitOrderCostTolerance: '0.5',
+        },
+      } as RootState;
+
+      expect(selectLimitOrderCostTolerance(state)).toBe('0.5');
+    });
+
+    it('returns undefined when no cost tolerance is stored', () => {
+      expect(selectLimitOrderCostTolerance(mockRootState)).toBeUndefined();
     });
   });
 

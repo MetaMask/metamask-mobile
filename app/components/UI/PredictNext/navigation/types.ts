@@ -12,7 +12,7 @@ export interface PredictNextEventParams {
   titleSnapshot: string;
 }
 
-export type PredictPortfolioTab = 'positions' | 'history';
+export type PredictPortfolioTab = 'positions' | 'activity';
 
 export interface PredictNextPortfolioParams {
   venueId: PredictVenueId;

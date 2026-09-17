@@ -5,18 +5,12 @@ import type {
   SocialV1SpotCompactFeedItem,
 } from '../types';
 
-const BTC_OPEN_CHART_SERIES = [
-  98000, 99500, 101200, 103800, 102400, 104213, 108900, 112400, 118200, 124800,
-];
-
 export const mockOpenPerpsFeedItem = (
   overrides: Partial<SocialV1PerpsOpenFeedItem> = {},
 ): SocialV1PerpsOpenFeedItem => ({
   id: 'v1-feed-btc-open',
   variant: 'perpsOpen',
   comment: 'Leverage is a lifestyle.',
-  showChart: true,
-  chartSeries: BTC_OPEN_CHART_SERIES,
   asset: {
     symbol: 'BTC',
     avatar: {
@@ -44,7 +38,6 @@ export const mockClosedPerpsFeedItem = (
   id: 'v1-feed-eth-closed',
   variant: 'perpsClosed',
   comment: 'Risk managed. Mostly.',
-  showChart: false,
   asset: {
     symbol: 'ETH',
     avatar: {
