@@ -196,7 +196,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                 </SegmentedControl>
               </Box>
               <ScrollView>
-                {error ? (
+                {error && positions.length === 0 ? (
                   <Box
                     twClassName="px-4 py-8 items-center gap-2"
                     testID={SharePositionBottomSheetSelectorsIDs.ERROR}

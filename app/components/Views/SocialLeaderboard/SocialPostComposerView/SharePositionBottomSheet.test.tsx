@@ -196,4 +196,24 @@ describe('SharePositionBottomSheet', () => {
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
+
+  it('still lists positions it has when the social fetch errored', () => {
+    mockUseComposerSharePositions.mockReturnValue({
+      openPositions: [openPerp],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: new Error('network'),
+      refetch: mockRefetch,
+    });
+
+    renderWithProvider(
+      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+    );
+
+    expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SharePositionBottomSheetSelectorsIDs.ERROR),
+    ).toBeNull();
+  });
 });

@@ -1,21 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { Position as PerpsPosition } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type Position as PerpsPosition,
+} from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import {
-  getPreloadedData,
-  hasPreloadedData,
-} from '../../../UI/Perps/hooks/stream/hasCachedPerpsData';
+import { getPreloadedData } from '../../../UI/Perps/hooks/stream/hasCachedPerpsData';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   useTraderPositions,
   type UseTraderPositionsResult,
 } from '../TraderProfileView/hooks/useTraderPositions';
+import { isPerpPosition } from '../utils/perp';
 import { mapPerpsControllerPositionToSocialPosition } from './mapPerpsControllerPositionToSocialPosition';
 
-const positionIdentity = (position: Position): string =>
-  position.positionId ?? `${position.tokenSymbol}-${position.chain}`;
+const perpSymbolKey = (symbol: string): string =>
+  getPerpsDisplaySymbol(symbol).toLowerCase();
 
 const mergeOpenPositionsWithWalletPerps = (
   socialOpen: Position[],
@@ -25,10 +26,19 @@ const mergeOpenPositionsWithWalletPerps = (
     return socialOpen;
   }
 
-  const existingKeys = new Set(socialOpen.map(positionIdentity));
+  // Wallet rows carry a synthetic `perps-local-` id, so a social row for the
+  // same open perp never matches on `positionId`. Both sides do agree on the
+  // display symbol, which is unique per open perp position.
+  const socialPerpSymbols = new Set(
+    socialOpen
+      .filter(isPerpPosition)
+      .map((position) => perpSymbolKey(position.tokenSymbol)),
+  );
   const supplementalPerps = walletPerps
-    .map(mapPerpsControllerPositionToSocialPosition)
-    .filter((position) => !existingKeys.has(positionIdentity(position)));
+    .filter(
+      (position) => !socialPerpSymbols.has(perpSymbolKey(position.symbol)),
+    )
+    .map(mapPerpsControllerPositionToSocialPosition);
 
   if (supplementalPerps.length === 0) {
     return socialOpen;
@@ -37,19 +47,8 @@ const mergeOpenPositionsWithWalletPerps = (
   return [...supplementalPerps, ...socialOpen];
 };
 
-const readWalletPerpsOpenPositions = (): {
-  positions: PerpsPosition[];
-  hasCache: boolean;
-} => {
-  if (!hasPreloadedData('cachedPositions')) {
-    return { positions: [], hasCache: false };
-  }
-
-  return {
-    positions: getPreloadedData<PerpsPosition[]>('cachedPositions') ?? [],
-    hasCache: true,
-  };
-};
+const readWalletPerpsOpenPositions = (): PerpsPosition[] =>
+  getPreloadedData<PerpsPosition[]>('cachedPositions') ?? [];
 
 /**
  * Composer position picker: social open/closed lists plus wallet perps open
@@ -63,19 +62,12 @@ export const useComposerSharePositions = (
   const includeWalletPerps = socialPerpsEnabled && perpsProductEnabled;
   const traderPositions = useTraderPositions(address);
   const [walletPerps, setWalletPerps] = useState<PerpsPosition[]>([]);
-  const [isWalletPerpsLoading, setIsWalletPerpsLoading] =
-    useState(includeWalletPerps);
 
+  // The PerpsController cache is a synchronous snapshot with nothing to
+  // subscribe to, so an empty read is an answer ("no wallet perps"), never a
+  // pending one — treating it as loading would leave the picker on skeletons.
   useEffect(() => {
-    if (!includeWalletPerps) {
-      setWalletPerps([]);
-      setIsWalletPerpsLoading(false);
-      return;
-    }
-
-    const { positions, hasCache } = readWalletPerpsOpenPositions();
-    setWalletPerps(positions);
-    setIsWalletPerpsLoading(!hasCache);
+    setWalletPerps(includeWalletPerps ? readWalletPerpsOpenPositions() : []);
   }, [includeWalletPerps]);
 
   const openPositions = useMemo(() => {
@@ -88,16 +80,8 @@ export const useComposerSharePositions = (
     );
   }, [includeWalletPerps, traderPositions.openPositions, walletPerps]);
 
-  const isLoadingOpen =
-    traderPositions.isLoadingOpen ||
-    (includeWalletPerps &&
-      isWalletPerpsLoading &&
-      traderPositions.openPositions.length === 0 &&
-      openPositions.length === 0);
-
   return {
     ...traderPositions,
     openPositions,
-    isLoadingOpen,
   };
 };

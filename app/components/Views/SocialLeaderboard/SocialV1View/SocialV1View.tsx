@@ -44,7 +44,10 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import { consumeSocialV1FocusTrending } from './feed/store/socialV1ComposedFeedStore';
+import {
+  consumeSocialV1FocusTrending,
+  refreshSocialV1ComposedFeed,
+} from './feed/store/socialV1ComposedFeedStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -426,6 +429,11 @@ const SocialV1View: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // Reconcile with the composed-post store on every focus. A store update
+      // that lands while this screen is blurred (the composer is pushed on top
+      // of it) reaches no subscribers, and re-subscribing does not replay it.
+      refreshSocialV1ComposedFeed();
+
       if (!consumeSocialV1FocusTrending()) {
         return;
       }

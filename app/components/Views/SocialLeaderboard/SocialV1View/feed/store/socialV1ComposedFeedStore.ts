@@ -63,6 +63,19 @@ export const getSocialV1PendingStartedAtMs = (): number | null =>
 
 export const getSocialV1ComposedFeedRevision = (): number => state.revision;
 
+/**
+ * Force every mounted subscriber to re-read the store.
+ *
+ * `enableFreeze(true)` is global, so a blurred or frozen screen has its
+ * passive effects torn down and is therefore unsubscribed. Any `notify()` that
+ * lands in that window — which is exactly when the composer is on top — is
+ * swallowed, and re-subscribing on focus does not replay it. Screens call this
+ * when they regain focus so the feed reconciles with the store regardless.
+ */
+export const refreshSocialV1ComposedFeed = (): void => {
+  notify();
+};
+
 export const consumeSocialV1FocusTrending = (): boolean => {
   if (!state.shouldFocusTrending) {
     return false;

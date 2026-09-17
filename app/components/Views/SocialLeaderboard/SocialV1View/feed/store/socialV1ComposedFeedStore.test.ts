@@ -4,8 +4,10 @@ import {
   consumeSocialV1FocusTrending,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
+  refreshSocialV1ComposedFeed,
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
+  subscribeSocialV1ComposedFeed,
 } from './socialV1ComposedFeedStore';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 
@@ -57,5 +59,19 @@ describe('socialV1ComposedFeedStore', () => {
     commitSocialV1PendingPost();
 
     expect(getSocialV1ComposedPosts()).toHaveLength(0);
+  });
+
+  it('notifies subscribers when the feed is refreshed on focus', () => {
+    const listener = jest.fn();
+    const unsubscribe = subscribeSocialV1ComposedFeed(listener);
+
+    refreshSocialV1ComposedFeed();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    refreshSocialV1ComposedFeed();
+
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });
