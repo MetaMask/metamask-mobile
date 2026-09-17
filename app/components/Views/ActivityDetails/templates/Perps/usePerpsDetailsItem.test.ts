@@ -83,6 +83,43 @@ describe('usePerpsDetailsItem', () => {
     expect(result.current.transaction).toBe(deposit);
   });
 
+  it('resolves a row id that only exists while aggregation is turned off', () => {
+    // The list can be showing individual executions when a row is tapped, and those ids do
+    // not exist in the aggregated set the details screen builds by default.
+    const individualFill = {
+      id: 'order-1-1700000000000-2',
+    } as PerpsTransaction;
+    usePerpsActivityQueryMock.mockImplementation(
+      (_accountId, _enabled, aggregateFills = true) =>
+        ({
+          transactions: aggregateFills ? [trade, deposit] : [individualFill],
+          isFetching: false,
+        }) as ReturnType<typeof usePerpsActivityQuery>,
+    );
+
+    const { result } = renderHook(() =>
+      usePerpsDetailsItem('order-1-1700000000000-2'),
+    );
+
+    expect(result.current.transaction).toBe(individualFill);
+  });
+
+  it('prefers the aggregated row when both views contain the id', () => {
+    usePerpsActivityQueryMock.mockImplementation(
+      (_accountId, _enabled, aggregateFills = true) =>
+        ({
+          transactions: aggregateFills
+            ? [trade]
+            : [{ id: 'fill-1', asset: 'other' } as PerpsTransaction],
+          isFetching: false,
+        }) as ReturnType<typeof usePerpsActivityQuery>,
+    );
+
+    const { result } = renderHook(() => usePerpsDetailsItem('fill-1'));
+
+    expect(result.current.transaction).toBe(trade);
+  });
+
   it('returns undefined when nothing matches', () => {
     const { result } = renderHook(() => usePerpsDetailsItem('missing'));
 
