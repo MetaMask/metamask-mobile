@@ -1165,6 +1165,7 @@ export type RootStackParamList = {
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
+  CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes
   Recipient: SendStackParamList['Recipient'];

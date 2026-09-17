@@ -1062,7 +1062,12 @@ describe('SignUp Component', () => {
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
-        { email: 'gb@example.com', countryKey: 'GB' },
+        expect.objectContaining({
+          email: 'gb@example.com',
+          countryKey: 'GB',
+          hasExistingCard: false,
+          fundingAddress: expect.any(String),
+        }),
       );
     });
 
@@ -1094,7 +1099,12 @@ describe('SignUp Component', () => {
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'active' },
-        { email: 'gb@example.com', countryKey: 'GB' },
+        expect.objectContaining({
+          email: 'gb@example.com',
+          countryKey: 'GB',
+          hasExistingCard: false,
+          fundingAddress: expect.any(String),
+        }),
       );
     });
 
