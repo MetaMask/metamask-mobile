@@ -1,5 +1,13 @@
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
-import { PredictOrderPreviewService } from '../services/PredictOrderPreviewService';
+import {
+  PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+  PredictOrderPreviewService,
+} from '../services/PredictOrderPreviewService';
 import { KALSHI_VENUE_ID } from '../types';
 
 const previewResponse = {
@@ -39,11 +47,20 @@ describe('PredictNext Order Preview request', () => {
 
   const buildService = (
     harness: ReturnType<typeof createPredictNextIntegrationHarness>,
-  ) =>
-    new PredictOrderPreviewService({
+  ) => {
+    const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const messenger = new Messenger({
+      namespace: PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+      parent: rootMessenger,
+    });
+    return new PredictOrderPreviewService({
+      messenger,
       trading: harness.adapter.trading,
       venueId: harness.adapter.venueId,
     });
+  };
 
   it('requests a Preview through the authenticated transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness((url, init) =>
@@ -53,7 +70,7 @@ describe('PredictNext Order Preview request', () => {
         : { status: 404 },
     );
 
-    const result = await buildService(harness).requestQuote({
+    const result = await buildService(harness).requestQuote(KALSHI_VENUE_ID, {
       marketId: 'KXTEST-26-A' as never,
       side: 'yes',
       amount: '20.00' as never,
@@ -94,7 +111,7 @@ describe('PredictNext Order Preview request', () => {
     );
 
     await expect(
-      buildService(harness).requestQuote({
+      buildService(harness).requestQuote(KALSHI_VENUE_ID, {
         marketId: 'KXTEST-26-A' as never,
         side: 'yes',
         amount: '999.00' as never,
@@ -115,7 +132,7 @@ describe('PredictNext Order Preview request', () => {
     );
 
     await expect(
-      buildService(harness).requestQuote({
+      buildService(harness).requestQuote(KALSHI_VENUE_ID, {
         marketId: 'KXTEST-26-A' as never,
         side: 'yes',
         amount: '20.00' as never,
@@ -133,7 +150,7 @@ describe('PredictNext Order Preview request', () => {
     );
 
     await expect(
-      buildService(harness).requestQuote({
+      buildService(harness).requestQuote(KALSHI_VENUE_ID, {
         marketId: 'KXTEST-26-A' as never,
         side: 'yes',
         amount: '20.00' as never,
@@ -151,7 +168,7 @@ describe('PredictNext Order Preview request', () => {
     );
 
     await expect(
-      buildService(harness).requestQuote({
+      buildService(harness).requestQuote(KALSHI_VENUE_ID, {
         marketId: 'KXTEST-26-A' as never,
         side: 'yes',
         amount: '20.00' as never,
@@ -166,7 +183,7 @@ describe('PredictNext Order Preview request', () => {
         : { status: 404 },
     );
 
-    const result = await buildService(harness).requestQuote({
+    const result = await buildService(harness).requestQuote(KALSHI_VENUE_ID, {
       marketId: 'KXTEST-26-A' as never,
       side: 'yes',
       amount: '20' as never,

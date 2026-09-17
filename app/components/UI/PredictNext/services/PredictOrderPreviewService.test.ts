@@ -1,5 +1,15 @@
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+
 import { PredictError, PredictErrorCode } from '../errors';
-import { PredictOrderPreviewService } from './PredictOrderPreviewService';
+import {
+  isPreviewExpired,
+  PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+  PredictOrderPreviewService,
+} from './PredictOrderPreviewService';
 import {
   KALSHI_VENUE_ID,
   type PredictDecimal,
@@ -34,21 +44,32 @@ const preview: PredictOrderPreview = {
 const previewOrder = jest.fn<Promise<PredictOrderPreview>, []>();
 const trading = { previewOrder };
 
+const serviceWith = (submitDelayMs?: number) => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const messenger = new Messenger({
+    namespace: PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+    parent: rootMessenger,
+  });
+  return new PredictOrderPreviewService({
+    messenger,
+    trading,
+    venueId: KALSHI_VENUE_ID,
+    ...(submitDelayMs === undefined ? {} : { submitDelayMs }),
+  });
+};
+
 beforeEach(() => {
   trading.previewOrder.mockReset();
   trading.previewOrder.mockResolvedValue(preview);
 });
 
-const service = () =>
-  new PredictOrderPreviewService({
-    trading,
-    venueId: KALSHI_VENUE_ID,
-    submitDelayMs: 0,
-  });
+const service = () => serviceWith(0);
 
 describe('PredictOrderPreviewService', () => {
   it('requests a quote through the trading capability', async () => {
-    const result = await service().requestQuote({
+    const result = await service().requestQuote(KALSHI_VENUE_ID, {
       marketId: 'KXTEST-26-A' as PredictEntityId,
       side: 'yes',
       amount: '4.00' as PredictAmount,
@@ -64,15 +85,12 @@ describe('PredictOrderPreviewService', () => {
   it('treats a preview at its expiry instant as expired', () => {
     const at = Date.parse(preview.expiresAt);
 
-    expect(service().isExpired(preview, at)).toBe(true);
-    expect(service().isExpired(preview, at - 1)).toBe(false);
+    expect(isPreviewExpired(preview, at)).toBe(true);
+    expect(isPreviewExpired(preview, at - 1)).toBe(false);
   });
 
   it('submits through the stub without placing a real order', async () => {
-    const result = await service().submitOrder({
-      venueId: KALSHI_VENUE_ID,
-      previewId: 'preview-1',
-    });
+    const result = await service().submitOrder(KALSHI_VENUE_ID, 'preview-1');
 
     expect(result).toEqual({ previewId: 'preview-1' });
     expect(trading.previewOrder).toHaveBeenCalledTimes(0);
@@ -80,9 +98,16 @@ describe('PredictOrderPreviewService', () => {
 
   it('rejects submissions for another venue', async () => {
     await expect(
-      service().submitOrder({
-        venueId: 'polymarket' as PredictVenueId,
-        previewId: 'preview-1',
+      service().submitOrder('polymarket' as PredictVenueId, 'preview-1'),
+    ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
+  });
+
+  it('rejects quotes for another venue', async () => {
+    await expect(
+      service().requestQuote('polymarket' as PredictVenueId, {
+        marketId: 'KXTEST-26-A' as PredictEntityId,
+        side: 'yes',
+        amount: '4.00' as PredictAmount,
       }),
     ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
   });
@@ -93,7 +118,7 @@ describe('PredictOrderPreviewService', () => {
     );
 
     await expect(
-      service().requestQuote({
+      service().requestQuote(KALSHI_VENUE_ID, {
         marketId: 'KXTEST-26-A' as PredictEntityId,
         side: 'yes',
         amount: '4.00' as PredictAmount,

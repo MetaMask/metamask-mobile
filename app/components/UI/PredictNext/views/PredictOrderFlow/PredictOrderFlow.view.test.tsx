@@ -8,13 +8,25 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createUIQueryClient } from '@metamask/react-data-query';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { Text, Button } from '@metamask/design-system-react-native';
 
 import Engine from '../../../../../core/Engine';
 import { DATA_SERVICES } from '../../../../../constants/data-services';
+import { KalshiRemoteAdapter } from '../../adapters/remote/KalshiRemoteAdapter';
+import { PredictApiReadClient } from '../../adapters/remote/PredictApiReadClient';
+import {
+  PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+  PredictOrderPreviewService,
+} from '../../services/PredictOrderPreviewService';
 import {
   PredictOrderFlowProvider,
   usePredictOrderFlow,
@@ -25,6 +37,34 @@ import {
   type PredictDecimal,
   type PredictEntityId,
 } from '../../types';
+
+// The provider resolves the Order Preview service from Engine.context, the
+// way the real Engine init composes it: the concrete trading adapter is
+// composed here (in the test), against the stubbed globalThis.fetch below.
+// Composition happens per-test (not at module scope) because the read client
+// binds the fetch implementation at construction time.
+const composeOrderPreviewService = (): PredictOrderPreviewService => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const messenger = new Messenger({
+    namespace: PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+    parent: rootMessenger,
+  });
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictOrderPreviewService({
+    messenger,
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+};
 
 const PROBE_BUTTON = 'order-flow-probe-open';
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
@@ -83,13 +123,23 @@ const QueryClientBoundary = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const stubBalance = () =>
+const stubBalance = (venueStatus?: { termsUrl?: string }) =>
   messengerCall.mockImplementation((action: string) => {
     if (action === 'PredictPortfolioService:getBalance') {
       return Promise.resolve({
         venueId: 'kalshi',
         currency: 'USD',
         available: '123.12',
+      });
+    }
+    if (action === 'PredictMarketDataService:getVenueStatus') {
+      return Promise.resolve({
+        venueId: 'kalshi',
+        status: 'available',
+        checkedAt: new Date().toISOString(),
+        ...(venueStatus === undefined
+          ? {}
+          : { termsUrl: venueStatus.termsUrl }),
       });
     }
     return Promise.resolve(undefined);
@@ -184,6 +234,8 @@ describe('PredictOrderFlow', () => {
     fetchMock.mockClear();
     stubBalance();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
+    (Engine.context as Record<string, unknown>).PredictOrderPreviewService =
+      composeOrderPreviewService();
   });
 
   afterEach(() => {
@@ -517,5 +569,49 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.SUCCESS),
       ).toBeOnTheScreen(),
     );
+  });
+
+  it('links the backend-owned terms URL when the venue publishes one', async () => {
+    stubBalance({ termsUrl: 'https://kalshi.com/regulatory/agreement' });
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    stubFetch(() => ({ body: makePreview() }));
+
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+
+    fireEvent.press(screen.getByText('Learn more'));
+
+    expect(openURL).toHaveBeenCalledWith(
+      'https://kalshi.com/regulatory/agreement',
+    );
+  });
+
+  it('renders no terms link when the venue publishes none, and survives open failures', async () => {
+    stubBalance({ termsUrl: undefined });
+    stubFetch(() => ({ body: makePreview() }));
+
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+
+    expect(screen.queryByText('Learn more')).toBeNull();
+    expect(screen.getByText(/platform terms/)).toBeOnTheScreen();
+  });
+
+  it('does not break the Order flow when the terms URL fails to open', async () => {
+    stubBalance({ termsUrl: 'https://kalshi.com/regulatory/agreement' });
+    jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
+    stubFetch(() => ({ body: makePreview() }));
+
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+
+    fireEvent.press(screen.getByText('Learn more'));
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+    ).toBeOnTheScreen();
   });
 });

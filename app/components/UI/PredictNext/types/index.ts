@@ -182,6 +182,9 @@ export interface PredictVenueStatus {
   venueId: PredictVenueId;
   status: 'available' | 'degraded' | 'unavailable';
   checkedAt: PredictTimestamp;
+  /** Backend-owned link for the platform-terms affordance. Absent when the
+   * Venue has no agreement to link, in which case no link is rendered. */
+  termsUrl?: string;
 }
 
 export interface PredictBalance {

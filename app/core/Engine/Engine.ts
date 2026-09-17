@@ -135,6 +135,7 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
+  predictOrderPreviewServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
@@ -391,6 +392,7 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
+        PredictOrderPreviewService: predictOrderPreviewServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -691,6 +693,8 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      PredictOrderPreviewService:
+        messengerClientsByName.PredictOrderPreviewService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,

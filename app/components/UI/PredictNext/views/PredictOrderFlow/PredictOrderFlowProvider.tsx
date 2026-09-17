@@ -1,8 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
-import { createKalshiTradingAdapter } from '../../adapters/remote/createKalshiTradingAdapter';
-import { PredictOrderPreviewService } from '../../services/PredictOrderPreviewService';
-import { KALSHI_VENUE_ID } from '../../types';
+import Engine from '../../../../../core/Engine';
 
 import {
   PredictOrderFlowSheet,
@@ -13,7 +11,6 @@ export type { PredictOrderFlowIntent };
 
 interface OpenOrderFlow {
   intent: PredictOrderFlowIntent;
-  service: PredictOrderPreviewService;
 }
 
 interface PredictOrderFlowContextValue {
@@ -24,10 +21,11 @@ const PredictOrderFlowContext =
   createContext<PredictOrderFlowContextValue | null>(null);
 
 /**
- * Composition point for the Order Flow: owns the one shared preview sheet
- * and its preview service. Every Yes/No Outcome entry point (Event Screen
- * buttons, Event cards) opens the same flow. The trading-capable adapter is
- * built only when the flow actually opens — never on stack mount.
+ * Composition point for the Order Flow: owns the one shared preview sheet.
+ * Every Yes/No Outcome entry point (Event Screen buttons, Event cards) opens
+ * the same flow. The preview service is the Engine-registered
+ * PredictOrderPreviewService — adapter composition lives at the Engine
+ * composition root, never in product modules (see venue-adapters.md).
  */
 export const PredictOrderFlowProvider = ({
   children,
@@ -36,15 +34,8 @@ export const PredictOrderFlowProvider = ({
 }) => {
   const [open, setOpen] = useState<OpenOrderFlow | null>(null);
 
-  const openOrderFlow = useCallback((intent: PredictOrderFlowIntent) => {
-    const adapter = createKalshiTradingAdapter();
-    setOpen({
-      intent,
-      service: new PredictOrderPreviewService({
-        trading: adapter.trading,
-        venueId: adapter.venueId,
-      }),
-    });
+  const openOrderFlow = useCallback((intent: OpenOrderFlow['intent']) => {
+    setOpen({ intent });
   }, []);
   const closeOrderFlow = useCallback(() => setOpen(null), []);
 
@@ -59,7 +50,7 @@ export const PredictOrderFlowProvider = ({
       {open ? (
         <PredictOrderFlowSheet
           intent={open.intent}
-          service={open.service}
+          service={Engine.context.PredictOrderPreviewService}
           onClose={closeOrderFlow}
         />
       ) : null}

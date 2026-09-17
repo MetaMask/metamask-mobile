@@ -30,7 +30,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import ModalSafeAreaProvider from '../../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../../locales/i18n';
+import Logger from '../../../../../../util/Logger';
 import { useBalance } from '../../../hooks/useBalance';
+import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import type { PredictError } from '../../../errors';
 import type {
   PredictAmount,
@@ -42,7 +44,10 @@ import type {
 } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
-import type { PredictOrderPreviewService } from '../../../services/PredictOrderPreviewService';
+import {
+  isPreviewExpired,
+  type PredictOrderPreviewService,
+} from '../../../services/PredictOrderPreviewService';
 
 import { OrderAmountInput } from './OrderAmountInput';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
@@ -54,7 +59,6 @@ import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const QUOTE_DEBOUNCE_MS = 500;
 const MINIMUM_AMOUNT = 1;
-const TERMS_URL = '';
 
 export interface PredictOrderFlowIntent {
   venueId: PredictVenueId;
@@ -100,6 +104,8 @@ export const PredictOrderFlowSheet = ({
   const requestIdRef = useRef(0);
 
   const balanceQuery = useBalance(intent.venueId);
+  const venueStatusQuery = useVenueStatus(intent.venueId);
+  const termsUrl = venueStatusQuery.data?.termsUrl;
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
@@ -150,7 +156,7 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     const timeout = setTimeout(() => {
       service
-        .requestQuote({
+        .requestQuote(intent.venueId, {
           marketId: intent.marketId,
           side: intent.side,
           amount: amount as PredictAmount,
@@ -191,7 +197,7 @@ export const PredictOrderFlowSheet = ({
     return () => clearTimeout(timeout);
   }, [preview, now]);
 
-  const isExpired = preview !== null && service.isExpired(preview, now);
+  const isExpired = preview !== null && isPreviewExpired(preview, now);
   const canApprove =
     phase === 'input' && preview !== null && !isQuoting && !isExpired;
   const canRefresh = isExpired || Boolean(quoteError);
@@ -206,10 +212,7 @@ export const PredictOrderFlowSheet = ({
     }
     setPhase('submitting');
     try {
-      await service.submitOrder({
-        venueId: intent.venueId,
-        previewId: preview.previewId,
-      });
+      await service.submitOrder(intent.venueId, preview.previewId);
       setPhase('success');
     } catch {
       setPhase('input');
@@ -258,10 +261,15 @@ export const PredictOrderFlowSheet = ({
   }, [isBreakdownVisible]);
 
   const handleTermsPress = useCallback(() => {
-    if (TERMS_URL) {
-      Linking.openURL(TERMS_URL);
+    if (!termsUrl) {
+      return;
     }
-  }, []);
+    Linking.openURL(termsUrl).catch((error: Error) => {
+      // Opening the terms page must never break the Order flow; the link is
+      // informational, so a failure is only logged.
+      Logger.error(error, 'PredictNext: failed to open the terms URL');
+    });
+  }, [termsUrl]);
 
   const displayedPrice = isQuoting
     ? intent.askPrice
@@ -484,14 +492,16 @@ export const PredictOrderFlowSheet = ({
                       >
                         {strings('predict_next.order_preview.terms')}
                       </Text>
-                      <Text
-                        variant={TextVariant.BodyXs}
-                        color={TextColor.InfoDefault}
-                        onPress={handleTermsPress}
-                        suppressHighlighting
-                      >
-                        {strings('predict_next.order_preview.learn_more')}
-                      </Text>
+                      {termsUrl ? (
+                        <Text
+                          variant={TextVariant.BodyXs}
+                          color={TextColor.InfoDefault}
+                          onPress={handleTermsPress}
+                          suppressHighlighting
+                        >
+                          {strings('predict_next.order_preview.learn_more')}
+                        </Text>
+                      ) : null}
                     </Box>
                   </Box>
                 </>
