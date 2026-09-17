@@ -382,20 +382,32 @@ describe('PredictOrderFlow', () => {
     expect(previewCalls()).toHaveLength(0);
   });
 
-  it('fills quick amounts and quotes them', async () => {
+  it('adds quick amounts to the entered amount and quotes the sum', async () => {
     stubEchoingPreview();
 
     openSheet();
     fireEvent.press(
-      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('$50')),
+      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('5')),
     );
-    await flushDebounce();
+    fireEvent.press(
+      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('10')),
+    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+    ).toHaveTextContent('$15');
 
+    await flushDebounce();
     await waitFor(() =>
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
       ).toBeOnTheScreen(),
     );
+    expect(previewCalls()).toHaveLength(1);
+    expect(previewCalls()[0]?.body).toEqual({
+      marketId: 'KXTEST-26-A',
+      side: 'yes',
+      amount: '15',
+    });
   });
 
   it('enters the amount on the in-sheet keypad', async () => {

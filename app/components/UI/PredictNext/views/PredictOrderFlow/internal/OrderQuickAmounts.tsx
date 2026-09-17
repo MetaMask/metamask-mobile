@@ -11,31 +11,30 @@ import {
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
-const QUICK_AMOUNTS = ['$20', '$50', '$100', '$250'] as const;
+const QUICK_AMOUNTS = [5, 10, 50, 100] as const;
 
 interface OrderQuickAmountsProps {
-  /** Fills the amount entry with the pressed chip's value. */
-  onAmountChange: (amount: string) => void;
+  /** Adds the pressed chip's value to the entered amount. */
+  onAddAmount: (increment: number) => void;
 }
 
 /**
- * The quick-amount chips beneath the amount group.
+ * The additive quick-amount chips beneath the amount group: each press
+ * adds its value to the currently entered amount.
  */
-export const OrderQuickAmounts = ({
-  onAmountChange,
-}: OrderQuickAmountsProps) => (
+export const OrderQuickAmounts = ({ onAddAmount }: OrderQuickAmountsProps) => (
   <Box twClassName="flex-row gap-2">
     {QUICK_AMOUNTS.map((quickAmount) => (
       <Button
         key={quickAmount}
-        testID={PredictOrderFlowTestIds.QUICK_AMOUNT(quickAmount)}
+        testID={PredictOrderFlowTestIds.QUICK_AMOUNT(String(quickAmount))}
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        onPress={() => onAmountChange(quickAmount.replace('$', ''))}
+        onPress={() => onAddAmount(quickAmount)}
         twClassName="h-11 flex-1 min-w-0 rounded-xl"
       >
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {quickAmount}
+          {`+${quickAmount}`}
         </Text>
       </Button>
     ))}

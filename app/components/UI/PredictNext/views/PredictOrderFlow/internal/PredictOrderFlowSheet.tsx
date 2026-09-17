@@ -239,6 +239,17 @@ export const PredictOrderFlowSheet = ({
     () => setAmount((current) => sanitizeAmount(current.slice(0, -1))),
     [sanitizeAmount],
   );
+  /** Adds a quick-amount chip's increment, in exact cents. */
+  const handleAddAmount = useCallback(
+    (increment: number) => {
+      setAmount((current) => {
+        const cents =
+          Math.round(Number(current || '0') * 100) + increment * 100;
+        return sanitizeAmount((cents / 100).toFixed(2).replace(/\.00$/u, ''));
+      });
+    },
+    [sanitizeAmount],
+  );
 
   useEffect(() => {
     if (isBreakdownVisible) {
@@ -454,9 +465,7 @@ export const PredictOrderFlowSheet = ({
                       </Text>
                     )}
                   </Box>
-                  <OrderQuickAmounts
-                    onAmountChange={(next) => setAmount(sanitizeAmount(next))}
-                  />
+                  <OrderQuickAmounts onAddAmount={handleAddAmount} />
                   <Box twClassName="py-3">
                     <OrderSummaryRows
                       balance={balanceLabel}
