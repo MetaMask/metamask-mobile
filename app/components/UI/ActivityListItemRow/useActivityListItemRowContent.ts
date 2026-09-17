@@ -51,8 +51,7 @@ import {
   resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useApiEvmTransaction } from '../../Views/ActivityList/hooks/useApiEvmTransaction';
+import { useApiEvmTransaction } from '../../hooks/useApiEvmTransaction';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -1173,7 +1172,11 @@ export function useActivityListItemRowContent(
     ? strings('transaction_details.label.money_account')
     : accountGroupName;
 
-  const apiEvmTransaction = useApiEvmTransaction(item.hash);
+  const apiEvmTransaction = useApiEvmTransaction(
+    item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+      ? item.hash
+      : undefined,
+  );
   const content = resolveCoreContent(
     item,
     formatters,

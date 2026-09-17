@@ -7,7 +7,7 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
 import { selectNftByIdentity } from '../../../selectors/nftController';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { useNftActivityImage } from './useNftActivityImage';
-import { useApiEvmTransaction } from '../../Views/ActivityList/hooks/useApiEvmTransaction';
+import { useApiEvmTransaction } from '../../hooks/useApiEvmTransaction';
 
 jest.mock('@metamask/assets-controllers', () => ({
   getFormattedIpfsUrl: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('../../../selectors/nftController', () => ({
   selectNftByIdentity: jest.fn(),
 }));
 
-jest.mock('../../Views/ActivityList/hooks/useApiEvmTransaction', () => ({
+jest.mock('../../hooks/useApiEvmTransaction', () => ({
   useApiEvmTransaction: jest.fn(),
 }));
 
@@ -112,6 +112,21 @@ describe('useNftActivityImage', () => {
 
     expect(result.current).toBeUndefined();
     expect(mockSelectNftByIdentity).not.toHaveBeenCalled();
+  });
+
+  it('skips the EVM lookup for non-EVM NFT activity', () => {
+    const item = {
+      type: 'nftBuy',
+      chainId: 'solana:mainnet',
+      status: 'success',
+      timestamp: 1,
+      hash: 'solana-nft',
+      data: { token: { direction: 'in', symbol: 'NFT' } },
+    } as unknown as ActivityListItem;
+
+    renderUseNftActivityImage(item);
+
+    expect(mockUseApiEvmTransaction).toHaveBeenCalledWith(undefined);
   });
 
   it('selects the NFT leg matching the activity, not the first NFT transfer', () => {

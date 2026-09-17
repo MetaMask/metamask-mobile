@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../selectors/multichain/multichain';
 
 export function useKeyringTransaction(hash?: string) {
   const nonEvmState = useSelector(

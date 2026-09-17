@@ -1,6 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { Text, TextColor } from '@metamask/design-system-react-native';
+import { StatusTypes } from '@metamask/bridge-controller';
 import { strings } from '../../../../locales/i18n';
 import { renderShortAddress } from '../../../util/address';
 import { formatTimestampToDateTime } from '../../../util/date';
@@ -18,6 +19,7 @@ import {
   ACTIVITY_CV_RAMP_SELL_TX_HASH,
   ACTIVITY_CV_SOLANA_ADDRESS,
   ACTIVITY_CV_SOLANA_ASSET_ID,
+  ACTIVITY_CV_SOLANA_ACCOUNT_ID,
   ACTIVITY_CV_SOLANA_CHAIN_ID,
   ACTIVITY_CV_SOLANA_SEND_ID,
   ACTIVITY_CV_SOLANA_SWAP_ID,
@@ -107,6 +109,57 @@ const {
 const MAINNET_CAIP = 'eip155:1';
 const RECEIVE_MUSD_HASH = '0xactivitycvreceivemusd';
 const RECEIVE_MUSD_TIMESTAMP_MS = 1_716_367_785_000;
+const SOLANA_BRIDGE_ID = 'activity-cv-solana-bridge';
+const solanaBridgeTransaction = {
+  id: SOLANA_BRIDGE_ID,
+  chain: ACTIVITY_CV_SOLANA_CHAIN_ID,
+  account: ACTIVITY_CV_SOLANA_ACCOUNT_ID,
+  status: 'confirmed',
+  timestamp: 1_716_367_800,
+  type: 'send',
+  from: [
+    {
+      address: ACTIVITY_CV_SOLANA_ADDRESS,
+      asset: {
+        fungible: true,
+        type: ACTIVITY_CV_SOLANA_ASSET_ID,
+        unit: 'SOL',
+        amount: '1',
+      },
+    },
+  ],
+  to: [{ address: 'So11111111111111111111111111111111111111112', asset: null }],
+  fees: [],
+  events: [],
+};
+const solanaBridgeHistory = {
+  txMetaId: SOLANA_BRIDGE_ID,
+  account: ACTIVITY_CV_SOLANA_ADDRESS,
+  quote: {
+    srcChainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+    destChainId: 1,
+    srcAsset: {
+      assetId: ACTIVITY_CV_SOLANA_ASSET_ID,
+      decimals: 9,
+      symbol: 'SOL',
+    },
+    srcTokenAmount: '1000000000',
+    destAsset: {
+      assetId: 'eip155:1/slip44:60',
+      decimals: 18,
+      symbol: 'ETH',
+    },
+    destTokenAmount: '5000000000000000',
+  },
+  status: {
+    status: StatusTypes.COMPLETE,
+    srcChain: { txHash: SOLANA_BRIDGE_ID },
+    destChain: { txHash: '0xactivitycvsolanabridgedest' },
+  },
+  startTime: 1_716_367_800_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
 
 describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
   afterEach(() => {
@@ -1405,6 +1458,60 @@ describeForPlatforms(
     });
   },
 );
+
+describeForPlatforms('ActivityDetails — non-EVM bridge explorer lookup', () => {
+  it('passes the keyring transaction to the bridge explorer sheet', async () => {
+    const state = initialStateActivity()
+      .withOverrides(activityCvSolanaSendStateOverrides)
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            BridgeStatusController: {
+              txHistory: {
+                [SOLANA_BRIDGE_ID]: solanaBridgeHistory,
+              },
+            },
+            MultichainTransactionsController: {
+              nonEvmTransactions: {
+                [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
+                  [ACTIVITY_CV_SOLANA_CHAIN_ID]: {
+                    transactions: [solanaBridgeTransaction],
+                    next: null,
+                    lastUpdated: 1_716_367_800_000,
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, findByText, getByTestId } = renderActivityDetailsView(
+      {
+        state,
+        params: {
+          chainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+          txIdentifier: SOLANA_BRIDGE_ID,
+        },
+      },
+    );
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
+    expect(await findByText('Bridged ETH')).toBeOnTheScreen();
+
+    fireEvent.press(await findByTestId(BLOCK_EXPLORER_BUTTON));
+
+    const bridgeModalsParamsEl = await findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.MODALS.ROOT),
+    );
+    const bridgeModalsParams = JSON.parse(
+      bridgeModalsParamsEl.props.children as string,
+    );
+
+    expect(bridgeModalsParams.params.multiChainTx.id).toBe(SOLANA_BRIDGE_ID);
+  });
+});
 
 describeForPlatforms('ActivityDetails — Solana swap', () => {
   beforeEach(() => {

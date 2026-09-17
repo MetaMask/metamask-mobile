@@ -34,6 +34,14 @@ import {
 const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
 
 describeForPlatforms('ActivityList', () => {
+  beforeEach(() => {
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
     const pendingRowIndex = 1;
     const confirmedRowIndex = 3;
@@ -43,14 +51,14 @@ describeForPlatforms('ActivityList', () => {
       pendingTransaction,
     ]).build();
 
-    const { findByTestId } = renderActivityListViewWithRoutes({
-      state,
-      extraRoutes: [{ name: Routes.ACTIVITY_DETAILS }],
-    });
+    const { findByTestId, findByText, getByTestId } =
+      renderActivityListViewWithRoutes({
+        state,
+        extraRoutes: [{ name: Routes.ACTIVITY_DETAILS }],
+      });
 
-    const pendingRow = await findByTestId(
-      activityListRowItemTestId(pendingRowIndex),
-    );
+    await findByText('Sending ETH');
+    const pendingRow = getByTestId(activityListRowItemTestId(pendingRowIndex));
     const pendingScope = within(pendingRow);
 
     expect(pendingScope.getByText('Sending ETH')).toBeOnTheScreen();
@@ -66,7 +74,8 @@ describeForPlatforms('ActivityList', () => {
       ),
     ).toHaveTextContent('To: 0x80181...229cC');
 
-    const confirmedRow = await findByTestId(
+    await findByText('Sent ETH');
+    const confirmedRow = getByTestId(
       activityListRowItemTestId(confirmedRowIndex),
     );
     const confirmedScope = within(confirmedRow);
@@ -74,7 +83,7 @@ describeForPlatforms('ActivityList', () => {
     expect(confirmedScope.getByText('Sent ETH')).toBeOnTheScreen();
     expect(confirmedScope.getByText('-1 ETH')).toBeOnTheScreen();
 
-    fireEvent.press(confirmedRow);
+    fireEvent.press(getByTestId(activityListRowItemTestId(confirmedRowIndex)));
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.ACTIVITY_DETAILS)),

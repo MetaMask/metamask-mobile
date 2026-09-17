@@ -185,7 +185,7 @@ const mockApiEvmTransactions = new Map<
   { transactionProtocol?: string }
 >();
 
-jest.mock('../../Views/ActivityList/hooks/useApiEvmTransaction', () => ({
+jest.mock('../../hooks/useApiEvmTransaction', () => ({
   useApiEvmTransaction: (hash?: string) =>
     (hash && mockApiEvmTransactions.get(hash.toLowerCase())) || undefined,
 }));

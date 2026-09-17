@@ -29,7 +29,7 @@ jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
 }));
 
-jest.mock('../../ActivityList/hooks/useKeyringTransaction', () => ({
+jest.mock('../../../hooks/useKeyringTransaction', () => ({
   useKeyringTransaction: () => undefined,
 }));
 

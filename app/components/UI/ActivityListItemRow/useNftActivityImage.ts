@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getFormattedIpfsUrl, type Nft } from '@metamask/assets-controllers';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
-import type { Hex } from '@metamask/utils';
+import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import {
   isNftTransferType,
   type ActivityListItem,
@@ -11,8 +11,7 @@ import type { RootState } from '../../../reducers';
 import { selectNftByIdentity } from '../../../selectors/nftController';
 import { areAddressesEqual } from '../../../util/address';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useApiEvmTransaction } from '../../Views/ActivityList/hooks/useApiEvmTransaction';
+import { useApiEvmTransaction } from '../../hooks/useApiEvmTransaction';
 
 const NFT_ACTIVITY_KINDS = new Set<ActivityListItem['type']>([
   'nftBuy',
@@ -116,7 +115,10 @@ export function useNftActivityImage(
 ): string | undefined {
   const ipfsGateway = useIpfsGateway();
   const apiEvmTransaction = useApiEvmTransaction(
-    NFT_ACTIVITY_KINDS.has(item.type) ? item.hash : undefined,
+    NFT_ACTIVITY_KINDS.has(item.type) &&
+      item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+      ? item.hash
+      : undefined,
   );
   const identity = useMemo(
     () =>

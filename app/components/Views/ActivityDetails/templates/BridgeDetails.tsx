@@ -17,8 +17,7 @@ import {
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
 import { useLocalTransactionMeta } from '../hooks/useLocalTransactionMeta';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useKeyringTransaction } from '../../ActivityList/hooks/useKeyringTransaction';
+import { useKeyringTransaction } from '../../../hooks/useKeyringTransaction';
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,

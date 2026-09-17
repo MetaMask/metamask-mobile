@@ -717,6 +717,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     const receiveUsdcHash = '0xactivitycvreceiveusdc';
     const apiSwapHash = '0xactivitycvswapethusdc';
     const mintHash = '0xactivitycvnftmint';
+    const nftImageUrl = 'https://example.com/activity-nft.png';
     const zeroAddress = '0x0000000000000000000000000000000000000000';
 
     setupAccountsTransactionsApiMock([
@@ -828,6 +829,20 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
       .withOverrides({
         engine: {
           backgroundState: {
+            NftController: {
+              allNfts: {
+                [ACTIVITY_CV_ACCOUNT]: {
+                  '0x1': [
+                    {
+                      address: ACTIVITY_CV_NFT_CONTRACT,
+                      tokenId: '1',
+                      chainId: '0x1',
+                      image: nftImageUrl,
+                    },
+                  ],
+                },
+              },
+            },
             PreferencesController: {
               privacyMode: false,
             },
@@ -1041,9 +1056,11 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     ).toHaveTextContent(
       `${strings('transactions.activity_nft_mint')} ${ACTIVITY_CV_NFT_COLLECTION_NAME}`,
     );
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(mintHash)),
-    ).toBeOnTheScreen();
+    const nftAvatar = await findByTestId(
+      activityListRowAvatarSingleTestId(mintHash),
+    );
+    expect(nftAvatar).toBeOnTheScreen();
+    expect(nftAvatar.props.children.props.src).toEqual({ uri: nftImageUrl });
   });
 
   it('shows Swapped when Accounts API returns the same hash as Smart contract interaction', async () => {

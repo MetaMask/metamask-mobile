@@ -5,16 +5,21 @@ import type {
   V1TransactionByHashResponse,
   V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
-import { apiClient } from '../../../../core/apiClient';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectAllConfiguredEvmCaipNetworks } from '../../../../selectors/networkController';
-import { MINUTE } from '../../../../constants/time';
+import { apiClient } from '../../core/apiClient';
+import { selectEvmAddress } from '../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../selectors/multichainAccounts/accountTreeController';
+import { selectAllConfiguredEvmCaipNetworks } from '../../selectors/networkController';
+import { MINUTE } from '../../constants/time';
 
 interface ApiEvmTransactionPages {
   pages: { data: { hash?: string }[] }[];
 }
 
+/**
+ * Finds a transaction in the pages already loaded by the accounts query.
+ * Pagination remains owned by ActivityList, which prevents each row from
+ * independently fetching the entire transaction history.
+ */
 export function findApiEvmTransactionByHash(
   data: ApiEvmTransactionPages | undefined,
   hash?: string,

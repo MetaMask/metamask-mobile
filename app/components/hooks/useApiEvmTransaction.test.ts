@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { apiClient } from '../../../../core/apiClient';
+import { apiClient } from '../../core/apiClient';
 import {
   findApiEvmTransactionByHash,
   useApiEvmTransaction,
@@ -30,7 +30,7 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-jest.mock('../../../../core/apiClient', () => ({
+jest.mock('../../core/apiClient', () => ({
   apiClient: {
     accounts: {
       getV4MultiAccountTransactionsInfiniteQueryOptions: jest.fn(() => ({
@@ -47,23 +47,23 @@ describe('findApiEvmTransactionByHash', () => {
   const data = {
     pages: [
       {
-        data: [
-          { hash: '0xAAA', transactionProtocol: 'CURVE' },
-          { hash: '0xbbb', transactionProtocol: 'ACROSS' },
-        ],
+        data: [{ hash: '0xAAA', transactionProtocol: 'CURVE' }],
+      },
+      {
+        data: [{ hash: '0xbbb', transactionProtocol: 'ACROSS' }],
       },
     ],
     pageParams: [],
   };
 
-  it('finds a transaction by hash case-insensitively', () => {
-    expect(findApiEvmTransactionByHash(data, '0xaaa')).toEqual({
-      hash: '0xAAA',
-      transactionProtocol: 'CURVE',
+  it('finds a transaction by hash case-insensitively across loaded pages', () => {
+    expect(findApiEvmTransactionByHash(data, '0xbbb')).toEqual({
+      hash: '0xbbb',
+      transactionProtocol: 'ACROSS',
     });
   });
 
-  it('returns undefined when the hash is missing or unknown', () => {
+  it('returns undefined when the hash is missing or not in loaded pages', () => {
     expect(findApiEvmTransactionByHash(data, undefined)).toBeUndefined();
     expect(findApiEvmTransactionByHash(data, '0xmissing')).toBeUndefined();
     expect(findApiEvmTransactionByHash(undefined, '0xaaa')).toBeUndefined();
