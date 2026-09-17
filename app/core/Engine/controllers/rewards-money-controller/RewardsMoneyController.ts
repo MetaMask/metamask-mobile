@@ -11,11 +11,13 @@ import {
   REWARDS_MONEY_CONTROLLER_NAME,
   type ClaimDto,
   type ClaimHistoryPageDto,
+  type CommissionsPageDto,
   type EarningOriginType,
   type EarningsLedgerPageDto,
   type EarningsSummaryDto,
   type GetClaimByIdDto,
   type GetClaimHistoryDto,
+  type GetCommissionsDto,
   type GetEarningsLedgerDto,
   type GetEarningsSummaryDto,
   type GetReferralCodesDto,
@@ -24,6 +26,7 @@ import {
   type OwnReferralCodesDto,
   type ReferralFunnelDto,
   type ReferralMeDto,
+  type ReferrerOriginType,
   type RewardsMoneyControllerState,
 } from './types';
 
@@ -41,6 +44,7 @@ export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
+export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
 
 const metadata: StateMetadata<RewardsMoneyControllerState> = {
   referralMe: {
@@ -74,6 +78,12 @@ const metadata: StateMetadata<RewardsMoneyControllerState> = {
     usedInUi: true,
   },
   claimHistoryFirstPage: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  commissionsFirstPage: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -123,6 +133,17 @@ export function ledgerScopeKey(
   return `${originTypeScopeKey(originTypes)}|claims:${includeClaims ? '1' : '0'}`;
 }
 
+/**
+ * Cache key for commissions first pages. `from_day` changes the window the
+ * page covers, so two windows must not share a bucket.
+ */
+export function commissionsScopeKey(
+  originType?: ReferrerOriginType,
+  fromDay?: string,
+): string {
+  return `${originType ?? 'all'}|from:${fromDay ?? 'default'}`;
+}
+
 /** Composite cache key: Hydra profileId, optionally plus a scope suffix. */
 export function profileCacheKey(profileId: string, scope?: string): string {
   return scope ? `${profileId}:${scope}` : profileId;
@@ -136,6 +157,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getEarningsSummary',
   'getEarningsLedger',
   'getClaimHistory',
+  'getCommissions',
   'getClaimById',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
@@ -437,6 +459,63 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
+  async getCommissions(
+    params: GetCommissionsDto = {},
+  ): Promise<CommissionsPageDto> {
+    if (this.#isDisabled()) {
+      return {
+        results: [],
+        mechanisms: {
+          REFERRAL_REV_SHARE: { claim_open: false, reason: null },
+          SOCIAL_FOLLOW_TRADE: { claim_open: false, reason: null },
+        },
+        has_more: false,
+        cursor: null,
+      };
+    }
+
+    const { originType, cursor, fromDay, forceFresh } = params;
+
+    if (cursor) {
+      return this.messenger.call(
+        'RewardsMoneyDataService:getCommissions',
+        originType,
+        cursor,
+        undefined,
+        fromDay,
+      );
+    }
+
+    const profileId = await this.#getProfileId();
+    const key = profileCacheKey(
+      profileId,
+      commissionsScopeKey(originType, fromDay),
+    );
+    const fetchFresh = () =>
+      this.messenger.call(
+        'RewardsMoneyDataService:getCommissions',
+        originType,
+        null,
+        undefined,
+        fromDay,
+      );
+
+    if (forceFresh) {
+      const fresh = await fetchFresh();
+      this.#writeCommissionsFirstPage(key, fresh);
+      return fresh;
+    }
+
+    return wrapWithCache<CommissionsPageDto>({
+      key,
+      ttl: COMMISSIONS_CACHE_THRESHOLD_MS,
+      readCache: (cacheKey) => this.state.commissionsFirstPage[cacheKey],
+      fetchFresh,
+      writeCache: (cacheKey, payload) =>
+        this.#writeCommissionsFirstPage(cacheKey, payload),
+    });
+  }
+
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
@@ -516,6 +595,12 @@ export class RewardsMoneyController extends BaseController<
         payload,
         lastFetched: Date.now(),
       };
+    });
+  }
+
+  #writeCommissionsFirstPage(key: string, payload: CommissionsPageDto): void {
+    this.update((draft) => {
+      draft.commissionsFirstPage[key] = { payload, lastFetched: Date.now() };
     });
   }
 

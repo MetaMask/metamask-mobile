@@ -15,6 +15,7 @@ import {
   RewardsMoneyDataServiceGetEarningsSummaryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
   RewardsMoneyDataServiceGetClaimHistoryAction,
+  RewardsMoneyDataServiceGetCommissionsAction,
   RewardsMoneyDataServiceGetClaimByIdAction,
   RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction,
@@ -38,6 +39,7 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
+  | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
@@ -81,6 +83,7 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:getEarningsSummary',
       'RewardsMoneyDataService:getEarningsLedger',
       'RewardsMoneyDataService:getClaimHistory',
+      'RewardsMoneyDataService:getCommissions',
       'RewardsMoneyDataService:getClaimById',
       'RewardsMoneyDataService:getRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl',

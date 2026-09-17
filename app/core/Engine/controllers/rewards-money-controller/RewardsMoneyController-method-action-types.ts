@@ -65,6 +65,11 @@ export type RewardsMoneyControllerGetClaimHistoryAction = {
   handler: RewardsMoneyController['getClaimHistory'];
 };
 
+export type RewardsMoneyControllerGetCommissionsAction = {
+  type: `RewardsMoneyController:getCommissions`;
+  handler: RewardsMoneyController['getCommissions'];
+};
+
 export type RewardsMoneyControllerGetClaimByIdAction = {
   type: `RewardsMoneyController:getClaimById`;
   handler: RewardsMoneyController['getClaimById'];
@@ -86,4 +91,5 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetEarningsSummaryAction
   | RewardsMoneyControllerGetEarningsLedgerAction
   | RewardsMoneyControllerGetClaimHistoryAction
+  | RewardsMoneyControllerGetCommissionsAction
   | RewardsMoneyControllerGetClaimByIdAction;

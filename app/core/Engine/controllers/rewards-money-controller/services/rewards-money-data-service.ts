@@ -4,12 +4,14 @@ import { getVersion } from 'react-native-device-info';
 import type {
   ClaimDto,
   ClaimHistoryPageDto,
+  CommissionsPageDto,
   EarningOriginType,
   EarningsLedgerPageDto,
   EarningsSummaryDto,
   OwnReferralCodesDto,
   ReferralFunnelDto,
   ReferralMeDto,
+  ReferrerOriginType,
 } from '../types';
 import {
   canChangeRewardsMoneyEnvUrl,
@@ -27,6 +29,9 @@ export const EARNINGS_LEDGER_PAGE_SIZE = 20;
 
 /** The server clamps `limit` to 1..100; 20 matches the ledger's page size. */
 export const CLAIM_HISTORY_PAGE_SIZE = 20;
+
+/** The server clamps `limit` to 1..100; 20 matches the ledger's page size. */
+export const COMMISSIONS_PAGE_SIZE = 20;
 
 /**
  * The Rewards Money API rejected the Hydra bearer token, or none was
@@ -77,6 +82,11 @@ export interface RewardsMoneyDataServiceGetClaimHistoryAction {
   handler: RewardsMoneyDataService['getClaimHistory'];
 }
 
+export interface RewardsMoneyDataServiceGetCommissionsAction {
+  type: `${typeof SERVICE_NAME}:getCommissions`;
+  handler: RewardsMoneyDataService['getCommissions'];
+}
+
 export interface RewardsMoneyDataServiceGetClaimByIdAction {
   type: `${typeof SERVICE_NAME}:getClaimById`;
   handler: RewardsMoneyDataService['getClaimById'];
@@ -110,6 +120,7 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
+  | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
@@ -206,6 +217,10 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClaimHistory`,
       this.getClaimHistory.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCommissions`,
+      this.getCommissions.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClaimById`,
@@ -359,6 +374,41 @@ export class RewardsMoneyDataService {
     }
 
     return (await response.json()) as EarningsLedgerPageDto;
+  }
+
+  async getCommissions(
+    originType?: ReferrerOriginType,
+    cursor?: string | null,
+    limit: number = COMMISSIONS_PAGE_SIZE,
+    fromDay?: string,
+  ): Promise<CommissionsPageDto> {
+    const params = new URLSearchParams();
+    params.append('limit', String(limit));
+
+    // Unlike the ledger, the commissions cursor stamps the filter AND is checked
+    // against the request: paging with the cursor but without the original
+    // `earning_origin_type` is a 400, so the filter is resent on every page.
+    if (originType) {
+      params.append('earning_origin_type', originType);
+    }
+
+    if (cursor) {
+      // The cursor's own `from_day` wins server-side; resending it is noise.
+      params.append('cursor', cursor);
+    } else if (fromDay) {
+      params.append('from_day', fromDay);
+    }
+
+    const response = await this.#makeRequest(
+      `/referral/me/commissions?${params.toString()}`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get commissions failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CommissionsPageDto;
   }
 
   async getClaimHistory(

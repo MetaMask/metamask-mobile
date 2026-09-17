@@ -4,6 +4,7 @@ import {
   getRewardsMoneyControllerDefaultState,
   originTypeScopeKey,
   ledgerScopeKey,
+  commissionsScopeKey,
   profileCacheKey,
   REFERRAL_ME_CACHE_THRESHOLD_MS,
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
@@ -15,6 +16,7 @@ import type {
   EarningsLedgerPageDto,
   EarningsSummaryDto,
   OwnReferralCodesDto,
+  CommissionsPageDto,
   ReferralFunnelDto,
   ReferralLocalizedText,
   ReferralMeDto,
@@ -184,6 +186,21 @@ describe('ledgerScopeKey', () => {
     expect(ledgerScopeKey(undefined, false)).toBe('all|claims:0');
     expect(ledgerScopeKey(['SWAPS_FEE_CASHBACK'], true)).toBe(
       'SWAPS_FEE_CASHBACK|claims:1',
+    );
+  });
+});
+
+describe('commissionsScopeKey', () => {
+  it('separates mechanisms and windows into distinct buckets', () => {
+    expect(commissionsScopeKey()).toBe('all|from:default');
+    expect(commissionsScopeKey('REFERRAL_REV_SHARE')).toBe(
+      'REFERRAL_REV_SHARE|from:default',
+    );
+    expect(commissionsScopeKey(undefined, '2026-09-01')).toBe(
+      'all|from:2026-09-01',
+    );
+    expect(commissionsScopeKey('SOCIAL_FOLLOW_TRADE', '2026-09-01')).not.toBe(
+      commissionsScopeKey('SOCIAL_FOLLOW_TRADE', '2026-08-01'),
     );
   });
 });
@@ -641,6 +658,103 @@ describe('RewardsMoneyController', () => {
         'RewardsMoneyDataService:setRewardsMoneyEnvUrl',
         expect.anything(),
       );
+    });
+  });
+
+  describe('getCommissions', () => {
+    const mockCommissions: CommissionsPageDto = {
+      results: [
+        {
+          id: 'commission-1',
+          earning_origin_type: 'REFERRAL_REV_SHARE',
+          day: '2026-09-16',
+          token: { key: 'perps:BTC', symbol: 'BTC', source: 'PERPS' },
+          musd_amount: '1000000',
+          fee_amount_usd: '12.34567890',
+          fill_count: 4,
+          copied_times: 3,
+        },
+      ],
+      mechanisms: {
+        REFERRAL_REV_SHARE: { claim_open: true, reason: null },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      has_more: true,
+      cursor: 'next-commissions',
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getCommissions') {
+          return Promise.resolve(mockCommissions);
+        }
+        return undefined;
+      });
+    });
+
+    it('caches the first page under the profile and scope key', async () => {
+      await expect(
+        controller.getCommissions({ originType: 'REFERRAL_REV_SHARE' }),
+      ).resolves.toEqual(mockCommissions);
+
+      const key = `${PROFILE_A}:${commissionsScopeKey('REFERRAL_REV_SHARE')}`;
+      expect(controller.state.commissionsFirstPage[key].payload).toEqual(
+        mockCommissions,
+      );
+    });
+
+    it('serves a repeat read from cache without refetching', async () => {
+      await controller.getCommissions();
+      await controller.getCommissions();
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call) => call[0] === 'RewardsMoneyDataService:getCommissions',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('keeps separate mechanisms in separate buckets', async () => {
+      await controller.getCommissions({ originType: 'REFERRAL_REV_SHARE' });
+      await controller.getCommissions({ originType: 'SOCIAL_FOLLOW_TRADE' });
+
+      expect(Object.keys(controller.state.commissionsFirstPage)).toHaveLength(
+        2,
+      );
+    });
+
+    it('does not cache cursor pages', async () => {
+      await controller.getCommissions({ cursor: 'next-commissions' });
+
+      expect(controller.state.commissionsFirstPage).toEqual({});
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getCommissions',
+        undefined,
+        'next-commissions',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('returns an empty page with both mechanisms closed when disabled', async () => {
+      isDisabled.mockReturnValue(true);
+
+      const page = await controller.getCommissions();
+
+      expect(page.results).toEqual([]);
+      expect(page.mechanisms.REFERRAL_REV_SHARE.claim_open).toBe(false);
+      expect(page.mechanisms.SOCIAL_FOLLOW_TRADE.claim_open).toBe(false);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call) => call[0] === 'RewardsMoneyDataService:getCommissions',
+        ),
+      ).toHaveLength(0);
     });
   });
 });

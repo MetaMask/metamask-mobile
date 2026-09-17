@@ -345,6 +345,58 @@ export type ClaimHistoryPageDto = {
   cursor: string | null;
 };
 
+/**
+ * The mechanisms `GET /referral/me/commissions` serves.
+ *
+ * Deliberately narrower than `EarningOriginType`: the server rejects any other
+ * value with a 400 rather than returning an empty page.
+ */
+export type ReferrerOriginType = 'REFERRAL_REV_SHARE' | 'SOCIAL_FOLLOW_TRADE';
+
+/** Which fill table produced a token. Namespaces `TokenView.key`. */
+export type TokenSource = 'PERPS' | 'SWAPS';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TokenView = {
+  /**
+   * `${source}:${identifier}` — a perps market name or a CAIP-19 asset id.
+   * The grouping identity; `symbol` is not.
+   */
+  key: string;
+  /** Display only, and nullable. Never group or match on this. */
+  symbol: string | null;
+  source: TokenSource;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CommissionEntryView = {
+  id: string;
+  earning_origin_type: ReferrerOriginType;
+  day: string;
+  token: TokenView;
+  musd_amount: string;
+  /** 8dp normally; 2dp when `copied_times` is null. */
+  fee_amount_usd: string;
+  /** Null whenever `copied_times` is null. */
+  fill_count: number | null;
+  /** Null when exactly one referee, so a single trader cannot be identified. */
+  copied_times: number | null;
+};
+
+export type MechanismsView = Record<
+  ReferrerOriginType,
+  { claim_open: boolean; reason: 'MECHANISM_NOT_CLAIMABLE' | null }
+>;
+
+/** `GET /referral/me/commissions` — a breakdown, never a balance. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CommissionsPageDto = {
+  results: CommissionEntryView[];
+  mechanisms: MechanismsView;
+  has_more: boolean;
+  cursor: string | null;
+};
+
 // ─── Request DTOs ─────────────────────────────────────────────────────────────
 
 export interface GetReferralMeDto {
@@ -386,6 +438,15 @@ export interface GetClaimByIdDto {
   forceFresh?: boolean;
 }
 
+export interface GetCommissionsDto {
+  /** Omit for both mechanisms — the server's default is already all of them. */
+  originType?: ReferrerOriginType;
+  cursor?: string | null;
+  /** `YYYY-MM-DD`. Server defaults to 90 days ago; ignored once paging. */
+  fromDay?: string;
+  forceFresh?: boolean;
+}
+
 // ─── Controller state ─────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -418,6 +479,8 @@ export type RewardsMoneyControllerState = {
   earningsLedgerFirstPage: Record<string, CacheEntry<EarningsLedgerPageDto>>;
   /** Keyed by Hydra profileId. */
   claimHistoryFirstPage: Record<string, CacheEntry<ClaimHistoryPageDto>>;
+  /** Page 1 only. Keyed by `${profileId}:${commissionsScope}`. */
+  commissionsFirstPage: Record<string, CacheEntry<CommissionsPageDto>>;
   /** Keyed by `${profileId}:${claimId}`. */
   claimById: Record<string, CacheEntry<ClaimDto>>;
   /** Persisted env URL override (non-production builds only). */

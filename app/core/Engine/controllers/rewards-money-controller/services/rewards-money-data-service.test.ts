@@ -105,6 +105,7 @@ describe('RewardsMoneyDataService', () => {
         'getEarningsSummary',
         'getEarningsLedger',
         'getClaimHistory',
+        'getCommissions',
         'getClaimById',
         'getRewardsMoneyEnvUrl',
         'canChangeRewardsMoneyEnvUrl',
@@ -410,6 +411,86 @@ describe('RewardsMoneyDataService', () => {
       mockFetch.mockResolvedValue(notOk(404));
       await expect(service.getClaimHistory()).rejects.toThrow(
         'Get claim history failed: 404',
+      );
+    });
+
+    it('fetches commissions with no filter', async () => {
+      const body = {
+        results: [],
+        mechanisms: {
+          REFERRAL_REV_SHARE: { claim_open: true, reason: null },
+          SOCIAL_FOLLOW_TRADE: {
+            claim_open: false,
+            reason: 'MECHANISM_NOT_CLAIMABLE',
+          },
+        },
+        has_more: false,
+        cursor: null,
+      };
+      mockFetch.mockResolvedValue(okJson(body));
+
+      await expect(service.getCommissions()).resolves.toEqual(body);
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('/referral/me/commissions?');
+      expect(url).toContain('limit=20');
+      expect(url).not.toContain('earning_origin_type');
+      expect(url).not.toContain('cursor=');
+      expect(url).not.toContain('from_day');
+    });
+
+    it('sends a single mechanism filter', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], mechanisms: {}, has_more: false, cursor: null }),
+      );
+
+      await service.getCommissions('REFERRAL_REV_SHARE');
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('earning_origin_type=REFERRAL_REV_SHARE');
+    });
+
+    // The commissions cursor stamps the filter and the server 400s when the
+    // request omits it — the opposite of the ledger, which reads it from the
+    // cursor alone.
+    it('resends the mechanism filter alongside the cursor', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], mechanisms: {}, has_more: false, cursor: null }),
+      );
+
+      await service.getCommissions(
+        'SOCIAL_FOLLOW_TRADE',
+        'commissions-cursor-1',
+      );
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('cursor=commissions-cursor-1');
+      expect(url).toContain('earning_origin_type=SOCIAL_FOLLOW_TRADE');
+    });
+
+    it('sends from_day only when not paging', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], mechanisms: {}, has_more: false, cursor: null }),
+      );
+
+      await service.getCommissions(undefined, null, 50, '2026-09-01');
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('from_day=2026-09-01');
+      expect(url).toContain('limit=50');
+
+      mockFetch.mockClear();
+      await service.getCommissions(undefined, 'next', 50, '2026-09-01');
+
+      const [pagedUrl] = mockFetch.mock.calls[0];
+      expect(pagedUrl).toContain('cursor=next');
+      expect(pagedUrl).not.toContain('from_day');
+    });
+
+    it('throws when commissions fails', async () => {
+      mockFetch.mockResolvedValue(notOk(400));
+      await expect(service.getCommissions()).rejects.toThrow(
+        'Get commissions failed: 400',
       );
     });
 

@@ -11,6 +11,7 @@ export const getRewardsMoneyControllerDefaultState =
     earningsSummary: {},
     earningsLedgerFirstPage: {},
     claimHistoryFirstPage: {},
+    commissionsFirstPage: {},
     claimById: {},
     rewardsMoneyEnvUrl: null,
   });
