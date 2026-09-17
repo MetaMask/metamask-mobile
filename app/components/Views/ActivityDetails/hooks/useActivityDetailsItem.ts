@@ -125,7 +125,10 @@ export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
   { fetchByHash = true }: { fetchByHash?: boolean } = {},
-) {
+): {
+  item: ActivityListItem | undefined;
+  isFetching: boolean;
+} {
   const localByLookupKey = useSelector(selectLocalActivityItemsByIdentifier);
   const rampActivityItems = useRampActivityItems();
   const { data: evmTransactions, isFetching: isListFetching } =
@@ -141,11 +144,11 @@ export function useActivityDetailsItem(
   const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
-  const isValidHash = Boolean(
-    txIdentifier && isValidTransactionHash(txIdentifier),
-  );
   const txHash =
-    fetchByHash && chainId?.startsWith('eip155:') && txIdentifier && isValidHash
+    fetchByHash &&
+    chainId?.startsWith('eip155:') &&
+    txIdentifier &&
+    isValidTransactionHash(txIdentifier)
       ? txIdentifier
       : undefined;
   const { transaction: apiTransaction, isFetching: isSingleTxFetching } =
