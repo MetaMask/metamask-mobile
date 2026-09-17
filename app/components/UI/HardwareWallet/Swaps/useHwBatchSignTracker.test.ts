@@ -129,6 +129,7 @@ interface MockTransactionMeta {
   txParams: { from: string; to?: string };
   batchId?: string;
   chainId?: string;
+  error?: { message: string; name?: string };
 }
 
 interface MockApprovalState {
@@ -475,6 +476,26 @@ describe('useHwBatchSignTracker', () => {
     fireTxEvent(txMeta({ type: txType, status }), undefined, eventKey);
 
     expect(mockUpdateSwaps).toHaveBeenCalledWith(expected);
+  });
+
+  it('dispatches Rejected when transactionFailed carries a Ledger device rejection', () => {
+    renderEnabledHook();
+
+    fireTxEvent(
+      txMeta({
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.failed,
+        error: {
+          name: 'TransportStatusError',
+          message: 'Ledger device: Action cancelled by user (0x6985)',
+        },
+      }),
+      undefined,
+      'failed',
+    );
+
+    expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_REJECTED_APPROVAL);
+    expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
   });
 
   it('ignores events from a different address', () => {
@@ -1869,6 +1890,43 @@ describe('useHwBatchSignTracker', () => {
         expect(getAllStatusHandlers()).toHaveLength(2);
       });
       broadcastTxEvent({ ...tx, status: TransactionStatus.dropped });
+    });
+
+    it('dispatches rejected (not failed) when Ledger device rejection is reported through onError', async () => {
+      const batchId = 'batch-ledger-reject-001';
+      const tx = matchingBatchTx(batchId);
+      const ledgerRejection = Object.assign(
+        new Error('Ledger device: Action cancelled by user (0x6985)'),
+        { name: 'TransportStatusError', statusCode: 27013 },
+      );
+      let didSuppressErrorSheet = false;
+      mockHwOpOnce(async ({ execute, onError, onRejected }) => {
+        await execute();
+        didSuppressErrorSheet = onError?.(ledgerRejection) ?? false;
+        const rejectionPromise = onRejected?.();
+        await waitFor(() => {
+          expect(getAllStatusHandlers()).toHaveLength(2);
+        });
+        broadcastTxEvent({ ...tx, status: TransactionStatus.dropped });
+        await rejectionPromise;
+        return false;
+      });
+
+      setMockTransactions([tx]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
+      });
+      renderEnabledHook();
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(didSuppressErrorSheet).toBe(true);
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Rejected,
+      });
+      expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
     });
 
     it('dispatches rejected when Keystone cancellation is reported through onError', async () => {
