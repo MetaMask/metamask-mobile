@@ -48,6 +48,7 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
+  type LayoutChangeEvent,
   PixelRatio,
   StyleSheet,
   useWindowDimensions,
@@ -126,6 +127,11 @@ interface OnboardingTextContent {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  rive: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
   },
   riveHidden: {
     opacity: 0,
@@ -277,7 +283,12 @@ const MoneyOnboardingView = () => {
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
+  const [riveDimensions, setRiveDimensions] = useState<{
+    height: number;
+    width: number;
+  }>();
   const [isRiveLaidOut, setIsRiveLaidOut] = useState(false);
+  const [shouldPlayRive, setShouldPlayRive] = useState(false);
   const [isRiveVisible, setIsRiveVisible] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(1);
@@ -287,6 +298,8 @@ const MoneyOnboardingView = () => {
     'transitionSpeed',
     instance,
   );
+  const { setValue: setHeight } = useRiveNumber('height', instance);
+  const { setValue: setWidth } = useRiveNumber('width', instance);
   const { setValue: setApyValue } = useRiveString(
     RIVE_APY_VALUE_PATH,
     instance,
@@ -351,9 +364,11 @@ const MoneyOnboardingView = () => {
     if (!instance) return;
 
     // Config
+    setHeight(100);
+    // setWidth(width);
     setTransitionSpeed(RIVE_TRANSITION_SPEED);
     setButtonText(strings('money.rive_onboarding.button_text'));
-  }, [instance, setTransitionSpeed, setButtonText]);
+  }, [instance, setTransitionSpeed, setButtonText, setHeight]);
 
   // Kept out of the config effect above so a rate change re-pushes the APY
   // without replaying the one-off setup.
@@ -592,8 +607,39 @@ const MoneyOnboardingView = () => {
     setIsRiveLaidOut(true);
   }, []);
 
+  const handleRootLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height, width } = event.nativeEvent.layout;
+
+    if (height <= 0 || width <= 0) {
+      return;
+    }
+
+    setRiveDimensions((currentDimensions) => {
+      if (
+        currentDimensions?.height === height &&
+        currentDimensions.width === width
+      ) {
+        return currentDimensions;
+      }
+
+      return { height, width };
+    });
+  }, []);
+
   useEffect(() => {
     if (!isRiveLaidOut) {
+      return;
+    }
+
+    const animationFrameId = requestAnimationFrame(() => {
+      setShouldPlayRive(true);
+    });
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isRiveLaidOut]);
+
+  useEffect(() => {
+    if (!shouldPlayRive) {
       return;
     }
 
@@ -602,22 +648,26 @@ const MoneyOnboardingView = () => {
     });
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isRiveLaidOut]);
+  }, [shouldPlayRive]);
 
   return (
-    <View style={styles.root}>
-      {riveFile && instance && (
+    <View onLayout={handleRootLayout} style={styles.root}>
+      {riveFile && instance && riveDimensions && (
         <RiveView
           file={riveFile}
           artboardName={RIVE_ARTBOARD_NAME}
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBind={instance}
-          autoPlay
+          autoPlay={shouldPlayRive}
           fit={isRiveLaidOut ? Fit.Layout : Fit.Cover}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
           onLayout={handleRiveLayout}
-          style={[StyleSheet.absoluteFill, !isRiveVisible && styles.riveHidden]}
+          style={[
+            styles.rive,
+            riveDimensions,
+            !isRiveVisible && styles.riveHidden,
+          ]}
           testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
         />
       )}
