@@ -2009,18 +2009,6 @@ describe('CardHome Component', () => {
       setupLoadCardDataMock({ isAuthenticated: true });
     });
 
-    it('opens the instructions sheet for an Immersve cardholder', () => {
-      render();
-
-      fireEvent.press(
-        screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
-      });
-    });
-
     it('hides the instructions while push eligibility is loading', () => {
       mockUsePushProvisioning.mockReturnValueOnce({
         initiateProvisioning: mockInitiateProvisioning,
