@@ -83,6 +83,43 @@ describe('mergeGameLiveUpdate', () => {
 
     expect(result?.status).toBe('scheduled');
   });
+
+  it('keeps a newer REST score when a later clock-only frame restamps observedAt', () => {
+    const rest: PredictGame = {
+      ...currentGame,
+      status: 'in_progress',
+      score: { away: '14', home: '7' },
+      observedAt: at('2026-09-08T13:00:00.000Z'),
+    };
+    const live = mergeGameLiveFrames(
+      mergeGameLiveFrames(undefined, {
+        venueId: 'kalshi' as PredictVenueId,
+        eventId: id('KXTEST-EVENT'),
+        type: 'football_game',
+        status: 'in_progress',
+        score: { away: '7', home: '0' },
+        observedAt: at('2026-09-08T12:30:00.000Z'),
+      }),
+      {
+        venueId: 'kalshi' as PredictVenueId,
+        eventId: id('KXTEST-EVENT'),
+        type: 'football_game',
+        clock: '09:12',
+        observedAt: at('2026-09-08T13:01:00.000Z'),
+      },
+    );
+    if (!live) {
+      throw new Error('expected an accumulated live Game patch');
+    }
+
+    const result = mergeGameLiveUpdate(rest, live);
+
+    expect(result).toEqual({
+      ...rest,
+      clock: '09:12',
+      observedAt: '2026-09-08T13:01:00.000Z',
+    });
+  });
 });
 
 describe('mergeGameLiveFrames', () => {
@@ -96,7 +133,10 @@ describe('mergeGameLiveFrames', () => {
   it('returns the incoming frame when nothing has been accumulated yet', () => {
     const incoming = { ...base, status: 'in_progress' as const };
 
-    expect(mergeGameLiveFrames(undefined, incoming)).toBe(incoming);
+    expect(mergeGameLiveFrames(undefined, incoming)).toEqual({
+      ...incoming,
+      observedAtByField: { status: incoming.observedAt },
+    });
   });
 
   it('keeps status, score, period, and clock that a later clock-only frame omits', () => {
@@ -118,6 +158,33 @@ describe('mergeGameLiveFrames', () => {
       ...previous,
       clock: '07:42',
       observedAt: '2026-09-08T13:01:00.000Z',
+      observedAtByField: {
+        status: previous.observedAt,
+        score: previous.observedAt,
+        period: previous.observedAt,
+        clock: '2026-09-08T13:01:00.000Z',
+      },
+    });
+  });
+
+  it('does not stamp a later clock onto the observedAt of carried score fields', () => {
+    const previous = mergeGameLiveFrames(undefined, {
+      ...base,
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      observedAt: at('2026-09-08T13:00:00.000Z'),
+    });
+
+    const result = mergeGameLiveFrames(previous, {
+      ...base,
+      clock: '07:42',
+      observedAt: at('2026-09-08T13:01:00.000Z'),
+    });
+
+    expect(result?.observedAtByField).toEqual({
+      status: '2026-09-08T13:00:00.000Z',
+      score: '2026-09-08T13:00:00.000Z',
+      clock: '2026-09-08T13:01:00.000Z',
     });
   });
 

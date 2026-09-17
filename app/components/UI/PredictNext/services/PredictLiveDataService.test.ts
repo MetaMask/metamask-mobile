@@ -102,7 +102,10 @@ describe('PredictLiveDataService', () => {
     ]);
     service.onGameUpdate(game);
 
-    expect(listener).toHaveBeenCalledWith(game);
+    expect(listener).toHaveBeenCalledWith({
+      ...game,
+      observedAtByField: { status: game.observedAt },
+    });
     service.destroy();
   });
 
@@ -135,7 +138,13 @@ describe('PredictLiveDataService', () => {
       eventId,
     ]);
 
-    expect(listener).toHaveBeenCalledWith(game);
+    expect(listener).toHaveBeenCalledWith({
+      ...game,
+      observedAtByField: {
+        status: game.observedAt,
+        score: game.observedAt,
+      },
+    });
     service.destroy();
   });
 
@@ -247,8 +256,13 @@ describe('PredictLiveDataService', () => {
     service.onGameUpdate(newer);
     service.onGameUpdate(older);
 
+    const accumulatedNewer = {
+      ...newer,
+      observedAtByField: { score: newer.observedAt },
+    };
+
     expect(listener).toHaveBeenCalledTimes(1);
-    expect(listener).toHaveBeenCalledWith(newer);
+    expect(listener).toHaveBeenCalledWith(accumulatedNewer);
 
     const replay = jest.fn();
     messenger.subscribe(
@@ -259,7 +273,7 @@ describe('PredictLiveDataService', () => {
       eventId,
     ]);
 
-    expect(replay).toHaveBeenCalledWith(newer);
+    expect(replay).toHaveBeenCalledWith(accumulatedNewer);
     service.destroy();
   });
 
@@ -305,6 +319,12 @@ describe('PredictLiveDataService', () => {
       period: 'Q2',
       clock: '07:42',
       observedAt: at('2026-09-08T13:01:00.000Z'),
+      observedAtByField: {
+        status: at('2026-09-08T13:00:00.000Z'),
+        score: at('2026-09-08T13:00:00.000Z'),
+        period: at('2026-09-08T13:00:00.000Z'),
+        clock: at('2026-09-08T13:01:00.000Z'),
+      },
     });
 
     const replay = jest.fn();
@@ -325,6 +345,12 @@ describe('PredictLiveDataService', () => {
       period: 'Q2',
       clock: '07:42',
       observedAt: at('2026-09-08T13:01:00.000Z'),
+      observedAtByField: {
+        status: at('2026-09-08T13:00:00.000Z'),
+        score: at('2026-09-08T13:00:00.000Z'),
+        period: at('2026-09-08T13:00:00.000Z'),
+        clock: at('2026-09-08T13:01:00.000Z'),
+      },
     });
     service.destroy();
   });

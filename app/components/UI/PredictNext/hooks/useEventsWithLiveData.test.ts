@@ -294,6 +294,63 @@ describe('useEventsWithLiveData', () => {
     });
   });
 
+  it('keeps a newer REST score after a later clock-only live frame', () => {
+    const { result, rerender } = renderHook(
+      ({ events }: { events: readonly PredictEvent[] }) =>
+        useEventsWithLiveData(venueId, events),
+      { initialProps: { events: [eventA] } },
+    );
+    const onUpdate = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+    ) as (live: PredictGameLive) => void;
+
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        status: 'in_progress',
+        score: { away: '7', home: '0' },
+        observedAt: '2026-09-08T12:30:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    const restEvent: PredictEvent = {
+      ...eventA,
+      sports: {
+        sport: eventA.sports?.sport ?? {
+          id: 'american-football' as PredictEntityId,
+          label: 'American football',
+        },
+        game: {
+          status: 'in_progress',
+          homeTeam: { name: 'Home' },
+          awayTeam: { name: 'Away' },
+          score: { away: '14', home: '7' },
+          observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+        },
+      },
+    };
+    rerender({ events: [restEvent] });
+
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        clock: '09:12',
+        observedAt: '2026-09-08T13:01:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    expect(result.current[0]?.sports?.game?.score).toEqual({
+      away: '14',
+      home: '7',
+    });
+    expect(result.current[0]?.sports?.game?.clock).toBe('09:12');
+    expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
+  });
+
   it('watches the markets of watched Events, including Events without a Game', () => {
     renderHook(() => useEventsWithLiveData(venueId, [propsEvent, eventA]));
 
