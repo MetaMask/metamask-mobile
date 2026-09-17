@@ -248,6 +248,58 @@ function resolveRunsInWindow(
     .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 }
 
+function browserArtifactUrl(repo, runId, artifactId) {
+  return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifactId}`;
+}
+
+function listRunArtifacts(runId, repo) {
+  const payload = JSON.parse(
+    runGh(['api', `repos/${repo}/actions/runs/${runId}/artifacts`]) ||
+      '{"artifacts":[]}',
+  );
+  return payload.artifacts || [];
+}
+
+/**
+ * Browser download links for dedicated Hermes CPU-profile artifacts on a
+ * performance run. Falls back to the run's Artifacts tab when the listing
+ * fails or those artifacts have already expired.
+ */
+function collectProfileArtifactLinks(runId, repo, runUrl, artifacts = undefined) {
+  const fallback = runUrl ? `${runUrl}#artifacts` : null;
+  try {
+    const listed =
+      artifacts !== undefined
+        ? artifacts
+        : runId && repo
+          ? listRunArtifacts(runId, repo)
+          : [];
+    const links = listed
+      .filter(
+        (artifact) =>
+          !artifact.expired &&
+          String(artifact.name || '').startsWith('hermes-cpuprofiles-'),
+      )
+      .map((artifact) => ({
+        name: artifact.name,
+        url: browserArtifactUrl(repo, runId, artifact.id),
+      }));
+    if (links.length > 0) {
+      return links;
+    }
+  } catch (error) {
+    console.log(`ℹ️ Could not list profile artifacts: ${error.message}`);
+  }
+  return fallback ? [{ name: 'hermes-cpuprofiles-*', url: fallback }] : [];
+}
+
+function analysisArtifactsUrl(repo, analysisRunId) {
+  if (!repo || !analysisRunId) {
+    return null;
+  }
+  return `https://github.com/${repo}/actions/runs/${analysisRunId}#artifacts`;
+}
+
 function downloadArtifactPattern(runId, pattern, destination, repo) {
   fs.mkdirSync(destination, { recursive: true });
   try {
@@ -1277,11 +1329,53 @@ function buildMarkdown(report) {
       '',
     );
   }
+  const downloadLines = markdownDownloadLines(report.meta);
+  if (downloadLines.length > 0) {
+    lines.push('## Downloads', '', ...downloadLines, '');
+  }
   lines.push(
     '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
     '',
   );
   return lines.join('\n');
+}
+
+function markdownDownloadLines(meta = {}) {
+  const lines = [];
+  const profiles = meta.profileArtifacts || [];
+  if (profiles.length > 0) {
+    lines.push(
+      'Hermes `.cpuprofile` files (feed these to an agent, 14-day retention):',
+    );
+    for (const artifact of profiles) {
+      lines.push(`- [${artifact.name}](${artifact.url})`);
+    }
+  }
+  if (meta.analysisArtifactsUrl) {
+    lines.push(
+      `- [app-profiling-analysis](${meta.analysisArtifactsUrl}) — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (30-day retention).`,
+    );
+  }
+  return lines;
+}
+
+function slackDownloadLines(meta = {}) {
+  const lines = [];
+  const profiles = meta.profileArtifacts || [];
+  if (profiles.length > 0) {
+    lines.push(
+      '• Hermes `.cpuprofile` files (feed these to an agent, 14-day retention):',
+    );
+    for (const artifact of profiles) {
+      lines.push(`  • <${artifact.url}|${artifact.name}>`);
+    }
+  }
+  if (meta.analysisArtifactsUrl) {
+    lines.push(
+      `• <${meta.analysisArtifactsUrl}|app-profiling-analysis> — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (30-day retention).`,
+    );
+  }
+  return lines;
 }
 
 function buildSlack(report) {
@@ -1314,7 +1408,11 @@ function buildSlack(report) {
     }
   }
   if (report.aiAnalysis) {
-    lines.push('', '*Notes*', report.aiAnalysis.trim().slice(0, 1_200));
+    lines.push('', '*Notes*', report.aiAnalysis.trim());
+  }
+  const downloadLines = slackDownloadLines(report.meta);
+  if (downloadLines.length > 0) {
+    lines.push('', '*Downloads*', ...downloadLines);
   }
   lines.push(
     '',
@@ -1940,6 +2038,20 @@ async function analyzeRun({
       symbolicatedProfileCount: profiles.filter(
         (profile) => profile.symbolicated,
       ).length,
+      profileArtifacts: localDirectory
+        ? []
+        : collectProfileArtifactLinks(
+            runId,
+            args.repo,
+            run?.url ||
+              (runId
+                ? `https://github.com/${args.repo}/actions/runs/${runId}`
+                : null),
+          ),
+      analysisArtifactsUrl: analysisArtifactsUrl(
+        args.repo,
+        process.env.GITHUB_RUN_ID,
+      ),
       ai: false,
     },
     scenarios,
@@ -2077,6 +2189,10 @@ export {
   buildMarkdown,
   buildSlack,
   buildConclusions,
+  collectProfileArtifactLinks,
+  browserArtifactUrl,
+  markdownDownloadLines,
+  slackDownloadLines,
   median,
   scenarioFrameTotals,
   aggregateWindow,

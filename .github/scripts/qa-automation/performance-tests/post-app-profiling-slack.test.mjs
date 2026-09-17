@@ -4,6 +4,7 @@ import {
   isUserId,
   openDirectMessage,
   buildText,
+  splitForSlack,
   postSummary,
 } from './post-app-profiling-slack.mjs';
 
@@ -38,16 +39,22 @@ test('openDirectMessage resolves the bot DM channel for a user id', async () => 
   assert.equal(calls[0].body.users, 'UEYQL2PEV');
 });
 
-test('buildText appends the run link and truncates long input', () => {
+test('buildText appends the run link without cutting the body', () => {
   assert.equal(
     buildText('hello', 'https://example.com/run'),
     'hello\n<https://example.com/run|GitHub run>',
   );
   assert.equal(buildText('hello', ''), 'hello');
+  assert.equal(buildText('x'.repeat(50_000), '').length, 50_000);
+});
 
-  const long = buildText('x'.repeat(50_000), '');
-  assert.ok(long.length < 39_000);
-  assert.match(long, /Truncated for Slack\./);
+test('splitForSlack keeps every paragraph across multiple messages', () => {
+  const first = 'a'.repeat(30_000);
+  const second = 'b'.repeat(30_000);
+  const parts = splitForSlack(`${first}\n\n${second}`, 38_000);
+
+  assert.equal(parts.length, 2);
+  assert.equal(parts.join('\n\n'), `${first}\n\n${second}`);
 });
 
 test('buildText labels the run link so a failure notice names its target', () => {
@@ -85,6 +92,32 @@ test('postSummary addresses a user id directly, without needing im:write', async
   assert.equal(calls[0].body.channel, 'UEYQL2PEV');
   assert.match(calls[0].body.text, /\*summary\*/);
   assert.equal(calls[0].body.unfurl_links, false);
+});
+
+test('postSummary threads overflow instead of truncating', async () => {
+  const calls = [];
+  const fetchFn = async (url, init) => {
+    calls.push(JSON.parse(init.body));
+    return jsonResponse({ ok: true, ts: `ts-${calls.length}` });
+  };
+
+  await postSummary(
+    {
+      markdown: `${'a'.repeat(30_000)}\n\n${'b'.repeat(30_000)}`,
+      target: 'UEYQL2PEV',
+      token: 'token',
+      runUrl: 'https://example.com/run',
+    },
+    { fetchFn },
+  );
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].thread_ts, undefined);
+  assert.equal(calls[1].thread_ts, 'ts-1');
+  assert.doesNotMatch(calls[0].text, /Truncated for Slack/);
+  assert.match(calls[1].text, /<https:\/\/example.com\/run\|GitHub run>/);
+  assert.ok(calls[0].text.includes('a'.repeat(30_000)));
+  assert.ok(calls[1].text.includes('b'.repeat(30_000)));
 });
 
 test('postSummary falls back to opening a DM when the direct post is rejected', async () => {

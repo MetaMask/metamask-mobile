@@ -23,6 +23,7 @@ import {
   buildMarkdown,
   buildSlack,
   buildConclusions,
+  collectProfileArtifactLinks,
   median,
   scenarioFrameTotals,
   aggregateWindow,
@@ -604,6 +605,89 @@ test('Slack omits the sourcemap caveat once every profile is symbolicated', () =
     aiAnalysis: null,
   };
   assert.doesNotMatch(buildSlack(report), /no matching sourcemap/);
+});
+
+test('Slack keeps the full Notes block and links profile artifacts', () => {
+  const notes = `${'fast-equals dominates Predict Deposit. '.repeat(40)}metroRequire is an outlier.`;
+  const report = {
+    meta: {
+      runId: '35217706350',
+      profileCount: 1,
+      symbolicatedProfileCount: 1,
+      ai: true,
+      profileArtifacts: [
+        {
+          name: 'hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14',
+          url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/35217706350/artifacts/99',
+        },
+      ],
+      analysisArtifactsUrl:
+        'https://github.com/MetaMask/metamask-mobile/actions/runs/88#artifacts',
+    },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile', {
+        symbolicated: true,
+      }),
+    ]),
+    aiAnalysis: notes,
+  };
+  const slack = buildSlack(report);
+  const markdown = buildMarkdown(report);
+
+  assert.match(slack, /\*Notes\*/);
+  assert.equal(slack.includes(notes), true);
+  assert.match(slack, /\*Downloads\*/);
+  assert.match(
+    slack,
+    /<https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/35217706350\/artifacts\/99\|hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14>/,
+  );
+  assert.match(slack, /app-profiling-analysis/);
+  assert.match(markdown, /## Downloads/);
+  assert.match(markdown, /feed these to an agent/);
+});
+
+test('collectProfileArtifactLinks keeps hermes artifacts and skips expired ones', () => {
+  const links = collectProfileArtifactLinks(
+    '35217706350',
+    'MetaMask/metamask-mobile',
+    'https://github.com/MetaMask/metamask-mobile/actions/runs/35217706350',
+    [
+      {
+        id: 1,
+        name: 'hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14',
+        expired: false,
+      },
+      {
+        id: 2,
+        name: 'hermes-cpuprofiles-android-onboarding-flow-Pixel-8-Pro-14',
+        expired: true,
+      },
+      { id: 3, name: 'android-imported-wallet-test-results-Pixel-8-Pro-14', expired: false },
+    ],
+  );
+
+  assert.deepEqual(links, [
+    {
+      name: 'hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14',
+      url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/35217706350/artifacts/1',
+    },
+  ]);
+});
+
+test('collectProfileArtifactLinks falls back to the run Artifacts tab', () => {
+  const links = collectProfileArtifactLinks(
+    '9',
+    'MetaMask/metamask-mobile',
+    'https://github.com/MetaMask/metamask-mobile/actions/runs/9',
+    [],
+  );
+
+  assert.deepEqual(links, [
+    {
+      name: 'hermes-cpuprofiles-*',
+      url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/9#artifacts',
+    },
+  ]);
 });
 
 test('a worst first attempt is never labelled retry 0', () => {
