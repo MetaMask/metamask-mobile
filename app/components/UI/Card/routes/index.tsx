@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
@@ -16,6 +16,7 @@ import {
   selectIsCardholder,
 } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
+import LockManagerService from '../../../../core/LockManagerService';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -218,21 +219,32 @@ const CardModalsRoutes = () => (
   </ModalsStack.Navigator>
 );
 
-const CardRoutes = () => (
-  <RootStack.Navigator
-    initialRouteName={Routes.CARD.HOME}
-    screenOptions={{ headerShown: false }}
-  >
-    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-    <RootStack.Screen
-      name={Routes.CARD.MODALS.ID}
-      component={CardModalsRoutes}
-      options={{
-        ...clearNativeStackNavigatorOptions,
-        ...transparentModalScreenOptions,
-      }}
-    />
-  </RootStack.Navigator>
-);
+const CardRoutes = () => {
+  // Suspend auto-lock for the full Card feature lifecycle (home, onboarding,
+  // and modals). Restores listening when the user exits Card entirely.
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
+  return (
+    <RootStack.Navigator
+      initialRouteName={Routes.CARD.HOME}
+      screenOptions={{ headerShown: false }}
+    >
+      <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+      <RootStack.Screen
+        name={Routes.CARD.MODALS.ID}
+        component={CardModalsRoutes}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
+    </RootStack.Navigator>
+  );
+};
 
 export default withCardSDK(CardRoutes);

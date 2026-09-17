@@ -10248,11 +10248,10 @@
     },
     "digital_wallet_instructions": {
       "title": "Add card to digital wallet",
-      "description": "Follow these steps to add your MetaMask Card manually.",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
       "apple_wallet": "Apple Wallet",
       "google_wallet": "Google Wallet",
       "steps": {
-        "reveal_card_details": "On Card Home, tap View card details to reveal your card number, expiration date, and CVV.",
         "apple": {
           "open_wallet": "Open Apple Wallet and tap the plus button.",
           "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
