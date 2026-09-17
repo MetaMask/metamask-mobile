@@ -1790,6 +1790,47 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
       expect(result.USD?.usdConversionRate).toBe(1);
       expect(result.USD?.conversionDate).toBe(1700000001);
     });
+
+    it.each([
+      { price: 0, usdPrice: 1 },
+      { price: -1, usdPrice: 1 },
+      { price: 1, usdPrice: 0 },
+      { price: 1, usdPrice: -1 },
+    ])(
+      'does not derive a USD rate from an invalid price (price $price, usdPrice $usdPrice)',
+      ({ price, usdPrice }) => {
+        const state = {
+          engine: {
+            backgroundState: {
+              CurrencyRateController: {
+                currencyRates: {},
+              },
+              AssetsController: {
+                assetsInfo: {
+                  [tempoPathUsdAssetId]: {
+                    type: 'erc20',
+                    symbol: 'pathUSD',
+                    decimals: 6,
+                  },
+                },
+                assetsPrice: {
+                  [tempoPathUsdAssetId]: makeMockPrice({
+                    id: 'pathusd',
+                    price,
+                    usdPrice,
+                  }),
+                },
+              },
+              ...tempoNetworkControllerState,
+            },
+          },
+        };
+
+        const result = getCurrencyRateControllerCurrencyRates(state);
+
+        expect(result.USD).toBeUndefined();
+      },
+    );
   });
 });
 

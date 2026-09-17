@@ -29,6 +29,8 @@ import {
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
 
+const USD_CURRENCY = 'USD';
+
 // CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
 // vault token that should never surface as regular ERC-20 tokens in the wallet
 // token list or balance maps. Staking is only supported on Ethereum mainnet
@@ -619,7 +621,7 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
 
     const hasUsdNativeCurrency = Object.values(
       networkConfigurationsByChainId,
-    ).some(({ nativeCurrency }) => nativeCurrency === 'USD');
+    ).some(({ nativeCurrency }) => nativeCurrency === USD_CURRENCY);
     const usdPrice = Object.values(assetsPrice).reduce<
       FungibleAssetPrice | undefined
     >(
@@ -635,8 +637,8 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       undefined,
     );
 
-    if (hasUsdNativeCurrency && !result.USD && usdPrice) {
-      result.USD = {
+    if (hasUsdNativeCurrency && !result[USD_CURRENCY] && usdPrice) {
+      result[USD_CURRENCY] = {
         conversionDate: usdPrice.lastUpdated / 1000,
         conversionRate: usdPrice.price / usdPrice.usdPrice,
         usdConversionRate: 1,
