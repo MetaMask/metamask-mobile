@@ -78,10 +78,7 @@ describe('ProHub', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Ready,
       items: MOCK_TRADE_ALLOWANCES,
-      benefits: undefined,
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
       retry: jest.fn(),
     });
   });

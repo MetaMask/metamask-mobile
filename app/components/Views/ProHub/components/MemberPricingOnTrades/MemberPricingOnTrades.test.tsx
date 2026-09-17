@@ -49,10 +49,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Ready,
       items: MOCK_TRADE_ALLOWANCES,
-      benefits: undefined,
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
       retry: jest.fn(),
     });
   });
@@ -96,10 +93,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
-      benefits: undefined,
       resetsOn: undefined,
-      isRefreshing: true,
-      hasError: false,
       retry: jest.fn(),
     });
 
@@ -119,10 +113,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],
-      benefits: undefined,
       resetsOn: undefined,
-      isRefreshing: false,
-      hasError: true,
       retry,
     });
 
@@ -144,10 +135,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Incomplete,
       items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
-      benefits: undefined,
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
       retry: jest.fn(),
     });
 

@@ -1,13 +1,10 @@
 import {
   CANCEL_TYPES,
   CRYPTO_AUTH_METHODS,
-  MoneyAccountFeature,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
-  ShieldFeature,
   SUBSCRIPTION_STATUSES,
-  type MoneyAccountEntitlements,
   type PricingCryptoPaymentMethod,
   type PricingResponse,
   type Subscription,
@@ -16,8 +13,6 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
-  selectHasMoneyAccountPlusEntitlement,
-  selectHasShieldEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
@@ -575,11 +570,9 @@ describe('subscriptionController selectors', () => {
   describe('Money Account Plus entitlements', () => {
     const createPlusState = ({
       status,
-      entitlements,
       cancelAtPeriodEnd,
     }: {
       status?: Subscription['status'];
-      entitlements?: Partial<MoneyAccountEntitlements>;
       cancelAtPeriodEnd?: boolean;
     }) =>
       createState({
@@ -594,22 +587,6 @@ describe('subscriptionController selectors', () => {
             ]
           : [],
         trialedProducts: [],
-        ...(entitlements
-          ? {
-              productEntitlements: {
-                [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
-                  plan: 'premium',
-                  entitlements: {
-                    swapFeeWaiver: false,
-                    perpsFeeWaiver: false,
-                    predictFreeTx: false,
-                    premiumApy: false,
-                    ...entitlements,
-                  },
-                },
-              },
-            }
-          : {}),
       });
 
     describe('selectIsMoneyAccountPlusSubscriber', () => {
@@ -661,117 +638,6 @@ describe('subscriptionController selectors', () => {
 
       it('fails closed when the controller is absent', () => {
         expect(selectIsMoneyAccountPlusSubscriber(createState())).toBe(false);
-      });
-    });
-
-    describe('selectHasMoneyAccountPlusEntitlement', () => {
-      it('returns the flag for the requested feature', () => {
-        const state = createPlusState({
-          entitlements: { premiumApy: true, swapFeeWaiver: false },
-        });
-
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            state,
-            MoneyAccountFeature.PremiumApy,
-          ),
-        ).toBe(true);
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            state,
-            MoneyAccountFeature.SwapFeeWaiver,
-          ),
-        ).toBe(false);
-      });
-
-      it('fails closed when the controller is absent', () => {
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            createState(),
-            MoneyAccountFeature.PremiumApy,
-          ),
-        ).toBe(false);
-      });
-    });
-
-    describe('selectHasShieldEntitlement', () => {
-      const createShieldState = (
-        shieldClaim: boolean,
-        prioritySupport: boolean,
-      ) =>
-        createState({
-          subscriptions: [],
-          trialedProducts: [],
-          productEntitlements: {
-            [PRODUCT_TYPES.SHIELD]: {
-              entitlements: {
-                shieldClaim,
-                prioritySupport,
-              },
-            },
-          },
-        });
-
-      it('returns true when the Shield claim is entitled', () => {
-        expect(
-          selectHasShieldEntitlement(
-            createShieldState(true, false),
-            ShieldFeature.ShieldClaim,
-          ),
-        ).toBe(true);
-      });
-
-      it('returns false when the Shield claim is not entitled', () => {
-        expect(
-          selectHasShieldEntitlement(
-            createShieldState(false, true),
-            ShieldFeature.ShieldClaim,
-          ),
-        ).toBe(false);
-      });
-
-      it('fails closed when the controller is absent', () => {
-        expect(
-          selectHasShieldEntitlement(
-            createState(),
-            ShieldFeature.PrioritySupport,
-          ),
-        ).toBe(false);
-      });
-    });
-
-    describe('selectHasAnyMoneyAccountPlusEntitlement', () => {
-      it('is true when a past_due subscriber retains an entitlement', () => {
-        const state = createPlusState({
-          status: SUBSCRIPTION_STATUSES.pastDue,
-          entitlements: { premiumApy: true },
-        });
-
-        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
-        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(true);
-      });
-
-      it('is false for an expired subscriber whose entitlements were revoked', () => {
-        const state = createPlusState({
-          status: SUBSCRIPTION_STATUSES.canceled,
-          entitlements: {},
-        });
-
-        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(false);
-      });
-
-      it('is false when the claim is missing entirely', () => {
-        expect(
-          selectHasAnyMoneyAccountPlusEntitlement(
-            createPlusState({ status: SUBSCRIPTION_STATUSES.active }),
-          ),
-        ).toBe(false);
-      });
-
-      it('fails closed when the controller is absent', () => {
-        expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
-          false,
-        );
       });
     });
 

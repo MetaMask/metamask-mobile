@@ -176,7 +176,6 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).toHaveBeenCalledTimes(1);
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
-    expect(result.current.benefits).toEqual(BENEFITS);
     expect(result.current.resetsOn).toBe(
       new Date('2026-09-15T00:00:00.000Z').toLocaleDateString('en-US', {
         month: 'short',
@@ -216,7 +215,6 @@ describe('useMoneyAccountPlusBenefits', () => {
     await flush();
 
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed);
-    expect(result.current.hasError).toBe(true);
     expect(result.current.items).toEqual([]);
   });
 
@@ -232,7 +230,6 @@ describe('useMoneyAccountPlusBenefits', () => {
     });
 
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
-    expect(result.current.hasError).toBe(true);
     expect(result.current.items).toHaveLength(3);
   });
 
