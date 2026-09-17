@@ -30,17 +30,13 @@ const mockedSyncMirror = syncPriceAlertsWatchlistMirror as jest.MockedFunction<
   typeof syncPriceAlertsWatchlistMirror
 >;
 
-// Override React Query's batch notify function to prevent teardown crashes.
-// The default uses react-native's unstable_batchedUpdates which tries to
-// require() internal modules after the Jest environment is torn down.
+// React Query's default notify uses RN's unstable_batchedUpdates which
+// crashes on teardown once the Jest env is torn down.
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
 });
 
-// The global test setup at `app/util/test/testSetup.js` freezes
-// `Date.now()` to a constant, which breaks lodash's `debounce` (it
-// tracks elapsed time via `Date.now()`). Restore the real clock for
-// every test in this suite.
+// testSetup.js freezes Date.now(), which breaks lodash's debounce timing.
 const frozenDateNow = Date.now;
 beforeAll(() => {
   Date.now = () => new Date().getTime();
@@ -119,7 +115,6 @@ const readHydratedCache = (queryClient: QueryClient) =>
   );
 
 const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
-  // Reset any leaked client from a prior test that skipped afterEach (J9).
   if (activeQueryClient) {
     activeQueryClient.getMutationCache().clear();
     activeQueryClient.getQueryCache().clear();
@@ -133,9 +128,6 @@ const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
 
 const baseAfterEach = async () => {
   jest.restoreAllMocks();
-  // Drain any pending batch left over from the test so it cannot fire
-  // against the next test's mocks. `flush()` is a no-op when the queue
-  // is empty.
   await drainBatcher().catch(() => undefined);
   if (activeQueryClient) {
     activeQueryClient.getMutationCache().clear();
@@ -370,8 +362,6 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, initial);
     seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
-    // Homepage empty state: the suggested pool is already hydrated, with a
-    // different casing than the blob to prove case-insensitive matching.
     queryClient.setQueryData<WatchlistTokenMetadata[]>(
       tokenWatchlistQueryKeys.suggested(false),
       hydratedFor([ASSET_B, ASSET_C]).map((token, index) =>
@@ -387,12 +377,10 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       result.current.mutate(ASSET_B);
     });
 
-    // Optimistic blob and hydrated updates land before any storage write:
-    // the starred token is already renderable in the watchlist rows.
     expect(readCache(queryClient)?.assets).toEqual([ASSET_A, ASSET_B]);
     expect(readHydratedCache(queryClient)).toEqual([
       ...hydratedFor([ASSET_A]),
-      // Seeded id is normalised to the blob casing to keep row keys stable.
+      // Seeded id normalises to the blob casing so row keys stay stable.
       { ...tokenFor(ASSET_B), assetId: ASSET_B },
     ]);
     expect(mockedWrite).not.toHaveBeenCalled();
@@ -429,8 +417,6 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       await expect(pending).rejects.toThrow('storage failure');
     });
 
-    // Failed write reverts both the blob and the seeded hydrated row, so
-    // the token re-appears in the suggested section.
     expect(readCache(queryClient)?.assets).toEqual([ASSET_A]);
     expect(readHydratedCache(queryClient)).toEqual(hydratedFor([ASSET_A]));
   });
@@ -441,7 +427,6 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, initial);
     seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
-    // Suggested pool hydrated, but it does not contain ASSET_B.
     queryClient.setQueryData<WatchlistTokenMetadata[]>(
       tokenWatchlistQueryKeys.suggested(false),
       hydratedFor([ASSET_C]),
@@ -455,7 +440,6 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       result.current.mutate(ASSET_B);
     });
 
-    // Blob is optimistic, hydrated waits for the settled getTokens refetch.
     expect(readCache(queryClient)?.assets).toEqual([ASSET_A, ASSET_B]);
     expect(readHydratedCache(queryClient)).toEqual(hydratedFor([ASSET_A]));
   });
@@ -678,7 +662,6 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
 
     expect(mockedRead).toHaveBeenCalledTimes(1);
     expect(mockedWrite).toHaveBeenCalledTimes(1);
-    // Reduction order: [A] → add(B) → [A,B] → remove(A) → [B] → add(C) → [B,C]
     expect(mockedWrite).toHaveBeenCalledWith({
       assets: [ASSET_B, ASSET_C],
       version: 1,
@@ -708,7 +691,6 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
     });
 
     expect(mockedWrite).toHaveBeenCalledTimes(1);
-    // add(B) then remove(B) collapse to the original state.
     expect(mockedWrite).toHaveBeenCalledWith({
       assets: [ASSET_A],
       version: 1,
