@@ -63,40 +63,41 @@ interface StatRowProps {
 }
 
 const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    testID={testID}
-    twClassName="py-4"
-  >
+  <Box testID={testID}>
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-x-3"
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="py-4"
     >
-      <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center">
-        <Icon
-          name={iconName}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-x-3"
+      >
+        <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center">
+          <Icon
+            name={iconName}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+        >
+          {label}
+        </Text>
       </Box>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
       >
-        {label}
+        {value}
       </Text>
     </Box>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {value}
-    </Text>
   </Box>
 );
 

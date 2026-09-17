@@ -65,59 +65,58 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
   const label = strings(labelKey);
 
   return (
-    <Box
-      twClassName="gap-y-3"
-      testID={MemberPricingOnTradesTestIds.ROW(item.id)}
-    >
-      <Box twClassName="gap-y-2">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
-            {label}
-          </Text>
-          <Box flexDirection={BoxFlexDirection.Row}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {formatUsedValue(item)}
+    <Box testID={MemberPricingOnTradesTestIds.ROW(item.id)}>
+      <Box twClassName="gap-y-3">
+        <Box twClassName="gap-y-2">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+          >
+            <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
+              {label}
             </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {` / ${formatAllowanceValue(item)}`}
-            </Text>
+            <Box flexDirection={BoxFlexDirection.Row}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {formatUsedValue(item)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {` / ${formatAllowanceValue(item)}`}
+              </Text>
+            </Box>
+          </Box>
+
+          <Box
+            twClassName="h-2 rounded-full bg-muted overflow-hidden"
+            testID={MemberPricingOnTradesTestIds.PROGRESS(item.id)}
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={label}
+            accessibilityValue={{
+              min: 0,
+              max: item.allowance,
+              now: Math.min(item.used, item.allowance),
+            }}
+          >
+            <Box
+              twClassName="h-full rounded-full bg-icon-default"
+              style={{ width: `${progressPercent}%` }}
+              testID={MemberPricingOnTradesTestIds.PROGRESS_FILL(item.id)}
+            />
           </Box>
         </Box>
 
-        <Box
-          twClassName="h-2 rounded-full bg-muted overflow-hidden"
-          testID={MemberPricingOnTradesTestIds.PROGRESS(item.id)}
-          accessible
-          accessibilityRole="progressbar"
-          accessibilityLabel={label}
-          accessibilityValue={{
-            min: 0,
-            max: item.allowance,
-            now: Math.min(item.used, item.allowance),
-          }}
-        >
-          <Box
-            twClassName="h-full rounded-full bg-icon-default"
-            style={{ width: `${progressPercent}%` }}
-            testID={MemberPricingOnTradesTestIds.PROGRESS_FILL(item.id)}
-          />
-        </Box>
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {strings(footnoteKey)}
+        </Text>
       </Box>
-
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {strings(footnoteKey)}
-      </Text>
     </Box>
   );
 };

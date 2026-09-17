@@ -22,41 +22,47 @@ interface AlsoIncludedRowProps {
   testID?: string;
 }
 
-const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Start}
-    twClassName="gap-x-4 py-3"
-    testID={testID ?? AlsoIncludedRowTestIds.ROW(item.id)}
-  >
-    <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center shrink-0">
-      <Icon
-        name={item.iconName}
-        size={IconSize.Md}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
+const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => {
+  const title = strings(item.titleKey);
+  const rowTestId = testID ?? AlsoIncludedRowTestIds.ROW(item.id);
 
-    <Box twClassName="flex-1 min-w-0">
+  return (
+    <Box testID={rowTestId}>
       <Box
         flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-x-2 flex-wrap"
+        alignItems={BoxAlignItems.Start}
+        twClassName="gap-x-4 py-3"
       >
-        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
-          {strings(item.titleKey)}
-        </Text>
-        {item.badgeKey ? (
-          <Tag twClassName="self-center" severity={TagSeverity.Neutral}>
-            {strings(item.badgeKey)}
-          </Tag>
-        ) : null}
+        <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center shrink-0">
+          <Icon
+            name={item.iconName}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+
+        <Box twClassName="flex-1 min-w-0">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-x-2 flex-wrap"
+          >
+            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+              {title}
+            </Text>
+            {item.badgeKey ? (
+              <Tag twClassName="self-center" severity={TagSeverity.Neutral}>
+                {strings(item.badgeKey)}
+              </Tag>
+            ) : null}
+          </Box>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings(item.subtitleKey)}
+          </Text>
+        </Box>
       </Box>
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings(item.subtitleKey)}
-      </Text>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default AlsoIncludedRow;

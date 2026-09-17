@@ -215,7 +215,6 @@ describe('useMoneyAccountPlusBenefits', () => {
     await flush();
 
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed);
-    expect(result.current.hasError).toBe(true);
     expect(result.current.items).toEqual([]);
   });
 
@@ -231,7 +230,6 @@ describe('useMoneyAccountPlusBenefits', () => {
     });
 
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
-    expect(result.current.hasError).toBe(true);
     expect(result.current.items).toHaveLength(3);
   });
 

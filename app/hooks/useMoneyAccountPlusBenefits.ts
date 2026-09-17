@@ -40,8 +40,6 @@ export interface MoneyAccountPlusBenefits {
   status: MoneyAccountPlusBenefitsStatus;
   items: TradeAllowanceItem[];
   resetsOn: string | undefined;
-  isRefreshing: boolean;
-  hasError: boolean;
   retry: () => void;
 }
 
@@ -112,8 +110,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
       resetsOn: undefined,
-      isRefreshing: false,
-      hasError: false,
       retry,
     };
   }
@@ -123,8 +119,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
       resetsOn: undefined,
-      isRefreshing: true,
-      hasError: false,
       retry,
     };
   }
@@ -134,8 +128,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],
       resetsOn: undefined,
-      isRefreshing: false,
-      hasError: true,
       retry,
     };
   }
@@ -145,8 +137,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       status: MoneyAccountPlusBenefitsStatus.Empty,
       items: [],
       resetsOn,
-      isRefreshing: isUnresolved,
-      hasError: resolutionStatus === 'error',
       retry,
     };
   }
@@ -158,8 +148,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
         : MoneyAccountPlusBenefitsStatus.Ready,
     items,
     resetsOn,
-    isRefreshing: isUnresolved,
-    hasError: resolutionStatus === 'error',
     retry,
   };
 }
