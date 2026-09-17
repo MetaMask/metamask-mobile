@@ -120,8 +120,8 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
-  fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
+  fadeNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
@@ -1223,7 +1223,6 @@ const MainNavigator = () => {
             component={PerpsModalStackWithErrorGate}
             options={{
               ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
             }}
           />
         </>

@@ -15822,14 +15822,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rive-app/react-native@npm:0.4.19":
-  version: 0.4.19
-  resolution: "@rive-app/react-native@npm:0.4.19"
+"@rive-app/react-native@npm:0.4.20":
+  version: 0.4.20
+  resolution: "@rive-app/react-native@npm:0.4.20"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: ">=0.35.10 <0.36"
-  checksum: 10/00ac3953c0f2c45b8230aebfa7e012d3aa958e772a1a158d05fd11078ffb8f3ccb0213a6694fb98a2667e5ce59d977cbed837b6e0b083072b4f36f9a789cd933
+  checksum: 10/32d3f63764b416aa6a84b3fcdfcc8b9814d69bd733f9a0b47338f7c15a74c7d01859a1bf513dbe59478e7f0a3dad9589b7b7d278c284ec6314bc04d33a3e7661
   languageName: node
   linkType: hard
 
@@ -39424,7 +39424,7 @@ __metadata:
     "@react-navigation/native-stack": "npm:7.18.6"
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
-    "@rive-app/react-native": "npm:0.4.19"
+    "@rive-app/react-native": "npm:0.4.20"
     "@segment/analytics-react-native": "patch:@segment/analytics-react-native@npm%3A2.23.0#~/.yarn/patches/@segment-analytics-react-native-npm-2.23.0-a3dc0190a1.patch"
     "@segment/sovran-react-native": "npm:^1.1.3"
     "@sentry/core": "npm:10.73.0"
