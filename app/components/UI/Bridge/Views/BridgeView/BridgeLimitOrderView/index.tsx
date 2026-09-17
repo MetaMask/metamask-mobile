@@ -14,9 +14,9 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   selectBridgeBalanceRefreshKey,
-  selectSlippage,
+  selectLimitOrderCostTolerance,
   selectSourceToken,
-  setSlippage,
+  setLimitOrderCostTolerance,
 } from '../../../../../../core/redux/slices/bridge';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs from '../../../components/OrdersTabs';
@@ -45,7 +45,7 @@ import type {
 } from '../../../components/LimitOrderPriceAdjustCard/types';
 import {
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
-  LIMIT_ORDER_DEFAULT_SLIPPAGE,
+  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
   getSwapsLimitOrderExpirationLabel,
   type SwapsLimitOrderExpirationMinutes,
@@ -76,9 +76,9 @@ const BridgeLimitOrderViewContent = ({
   latestSourceBalance,
 }: BridgeLimitOrderViewContentProps) => {
   const tw = useTailwind();
-  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
-  const slippage = useSelector(selectSlippage);
+  const navigation = useNavigation<AppNavigationProp>();
+  const costTolerance = useSelector(selectLimitOrderCostTolerance);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
@@ -113,6 +113,7 @@ const BridgeLimitOrderViewContent = ({
     executionType,
     limitPrice,
     marketComparison,
+    priceComparisonDirection,
     onAmountTypeTogglePress,
     onQuoteUnitPress,
     quotedSymbol,
@@ -188,12 +189,6 @@ const BridgeLimitOrderViewContent = ({
       SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
     );
 
-  useEffect(() => {
-    if (slippage === undefined) {
-      dispatch(setSlippage(LIMIT_ORDER_DEFAULT_SLIPPAGE));
-    }
-  }, [dispatch, slippage]);
-
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
     customPercentInputRef.current?.blur();
@@ -253,15 +248,12 @@ const BridgeLimitOrderViewContent = ({
     );
   }, []);
 
-  const handleSlippagePress = useCallback(() => {
+  const handleCostTolerancePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken?.chainId,
-        destChainId: destToken?.chainId,
-      },
+      screen:
+        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
     });
-  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
+  }, [navigation]);
 
   const handleExpirationConfirm = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
@@ -287,7 +279,9 @@ const BridgeLimitOrderViewContent = ({
   ]);
 
   const expiration = getSwapsLimitOrderExpirationLabel(expirationMinutes);
-  const slippageLabel = `${slippage ?? LIMIT_ORDER_DEFAULT_SLIPPAGE}%`;
+  const costToleranceLabel = `${
+    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
+  }%`;
   const triggerPrice = `${
     isLimitFiatMode ? getCurrencySymbol(currentCurrency || 'usd') : ''
   }${formatAmountWithLocaleSeparators(value)}`;
@@ -320,6 +314,12 @@ const BridgeLimitOrderViewContent = ({
     sourceToken,
     triggerPrice,
   ]);
+
+  // Reset cost tolerance when navigating to limit orders screen.
+  useEffect(() => {
+    dispatch(setLimitOrderCostTolerance(LIMIT_ORDER_DEFAULT_COST_TOLERANCE));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -370,6 +370,9 @@ const BridgeLimitOrderViewContent = ({
               orderSide={executionType}
               quoteTokenSymbol={quotedSymbol}
               isLimitFiatMode={isLimitFiatMode}
+              priceUnitSymbol={
+                isLimitFiatMode ? undefined : counterToken?.symbol
+              }
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}
@@ -379,6 +382,7 @@ const BridgeLimitOrderViewContent = ({
               onAmountTypeTogglePress={onAmountTypeTogglePress}
               marketComparison={marketComparison}
               isTriggerPriceNearMarket={isTriggerPriceNearMarket}
+              priceComparisonDirection={priceComparisonDirection}
               pricePresets={LIMIT_ORDER_BUTTON_PRICE_PRESETS}
               isCustomPercentActive={isCustomActive}
               customPercent={customValue}
@@ -415,8 +419,8 @@ const BridgeLimitOrderViewContent = ({
               <LimitOrderDetails
                 expiration={expiration}
                 onExpirationPress={handleExpirationPress}
-                slippage={slippageLabel}
-                onPricePress={handleSlippagePress}
+                costTolerance={costToleranceLabel}
+                onCostTolerancePress={handleCostTolerancePress}
               />
             </Box>
 
@@ -434,7 +438,6 @@ const BridgeLimitOrderViewContent = ({
           ctaDisabled={isMissingPrice || isHardwareWallet}
           onCTAPress={handleCreateOrderPress}
           ctaLabel={strings('bridge.limit.create_order')}
-          latestSourceBalance={latestSourceBalance}
         />
 
         <SwapsKeypad
@@ -448,7 +451,6 @@ const BridgeLimitOrderViewContent = ({
               label={strings('bridge.limit.create_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={isMissingPrice || isHardwareWallet}
-              latestSourceBalance={latestSourceBalance}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

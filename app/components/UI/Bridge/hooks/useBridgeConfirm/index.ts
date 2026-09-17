@@ -1,5 +1,4 @@
 import { useDispatch, useSelector } from 'react-redux';
-import type { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {

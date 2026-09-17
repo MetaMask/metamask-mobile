@@ -188,6 +188,21 @@ describe('PerpsSelectModifyActionView', () => {
     });
   });
 
+  it('forwards the bottom-sheet treatment when adding to a position', () => {
+    render(
+      <PerpsSelectModifyActionView
+        position={mockLongPosition}
+        useBottomSheet
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
+    expect(mockNavigateToOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ useBottomSheet: true }),
+    );
+  });
+
   it('navigates to order with short direction when add_to_position is selected for short position', () => {
     render(<PerpsSelectModifyActionView position={mockShortPosition} />);
 

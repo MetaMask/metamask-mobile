@@ -103,7 +103,8 @@ export async function setupSwapSocialAndComplianceMocks(
     mockServer,
     {
       requestMethod: 'GET',
-      url: /social\.api\.cx\.metamask\.io\/api\/v1\/leaderboard/,
+      // main-e2e builds use social.dev-api (builds.yml); prod uses social.api.
+      url: /social\.(?:dev-api|api|uat-api)\.cx\.metamask\.io\/api\/v1\/leaderboard/,
       response: SOCIAL_LEADERBOARD_EMPTY_RESPONSE,
       responseCode: 200,
     },

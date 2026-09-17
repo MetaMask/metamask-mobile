@@ -152,11 +152,12 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
-  NeoBankServiceActions,
-  NeoBankServiceEvents,
   TransakService,
   TransakServiceActions,
   TransakServiceEvents,
+  NeoBankService,
+  NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -372,6 +373,11 @@ import type {
   UiSlotsControllerEvents,
   UiSlotsControllerState,
 } from './controllers/ui-slots-controller/types';
+import type {
+  PredictLiveDataService,
+  PredictLiveDataServiceActions,
+  PredictLiveDataServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictLiveDataService';
 import {
   PredictMarketDataService,
   type PredictMarketDataServiceActions,
@@ -696,6 +702,7 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | PredictMarketDataServiceActions
+  | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
@@ -723,7 +730,6 @@ export type GlobalActions =
   | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
-  | NeoBankServiceActions
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
@@ -733,6 +739,7 @@ export type GlobalActions =
   | KycControllerActions
   | KycServiceActions
   | TransakServiceActions
+  | NeoBankServiceActions
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
@@ -815,6 +822,7 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
+  | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
@@ -833,7 +841,6 @@ export type GlobalEvents =
   | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
-  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -843,6 +850,7 @@ export type GlobalEvents =
   | KycControllerEvents
   | KycServiceEvents
   | TransakServiceEvents
+  | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
   | SentinelApiServiceEvents;
@@ -974,6 +982,7 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   PredictMarketDataService: PredictMarketDataService;
+  PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
@@ -998,6 +1007,7 @@ export type MessengerClients = {
   KycService: KycService;
   KycController: KycController;
   TransakService: TransakService;
+  NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };
@@ -1182,6 +1192,7 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'PredictMarketDataService'
+  | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'CardController'
   | 'UiSlotsController'
@@ -1197,6 +1208,7 @@ export type MessengerClientsToInitialize =
   | 'RampsController'
   | 'RampsService'
   | 'TransakService'
+  | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'

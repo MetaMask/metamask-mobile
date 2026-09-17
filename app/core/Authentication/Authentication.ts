@@ -51,6 +51,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
@@ -76,6 +77,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
@@ -1728,6 +1730,16 @@ class AuthenticationService {
   };
 
   /**
+   * Drops the auth session and unsets the Segment canonical profile trait.
+   */
+  private clearAuthSession(): void {
+    Engine.context.AuthenticationController.clearState();
+    analytics.identify({
+      [UserProfileProperty.CANONICAL_PROFILE_ID]: null,
+    });
+  }
+
+  /**
    * Resets the wallet state by creating a new wallet and clearing all related state.
    * This is used during wallet deletion/reset flows.
    * Protected method - use deleteWallet() instead for complete wallet deletion.
@@ -1749,12 +1761,18 @@ class AuthenticationService {
       // data (with the still-present old tokens) only to discard it in resetAll.
       Engine.context.CardController.setResetInProgress(true);
 
-      try {
-        // Sign out and re-arm profile/social pairing for the next wallet.
-        // Must run before the temporary vault unlocks so pairing/sync cannot
-        // attach that wallet to the previous profile.
-        Engine.context.AuthenticationController.clearState();
+      // Suppress Braze identity sync for the whole reset. The throwaway vault
+      // below is signed in by `useAutoSignIn` from a React effect on a later
+      // tick (after `dispatchLogin`), so the flag must stay set until the app
+      // is locked — clearing it when `newWalletAndKeychain` returns would let
+      // that deferred effect fire a `changeUser` + banner refresh for a wallet
+      // that is discarded immediately, which is pure request noise.
+      setBrazeResetInProgress(true);
 
+      // Previous profile must be gone before the throwaway vault unlocks.
+      this.clearAuthSession();
+
+      try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
@@ -1774,6 +1792,12 @@ class AuthenticationService {
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
+        // Throwaway vault may have signed in while unlocked. Always wipe,
+        // including when a later step throws and resetWalletState swallows it.
+        this.clearAuthSession();
+        // The deferred `useAutoSignIn` effect has run by now (the app is
+        // locked), so Braze identity sync can react to sign-in again.
+        setBrazeResetInProgress(false);
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs

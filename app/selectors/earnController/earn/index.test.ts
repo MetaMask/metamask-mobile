@@ -485,6 +485,16 @@ describe('Earn Controller Selectors', () => {
       expect(result.earnTokens[0].isStaked).toEqual(false);
       expect(result.earnOutputTokens[0].isStaked).toEqual(true);
 
+      const usdcEarnToken = result.earnTokens.find(
+        (token) =>
+          token.address.toLowerCase() ===
+          MOCK_LENDING_MARKET_USDC.underlying.address.toLowerCase(),
+      );
+
+      expect(usdcEarnToken?.experience.apr).toBe(
+        String(MOCK_LENDING_MARKET_USDC.netSupplyRate),
+      );
+
       for (const token of [...result.earnOutputTokens, ...result.earnTokens]) {
         expect(token).toEqual(
           expect.objectContaining({
@@ -1083,6 +1093,7 @@ describe('Earn Controller Selectors', () => {
         earnTokensData,
         [MOCK_LENDING_MARKET_USDC],
         [],
+        { chainIds: [], tokens: [] },
         {},
         true,
         true,
@@ -1092,6 +1103,11 @@ describe('Earn Controller Selectors', () => {
 
       expect(result.earnTokens[0]).toBe(earnToken);
       expect(result.lendingMarkets).toEqual([MOCK_LENDING_MARKET_USDC]);
+      expect(result.moneyDepositAssetsMeetingMinimumBalance).toEqual([]);
+      expect(result.moneyDepositBlockedTokens).toEqual({
+        chainIds: [],
+        tokens: [],
+      });
       expect(result.isStablecoinLendingEnabled).toBe(true);
     });
   });

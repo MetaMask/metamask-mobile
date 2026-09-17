@@ -25,6 +25,7 @@ import {
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   navigateToPerpsHomeTarget,
+  resetToPerpsHomeTarget,
   useGetPerpsHomeNavigationTarget,
 } from '../utils/perpsModeSwitch';
 
@@ -46,6 +47,12 @@ export interface PerpsNavigationHandlers {
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
   ) => void;
   navigateToHome: (source?: string) => void;
+  /**
+   * Replace the Perps stack with Home. Use after Home was dropped so Back
+   * from Home cannot return to the market that `navigateToHome` would leave
+   * underneath.
+   */
+  resetToHome: (source?: string) => void;
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
@@ -172,6 +179,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation, getPerpsHomeNavigationTarget],
   );
 
+  const resetToHome = useCallback(
+    (source?: string) => {
+      const target = getPerpsHomeNavigationTarget({ source });
+      resetToPerpsHomeTarget(navigation, target);
+    },
+    [navigation, getPerpsHomeNavigationTarget],
+  );
+
   const navigateToMarketList = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
       // Inside the Perps stack, push rather than navigate. `navigate()` reuses
@@ -223,6 +238,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
+      const useBottomSheet = Boolean(params.useBottomSheet);
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         depositWithOrder,
@@ -232,8 +248,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              showPerpsHeader: useBottomSheet
+                ? false
+                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           );
         })
@@ -336,6 +354,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     // Perps-specific navigation
     navigateToMarketDetails,
     navigateToHome,
+    resetToHome,
     navigateToMarketList,
     navigateToMarketListFromHeader,
     navigateToOrder,
