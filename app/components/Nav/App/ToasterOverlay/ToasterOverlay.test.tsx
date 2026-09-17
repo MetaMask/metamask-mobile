@@ -311,7 +311,49 @@ describe('ToasterOverlay', () => {
     });
   });
 
-  it('keeps FullWindowOverlay mounted on Android', () => {
+  it('cancels teardown timer when a second toast arrives while overlay is active', async () => {
+    const { getByTestId, queryByTestId } = render(<ToasterOverlay />);
+
+    act(() => {
+      latestToasterRef?.current?.showToast({ title: 'First' });
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    // Advance partway through the auto-dismiss window then show a second toast.
+    act(() => {
+      jest.advanceTimersByTime(TOAST_OVERLAY_AUTO_DISMISS_MS - 500);
+    });
+
+    act(() => {
+      latestToasterRef?.current?.showToast({ title: 'Second' });
+    });
+
+    // The teardown timer was reset — overlay must still be visible after the
+    // original deadline passes.
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+
+    expect(
+      queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID),
+    ).toBeOnTheScreen();
+
+    // Overlay finally hides after the new deadline.
+    act(() => {
+      jest.advanceTimersByTime(TOAST_OVERLAY_AUTO_DISMISS_MS);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID)).toBeNull();
+    });
+  });
+
+  it('does not mount FullWindowOverlay on Android', () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
       get: () => 'android',
@@ -320,8 +362,28 @@ describe('ToasterOverlay', () => {
     const { queryByTestId, getByTestId } = render(<ToasterOverlay />);
 
     expect(getByTestId('toaster')).toBeOnTheScreen();
-    expect(
-      queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID),
-    ).toBeOnTheScreen();
+    expect(queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID)).toBeNull();
+  });
+
+  it('passes showToast through to Toaster directly on Android without overlay', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => 'android',
+    });
+
+    const { queryByTestId } = render(<ToasterOverlay />);
+
+    act(() => {
+      latestToasterRef?.current?.showToast({ title: 'Android toast' });
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Android toast' }),
+      );
+    });
+
+    // No overlay should ever appear on Android.
+    expect(queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID)).toBeNull();
   });
 });

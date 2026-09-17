@@ -1,6 +1,10 @@
 /**
  * Must stay aligned with `TOAST_VISIBILITY_DURATION` from
  * `@metamask/design-system-shared` (Toaster auto-dismiss delay after enter spring).
+ *
+ * If MMDS changes its internal dismiss timing and this value is not updated,
+ * the overlay will unmount while the exit animation is still running on iOS,
+ * visually clipping the toast.
  */
 export const TOAST_VISIBILITY_DURATION_MS = 2750;
 

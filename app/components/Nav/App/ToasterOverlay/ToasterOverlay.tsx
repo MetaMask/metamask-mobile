@@ -137,12 +137,11 @@ const ToasterOverlay = () => {
 
   const toaster = <Toaster ref={toasterRefCallback} />;
 
+  // Android: FullWindowOverlay is iOS-only. On Android it falls back to a
+  // plain wrapper View, which changes the absolute-position context and pushes
+  // toasts to the bottom. Render Toaster directly instead.
   if (Platform.OS !== 'ios') {
-    return (
-      <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
-        {toaster}
-      </FullWindowOverlay>
-    );
+    return toaster;
   }
 
   if (!shouldShowOverlay) {
