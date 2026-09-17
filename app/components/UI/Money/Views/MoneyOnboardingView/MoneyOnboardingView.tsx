@@ -616,7 +616,7 @@ const MoneyOnboardingView = () => {
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBind={instance}
           autoPlay
-          fit={Fit.Layout}
+          fit={Fit.Cover}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
           style={[StyleSheet.absoluteFill, !isRiveVisible && styles.riveHidden]}
