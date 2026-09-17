@@ -16,8 +16,14 @@ import { useTransactionAccountOverride } from '../../hooks/transactions/useTrans
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import AccountSelector from '../AccountSelector';
 
-const isNotLedgerAccount = (account: InternalAccount) =>
-  account.metadata.keyring.type !== ExtendedKeyringTypes.ledger;
+const HARDWARE_KEYRING_TYPES: string[] = [
+  ExtendedKeyringTypes.ledger,
+  ExtendedKeyringTypes.qr,
+  ExtendedKeyringTypes.oneKey,
+];
+
+const isNotHardwareAccount = (account: InternalAccount) =>
+  !HARDWARE_KEYRING_TYPES.includes(account.metadata.keyring.type);
 
 const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   style,
@@ -38,7 +44,7 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
       !transactionId ||
       !isMoneyAccountWithdraw ||
       !accountOverride ||
-      !isHardwareAccount(accountOverride, [ExtendedKeyringTypes.ledger])
+      !isHardwareAccount(accountOverride)
     ) {
       return;
     }
@@ -106,7 +112,9 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
       selectorTitle={selectorTitle}
       selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
-      isAccountAllowed={isMoneyAccountWithdraw ? isNotLedgerAccount : undefined}
+      isAccountAllowed={
+        isMoneyAccountWithdraw ? isNotHardwareAccount : undefined
+      }
       style={style}
     />
   );

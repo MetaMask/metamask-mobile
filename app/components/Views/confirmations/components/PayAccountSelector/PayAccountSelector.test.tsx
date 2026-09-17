@@ -58,11 +58,19 @@ jest.mock('../AccountSelector', () => {
           <Text testID="account-selector-filter">
             {isAccountAllowed ? 'Filtered' : 'Unfiltered'}
           </Text>
-          <Text testID="ledger-account-allowed">
+          <Text testID="hardware-accounts-allowed">
             {String(
               isAccountAllowed?.({
                 metadata: { keyring: { type: 'Ledger Hardware' } },
-              }),
+              }) ||
+                isAccountAllowed?.({
+                  metadata: {
+                    keyring: { type: 'QR Hardware Wallet Device' },
+                  },
+                }) ||
+                isAccountAllowed?.({
+                  metadata: { keyring: { type: 'OneKey Hardware' } },
+                }),
             )}
           </Text>
           <Text testID="software-account-allowed">
@@ -167,7 +175,7 @@ describe('PayAccountSelector', () => {
     expect(getByTestId('account-selector-filter')).toHaveTextContent(
       'Filtered',
     );
-    expect(getByTestId('ledger-account-allowed')).toHaveTextContent('false');
+    expect(getByTestId('hardware-accounts-allowed')).toHaveTextContent('false');
     expect(getByTestId('software-account-allowed')).toHaveTextContent('true');
   });
 
@@ -179,32 +187,28 @@ describe('PayAccountSelector', () => {
     );
   });
 
-  it('clears a preselected Ledger recipient for withdraw transactions', () => {
+  it('clears a preselected hardware recipient for withdraw transactions', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
       type: TransactionType.moneyAccountWithdraw,
       txParams: { from: '0xMoneyAccount' },
       nestedTransactions: [{ data: '0xabcd' }],
     } as never);
-    useTransactionAccountOverrideMock.mockReturnValue(
-      '0xLedgerAddress' as Hex,
-    );
+    useTransactionAccountOverrideMock.mockReturnValue('0xHardwareAddress' as Hex);
     isHardwareAccountMock.mockReturnValue(true);
 
     render();
 
-    expect(isHardwareAccountMock).toHaveBeenCalledWith('0xLedgerAddress', [
-      'Ledger Hardware',
-    ]);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith('0xHardwareAddress');
     expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
       transactionId: 'mock-tx-id',
       nestedTransactions: [{ data: '0xabcd' }],
-      oldAddress: '0xLedgerAddress',
+      oldAddress: '0xHardwareAddress',
       newAddress: '0xMoneyAccount',
     });
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
-    const config = { accountOverride: '0xLedgerAddress' } as {
+    const config = { accountOverride: '0xHardwareAddress' } as {
       accountOverride?: string;
     };
     configCallback(config as never);
