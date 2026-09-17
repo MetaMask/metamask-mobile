@@ -371,19 +371,43 @@ describe('basicFunctionalityConsolidation selectors', () => {
   describe('selectIsSocialLoginBasicFunctionalityLocked', () => {
     it('locks Basic Functionality for a social-login user during rollout', () => {
       expect(
-        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(true, true),
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          true,
+          true,
+        ),
       ).toBe(true);
+    });
+
+    it('keeps an off social-login toggle enabled for recovery', () => {
+      // The repair can fail and only re-runs on unlock, so locking the off
+      // state would strand the wallet behind a greyed-out switch.
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          false,
+          true,
+        ),
+      ).toBe(false);
     });
 
     it('does not lock Basic Functionality for an SRP user', () => {
       expect(
-        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(true, false),
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          true,
+          false,
+        ),
       ).toBe(false);
     });
 
     it('does not lock Basic Functionality outside the rollout', () => {
       expect(
-        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(false, true),
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          false,
+          true,
+          true,
+        ),
       ).toBe(false);
     });
   });

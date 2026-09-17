@@ -212,14 +212,19 @@ export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
 
 /**
  * Social-login wallets in the consolidated cohort keep Basic Functionality on,
- * so the toggle is locked regardless of its current value. An OFF social wallet
- * is repaired by consolidation rather than left for the user to turn back on.
+ * so the toggle is locked only while it is already on.
+ *
+ * An off social wallet keeps a usable switch. Consolidation repairs it, but
+ * that repair writes no state if the service call rejects and only re-runs on
+ * unlock, so locking the off state would leave the user with a greyed-out
+ * switch and no way back from Settings.
  */
 export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
   selectIsBasicFunctionalityConsolidationEnabled,
+  selectBasicFunctionalityEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
-  (isConsolidationEnabled, isSocialLoginUser) =>
-    isConsolidationEnabled && isSocialLoginUser,
+  (isConsolidationEnabled, isBasicFunctionalityEnabled, isSocialLoginUser) =>
+    isConsolidationEnabled && isBasicFunctionalityEnabled && isSocialLoginUser,
 );
 
 /**

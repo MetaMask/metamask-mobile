@@ -74,6 +74,11 @@ jest.mock('./useThunkDispatch', () => ({
   default: () => mockDispatch,
 }));
 
+jest.mock('../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
 jest.mock('../../core/NavigationService', () => ({
   __esModule: true,
   default: {
@@ -244,6 +249,30 @@ describe('useBasicFunctionalityConsolidation', () => {
     rerender(undefined);
 
     expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry a repair that failed', async () => {
+    // Nothing re-runs the repair until the next unlock, so a wallet whose
+    // repair fails stays off for the rest of the session and needs the
+    // Settings switch to recover.
+    mockDispatch.mockReturnValueOnce(
+      Promise.reject(new Error('repair failed')),
+    );
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      shouldRepairSocialLogin: true,
+    });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    rerender(undefined);
+
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
   });
 
   it('leaves a consolidated wallet alone when no repair is needed', () => {

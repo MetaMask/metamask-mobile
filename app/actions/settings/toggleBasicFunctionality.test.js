@@ -509,6 +509,35 @@ describe('consolidateBasicFunctionality action', () => {
     expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
   });
 
+  it('writes no state when the repair service call rejects', async () => {
+    // The wallet stays off, which is why the Settings switch must not be
+    // locked while Basic Functionality is off.
+    const dispatch = jest.fn();
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectShouldRepairSocialLoginBasicFunctionality.mockReturnValue(true);
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+    mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
+      landingState: true,
+      notification: 'bottom-sheet',
+    });
+    mockSetBasicFunctionality.mockRejectedValue(new Error('service failed'));
+
+    await expect(
+      consolidateBasicFunctionality()(dispatch, () => ({
+        ...state,
+        settings: {
+          ...state.settings,
+          isBasicFunctionalityConsolidatedEnabled: true,
+        },
+      })),
+    ).rejects.toThrow('service failed');
+
+    expect(dispatch).not.toHaveBeenCalledWith(setBasicFunctionality(true));
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+  });
+
   it('does not re-track the migrated event on a social repair', async () => {
     const dispatch = jest.fn();
     mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
