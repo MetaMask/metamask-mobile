@@ -38,6 +38,7 @@ import {
   Fit,
   RiveErrorType,
   RiveView,
+  useRive,
   useRiveFile,
   useRiveNumber,
   useRiveString,
@@ -266,6 +267,7 @@ const MoneyOnboardingView = () => {
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 
+  const { riveViewRef, setHybridRef } = useRive();
   const { riveFile } = useRiveFile(moneyOnboardingFlowV26Animation);
   // VM instance is created off the file (async) and bound via `dataBind`
   // (replaces the legacy `AutoBind(true)` mode).
@@ -277,7 +279,7 @@ const MoneyOnboardingView = () => {
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
-  const [isRiveLaidOut, setIsRiveLaidOut] = useState(false);
+  const [isRootLaidOut, setIsRootLaidOut] = useState(false);
   const [isRiveVisible, setIsRiveVisible] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(1);
@@ -588,12 +590,12 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToMoneyHome],
   );
 
-  const handleRiveLayout = useCallback(() => {
-    setIsRiveLaidOut(true);
+  const handleRootLayout = useCallback(() => {
+    setIsRootLaidOut(true);
   }, []);
 
   useEffect(() => {
-    if (!isRiveLaidOut) {
+    if (!riveViewRef) {
       return;
     }
 
@@ -602,21 +604,21 @@ const MoneyOnboardingView = () => {
     });
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isRiveLaidOut]);
+  }, [riveViewRef]);
 
   return (
-    <View style={styles.root}>
-      {riveFile && instance && (
+    <View style={styles.root} onLayout={handleRootLayout}>
+      {isRootLaidOut && riveFile && instance && (
         <RiveView
+          hybridRef={setHybridRef}
           file={riveFile}
           artboardName={RIVE_ARTBOARD_NAME}
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBind={instance}
           autoPlay
-          fit={isRiveLaidOut ? Fit.Layout : Fit.Cover}
+          fit={Fit.Layout}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
-          onLayout={handleRiveLayout}
           style={[StyleSheet.absoluteFill, !isRiveVisible && styles.riveHidden]}
           testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
         />
