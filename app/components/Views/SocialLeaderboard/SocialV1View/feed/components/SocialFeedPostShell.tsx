@@ -15,7 +15,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Image } from 'react-native';
-import superheroAvatar from '../../../../../images/socialV1/superhero.png';
+import superheroAvatar from '../../../../../../images/socialV1/superhero.png';
 import { formatFeedTimestamp } from '../../../utils/formatters';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedPositionCard from './SocialFeedPositionCard';
