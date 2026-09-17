@@ -105,8 +105,7 @@ describeForPlatforms('WatchlistSection', () => {
 
     const { getByTestId, findByTestId } = renderWatchlistSectionWithRoutes();
 
-    // Empty state = suggested rows with add buttons below the header,
-    // rendered silently (matching the perps watchlist structure).
+    // Empty state = suggested rows with add buttons below the header
     expect(
       await findByTestId(getAddButtonTestId('eip155:1/slip44:60')),
     ).toBeOnTheScreen();
@@ -128,15 +127,12 @@ describeForPlatforms('WatchlistSection', () => {
     // only serves ETH from those IDs, so exactly one suggested row renders.
     const suggestedRow = await findByTestId(getRowTestId('eip155:1/slip44:60'));
     expect(suggestedRow).toBeOnTheScreen();
-    // Perps flow: the suggested section renders silently when the watchlist
-    // is empty — no sub-header, no hint copy.
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
     const addButton = await findByTestId(
       getAddButtonTestId('eip155:1/slip44:60'),
     );
     expect(addButton).toBeOnTheScreen();
-    // The star button exposes an accessibility label, matching perps.
     expect(
       getByTestId(getAddButtonTestId('eip155:1/slip44:60')).props
         .accessibilityLabel,
@@ -195,7 +191,7 @@ describeForPlatforms('WatchlistSection', () => {
     const { findByTestId, getByTestId, getByText, queryByTestId } =
       renderWatchlistSectionWithRoutes();
 
-    // The two watched tokens render as watchlist rows (no add buttons)…
+    // 2 watched tokens render as watchlist rows (no add buttons)
     expect(
       await findByTestId(
         getRowTestId(
@@ -210,7 +206,7 @@ describeForPlatforms('WatchlistSection', () => {
         ),
       ),
     ).toBeOnTheScreen();
-    // …and the suggested section is labelled and count-capped: 5 - 2 = 3.
+    // 3 suggested tokens (with add buttons)
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
     expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
     expect(getByText('Suggested')).toBeOnTheScreen();
@@ -221,11 +217,11 @@ describeForPlatforms('WatchlistSection', () => {
     ]) {
       expect(getByTestId(getAddButtonTestId(assetId))).toBeOnTheScreen();
     }
-    // BNB is the 4th suggestion — dropped by the 5 - 2 cap.
+
+    // More items above cap (5) are not shown.
     expect(
       queryByTestId(getAddButtonTestId('eip155:56/slip44:714')),
     ).not.toBeOnTheScreen();
-    // Watched tokens are not re-suggested.
     expect(
       queryByTestId(
         getAddButtonTestId(
@@ -301,7 +297,7 @@ describeForPlatforms('WatchlistSection', () => {
     expect(
       getByTestId(getRowTestId(mockWatchlistAssetIds[2])),
     ).toBeOnTheScreen();
-    // …the oldest (ETH, watched first) is pushed out of the 5-row window.
+    // the oldest (ETH, watched first) is pushed out of the 5-row window.
     expect(
       queryByTestId(getRowTestId(mockWatchlistAssetIds[0])),
     ).not.toBeOnTheScreen();

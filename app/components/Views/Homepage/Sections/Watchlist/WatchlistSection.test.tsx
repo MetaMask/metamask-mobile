@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import WatchlistSection, {
-  SUGGESTED_WATCHLIST_LIMIT,
   getSuggestedWatchlistTokens,
 } from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -550,10 +549,6 @@ describe('getSuggestedWatchlistTokens', () => {
     expect(result.map((token) => token.symbol)).toEqual(
       testCase.expectedSymbols,
     );
-  });
-
-  it('keeps the suggestion limit aligned with the perps watchlist flow', () => {
-    expect(SUGGESTED_WATCHLIST_LIMIT).toBe(5);
   });
 
   it('caps at zero (no floor-of-one) once the watchlist is full', () => {
