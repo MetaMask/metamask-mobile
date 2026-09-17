@@ -29,6 +29,22 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
+// The feed pages now fetch through `useTraderFeed`, which reads keyring state
+// and React Query. This suite is about the V1 chrome -- tabs, header, filters --
+// so stub the data source and let the feed's own suites cover it.
+jest.mock('./feed/hooks/useSocialV1Feed', () => ({
+  useSocialV1Feed: () => ({
+    items: jest.requireActual('./feed/mocks/socialV1Feed.mock')
+      .MOCK_SOCIAL_V1_FEED_ITEMS,
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => {

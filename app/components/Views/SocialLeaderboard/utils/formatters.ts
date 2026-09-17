@@ -254,6 +254,30 @@ export function formatFeedTimestamp(
 }
 
 /**
+ * Coarse duration for a position's hold time, derived from its first and last
+ * fill (e.g. `8h`, `3d`, `45m`). One unit only -- the feed card gives this a
+ * single right-aligned slot, and a trader reading a hold time wants the order
+ * of magnitude, not `3d 4h 12m`.
+ *
+ * Sub-minute holds round up to `1m` rather than reading `0m`.
+ */
+export function formatHoldDuration(durationMs: number): string {
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    return EM_DASH;
+  }
+
+  if (durationMs >= DAY) {
+    return `${Math.floor(durationMs / DAY)}d`;
+  }
+
+  if (durationMs >= HOUR) {
+    return `${Math.floor(durationMs / HOUR)}h`;
+  }
+
+  return `${Math.max(1, Math.floor(durationMs / MINUTE))}m`;
+}
+
+/**
  * Spelled-out post age for Social V1 feed cards (e.g. `40 min ago`).
  *
  * The V1 post header gives the timestamp its own right-aligned column, so

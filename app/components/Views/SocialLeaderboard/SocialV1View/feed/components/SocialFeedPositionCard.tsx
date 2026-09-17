@@ -162,6 +162,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
     author={item.author}
     timestamp={item.timestamp}
     comment={item.comment}
+    isWinRateMocked={item.mockedFields.includes('winRate')}
     now={now}
   >
     <PositionCardBody item={item} />
