@@ -2,7 +2,6 @@ import {
   mockAutoClose,
   mockComment,
   mockMarkPrice,
-  mockSpotVolumeUsd,
   mockWinRatePercent,
 } from './socialV1Enrichment';
 
@@ -83,16 +82,6 @@ describe('socialV1Enrichment', () => {
 
     it('returns null without an entry price to bracket', () => {
       expect(mockAutoClose('profile-1', 'BTC', null, 'long')).toBeNull();
-    });
-  });
-
-  describe('mockSpotVolumeUsd', () => {
-    it('returns the same volume for the same symbol', () => {
-      expect(mockSpotVolumeUsd('PEPE')).toBe(mockSpotVolumeUsd('PEPE'));
-    });
-
-    it('returns a positive figure', () => {
-      expect(mockSpotVolumeUsd('PEPE')).toBeGreaterThan(0);
     });
   });
 

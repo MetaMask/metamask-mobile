@@ -254,10 +254,13 @@ export function formatFeedTimestamp(
 }
 
 /**
- * Coarse duration for a position's hold time, derived from its first and last
- * fill (e.g. `8h`, `3d`, `45m`). One unit only -- the feed card gives this a
- * single right-aligned slot, and a trader reading a hold time wants the order
- * of magnitude, not `3d 4h 12m`.
+ * Duration a position was held, derived from its fills (e.g. `1d 20h`, `8h`,
+ * `45m`).
+ *
+ * Multi-day holds carry their remaining hours, because `1d` alone reads the
+ * same for 24 hours and 47. Below a day one unit is enough -- the card gives
+ * this a single right-aligned slot, and nobody needs `8h 13m`. A whole number
+ * of days drops the hours rather than padding `6d 0h`.
  *
  * Sub-minute holds round up to `1m` rather than reading `0m`.
  */
@@ -267,7 +270,9 @@ export function formatHoldDuration(durationMs: number): string {
   }
 
   if (durationMs >= DAY) {
-    return `${Math.floor(durationMs / DAY)}d`;
+    const days = Math.floor(durationMs / DAY);
+    const hours = Math.floor((durationMs % DAY) / HOUR);
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
   }
 
   if (durationMs >= HOUR) {

@@ -2,8 +2,8 @@ import type { SocialV1PerpDirection } from '../types';
 
 /**
  * Deterministic stand-ins for the enrichment the social API does not expose
- * yet: win rate, an open position's mark, take-profit / stop-loss, spot 24h
- * volume, and post captions.
+ * yet: win rate, an open position's mark, take-profit / stop-loss, and post
+ * captions.
  *
  * Every value is keyed by trader id and market symbol through a hash, so the
  * same person and market always get the same fake numbers. Without that, a
@@ -48,11 +48,6 @@ const TAKE_PROFIT_FRACTIONS = [0.06, 0.09, 0.12, 0.18, 0.25] as const;
 
 /** Stop-loss distance from entry, as a fraction, in the losing direction. */
 const STOP_LOSS_FRACTIONS = [0.03, 0.045, 0.06, 0.08] as const;
-
-/** Spot 24h volume buckets in USD. */
-const VOLUME_USD = [
-  1_800_000, 8_400_000, 21_000_000, 44_500_000, 96_000_000, 240_000_000,
-] as const;
 
 /**
  * Captions. Deliberately few and applied to a minority of rows: a comment on
@@ -118,9 +113,6 @@ export const mockAutoClose = (
     stopLoss: entryPrice * (1 - winningSign * stopLossDistance),
   };
 };
-
-export const mockSpotVolumeUsd = (symbol: string): number =>
-  pick(VOLUME_USD, symbol);
 
 /**
  * A caption for a minority of rows, or `null`. Keyed on the position id as well

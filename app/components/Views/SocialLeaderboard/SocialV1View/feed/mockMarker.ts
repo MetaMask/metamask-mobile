@@ -16,7 +16,6 @@ export type SocialV1MockedField =
   | 'entryPrice'
   | 'exitPrice'
   | 'holdTime'
-  | 'volume'
   | 'comment';
 
 /**

@@ -1254,6 +1254,7 @@
         "mock_data_footnote": "* Mock data",
         "entry_price": "Entry price",
         "exit_price": "Exit price",
+        "hold_time": "Hold time",
         "max_hold_time": "Max hold time",
         "status": "Status",
         "closed": "Closed",

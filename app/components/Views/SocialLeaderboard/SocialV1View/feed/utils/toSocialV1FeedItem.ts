@@ -5,7 +5,6 @@ import type {
 import { strings } from '../../../../../../../locales/i18n';
 import type { TraderFeedRow } from '../../../FeedView/hooks/useTraderFeed';
 import {
-  formatAbbreviatedUsd,
   formatHoldDuration,
   formatTradeUnitPrice,
 } from '../../../utils/formatters';
@@ -16,14 +15,9 @@ import {
   mockAutoClose,
   mockComment,
   mockMarkPrice,
-  mockSpotVolumeUsd,
   mockWinRatePercent,
 } from '../mocks/socialV1Enrichment';
-import type {
-  SocialV1FeedItem,
-  SocialV1PerpDirection,
-  SocialV1SpotSide,
-} from '../types';
+import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -88,31 +82,35 @@ const deriveExitPrice = (core: CoreFeedItem): number | null => {
   return toUnitPrice(lastExit);
 };
 
-/** Span from the first fill to the last, in milliseconds. */
-const deriveHoldDurationMs = (core: CoreFeedItem): number | null => {
+/**
+ * How long the position has been held, in milliseconds.
+ *
+ * A closed position measures first fill to last. An open one is still running,
+ * so it measures first fill to `now` -- `lastTradeAt` would freeze the clock at
+ * the most recent top-up and understate a long hold.
+ */
+const deriveHoldDurationMs = (
+  core: CoreFeedItem,
+  isClosed: boolean,
+  now: number,
+): number | null => {
   const timestamps = (core.trades ?? []).map((trade) =>
     tradeTimestampToMs(trade.timestamp),
   );
 
-  if (timestamps.length < 2) {
+  if (timestamps.length === 0) {
     return null;
   }
 
-  const span = Math.max(...timestamps) - Math.min(...timestamps);
+  const first = Math.min(...timestamps);
+  const span = (isClosed ? Math.max(...timestamps) : now) - first;
   return span > 0 ? span : null;
 };
 
-/**
- * Market cap at fill time, from the triggering spot fill. Real API data, so it
- * is never marked -- it is historical rather than live, which is exactly what
- * V0's sub-header already shows.
- */
-const deriveSpotMarketCap = (core: CoreFeedItem): number | null => {
-  const withMarketCap = (core.trades ?? []).find(
-    (trade) => trade.marketCap != null,
-  );
-  return withMarketCap?.marketCap ?? null;
-};
+const toLeverageLabel = (item: {
+  leverage: number | null;
+}): string | undefined =>
+  item.leverage == null ? undefined : `${item.leverage}x`;
 
 const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   if (action) {
@@ -135,7 +133,10 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
  * derivable from its fills. Only genuinely absent values are invented, and each
  * one is recorded in `mockedFields` and rendered with a `*` suffix.
  */
-export function toSocialV1FeedItem(row: TraderFeedRow): SocialV1FeedItem {
+export function toSocialV1FeedItem(
+  row: TraderFeedRow,
+  now: number = Date.now(),
+): SocialV1FeedItem {
   const { item, core } = row;
   const mockedFields: SocialV1MockedField[] = [];
 
@@ -165,37 +166,16 @@ export function toSocialV1FeedItem(row: TraderFeedRow): SocialV1FeedItem {
     mockedFields,
   };
 
-  if (item.type === 'spot') {
-    const marketCap = deriveSpotMarketCap(core);
-    mockedFields.push('volume');
-
-    return {
-      ...base,
-      variant: 'spotCompact',
-      side: toSpotSide(core, item.action),
-      marketCapLabel:
-        marketCap == null ? undefined : formatAbbreviatedUsd(marketCap),
-      volumeLabel: markMocked(
-        formatAbbreviatedUsd(mockSpotVolumeUsd(base.asset.symbol)),
-      ),
-    };
-  }
-
-  const direction: SocialV1PerpDirection = item.direction;
-  const leverageLabel = item.leverage == null ? undefined : `${item.leverage}x`;
   const entryPrice = deriveAverageEntryPrice(core);
   const entryPriceLabel =
     entryPrice == null ? undefined : formatTradeUnitPrice(entryPrice);
+  const isSpot = item.type === 'spot';
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);
-    const holdDurationMs = deriveHoldDurationMs(core);
-
-    return {
+    const holdDurationMs = deriveHoldDurationMs(core, true, now);
+    const closed = {
       ...base,
-      variant: 'perpsClosed',
-      direction,
-      leverageLabel,
       entryPriceLabel,
       exitPriceLabel:
         exitPrice == null ? undefined : formatTradeUnitPrice(exitPrice),
@@ -203,18 +183,47 @@ export function toSocialV1FeedItem(row: TraderFeedRow): SocialV1FeedItem {
         holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
       statusLabel: strings('social_leaderboard.feed.position_card.closed'),
     };
+
+    return isSpot
+      ? {
+          ...closed,
+          variant: 'spotClosed',
+          side: toSpotSide(core, item.action),
+        }
+      : {
+          ...closed,
+          variant: 'perpsClosed',
+          direction: item.direction,
+          leverageLabel: toLeverageLabel(item),
+        };
   }
 
   const markPrice = mockMarkPrice(item.traderId, base.asset.symbol, entryPrice);
   if (markPrice != null) {
     mockedFields.push('markPrice');
   }
+  const markPriceLabel =
+    markPrice == null ? undefined : markMocked(formatTradeUnitPrice(markPrice));
+
+  if (isSpot) {
+    const holdDurationMs = deriveHoldDurationMs(core, false, now);
+
+    return {
+      ...base,
+      variant: 'spotOpen',
+      side: toSpotSide(core, item.action),
+      markPriceLabel,
+      entryPriceLabel,
+      holdTimeLabel:
+        holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
+    };
+  }
 
   const autoClose = mockAutoClose(
     item.traderId,
     base.asset.symbol,
     entryPrice,
-    direction,
+    item.direction,
   );
   if (autoClose) {
     mockedFields.push('autoClose');
@@ -223,13 +232,10 @@ export function toSocialV1FeedItem(row: TraderFeedRow): SocialV1FeedItem {
   return {
     ...base,
     variant: 'perpsOpen',
-    direction,
-    leverageLabel,
+    direction: item.direction,
+    leverageLabel: toLeverageLabel(item),
+    markPriceLabel,
     entryPriceLabel,
-    markPriceLabel:
-      markPrice == null
-        ? undefined
-        : markMocked(formatTradeUnitPrice(markPrice)),
     autoCloseLabel: autoClose
       ? markMocked(
           strings('social_leaderboard.feed.position_card.auto_close_pair', {
@@ -242,6 +248,11 @@ export function toSocialV1FeedItem(row: TraderFeedRow): SocialV1FeedItem {
 }
 
 /** Maps a page of loaded rows, preserving order. */
+/**
+ * Maps a page of loaded rows, preserving order. One `now` for the whole page so
+ * every open position's hold time is measured against the same instant.
+ */
 export const toSocialV1FeedItems = (
   rows: TraderFeedRow[],
-): SocialV1FeedItem[] => rows.map(toSocialV1FeedItem);
+  now: number = Date.now(),
+): SocialV1FeedItem[] => rows.map((row) => toSocialV1FeedItem(row, now));

@@ -64,17 +64,35 @@ export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
   statusLabel?: string;
 }
 
-export interface SocialV1SpotCompactFeedItem extends SocialV1FeedItemBase {
-  variant: 'spotCompact';
+export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotOpen';
   side: SocialV1SpotSide;
-  marketCapLabel?: string;
-  volumeLabel?: string;
+  markPriceLabel?: string;
+  entryPriceLabel?: string;
+  /** Time held so far, first fill to now. */
+  holdTimeLabel?: string;
 }
 
+export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotClosed';
+  side: SocialV1SpotSide;
+  entryPriceLabel?: string;
+  exitPriceLabel?: string;
+  holdTimeLabel?: string;
+  statusLabel?: string;
+}
+
+/**
+ * Two layouts -- open and closed -- crossed with the asset class. Open cards
+ * lead with current value and offer Copy trade; closed cards lead with realized
+ * P&L and offer nothing, because there is no longer a position to copy. The
+ * asset class only decides which stat rows sit between.
+ */
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
   | SocialV1PerpsClosedFeedItem
-  | SocialV1SpotCompactFeedItem;
+  | SocialV1SpotOpenFeedItem
+  | SocialV1SpotClosedFeedItem;
 
 export interface UseSocialV1FeedOptions {
   /** `all` reads the generic `leaderboard` scope, `following` the per-user one. */

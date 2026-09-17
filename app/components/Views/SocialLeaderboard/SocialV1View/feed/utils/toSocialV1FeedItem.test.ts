@@ -26,12 +26,53 @@ const HOUR_IN_SECONDS = 3600;
 
 describe('toSocialV1FeedItem', () => {
   describe('variant mapping', () => {
-    it('maps a spot row to the compact spot card', () => {
+    it('maps an open spot row to the open spot card', () => {
       const row = buildRow(mockSpotFeedItem());
 
       const result = toSocialV1FeedItem(row);
 
-      expect(result.variant).toBe('spotCompact');
+      expect(result.variant).toBe('spotOpen');
+    });
+
+    // A fully sold spot position takes the same closed treatment as a closed
+    // perp -- hero realized P&L, exit price, no Copy trade.
+    it('maps a fully sold spot row to the closed spot card', () => {
+      const row = buildRow(
+        mockSpotFeedItem({
+          isOpen: false,
+          positionAmount: 0,
+          soldUsd: 130_000,
+          // The triggering fill is the one whose timestamp matches the row's,
+          // so point the row at the closing fill.
+          timestamp: 1_700_086_400,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 1000,
+              usdCost: 100_000,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xa',
+              classification: 'spot',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'closed',
+              tokenAmount: 1000,
+              usdCost: 130_000,
+              timestamp: 1_700_086_400,
+              transactionHash: '0xb',
+              classification: 'spot',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('spotClosed');
     });
 
     it('maps an open perp row to the open perps card', () => {
@@ -225,7 +266,9 @@ describe('toSocialV1FeedItem', () => {
       expect(result.mockedFields).not.toContain('holdTime');
     });
 
-    it('takes spot market cap from the fill without marking it', () => {
+    it('derives an unmarked hold time for an open spot position', () => {
+      const openedAt = 1_700_000_000;
+      const now = (openedAt + 8 * HOUR_IN_SECONDS) * 1000;
       const row = buildRow(
         mockSpotFeedItem({
           trades: [
@@ -234,24 +277,25 @@ describe('toSocialV1FeedItem', () => {
               intent: 'enter',
               action: 'opened',
               tokenAmount: 1000,
-              usdCost: 120_000,
-              timestamp: 1_700_000_000,
-              transactionHash: '0xhash',
+              usdCost: 100_000,
+              timestamp: openedAt,
+              transactionHash: '0xa',
               classification: 'spot',
-              marketCap: 4_200_000_000,
             },
           ],
         }),
       );
 
-      const result = toSocialV1FeedItem(row);
+      const result = toSocialV1FeedItem(row, now);
 
-      expect(result.variant).toBe('spotCompact');
-      if (result.variant !== 'spotCompact') return;
-      expect(result.marketCapLabel).toBe('$4.2B');
-      expect(result.marketCapLabel).not.toContain(MOCK_MARKER);
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      expect(result.holdTimeLabel).toBe('8h');
+      expect(result.mockedFields).not.toContain('holdTime');
     });
 
+    // A single closing sell fill puts the row on the closed card, and the side
+    // still reads from the action rather than defaulting to buy.
     it('reads the spot side from a sell action', () => {
       const row = buildRow(
         mockSpotFeedItem({
@@ -272,8 +316,8 @@ describe('toSocialV1FeedItem', () => {
 
       const result = toSocialV1FeedItem(row);
 
-      expect(result.variant).toBe('spotCompact');
-      if (result.variant !== 'spotCompact') return;
+      expect(result.variant).toBe('spotClosed');
+      if (result.variant !== 'spotClosed') return;
       expect(result.side).toBe('sell');
     });
   });
@@ -288,15 +332,24 @@ describe('toSocialV1FeedItem', () => {
       expect(result.mockedFields).toContain('winRate');
     });
 
-    it('marks the invented spot volume and leaves market cap unmarked', () => {
+    it('marks the invented mark price on an open spot position', () => {
       const row = buildRow(mockSpotFeedItem());
 
       const result = toSocialV1FeedItem(row);
 
-      expect(result.variant).toBe('spotCompact');
-      if (result.variant !== 'spotCompact') return;
-      expect(result.volumeLabel).toContain(MOCK_MARKER);
-      expect(result.mockedFields).toContain('volume');
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      expect(result.markPriceLabel).toContain(MOCK_MARKER);
+      expect(result.mockedFields).toContain('markPrice');
+    });
+
+    // Spot carries no leverage, so it must never get an auto-close bracket.
+    it('omits the auto-close bracket on a spot position', () => {
+      const row = buildRow(mockSpotFeedItem());
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.mockedFields).not.toContain('autoClose');
     });
 
     it('marks the invented mark price and auto-close pair on an open perp', () => {

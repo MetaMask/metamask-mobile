@@ -25,7 +25,12 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
   sell: 'social_leaderboard.feed.position_card.sell',
 };
 
-export type PositionCardHeaderLayout = 'open' | 'closed' | 'compact';
+/**
+ * `open` leads with current value on the right; `closed` stacks a hero realized
+ * P&L under the identity. Both are used by perps and spot alike -- the asset
+ * class only changes which stat rows follow.
+ */
+export type PositionCardHeaderLayout = 'open' | 'closed';
 
 export interface PositionCardHeaderProps {
   layout: PositionCardHeaderLayout;
@@ -38,7 +43,6 @@ export interface PositionCardHeaderProps {
   leverageLabel?: string;
   markPriceLabel?: string;
   side?: SocialV1SpotSide;
-  subHeaderLabel?: string;
 }
 
 const pnlClassName = (isPnlPositive: boolean) =>
@@ -84,10 +88,16 @@ const TitleMeta: React.FC<{
         </Text>
       </>
     ) : null}
+    {/* Rendered exactly like a perp direction -- same size, same separator,
+      same green/red -- so Buy/Sell and Long/Short read as one column of
+      information across the feed rather than two different treatments. */}
     {side ? (
-      <Box twClassName="bg-muted rounded-md px-1.5">
+      <>
+        <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+          {' · '}
+        </Text>
         <Text
-          variant={TextVariant.BodyXs}
+          variant={TextVariant.BodyLg}
           fontWeight={FontWeight.Medium}
           twClassName={
             side === 'buy' ? 'text-success-default' : 'text-error-default'
@@ -95,7 +105,7 @@ const TitleMeta: React.FC<{
         >
           {strings(SIDE_I18N[side])}
         </Text>
-      </Box>
+      </>
     ) : null}
   </Box>
 );
@@ -141,7 +151,6 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
   leverageLabel,
   markPriceLabel,
   side,
-  subHeaderLabel,
 }) => {
   const identity = (
     <Box
@@ -150,11 +159,7 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
       gap={3}
       twClassName="flex-1 min-w-0"
     >
-      <PositionTokenAvatar
-        position={avatar}
-        size={AvatarTokenSize.Md}
-        showChainBadge={layout === 'compact'}
-      />
+      <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
       <Box twClassName="flex-1 min-w-0">
         <TitleMeta
           layout={layout}
@@ -166,15 +171,6 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
         {layout === 'open' && markPriceLabel ? (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {markPriceLabel}
-          </Text>
-        ) : null}
-        {layout === 'compact' && subHeaderLabel ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-          >
-            {subHeaderLabel}
           </Text>
         ) : null}
       </Box>
