@@ -384,21 +384,36 @@ export interface DepositRequest {
   depositId?: string;
 }
 
+export interface TransformFillsToTransactionsOptions {
+  /**
+   * When true (the default), collapse the fills of one order into a single row. When false,
+   * list every execution HyperLiquid reported on its own, newest first.
+   */
+  aggregate?: boolean;
+}
+
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format.
- * The fills of one order are aggregated first, so an open, close or flip that HyperLiquid
- * filled in several pieces shows combined size, PnL and fees instead of partial amounts.
+ * When `aggregate` is true the fills of one order are collapsed first, so an open, close or
+ * flip that HyperLiquid filled in several pieces shows combined size, PnL and fees instead of
+ * partial amounts. When it is false each execution is listed separately, which is what the
+ * Aggregated control turns off.
  *
  * @param fills - Array of abstract OrderFill objects
+ * @param options - Transform options
  * @returns Array of PerpsTransaction objects
  */
 export function transformFillsToTransactions(
   fills: OrderFill[],
+  { aggregate = true }: TransformFillsToTransactionsOptions = {},
 ): PerpsTransaction[] {
-  // Collapse each order's fills into the one trade the user placed
-  const aggregatedFills = aggregateFillsByOrder(fills);
+  // Collapse each order's fills into the one trade the user placed, unless the viewer asked
+  // to see the individual executions.
+  const fillsToTransform = aggregate
+    ? aggregateFillsByOrder(fills)
+    : [...fills].sort((left, right) => right.timestamp - left.timestamp);
 
-  return aggregatedFills.reduce((acc: PerpsTransaction[], fill) => {
+  return fillsToTransform.reduce((acc: PerpsTransaction[], fill) => {
     const {
       direction,
       orderId,

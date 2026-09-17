@@ -924,6 +924,49 @@ describe('transactionTransforms', () => {
       expect(result[0].fill?.size).toBe('5.57');
     });
 
+    it('lists every execution separately when aggregation is turned off', () => {
+      // Hyperliquid testnet order 60252966679: 8.29 SOL opened in four fills.
+      const sizes = ['2.92', '0.4', '2.35', '2.62'];
+      const fills: OrderFill[] = sizes.map((size, index) => ({
+        ...mockFill,
+        orderId: 'open-order-agg',
+        direction: 'Open Long',
+        size,
+        fee: '0.1',
+        timestamp: 1700000000000 + index,
+      }));
+
+      const aggregated = transformFillsToTransactions(fills);
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+
+      expect(aggregated).toHaveLength(1);
+      expect(aggregated[0].subtitle).toBe('8.29 ETH');
+      expect(individual).toHaveLength(4);
+      expect(individual.map((tx) => tx.subtitle)).toEqual([
+        '2.62 ETH',
+        '2.35 ETH',
+        '0.4 ETH',
+        '2.92 ETH',
+      ]);
+    });
+
+    it('defaults to aggregating when no options are passed', () => {
+      const fills: OrderFill[] = ['1', '2'].map((size, index) => ({
+        ...mockFill,
+        orderId: 'open-order-default',
+        direction: 'Open Long',
+        size,
+        timestamp: 1700000000000 + index,
+      }));
+
+      const result = transformFillsToTransactions(fills);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('3 ETH');
+    });
+
     it('should handle empty fills array', () => {
       const result = transformFillsToTransactions([]);
       expect(result).toEqual([]);
