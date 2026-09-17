@@ -189,13 +189,29 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
   );
 
   testFn(
-    'bails to AI when page-object changes alongside actual app code',
+    'bails to AI when page-object changes alongside actual app code (index stem excluded)',
     () => {
       const result = evaluate([
         'app/components/Views/Wallet/index.tsx',
         'tests/page-objects/wallet/AccountListBottomSheet.ts',
       ]);
       assert.equal(result, null);
+    },
+  );
+
+  testFn(
+    'selects SmokeConfirmations when ActivityDetails component changes',
+    () => {
+      const evaluation = evaluate([
+        'app/components/Views/ActivityDetails/ActivityDetails.tsx',
+      ]);
+      const result = resultOf(evaluation);
+      assert.equal(evaluation!.continue, true);
+      assert.ok(
+        (result.selected_tags as string[]).includes('SmokeConfirmations'),
+        `Expected SmokeConfirmations in ${JSON.stringify(result.selected_tags)}`,
+      );
+      assert.match(String(result.reasoning), /app-source-import-graph/);
     },
   );
 });

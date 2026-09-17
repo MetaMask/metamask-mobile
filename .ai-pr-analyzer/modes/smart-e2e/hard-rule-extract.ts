@@ -265,6 +265,8 @@ export function evaluateExtractTagsFromImportGraph(
     catalogGroup?: string;
     tagsImportRegex?: string;
     includeChangedSpecs?: boolean;
+    /** Stems to skip — avoids false-positive matches for generic filenames like index, types, utils */
+    excludeSourceStems?: string[];
   };
   const gate = trigger.onlyIfRemainingChangesMatch;
   if (gate && !remainingChangesAllowed(changedFiles, gate, normalize)) {
@@ -277,6 +279,7 @@ export function evaluateExtractTagsFromImportGraph(
   const intermediatePrefixes = trigger.intermediatePrefixes ?? [];
   const hops = trigger.hop ?? 1;
   const includeChangedSpecs = trigger.includeChangedSpecs !== false;
+  const excludeSourceStemsSet = new Set(trigger.excludeSourceStems ?? []);
   const firstSearchPrefixes = [...specPrefixes, ...intermediatePrefixes];
 
   const specFiles = new Set<string>();
@@ -292,7 +295,7 @@ export function evaluateExtractTagsFromImportGraph(
     }
     sawSharedSource = true;
     const stem = fileStem(source);
-    if (!stem) {
+    if (!stem || excludeSourceStemsSet.has(stem)) {
       continue;
     }
     for (const match of grepFixedStem(

@@ -103,6 +103,43 @@
     }
   },
   {
+    "name": "app-source-import-graph",
+    "description": "App source changed — trace through page-objects/selectors/flows to find smoke specs that exercise the changed component",
+    "trigger": {
+      "type": "extractTagsFromImportGraph",
+      "includeChangedSpecs": false,
+      "sourcePrefixes": ["app/"],
+      "excludeSourceStems": [
+        "index",
+        "types",
+        "utils",
+        "helpers",
+        "constants",
+        "styles",
+        "theme"
+      ],
+      "intermediatePrefixes": [
+        "tests/page-objects/",
+        "tests/selectors/",
+        "tests/locators/",
+        "tests/flows/"
+      ],
+      "specPrefixes": ["tests/smoke-appium/"],
+      "catalogGroup": "e2e",
+      "hop": 1,
+      "tagsImportRegex": "import\\s*\\{([^}]+)\\}\\s*from\\s*['\"][^'\"]*\\/tags\\.js['\"]"
+    },
+    "result": {
+      "risk_level": "medium",
+      "confidence": 88,
+      "performance_tests": {
+        "selected_tags": [],
+        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
+      }
+    },
+    "continue": true
+  },
+  {
     "name": "test-shared-infra-impact",
     "description": "Changes to flows, page-objects, selectors, or locators — find impacted smoke specs, union tags from smoke specs changed in the same PR, and run those tags",
     "trigger": {

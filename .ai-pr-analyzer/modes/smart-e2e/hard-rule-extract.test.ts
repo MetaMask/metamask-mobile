@@ -370,4 +370,65 @@ import { SmokeTokens } from '../../tags.js';
     assert.ok(out);
     assert.deepEqual(out.selectedTags, ['SmokeTokens']);
   });
+
+  it('skips a source file whose stem is in excludeSourceStems', () => {
+    const baseDir = makeTemp();
+    writeDirectImportTree(baseDir);
+    // TOKEN_PAGE stem is "TokenPage" — but we change index.ts whose stem "index" is excluded
+    const INDEX_FILE = 'app/components/Views/Wallet/index.ts';
+    mkdirSync(join(baseDir, 'app/components/Views/Wallet'), {
+      recursive: true,
+    });
+    writeFileSync(join(baseDir, INDEX_FILE), 'export {};\n');
+    const out = run(
+      [INDEX_FILE],
+      importGraphRule({
+        sourcePrefixes: ['app/'],
+        excludeSourceStems: ['index', 'types', 'utils'],
+      }),
+      tokensCatalog,
+      baseDir,
+    );
+    assert.equal(out, null);
+  });
+
+  it('traces app source through page-object to spec when stem is not excluded', () => {
+    const baseDir = makeTemp();
+    // app/Component.ts → tests/page-objects/ComponentPage.ts (imports Component) → spec
+    const APP_SOURCE = 'app/components/Component.ts';
+    const PAGE_OBJECT = 'tests/page-objects/ComponentPage.ts';
+    const COMP_SPEC = 'tests/smoke-appium/component.spec.ts';
+    mkdirSync(join(baseDir, 'app/components'), { recursive: true });
+    mkdirSync(join(baseDir, 'tests/page-objects'), { recursive: true });
+    mkdirSync(join(baseDir, 'tests/smoke-appium'), { recursive: true });
+    writeFileSync(
+      join(baseDir, APP_SOURCE),
+      'export const Component = true;\n',
+    );
+    writeFileSync(
+      join(baseDir, PAGE_OBJECT),
+      `import { Component } from '../../app/components/Component';
+export const ComponentPage = true;
+`,
+    );
+    writeFileSync(
+      join(baseDir, COMP_SPEC),
+      `import { ComponentPage } from '../page-objects/ComponentPage';
+import { SmokeTokens } from '../tags.js';
+`,
+    );
+    writeFileSync(join(baseDir, 'tags.js'), '');
+    const out = run(
+      [APP_SOURCE],
+      importGraphRule({
+        sourcePrefixes: ['app/'],
+        excludeSourceStems: ['index', 'types', 'utils'],
+        intermediatePrefixes: ['tests/page-objects/'],
+      }),
+      tokensCatalog,
+      baseDir,
+    );
+    assert.ok(out);
+    assert.deepEqual(out.selectedTags, ['SmokeTokens']);
+  });
 });
