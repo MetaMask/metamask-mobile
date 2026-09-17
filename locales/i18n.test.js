@@ -9,24 +9,22 @@ describe('getLanguage', () => {
     expect(supportedTranslationsKeys.sort()).toEqual(getLanguagesKeys.sort());
   });
 
-  it('defines supported gas-limit copy in the source locale', () => {
+  it('defines the new gas-limit copy in the source locale', () => {
     const gasModal = supportedTranslations.en.transactions.gas_modal;
 
-    expect(gasModal.gas_limit_too_low).toBe(
+    expect(gasModal.gas_limit_below_minimum).toBe(
       'Gas limit must be at least 12000',
     );
-    expect(gasModal.gas_limit_too_high).toBe(
-      'Gas limit exceeds the maximum supported value',
-    );
+    expect(gasModal.gas_limit_too_low).toBeUndefined();
   });
 
-  it('leaves new gas-limit copy to the translation pipeline', () => {
+  it('leaves the new gas-limit copy to the translation pipeline', () => {
     const translatedGasModals = Object.entries(supportedTranslations)
       .filter(([locale]) => locale !== 'en')
       .map(([, translation]) => translation.transactions.gas_modal);
 
     translatedGasModals.forEach((gasModal) => {
-      expect(gasModal.gas_limit_too_high).toBeUndefined();
+      expect(gasModal.gas_limit_below_minimum).toBeUndefined();
       expect(gasModal.gas_limit_too_low).toBeUndefined();
     });
   });

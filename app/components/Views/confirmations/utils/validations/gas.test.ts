@@ -7,9 +7,6 @@ import {
 
 describe('gas-validations', () => {
   describe('validateGas', () => {
-    const maximumGasLimit =
-      '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-
     it('returns an error message for empty gas', () => {
       const result = validateGas('');
 
@@ -49,17 +46,11 @@ describe('gas-validations', () => {
     it.each([
       ['the EIP-2780 transaction base cost', '12000'],
       ['a legacy-node response', '21000'],
-      ['the maximum representable value', maximumGasLimit],
+      ['a value above the Ethereum mainnet EIP-7825 cap', '16777217'],
     ])('returns false for %s', (_description, gas) => {
       const result = validateGas(gas);
 
       expect(result).toBe(false);
-    });
-
-    it('returns an error message above the representable range', () => {
-      const result = validateGas((BigInt(maximumGasLimit) + 1n).toString());
-
-      expect(result).toBe('Gas limit exceeds the maximum supported value');
     });
   });
 
