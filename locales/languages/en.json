@@ -66,6 +66,10 @@
       "title": "Inaccurate fee",
       "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Insufficient funds",
       "message": "You do not have enough {{nativeCurrency}} in your account to pay for network fees.",
@@ -6022,7 +6026,7 @@
       "only_numbers_allowed": "Only numbers are allowed",
       "negative_values_not_allowed": "Negative values are not allowed",
       "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
-      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
       "no_zero_value": "{{field}} must be greater than 0",
       "speed": "Speed",

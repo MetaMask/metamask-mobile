@@ -10,6 +10,7 @@ import { toast } from '@metamask/design-system-react-native';
 
 import Routes from '../../constants/navigation/Routes';
 import {
+  selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
@@ -94,6 +95,7 @@ function setSelectorValues({
   isUnlocked = true,
   basicFunctionalityEnabled = true,
   completedOnboarding = true,
+  isExistingSocialWalletRestore = false,
   shouldShowBottomSheet = false,
   shouldShowToast = false,
 }: {
@@ -102,6 +104,7 @@ function setSelectorValues({
   isUnlocked?: boolean;
   basicFunctionalityEnabled?: boolean;
   completedOnboarding?: boolean;
+  isExistingSocialWalletRestore?: boolean;
   shouldShowBottomSheet?: boolean;
   shouldShowToast?: boolean;
 } = {}) {
@@ -115,6 +118,10 @@ function setSelectorValues({
   );
   mockSelectorValues.set(selectIsUnlocked, isUnlocked);
   mockSelectorValues.set(selectCompletedOnboardingSafely, completedOnboarding);
+  mockSelectorValues.set(
+    selectIsExistingSocialWalletRestore,
+    isExistingSocialWalletRestore,
+  );
   mockSelectorValues.set(
     selectBasicFunctionalityEnabled,
     basicFunctionalityEnabled,
@@ -170,6 +177,30 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('migrates a wallet restored by social rehydration in the same session', () => {
+    // Rehydration runs inside onboarding but hands back an existing wallet that
+    // onboarding never enrols, so it must not wait for the next launch.
+    setSelectorValues({
+      isConsolidated: false,
+      completedOnboarding: false,
+      isExistingSocialWalletRestore: true,
+    });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+
+    setSelectorValues({
+      isConsolidated: false,
+      completedOnboarding: true,
+      isExistingSocialWalletRestore: true,
+    });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
   });
 
   it('opens the migration bottom sheet when scheduled', () => {

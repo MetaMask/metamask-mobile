@@ -25,6 +25,7 @@ import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import {
+  selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
@@ -81,6 +82,9 @@ export function useBasicFunctionalityConsolidation(): void {
     selectBasicFunctionalityEnabled,
   );
   const completedOnboarding = useSelector(selectCompletedOnboardingSafely);
+  const isExistingSocialWalletRestore = useSelector(
+    selectIsExistingSocialWalletRestore,
+  );
   const shouldShowBottomSheet = useSelector(
     selectShouldShowBasicFunctionalityMigrationBottomSheet,
   );
@@ -94,8 +98,14 @@ export function useBasicFunctionalityConsolidation(): void {
   // existing wallet never reads false here; latching a false read marks this as
   // an onboarding session and keeps the newly created wallet off the
   // existing-wallet migration path, which would otherwise show it a notice.
+  //
+  // Social rehydration also reads false while restoring, but it hands back a
+  // wallet that already exists and is never enrolled by onboarding, so release
+  // the latch and migrate it in the same session instead of the next launch.
   const isOnboardingSession = useRef(false);
-  if (!completedOnboarding) {
+  if (isExistingSocialWalletRestore) {
+    isOnboardingSession.current = false;
+  } else if (!completedOnboarding) {
     isOnboardingSession.current = true;
   }
 
