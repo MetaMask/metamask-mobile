@@ -259,7 +259,6 @@ export const SwapsMarketOrderConfirmButton = ({
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: sourceToken,
           location,
         },
       });

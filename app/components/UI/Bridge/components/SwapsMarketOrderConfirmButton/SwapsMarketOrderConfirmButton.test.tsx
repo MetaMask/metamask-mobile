@@ -2038,7 +2038,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2110,7 +2109,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2299,7 +2297,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
