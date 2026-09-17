@@ -47,6 +47,11 @@ export interface TradeAllowanceItem {
   used: number;
   allowance: number;
   kind: TradeAllowanceKind;
+  /**
+   * When true, the period cap is spent even if used/allowance would otherwise
+   * compute a 0% bar (missing consumed with remaining 0).
+   */
+  exhausted?: boolean;
 }
 
 // TODO: replace with real API data once the membership endpoint is available.

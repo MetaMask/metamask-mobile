@@ -2,11 +2,15 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { ALSO_INCLUDED_ITEMS } from './ProHub.constants';
+import { ALSO_INCLUDED_ITEMS, MOCK_TRADE_ALLOWANCES } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import {
+  MoneyAccountPlusBenefitsStatus,
+  useMoneyAccountPlusBenefits,
+} from '../../../hooks/useMoneyAccountPlusBenefits';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -37,6 +41,14 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
+const mockUseMoneyAccountPlusBenefits = jest.mocked(
+  useMoneyAccountPlusBenefits,
+);
+jest.mock('../../../hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusBenefits'),
+  useMoneyAccountPlusBenefits: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -63,6 +75,14 @@ describe('ProHub', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      isRefreshing: false,
+      hasError: false,
+      retry: jest.fn(),
+    });
   });
 
   // ── Access guard ───────────────────────────────────────────────────────────

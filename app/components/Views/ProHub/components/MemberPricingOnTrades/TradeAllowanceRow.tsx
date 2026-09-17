@@ -44,6 +44,10 @@ const formatUsedValue = (item: TradeAllowanceItem): string => {
 };
 
 const calculateProgress = (item: TradeAllowanceItem): number => {
+  if (item.exhausted) {
+    return 1;
+  }
+
   if (item.allowance <= 0) {
     return 0;
   }
