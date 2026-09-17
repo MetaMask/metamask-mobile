@@ -65,11 +65,16 @@ describe('getSuggestedWatchlistTokens', () => {
       uppercaseWatchedIds: true,
     },
     {
-      description:
-        'floors at one suggestion once the watchlist reaches the limit',
+      description: 'shows no suggestions once the watchlist reaches the limit',
       poolSymbols: defaultPoolSymbols,
       watchedSymbols: ['a', 'b', 'c', 'd', 'e'],
-      expectedSymbols: ['f'],
+      expectedSymbols: [],
+    },
+    {
+      description: 'shows no suggestions when the watchlist exceeds the limit',
+      poolSymbols: defaultPoolSymbols,
+      watchedSymbols: ['a', 'b', 'c', 'd', 'e', 'f'],
+      expectedSymbols: [],
     },
     {
       description:
@@ -114,5 +119,20 @@ describe('getSuggestedWatchlistTokens', () => {
 
   it('keeps the suggestion limit aligned with the perps watchlist flow', () => {
     expect(SUGGESTED_WATCHLIST_LIMIT).toBe(5);
+  });
+
+  it('deviates from the perps flow: no floor-of-one once the watchlist is full', () => {
+    // Perps keeps one suggestion at the limit; the token watchlist caps at
+    // zero so the homepage never shows suggestions past its row budget.
+    const pool = buildPool(defaultPoolSymbols);
+    const watchedIds = buildWatchedIds(pool, ['a', 'b', 'c', 'd', 'e']);
+
+    const perpsStyle = Math.max(
+      1,
+      SUGGESTED_WATCHLIST_LIMIT - watchedIds.length,
+    );
+    expect(perpsStyle).toBe(1); // sanity: the perps floor would show one
+
+    expect(getSuggestedWatchlistTokens(pool, watchedIds)).toEqual([]);
   });
 });
