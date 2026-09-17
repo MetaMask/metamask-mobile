@@ -68,6 +68,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/abi-utils',
   '@metamask/assets-controller',
   '@metamask/assets-controllers',
+  '@metamask/authenticated-user-storage',
   '@metamask/base-controller',
   '@metamask/base-data-service',
   '@metamask/address-book-controller',
@@ -81,6 +82,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/kyc-controller',
   '@metamask/multichain-network-controller',
   '@metamask/network-enablement-controller',
+  '@metamask/notification-services-controller',
   '@metamask/phishing-controller',
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
@@ -197,6 +199,7 @@ const config = {
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-glass-effect$': '<rootDir>/app/__mocks__/expo-glass-effect.tsx',
     '^expo-local-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-local-authentication.ts',
     '^expo-screen-orientation(/.*)?$':
