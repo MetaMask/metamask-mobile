@@ -745,6 +745,31 @@ describe('feedConfig home category feeds (PRED-1226)', () => {
     ]);
   });
 
+  it('localizes shipped category feeds from predict.category.* when LD omits copy', () => {
+    const remote = {
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'politics', tagSlug: 'politics' },
+        { id: 'crypto', tagSlug: 'crypto' },
+        { id: 'esports', tagSlug: 'esports' },
+        { id: 'culture', tagSlug: 'pop-culture' },
+        { id: 'weather', tagSlug: 'weather' },
+      ],
+    };
+
+    for (const id of ['politics', 'crypto', 'esports', 'culture'] as const) {
+      const config = resolvePredictFeedConfig(id, undefined, remote);
+      expect(config?.label).toBeUndefined();
+      expect(config?.titleKey).toBe(`predict.category.${id}`);
+      expect(config?.tabs[0].titleKey).toBe(`predict.category.${id}`);
+    }
+
+    const weather = resolvePredictFeedConfig('weather', undefined, remote);
+    expect(weather?.label).toBeUndefined();
+    expect(weather?.titleKey).toBeUndefined();
+  });
+
   it('lets a remote category override a bundled built-in feed', () => {
     const config = resolvePredictFeedConfig('politics', undefined, {
       enabled: true,

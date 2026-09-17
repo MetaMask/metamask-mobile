@@ -15,6 +15,7 @@ import type {
   PredictWimbledonTabFlag,
 } from '../types/flags';
 import { PREDICT_MIN_GAME_OUTCOME_VOLUME } from '../utils/marketStaleness';
+import { translateIfPresent } from '../utils/translations';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
@@ -249,6 +250,9 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
 /** Icon used for a home category tile whose `iconName` is missing or unknown. */
 export const PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME = 'Explore';
 
+export const predictHomeCategoryTitleKey = (id: string): string =>
+  `predict.category.${id}`;
+
 const createHomeCategory = ({
   id,
   tagSlug = id,
@@ -260,7 +264,7 @@ const createHomeCategory = ({
 }): PredictHomeCategoryConfig => ({
   id,
   tagSlug,
-  titleKey: `predict.category.${id}`,
+  titleKey: predictHomeCategoryTitleKey(id),
   iconName,
   enabled: true,
 });
@@ -289,3 +293,30 @@ export const DEFAULT_PREDICT_HOME_CATEGORIES_FLAG: PredictHomeCategoriesConfig =
       createHomeCategory({ id: 'tech', iconName: 'Data' }),
     ],
   };
+
+/**
+ * Tile / feed copy for a home category.
+ *
+ * 1. Remote `label` — ops override, or a new tile with no i18n yet
+ * 2. Remote `titleKey` — explicit i18n key from LD
+ * 3. Locale bank `predict.category.<id>` if a translation exists, even when LD omits copy
+ * 4. No copy — caller renders the raw id
+ */
+export const resolvePredictHomeCategoryCopy = (
+  category: PredictHomeCategoryConfig,
+): { titleKey?: string; label?: string } => {
+  const label = category.label?.trim();
+  if (label) {
+    return { label };
+  }
+
+  const titleKey = category.titleKey?.trim();
+  if (titleKey) {
+    return { titleKey };
+  }
+
+  const bundledTitleKey = predictHomeCategoryTitleKey(category.id);
+  return translateIfPresent(bundledTitleKey)
+    ? { titleKey: bundledTitleKey }
+    : {};
+};

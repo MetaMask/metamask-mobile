@@ -13,6 +13,7 @@ import {
   DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   PREDICT_POLYMARKET_GAMES_TAG_ID,
+  resolvePredictHomeCategoryCopy,
 } from './flags';
 
 /** Feeds bundled with the client and always resolvable. */
@@ -487,13 +488,15 @@ export const findPredictHomeCategory = (
 
 const createFeedFromHomeCategory = (
   category: PredictHomeCategoryConfig,
-): PredictFeedConfig =>
-  createPredictCategoryFeedConfig({
+): PredictFeedConfig => {
+  const { titleKey, label } = resolvePredictHomeCategoryCopy(category);
+  return createPredictCategoryFeedConfig({
     id: category.id,
     tagSlug: category.tagSlug,
-    titleKey: category.titleKey,
-    label: category.label,
+    titleKey,
+    label,
   });
+};
 
 /**
  * Resolves a feed id into a render-ready config.

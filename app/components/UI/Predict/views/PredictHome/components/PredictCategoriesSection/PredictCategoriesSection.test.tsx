@@ -299,6 +299,36 @@ describe('resolvePredictHomeCategories', () => {
     expect(mystery.title).toBe('mystery');
   });
 
+  it('localizes shipped category ids from predict.category.* when LD omits copy', () => {
+    const categories = resolvePredictHomeCategories({
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'politics', tagSlug: 'politics' },
+        { id: 'sports', tagSlug: 'sports' },
+        { id: 'crypto', tagSlug: 'crypto' },
+        { id: 'esports', tagSlug: 'esports' },
+        { id: 'culture', tagSlug: 'pop-culture' },
+        { id: 'finance', tagSlug: 'finance' },
+        { id: 'tech', tagSlug: 'tech' },
+        { id: 'weather', tagSlug: 'weather' },
+      ],
+    });
+
+    expect(categories.map((category) => [category.id, category.title])).toEqual(
+      [
+        ['politics', strings('predict.category.politics')],
+        ['sports', strings('predict.category.sports')],
+        ['crypto', strings('predict.category.crypto')],
+        ['esports', strings('predict.category.esports')],
+        ['culture', strings('predict.category.culture')],
+        ['finance', strings('predict.category.finance')],
+        ['tech', strings('predict.category.tech')],
+        ['weather', 'weather'],
+      ],
+    );
+  });
+
   it('keeps the first occurrence of duplicate ids', () => {
     const categories = resolvePredictHomeCategories({
       enabled: true,

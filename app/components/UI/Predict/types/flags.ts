@@ -143,9 +143,9 @@ export interface PredictHomeCategoryConfig {
   id: string;
   /** Polymarket Gamma `tag_slug` used to filter the category feed. */
   tagSlug: string;
-  /** i18n key for the tile label / feed title (built-in categories). */
+  /** i18n key for the tile / feed title. Optional; omitted copy falls back to `predict.category.<id>`. */
   titleKey?: string;
-  /** Literal label; preferred over `titleKey` so remote tiles need no i18n. */
+  /** Literal label; preferred over `titleKey` so new tiles need no i18n release. */
   label?: string;
   /**
    * Component-library `IconName`. Unknown names fall back to a default icon

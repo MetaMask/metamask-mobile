@@ -3,6 +3,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import {
   DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME,
+  resolvePredictHomeCategoryCopy,
 } from '../../../../constants/flags';
 import type { PredictFeedId } from '../../../../constants/feedConfig';
 import type {
@@ -42,18 +43,19 @@ export const resolvePredictHomeCategoryIcon = (
     : FALLBACK_ICON_NAME;
 
 /**
- * Tile label: the remote `label` wins (so new tiles need no i18n release);
- * otherwise the bundled `titleKey`, and finally the raw id.
+ * Tile label: remote `label` wins; otherwise remote/locale-bank `titleKey`;
+ * finally the raw id. Shipped ids (politics, sports, crypto, esports,
+ * culture, finance, tech) live in `predict.category.*` so LD can omit copy.
  */
 export const resolvePredictHomeCategoryTitle = (
   category: PredictHomeCategoryConfig,
 ): string => {
-  const label = category.label?.trim();
+  const { label, titleKey } = resolvePredictHomeCategoryCopy(category);
   if (label) {
     return label;
   }
-  if (category.titleKey) {
-    return strings(category.titleKey, { defaultValue: category.id });
+  if (titleKey) {
+    return strings(titleKey, { defaultValue: category.id });
   }
   return category.id;
 };
