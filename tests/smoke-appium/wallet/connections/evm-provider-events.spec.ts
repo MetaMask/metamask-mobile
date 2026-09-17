@@ -146,7 +146,11 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           await TabBarComponent.tapWallet();
           await waitForWalletHomePlaywright();
           await ensureAccountListOpenPlaywright();
-          await AccountListBottomSheet.tapAccountByNameV2('Account 2');
+          await AccountListBottomSheet.tapAccountByNameV2(
+            'Account 2',
+            false,
+            true,
+          );
           await waitForWalletHomePlaywright();
           await navigateToBrowserView();
           await Browser.navigateToTestDApp();

@@ -362,6 +362,7 @@ class AccountListBottomSheet {
   async tapAccountByNameV2(
     accountName: string,
     exactMatch: boolean = false,
+    waitForDismiss: boolean = false,
   ): Promise<void> {
     if (PlatformDetector.isAndroid()) {
       await Utilities.executeWithRetry(
@@ -415,12 +416,15 @@ class AccountListBottomSheet {
       });
     }
 
-    // Match V1: wait for sheet dismiss + active account before callers hit the tab bar.
-    await Assertions.expectElementToNotBeVisible(this.accountList, {
-      timeout: 15_000,
-      description: 'Account list dismissed after account selection',
-    });
-    await WalletView.checkActiveAccount(accountName, 10_000, exactMatch);
+    if (waitForDismiss) {
+      // For account-switching callers: wait for sheet dismiss + verify active account.
+      // Do NOT set this for permission-selection flows where the sheet stays open.
+      await Assertions.expectElementToNotBeVisible(this.accountList, {
+        timeout: 15_000,
+        description: 'Account list dismissed after account selection',
+      });
+      await WalletView.checkActiveAccount(accountName, 10_000, exactMatch);
+    }
   }
 
   async scrollToAccount(index: number): Promise<void> {
