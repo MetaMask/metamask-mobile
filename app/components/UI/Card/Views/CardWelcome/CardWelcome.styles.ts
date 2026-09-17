@@ -31,8 +31,6 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   const scale = Math.min(widthScale, heightScale);
   const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
 
-  const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
-  const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
 
   // For vertical spacing, use percentage of available height instead of pure scaling
   const scaleVertical = (size: number) => {
@@ -46,8 +44,6 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   return {
     screenWidth,
     screenHeight,
-    scaleSize,
-    scaleFont,
     scaleVertical,
     scaleHorizontal,
   };
@@ -57,8 +53,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
   const {
     screenWidth,
     screenHeight,
-    scaleSize,
-    scaleFont,
     scaleVertical,
     scaleHorizontal,
   } = createScalingFunctions(dimensions);
