@@ -1863,6 +1863,7 @@
         "active": "Active",
         "history": "History",
         "fill_history": "Fill history",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
         "previous": "Previous",
         "next": "Next",
         "page_count": "Page {{page}} of {{total}}"
@@ -2079,10 +2080,7 @@
         "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
-        "active": "Active",
-        "history": "History",
         "filled_only": "Filled orders only",
-        "visible_count": "{{count}} visible",
         "running": "Running",
         "running_with_progress": "Running · {{progress}}",
         "cancel": "Cancel",
