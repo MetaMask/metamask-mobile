@@ -18,6 +18,7 @@ type Workflow = {
   on: {
     schedule?: { cron: string }[];
     pull_request?: unknown;
+    workflow_run?: { workflows: string[]; types: string[] };
     workflow_dispatch: { inputs: Record<string, unknown> };
   };
   jobs: Record<
@@ -33,13 +34,47 @@ const loadWorkflow = () =>
   yaml.load(fs.readFileSync(WORKFLOW_PATH, 'utf8')) as Workflow;
 
 describe('Analyze App Profiling triggers', () => {
-  it('runs only on manual dispatch', () => {
+  it('never runs on a schedule or a pull request', () => {
     const workflow = loadWorkflow();
 
     expect(workflow.on).not.toHaveProperty('schedule');
     expect(workflow.on).not.toHaveProperty('pull_request');
     expect(workflow.on.workflow_dispatch).toBeDefined();
-    expect(workflow.jobs.analyze.if).toBeUndefined();
+  });
+
+  it('chains from a finished performance suite', () => {
+    const workflow = loadWorkflow();
+
+    expect(workflow.on.workflow_run?.workflows).toStrictEqual([
+      'Run Performance E2E Tests Manually',
+    ]);
+    expect(workflow.on.workflow_run?.types).toStrictEqual(['completed']);
+  });
+
+  it('chains only successful, manually dispatched performance runs', () => {
+    const workflow = loadWorkflow();
+
+    // The performance suite also runs on a 6-hourly cron; chaining those
+    // would produce four unsolicited digests a day.
+    const condition = workflow.jobs.analyze.if ?? '';
+
+    expect(condition).toContain(
+      "github.event.workflow_run.conclusion == 'success'",
+    );
+    expect(condition).toContain(
+      "github.event.workflow_run.event == 'workflow_dispatch'",
+    );
+  });
+
+  it('analyzes the performance run that triggered the chain', () => {
+    const workflow = loadWorkflow();
+    const analysisStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Analyze app profiling',
+    );
+
+    expect(analysisStep?.env?.RUN_ID).toBe(
+      '${{ inputs.run_id || github.event.workflow_run.id }}',
+    );
   });
 
   it('keeps the manual workflow trigger and its inputs', () => {
@@ -69,13 +104,16 @@ describe('Analyze App Profiling triggers', () => {
     expect(command).toContain('ARGS+=(--run \"${RUN_ID}\")');
   });
 
-  it('posts Slack only when the dispatch checkbox is on', () => {
+  it('posts Slack on a chained run and on an opted-in dispatch', () => {
     const workflow = loadWorkflow();
     const slackStep = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Post Slack summary',
     );
 
     expect(slackStep?.if).toContain('inputs.post_to_slack');
+    expect(slackStep?.if).toContain(
+      "github.event_name != 'workflow_dispatch'",
+    );
     expect(slackStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
   });
 });
