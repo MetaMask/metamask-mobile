@@ -4,36 +4,44 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+  type FilterButtonGroupProps,
 } from '@metamask/design-system-react-native';
 import type { TimePeriod } from '../useTraderPositionData';
-import TimePeriodButton from './TimePeriodButton';
 
 export interface TraderTimePeriodSelectorProps {
   timePeriods: readonly TimePeriod[];
   activeTimePeriod: TimePeriod;
   onSelectPeriod: (period: TimePeriod) => void;
+  twClassName?: FilterButtonGroupProps['twClassName'];
 }
 
 const TraderTimePeriodSelector: React.FC<TraderTimePeriodSelectorProps> = ({
   timePeriods,
   activeTimePeriod,
   onSelectPeriod,
+  twClassName,
 }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName="px-4 pt-3 pb-3"
+  <FilterButtonGroup
+    value={activeTimePeriod}
+    onChange={(value) => onSelectPeriod(value as TimePeriod)}
+    variant={FilterButtonVariant.Secondary}
+    twClassName={twClassName}
   >
     {timePeriods.map((period) => (
-      <TimePeriodButton
+      <FilterButton
         key={period}
-        label={period}
-        isActive={activeTimePeriod === period}
-        onPress={() => onSelectPeriod(period)}
-      />
+        value={period}
+        size={FilterButtonSize.Sm}
+        twClassName="flex-1 px-2 min-w-8"
+      >
+        {period}
+      </FilterButton>
     ))}
-  </Box>
+  </FilterButtonGroup>
 );
 
 export default TraderTimePeriodSelector;

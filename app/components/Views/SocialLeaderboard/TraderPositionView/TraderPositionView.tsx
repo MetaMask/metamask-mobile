@@ -6,7 +6,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { type LayoutChangeEvent, RefreshControl, View } from 'react-native';
+import {
+  type LayoutChangeEvent,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 import Animated, {
   runOnJS,
   useAnimatedReaction,
@@ -29,6 +34,7 @@ import {
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
+
 import {
   Box,
   BoxAlignItems,
@@ -769,27 +775,23 @@ const TraderPositionView = () => {
               }
               onSupportsChartTypeChange={setIsAdvancedChartActive}
             />
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="pr-4"
-            >
-              <Box twClassName="min-w-0 flex-1">
-                {isPerp ? (
-                  <CandlePeriodSelector
-                    selectedPeriod={selectedCandlePeriod}
-                    onPeriodChange={setSelectedCandlePeriod}
-                    onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
-                    twClassName="px-4 pt-3 pb-3"
-                  />
-                ) : (
-                  <TraderTimePeriodSelector
-                    timePeriods={timePeriods}
-                    activeTimePeriod={activeTimePeriod}
-                    onSelectPeriod={setActiveTimePeriod}
-                  />
-                )}
-              </Box>
+            <Box twClassName="flex-row items-center justify-between px-4 gap-2">
+              {isPerp ? (
+                <CandlePeriodSelector
+                  selectedPeriod={selectedCandlePeriod}
+                  onPeriodChange={setSelectedCandlePeriod}
+                  onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
+                />
+              ) : (
+                <TraderTimePeriodSelector
+                  timePeriods={timePeriods}
+                  activeTimePeriod={activeTimePeriod}
+                  onSelectPeriod={setActiveTimePeriod}
+                  // TODO: @metamask-design-system figure out the height bug issue in the FilterButtonGroup
+                  // had to add mt-1 to try to align the chart buttons here
+                  twClassName="mt-1 flex-1 w-full"
+                />
+              )}
               {/* Chart-type toggle only applies while AdvancedChart is
                   the active surface (it honors chartType). Hide it on
                   unsupported spot and whenever either advanced chart

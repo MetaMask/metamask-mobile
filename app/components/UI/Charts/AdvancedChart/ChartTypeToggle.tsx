@@ -1,51 +1,47 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   Icon,
   IconName,
   IconSize,
+  FilterButton,
+  FilterButtonSize,
+  FilterButtonVariant,
+  SegmentedControl,
+  SegmentedControlSize,
 } from '@metamask/design-system-react-native';
 import { ChartType } from './AdvancedChart.types';
 
 interface ChartTypeToggleProps {
   chartType?: ChartType;
   onChartTypeSelect?: (type: ChartType) => void;
-  /** Outer container classes; defaults to time-range row spacing. */
-  containerTwClassName?: string;
+  twClassName?: string;
 }
-
-const DEFAULT_CONTAINER_CLASS =
-  'ml-2 rounded-full border border-border-muted p-0.5';
 
 const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
   chartType,
   onChartTypeSelect,
-  containerTwClassName = DEFAULT_CONTAINER_CLASS,
+  twClassName,
 }) => {
-  const tw = useTailwind();
-
   if (!onChartTypeSelect) return null;
 
+  const handleChange = (value: string) => {
+    const numValue = parseInt(value, 10) as ChartType;
+    onChartTypeSelect(numValue);
+  };
+
+  const selectedValue = chartType ? chartType.toString() : '';
+
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName={containerTwClassName}
+    <SegmentedControl
+      value={selectedValue}
+      onChange={handleChange}
+      size={SegmentedControlSize.Sm}
+      twClassName={twClassName}
     >
-      <Pressable
-        style={({ pressed }) =>
-          tw.style(
-            'items-center justify-center rounded-full px-2 py-1',
-            chartType === ChartType.Line && 'bg-background-hover',
-            pressed && 'opacity-70',
-          )
-        }
-        onPress={() => onChartTypeSelect(ChartType.Line)}
-        accessibilityRole="button"
+      <FilterButton
+        value={ChartType.Line.toString()}
+        size={FilterButtonSize.Sm}
+        variant={FilterButtonVariant.Secondary}
         accessibilityLabel="Line chart"
         accessibilityState={{ selected: chartType === ChartType.Line }}
       >
@@ -58,17 +54,11 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
               : 'text-icon-alternative'
           }
         />
-      </Pressable>
-      <Pressable
-        style={({ pressed }) =>
-          tw.style(
-            'items-center justify-center rounded-full px-2 py-1',
-            chartType === ChartType.Candles && 'bg-background-hover',
-            pressed && 'opacity-70',
-          )
-        }
-        onPress={() => onChartTypeSelect(ChartType.Candles)}
-        accessibilityRole="button"
+      </FilterButton>
+      <FilterButton
+        value={ChartType.Candles.toString()}
+        size={FilterButtonSize.Sm}
+        variant={FilterButtonVariant.Secondary}
         accessibilityLabel="Candlestick chart"
         accessibilityState={{ selected: chartType === ChartType.Candles }}
       >
@@ -81,8 +71,8 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
               : 'text-icon-alternative'
           }
         />
-      </Pressable>
-    </Box>
+      </FilterButton>
+    </SegmentedControl>
   );
 };
 

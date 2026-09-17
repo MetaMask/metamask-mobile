@@ -3,14 +3,16 @@ import { Dimensions, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  FontWeight,
   Icon,
   IconName,
   IconSize,
+  FilterButton,
+  FilterButtonSize,
+  SegmentedControl,
+  SegmentedControlSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
@@ -115,48 +117,39 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full flex-1 rounded-full"
+          twClassName="w-full gap-2"
         >
-          {ranges.map((range) => {
-            const isSelected = selected === range;
-            return (
-              <Pressable
-                key={range}
-                style={({ pressed }) =>
-                  tw.style(
-                    SEGMENT_BUTTON_BASE,
-                    isSelected &&
-                      (selectedColor
-                        ? { backgroundColor: selectedColor }
-                        : 'bg-muted'),
-                    pressed && 'opacity-70',
-                  )
-                }
-                onPress={() => onSelect(range)}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  twClassName={
-                    isSelected
-                      ? selectedColor
-                        ? 'text-success-inverse'
-                        : 'text-text-default'
-                      : selectedColor
-                        ? undefined
-                        : 'text-text-alternative'
-                  }
-                  style={
-                    !isSelected && selectedColor
-                      ? { color: selectedColor }
-                      : undefined
-                  }
+          <SegmentedControl
+            value={selected}
+            onChange={(value) => onSelect(value as TimeRange)}
+            size={SegmentedControlSize.Sm}
+            twClassName="flex-1 rounded-full"
+          >
+            {ranges.map((range) => {
+              const isSelected = selected === range;
+              const hasCustomColor = selectedColor && isSelected;
+              const textColor = hasCustomColor
+                ? selectedColor.includes('success') ||
+                  selectedColor === '#02C84B'
+                  ? TextColor.SuccessInverse
+                  : TextColor.WarningInverse
+                : undefined;
+
+              return (
+                <FilterButton
+                  key={range}
+                  value={range}
+                  size={FilterButtonSize.Sm}
+                  twClassName={`flex-1 ${
+                    hasCustomColor ? `bg-[${selectedColor}]` : ''
+                  }`}
+                  textProps={textColor ? { color: textColor } : undefined}
                 >
                   {range}
-                </Text>
-              </Pressable>
-            );
-          })}
+                </FilterButton>
+              );
+            })}
+          </SegmentedControl>
           {onChartTypeToggle ? (
             <Pressable
               style={({ pressed }) =>
