@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import {
   BottomSheet,
@@ -12,7 +12,6 @@ import ModalContent from '../../Notification/Modal';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncToggle/BackupAndSyncToggle';
-import { InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
@@ -22,26 +21,39 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
+  const [isEnabling, setIsEnabling] = useState(false);
 
   const dispatch = useThunkDispatch();
 
-  const enableBasicFunctionality = async () => {
-    await dispatch(toggleBasicFunctionality(true));
-  };
+  // The work runs while this sheet is still up, showing its progress on the CTA.
+  // Closing first would slide this sheet out only for the settings screen to
+  // slide its loading sheet in behind it.
+  const handleEnableBackupAndSync = useCallback(async () => {
+    if (isEnabling) {
+      return;
+    }
+    setIsEnabling(true);
+    trackEnableBackupAndSyncEvent();
 
-  const handleEnableBackupAndSync = () => {
-    bottomSheetRef.current?.onCloseBottomSheet(async () => {
-      InteractionManager.runAfterInteractions(async () => {
-        trackEnableBackupAndSyncEvent();
-        await enableBasicFunctionality();
-        await enableBackupAndSync();
-      });
-    });
-  };
+    try {
+      await dispatch(toggleBasicFunctionality(true));
+      await enableBackupAndSync();
+    } finally {
+      bottomSheetRef.current?.onCloseBottomSheet();
+    }
+  }, [
+    dispatch,
+    enableBackupAndSync,
+    isEnabling,
+    trackEnableBackupAndSyncEvent,
+  ]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
+    if (isEnabling) {
+      return;
+    }
     bottomSheetRef.current?.onCloseBottomSheet();
-  };
+  }, [isEnabling]);
 
   const turnContent = {
     icon: {
@@ -69,6 +81,7 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
         hascheckBox={false}
         handleCta={handleEnableBackupAndSync}
         handleCancel={handleCancel}
+        loading={isEnabling}
       />
     </BottomSheet>
   );

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { View, Switch, Linking, InteractionManager } from 'react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -48,6 +48,11 @@ const BackupAndSyncToggle = ({
   const { colors } = theme;
 
   const { setIsBackupAndSyncFeatureEnabled, error } = useBackupAndSync();
+
+  // The confirmation sheet shows progress on its own CTA, so this screen must
+  // not raise its loading sheet on top of it.
+  const [isEnablingFromConfirmationSheet, setIsEnablingFromConfirmationSheet] =
+    useState(false);
 
   const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
   const isBackupAndSyncUpdateLoading = useSelector(
@@ -127,10 +132,15 @@ const BackupAndSyncToggle = ({
           screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
           params: {
             enableBackupAndSync: async () => {
-              await setIsBackupAndSyncFeatureEnabled(
-                BACKUPANDSYNC_FEATURES.main,
-                true,
-              );
+              setIsEnablingFromConfirmationSheet(true);
+              try {
+                await setIsBackupAndSyncFeatureEnabled(
+                  BACKUPANDSYNC_FEATURES.main,
+                  true,
+                );
+              } finally {
+                setIsEnablingFromConfirmationSheet(false);
+              }
             },
             trackEnableBackupAndSyncEvent: () =>
               trackBackupAndSyncToggleEvent(true),
@@ -182,7 +192,9 @@ const BackupAndSyncToggle = ({
       </Text>
 
       <SwitchLoadingModal
-        loading={isBackupAndSyncUpdateLoading}
+        loading={
+          isBackupAndSyncUpdateLoading && !isEnablingFromConfirmationSheet
+        }
         loadingText=""
         error={error || undefined}
       />
