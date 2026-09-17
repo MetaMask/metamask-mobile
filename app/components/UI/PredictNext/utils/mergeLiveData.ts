@@ -62,7 +62,8 @@ export const mergeGameLiveUpdate = (
  * Patches a streamed quote onto the REST-fetched market.
  *
  * Outcomes match by id. A quote is a full price snapshot, so a side the quote
- * omits is cleared, not kept: it means nobody is quoting right now. `label`
+ * omits is cleared, not kept: it means nobody is quoting right now. The same
+ * holds for `lastPrice`, which is absent until the Market trades. `label`
  * and `gameSelection` are REST-only and survive untouched.
  *
  * No staleness guard against `current.updatedAt`: REST's value is the venue's
@@ -71,7 +72,7 @@ export const mergeGameLiveUpdate = (
  */
 export const mergeMarketQuote = (
   current: PredictMarket,
-  quote: Pick<PredictQuote, 'outcomes' | 'volume' | 'updatedAt'>,
+  quote: Pick<PredictQuote, 'outcomes' | 'lastPrice' | 'volume' | 'updatedAt'>,
 ): PredictMarket => {
   const outcomes = current.outcomes.map((outcome): PredictOutcome => {
     const streamed = quote.outcomes.find(({ id }) => id === outcome.id);
@@ -87,6 +88,7 @@ export const mergeMarketQuote = (
   return {
     ...current,
     outcomes,
+    lastPrice: quote.lastPrice,
     volume: quote.volume ?? current.volume,
     updatedAt: quote.updatedAt,
   };

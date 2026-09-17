@@ -132,6 +132,11 @@ export interface PredictMarket {
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
   group?: PredictMarketGroup;
+  /**
+   * Last traded price, yes-side, as of `updatedAt`. Absent when the Market has
+   * never traded. Streamed only; the REST read model does not carry it.
+   */
+  lastPrice?: PredictDecimal;
   volume?: string;
   volume24h?: string;
   createdAt?: PredictTimestamp;

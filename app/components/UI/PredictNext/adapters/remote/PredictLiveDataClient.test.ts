@@ -22,6 +22,7 @@ const quoteFrame = {
     { id: `${marketId}:yes`, side: 'yes', bidPrice: '0.45', askPrice: '0.53' },
     { id: `${marketId}:no`, side: 'no', bidPrice: '0.47', askPrice: '0.55' },
   ],
+  lastPrice: '0.50',
   volume: '100.00',
   updatedAt: '2026-09-08T13:00:00.000Z',
 };

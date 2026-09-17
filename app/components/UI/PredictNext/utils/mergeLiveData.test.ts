@@ -136,6 +136,7 @@ describe('mergeMarketQuote', () => {
           askPrice: price('0.53'),
         },
       ],
+      lastPrice: price('0.50'),
       volume: '150.00',
       updatedAt: at('2026-09-08T13:00:00.000Z'),
     });
@@ -154,9 +155,24 @@ describe('mergeMarketQuote', () => {
           askPrice: '0.55',
         },
       ],
+      lastPrice: '0.50',
       volume: '150.00',
       updatedAt: '2026-09-08T13:00:00.000Z',
     });
+  });
+
+  it('clears the last traded price for a Market the quote reports as untraded', () => {
+    const traded = { ...currentMarket, lastPrice: price('0.50') };
+
+    const result = mergeMarketQuote(traded, {
+      outcomes: [
+        { id: id('KXTEST-A:yes'), side: 'yes', askPrice: price('0.53') },
+        { id: id('KXTEST-A:no'), side: 'no', askPrice: price('0.55') },
+      ],
+      updatedAt: at('2026-09-08T13:00:00.000Z'),
+    });
+
+    expect(result.lastPrice).toBeUndefined();
   });
 
   it('clears a side the quote reports as empty', () => {

@@ -64,6 +64,8 @@ export interface PredictQuote {
   venueId: PredictVenueId;
   marketId: PredictEntityId;
   outcomes: readonly [PredictQuoteOutcome, PredictQuoteOutcome];
+  /** Last traded price, yes-side. Absent when the Market has never traded. */
+  lastPrice?: PredictDecimal;
   volume?: string;
   updatedAt: PredictTimestamp;
 }
@@ -136,6 +138,7 @@ const quote = structType({
   venueId: string(),
   marketId: string(),
   outcomes: tuple([quoteOutcome, quoteOutcome]),
+  lastPrice: optional(decimal),
   volume: optional(string()),
   updatedAt: timestamp,
 });
