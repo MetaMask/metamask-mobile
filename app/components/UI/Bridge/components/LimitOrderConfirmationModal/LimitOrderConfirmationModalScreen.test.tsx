@@ -112,21 +112,6 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('2%')).toBeOnTheScreen();
   });
 
-  it('displays the market comparison label from route params', () => {
-    mockUseParams.mockReturnValue({
-      ...mockParams,
-      triggerComparison: {
-        label: '(+6.63% from market)',
-        isNegative: false,
-      },
-    });
-    const { getByTestId } = renderScreen(createBridgeTestState({}));
-
-    expect(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
-    ).toHaveTextContent('(+6.63% from market)');
-  });
-
   // The limit order screen writes the live comparison to
   // `limitOrderMarketComparison` (see BridgeLimitOrderView) and keeps doing
   // so while this modal is open on top of it. This screen just reads that
