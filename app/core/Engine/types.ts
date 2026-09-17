@@ -152,6 +152,7 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  NeoBankService,
   NeoBankServiceActions,
   NeoBankServiceEvents,
   TransakService,
@@ -997,6 +998,7 @@ export type MessengerClients = {
   ProfileMetricsService: ProfileMetricsService;
   ProofOfOwnershipService: ProofOfOwnershipService;
   RampsService: RampsService;
+  NeoBankService: NeoBankService;
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
@@ -1206,6 +1208,7 @@ export type MessengerClientsToInitialize =
   | 'RampsController'
   | 'RampsService'
   | 'TransakService'
+  | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
