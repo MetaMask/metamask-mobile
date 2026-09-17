@@ -230,6 +230,30 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     ).toHaveTextContent('10.00%');
   });
 
+  it('resets the amount and slider when the mode changes', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(50);
+    });
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.REMOVE_MODE_BUTTON,
+      ),
+    );
+
+    expect(screen.getByTestId('amount-display')).toHaveTextContent('0');
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER),
+    ).toHaveProp('value', 0);
+  });
+
   it('switches available amount and CTA to remove mode', () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,

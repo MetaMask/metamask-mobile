@@ -481,6 +481,11 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
             {!isInputFocused && (
               <Slider
+                // Remount on mode change so the thumb returns to 0. The slider
+                // ignores an incoming value that matches one of its own recent
+                // drag positions, treating it as a stale echo, so a drag that
+                // passed through 0 would otherwise leave the thumb in place.
+                key={mode}
                 value={sliderPercentage}
                 onValueChange={handleSliderChange}
                 minimumValue={0}
