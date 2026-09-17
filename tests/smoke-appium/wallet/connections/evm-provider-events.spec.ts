@@ -151,9 +151,7 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
             false,
             true,
           );
-          await waitForWalletHomePlaywright();
           await navigateToBrowserView();
-          await Browser.navigateToTestDApp();
           await waitForTestDappToLoad();
 
           // Active account is now Account 2 (native proxy for accountsChanged).
