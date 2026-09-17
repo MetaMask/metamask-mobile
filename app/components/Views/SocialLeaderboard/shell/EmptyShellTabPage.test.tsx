@@ -5,6 +5,21 @@ import EmptyShellTabPage from './EmptyShellTabPage';
 import { MOCK_SOCIAL_V1_FEED_ITEMS } from '../SocialV1View/feed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from '../SocialV1View/feed/components/SocialFeedPositionCard.testIds';
 
+jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { item: { id: string } } }) => (
+      <View testID={`social-v1-feed-card-${post.item.id}`} />
+    ),
+  };
+});
+
+jest.mock('../SocialV1View/feed/components/SocialFeedPostingBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));

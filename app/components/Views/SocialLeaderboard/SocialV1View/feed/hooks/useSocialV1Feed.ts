@@ -1,18 +1,41 @@
-import { useMemo } from 'react';
-import { MOCK_SOCIAL_V1_FEED_ITEMS } from '../mocks/socialV1Feed.mock';
-import type { UseSocialV1FeedResult } from '../types';
+import { useEffect, useState } from 'react';
+import { wrapMockFeedPosts } from '../mocks/wrapMockFeedPosts';
+import {
+  getSocialV1ComposedPosts,
+  getSocialV1PendingPost,
+  subscribeSocialV1ComposedFeed,
+} from '../store/socialV1ComposedFeedStore';
+import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 
 /**
  * Temporary V1 Feed data source until the social API exposes post/comment
- * fields. Matches the shape of a future live feed so the Feed tab can swap
- * implementations without changing card UI.
+ * fields. Composed posts from the plus-button composer prepend on Trending only.
  */
-export const useSocialV1Feed = (): UseSocialV1FeedResult =>
-  useMemo(
-    () => ({
-      items: MOCK_SOCIAL_V1_FEED_ITEMS,
-      isLoading: false,
-      error: null,
-    }),
+export const useSocialV1Feed = (
+  tab: SocialV1FeedTab = 'trending',
+): UseSocialV1FeedResult => {
+  const [, setRevision] = useState(0);
+
+  useEffect(
+    () => subscribeSocialV1ComposedFeed(() => setRevision((n) => n + 1)),
     [],
   );
+
+  const mockPosts = wrapMockFeedPosts();
+
+  if (tab === 'following') {
+    return {
+      posts: mockPosts,
+      pendingPost: null,
+      isLoading: false,
+      error: null,
+    };
+  }
+
+  return {
+    posts: [...getSocialV1ComposedPosts(), ...mockPosts],
+    pendingPost: getSocialV1PendingPost(),
+    isLoading: false,
+    error: null,
+  };
+};

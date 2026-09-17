@@ -42,12 +42,27 @@ jest.mock('../../../../hooks/useABTest', () => ({
 }));
 
 jest.mock('../analytics', () => {
-  const actual = jest.requireActual('../analytics');
+  const events = jest.requireActual('../analytics/socialLeaderboardEvents');
   return {
-    ...actual,
+    ...events,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
   };
 });
+
+jest.mock('./feed/components/SocialFeedPostShell', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { item: { id: string } } }) => (
+      <View testID={`social-v1-feed-card-${post.item.id}`} />
+    ),
+  };
+});
+
+jest.mock('./feed/components/SocialFeedPostingBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('../components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -86,6 +101,18 @@ jest.mock('../TopTradersView', () => {
     __esModule: true,
     default: () =>
       ReactActual.createElement(View, { testID: 'top-traders-view' }),
+  };
+});
+
+jest.mock('../shell/LeaderboardShellTabPage', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ isActive }: { isActive?: boolean }) =>
+      isActive
+        ? ReactActual.createElement(View, { testID: 'top-traders-view' })
+        : null,
   };
 });
 
@@ -222,12 +249,12 @@ describe('SocialV1View', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
   });
 
-  it('keeps the placeholder header add action inactive', () => {
+  it('opens the post composer from the plus button', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
   });
 
   it('renders the Live trades filter icon on the Live trades page', () => {

@@ -18,6 +18,7 @@ import {
 
 export interface SocialFeedPositionCardProps {
   item: SocialV1FeedItem;
+  hideComment?: boolean;
 }
 
 const compactSubHeader = (
@@ -39,8 +40,10 @@ const compactSubHeader = (
 
 const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   item,
+  hideComment = false,
 }) => {
   const commentTestID = getSocialFeedPositionCardCommentTestId(item.id);
+  const comment = hideComment ? undefined : item.comment;
 
   if (item.variant === 'perpsOpen') {
     const stats: PositionCardStatRow[] = [
@@ -69,7 +72,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         twClassName="gap-3"
         testID={getSocialFeedPositionCardTestId(item.id)}
       >
-        <PositionCardComment comment={item.comment} testID={commentTestID} />
+        <PositionCardComment comment={comment} testID={commentTestID} />
         <PositionCardShell>
           <PositionCardHeader
             layout="open"
@@ -131,7 +134,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         twClassName="gap-3"
         testID={getSocialFeedPositionCardTestId(item.id)}
       >
-        <PositionCardComment comment={item.comment} testID={commentTestID} />
+        <PositionCardComment comment={comment} testID={commentTestID} />
         <PositionCardShell>
           <PositionCardHeader
             layout="closed"
@@ -149,9 +152,53 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
     );
   }
 
+  if (item.variant === 'spotShare') {
+    const stats: PositionCardStatRow[] = [
+      {
+        key: 'entry',
+        label: strings('social_leaderboard.feed.position_card.entry_price'),
+        value: item.entryPriceLabel,
+        testID: getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+      },
+      {
+        key: 'holdTime',
+        label: strings('social_leaderboard.feed.position_card.hold_time'),
+        value: item.holdTimeLabel,
+        testID: getSocialFeedPositionCardStatTestId(item.id, 'holdTime'),
+      },
+    ];
+
+    return (
+      <Box
+        twClassName="gap-3"
+        testID={getSocialFeedPositionCardTestId(item.id)}
+      >
+        <PositionCardComment comment={comment} testID={commentTestID} />
+        <PositionCardShell>
+          <PositionCardHeader
+            layout="compact"
+            avatar={item.asset.avatar}
+            symbol={item.asset.symbol}
+            side={item.side}
+            subHeaderLabel={item.markPriceLabel}
+            valueLabel={item.valueLabel}
+            pnlLabel={item.pnlLabel}
+            isPnlPositive={item.isPnlPositive}
+          />
+          <PositionCardStats rows={stats} cardId={item.id} />
+          {item.showCopyTrade ? (
+            <CopyTradeButton
+              testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+            />
+          ) : null}
+        </PositionCardShell>
+      </Box>
+    );
+  }
+
   return (
     <Box testID={getSocialFeedPositionCardTestId(item.id)}>
-      <PositionCardComment comment={item.comment} testID={commentTestID} />
+      <PositionCardComment comment={comment} testID={commentTestID} />
       <PositionCardShell>
         <PositionCardHeader
           layout="compact"

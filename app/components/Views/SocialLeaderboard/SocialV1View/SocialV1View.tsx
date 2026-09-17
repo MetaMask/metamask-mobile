@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -43,6 +44,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { consumeSocialV1FocusTrending } from './feed/store/socialV1ComposedFeedStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -331,9 +333,12 @@ const SocialV1View: React.FC = () => {
     };
   });
 
-  const handlePlaceholderHeaderAction = useCallback(() => undefined, []);
   const handleOpenMyProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
+  }, [navigation]);
+
+  const handleOpenComposer = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
@@ -420,6 +425,20 @@ const SocialV1View: React.FC = () => {
     [changeTab],
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!consumeSocialV1FocusTrending()) {
+        return;
+      }
+      if (activeIndex === trendingIndex) {
+        return;
+      }
+      programmaticTabChangeRef.current = true;
+      pagerRef.current?.setPage(trendingIndex);
+      changeTab(trendingIndex);
+    }, [activeIndex, changeTab, trendingIndex]),
+  );
+
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -471,7 +490,7 @@ const SocialV1View: React.FC = () => {
             <ButtonIcon
               iconName={IconName.Add}
               size={ButtonIconSize.Md}
-              onPress={handlePlaceholderHeaderAction}
+              onPress={handleOpenComposer}
               testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
             />
           </Box>

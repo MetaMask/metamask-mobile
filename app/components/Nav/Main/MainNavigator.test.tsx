@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -1316,6 +1317,13 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const postComposerScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
+    );
+
+    expect(postComposerScreen).toBeDefined();
+    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
+
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
     );
@@ -1363,6 +1371,7 @@ describe('MainNavigator', () => {
       .map((child) => child.props.name);
 
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
+    expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);

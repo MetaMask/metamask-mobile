@@ -1000,6 +1000,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  SocialPostComposerView: undefined;
   MyProfileView: undefined;
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {

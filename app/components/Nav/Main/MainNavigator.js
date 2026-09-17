@@ -174,6 +174,7 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  SocialPostComposerView,
   MyProfileView,
   ManageProfileView,
   ManageProfileTextEditorView,
@@ -1425,6 +1426,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.V1}
             component={SocialV1View}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_COMPOSER}
+            component={SocialPostComposerView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
