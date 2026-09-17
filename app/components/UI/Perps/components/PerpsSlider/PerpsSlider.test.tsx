@@ -199,20 +199,10 @@ describe('PerpsSlider', () => {
   });
 
   describe('range changes', () => {
-    // The design system Slider repositions its thumb from a reaction keyed on
-    // `value` alone; `minimumValue`/`maximumValue` are read inside that worklet
-    // but never trigger it. PerpsSlider therefore drives it in a fixed 0-100
-    // percent domain, so a range change moves the `value` prop the reaction
-    // already watches — no remount, which matters because `maximumValue` is
-    // derived from live price/balance feeds and churns.
+    // A range change must move the thumb without remounting: the range streams
+    // from live feeds, and a remount would kill an in-flight drag.
 
-    /**
-     * Records one entry per *mount* of the design system Slider, so a remount
-     * is distinguishable from a prop update. The mock reports its own
-     * mount/unmount through a stable ref callback: React invokes it with the
-     * instance on mount and `null` on unmount, and reuses the same instance
-     * across plain updates.
-     */
+    /** Records one entry per mount, so a remount is distinguishable from an update. */
     const renderWithMountTracking = () => {
       const mounts: number[] = [];
       let latestPercent: number | undefined;
@@ -238,10 +228,7 @@ describe('PerpsSlider', () => {
       );
       rerender(<PerpsSlider {...defaultProps} value={10} maximumValue={34} />);
 
-      // Switching the Perps payment method collapses the spendable notional
-      // while the amount stays $10: 10/1866 is ~0.5% of the track, 10/34 is
-      // ~29.4%. The percent value moving is what makes the package's
-      // value-keyed reaction move the thumb.
+      // $10 is ~0.5% of a $1866 range but ~29.4% of a $34 one.
       expect(getSliderProps().value).toBeCloseTo(29.41, 1);
       // Exactly one mount: a remount here would reset sliderWidth/translateX
       // and rebuild the pan gesture, interrupting any drag in progress.
@@ -330,9 +317,8 @@ describe('PerpsSlider', () => {
   });
 
   describe('accessibility stepping', () => {
-    // VoiceOver increment/decrement moves by the *slider's* step
-    // (`handleAccessibilityAction` in the design system Slider), so expressing
-    // the step in percent must still resolve to exactly one caller step.
+    // VoiceOver increments by the slider's own step, so one step in percent
+    // must still resolve to exactly one caller step.
     it.each([
       [34, 1],
       [1866, 1],
@@ -365,18 +351,15 @@ describe('PerpsSlider', () => {
         <PerpsSlider {...defaultProps} minimumValue={7} maximumValue={7} />,
       );
 
-      // No caller grid exists to mirror, so the step must stay finite and
-      // positive rather than becoming 0 or NaN.
+      // No caller grid to mirror; the step must still be finite and positive.
       expect(getSliderProps().step).toBeGreaterThan(0);
       expect(Number.isFinite(getSliderProps().step)).toBe(true);
     });
   });
 
   describe('echo suppression', () => {
-    // `useSliderGesture` matches an incoming `value` against its recent emits by
-    // strict equality to suppress stale echoes. A percent that merely rounds to
-    // the same domain value misses that match and disables the guard, so the
-    // percent fed back must be exactly the percent emitted.
+    // The slider matches echoes against its own emits with ===, so the percent
+    // fed back must equal the percent emitted, not merely round to it.
     it.each([
       [34, 1],
       [1866, 1],

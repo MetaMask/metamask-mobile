@@ -100,22 +100,10 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   const isCompact = variant === 'compact';
 
-  // The design system `Slider` repositions its thumb from a
-  // `useAnimatedReaction` keyed on the `value` prop alone; `minimumValue` /
-  // `maximumValue` are read inside that worklet but do not trigger it. A range
-  // change with `value` unchanged — switching the Perps payment method
-  // recomputes the max spendable notional, e.g. 1866 -> 34, while the amount
-  // stays $10 — therefore left the thumb at the pixel position computed for the
-  // old range (0.5% of 1866, i.e. visually 0%) instead of the new one (29.4%).
-  //
-  // So drive the design system `Slider` in a fixed 0-100 percent domain and do
-  // the domain conversion here. A range change now moves `percentValue`, which
-  // is the prop the reaction already watches, so the thumb repositions without
-  // remounting. That matters because `maximumValue` is derived from live price
-  // and balance feeds: at leverage 20, ten 5-cent balance moves produce ten
-  // distinct maxima. Remounting on each would reset `sliderWidth`/`translateX`,
-  // rebuild the pan gesture, and discard the package's commit-generation echo
-  // suppression — interrupting any drag in progress.
+  // The design system `Slider` only repositions its thumb when `value` changes;
+  // it ignores range changes. Driving it in percent means a range change moves
+  // `value`, so the thumb follows without remounting (remounting would kill an
+  // in-flight drag, and the range streams from live price/balance feeds).
   const range = maximumValue - minimumValue;
   const toPercent = (domainValue: number) =>
     range > 0 ? ((domainValue - minimumValue) / range) * 100 : 0;
@@ -126,30 +114,18 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
         return minimumValue;
       }
       const raw = minimumValue + (percent / 100) * span;
-      // Snap in the caller's own domain. The slider's percent step is derived
-      // from this one, but percent is a float: rounding here is what guarantees
-      // the caller only ever receives exact multiples of its step.
+      // Percent is a float; round so the caller only sees exact step multiples.
       const stepped = step > 0 ? Math.round(raw / step) * step : raw;
       return Math.min(maximumValue, Math.max(minimumValue, stepped));
     },
     [maximumValue, minimumValue, step],
   );
 
-  // Quantize onto the same grid the gesture emits. `useSliderGesture` matches
-  // an incoming `value` against its recent emits by strict equality to suppress
-  // stale echoes; feeding back a percent that merely rounds to the same domain
-  // value misses that match, takes the "external update" branch, and disables
-  // the guard against a thumb snap-back on release. Measured on the 0..34 range
-  // this ticket targets, a raw round-trip mismatched on 99.7% of grid points;
-  // quantizing makes every echo match.
+  // Snap onto the emit grid: the slider suppresses stale echoes by matching
+  // `value` against its own emits with ===, so a near-miss percent breaks it.
   const percentValue = toPercent(toDomain(toPercent(value)));
-  // One caller step expressed in percent, so the slider's own grid is exactly
-  // the caller's grid. This keeps VoiceOver's increment/decrement — which steps
-  // by the slider's `step` (Slider.mjs `handleAccessibilityAction`) — moving
-  // one caller step per swipe, and it puts emitted percents on the same grid
-  // `toPercent(toDomain(…))` produces so echoes match by equality. Falls back
-  // to a fine grid when the range is degenerate; drag resolution is unaffected
-  // either way because it is bound by pixels, not by this step.
+  // One caller step, in percent. Keeps the slider's grid identical to the
+  // caller's, so VoiceOver's step-sized increments still move one step.
   const percentStep = range > 0 && step > 0 ? (step / range) * 100 : 0.1;
 
   const handlePercentChange = useCallback(
