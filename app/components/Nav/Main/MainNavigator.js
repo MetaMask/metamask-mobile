@@ -127,7 +127,6 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -1026,7 +1025,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
-        options={{ headerShown: false, ...slideFromLeftNativeOptions }}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
         name="Asset"

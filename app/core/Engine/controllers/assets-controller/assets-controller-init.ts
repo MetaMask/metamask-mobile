@@ -1,6 +1,10 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
 import { getVersion } from 'react-native-device-info';
 import {
+  getBackendApiUrlsOption,
+  isBackendAuthDisabled,
+} from '../../../coreBackendApiUrls';
+import {
   AssetsController,
   AssetsControllerMessenger,
   type AssetsControllerOptions,
@@ -40,6 +44,9 @@ let apiClient: QueryApiClient | null = null;
 async function safeGetBearerToken(
   initMessenger: AssetsControllerInitMessenger,
 ): Promise<string | undefined> {
+  if (isBackendAuthDisabled()) {
+    return undefined;
+  }
   try {
     return await initMessenger.call('AuthenticationController:getBearerToken');
   } catch {
@@ -80,6 +87,7 @@ function getApiClient(
       clientProduct: 'metamask-mobile',
       clientVersion: getVersion(),
       getBearerToken: () => safeGetBearerToken(initMessenger),
+      ...getBackendApiUrlsOption(),
     });
   }
   return apiClient;
