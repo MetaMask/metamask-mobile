@@ -43,9 +43,7 @@ describe('MoneyProtectWalletSheet', () => {
   });
 
   it('shows the existing passkey benefits', () => {
-    const { getAllByText, getByText } = renderWithProvider(
-      <MoneyProtectWalletSheet />,
-    );
+    const { getByText } = renderWithProvider(<MoneyProtectWalletSheet />);
 
     expect(getByText('Protect your wallet')).toBeOnTheScreen();
     expect(
@@ -53,8 +51,9 @@ describe('MoneyProtectWalletSheet', () => {
         'Get an extra layer of protection in case you lose your wallet or your login is compromised.',
       ),
     ).toBeOnTheScreen();
+    expect(getByText('Log in without your password')).toBeOnTheScreen();
     expect(getByText('Syncs across devices automatically')).toBeOnTheScreen();
-    expect(getAllByText('Verify Money account transactions')).toHaveLength(2);
+    expect(getByText('Verify Money account transactions')).toBeOnTheScreen();
   });
 
   it('continues into the existing Add passkey sheet', () => {

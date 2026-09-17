@@ -7918,7 +7918,7 @@
       "title": "Passkeys",
       "empty_title": "Protect your account with a passkey",
       "empty_description": "Get an extra layer of protection in case you lose your wallet or your login is compromised.",
-      "biometrics_title": "Verify Money account transactions",
+      "biometrics_title": "Log in without your password",
       "biometrics_description": "Use Face ID to unlock and approve.",
       "sync_title": "Syncs across devices automatically",
       "sync_description": "Your passkey stays available through your device account.",
