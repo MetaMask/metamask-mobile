@@ -4,3 +4,4 @@
 export const MAINACTIONBUTTON_TEST_ID = 'main-action-button';
 export const MAINACTIONBUTTON_ICON_TEST_ID = 'main-action-button-icon';
 export const MAINACTIONBUTTON_LABEL_TEST_ID = 'main-action-button-label';
+export const MAINACTIONBUTTON_GLASS_TEST_ID = 'main-action-button-glass';
