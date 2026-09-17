@@ -165,6 +165,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       depositPrefillStatus,
       hasInput,
       hasPrefetchedQuote,
+      hasUserEditedAmountRef,
       isInputChanged,
       isPrefillPending,
       updatePendingAmount,
@@ -228,6 +229,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       });
 
     const hasAutoSubmittedPrefill = useRef(false);
+
+    // A skipped prefill opens the keypad, but the skip can be transient while
+    // the pay token and its balance resolve. Track the release so a prefill
+    // that lands afterwards still auto-submits instead of being mistaken for
+    // the user editing. Consumed on auto-submit so a keypad the user reopens
+    // later is never dismissed from under them.
+    const wasPrefillSkippedRef = useRef(skipDepositPrefill);
+    const isPrefillSkipReleasedRef = useRef(false);
+    useEffect(() => {
+      if (wasPrefillSkippedRef.current && !skipDepositPrefill) {
+        isPrefillSkipReleasedRef.current = true;
+      }
+      wasPrefillSkippedRef.current = skipDepositPrefill;
+    }, [skipDepositPrefill]);
 
     const handleDone = useCallback(async () => {
       if (isAmountUpdateInProgressRef.current) {
@@ -313,15 +328,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      if (stage === CustomAmountStage.AmountInput) {
+      // A keypad opened only because the prefill was skipped is not editing.
+      if (
+        stage === CustomAmountStage.AmountInput &&
+        (hasUserEditedAmountRef.current || !isPrefillSkipReleasedRef.current)
+      ) {
         return;
       }
 
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
+        isPrefillSkipReleasedRef.current = false;
         handleDone();
       }
-    }, [isDepositPrefilled, amountFiat, handleDone, stage]);
+    }, [
+      isDepositPrefilled,
+      amountFiat,
+      handleDone,
+      hasUserEditedAmountRef,
+      stage,
+    ]);
 
     const isMaxAutoSubmitPending = useRef(false);
 

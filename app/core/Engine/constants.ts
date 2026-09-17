@@ -25,6 +25,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ProofOfOwnershipService',
   'RampsService',
   'TransakService',
+  'NeoBankService',
   'ComplianceService',
   'KycService',
   'QrSyncProvisioningService',
