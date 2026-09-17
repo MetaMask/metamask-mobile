@@ -447,7 +447,7 @@ describe('PredictOrderFlow', () => {
   it('marks an expired preview, refuses approval, and refreshes', async () => {
     stubFetch(() => ({
       body: makePreview({
-        expiresAt: new Date(Date.now() + 25).toISOString(),
+        expiresAt: new Date(Date.now() + 500).toISOString(),
       }),
     }));
 
