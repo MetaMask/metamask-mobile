@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import {
   TransactionType,
@@ -10,6 +10,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
+import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
@@ -30,6 +31,38 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   ]);
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
+  ]);
+
+  useEffect(() => {
+    if (
+      !transactionId ||
+      !isMoneyAccountWithdraw ||
+      !accountOverride ||
+      !isHardwareAccount(accountOverride, [ExtendedKeyringTypes.ledger])
+    ) {
+      return;
+    }
+
+    if (transactionMeta?.txParams?.from) {
+      replaceAccountInNestedTransactions({
+        transactionId,
+        nestedTransactions: transactionMeta.nestedTransactions,
+        oldAddress: accountOverride,
+        newAddress: transactionMeta.txParams.from,
+      });
+    }
+
+    Engine.context.TransactionPayController.setTransactionConfig(
+      transactionId,
+      (config) => {
+        config.accountOverride = undefined;
+      },
+    );
+  }, [
+    accountOverride,
+    isMoneyAccountWithdraw,
+    transactionId,
+    transactionMeta,
   ]);
 
   const handleAccountSelected = useCallback(
