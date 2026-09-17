@@ -118,6 +118,7 @@ describe('usePerpsAdjustMarginData', () => {
 
       expect(result.current.position).toEqual(mockPosition);
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasValidPositionData).toBe(true);
     });
 
     it('returns null when position is not found', () => {
@@ -233,6 +234,31 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.spendableBalance).toBe(0);
       expect(result.current.maxAmount).toBe(0);
       expect(Number.isFinite(result.current.positionLeverage)).toBe(true);
+      expect(result.current.hasValidPositionData).toBe(false);
+    });
+
+    it.each([
+      { marginUsed: '0' },
+      { positionValue: '0' },
+      { liquidationPrice: 'NaN' },
+      { size: '0' },
+      { entryPrice: 'Infinity' },
+      { leverage: { value: 0, type: 'isolated' as const } },
+    ])('rejects incomplete authoritative position data: %o', (overrides) => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, ...overrides }],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.hasValidPositionData).toBe(false);
     });
   });
 

@@ -163,6 +163,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const {
     position,
     isLoading,
+    hasValidPositionData,
     currentMargin,
     maxAmount,
     currentLiquidationPrice,
@@ -202,10 +203,16 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const positionError = isPositionGone
     ? strings('perps.errors.position_not_found')
     : null;
+  const isPositionDataInvalid =
+    !isLoading && Boolean(position) && !hasValidPositionData;
+  const positionDataError = isPositionDataInvalid
+    ? strings('perps.adjust_margin.position_data_unavailable')
+    : null;
   const displayedErrors = [
     ...validationErrors,
     ...(submissionError ? [submissionError] : []),
     ...(positionError ? [positionError] : []),
+    ...(positionDataError ? [positionDataError] : []),
   ];
 
   usePerpsMeasurement({
@@ -249,6 +256,21 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
         PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
       [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: positionError,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
+        ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
+        : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
+      [PERPS_EVENT_PROPERTY.ASSET]: routePosition.symbol,
+    },
+  });
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_ERROR,
+    conditions: [isPositionDataInvalid],
+    resetConditions: [!isPositionDataInvalid],
+    properties: {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+        PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: positionDataError,
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
         ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
         : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
@@ -325,6 +347,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     if (
       marginAmount <= 0 ||
       !position ||
+      !hasValidPositionData ||
       isAdjusting ||
       adjustmentPendingRef.current ||
       validationErrors.length ||
@@ -358,6 +381,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     flooredMaxAmount,
     handleAddMargin,
     handleRemoveMargin,
+    hasValidPositionData,
     currentMargin,
     isAddMode,
     isAdjusting,
@@ -417,6 +441,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     marginAmount <= 0 ||
     isAdjusting ||
     isPositionGone ||
+    isPositionDataInvalid ||
     marginAmount > flooredMaxAmount ||
     Boolean(validationErrors.length);
 

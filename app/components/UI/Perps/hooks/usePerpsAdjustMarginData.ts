@@ -28,6 +28,8 @@ export interface UsePerpsAdjustMarginDataReturn {
   position: Position | null;
   /** Whether position data is still loading */
   isLoading: boolean;
+  /** Whether all authoritative position fields are valid for adjustment */
+  hasValidPositionData: boolean;
   /** Current margin in position */
   currentMargin: number;
   /** Position notional value */
@@ -61,6 +63,13 @@ const parseFiniteNumber = (
   return Number.isFinite(parsedValue) ? parsedValue : fallback;
 };
 
+const isFiniteNumber = (value: string | number | null | undefined): boolean => {
+  if (value === null || value === undefined || value === '') {
+    return false;
+  }
+  return Number.isFinite(Number(value));
+};
+
 /**
  * Hook for margin adjustment data and calculations
  *
@@ -92,6 +101,34 @@ export function usePerpsAdjustMarginData(
     () => positions?.find((p) => p.symbol === symbol) || null,
     [positions, symbol],
   );
+
+  const hasValidPositionData = useMemo(() => {
+    if (!position) {
+      return false;
+    }
+
+    const marginUsed = Number(position.marginUsed);
+    const positionValue = Number(position.positionValue);
+    const liquidationPrice = Number(position.liquidationPrice);
+    const size = Number(position.size);
+    const entryPrice = Number(position.entryPrice);
+    const leverage = Number(position.leverage?.value);
+
+    return (
+      isFiniteNumber(position.marginUsed) &&
+      marginUsed > 0 &&
+      isFiniteNumber(position.positionValue) &&
+      positionValue > 0 &&
+      isFiniteNumber(position.liquidationPrice) &&
+      liquidationPrice > 0 &&
+      isFiniteNumber(position.size) &&
+      size !== 0 &&
+      isFiniteNumber(position.entryPrice) &&
+      entryPrice > 0 &&
+      isFiniteNumber(position.leverage?.value) &&
+      leverage > 0
+    );
+  }, [position]);
 
   // Get market info for max leverage fallback
   const marketInfo = useMemo(
@@ -233,6 +270,7 @@ export function usePerpsAdjustMarginData(
   return {
     position,
     isLoading: isInitialLoading,
+    hasValidPositionData,
     currentMargin,
     positionValue,
     maxAmount,

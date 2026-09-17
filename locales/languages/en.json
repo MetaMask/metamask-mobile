@@ -2294,6 +2294,7 @@
       "margin_available_to_remove": "Margin available to remove",
       "available_to_add": "Available to add",
       "available_to_remove": "Available to remove",
+      "position_data_unavailable": "Position data is unavailable. Please try again.",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance",

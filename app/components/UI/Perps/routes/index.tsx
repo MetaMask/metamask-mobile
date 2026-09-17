@@ -72,20 +72,16 @@ import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/c
 import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
 
-/* eslint-disable react-native/no-color-literals -- React Native has no semantic token for transparent route content. */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  transparent: {
-    backgroundColor: 'transparent',
-  },
 });
-/* eslint-enable react-native/no-color-literals */
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
@@ -130,6 +126,20 @@ export const shouldRenderPerpsConfirmationLoader = (
   useBottomSheet: boolean | undefined,
   approvalRequest: unknown,
 ) => Boolean(useBottomSheet && !approvalRequest);
+
+export const getAdjustMarginOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: '',
+      }
+    : {
+        title: strings('perps.adjust_margin.title'),
+        headerShown: false,
+      };
 
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -188,22 +198,22 @@ const PerpsConfirmScreen = () => {
 
   return (
     <NavigationContext.Provider value={noHeaderNavigation}>
-      <Confirm
-        disableSafeArea
-        contentOnly={params?.useBottomSheet}
-        fullscreenStyle={
-          params?.useBottomSheet ? styles.transparent : undefined
-        }
-      />
+      <Confirm disableSafeArea />
     </NavigationContext.Provider>
   );
 };
 
-const PerpsAdjustMarginRouter = () => {
+export const PerpsAdjustMarginRouter = () => {
+  const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsAdjustMargin'>>();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
-  if (params?.useBottomSheet && params.position && params.mode) {
+  useEffect(() => {
+    navigation.setOptions(getAdjustMarginOptions(useBottomSheet));
+  }, [navigation, useBottomSheet]);
+
+  if (useBottomSheet && params?.position && params.mode) {
     return (
       <PerpsAdjustMarginBottomSheet
         position={params.position}
@@ -474,16 +484,7 @@ const PerpsScreenStack = () => {
                 name={Routes.PERPS.ADJUST_MARGIN}
                 component={PerpsAdjustMarginRouter}
                 options={({ route }) =>
-                  route.params?.useBottomSheet
-                    ? {
-                        ...clearNativeStackNavigatorOptions,
-                        ...transparentModalScreenOptions,
-                        title: '',
-                      }
-                    : {
-                        title: strings('perps.adjust_margin.title'),
-                        headerShown: false,
-                      }
+                  getAdjustMarginOptions(route.params?.useBottomSheet)
                 }
               />
 

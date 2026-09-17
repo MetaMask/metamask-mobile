@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -7,8 +8,11 @@ import usePerpsToasts from './usePerpsToasts';
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { translatePerpsError } from '../utils/translatePerpsError';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;
@@ -29,6 +33,7 @@ export function usePerpsMarginAdjustment(
   const isAdjustingRef = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
 
   const handleMarginUpdate = useCallback(
     async (symbol: string, amount: number, action: 'add' | 'remove') => {
@@ -68,6 +73,12 @@ export function usePerpsMarginAdjustment(
                   amount.toString(),
                 ),
           );
+
+          track(MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION, {
+            [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+            [PERPS_EVENT_PROPERTY.ACTION]: action,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+          });
 
           // Call success callback if provided
           options?.onSuccess?.();
@@ -133,6 +144,7 @@ export function usePerpsMarginAdjustment(
       showToast,
       PerpsToastOptions.positionManagement.margin,
       options,
+      track,
     ],
   );
 

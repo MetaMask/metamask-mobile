@@ -71,17 +71,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../PerpsAmountDisplay', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Pressable } = jest.requireActual('react-native');
   return ({
     amount,
     accessibilityLabel,
+    onPress,
   }: {
     amount: string;
     accessibilityLabel?: string;
+    onPress?: () => void;
   }) =>
     ReactActual.createElement(
-      Text,
-      { testID: 'amount-display', accessibilityLabel },
+      Pressable,
+      { testID: 'amount-display', accessibilityLabel, onPress },
       amount,
     );
 });
@@ -91,7 +93,12 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => 'LivePriceHeader');
 
 jest.mock('../PerpsBottomSheetTooltip', () => 'PerpsBottomSheetTooltip');
 
-jest.mock('../../../../Base/Keypad', () => 'Keypad');
+jest.mock('../../../../Base/Keypad', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ({ onChange }: { onChange: (value: { value: string }) => void }) =>
+    ReactActual.createElement(View, { testID: 'keypad', onChange });
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -138,6 +145,7 @@ const position: Position = {
 const createMarginData = (mode: 'add' | 'remove') => ({
   position,
   isLoading: false,
+  hasValidPositionData: true,
   currentMargin: 500,
   positionValue: 5000,
   maxAmount: mode === 'add' ? 1000 : 200,
@@ -228,6 +236,40 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
     ).toHaveTextContent('10.00%');
+  });
+
+  it('supports quick amounts while the keypad is open', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    fireEvent.press(screen.getByTestId('amount-display'));
+    fireEvent.press(screen.getByText('25%'));
+
+    expect(screen.getByTestId('amount-display')).toHaveTextContent('250.00');
+
+    fireEvent.press(screen.getByText('perps.deposit.done_button'));
+
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER),
+    ).toBeOnTheScreen();
+  });
+
+  it('clamps keypad input to the removable margin', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    fireEvent.press(screen.getByTestId('amount-display'));
+    act(() => {
+      (
+        screen.getByTestId('keypad').props as {
+          onChange: (value: { value: string }) => void;
+        }
+      ).onChange({ value: '500' });
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveTextContent('200.00');
   });
 
   it('resets the amount and slider when the mode changes', () => {
@@ -476,5 +518,36 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         }),
       }),
     );
+  });
+
+  it('blocks submission when authoritative position data is malformed', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      hasValidPositionData: false,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+    const slider = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER,
+    );
+    act(() => {
+      (
+        slider.props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(50);
+    });
+
+    expect(
+      screen.getByRole('alert', {
+        name: 'perps.adjust_margin.position_data_unavailable',
+      }),
+    ).toBeOnTheScreen();
+    const confirmButton = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+    expect(confirmButton).toBeDisabled();
+    fireEvent.press(confirmButton);
+    expect(mockHandleAddMargin).not.toHaveBeenCalled();
   });
 });

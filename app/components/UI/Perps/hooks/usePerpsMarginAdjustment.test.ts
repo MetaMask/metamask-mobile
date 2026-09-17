@@ -4,11 +4,16 @@ import { usePerpsMarginAdjustment } from './usePerpsMarginAdjustment';
 
 const mockUpdateMargin = jest.fn();
 const mockShowToast = jest.fn();
+const mockTrack = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
     updateMargin: mockUpdateMargin,
   }),
+}));
+
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
 jest.mock('./usePerpsToasts', () => ({
@@ -66,6 +71,14 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   PERPS_CONSTANTS: { FeatureName: 'perps' },
+  PERPS_EVENT_PROPERTY: {
+    ACTION: 'action',
+    ASSET: 'asset',
+    STATUS: 'status',
+  },
+  PERPS_EVENT_VALUE: {
+    STATUS: { SUCCESS: 'success' },
+  },
   getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
 }));
 
@@ -169,6 +182,16 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnSuccess).toHaveBeenCalled();
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'add',
+          asset: 'BTC',
+          status: 'success',
+        },
+      );
     });
 
     it('shows error toast on failed add margin', async () => {
@@ -192,6 +215,7 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnError).toHaveBeenCalledWith('Insufficient funds');
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 
