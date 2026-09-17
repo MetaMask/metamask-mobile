@@ -1,7 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
+import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -63,7 +64,6 @@ function buildProps(
     networkFee: '$1.69',
     feeToken: mockSourceToken,
     onConfirm: jest.fn(),
-    onEditCostTolerancePress: jest.fn(),
     onClose: jest.fn(),
     ...overrides,
   };
@@ -90,5 +90,47 @@ describe('LimitOrderConfirmationModal', () => {
     rerender(<LimitOrderConfirmationModal {...props} costTolerance="0.5%" />);
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the market comparison label when triggerComparison is provided', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          triggerComparison: {
+            label: '(-5% from market)',
+            isNegative: true,
+          },
+        })}
+      />,
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toHaveTextContent('(-5% from market)');
+  });
+
+  it('omits the market comparison label when triggerComparison is undefined', () => {
+    const { queryByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({ triggerComparison: undefined })}
+      />,
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toBeNull();
+  });
+
+  it('calls onConfirm when the confirm button is pressed', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps({ onConfirm })} />,
+    );
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.CONFIRM_BUTTON),
+    );
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });

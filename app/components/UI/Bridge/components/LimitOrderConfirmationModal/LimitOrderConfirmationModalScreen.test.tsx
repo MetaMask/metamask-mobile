@@ -1,25 +1,19 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { createBridgeTestState } from '../../testUtils';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
+    goBack: jest.fn(),
   }),
 }));
 
@@ -116,16 +110,18 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('2%')).toBeOnTheScreen();
   });
 
-  it('navigates to the limit order default cost tolerance modal when edit is pressed', () => {
+  it('displays the market comparison label from route params', () => {
+    mockUseParams.mockReturnValue({
+      ...mockParams,
+      triggerComparison: {
+        label: '(+6.63% from market)',
+        isNegative: false,
+      },
+    });
     const { getByTestId } = renderScreen(createBridgeTestState({}));
 
-    fireEvent.press(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_EDIT),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen:
-        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
-    });
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toHaveTextContent('(+6.63% from market)');
   });
 });

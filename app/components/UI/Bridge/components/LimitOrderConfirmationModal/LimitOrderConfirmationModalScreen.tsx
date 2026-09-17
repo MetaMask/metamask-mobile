@@ -14,13 +14,6 @@ export const LimitOrderConfirmationModalScreen = () => {
   const params = useParams<LimitOrderConfirmationModalParams>();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
 
-  const handleEditCostTolerancePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen:
-        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
-    });
-  }, [navigation]);
-
   const handleConfirm = useCallback(() => {
     // STUB FOR LIMIT ORDER CREATION
     console.warn('Confirm limit order');
@@ -32,7 +25,6 @@ export const LimitOrderConfirmationModalScreen = () => {
       costTolerance={`${costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE}%`}
       goBack={navigation.goBack}
       onConfirm={handleConfirm}
-      onEditCostTolerancePress={handleEditCostTolerancePress}
     />
   );
 };
