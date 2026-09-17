@@ -1618,6 +1618,7 @@ describe('useTransactionCustomAmount', () => {
       chainId: '0x1' as Hex,
       id: transactionIdMock,
       txParams: {
+        from: '0x1234567890123456789012345678901234567890',
         to: '0x8888888888888888888888888888888888888888',
       },
     };
