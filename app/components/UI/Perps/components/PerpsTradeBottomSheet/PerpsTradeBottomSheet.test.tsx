@@ -25,7 +25,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    BottomSheet: ReactMock.forwardRef(
       (
         {
           children,
@@ -34,10 +34,10 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: React.Ref<unknown>,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (callback: () => void) => {
+          onOpenBottomSheet: (callback: () => void) => {
             openCallback = callback;
           },
-          onCloseDialog: (callback?: () => void) => {
+          onCloseBottomSheet: (callback?: () => void) => {
             onClose();
             callback?.();
           },

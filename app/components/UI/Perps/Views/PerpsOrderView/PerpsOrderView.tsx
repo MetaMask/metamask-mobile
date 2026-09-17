@@ -183,6 +183,8 @@ import {
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
+import { isHardwareAccount } from '../../../../../util/address';
+import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -324,6 +326,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Check if there's an active transaction
   const activeTransactionMeta = useTransactionMetadataRequest();
+  const isPayWithDisabled = Boolean(
+    isHardwareAccount(activeTransactionMeta?.txParams?.from ?? ''),
+  );
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
@@ -1906,6 +1911,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
 
   const handlePayWithPress = useCallback(() => {
+    if (isPayWithDisabled) {
+      return;
+    }
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
@@ -1913,7 +1921,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tradeSheetPayTokenIdentityRef.current = payTokenIdentity;
     resetPerpsPaymentTokenSelection();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [navigation, payTokenIdentity, track]);
+  }, [isPayWithDisabled, navigation, payTokenIdentity, track]);
 
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
@@ -1973,6 +1981,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const hasInvalidTPSL = isTakeProfitPriceInvalid || isStopLossPriceInvalid;
+
+  // Keep every order-validity and submission-safety gate shared between the
+  // full-screen and Trade-sheet CTAs. Async validation is intentionally not a
+  // presentation blocker: both surfaces allow the tap and handlePlaceOrder
+  // awaits validateNow() before any deposit or order execution.
+  const isOrderSubmissionBlocked =
+    !orderValidation.isValid ||
+    isPlacingOrder ||
+    doesStopLossRiskLiquidation ||
+    hasInvalidTPSL ||
+    isAtOICap ||
+    shouldBlockBecauseOfFeesLoading ||
+    hasBlockingPayAlerts;
 
   let rewardAnimationState = RewardAnimationState.Idle;
   if (rewardsState.isLoading) {
@@ -2081,6 +2102,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           })
         : PERPS_CONSTANTS.FallbackDataDisplay;
     const tradeSheetOrderType = orderForm.type === 'limit' ? 'limit' : 'market';
+    const limitPriceWarning = getLimitPriceCrossingWarning({
+      orderType: tradeSheetOrderType,
+      direction: orderForm.direction,
+      limitPrice: orderForm.limitPrice,
+      midPrice: assetData.price,
+      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+    });
     const tradeSheetPercentChange = (() => {
       const parsed = Number.parseFloat(currentPrice?.percentChange24h ?? '');
       return Number.isFinite(parsed) ? parsed : null;
@@ -2091,18 +2119,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const isTradeSheetMarginLoading =
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
     const submitDisabled =
-      !orderValidation.isValid ||
-      orderValidation.isValidating ||
-      isPlacingOrder ||
+      isOrderSubmissionBlocked ||
       isLoadingAccount ||
       isLoadingMarketData ||
       isMarketDataUnavailable ||
-      isFeesLoading ||
-      doesStopLossRiskLiquidation ||
-      hasInvalidTPSL ||
-      isAtOICap ||
-      shouldBlockBecauseOfFeesLoading ||
-      hasBlockingPayAlerts;
+      isFeesLoading;
     const bottomSheetErrors = [
       ...(hasInsufficientFundsError
         ? [
@@ -2200,6 +2221,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 percentChange24h={tradeSheetPercentChange}
                 orderType={tradeSheetOrderType}
                 limitPrice={orderForm.limitPrice}
+                limitPriceWarning={limitPriceWarning}
                 autoCloseText={tpSlDisplayText}
                 margin={marginDisplay}
                 amount={displayAmount}
@@ -2225,6 +2247,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 payWithName={payWithName}
                 payWithBalance={payWithBalance}
                 showPayWith={isPayRowVisible}
+                isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
@@ -2248,6 +2271,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
                 onAutoClosePress={handleTPSLPress}
                 onPayWithPress={handlePayWithPress}
+                onMarginInfoPress={() => handleTooltipPress('margin')}
                 onSubmit={() => handlePlaceOrder()}
               />
             ),
@@ -2715,15 +2739,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPress={() => handlePlaceOrder()}
               isFullWidth
               size={ButtonBaseSize.Lg}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
+              isDisabled={isOrderSubmissionBlocked}
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
@@ -2735,15 +2751,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               size={ButtonSizeRNDesignSystem.Lg}
               isFullWidth
               onPress={() => handlePlaceOrder()}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
+              isDisabled={isOrderSubmissionBlocked}
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >

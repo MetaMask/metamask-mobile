@@ -1,11 +1,5 @@
 import React, { ReactNode, useEffect } from 'react';
-import {
-  BackHandler,
-  StyleProp,
-  TouchableWithoutFeedback,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -122,17 +116,13 @@ export interface FullScreenConfirmationParams extends ConfirmationParams {
 const ConfirmWrapped = ({
   styles,
   route,
-  contentOnly = false,
 }: {
   styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
-  contentOnly?: boolean;
 }) => {
   const isScrollDisabled = useDisableScroll();
 
-  const content = contentOnly ? (
-    <Info route={route} />
-  ) : (
+  const content = (
     <>
       <Title />
       <ScrollView
@@ -168,18 +158,9 @@ interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
   /** When true, disables SafeAreaView insets when confirmation is full screen. Defaults to false. */
   disableSafeArea?: boolean;
-  /** Optional style applied to the full-screen confirmation container. */
-  fullscreenStyle?: StyleProp<ViewStyle>;
-  /** Renders only the confirmation info body for feature-owned sheet shells. */
-  contentOnly?: boolean;
 }
 
-export const Confirm = ({
-  route,
-  disableSafeArea = false,
-  fullscreenStyle,
-  contentOnly = false,
-}: ConfirmProps) => {
+export const Confirm = ({ route, disableSafeArea = false }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -210,22 +191,10 @@ export const Confirm = ({
     return <Loader />;
   }
 
-  return (
-    <ConfirmInternal
-      disableSafeArea={disableSafeArea}
-      fullscreenStyle={fullscreenStyle}
-      contentOnly={contentOnly}
-      route={route}
-    />
-  );
+  return <ConfirmInternal disableSafeArea={disableSafeArea} route={route} />;
 };
 
-function ConfirmInternal({
-  route,
-  disableSafeArea = false,
-  fullscreenStyle,
-  contentOnly = false,
-}: ConfirmProps) {
+function ConfirmInternal({ route, disableSafeArea = false }: ConfirmProps) {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -250,15 +219,11 @@ function ConfirmInternal({
     return (
       <SafeAreaView
         edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
-        style={[styles.flatContainer, fullscreenStyle]}
+        style={styles.flatContainer}
         testID={ConfirmationUIType.FLAT}
         onLayout={onFirstPaint}
       >
-        <ConfirmWrapped
-          styles={styles}
-          route={route}
-          contentOnly={contentOnly}
-        />
+        <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
     );
   }

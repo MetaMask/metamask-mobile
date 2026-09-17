@@ -1,9 +1,9 @@
 import {
-  BottomSheetDialog,
+  BottomSheet,
   Box,
   Text,
   TextVariant,
-  type BottomSheetDialogRef,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
@@ -146,7 +146,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   screenDepth,
 }: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
-  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hasClosedRef = useRef(false);
   const hasReportedInteractiveRef = useRef(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -233,10 +233,10 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     }
     setIsClosing(true);
     const sheet = bottomSheetRef.current;
-    if (sheet?.onCloseDialog) {
-      // BottomSheetDialog invokes its own onClose prop after the exit
-      // animation. Passing handleClose as a callback would invoke it twice.
-      sheet.onCloseDialog();
+    if (sheet?.onCloseBottomSheet) {
+      // BottomSheet invokes its own onClose prop after the exit animation.
+      // Passing handleClose as a callback would invoke it twice.
+      sheet.onCloseBottomSheet();
     } else {
       handleClose();
     }
@@ -248,7 +248,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   );
 
   return (
-    <BottomSheetDialog
+    <BottomSheet
       ref={bottomSheetRef}
       onClose={handleClose}
       testID={PerpsTradeSheetSelectorsIDs.SHEET}
@@ -273,7 +273,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
           </Animated.View>
         </Box>
       </PerpsTradeSheetContext.Provider>
-    </BottomSheetDialog>
+    </BottomSheet>
   );
 };
 

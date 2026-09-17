@@ -82,6 +82,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   payWithName: 'Perps balance',
   payWithBalance: '$1,285.82',
   showPayWith: true,
+  isPayWithDisabled: false,
   feePercentage: '0.143',
   isSubmitting: false,
   isSubmitDisabled: false,
@@ -102,6 +103,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onLimitPriceDonePress: jest.fn(),
   onAutoClosePress: jest.fn(),
   onPayWithPress: jest.fn(),
+  onMarginInfoPress: jest.fn(),
   onSubmit: jest.fn(),
 };
 
@@ -138,12 +140,14 @@ describe('PerpsTradeScreen errors', () => {
     const onPayWithPress = jest.fn();
     const onOrderTypePress = jest.fn();
     const onAutoClosePress = jest.fn();
+    const onMarginInfoPress = jest.fn();
     render(
       <PerpsTradeScreen
         {...defaultProps}
         onOrderTypePress={onOrderTypePress}
         onAutoClosePress={onAutoClosePress}
         onPayWithPress={onPayWithPress}
+        onMarginInfoPress={onMarginInfoPress}
         onSubmit={onSubmit}
       />,
     );
@@ -167,6 +171,14 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
     );
     expect(onAutoClosePress).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW));
+    expect(onMarginInfoPress).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+    expect(mockClose).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
@@ -247,7 +259,49 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_ROW),
     ).toBeOnTheScreen();
-    expect(screen.getByText('$98.50')).toBeOnTheScreen();
+    expect(screen.getByText('$98.5')).toBeOnTheScreen();
+  });
+
+  it('prompts for an unset limit price instead of displaying a zero price', () => {
+    render(<PerpsTradeScreen {...defaultProps} orderType="limit" />);
+
+    expect(screen.getByText('Set price')).toBeOnTheScreen();
+    expect(screen.queryByText('$0.00')).not.toBeOnTheScreen();
+  });
+
+  it('shows a limit-price crossing warning', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="100"
+        limitPriceWarning="This order will execute immediately."
+      />,
+    );
+
+    expect(
+      screen.getByRole('alert', {
+        name: 'This order will execute immediately.',
+      }),
+    ).toBeOnTheScreen();
+  });
+
+  it('disables Pay With for hardware accounts', () => {
+    const onPayWithPress = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isPayWithDisabled
+        onPayWithPress={onPayWithPress}
+      />,
+    );
+
+    const payWithRow = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW,
+    );
+    expect(payWithRow.props.accessibilityState).toEqual({ disabled: true });
+    fireEvent.press(payWithRow);
+    expect(onPayWithPress).not.toHaveBeenCalled();
   });
 
   it('shows the reused keypad while editing a limit price', () => {

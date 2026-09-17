@@ -1488,6 +1488,7 @@
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
     "trade_sheet": {
+      "close": "Close trade",
       "settings": "Settings",
       "order_summary": "Order summary",
       "includes_fee": "Includes {{feePercentage}}% fee",

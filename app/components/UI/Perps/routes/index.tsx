@@ -75,16 +75,11 @@ import ConfirmationInfo from '../../../Views/confirmations/components/info-root'
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
 
-/* eslint-disable react-native/no-color-literals -- React Native has no semantic token for transparent route content. */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  transparent: {
-    backgroundColor: 'transparent',
-  },
 });
-/* eslint-enable react-native/no-color-literals */
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
@@ -187,13 +182,7 @@ const PerpsConfirmScreen = () => {
 
   return (
     <NavigationContext.Provider value={noHeaderNavigation}>
-      <Confirm
-        disableSafeArea
-        contentOnly={params?.useBottomSheet}
-        fullscreenStyle={
-          params?.useBottomSheet ? styles.transparent : undefined
-        }
-      />
+      <Confirm disableSafeArea />
     </NavigationContext.Provider>
   );
 };
