@@ -116,9 +116,8 @@ import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
-  clearNativeStackNavigatorOptions,
   addDeviceVerificationCodeScreenOptions,
-  transparentModalScreenOptions,
+  transparentModalStackOptions,
   slideFromRightNativeOptions,
   slideFromLeftNativeOptions,
   fadeNativeOptions,
@@ -240,13 +239,18 @@ const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
   capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-// Registered on the root MainNavigator so sheets are reachable from both the
-// Rewards tab (dashboard/onboarding) and REWARDS_FLOW sub-pages. Use
-// animation: 'none' so only the BottomSheet's internal slide runs — without it
-// the native stack slides the entire screen (overlay included) from the bottom.
-const rewardsModalScreenOptions = {
-  ...clearNativeStackNavigatorOptions,
-  ...transparentModalScreenOptions,
+// Shared defaults for every native stack in this file: no native header (each
+// screen draws its own) on a themed background so pushed screens do not flash
+// the system default.
+const useDefaultStackScreenOptions = () => {
+  const { colors } = useTheme();
+  return useMemo(
+    () => ({
+      headerShown: false,
+      contentStyle: { backgroundColor: colors.background.default },
+    }),
+    [colors.background.default],
+  );
 };
 
 /* eslint-disable react/prop-types */
@@ -279,40 +283,29 @@ const AssetStackFlow = (props) => (
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => {
-  const { colors } = useTheme();
+  const defaultScreenOptions = useDefaultStackScreenOptions();
   return (
     <NativeStack.Navigator
       initialRouteName={'WalletView'}
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
+      screenOptions={defaultScreenOptions}
     >
       <NativeStack.Screen
         name="WalletView"
         component={WalletWithMessenger}
-        options={{
-          headerShown: false,
-          animation: 'none',
-        }}
+        options={{ animation: 'none' }}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
-        options={{ headerShown: false }}
       />
     </NativeStack.Navigator>
   );
 };
 
 const TransactionsHome = () => {
-  const { colors } = useTheme();
+  const defaultScreenOptions = useDefaultStackScreenOptions();
   return (
-    <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
-    >
+    <NativeStack.Navigator screenOptions={defaultScreenOptions}>
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityScreen}
@@ -346,7 +339,7 @@ const TransactionsHome = () => {
 };
 
 const RewardsHome = () => {
-  const { colors } = useTheme();
+  const defaultScreenOptions = useDefaultStackScreenOptions();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   // Fetch client version requirements at the Rewards tab entry point, before the
@@ -375,11 +368,7 @@ const RewardsHome = () => {
           ? Routes.REWARDS_DASHBOARD
           : Routes.REWARDS_ONBOARDING_FLOW
       }
-      screenOptions={{
-        headerShown: false,
-        animation: 'none',
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
+      screenOptions={{ ...defaultScreenOptions, animation: 'none' }}
     >
       <NativeStack.Screen
         name={Routes.REWARDS_ONBOARDING_FLOW}
@@ -434,14 +423,9 @@ const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
 });
 
 const SnapsSettingsStack = () => {
-  const { colors } = useTheme();
+  const defaultScreenOptions = useDefaultStackScreenOptions();
   return (
-    <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
-    >
+    <NativeStack.Navigator screenOptions={defaultScreenOptions}>
       <NativeStack.Screen
         name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
         component={SnapsSettingsList}
@@ -456,14 +440,11 @@ const SnapsSettingsStack = () => {
 ///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
-  const { colors } = useTheme();
+  const defaultScreenOptions = useDefaultStackScreenOptions();
   return (
     <NativeStack.Navigator
       initialRouteName={Routes.ACCOUNTS_MENU_VIEW}
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
+      screenOptions={defaultScreenOptions}
     >
       <NativeStack.Screen
         name={Routes.ACCOUNTS_MENU_VIEW}
@@ -970,7 +951,7 @@ const MainNavigator = () => {
   const isMarketInsightsPerpsEnabled = useSelector(
     selectMarketInsightsPerpsEnabled,
   );
-  const { colors } = useTheme();
+  const defaultScreenOptions = useDefaultStackScreenOptions();
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
@@ -983,10 +964,7 @@ const MainNavigator = () => {
     isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
   return (
     <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
+      screenOptions={defaultScreenOptions}
       initialRouteName={'Home'}
     >
       <NativeStack.Screen name="Home" component={HomeTabs} />
@@ -1010,35 +988,43 @@ const MainNavigator = () => {
         name={Routes.REWARDS_FLOW}
         component={RewardsNavigator}
       />
+      {/*
+       * Rewards sheets are registered on the root MainNavigator so they are
+       * reachable from both the Rewards tab (dashboard/onboarding) and
+       * REWARDS_FLOW sub-pages. transparentModalStackOptions carries
+       * animation: 'none' so only the BottomSheet's internal slide runs —
+       * without it the native stack slides the entire screen (overlay
+       * included) from the bottom.
+       */}
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
         component={RewardsInfoSheetModal}
-        options={rewardsModalScreenOptions}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
         component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
         component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
         component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
@@ -1166,10 +1152,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.HEADLESS_ENTRY}
         component={TokenListRoutes}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
@@ -1200,10 +1183,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name="StakeScreens"
@@ -1218,10 +1198,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
+        options={transparentModalStackOptions}
       />
       {isMoneyAccountEnabled && (
         <>
@@ -1256,18 +1233,14 @@ const MainNavigator = () => {
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}
             component={MoneyFirstTimeDepositView}
             options={{
-              ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
+              ...transparentModalStackOptions,
               gestureEnabled: false,
             }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.MODALS.ROOT}
             component={MoneyModalStack}
-            options={{
-              ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
-            }}
+            options={transparentModalStackOptions}
           />
           <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
@@ -1284,18 +1257,12 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.MONEY.MODALS.DEEPLINK_MODAL}
         component={MoneyDeeplinkModal}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
+        options={transparentModalStackOptions}
       />
       <NativeStack.Screen
         name="StakeModals"
         component={StakeModalStack}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
+        options={transparentModalStackOptions}
       />
       {isPerpsEnabled && (
         <>
@@ -1311,15 +1278,8 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStackWithErrorGate}
-            options={{
-              ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
-            }}
+            options={transparentModalStackOptions}
           />
-        </>
-      )}
-      {isPerpsEnabled && (
-        <>
           <NativeStack.Screen
             name={Routes.PERPS.POSITION_TRANSACTION}
             component={PerpsPositionTransactionView}
@@ -1344,10 +1304,7 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={{
-              ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
-            }}
+            options={transparentModalStackOptions}
           />
         </>
       )}
@@ -1355,13 +1312,6 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}
-          options={slideFromRightNativeOptions}
-        />
-      )}
-      {isSocialLeaderboardEnabled && (
-        <NativeStack.Screen
-          name={Routes.SOCIAL.V0}
-          component={SocialV0View}
           options={slideFromRightNativeOptions}
         />
       )}
@@ -1394,30 +1344,32 @@ const MainNavigator = () => {
         </NativeStack.Group>
       )}
       {isSocialLeaderboardEnabled && (
-        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <>
           <NativeStack.Screen
-            name={Routes.SOCIAL.PROFILE}
-            component={TraderProfileView}
+            name={Routes.SOCIAL.V0}
+            component={SocialV0View}
+            options={slideFromRightNativeOptions}
           />
+          <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+            <NativeStack.Screen
+              name={Routes.SOCIAL.PROFILE}
+              component={TraderProfileView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.POSITION}
+              component={TraderPositionView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.ONBOARDING}
+              component={SocialLeaderboardOnboarding}
+            />
+          </NativeStack.Group>
           <NativeStack.Screen
-            name={Routes.SOCIAL.POSITION}
-            component={TraderPositionView}
+            name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
+            component={TradingSignalsSetupBottomSheet}
+            options={transparentModalStackOptions}
           />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.ONBOARDING}
-            component={SocialLeaderboardOnboarding}
-          />
-        </NativeStack.Group>
-      )}
-      {isSocialLeaderboardEnabled && (
-        <NativeStack.Screen
-          name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
-          component={TradingSignalsSetupBottomSheet}
-          options={{
-            ...clearNativeStackNavigatorOptions,
-            ...transparentModalScreenOptions,
-          }}
-        />
+        </>
       )}
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
         <NativeStack.Screen
@@ -1473,10 +1425,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
+        options={transparentModalStackOptions}
       />
     </NativeStack.Navigator>
   );

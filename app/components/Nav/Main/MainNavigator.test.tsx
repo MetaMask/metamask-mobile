@@ -241,19 +241,17 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle).
+      // inherits the themed content background (native-stack uses contentStyle)
+      // and the hidden header, so pushed screens need no options of their own.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
+          headerShown: false,
           contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toEqual(
-        expect.objectContaining({
-          headerShown: false,
-        }),
-      );
+      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
     });
 
     it.each([
