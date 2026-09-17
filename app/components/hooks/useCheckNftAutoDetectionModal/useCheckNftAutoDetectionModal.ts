@@ -9,6 +9,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 import { RootState } from '../../../reducers';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const useCheckNftAutoDetectionModal = () => {
   const dispatch = useDispatch();
@@ -18,8 +19,17 @@ const useCheckNftAutoDetectionModal = () => {
   const isNFTAutoDetectionModalViewed = useSelector(
     (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
+  // Under consolidation, NFT autodetection follows Basic Functionality, so
+  // turning it off is an explicit choice rather than a missing opt-in.
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectIsBasicFunctionalityConsolidationEnabled,
+  );
 
   const checkNftAutoDetectionModal = useCallback(() => {
+    if (isBasicFunctionalityConsolidationEnabled) {
+      return;
+    }
+
     const isOnMainnet = isMainNet(chainId);
     if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -29,6 +39,7 @@ const useCheckNftAutoDetectionModal = () => {
     }
   }, [
     dispatch,
+    isBasicFunctionalityConsolidationEnabled,
     isNFTAutoDetectionModalViewed,
     navigation,
     chainId,
