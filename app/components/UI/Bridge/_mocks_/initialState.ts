@@ -1008,6 +1008,7 @@ export const bridgeTestState = {
     tokenSelectorNetworkFilter: undefined,
     recurring: initialRecurringState,
     limitOrderCostTolerance: undefined,
+    limitOrderMarketComparison: undefined,
     ordersNetworkFilter: undefined,
   },
 };
