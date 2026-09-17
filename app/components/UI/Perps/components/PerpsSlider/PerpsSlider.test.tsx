@@ -408,7 +408,9 @@ describe('PerpsSlider', () => {
             />,
           );
 
-          expect(getSliderProps().value).toBeCloseTo(emitted, 9);
+          // Strict equality on purpose: the slider matches echoes with ===,
+          // so a near-miss of a few ULPs still defeats the guard.
+          expect(getSliderProps().value).toBe(emitted);
         }
       },
     );

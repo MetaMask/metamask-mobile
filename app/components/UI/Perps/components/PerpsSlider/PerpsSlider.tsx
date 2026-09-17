@@ -121,12 +121,19 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     [maximumValue, minimumValue, step],
   );
 
-  // Snap onto the emit grid: the slider suppresses stale echoes by matching
-  // `value` against its own emits with ===, so a near-miss percent breaks it.
-  const percentValue = toPercent(toDomain(toPercent(value)));
   // One caller step, in percent. Keeps the slider's grid identical to the
   // caller's, so VoiceOver's step-sized increments still move one step.
   const percentStep = range > 0 && step > 0 ? (step / range) * 100 : 0.1;
+  // Snap onto the emit grid: the slider suppresses stale echoes by matching
+  // `value` against its own emits with ===, so the fed-back percent has to be
+  // bit-identical to the emitted one. Rebuild it as `index * percentStep` —
+  // the same expression the slider emits — rather than converting back through
+  // percent, which lands a few ULPs off and silently misses the match.
+  const percentValue =
+    range > 0 && step > 0
+      ? Math.round((toDomain(toPercent(value)) - minimumValue) / step) *
+        percentStep
+      : 0;
 
   const handlePercentChange = useCallback(
     (percent: number) => onValueChange(toDomain(percent)),
