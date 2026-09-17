@@ -211,16 +211,6 @@ export interface UsePerpsTwapOrdersOptions {
    * @default false
    */
   pauseLiveRestReconciliation?: boolean;
-  /**
-   * Keep a low-cadence REST discovery read active while rollout is disabled
-   * and the TWAP tab is not mounted. This lets externally-created schedules
-   * surface without remounting the screen.
-   *
-   * @default false
-   */
-  enableDiscovery?: boolean;
-  /** @default PERPS_TWAP_UI_CONFIG.DiscoveryIntervalMs */
-  discoveryInterval?: number;
   /** Skip the fetch on mount. @default false */
   skipInitialFetch?: boolean;
 }
@@ -253,8 +243,6 @@ export const usePerpsTwapOrders = (
     enableLiveUpdates = false,
     pollingInterval = PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
     pauseLiveRestReconciliation = false,
-    enableDiscovery = false,
-    discoveryInterval = PERPS_TWAP_UI_CONFIG.DiscoveryIntervalMs,
     skipInitialFetch = false,
   } = options;
 
@@ -549,26 +537,6 @@ export const usePerpsTwapOrders = (
     isContextReady,
     pauseLiveRestReconciliation,
     pollingInterval,
-  ]);
-
-  useEffect(() => {
-    if (!enableDiscovery || enableLiveUpdates || !isContextReady) {
-      return undefined;
-    }
-
-    const intervalId = setInterval(() => {
-      fetchTwapOrders(true);
-    }, discoveryInterval);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [
-    discoveryInterval,
-    enableDiscovery,
-    enableLiveUpdates,
-    fetchTwapOrders,
-    isContextReady,
   ]);
 
   const isCurrentIdentity = resolvedIdentityKey === identityKey;
