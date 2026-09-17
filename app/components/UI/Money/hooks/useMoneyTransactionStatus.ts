@@ -17,10 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  selectRequiredTransactionIds,
-  selectTransactionMetadataById,
-} from '../../../../selectors/transactionController';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { renderShortAddress } from '../../../../util/address';
 import {
   MUSD_DECIMALS,
@@ -136,12 +133,13 @@ function isAwaitingHardwareSignature(
 // behind EngineService's update batcher. Activity rows would visibly lag the
 // toasts under a busy JS thread, and the hardware signing check would judge a
 // funding leg by its pre-event status. Flushing makes both read the event's
-// state; the cost is limited to Money transactions and their funding legs.
+// state; the cost is limited to Money transactions and legs funding a deposit.
 function flushTransactionState(transactionMeta: TransactionMeta) {
   if (
     !isMoneyAccountTx(transactionMeta) &&
     !isPerpsPredictMoneyActivity(transactionMeta) &&
-    !selectRequiredTransactionIds(store.getState()).has(transactionMeta.id)
+    findDepositsAwaitingSignature(store.getState(), transactionMeta).length ===
+      0
   ) {
     return;
   }

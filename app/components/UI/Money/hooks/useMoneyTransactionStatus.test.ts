@@ -155,12 +155,6 @@ jest.mock('../../../../selectors/transactionController', () => ({
   selectBatchTransactionCounts: () => ({}),
   selectTransactionMetadataById: (_state: unknown, id: string) =>
     mockControllerTransactions.find((tx) => tx.id === id),
-  selectRequiredTransactionIds: () =>
-    new Set(
-      mockControllerTransactions.flatMap(
-        (tx) => tx.requiredTransactionIds ?? [],
-      ),
-    ),
 }));
 
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
@@ -2096,7 +2090,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(mockFlushState).toHaveBeenCalledTimes(1);
     });
 
-    it('flushes engine state when a funding leg of a Money deposit updates', () => {
+    it('flushes for a leg funding a Money deposit, not for other parents', () => {
       mockControllerTransactions.push(
         buildTxMeta({
           id: 'hw-parent',
@@ -2104,17 +2098,25 @@ describe('useMoneyTransactionStatus', () => {
           status: TransactionStatus.approved,
           requiredTransactionIds: ['hw-leg'],
         }),
+        buildTxMeta({
+          id: 'perps-parent',
+          type: TransactionType.perpsDeposit,
+          status: TransactionStatus.approved,
+          requiredTransactionIds: ['perps-leg'],
+        }),
       );
       const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          id: 'hw-leg',
+      const leg = (id: string) =>
+        buildTxMeta({
+          id,
           type: TransactionType.simpleSend,
           status: TransactionStatus.signed,
-        }),
-      });
+        });
 
+      statusUpdatedHandler({ transactionMeta: leg('perps-leg') });
+      expect(mockFlushState).not.toHaveBeenCalled();
+
+      statusUpdatedHandler({ transactionMeta: leg('hw-leg') });
       expect(mockFlushState).toHaveBeenCalledTimes(1);
     });
 
