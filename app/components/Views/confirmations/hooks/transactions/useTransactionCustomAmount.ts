@@ -36,7 +36,10 @@ import {
   MM_PAY_AMOUNT_INPUT_TYPE_KEY,
   MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX,
 } from '../../utils/pay-amount-input-metrics';
-import { useDepositPrefillAmount } from './useDepositPrefillAmount';
+import {
+  DepositPrefillStatus,
+  useDepositPrefillAmount,
+} from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -51,8 +54,9 @@ interface DepositPrefetchQuoteRequest {
 }
 
 export function useTransactionCustomAmount({
+  autoSelectFiatPayment,
   currency,
-}: { currency?: string } = {}) {
+}: { autoSelectFiatPayment?: boolean; currency?: string } = {}) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { chainId, id: transactionId } = transactionMeta;
 
@@ -140,7 +144,7 @@ export function useTransactionCustomAmount({
   const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
     useUpdateTransactionPayAmount();
 
-  const depositPrefill = useDepositPrefillAmount();
+  const depositPrefill = useDepositPrefillAmount({ autoSelectFiatPayment });
 
   useEffect(() => {
     if (!isMoneyAccountDeposit || !isAmountUpdateQuotePipelineEnabled) {
@@ -390,22 +394,21 @@ export function useTransactionCustomAmount({
     [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
   );
 
-  const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
+  const isDepositPrefilled =
+    depositPrefill.status === DepositPrefillStatus.Prefilled;
+  const prevHasPrefilled = useRef(isDepositPrefilled);
   useEffect(() => {
     // Skip if the user has manually typed on the keypad — a transient
     // hasPrefilled toggle (from tokenKey changes) must not overwrite
     // their input. The ref resets when the pay token genuinely changes.
     if (userHasEditedRef.current) {
-      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      prevHasPrefilled.current = isDepositPrefilled;
       return;
     }
     // Apply when committed, or on the token-switch frame where the next
     // amount is already computed but `hasPrefilled` has not flipped true yet.
     // Clearing to $0 in that gap is what made the prefill disappear.
-    if (
-      depositPrefill.hasPrefilled ||
-      depositPrefill.prefillAmount !== undefined
-    ) {
+    if (isDepositPrefilled || depositPrefill.prefillAmount !== undefined) {
       amountChangeTimeRef.current = Date.now();
       // Uncapped percentage prefills go through the same Max/percentage path
       // as the keypad buttons so money-account Max gets isMaxAmount —
@@ -440,12 +443,12 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
     }
-    prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    prevHasPrefilled.current = isDepositPrefilled;
     // Re-run on token change so a new funded token applies immediately instead
     // of waiting for hasPrefilled to toggle. Same-token balance updates do not
     // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [depositPrefill.hasPrefilled, payTokenKey]);
+  }, [isDepositPrefilled, payTokenKey]);
 
   useEffect(() => {
     if (
@@ -512,9 +515,7 @@ export function useTransactionCustomAmount({
     amountHumanDebounced,
     hasInput,
     hasPrefetchedQuote,
-    isDepositPrefillEnabled: depositPrefill.enabled,
-    isDepositPrefilled: depositPrefill.hasPrefilled,
-    isDepositPrefillLoading: depositPrefill.isLoading,
+    depositPrefillStatus: depositPrefill.status,
     isInputChanged,
     isPrefillPending,
     updatePendingAmount,

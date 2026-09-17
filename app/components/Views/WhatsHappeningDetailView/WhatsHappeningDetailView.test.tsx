@@ -18,6 +18,7 @@ import {
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
 
+const mockEndTrace = jest.fn();
 const mockGoBack = jest.fn();
 const mockRefresh = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -26,6 +27,11 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
     build: jest.fn(() => ({ category: eventName, properties })),
   })),
   build: jest.fn(() => ({ category: eventName })),
+}));
+
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -212,6 +218,15 @@ describe('WhatsHappeningDetailView', () => {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
     expect(screen.getByTestId('mock-expanded-card')).toBeOnTheScreen();
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'homepage:expanded',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
   });
 
   it('does not show the skeleton or error when items are loaded', () => {

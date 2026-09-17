@@ -3,6 +3,7 @@ import {
   formatCurrency,
   getRedeemWithdrawalAmounts,
 } from './RedeemWallet.utils';
+import { capRedeemAmount } from '../../../../../core/Engine/controllers/card-controller/utils/redeemAmount';
 
 describe('RedeemWallet.utils', () => {
   describe('formatCurrency', () => {
@@ -28,6 +29,28 @@ describe('RedeemWallet.utils', () => {
     it('returns 0.00 for NaN', () => {
       expect(formatAmount('invalid')).toBe('0.00');
     });
+  });
+
+  describe('shown-equals-claimed invariant', () => {
+    it.each([
+      '17.96660759',
+      '10.1234567',
+      '1.12345',
+      '0.99999',
+      '10.1234',
+      '10.00',
+      '0.0007',
+    ])(
+      'formatAmount of the capped value matches the displayed form of %s',
+      (raw) => {
+        const claimed = capRedeemAmount(raw);
+        // formatAmount pads to at least 2 decimals and trims trailing zeros
+        // beyond that; the claimed wire string may be shorter (e.g. '1.1').
+        // The invariant is that formatting the claimed amount reproduces the
+        // display of the raw amount — i.e. display and claim share one floor.
+        expect(formatAmount(claimed)).toBe(formatAmount(raw));
+      },
+    );
   });
 
   describe('getRedeemWithdrawalAmounts', () => {

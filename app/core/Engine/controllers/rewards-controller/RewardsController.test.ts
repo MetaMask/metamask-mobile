@@ -398,6 +398,7 @@ describe('RewardsController', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.resetAllMocks();
     jest.restoreAllMocks();
   });
@@ -4003,51 +4004,6 @@ describe('RewardsController', () => {
       });
 
       expect(defaultController.isVipFeatureEnabled()).toBe(true);
-    });
-  });
-
-  describe('isFirstPredictOnUsFeatureEnabled', () => {
-    it('returns true when neither rewards nor First Predict On Us is disabled', () => {
-      const enabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isFirstPredictOnUsDisabled: () => false,
-      });
-
-      expect(enabledController.isFirstPredictOnUsFeatureEnabled()).toBe(true);
-    });
-
-    it('returns false when First Predict On Us is disabled via isFirstPredictOnUsDisabled callback', () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isFirstPredictOnUsDisabled: () => true,
-      });
-
-      expect(disabledController.isFirstPredictOnUsFeatureEnabled()).toBe(false);
-    });
-
-    it('returns false when rewards is disabled even if First Predict On Us is enabled', () => {
-      const controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-        isFirstPredictOnUsDisabled: () => false,
-      });
-
-      expect(controller.isFirstPredictOnUsFeatureEnabled()).toBe(false);
-    });
-
-    it('defaults to enabled when isFirstPredictOnUsDisabled is not provided', () => {
-      const defaultController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-      });
-
-      expect(defaultController.isFirstPredictOnUsFeatureEnabled()).toBe(true);
     });
   });
 
@@ -17738,7 +17694,6 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
@@ -17750,6 +17705,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -17780,7 +17736,6 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
@@ -17792,6 +17747,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -17827,7 +17783,6 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
@@ -17839,6 +17794,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -22419,136 +22375,6 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('getFirstPredictOnUs', () => {
-    const mockFirstPredictOnUs = {
-      name: 'First Predict On Us',
-      image: {
-        lightModeUrl: 'https://images.example.com/light.png',
-        darkModeUrl: 'https://images.example.com/dark.png',
-      },
-      localizedText: {
-        cta: 'Predict now',
-        description: 'Your first prediction is on us.',
-      },
-      usdAmount: 5,
-      markets: [{ eventId: '30615', conditionId: '0xabc' }],
-      termsUrl: 'https://example.com/terms',
-    };
-
-    it('fetches first predict on us from the data service', async () => {
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result = await controller.getFirstPredictOnUs();
-
-      expect(result).toEqual(mockFirstPredictOnUs);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-      expect(controller.state.firstPredictOnUs).toEqual({
-        data: mockFirstPredictOnUs,
-        lastFetched: 123,
-      });
-    });
-
-    it('returns cached result on subsequent calls', async () => {
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const firstResult = await controller.getFirstPredictOnUs();
-
-      jest.clearAllMocks();
-
-      const secondResult = await controller.getFirstPredictOnUs();
-
-      expect(secondResult).toEqual(firstResult);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('returns cached null when no visible entry exists', async () => {
-      mockMessenger.call.mockResolvedValue(null);
-
-      const firstResult = await controller.getFirstPredictOnUs();
-
-      jest.clearAllMocks();
-
-      const secondResult = await controller.getFirstPredictOnUs();
-
-      expect(firstResult).toBeNull();
-      expect(secondResult).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('refetches cached first predict on us after 1 minute', async () => {
-      const staleFetchedAt = 0;
-      const refetchedAt = 1000 * 61;
-      jest.spyOn(Date, 'now').mockReturnValue(refetchedAt);
-
-      const cachedController = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          firstPredictOnUs: {
-            data: mockFirstPredictOnUs,
-            lastFetched: staleFetchedAt,
-          },
-        },
-      });
-      const updatedFirstPredictOnUs = {
-        ...mockFirstPredictOnUs,
-        usdAmount: 10,
-      };
-      mockMessenger.call.mockResolvedValue(updatedFirstPredictOnUs);
-
-      const result = await cachedController.getFirstPredictOnUs();
-
-      expect(result).toEqual(updatedFirstPredictOnUs);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-      expect(cachedController.state.firstPredictOnUs).toEqual({
-        data: updatedFirstPredictOnUs,
-        lastFetched: refetchedAt,
-      });
-    });
-
-    it('returns null when rewards feature is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result = await disabledController.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('returns null when First Predict On Us is disabled via isFirstPredictOnUsDisabled callback', async () => {
-      const firstPredictOnUsDisabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isFirstPredictOnUsDisabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result =
-        await firstPredictOnUsDisabledController.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-  });
-
   describe('VIP transactions', () => {
     const subscriptionId = 'sub-vip-transactions';
     const transaction = {
@@ -23349,6 +23175,94 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
+    });
+  });
+
+  describe('getPerpsTradingCampaignPrizePool', () => {
+    const PERPS_CAMPAIGN_ID = 'perps-campaign-prize-1';
+    const mockPerpsPrizePool = {
+      totalVolumeUsd: 7500000,
+      unlockedPoolUsd: 15000,
+      thresholdsUsd: [0, 5000000],
+      poolScheduleUsd: [10000, 15000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    };
+
+    let perpsMessenger: jest.Mocked<RewardsControllerMessenger>;
+
+    beforeEach(() => {
+      perpsMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('fetches, caches in state, and serves the cached value within the TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsMessenger.call.mockResolvedValueOnce(mockPerpsPrizePool);
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual(mockPerpsPrizePool);
+
+      expect(perpsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsTradingCampaignPrizePool',
+        PERPS_CAMPAIGN_ID,
+      );
+      expect(
+        ctrl.state.perpsTradingCampaignPrizePool[PERPS_CAMPAIGN_ID],
+      ).toMatchObject(mockPerpsPrizePool);
+
+      perpsMessenger.call.mockClear();
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual(mockPerpsPrizePool);
+      expect(perpsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty prize pool without calling the API when rewards are disabled', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual({
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        computedAt: null,
+      });
+      expect(perpsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('clears the cached prize pool on resetState', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsMessenger.call.mockResolvedValueOnce(mockPerpsPrizePool);
+      await ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID);
+
+      ctrl.resetState();
+
+      expect(ctrl.state.perpsTradingCampaignPrizePool).toEqual({});
     });
   });
 

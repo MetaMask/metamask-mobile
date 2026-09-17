@@ -16,12 +16,16 @@ import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
-import { refresh as refreshEntitlements } from '../../../core/Subscription/entitlementResolution';
+import Engine from '../../../core/Engine';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
-import type { PlanId } from './screens/Benefits/Benefits.constants';
+import {
+  DEFAULT_PLAN,
+  type PlanId,
+} from './screens/Benefits/Benefits.constants';
+import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
@@ -40,6 +44,12 @@ const ProSubscription = () => {
   const proAccess = useMoneyAccountPlusAccess();
   const [currentScreen, setCurrentScreen] =
     useState<ProSubscriptionScreen>('benefits');
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>(
+    (route.params?.initialPlan as PlanId | undefined) ?? DEFAULT_PLAN,
+  );
+  const [checkoutPlan, setCheckoutPlan] = useState<
+    SelectedPlusPlan | undefined
+  >();
 
   // Dismiss when the Pro flag is off, and send anyone already entitled to the
   // hub so an existing subscriber never lands on the upsell.
@@ -66,22 +76,42 @@ const ProSubscription = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSuccess = useCallback(() => {
+  const handlePlanChange = useCallback(
+    (planId: PlanId) => {
+      setSelectedPlan(planId);
+      navigation.setParams({ initialPlan: planId });
+    },
+    [navigation],
+  );
+
+  const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
+    setCheckoutPlan(plan);
     setCurrentScreen('success');
   }, []);
 
-  const shouldRenderFlow =
-    proAccess === MoneyAccountPlusAccess.Eligible ||
-    currentScreen === 'success';
-
   const handleSubscriptionOnSuccess = useCallback(async () => {
-    // Land on the hub with entitlements that reflect the new subscription
-    // rather than the pre-checkout snapshot.
-    await refreshEntitlements();
+    // Card checkout completes outside the controller, so explicitly refresh
+    // its canonical state before opening the hub.
+    await Engine.context.SubscriptionController.getSubscriptions().catch(
+      () => undefined,
+    );
     navigation.replace(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_success',
     });
   }, [navigation]);
+
+  let screenContent: React.ReactNode = null;
+  if (currentScreen === 'benefits') {
+    screenContent = (
+      <Benefits
+        onSuccess={handleSuccess}
+        onPlanChange={handlePlanChange}
+        initialPlan={selectedPlan}
+      />
+    );
+  } else if (checkoutPlan) {
+    screenContent = <Success onSuccess={handleSubscriptionOnSuccess} />;
+  }
 
   return (
     <SafeAreaView
@@ -98,17 +128,9 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {/* Held back until entitlements resolve so a subscriber never sees a
-          flash of the upsell before being redirected to the hub. */}
-      {shouldRenderFlow &&
-        (currentScreen === 'benefits' ? (
-          <Benefits
-            onSuccess={handleSuccess}
-            initialPlan={route.params?.initialPlan as PlanId | undefined}
-          />
-        ) : (
-          <Success onSuccess={handleSubscriptionOnSuccess} />
-        ))}
+      {(proAccess === MoneyAccountPlusAccess.Eligible ||
+        currentScreen === 'success') &&
+        screenContent}
     </SafeAreaView>
   );
 };

@@ -47,7 +47,12 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
-import { getPredictNextControllerMessenger } from './predict-next-controller-messenger';
+import { getPredictMarketDataServiceMessenger } from './predict-market-data-service-messenger';
+import { getPredictLiveDataServiceMessenger } from './predict-live-data-service-messenger';
+import {
+  getPredictPortfolioServiceInitMessenger,
+  getPredictPortfolioServiceMessenger,
+} from './predict-portfolio-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -147,6 +152,8 @@ import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getKycServiceMessenger } from './kyc/kyc-service-messenger';
+import { getKycControllerMessenger } from './kyc/kyc-controller-messenger';
 import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
@@ -350,9 +357,17 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictControllerMessenger,
     getInitMessenger: noop,
   },
-  PredictNextController: {
-    getMessenger: getPredictNextControllerMessenger,
+  PredictMarketDataService: {
+    getMessenger: getPredictMarketDataServiceMessenger,
     getInitMessenger: noop,
+  },
+  PredictLiveDataService: {
+    getMessenger: getPredictLiveDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  PredictPortfolioService: {
+    getMessenger: getPredictPortfolioServiceMessenger,
+    getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,
@@ -492,6 +507,14 @@ export const MESSENGER_FACTORIES = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
+    getInitMessenger: noop,
+  },
+  KycService: {
+    getMessenger: getKycServiceMessenger,
+    getInitMessenger: noop,
+  },
+  KycController: {
+    getMessenger: getKycControllerMessenger,
     getInitMessenger: noop,
   },
   ChompApiService: {

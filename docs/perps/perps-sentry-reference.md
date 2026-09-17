@@ -704,6 +704,23 @@ Use this to isolate genuine perps connection failures. You can also use `feature
 
 Fires on initial `connect()` failures and programmatic `reconnectWithNewContext()` calls. User-initiated retries from the error screen only add a Sentry breadcrumb (no new event) to avoid noise.
 
+## Deposit and withdrawal errors
+
+Live on [Perps - Health](https://metamask.sentry.io/dashboard/314902/).
+
+```
+feature:perps action:financial_deposit
+feature:perps action:financial_withdrawal
+```
+
+Deposit widgets also include pre-tag Relay failures:
+
+```
+event.type:error feature:perps (action:financial_deposit OR message:"*HyperLiquid deposit*" OR message:"*Missing post-quote deposit*")
+```
+
+Do not use `message:*withdraw*` — it matches deposit errors such as `Insufficient balance for withdrawal`.
+
 ### MixPanel
 
 | Event                  | Key Properties                                                                        |

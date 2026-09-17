@@ -8,35 +8,35 @@ import { strings } from '../../../../../../../locales/i18n';
 import OpenOrderRow from '../../../components/OpenOrderRow';
 import type { OrdersTabConfig } from '../../../components/OrdersTabs';
 import {
-  getRecurringJobOrderCounts,
-  MOCK_RECURRING_COMPLETED_JOB,
-} from '../../RecurringJobDetailsView/RecurringJobDetailsView.mock';
-import { RecurringJobDetailsViewSelectorsIDs } from '../../RecurringJobDetailsView/RecurringJobDetailsView.testIds';
+  getRecurringOrderSwapCounts,
+  MOCK_RECURRING_COMPLETED_ORDER,
+} from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.mock';
+import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import type {
-  OnRecurringJobPress,
-  RecurringJob,
-} from '../../RecurringJobDetailsView/RecurringJobDetailsView.types';
+  OnRecurringOrderPress,
+  RecurringOrder,
+} from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 
-export const MOCK_RECURRING_HISTORY_JOBS = [MOCK_RECURRING_COMPLETED_JOB];
+export const MOCK_RECURRING_HISTORY_ORDERS = [MOCK_RECURRING_COMPLETED_ORDER];
 
-function renderRecurringHistoryJob(
-  job: RecurringJob,
-  onJobPress: OnRecurringJobPress,
+function renderRecurringHistoryOrder(
+  order: RecurringOrder,
+  onOrderPress: OnRecurringOrderPress,
 ) {
-  const { filledPercent, totalOrderCount } = getRecurringJobOrderCounts(job);
+  const { filledPercent, totalSwapCount } = getRecurringOrderSwapCounts(order);
 
   return (
     <OpenOrderRow
-      token={job.destinationToken}
+      token={order.destinationToken}
       title={strings('bridge.recurring.pair', {
-        source: job.sourceToken.symbol,
-        dest: job.destinationToken.symbol,
+        source: order.sourceToken.symbol,
+        dest: order.destinationToken.symbol,
       })}
       subtitle={strings('bridge.recurring.schedule_summary', {
-        interval: job.interval,
-        count: totalOrderCount,
+        interval: order.interval,
+        count: totalSwapCount,
       })}
-      primaryValue={`+${job.totalReceived}`}
+      primaryValue={`+${order.totalReceived}`}
       secondaryValue={strings('bridge.recurring.percent_filled', {
         percent: filledPercent,
       })}
@@ -46,19 +46,19 @@ function renderRecurringHistoryJob(
           {strings('bridge.recurring.completed')}
         </Tag>
       }
-      onPress={() => onJobPress(job.jobId)}
-      testID={RecurringJobDetailsViewSelectorsIDs.COMPLETED_JOB_ROW}
+      onPress={() => onOrderPress(order.orderId)}
+      testID={RecurringOrderDetailsViewSelectorsIDs.COMPLETED_ORDER_ROW}
     />
   );
 }
 
 export function createRecurringMockHistoryTab(
-  onJobPress: OnRecurringJobPress,
-): OrdersTabConfig<RecurringJob> {
+  onOrderPress: OnRecurringOrderPress,
+): OrdersTabConfig<RecurringOrder> {
   return {
-    items: MOCK_RECURRING_HISTORY_JOBS,
-    renderItem: (job) => renderRecurringHistoryJob(job, onJobPress),
-    keyExtractor: (job) => job.jobId,
-    getItemChainId: (job) => job.destinationToken.chainId,
+    items: MOCK_RECURRING_HISTORY_ORDERS,
+    renderItem: (order) => renderRecurringHistoryOrder(order, onOrderPress),
+    keyExtractor: (order) => order.orderId,
+    getItemChainId: (order) => order.destinationToken.chainId,
   };
 }
