@@ -1487,6 +1487,14 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "trade_sheet": {
+      "settings": "Settings",
+      "order_summary": "Order summary",
+      "includes_fee": "Includes {{feePercentage}}% fee",
+      "amount_slider_accessibility_label": "Order amount",
+      "show_asset_value": "Show asset value",
+      "show_fiat_value": "Show fiat value"
+    },
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
@@ -2896,7 +2904,6 @@
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "watchlist": {
       "empty_title": "Start with the most-traded markets",
-      "empty_subtitle": "Tap + to add a market to your watchlist.",
       "show_more": "Show {{count}} more",
       "show_less": "Show less",
       "added": "Added {{symbol}} to watchlist",
@@ -10253,6 +10260,7 @@
       "category": "Category",
       "location": "Location",
       "decline_reason": "Decline reason",
+      "network_fee": "Network fee",
       "decline_reasons": {
         "insufficient_funds": "Insufficient funds"
       },

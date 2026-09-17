@@ -483,6 +483,20 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByText('card.transactions.completed')).toBeTruthy();
       expect(queryByText('money.transaction.failed')).toBeNull();
     });
+
+    it('renders the Network fee row labeled with mUSD when feeAmount is present', () => {
+      mockRouteParams = {
+        cardTransaction: {
+          ...declinedCardTransaction,
+          feeAmount: { value: '0.02', currency: 'USDC' },
+        },
+      };
+
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('card.transactions.network_fee')).toBeTruthy();
+      expect(getByText('0.02 mUSD')).toBeTruthy();
+    });
   });
 
   describe('cashback', () => {
