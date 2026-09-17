@@ -76,10 +76,8 @@ const resolveOptimisticBaseAssets = (
 /**
  * Reconcile the hydrated token list against the optimistically updated blob
  * IDs. Removes dropped IDs immediately and reorders survivors to match the
- * blob. IDs not present in the hydrated cache fall back to `seedById`
- * (metadata collected from other cached queries, e.g. the suggested pool)
- * so freshly added tokens render right away; IDs with no metadata at all
- * (e.g. before `getTokens` resolves) are omitted until the settled refetch.
+ * blob. IDs not yet present in the hydrated cache (e.g. a freshly added
+ * asset before `getTokens` resolves) are omitted until the settled refetch.
  */
 const applyOptimisticToHydrated = (
   hydrated: WatchlistTokenMetadata[] | undefined,
@@ -101,20 +99,18 @@ const applyOptimisticToHydrated = (
       if (token) {
         return token;
       }
+
       const seed = seedById?.get(key);
-      // Normalise seeded ids to the blob's casing so row keys stay stable
-      // between the optimistic update and the settled refetch.
-      return seed ? { ...seed, assetId: id } : undefined;
+      if (seed) {
+        return { ...seed, assetId: id };
+      }
+      return undefined;
     })
     .filter((token): token is WatchlistTokenMetadata => token !== undefined);
 };
 
 /**
- * Metadata for optimistic hydration, collected from any cached
- * suggested-pool query (keyed case-insensitively). Suggested tokens are
- * already hydrated on surfaces like the homepage empty state, so an add
- * can render the starred token immediately instead of waiting for the
- * settled `getTokens` refetch.
+ * Suggested Token Metadata for optimistic dydration
  */
 const collectCachedSuggestedMetadata = (
   queryClient: QueryClient,
@@ -282,9 +278,6 @@ export const useTokenWatchlistAddItemMutation = () => {
     toOp: (input) => ({ kind: 'add', ids: toStrings(asArray(input)) }),
     // Blob is already correct after onMutate; hydrated needs getTokens for metadata.
     invalidateOnSettled: { blob: false, hydrated: true },
-    // Seed the optimistic hydrated list from the cached suggested pool so a
-    // token starred on a suggested surface moves into the watchlist rows
-    // fluidly, before the authoritative refetch settles.
     seedSuggestedMetadata: true,
     shouldInvalidateHydrated: (input) => {
       const blob = queryClient.getQueryData<WatchlistBlob>(
