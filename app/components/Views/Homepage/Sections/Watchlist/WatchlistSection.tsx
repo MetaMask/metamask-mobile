@@ -49,8 +49,7 @@ const MAX_ITEMS_DISPLAYED = 5;
 
 const SUGGESTED_SKELETON_COUNT = 5;
 
-/** Suggested-row budget on the homepage before watchlist exclusions. */
-export const SUGGESTED_WATCHLIST_LIMIT = 5;
+const SUGGESTED_WATCHLIST_LIMIT = 5;
 
 /**
  * Returns suggested watchlist tokens shown beneath the user's watchlist.
@@ -84,14 +83,16 @@ const WatchlistSection = forwardRef<
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const navigation = useNavigation<AppNavigationProp>();
+
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
   const { data: suggestedPool, isLoading: isSuggestedLoading } =
     useSuggestedWatchlistItemsQuery();
   const addMutation = useTokenWatchlistAddItemMutation();
+  const watchlistAssetIds = useTokenWatchlistAssetIds();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const watchlistAssetIds = useTokenWatchlistAssetIds();
 
   const title = strings('homepage.sections.watchlist');
 
@@ -120,8 +121,6 @@ const WatchlistSection = forwardRef<
   const handleAddPress = useCallback(
     (token: WatchlistTokenWithBalance) => {
       const assetId = String(token.assetId) as CaipAssetType;
-
-      // No toast: the optimistic move into the watchlist rows is the feedback.
       addMutation.mutate(assetId, {
         onSuccess: () => {
           trackEvent(
