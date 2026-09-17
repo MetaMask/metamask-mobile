@@ -64,12 +64,7 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
         config.accountOverride = undefined;
       },
     );
-  }, [
-    accountOverride,
-    isMoneyAccountWithdraw,
-    transactionId,
-    transactionMeta,
-  ]);
+  }, [accountOverride, isMoneyAccountWithdraw, transactionId, transactionMeta]);
 
   const handleAccountSelected = useCallback(
     (address: string) => {

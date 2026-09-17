@@ -47,41 +47,41 @@ jest.mock('../AccountSelector', () => {
       label?: string;
       isAccountAllowed?: (account: unknown) => boolean;
     }) => (
-        <TouchableOpacity
-          testID="account-selector"
-          onPress={() => onAccountSelected('0xSelectedAddress')}
-        >
-          <Text testID="account-selector-label">{label ?? 'To'}</Text>
-          <Text testID="account-selector-address">
-            {selectedAddress ?? 'No selection'}
-          </Text>
-          <Text testID="account-selector-filter">
-            {isAccountAllowed ? 'Filtered' : 'Unfiltered'}
-          </Text>
-          <Text testID="hardware-accounts-allowed">
-            {String(
+      <TouchableOpacity
+        testID="account-selector"
+        onPress={() => onAccountSelected('0xSelectedAddress')}
+      >
+        <Text testID="account-selector-label">{label ?? 'To'}</Text>
+        <Text testID="account-selector-address">
+          {selectedAddress ?? 'No selection'}
+        </Text>
+        <Text testID="account-selector-filter">
+          {isAccountAllowed ? 'Filtered' : 'Unfiltered'}
+        </Text>
+        <Text testID="hardware-accounts-allowed">
+          {String(
+            isAccountAllowed?.({
+              metadata: { keyring: { type: 'Ledger Hardware' } },
+            }) ||
               isAccountAllowed?.({
-                metadata: { keyring: { type: 'Ledger Hardware' } },
+                metadata: {
+                  keyring: { type: 'QR Hardware Wallet Device' },
+                },
               }) ||
-                isAccountAllowed?.({
-                  metadata: {
-                    keyring: { type: 'QR Hardware Wallet Device' },
-                  },
-                }) ||
-                isAccountAllowed?.({
-                  metadata: { keyring: { type: 'OneKey Hardware' } },
-                }),
-            )}
-          </Text>
-          <Text testID="software-account-allowed">
-            {String(
               isAccountAllowed?.({
-                metadata: { keyring: { type: 'HD Key Tree' } },
+                metadata: { keyring: { type: 'OneKey Hardware' } },
               }),
-            )}
-          </Text>
-        </TouchableOpacity>
-      ),
+          )}
+        </Text>
+        <Text testID="software-account-allowed">
+          {String(
+            isAccountAllowed?.({
+              metadata: { keyring: { type: 'HD Key Tree' } },
+            }),
+          )}
+        </Text>
+      </TouchableOpacity>
+    ),
   };
 });
 
@@ -194,7 +194,9 @@ describe('PayAccountSelector', () => {
       txParams: { from: '0xMoneyAccount' },
       nestedTransactions: [{ data: '0xabcd' }],
     } as never);
-    useTransactionAccountOverrideMock.mockReturnValue('0xHardwareAddress' as Hex);
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xHardwareAddress' as Hex,
+    );
     isHardwareAccountMock.mockReturnValue(true);
 
     render();
