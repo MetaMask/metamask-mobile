@@ -25,12 +25,11 @@ import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/fea
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { useSuggestedWatchlistItemsQuery } from '../../../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery';
 import { useTokenWatchlistAddItemMutation } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations';
-import { useTokenWatchlistAssetIds } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistAssetIds';
+import { useTokenWatchlistAssetIds } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlist';
 import {
   getWatchlistAssetType,
   WatchlistAnalytics,
 } from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
-import { getSuggestedWatchlistTokens } from '../../../../UI/Assets/watchlist/utils/getSuggestedWatchlistTokens';
 import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
@@ -46,11 +45,33 @@ import type { SectionRefreshHandle } from '../../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
-/** Homepage watchlist rows shown before the user taps through to the full view. */
 const MAX_ITEMS_DISPLAYED = 5;
 
-/** Matches the suggested-row count that replaces these skeletons (limit − 0 watched). */
 const SUGGESTED_SKELETON_COUNT = 5;
+
+/** Suggested-row budget on the homepage before watchlist exclusions. */
+export const SUGGESTED_WATCHLIST_LIMIT = 5;
+
+/**
+ * Returns suggested watchlist tokens shown beneath the user's watchlist.
+ * Target count shrinks with the watchlist size so watchlist + suggestion rows
+ * always sum to `limit`; unlike the perps flow this hard-caps at zero once
+ * the watchlist is full. Asset IDs are compared case-insensitively.
+ */
+export const getSuggestedWatchlistTokens = (
+  suggestedTokens: WatchlistTokenWithBalance[],
+  watchlistAssetIds: readonly string[],
+  limit = SUGGESTED_WATCHLIST_LIMIT,
+): WatchlistTokenWithBalance[] => {
+  const targetCount = Math.max(0, limit - watchlistAssetIds.length);
+  const watched = new Set(
+    watchlistAssetIds.map((assetId) => assetId.toLowerCase()),
+  );
+  const nonWatchlisted = suggestedTokens.filter(
+    (token) => !watched.has(String(token.assetId).toLowerCase()),
+  );
+  return nonWatchlisted.slice(0, targetCount);
+};
 
 interface WatchlistSectionProps {
   sectionIndex: number;
@@ -70,9 +91,6 @@ const WatchlistSection = forwardRef<
   const addMutation = useTokenWatchlistAddItemMutation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Raw stored asset IDs (optimistically updated) — used for the suggested
-  // target count and exclusions so tokens that haven't hydrated yet still
-  // count, mirroring the perps Redux-symbol approach.
   const watchlistAssetIds = useTokenWatchlistAssetIds();
 
   const title = strings('homepage.sections.watchlist');
@@ -103,8 +121,7 @@ const WatchlistSection = forwardRef<
     (token: WatchlistTokenWithBalance) => {
       const assetId = String(token.assetId) as CaipAssetType;
 
-      // No toast here on purpose: the optimistic move into the watchlist
-      // rows (seeded from the suggested-pool metadata) is the feedback.
+      // No toast: the optimistic move into the watchlist rows is the feedback.
       addMutation.mutate(assetId, {
         onSuccess: () => {
           trackEvent(
