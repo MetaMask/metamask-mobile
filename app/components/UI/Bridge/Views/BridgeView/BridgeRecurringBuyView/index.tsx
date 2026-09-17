@@ -11,7 +11,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  selectBridgeBalanceRefreshKey,
   selectOrdersNetworkFilter,
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
