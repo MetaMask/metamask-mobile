@@ -261,7 +261,6 @@ const CardWelcome = () => {
           onPress={handleButtonPress}
           testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
           size={ButtonSize.Lg}
-          style={styles.getStartedButton}
           isFullWidth
         >
           <Text
@@ -280,12 +279,13 @@ const CardWelcome = () => {
           onPress={handleClose}
           testID={CardWelcomeSelectors.NOT_NOW_BUTTON}
           size={ButtonSize.Lg}
-          style={styles.notNowButton}
           isFullWidth
+          textProps={{
+            variant: TextVariant.BodyMd,
+            style: styles.notNowButtonText,
+          }}
         >
-          <Text variant={TextVariant.BodyMd} style={styles.notNowButtonText}>
-            {strings('card.card_onboarding.not_now_button')}
-          </Text>
+          {strings('card.card_onboarding.not_now_button')}
         </Button>
       </SafeAreaView>
     </LinearGradient>
