@@ -53,7 +53,7 @@ export function resolveLiveDriver(
   return sharedSession.drv ?? fixtureDrv;
 }
 
-export type RecreateInProcessSessionOptions = {
+export interface RecreateInProcessSessionOptions {
   currentDrv: WebdriverIO.Browser | undefined;
   deviceProvider: ServiceProvider;
   sharedSession: SharedAppiumSession;
@@ -65,8 +65,12 @@ export type RecreateInProcessSessionOptions = {
    * the session that was just cleaned up.
    */
   adoptSession: (drv: WebdriverIO.Browser) => void;
+  /** Flush session-scoped state (screen recording) before the dying session is deleted. */
+  flushDyingSession?: (drv: WebdriverIO.Browser) => Promise<void>;
+  /** Re-arm session-scoped state (screen recording) on the replacement session. */
+  armNewSession?: (drv: WebdriverIO.Browser) => Promise<void>;
   configureWait?: ConfigureImplicitWait;
-};
+}
 
 /**
  * Delete the current WebDriver session and create a replacement in the same
@@ -78,8 +82,20 @@ export async function recreateInProcessSession({
   sharedSession,
   implicitMs,
   adoptSession,
+  flushDyingSession,
+  armNewSession,
   configureWait = configureImplicitWait,
 }: RecreateInProcessSessionOptions): Promise<WebdriverIO.Browser> {
+  if (currentDrv && flushDyingSession) {
+    try {
+      await flushDyingSession(currentDrv);
+    } catch (error) {
+      logger.error(
+        'Failed to flush session state before in-process recreate:',
+        error,
+      );
+    }
+  }
   try {
     if (currentDrv) {
       await deviceProvider.cleanupSession?.(currentDrv);
@@ -93,6 +109,16 @@ export async function recreateInProcessSession({
   sharedSession.drv = undefined;
   const newDrv = await createSession(deviceProvider, sharedSession);
   adoptSession(newDrv);
+  if (armNewSession) {
+    try {
+      await armNewSession(newDrv);
+    } catch (error) {
+      logger.error(
+        'Failed to arm session state after in-process recreate:',
+        error,
+      );
+    }
+  }
   await configureWait(newDrv, implicitMs);
   return newDrv;
 }

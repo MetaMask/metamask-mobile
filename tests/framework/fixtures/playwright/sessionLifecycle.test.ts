@@ -75,6 +75,58 @@ describe('recreateInProcessSession', () => {
     expect(configureWait).toHaveBeenCalledWith(newDrv, 1000);
   });
 
+  it('flushes recording on the dying session and re-arms it on the replacement', async () => {
+    const oldDrv = createDrv('old');
+    const newDrv = createDrv('new');
+    const deviceProvider = createProvider(newDrv);
+    const sharedSession: SharedAppiumSession = { drv: oldDrv };
+    const order: string[] = [];
+    deviceProvider.cleanupSession.mockImplementation(async () => {
+      order.push('cleanup');
+    });
+
+    await recreateInProcessSession({
+      currentDrv: oldDrv,
+      deviceProvider,
+      sharedSession,
+      implicitMs: 1000,
+      adoptSession: () => order.push('adopt'),
+      flushDyingSession: async (dying) => {
+        order.push(`flush:${dying.sessionId}`);
+      },
+      armNewSession: async (session) => {
+        order.push(`arm:${session.sessionId}`);
+      },
+      configureWait: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(order).toEqual(['flush:old', 'cleanup', 'adopt', 'arm:new']);
+  });
+
+  it('recreates the session when the recording flush throws', async () => {
+    const oldDrv = createDrv('old');
+    const newDrv = createDrv('new');
+    const deviceProvider = createProvider(newDrv);
+    const sharedSession: SharedAppiumSession = { drv: oldDrv };
+
+    const result = await recreateInProcessSession({
+      currentDrv: oldDrv,
+      deviceProvider,
+      sharedSession,
+      implicitMs: 1000,
+      adoptSession: () => undefined,
+      flushDyingSession: jest
+        .fn()
+        .mockRejectedValue(
+          new Error('session is either terminated or not started'),
+        ),
+      configureWait: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(result).toBe(newDrv);
+    expect(deviceProvider.cleanupSession).toHaveBeenCalledWith(oldDrv);
+  });
+
   it('keeps the adopted session when implicit wait still fails', async () => {
     const oldDrv = createDrv('old');
     const newDrv = createDrv('new');

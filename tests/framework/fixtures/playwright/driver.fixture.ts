@@ -156,6 +156,28 @@ export const driverFixture = {
             globalThis.driver = session;
             sessionRecreated = true;
           },
+          // Screen recording is bound to the session that started it, so hand
+          // it over: flush the dying session, then re-arm on the replacement
+          // so a later failure in the same attempt still produces a video.
+          ...(recordVideoOnFailure && {
+            flushDyingSession: async (dyingDrv: WebdriverIO.Browser) => {
+              const dyingBackend = recordingBackend;
+              recordingBackend = undefined;
+              await stopFailureRecordingAndAttach(
+                dyingDrv,
+                testInfo,
+                dyingBackend,
+                platform,
+              );
+            },
+            armNewSession: async (session: WebdriverIO.Browser) => {
+              recordingBackend = await startFailureRecording(
+                session,
+                testInfo,
+                platform,
+              );
+            },
+          }),
         });
         logger.info(
           `In-process WebDriver session ready: sessionId=${deviceProvider.sessionId ?? newDrv.sessionId ?? 'unknown'}`,
