@@ -309,6 +309,71 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
   });
 
+  it('freezes the margin transition while the submitted adjustment settles', async () => {
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(25);
+    });
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      );
+    });
+
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      currentMargin: 750,
+    });
+    rerender(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(screen.getByText('$500.00')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_VALUE),
+    ).toHaveTextContent('$750.00');
+  });
+
+  it('shows validation and disables confirm if available margin drops below the amount', () => {
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(100);
+    });
+
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      maxAmount: 500,
+    });
+    rerender(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.getByRole('alert', {
+        name: 'perps.adjust_margin.exceeds_available',
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    ).toBeDisabled();
+  });
+
   it('submits remove mode through the existing adjustment handler', async () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,

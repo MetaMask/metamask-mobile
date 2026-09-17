@@ -85,6 +85,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const submittedEstimateRef = useRef<{
     price: number;
     distance: number;
+    currentMargin: number;
+    nextMargin: number;
   } | null>(null);
   const adjustmentPendingRef = useRef(false);
   const hasNavigatedBackRef = useRef(false);
@@ -340,6 +342,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     submittedEstimateRef.current = {
       price: newLiquidationPrice,
       distance: newLiquidationDistance,
+      currentMargin,
+      nextMargin: isAddMode
+        ? currentMargin + marginAmount
+        : Math.max(0, currentMargin - marginAmount),
     };
 
     if (isAddMode) {
@@ -352,6 +358,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     flooredMaxAmount,
     handleAddMargin,
     handleRemoveMargin,
+    currentMargin,
     isAddMode,
     isAdjusting,
     marginAmount,
@@ -367,9 +374,13 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     submittedEstimate?.price ?? newLiquidationPrice;
   const displayNewLiquidationDistance =
     submittedEstimate?.distance ?? newLiquidationDistance;
-  const nextMargin = isAddMode
-    ? currentMargin + marginAmount
-    : Math.max(0, currentMargin - marginAmount);
+  const displayCurrentMargin =
+    submittedEstimate?.currentMargin ?? currentMargin;
+  const nextMargin =
+    submittedEstimate?.nextMargin ??
+    (isAddMode
+      ? currentMargin + marginAmount
+      : Math.max(0, currentMargin - marginAmount));
   const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   const renderTransitionValue = (
@@ -524,7 +535,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.adjust_margin.margin_in_position')}
               value={renderTransitionValue(
-                formatPerpsFiat(currentMargin, {
+                formatPerpsFiat(displayCurrentMargin, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
                 }),
                 formatPerpsFiat(nextMargin, {
