@@ -36,6 +36,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     }
   }, [delegationFee]);
 
+
   const handleConfirm = useCallback(() => {
     if (delegationFee.status === 'error') {
       delegationFee.retry();
