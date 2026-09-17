@@ -22,6 +22,8 @@ class TimerHelper {
   private _baseThreshold: number | null;
   private readonly _platform?: 'android' | 'ios';
 
+  includeInTotal = true;
+
   /**
    * Creates a new TimerHelper and registers a timer in the store.
    * @param id - Timer description/identifier
@@ -102,6 +104,19 @@ class TimerHelper {
       return currentDuration;
     }
     return null;
+  }
+
+  /**
+   * Records an externally measured duration (e.g. in-app Sentry-equivalent TTC)
+   * without using wall-clock start/stop.
+   */
+  recordDuration(durationMs: number): void {
+    const timer = TimerStore.getTimer(this.id);
+    const safeDuration = Math.max(0, durationMs);
+    const end = Date.now();
+    timer.start = end - safeDuration;
+    timer.end = end;
+    timer.duration = safeDuration;
   }
 
   /**

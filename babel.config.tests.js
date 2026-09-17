@@ -38,6 +38,8 @@ const newOverrides = [
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.test.ts',
+      'app/core/Engine/controllers/kyc/kyc-service-init.ts',
+      'app/core/Engine/controllers/kyc/kyc-service-init.test.ts',
       'app/core/Engine/controllers/ramps-controller/transak-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/transak-service-init.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts',

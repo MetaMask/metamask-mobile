@@ -4,6 +4,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+import { selectPrimaryHDKeyring } from '../keyringController';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -25,22 +26,36 @@ export const selectIsSignedIn = createSelector(
 );
 
 /**
- * Selector that exposes the canonical profile ID from the active
- * AuthenticationController session.
+ * Selector that exposes the canonical profile ID of the session belonging to
+ * the wallet's primary SRP.
  *
- * The canonical profile ID is the unified identifier across all paired SRPs,
- * so any single session profile suffices. Reads the first available session
- * entry — before pairing there is only one, and after pairing every session
- * shares the same canonical id (the controller propagates it to all cached
- * sessions on `refreshCanonicalProfileId`).
+ * `srpSessionData` is persisted, keyed by keyring `metadata.id`, and is never
+ * pruned when a keyring goes away, so its first entry can outlive the wallet
+ * it was created for (e.g. after a wallet reset). Keying by the primary HD
+ * keyring — the same key the AuthenticationController itself uses — instead of
+ * the first map entry guarantees the resolved identity belongs to the live
+ * wallet and not a reset-away one.
  *
- * Returns `undefined` when there is no session profile (e.g. signed out).
+ * Returns `undefined` when the identity is not knowable yet: signed out, no
+ * session for the primary SRP, or the wallet is locked (`keyrings` is
+ * `persist: false` and emptied by `setLocked()`).
  */
 export const selectCanonicalProfileId = createSelector(
   selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    Object.entries(authenticationControllerState.srpSessionData ?? {})?.[0]?.[1]
-      ?.profile?.canonicalProfileId,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string | undefined => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return undefined;
+    }
+    return (
+      authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
+        ?.profile?.canonicalProfileId || undefined
+    );
+  },
 );
 
 /**
@@ -61,6 +76,22 @@ export const selectNeedsProfilePairing = createSelector(
   selectAuthenticationControllerState,
   (authenticationControllerState: AuthenticationState) =>
     authenticationControllerState.needsProfilePairing ?? true,
+);
+
+/**
+ * Selector that exposes the `needsSocialPairing` flag from the
+ * `AuthenticationController` state.
+ *
+ * Used by `useAutoSignIn` to force a sign-in when a social-login wallet
+ * still needs its social identifier paired to the SRP profile.
+ *
+ * Defaults to `true` when the field is absent from state — this mirrors the
+ * controller's `defaultState` and matches `selectNeedsProfilePairing`.
+ */
+export const selectNeedsSocialPairing = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.needsSocialPairing ?? true,
 );
 
 // User Storage

@@ -15,6 +15,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
   Text,
   TextColor,
@@ -104,6 +105,7 @@ function ConfirmOrderRow({
   value,
   testID,
   trailing,
+  labelAccessory,
   isLoading,
   skeletonTestID,
 }: {
@@ -111,6 +113,7 @@ function ConfirmOrderRow({
   value: string;
   testID: string;
   trailing?: ReactNode;
+  labelAccessory?: ReactNode;
   isLoading?: boolean;
   skeletonTestID?: string;
 }) {
@@ -124,9 +127,17 @@ function ConfirmOrderRow({
       paddingVertical={2}
       testID={testID}
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="shrink"
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -166,8 +177,12 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
+  delegationFee,
+  isSubmitting,
   latestSourceBalance,
+  onConfirm,
   onEditSlippagePress,
+  onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -183,9 +198,18 @@ const RecurringConfirmOrderSheet = ({
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
-  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasSufficientGas = useHasSufficientGas({
+    additionalGasFeeInHex:
+      delegationFee.status === 'ready'
+        ? delegationFee.preciseNativeFeeInHex
+        : undefined,
+    quote: activeQuote,
+  });
   const hasInsufficientGas = !hasSufficientGas;
-  const isConfirmDisabled = hasInsufficientBalance || hasInsufficientGas;
+  const isDelegationFeeReady =
+    delegationFee.status === 'ready' || delegationFee.status === 'not-required';
+  const isConfirmDisabled =
+    hasInsufficientBalance || hasInsufficientGas || !isDelegationFeeReady;
   const confirmLabel = hasInsufficientBalance
     ? strings('bridge.insufficient_funds')
     : hasInsufficientGas
@@ -345,12 +369,57 @@ const RecurringConfirmOrderSheet = ({
             ) : undefined
           }
         />
+        {delegationFee.status !== 'not-required' ? (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <ConfirmOrderRow
+              label={strings('bridge.recurring.delegation_fee_one_time')}
+              value={
+                delegationFee.status === 'ready'
+                  ? delegationFee.displayFee
+                  : '--'
+              }
+              testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
+              isLoading={delegationFee.status === 'loading'}
+              skeletonTestID={
+                RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON
+              }
+              labelAccessory={
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Sm}
+                  onPress={onDelegationFeeInfoPress}
+                  testID={
+                    RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO
+                  }
+                  accessibilityLabel={strings(
+                    'bridge.recurring.delegation_fee_info_title',
+                  )}
+                />
+              }
+              trailing={
+                delegationFee.status === 'ready' && nativeToken ? (
+                  <AvatarToken
+                    name={nativeToken.symbol}
+                    src={nativeTokenImageSource}
+                    size={AvatarTokenSize.Xs}
+                    testID={
+                      RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN
+                    }
+                  />
+                ) : undefined
+              }
+            />
+          </>
+        ) : null}
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
           children: confirmLabel,
-          onPress: closeSheet,
-          isDisabled: isConfirmDisabled,
+          onPress: onConfirm,
+          isDisabled: isConfirmDisabled || isSubmitting,
+          isLoading: isSubmitting,
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />

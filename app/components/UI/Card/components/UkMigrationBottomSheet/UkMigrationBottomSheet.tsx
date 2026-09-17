@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Text,
@@ -17,9 +16,21 @@ import {
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { selectCardUkMigrationState } from '../../../../../selectors/featureFlagController/card';
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
+import {
+  buildCardMigrationBadgeReasons,
+  CardActions,
+  CardFlow,
+  CardScreens,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../util/metrics';
 
 export const createUkMigrationBottomSheetNavigationDetails =
   createNavigationDetails(
@@ -38,12 +49,31 @@ const MIGRATION_STEP_KEYS = [
  *
  * Get started closes the sheet and opens Immersve SignUp with
  * `fromMigration: true`. Soft vs forced presentation is owned by Card Home
- * via `selectCardUkMigrationState`.
+ * via `useCardUkMigrationState` (clock-aware phase).
  */
 const UkMigrationBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const hasTrackedView = useRef(false);
   const navigation = useNavigation<AppNavigationProp>();
-  const { deadline } = useSelector(selectCardUkMigrationState);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    state: { deadline, phase },
+  } = useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const migrationPhase = mapUkMigrationPhaseToAnalytics(phase);
+  const badgeReasons = buildCardMigrationBadgeReasons(
+    Boolean(cardUpdateBadgeSeverity),
+  );
+
+  const migrationEventProperties = useMemo(
+    () =>
+      withCardProvider(CardProviderIds.Baanx, {
+        flow: CardFlow.MIGRATION,
+        ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+        ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
+      }),
+    [badgeReasons, migrationPhase],
+  );
 
   const description = useMemo(() => {
     if (!deadline) {
@@ -54,25 +84,58 @@ const UkMigrationBottomSheet = () => {
     });
   }, [deadline]);
 
+  useEffect(() => {
+    if (hasTrackedView.current) {
+      return;
+    }
+    hasTrackedView.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          ...migrationEventProperties,
+          screen: CardScreens.MIGRATION_UPDATE_SHEET,
+        })
+        .build(),
+    );
+  }, [createEventBuilder, migrationEventProperties, trackEvent]);
+
+  const trackMigrationButton = useCallback(
+    (action: CardActions) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            ...migrationEventProperties,
+            action,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, migrationEventProperties, trackEvent],
+  );
+
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleClose = useCallback(() => {
+    trackMigrationButton(CardActions.MIGRATION_SHEET_CLOSE_BUTTON);
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackMigrationButton]);
 
   const handleGetStarted = useCallback(() => {
+    trackMigrationButton(CardActions.MIGRATION_SHEET_GET_STARTED_BUTTON);
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.SIGN_UP,
         params: { fromMigration: true },
       });
     });
-  }, [navigation]);
+  }, [navigation, trackMigrationButton]);
 
-  // For now, same as X / dismiss (DF3). Re-entry UX still TBD.
-  const handleRemindLater = handleClose;
+  const handleRemindLater = useCallback(() => {
+    trackMigrationButton(CardActions.MIGRATION_SHEET_REMIND_ME_LATER_BUTTON);
+    sheetRef.current?.onCloseBottomSheet();
+  }, [trackMigrationButton]);
 
   const steps = useMemo(
     () =>

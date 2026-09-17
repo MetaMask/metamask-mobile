@@ -116,6 +116,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Box twClassName="items-end">
             <Switch
+              testID={`feature-flag-override-switch-${flag.key}`}
               value={(localValue as MinimumVersionFlagValue).enabled}
               disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
@@ -566,6 +567,7 @@ const FeatureFlagOverride: React.FC = () => {
         {/* Search and controls */}
         <Box twClassName="p-4 border-b border-border-muted">
           <TextInput
+            testID="feature-flag-override-search"
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search feature flags..."

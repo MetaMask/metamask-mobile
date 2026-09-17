@@ -41,6 +41,13 @@ import Logger from '../../../../util/Logger';
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+// Only the sink is mocked, so the real `AnalyticsEventBuilder` still runs.
+const mockTrackAnalyticsEvent = jest.fn();
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args: unknown[]) => mockTrackAnalyticsEvent(...args),
+  },
+}));
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn((_request, fn) => fn(undefined)),
@@ -4415,6 +4422,29 @@ describe('CardController — data pass-throughs', () => {
       });
     });
 
+    it('caps excess-precision amounts before submitting to the provider', async () => {
+      const mockWithdraw = jest.fn().mockResolvedValue({ txHash: '0xcap' });
+      const provider = buildMockProvider({
+        withdrawCashback: mockWithdraw,
+        getCashbackWithdrawEstimation: jest.fn().mockResolvedValue({
+          wei: '1',
+          eth: '0.001',
+          price: '0.5',
+          network: 'linea',
+        }),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      await controller.withdrawCashback({ amount: '17.96660759' });
+
+      expect(mockWithdraw).toHaveBeenCalledWith(
+        { amount: '17.9666' },
+        mockTokenSet,
+      );
+    });
+
     it('throws when unsupported', async () => {
       const provider = buildMockProvider({
         withdrawCashback: undefined,
@@ -5077,6 +5107,349 @@ describe('CardController — data pass-throughs', () => {
         status: 'failed',
         error: { reason: 'submit_failed' },
       });
+    });
+  });
+
+  describe('redeem funnel analytics', () => {
+    // Literals, not `MetaMetricsEvents`: these strings are the wire contract
+    // for the dashboards, so a rename must fail the test.
+    const STARTED = 'Card Redeem Process Started';
+    const COMPLETED = 'Card Redeem Process Completed';
+    const FAILED = 'Card Redeem Process Failed';
+
+    // The parent suite only restores spies, so counts leak without this.
+    beforeEach(() => {
+      mockTrackAnalyticsEvent.mockClear();
+    });
+
+    const emitsOf = (name: string) =>
+      mockTrackAnalyticsEvent.mock.calls
+        .map(([event]) => event as { name: string; properties: unknown })
+        .filter((event) => event.name === name);
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        providerOverrides: {
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xok' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+        amountBucket: '1-10',
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '250' }),
+        providerOverrides: {
+          withdrawCredit: jest.fn().mockResolvedValue({ txHash: '0xok' }),
+          getCreditWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+        amountBucket: '100-1000',
+      },
+    ])(
+      'emits started then completed for a successful $mode redeem',
+      async ({ mode, withdraw, providerOverrides, amountBucket }) => {
+        const provider = buildMockProvider(providerOverrides);
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(messenger);
+        jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+        await withdraw(controller);
+
+        expect(emitsOf(STARTED)).toHaveLength(1);
+        expect(emitsOf(STARTED)[0].properties).toStrictEqual({
+          provider: 'baanx',
+          mode,
+          amount_bucket: amountBucket,
+        });
+        expect(emitsOf(COMPLETED)).toHaveLength(1);
+        expect(emitsOf(COMPLETED)[0].properties).toMatchObject({
+          provider: 'baanx',
+          mode,
+          amount_bucket: amountBucket,
+          chain_id: '0xe708',
+          duration_ms: expect.any(Number),
+        });
+        expect(emitsOf(FAILED)).toHaveLength(0);
+      },
+    );
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        estimationKey: 'getCashbackWithdrawEstimation' as const,
+        submitKey: 'withdrawCashback' as const,
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '5' }),
+        estimationKey: 'getCreditWithdrawEstimation' as const,
+        submitKey: 'withdrawCredit' as const,
+      },
+    ])(
+      'reports an estimation-stage failure for $mode',
+      async ({ mode, withdraw, estimationKey, submitKey }) => {
+        const provider = buildMockProvider({
+          [estimationKey]: jest
+            .fn()
+            .mockRejectedValue(
+              new CardApiError(503, '/withdraw-estimation', 'down'),
+            ),
+          [submitKey]: jest.fn(),
+        });
+        const { controller } = buildAuthenticatedController(provider);
+
+        await expect(withdraw(controller)).rejects.toBeInstanceOf(CardApiError);
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          provider: 'baanx',
+          mode,
+          stage: 'estimation',
+          reason: 'server_error',
+          status_code: 503,
+          chain_id: null,
+          error_name: 'CardApiError',
+        });
+        expect(emitsOf(COMPLETED)).toHaveLength(0);
+      },
+    );
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        providerOverrides: {
+          withdrawCashback: jest
+            .fn()
+            .mockRejectedValue(
+              new CardProviderError(
+                CardProviderErrorCode.Network,
+                'offline',
+                0,
+              ),
+            ),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '5' }),
+        providerOverrides: {
+          withdrawCredit: jest
+            .fn()
+            .mockRejectedValue(
+              new CardProviderError(
+                CardProviderErrorCode.Network,
+                'offline',
+                0,
+              ),
+            ),
+          getCreditWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+    ])(
+      'reports a submit-stage failure for $mode with the resolved chain',
+      async ({ mode, withdraw, providerOverrides }) => {
+        const provider = buildMockProvider(providerOverrides);
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(messenger);
+
+        await expect(withdraw(controller)).rejects.toMatchObject({
+          message: 'offline',
+        });
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          mode,
+          stage: 'submit',
+          reason: 'network',
+          error_code: CardProviderErrorCode.Network,
+          chain_id: '0xe708',
+        });
+      },
+    );
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        providerOverrides: {
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xrev' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '5' }),
+        providerOverrides: {
+          withdrawCredit: jest.fn().mockResolvedValue({ txHash: '0xrev' }),
+          getCreditWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+    ])(
+      'reports an on-chain revert for $mode',
+      async ({ mode, withdraw, providerOverrides }) => {
+        const provider = buildMockProvider(providerOverrides);
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(
+          messenger,
+          jest.fn().mockResolvedValue({ status: '0x0' }),
+        );
+
+        await expect(withdraw(controller)).rejects.toMatchObject({
+          name: 'ExternalTransactionRevertedError',
+        });
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          mode,
+          stage: 'on_chain',
+          reason: 'tx_reverted',
+          chain_id: '0xe708',
+          error_name: 'ExternalTransactionRevertedError',
+        });
+      },
+    );
+
+    it('reports an on-chain timeout with the polling chain', async () => {
+      jest.useFakeTimers();
+      try {
+        const provider = buildMockProvider({
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xtime' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        });
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(
+          messenger,
+          jest.fn().mockReturnValue(new Promise(() => undefined)),
+        );
+
+        const withdrawal = controller.withdrawCashback({ amount: '5' });
+        withdrawal.catch(() => undefined);
+        await jest.advanceTimersByTimeAsync(3 * 60 * 1000 + 1000);
+        await expect(withdrawal).rejects.toMatchObject({
+          name: 'ExternalTransactionReceiptTimeoutError',
+        });
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          mode: 'cashback',
+          stage: 'on_chain',
+          reason: 'tx_timeout',
+          chain_id: '0xe708',
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('reports no_polling_chain at the estimation stage', async () => {
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn(),
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue({ ...lineaEstimation, network: 'nope' }),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.withdrawCashback({ amount: '5' }),
+      ).rejects.toThrow('Unable to resolve withdrawal network for monitoring');
+
+      expect(emitsOf(FAILED)).toHaveLength(1);
+      expect(emitsOf(FAILED)[0].properties).toMatchObject({
+        stage: 'estimation',
+        reason: 'no_polling_chain',
+        chain_id: null,
+      });
+    });
+
+    it('does not emit for a duplicate submit rejected while one is in flight', async () => {
+      let resolveEstimation!: (value: unknown) => void;
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xabc' }),
+        getCashbackWithdrawEstimation: jest.fn().mockReturnValue(
+          new Promise((resolve) => {
+            resolveEstimation = resolve;
+          }),
+        ),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      const first = controller.withdrawCashback({ amount: '5' });
+      await expect(
+        controller.withdrawCashback({ amount: '1' }),
+      ).rejects.toBeInstanceOf(CardRedeemWithdrawalInProgressError);
+
+      expect(emitsOf(STARTED)).toHaveLength(1);
+      expect(emitsOf(FAILED)).toHaveLength(0);
+
+      resolveEstimation(lineaEstimation);
+      await first;
+      expect(emitsOf(COMPLETED)).toHaveLength(1);
+    });
+
+    it('does not report a failure when monitoring is abandoned mid-withdrawal', async () => {
+      let resolveSubmit!: (value: unknown) => void;
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn().mockReturnValue(
+          new Promise((resolve) => {
+            resolveSubmit = resolve;
+          }),
+        ),
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue(lineaEstimation),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      const providerRequest = wireRedeemNetworkMessenger(messenger);
+
+      const withdrawal = controller.withdrawCashback({ amount: '5' });
+      withdrawal.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Abandon while the submit is still in flight, so the monitor's first
+      // `shouldContinue` check cancels without waiting on a poll interval.
+      controller.clearRedeemWithdrawal();
+      resolveSubmit({ txHash: '0xgone' });
+
+      await expect(withdrawal).rejects.toMatchObject({
+        name: 'ExternalTransactionMonitorCancelledError',
+      });
+      expect(providerRequest).not.toHaveBeenCalled();
+      expect(emitsOf(FAILED)).toHaveLength(0);
+      expect(emitsOf(COMPLETED)).toHaveLength(0);
+      expect(emitsOf(STARTED)).toHaveLength(1);
     });
   });
 

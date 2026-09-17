@@ -9,31 +9,26 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Icon,
-  IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenLogo from '../TrendingTokenLogo';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { isCaipAssetType, isCaipChainId } from '@metamask/utils';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
   getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
+  getNetworkBadgeSrc,
   formatMarketStats,
   getPriceChangeFieldKey,
 } from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
@@ -155,7 +150,7 @@ const TrendingTokenRowItem = ({
   );
 
   const networkBadgeImageSource = useMemo(
-    () => getNetworkBadgeSource(caipChainId),
+    () => getNetworkBadgeSrc(caipChainId),
     [caipChainId],
   );
 
@@ -203,16 +198,9 @@ const TrendingTokenRowItem = ({
       testID={rowTestId}
     >
       <BadgeWrapper
-        style={styles.badge}
-        badgePosition={BadgePosition.BottomRight}
-        anchorSize={{ width: 40, height: 40 }}
-        badgeElement={
-          <Badge
-            size={AvatarSize.Xs}
-            variant={BadgeVariant.Network}
-            imageSource={networkBadgeImageSource}
-            isScaled={false}
-          />
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork src={networkBadgeImageSource} twClassName="h-5 w-5" />
         }
       >
         <TrendingTokenLogo

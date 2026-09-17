@@ -5,9 +5,7 @@ import type { Caip19AssetId } from '@metamask/assets-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
@@ -40,9 +38,6 @@ export interface EnsurePayTokenParams {
 export function useEnsurePayToken(): (
   token: EnsurePayTokenParams,
 ) => Promise<void> {
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
   const selectedEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -54,7 +49,6 @@ export function useEnsurePayToken(): (
     ? getInternalAccountsByAddresses([accountOverride])[0]
     : undefined;
   const evmAccount = overrideAccount ?? selectedEvmAccount;
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   return useCallback(
     async ({
@@ -64,19 +58,13 @@ export function useEnsurePayToken(): (
       decimals,
       name,
     }: EnsurePayTokenParams) => {
-      const { AssetsController, TokenRatesController } = Engine.context;
+      const { AssetsController } = Engine.context;
       const caipChainId = toEvmCaipChainId(chainId);
       const caipAssetType = toAssetId(address, caipChainId);
 
       // Register the token in unified assets state so the pay controller can
-      // resolve its metadata (legacy metadata is added by the caller via
-      // TokensController.addTokens).
-      if (
-        isAssetsUnifyStateEnabled &&
-        evmAccount?.id &&
-        caipAssetType &&
-        AssetsController?.addCustomAsset
-      ) {
+      // resolve its metadata.
+      if (evmAccount?.id && caipAssetType && AssetsController?.addCustomAsset) {
         try {
           await AssetsController.addCustomAsset(
             evmAccount.id,
@@ -92,24 +80,13 @@ export function useEnsurePayToken(): (
       // for the token's chain, the pay controller resolves without it for
       // post-quote/withdraw destinations.
       try {
-        if (isAssetsUnifyStateEnabled) {
-          if (evmAccount && caipAssetType && AssetsController?.getAssets) {
-            await AssetsController.getAssets([evmAccount], {
-              chainIds: [caipChainId],
-              dataTypes: ['price'],
-              forceUpdate: true,
-              assetsForPriceUpdate: [caipAssetType as Caip19AssetId],
-            });
-          }
-          return;
-        }
-
-        const nativeCurrency = networkConfigurations?.[chainId]?.nativeCurrency;
-
-        if (nativeCurrency && TokenRatesController?.updateExchangeRates) {
-          await TokenRatesController.updateExchangeRates([
-            { chainId, nativeCurrency },
-          ]);
+        if (evmAccount && caipAssetType && AssetsController?.getAssets) {
+          await AssetsController.getAssets([evmAccount], {
+            chainIds: [caipChainId],
+            dataTypes: ['price'],
+            forceUpdate: true,
+            assetsForPriceUpdate: [caipAssetType as Caip19AssetId],
+          });
         }
       } catch (error) {
         log('Failed to refresh pay token fiat rate', {
@@ -119,6 +96,6 @@ export function useEnsurePayToken(): (
         });
       }
     },
-    [isAssetsUnifyStateEnabled, evmAccount, networkConfigurations],
+    [evmAccount],
   );
 }

@@ -84,6 +84,9 @@ const IMMERSVE_FUNDING_NETWORK_RPC: Record<
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
+/** Immersve always settles transactions in USDC. */
+const IMMERSVE_SETTLEMENT_CURRENCY = 'USDC';
+
 function isUsdStablecoin(symbol: string): boolean {
   return USD_STABLECOIN_SYMBOLS.has(symbol.toUpperCase());
 }
@@ -1064,7 +1067,7 @@ export class ImmersveProvider implements ICardProvider {
             }
           : undefined,
       feeAmount: feeValue
-        ? { value: feeValue, currency: billingCurrency }
+        ? { value: feeValue, currency: IMMERSVE_SETTLEMENT_CURRENCY }
         : undefined,
       merchant: {
         name: raw.cardAcceptor.name,

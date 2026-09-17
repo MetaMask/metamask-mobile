@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import CampaignPrizePool, {
+import {
   CAMPAIGN_PRIZE_POOL_TEST_IDS,
   type CampaignPrizePoolSchedule,
 } from './CampaignPrizePool';
+import CampaignPrizePoolSection from './CampaignPrizePoolSection';
 
 export const ONDO_PRIZE_POOL_TEST_IDS = CAMPAIGN_PRIZE_POOL_TEST_IDS;
 
@@ -47,7 +48,7 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
   );
 
   return (
-    <CampaignPrizePool
+    <CampaignPrizePoolSection
       prizePool={prizePool}
       isLoading={isLoading}
       hasError={hasError}

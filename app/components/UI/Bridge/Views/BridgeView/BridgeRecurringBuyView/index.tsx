@@ -105,20 +105,20 @@ const BridgeRecurringBuyViewContent = ({
     });
   }, [dismissInputAndKeypad, navigation]);
 
-  const handleJobPress = useCallback(
-    (jobId: string) => {
-      navigation.navigate(Routes.BRIDGE.RECURRING_JOB_DETAILS, { jobId });
+  const handleOrderPress = useCallback(
+    (orderId: string) => {
+      navigation.navigate(Routes.BRIDGE.RECURRING_ORDER_DETAILS, { orderId });
     },
     [navigation],
   );
 
   const openOrders = useMemo(
-    () => createRecurringMockOpenOrdersTab(handleJobPress),
-    [handleJobPress],
+    () => createRecurringMockOpenOrdersTab(handleOrderPress),
+    [handleOrderPress],
   );
   const history = useMemo(
-    () => createRecurringMockHistoryTab(handleJobPress),
-    [handleJobPress],
+    () => createRecurringMockHistoryTab(handleOrderPress),
+    [handleOrderPress],
   );
 
   const effectiveRange = isPriceRangeInCurrentCurrency(

@@ -432,6 +432,18 @@ describe('RevealPrivateCredential', () => {
       expect(getByText('Get started')).toBeOnTheScreen();
     });
 
+    it('centers the introduction description so wrapped translations stay aligned', () => {
+      const { getByText } = renderWithProviders(
+        <RevealPrivateCredential cancel={() => null} />,
+      );
+
+      expect(
+        getByText(
+          'To reveal your Secret Recovery Phrase, you need to correctly answer two questions',
+        ),
+      ).toHaveStyle({ textAlign: 'center' });
+    });
+
     it('renders password entry after completing security quiz', async () => {
       // Mock biometrics to fail so password entry is shown
       mockReauthenticate.mockRejectedValue(
@@ -754,7 +766,7 @@ describe('RevealPrivateCredential', () => {
       });
 
       // Validate specific warning message for incorrect password
-      expect(getByText('Incorrect password')).toBeOnTheScreen();
+      expect(getByText('Incorrect password. Try again.')).toBeOnTheScreen();
     });
 
     it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {
@@ -859,7 +871,7 @@ describe('RevealPrivateCredential', () => {
 
       // Validate specific unknown error message
       expect(
-        getByText("Couldn't unlock your account. Please try again."),
+        getByText("Couldn't unlock your account. Try again."),
       ).toBeOnTheScreen();
     });
 

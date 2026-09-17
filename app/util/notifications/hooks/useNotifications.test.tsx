@@ -29,6 +29,7 @@ jest.mock('./usePushNotifications', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.resetAllMocks();
 });
 
 describe('useNotifications - useListNotifications()', () => {
@@ -134,8 +135,9 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
       hasMarketingConsent: false,
       productAnnouncementEnabled: true,
-      registerPushNotifications: true,
+      registerPushNotifications: false,
     });
+    expect(mocks.mockTogglePushNotification).toHaveBeenCalledTimes(1);
   });
 
   it('passes the current marketing consent when enabling notifications', async () => {
@@ -152,7 +154,7 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
       hasMarketingConsent: true,
       productAnnouncementEnabled: true,
-      registerPushNotifications: true,
+      registerPushNotifications: false,
     });
   });
 
@@ -229,10 +231,9 @@ describe('useNotifications - useDisableNotifications()', () => {
         loading: false,
         togglePushNotification: mockTogglePushNotification,
       });
-    const mockDisableNotifications = jest.spyOn(
-      Actions,
-      'disableNotifications',
-    );
+    const mockDisableNotifications = jest
+      .spyOn(Actions, 'disableNotifications')
+      .mockResolvedValue(undefined);
     const mockSelectLoading = jest.spyOn(
       Selectors,
       'selectIsUpdatingMetamaskNotifications',
@@ -259,28 +260,41 @@ describe('useNotifications - useDisableNotifications()', () => {
 
     // Act
     const hook = renderHookWithProvider(() => useDisableNotifications());
-    await act(() => hook.result.current.disableNotifications());
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await hook.result.current.disableNotifications();
+    });
     await waitFor(() =>
       expect(mocks.mockDisableNotifications).toHaveBeenCalled(),
     );
 
-    return { mocks, hook };
+    return { mocks, hook, result };
   };
 
-  it('successfully invokes action', async () => {
-    const { mocks } = await arrangeAct();
-    expect(mocks.mockUsePushNotificationsToggle).toHaveBeenCalled();
-    expect(mocks.mockTogglePushNotification).toHaveBeenCalled();
+  it('returns true after disabling push and global notifications', async () => {
+    const { mocks, result } = await arrangeAct();
+
+    expect(result).toBe(true);
+    expect(mocks.mockUsePushNotificationsToggle).not.toHaveBeenCalled();
+    expect(mocks.mockTogglePushNotification).not.toHaveBeenCalled();
     expect(mocks.mockSelectLoading).toHaveBeenCalled();
     expect(mocks.mockSelectData).toHaveBeenCalled();
   });
 
-  it('creates an error when fails', async () => {
-    const { hook } = await arrangeAct((m) => {
+  it('returns false when global notification disable fails', async () => {
+    const { hook, result } = await arrangeAct((m) => {
       m.mockDisableNotifications.mockRejectedValue(new Error('Test Error'));
     });
 
+    expect(result).toBe(false);
     expect(hook.result.current.error).toBeDefined();
+  });
+
+  it('delegates push and global disablement to one helper call', async () => {
+    const { mocks } = await arrangeAct();
+
+    expect(mocks.mockDisableNotifications).toHaveBeenCalledTimes(1);
+    expect(mocks.mockTogglePushNotification).not.toHaveBeenCalled();
   });
 });
 

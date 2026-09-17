@@ -363,7 +363,9 @@ jest.mock('../../app/core/Engine', () => {
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
-      PredictNextController: {},
+      PredictMarketDataService: {},
+      PredictLiveDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -535,6 +537,7 @@ jest.mock('../../app/core/Engine', () => {
         setProLayoutPreferences: jest.fn(),
         setSelectedOrderType: jest.fn(),
         setOrderBookPreferences: jest.fn(),
+        setVisibleCandleCount: jest.fn(),
         saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),

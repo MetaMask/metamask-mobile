@@ -7,6 +7,7 @@ import type {
   ConfirmationParams,
 } from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
+import type { MoneyAccountDepositIntent } from '../utils/moneyAccountDepositIntent';
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
@@ -21,6 +22,8 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: {
     type: MoneyPostOnboardingRedirectType;
     preferredPaymentToken?: MoneyPreferredPaymentToken;
+    autoSelectFiatPayment?: boolean;
+    intent?: MoneyAccountDepositIntent;
   };
 }
 

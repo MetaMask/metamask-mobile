@@ -584,7 +584,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x6e00', async () => {
@@ -598,7 +598,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x650f', async () => {
@@ -612,7 +612,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x650f', async () => {
@@ -621,7 +621,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws unspecified error for other errors', async () => {
@@ -645,7 +645,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x6511', async () => {
@@ -659,7 +659,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x6700', async () => {
@@ -673,7 +673,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6511', async () => {
@@ -682,7 +682,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6d00', async () => {
@@ -691,7 +691,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6e00', async () => {
@@ -700,7 +700,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6e01', async () => {
@@ -709,7 +709,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6700', async () => {
@@ -718,7 +718,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error for unknown_error pattern with 0x650f', async () => {
@@ -727,7 +727,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error for unknown_error pattern with 0x6511', async () => {
@@ -736,7 +736,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('does not throw ETH app not open error for non-matching status codes', async () => {
@@ -987,7 +987,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1001,7 +1001,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1015,7 +1015,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1029,7 +1029,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1043,7 +1043,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1057,7 +1057,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1066,7 +1066,7 @@ describe('Ledger core', () => {
       jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1075,7 +1075,7 @@ describe('Ledger core', () => {
       jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 

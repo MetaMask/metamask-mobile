@@ -250,7 +250,7 @@ jobs:
         id: download-reusable-metadata
         if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/android
@@ -307,7 +307,7 @@ jobs:
         id: download-reusable-apk
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -319,7 +319,7 @@ jobs:
         id: download-reusable-test-apk
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -393,7 +393,7 @@ jobs:
       - name: Restore .metamask folder
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -456,7 +456,7 @@ jobs:
         id: download-late-metadata
         if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/android-late
@@ -535,7 +535,7 @@ jobs:
         id: download-late-apk
         if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -547,7 +547,7 @@ jobs:
         id: download-late-test-apk
         if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}

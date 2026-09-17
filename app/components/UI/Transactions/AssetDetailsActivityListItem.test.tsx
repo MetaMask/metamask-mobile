@@ -150,7 +150,7 @@ describe('AssetDetailsActivityListItem', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
-      expect.objectContaining({ txIdentifier: 'bridge-1' }),
+      expect.objectContaining({ txIdentifier: '0xabc' }),
     );
     // Neither the legacy details sheet nor the legacy bridge-status screen.
     expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
@@ -178,8 +178,7 @@ describe('AssetDetailsActivityListItem', () => {
       Routes.ACTIVITY_DETAILS,
       expect.objectContaining({
         chainId: 'eip155:1',
-        txIdentifier: 'tx-1',
-        preloadKey: expect.any(String),
+        txIdentifier: '0xabc',
       }),
     );
   });

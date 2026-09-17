@@ -106,7 +106,7 @@ jobs:
       - name: Look up reusable dev build
         id: lookup
         if: ${{ github.event_name != 'schedule' && inputs.force_build != true }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           GATE_KEY: ${{ steps.gate-key.outputs.gate-key }}
           # Scoped to the current branch, not hardcoded to main: `yarn install:*:dev`
@@ -255,7 +255,7 @@ jobs:
     steps:
       - name: Verify app artifacts and write marker
         id: verify
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const requiredArtifacts = [
@@ -289,7 +289,7 @@ jobs:
           } > .expo-dev-build-marker/marker.txt
 
       - name: Upload marker artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: expo-dev-build-key-${{ needs.resolve-dev-build.outputs.gate-key }}
           path: .expo-dev-build-marker/marker.txt

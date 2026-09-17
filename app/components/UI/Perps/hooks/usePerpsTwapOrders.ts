@@ -15,6 +15,7 @@ import {
 import {
   getTwapOrderIdentityKey,
   getTwapOrderProviderId,
+  reconcileTwapOrderExecution,
 } from '../utils/twapOrderUtils';
 import { handlePerpsCufTwapOrdersDelivered } from '../utils/perpsCufTrace';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
@@ -45,10 +46,12 @@ const mergeTwapOrder = (
       ? authoritativeOrder
       : retainedOrder;
 
-  return {
+  // Every TWAP row reaching this hook's consumers passes through here, so this
+  // is where the venue's stale execution totals get restated from the fills.
+  return reconcileTwapOrderExecution({
     ...scheduleOrder,
     fills: [...fillsByIdentity.values()],
-  };
+  });
 };
 
 const mergeTwapOrderSnapshot = (
@@ -211,16 +214,6 @@ export interface UsePerpsTwapOrdersOptions {
    * @default false
    */
   pauseLiveRestReconciliation?: boolean;
-  /**
-   * Keep a low-cadence REST discovery read active while rollout is disabled
-   * and the TWAP tab is not mounted. This lets externally-created schedules
-   * surface without remounting the screen.
-   *
-   * @default false
-   */
-  enableDiscovery?: boolean;
-  /** @default PERPS_TWAP_UI_CONFIG.DiscoveryIntervalMs */
-  discoveryInterval?: number;
   /** Skip the fetch on mount. @default false */
   skipInitialFetch?: boolean;
 }
@@ -253,8 +246,6 @@ export const usePerpsTwapOrders = (
     enableLiveUpdates = false,
     pollingInterval = PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
     pauseLiveRestReconciliation = false,
-    enableDiscovery = false,
-    discoveryInterval = PERPS_TWAP_UI_CONFIG.DiscoveryIntervalMs,
     skipInitialFetch = false,
   } = options;
 
@@ -549,26 +540,6 @@ export const usePerpsTwapOrders = (
     isContextReady,
     pauseLiveRestReconciliation,
     pollingInterval,
-  ]);
-
-  useEffect(() => {
-    if (!enableDiscovery || enableLiveUpdates || !isContextReady) {
-      return undefined;
-    }
-
-    const intervalId = setInterval(() => {
-      fetchTwapOrders(true);
-    }, discoveryInterval);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [
-    discoveryInterval,
-    enableDiscovery,
-    enableLiveUpdates,
-    fetchTwapOrders,
-    isContextReady,
   ]);
 
   const isCurrentIdentity = resolvedIdentityKey === identityKey;

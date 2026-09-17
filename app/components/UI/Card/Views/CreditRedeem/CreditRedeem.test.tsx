@@ -25,7 +25,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../core/Analytics', () => ({
-  MetaMetricsEvents: { CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED' },
+  MetaMetricsEvents: {
+    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
+    CARD_VIEWED: 'CARD_VIEWED',
+  },
 }));
 
 jest.mock('../../util/metrics', () => ({
@@ -194,6 +197,42 @@ describe('CreditRedeem', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
     mockHookReturn = createMockHookReturn();
     mockDestination = defaultDestination();
+  });
+
+  describe('funnel analytics', () => {
+    const viewedCalls = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([name]) => name === 'CARD_VIEWED',
+      );
+
+    it('reports the view against the credit screen and money account destination', () => {
+      render();
+
+      expect(viewedCalls()).toHaveLength(1);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: 'CREDIT_REDEEM',
+        destination: 'money_account',
+        is_withdrawable: true,
+        needs_setup: false,
+        has_insufficient_balance: false,
+        has_loading_error: false,
+      });
+    });
+
+    it('tracks the refund info tooltip press', () => {
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CreditRedeemSelectors.REFUND_INFO_BUTTON),
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'CREDIT_BUTTON',
+        type: 'refund_info',
+      });
+    });
   });
 
   it('renders the "Card refunds" title and "Refund balance" label', () => {

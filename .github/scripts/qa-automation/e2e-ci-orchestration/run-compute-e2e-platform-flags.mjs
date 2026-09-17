@@ -25,7 +25,7 @@ if (!githubOutputPath) {
 }
 
 const allChangesCount = readInt(process.env.ALL_CHANGES_COUNT);
-const ignorableCount = readInt(process.env.IGNORABLE_COUNT);
+const e2eIgnorableCount = readInt(process.env.E2E_IGNORABLE_COUNT);
 const e2eTestFilesCount = readInt(process.env.E2E_TEST_FILES_COUNT);
 const e2eTestOrIgnorableCount = readInt(
   process.env.E2E_TEST_OR_IGNORABLE_COUNT,
@@ -35,13 +35,15 @@ const e2eSmokeInfraCount = readInt(process.env.E2E_SMOKE_INFRA_COUNT);
 
 const { ignorableOnly, testOnlyChanges } = classifyE2EChanges({
   allChangesCount,
-  ignorableCount,
+  e2eIgnorableCount,
   e2eTestFilesCount,
   e2eTestOrIgnorableCount,
   e2eWorkflowsCount,
 });
 
 const skipSmartSelection = readBool(process.env.SKIP_SMART_SELECTION);
+const githubRefName =
+  process.env.CI_REF_NAME || process.env.GITHUB_REF_NAME || '';
 
 const labelOverrideInput = {
   runAppiumIosLabel: readBool(process.env.RUN_APPIUM_IOS_LABEL),
@@ -56,11 +58,12 @@ const labelOverrideInput = {
 const flags = resolveE2EPlatformRequirements({
   pathFilterInput: {
     githubEventName: process.env.GITHUB_EVENT_NAME || '',
+    githubRefName,
     prBaseRef: process.env.PR_BASE_REF || '',
     isFork: readBool(process.env.IS_FORK),
     shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
     allChangesCount,
-    ignorableCount,
+    e2eIgnorableCount,
     e2eTestFilesCount,
     e2eTestOrIgnorableCount,
     e2eWorkflowsCount,
@@ -80,7 +83,7 @@ if (readBool(process.env.LABEL_BLOCKS_MERGE) && !ignorableOnly) {
   blockMerge = true;
 } else if (readBool(process.env.LABEL_BLOCKS_MERGE) && ignorableOnly) {
   console.log(
-    '-> BLOCK_MERGE bypassed — ignorable-only changes, E2E_WORKFLOWS_COUNT=0',
+    '-> BLOCK_MERGE bypassed — ignorable-only changes',
   );
 }
 

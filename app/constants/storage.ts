@@ -47,6 +47,7 @@ export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
 export const PUSH_NOTIFICATIONS_PROMPT_TIME = `${prefix}pushNotificationsPromptTime`;
+export const BRAZE_PUSH_REGISTRATION_STATE = `${prefix}brazePushRegistrationState`;
 
 export const LANGUAGE = `${prefix}language`;
 
@@ -100,6 +101,8 @@ export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
 
 export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
+
+export const SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX = `${prefix}socialLeaderboardSnapshot:`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 

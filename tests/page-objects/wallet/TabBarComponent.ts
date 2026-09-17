@@ -58,14 +58,29 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
+  private async dismissStackedActivity(): Promise<void> {
+    const isActivityVisible = await Utilities.isElementVisible(
+      ActivitiesView.redesignedScreen,
+      500,
+    );
+    if (isActivityVisible) {
+      await ActivitiesView.tapBackButton();
+    }
+  }
+
   async tapHome(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.homeButton, { timeout: 2000 });
+        await this.dismissStackedActivity();
+        await Gestures.waitAndTap(this.homeButton, {
+          elemDescription: 'Tab Bar - Home Button',
+          timeout: 2000,
+        });
         if (PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet home screen',
             timeout: 500,
           });
         }
@@ -90,6 +105,7 @@ class TabBarComponent {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet home screen',
             timeout: 5_000,
           });
         }
@@ -187,34 +203,33 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        // Money account replaces the Activity tab with Money; Activity is then
-        // opened from the wallet-header clock button (`wallet-activity-button`).
-        // When Money is off, that header button is hidden and the Activity tab
-        // is the only entry point. Prefer whichever control is present.
-        //
-        // If a prior attempt already navigated but the title was not ready yet,
-        // neither entry point is on screen — skip / swallow taps and wait for
-        // the title so executeWithRetry can succeed once Activity is visible.
         const alreadyOnActivity = await Utilities.isElementVisible(
           ActivitiesView.redesignedScreen,
           500,
         );
         if (!alreadyOnActivity) {
-          try {
+          const isMoneyTabVisible = await Utilities.isElementVisible(
+            this.tabBarMoneyButton,
+            500,
+          );
+          if (isMoneyTabVisible) {
+            const isWalletActivityButtonVisible =
+              await Utilities.isElementVisible(WalletView.activityButton, 500);
+            if (!isWalletActivityButtonVisible) {
+              await Gestures.waitAndTap(this.tabBarWalletButton, {
+                timeout: 2_000,
+                elemDescription: 'Tab Bar - Wallet Button',
+              });
+            }
+            await Gestures.waitAndTap(WalletView.activityButton, {
+              timeout: 5_000,
+              elemDescription: 'Wallet Activity button',
+            });
+          } else {
             await Gestures.waitAndTap(this.tabBarActivityButton, {
-              timeout: 2000,
+              timeout: 2_000,
               elemDescription: 'Tab Bar - Activity Button',
             });
-          } catch {
-            try {
-              await Gestures.waitAndTap(WalletView.activityButton, {
-                timeout: 2000,
-                elemDescription: 'Wallet Activity button',
-              });
-            } catch {
-              // Both entry points missing — likely already on Activity from a
-              // prior attempt; fall through to the title assertion below.
-            }
           }
         }
         await Assertions.expectElementToBeVisible(

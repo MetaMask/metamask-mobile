@@ -25,8 +25,10 @@ import {
   EARN_MODULE_REDIRECT_TARGETS,
 } from '../../../../../components/UI/Earn/constants/earnModuleEvents';
 import { EarnRate } from '../../../../../components/UI/Earn/types/earnAssets';
-import { getEarnRateCopy } from '../../../../../components/UI/Earn/utils/earnRate';
-import { truncateNumber } from '../../../../../components/UI/Earn/utils/number';
+import {
+  formatEarnRatePercentage,
+  getEarnRateCopy,
+} from '../../../../../components/UI/Earn/utils/earnRate';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../WalletActions/WalletActionsBottomSheet.testIds';
 import type { EarnTradeMenuRowProps } from './EarnTradeMenuRow';
@@ -52,7 +54,9 @@ const RedesignedEarnTradeMenuRow = ({
         >,
       }),
       ...(highestRate?.status === 'ready' && {
-        rate_percentage: Number(truncateNumber(highestRate.percentage)),
+        rate_percentage: Number(
+          formatEarnRatePercentage(highestRate.percentage),
+        ),
       }),
     });
 

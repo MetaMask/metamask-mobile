@@ -54,22 +54,21 @@
 #   thumbs-up, the last cherry-pick has landed, and the branch is being prepared to
 #   merge into stable. Removing the label resumes normal auto RC builds.
 #
-# Repack fast path (opt-in):
-#   Add the 'repack-rc-enabled' label to the release PR to let a push reuse the signed
-#   IPA/APK of an earlier auto RC build on the SAME release branch whose @expo/fingerprint
-#   hash matches, swapping in a freshly bundled JS layer via @expo/repack-app instead of
-#   compiling natively (build-rc-repack.yml). Without the label — and on any fingerprint
-#   miss, expired artifact, or failure — the run takes the unchanged native path below.
-#   Note the first build after labelling always compiles natively: it is the one that
+# Repack fast path (on by default):
+#   A push reuses the signed IPA/APK of an earlier auto RC build on the SAME release
+#   branch whose @expo/fingerprint hash matches, swapping in a freshly bundled JS layer
+#   via @expo/repack-app instead of compiling natively (build-rc-repack.yml). On any
+#   fingerprint miss, expired artifact, or failure the run takes the unchanged native
+#   path below. Add the 'repack-rc-disabled' label to the release PR to skip the fast
+#   path for that cycle — the next push compiles natively again, with no revert PR.
+#   Note the first RC build of a cycle always compiles natively: it is the one that
 #   publishes the build-source-hash status the next push looks up.
 #
-#   Removing the label reverts instantly — the next push builds natively again, with no
-#   revert PR. The label lives on the release PR, so enabling it scopes the fast path to
-#   one release cycle. On the first repacked build of a cycle, compare it against a native
-#   RC build of the same commit: launch, OTA update check, Sentry symbolication, deep
-#   links, Apple Sign-In, and the build number matching what the RC comment claims. The JS
-#   here is bundled by `expo export:embed`, not by the bundler scripts/build.sh uses, and
-#   RC builds reach external testers.
+#   On the first repacked build of a cycle, compare it against a native RC build of the
+#   same commit: launch, OTA update check, Sentry symbolication, deep links, Apple
+#   Sign-In, and the build number matching what the RC comment claims. The JS here is
+#   bundled by `expo export:embed`, not by the bundler scripts/build.sh uses, and RC
+#   builds reach external testers.
 #
 ##############################################################################################
 name: Auto RC builds
@@ -112,7 +111,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -174,14 +173,14 @@ jobs:
             echo "Found PR #$PR_NUMBER - proceeding with RC build"
           fi
 
-          # Opt-in gate for the repack fast path. Absent label means the native build
-          # path, so this feature is inert on any release branch that has not asked for it.
-          REPACK_ENABLED=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "repack-rc-enabled")) | length > 0')
+          # Opt-out gate for the repack fast path. Absent label means the fast path is
+          # eligible; add 'repack-rc-disabled' to compile natively for this cycle.
+          REPACK_ENABLED=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "repack-rc-disabled")) | length == 0')
 
           if [[ "$REPACK_ENABLED" == "true" ]]; then
-            echo "::notice::PR #$PR_NUMBER has the 'repack-rc-enabled' label — repack fast path is eligible."
+            echo "PR #$PR_NUMBER has no 'repack-rc-disabled' label — repack fast path is eligible."
           else
-            echo "No 'repack-rc-enabled' label on PR #$PR_NUMBER — native builds only."
+            echo "::notice::PR #$PR_NUMBER has the 'repack-rc-disabled' label — native builds only."
           fi
 
           {
@@ -204,9 +203,9 @@ jobs:
   # SAME release branch whose hash matches and whose IPA/APK are still available.
   #
   # This job must always run to completion, even when the repack fast path is disabled: the
-  # native build jobs depend on it, and a skipped job would take them down with it. When the
-  # label is absent every step is skipped, `found` stays empty, and the run behaves exactly
-  # as it did before this fast path existed.
+  # native build jobs depend on it, and a skipped job would take them down with it. When
+  # 'repack-rc-disabled' is present every step is skipped, `found` stays empty, and the run
+  # behaves exactly as it did before this fast path existed.
   resolve-rc-reuse:
     name: Resolve repack donor build
     runs-on: ubuntu-latest
@@ -228,14 +227,14 @@ jobs:
     steps:
       - name: Checkout repository
         if: env.REPACK_ENABLED == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
       - name: Setup Node.js
         if: env.REPACK_ENABLED == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -288,7 +287,7 @@ jobs:
             echo "### RC build source"
             echo ""
             if [[ "$REPACK_ENABLED" != "true" ]]; then
-              echo "Native build — the \`repack-rc-enabled\` label is not on the release PR."
+              echo "Native build — the \`repack-rc-disabled\` label is on the release PR."
             elif [[ "$FOUND" == "true" ]]; then
               echo "Repack — reusing native artifacts from run [$RUN_ID](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}) (commit \`${SOURCE_SHA}\`)."
               echo ""
@@ -313,7 +312,7 @@ jobs:
     secrets: inherit
 
   # Fast path: reuse the donor's native artifacts and swap in this commit's JS. Requires a
-  # donor, which in turn requires the opt-in label, so this is skipped by default.
+  # donor. Skipped when the release PR has 'repack-rc-disabled', or when no donor matches.
   repack-ios-rc-build:
     name: Repack iOS RC Build
     uses: ./.github/workflows/build-rc-repack.yml
@@ -362,7 +361,7 @@ jobs:
     secrets: inherit
 
   # A repack publishes `ios-ipa-main-rc` / `android-apk-main-rc` — the names build.yml also
-  # uses — before its job is over, and actions/upload-artifact@v4 rejects a duplicate name
+  # uses — before its job is over, and actions/upload-artifact@v7 rejects a duplicate name
   # within a run. So a repack that fails after that upload would leave the native fallback
   # below unable to publish its own build. Clearing the failed platform's artifact first is
   # what keeps the fallback able to finish. The other platform is left alone: its artifact
@@ -504,11 +503,11 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -517,7 +516,7 @@ jobs:
 
       - name: Download build environment artifacts
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: build-env-main-rc-*
           path: build-env-artifacts
@@ -542,7 +541,7 @@ jobs:
 
       - name: Upload test plan JSON artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-plan-${{ needs.validate-and-find-pr.outputs.semver }}
           path: release-test-plan.json

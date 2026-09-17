@@ -5,6 +5,10 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import {
+  selectIsVipReferee,
+  selectReferredByVipCode,
+} from '../../../../reducers/rewards/selectors';
 import { VIP_REFEREE_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import RewardsVipRefereeSplashView from './RewardsVipRefereeSplashView';
 
@@ -137,8 +141,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const getRewardsSelectorState = () => ({
   rewards: {
-    isVipReferee: mockIsVipReferee,
-    referredByVipCode: mockReferredByVipCode,
     vipRefereeSplashAccepted: mockVipRefereeSplashAccepted,
   },
 });
@@ -153,6 +155,8 @@ describe('RewardsVipRefereeSplashView', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
+      if (selector === selectReferredByVipCode) return mockReferredByVipCode;
 
       return (
         selector as (
@@ -183,22 +187,14 @@ describe('RewardsVipRefereeSplashView', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
+      if (selector === selectReferredByVipCode) return null;
 
       return (
-        selector as (state: {
-          rewards: {
-            isVipReferee: boolean;
-            referredByVipCode: string | null;
-            vipRefereeSplashAccepted: Record<string, boolean>;
-          };
-        }) => unknown
-      )({
-        rewards: {
-          isVipReferee: mockIsVipReferee,
-          referredByVipCode: null,
-          vipRefereeSplashAccepted: mockVipRefereeSplashAccepted,
-        },
-      });
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
     });
 
     const { queryByTestId } = render(<RewardsVipRefereeSplashView />);

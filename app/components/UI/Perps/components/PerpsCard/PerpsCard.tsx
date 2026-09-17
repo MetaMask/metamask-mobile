@@ -4,6 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   ListItem,
   ListItemVariant,
@@ -15,6 +18,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -92,6 +96,7 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const symbol = position?.symbol || order?.symbol || '';
 
@@ -218,12 +223,24 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
       title={title}
       titleEndAccessory={
         positionDisplay ? (
-          <Tag
-            severity={positionDisplay.directionSeverity}
-            testID={testID ? `${testID}-direction-tag` : undefined}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            accessible={false}
           >
-            {positionDisplay.directionLabel}
-          </Tag>
+            <Tag
+              severity={positionDisplay.directionSeverity}
+              testID={testID ? `${testID}-direction-tag` : undefined}
+            >
+              {positionDisplay.directionLabel}
+            </Tag>
+            {isCrossMarginEnabled && position?.leverage.type === 'cross' && (
+              <Tag testID={testID ? `${testID}-margin-tag` : undefined}>
+                {strings('perps.cross_position.badge')}
+              </Tag>
+            )}
+          </Box>
         ) : undefined
       }
       description={descriptionNode}

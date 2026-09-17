@@ -21,7 +21,7 @@ const EMPTY_STATE: EarnSectionTokenMetadataState = {
 };
 
 /**
- * Loads metadata for unheld lending assets while preserving an explicit error
+ * Loads metadata for untracked lending assets while preserving an explicit error
  * state so EarnSection never silently substitutes incomplete token data.
  */
 const useEarnSectionTokenMetadata = (assetIds: string[], enabled = true) => {

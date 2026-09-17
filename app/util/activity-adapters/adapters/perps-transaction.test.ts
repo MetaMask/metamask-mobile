@@ -1,4 +1,8 @@
 import type { CaipChainId } from '@metamask/utils';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   FillType,
@@ -8,7 +12,10 @@ import {
 } from '../../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- exercise the real perps order transform output
 import { transformOrdersToTransactions } from '../../../components/UI/Perps/utils/transactionTransforms';
-import { mapPerpsTransaction } from './perps-transaction';
+import {
+  getPerpsActivityMappingIds,
+  mapPerpsTransaction,
+} from './perps-transaction';
 
 const ARBITRUM: CaipChainId = 'eip155:42161';
 
@@ -756,6 +763,22 @@ describe('mapPerpsTransaction', () => {
       symbol: 'USDC',
       assetId: 'eip155:42161/erc20:0xabc',
       direction: 'in',
+    });
+  });
+});
+
+describe('getPerpsActivityMappingIds', () => {
+  it('builds mainnet USDC collateral', () => {
+    expect(getPerpsActivityMappingIds(false)).toEqual({
+      chainId: ARBITRUM,
+      collateralAssetId: `eip155:42161/erc20:${USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()}`,
+    });
+  });
+
+  it('builds testnet USDC collateral', () => {
+    expect(getPerpsActivityMappingIds(true)).toEqual({
+      chainId: 'eip155:421614',
+      collateralAssetId: `eip155:421614/erc20:${USDC_ARBITRUM_TESTNET_ADDRESS.toLowerCase()}`,
     });
   });
 });

@@ -73,9 +73,17 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsNetwork,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
-import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
+import {
+  buildDefaultProMarket,
+  withHomeDroppedFromHistory,
+} from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -88,10 +96,6 @@ import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import {
-  selectPerpsNetwork,
-  selectPerpsWatchlistMarkets,
-} from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
@@ -168,6 +172,7 @@ const PerpsHomeView = () => {
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
@@ -188,17 +193,17 @@ const PerpsHomeView = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
+              params: withHomeDroppedFromHistory({
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-              },
+              }),
             },
           ],
         });
       }
       return true;
     },
-    [navigation, setPerpsMode],
+    [lastViewedMarketSymbol, navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
@@ -1110,7 +1115,7 @@ const PerpsHomeView = () => {
             accessible={false}
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={1}
+            gap={2}
           >
             <ButtonIcon
               iconName={IconName.Search}

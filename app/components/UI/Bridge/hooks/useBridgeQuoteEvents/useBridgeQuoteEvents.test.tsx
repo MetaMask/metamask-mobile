@@ -3,7 +3,11 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus, toQuoteResponseV2 } from '@metamask/bridge-controller';
+import {
+  QuoteStreamCompleteReason,
+  RequestStatus,
+  toQuoteResponseV2,
+} from '@metamask/bridge-controller';
 import {
   selectBridgeQuotes,
   selectControllerFields,
@@ -47,10 +51,10 @@ describe('useBridgeQuoteEvents', () => {
     slippage_limit: 0,
     token_symbol_destination: 'USDC',
     token_symbol_source: 'SOL',
-    usd_amount_source: 0,
-    usd_balance_source: 0,
+    usd_amount_source: 2e21,
+    usd_balance_source: 6000,
     usd_quoted_gas: 0,
-    usd_quoted_return: 0,
+    usd_quoted_return: 57.056221,
   };
 
   beforeEach(() => {
@@ -231,13 +235,21 @@ describe('useBridgeQuoteEvents', () => {
     );
   });
 
-  it('ends the quote trace when a completed request has no quotes', () => {
+  it.each([
+    { quotesLoadingStatus: null, quotesRefreshCount: 1 },
+    { quotesLoadingStatus: RequestStatus.LOADING, quotesRefreshCount: 0 },
+    { quotesLoadingStatus: RequestStatus.FETCHED, quotesRefreshCount: 0 },
+  ])('ends the empty-stream trace with controller state %s', (fetchState) => {
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotesLoadingStatus: null,
+        ...fetchState,
         quoteFetchError: null,
         quotes: [],
-        quotesRefreshCount: 1,
+        quoteStreamComplete: {
+          quoteCount: 0,
+          hasQuotes: false,
+          reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+        },
       },
     });
 
@@ -257,7 +269,11 @@ describe('useBridgeQuoteEvents', () => {
       { state: testState },
     );
 
-    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('no_quotes');
+    expect(mockFinishQuoteTrace).toHaveBeenCalledWith(
+      'no_quotes',
+      undefined,
+      QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+    );
   });
 
   it('ends the quote trace when quote fetching fails', () => {

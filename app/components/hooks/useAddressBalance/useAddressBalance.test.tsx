@@ -6,18 +6,31 @@ import { renderHook, act } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
-import backgroundState from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  createMockAccountsControllerState,
+  createMockUuidFromAddress,
+} from '../../../util/test/accountsControllerTestUtils';
 import { SolScope } from '@metamask/keyring-api';
 import type BN5 from 'bnjs5';
 import { mockNetworkState } from '../../../util/test/network';
-const MOCK_ADDRESS_1 = '0x0';
-const MOCK_ADDRESS_2 = '0x1';
+
+const MOCK_ADDRESS_1 = '0x1111111111111111111111111111111111111111';
+const MOCK_ADDRESS_2 = '0x2222222222222222222222222222222222222222';
+const TST_ADDRESS = '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95';
+const TST_ASSET_ID = `eip155:1/erc20:${TST_ADDRESS.toLowerCase()}`;
+const ETH_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
 ]);
+const MOCK_ACCOUNT_ID_1 = createMockUuidFromAddress(
+  MOCK_ADDRESS_1.toLowerCase(),
+);
+const MOCK_ACCOUNT_ID_2 = createMockUuidFromAddress(
+  MOCK_ADDRESS_2.toLowerCase(),
+);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -49,8 +62,36 @@ const mockInitialState = {
         tokenBalances: {
           [MOCK_ADDRESS_1]: {
             '0x1': {
-              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
+              [TST_ADDRESS]: '0x5',
             },
+          },
+        },
+      },
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          ...backgroundState.AssetsController?.assetsInfo,
+          [ETH_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+          },
+          [TST_ASSET_ID]: {
+            type: 'erc20' as const,
+            symbol: 'TST',
+            name: 'TST',
+            decimals: 4,
+          },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID_1]: {
+            [ETH_NATIVE_ASSET_ID]: { amount: '5.36385' },
+            [TST_ASSET_ID]: { amount: '0.0005' },
+          },
+          [MOCK_ACCOUNT_ID_2]: {
+            [ETH_NATIVE_ASSET_ID]: { amount: '0.000000000000000005' },
           },
         },
       },

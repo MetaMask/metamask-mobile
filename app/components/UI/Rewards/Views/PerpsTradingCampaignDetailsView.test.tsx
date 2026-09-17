@@ -441,7 +441,15 @@ function setupHooks(
   } as ReturnType<typeof useGetPerpsTradingCampaignLeaderboardPosition>);
 
   mockUseGetPerpsTradingCampaignPrizePool.mockReturnValue({
-    prizePool: null,
+    // The section is hidden when there is no data and nothing in flight, so
+    // tests asserting it renders need an actual prize pool here.
+    prizePool: {
+      totalVolumeUsd: 7_500_000,
+      unlockedPoolUsd: 15_000,
+      thresholdsUsd: [0, 5_000_000],
+      poolScheduleUsd: [10_000, 15_000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    },
     isLoading: false,
     hasError: false,
     refetch: jest.fn(),
@@ -887,6 +895,40 @@ describe('PerpsTradingCampaignDetailsView', () => {
       Routes.REWARDS_CAMPAIGN_MECHANICS,
       { campaignId: 'resolved-by-type' },
     );
+  });
+
+  it('hides the prize pool heading when there is no prize pool to show', () => {
+    // The heading lives in this view, outside the prize pool component, so it
+    // has to be dropped alongside it — a lone "Prize pool" title above empty
+    // space is worse than no section.
+    setupHooks({});
+    mockUseGetPerpsTradingCampaignPrizePool.mockReturnValue({
+      prizePool: null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useGetPerpsTradingCampaignPrizePool>);
+
+    const { queryByText, queryByTestId } = render(
+      <PerpsTradingCampaignDetailsView />,
+    );
+
+    expect(queryByTestId('perps-prize-pool')).toBeNull();
+    expect(queryByText('rewards.campaign_prize_pool.title')).toBeNull();
+  });
+
+  it('shows the prize pool heading while the prize pool is loading', () => {
+    setupHooks({});
+    mockUseGetPerpsTradingCampaignPrizePool.mockReturnValue({
+      prizePool: null,
+      isLoading: true,
+      hasError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useGetPerpsTradingCampaignPrizePool>);
+
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    expect(getByTestId('perps-prize-pool')).toBeOnTheScreen();
   });
 
   it('prefers the active campaign over a completed one when route has no campaignId', () => {

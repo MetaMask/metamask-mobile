@@ -20,6 +20,7 @@ import {
 } from '../../../component-library/components-temp/KeyValueRow';
 import { IconName as IconNameLegacy } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
@@ -121,7 +122,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
             >
               <QuickBuyQuoteDetailPressableValue
                 onPress={() => setActiveScreen('selectQuote')}
-                testID="quick-buy-rate-row"
+                testID={QuickBuySheetSelectorsIDs.RATE_ROW}
                 text={formattedRate ?? '-'}
                 iconName={IconName.ArrowRight}
               />
@@ -142,7 +143,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
             value={
               <QuickBuyQuoteDetailPressableValue
                 onPress={handleEditSlippage}
-                testID="quick-buy-edit-slippage"
+                testID={QuickBuySheetSelectorsIDs.EDIT_SLIPPAGE}
                 text={formattedSlippage}
                 iconName={IconName.Edit}
               />

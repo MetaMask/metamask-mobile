@@ -1111,32 +1111,6 @@ describe('usePerpsTwapOrders', () => {
     expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('discovers an externally active schedule after an empty read without remounting', async () => {
-    // Arrange
-    jest.useFakeTimers();
-    const discoveredOrder = buildTwapOrder({ orderId: 'external-twap' });
-    mockController.getTwapOrders
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([discoveredOrder]);
-    const { result, unmount } = renderHook(() =>
-      usePerpsTwapOrders({
-        enableDiscovery: true,
-        discoveryInterval: 1000,
-      }),
-    );
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.twapOrders).toStrictEqual([]);
-
-    // Act
-    await act(async () => {
-      await jest.advanceTimersByTimeAsync(1000);
-    });
-
-    // Assert
-    expect(result.current.twapOrders).toStrictEqual([discoveredOrder]);
-    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
-    unmount();
-  });
   it('keeps the subscription alive when skipInitialFetch changes', async () => {
     // Arrange
     let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
@@ -1213,5 +1187,71 @@ describe('usePerpsTwapOrders', () => {
     );
     unmount();
     expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports what a running schedule has filled when the venue still reports nothing', async () => {
+    // Arrange: HyperLiquid keeps the activation snapshot on an active schedule,
+    // so its executed totals stay at zero while slice fills accumulate.
+    const runningOrder = buildTwapOrder({
+      size: '10',
+      executedSize: '0',
+      remainingSize: '10',
+      executedNotional: '0.0',
+      fillProgressBps: 0,
+      fills: [
+        buildTwapFill({ fillId: 'fill-1', size: '1', price: '100' }),
+        buildTwapFill({ fillId: 'fill-2', size: '1', price: '102' }),
+      ],
+    });
+    mockController.getTwapOrders.mockResolvedValue([runningOrder]);
+
+    // Act
+    const { result } = renderHook(() => usePerpsTwapOrders());
+
+    // Assert
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.twapOrders[0].executedSize).toBe('2');
+    expect(result.current.twapOrders[0].remainingSize).toBe('8');
+    expect(result.current.twapOrders[0].averagePrice).toBe('101');
+    expect(result.current.twapOrders[0].fillProgressBps).toBe(2000);
+  });
+
+  it('keeps following slice fills delivered after the schedule row itself stops changing', async () => {
+    // Arrange
+    const firstFill = buildTwapFill({
+      fillId: 'fill-1',
+      size: '1',
+      price: '100',
+    });
+    const runningOrder = buildTwapOrder({
+      size: '10',
+      executedSize: '0',
+      remainingSize: '10',
+      executedNotional: '0.0',
+      fillProgressBps: 0,
+      fills: [firstFill],
+    });
+    mockController.getTwapOrders.mockResolvedValue([runningOrder]);
+    const { result } = renderHook(() => usePerpsTwapOrders());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.twapOrders[0].executedSize).toBe('1');
+
+    // Act: the next read carries one more slice fill on an unchanged row.
+    mockController.getTwapOrders.mockResolvedValue([
+      {
+        ...runningOrder,
+        fills: [
+          firstFill,
+          buildTwapFill({ fillId: 'fill-2', size: '3', price: '100' }),
+        ],
+      },
+    ]);
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.twapOrders[0].executedSize).toBe('4');
+    expect(result.current.twapOrders[0].fillProgressBps).toBe(4000);
   });
 });

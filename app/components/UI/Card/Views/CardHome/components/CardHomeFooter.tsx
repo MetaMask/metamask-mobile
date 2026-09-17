@@ -17,6 +17,7 @@ interface CardHomeFooterProps {
   hasAlerts: boolean;
   hasSetupActions: boolean;
   supportEmail: string;
+  onContactSupport?: () => void;
   /** When set (Immersve), render one row per region legal document. */
   legalDocuments?: CardHomeLegalDocumentLink[];
   /**
@@ -40,6 +41,7 @@ const CardHomeFooter = ({
   hasAlerts,
   hasSetupActions,
   supportEmail,
+  onContactSupport,
   legalDocuments,
   hideLegalDocuments = false,
   showLegalDocumentsError = false,
@@ -126,7 +128,12 @@ const CardHomeFooter = ({
       <Box twClassName="gap-6 mt-4">
         {renderLegalSection()}
         <TouchableOpacity
-          onPress={() => Linking.openURL(`mailto:${supportEmail}`)}
+          onPress={
+            onContactSupport ??
+            (() => {
+              Linking.openURL(`mailto:${supportEmail}`).catch(() => undefined);
+            })
+          }
           testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
           style={tw.style('px-4')}
         >

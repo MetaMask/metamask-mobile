@@ -37,10 +37,14 @@ marketDataQueries.getMarketHistory(venueId, marketId, range);
 
 All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
 
+## Portfolio
+
+`portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
+
 ## Runtime boundary
 
 Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Parsers discard unknown fields, reject malformed known fields, and return generic errors that do not retain received payload values. Kalshi and Polymarket DTOs, status mapping, price-field mapping, and identifier derivation are backend adapter responsibilities and must not enter this module. Contract-version header enforcement and cross-repository fixture tooling are deferred.
 
 ## Testing boundary
 
-Contract tests should validate canonical response parsing, binary outcome invariants, decimal price bounds, one-sided or missing quotes, recursive removal of unknown fields, malformed known fields failing closed, the complete pagination envelope, Venue Status, and descriptor behavior. Duplicate-ID validation is intentionally left to the backend. Adapter mapping and service/controller integration tests belong to their respective delivery slices.
+Contract tests should validate canonical response parsing, binary outcome invariants, decimal price bounds, one-sided or missing quotes, recursive removal of unknown fields, malformed known fields failing closed, the complete pagination envelope, Venue Status, and descriptor behavior. Duplicate-ID validation is intentionally left to the backend. Adapter mapping and service integration tests belong to their respective delivery slices.

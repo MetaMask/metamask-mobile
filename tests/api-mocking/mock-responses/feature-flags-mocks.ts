@@ -150,7 +150,7 @@ export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
  * count button, back-arrow dismiss in search — only renders on a treatment
  * arm, so specs covering it must opt in.
  */
-export const remoteFeatureFlagHeaderNavBar = (variant = 'treatmentA') => ({
+export const remoteFeatureFlagHeaderNavBar = (variant = 'searchFocused') => ({
   homeTMCU1276AbtestHeaderNavBar: variant,
 });
 

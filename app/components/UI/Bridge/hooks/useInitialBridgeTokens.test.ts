@@ -164,10 +164,13 @@ describe('useInitialBridgeTokens', () => {
 
       await result.current.fetchPopularTokens();
 
-      const [, requestInit] = globalFetchSpy.mock.calls[0];
-      expect(JSON.parse(requestInit.body)).toMatchObject({
-        featureId: FeatureId.LIMIT_ORDER,
-      });
+      const [, requestInit] = globalFetchSpy.mock.calls[0] as [
+        unknown,
+        { body: string },
+      ];
+      expect(JSON.parse(requestInit.body).featureId).toBe(
+        FeatureId.LIMIT_ORDER,
+      );
     });
 
     it('preserves securityData in the response', async () => {

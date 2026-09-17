@@ -1,5 +1,6 @@
 export * from './token';
 export * from './number';
+export * from './earnRate';
 export * from './analytics';
 export {
   isMoneyAccountDepositExperience,

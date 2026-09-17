@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -176,6 +177,19 @@ describe('usePayWithPerpsSection', () => {
         trailingElement: expect.any(Object),
       }),
     );
+  });
+
+  it('marks the row as not selected when Money Account is selected', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectPerpsAccountState) {
+        return { spendableBalance: '500' };
+      }
+      return PaymentOverride.MoneyAccount;
+    });
+
+    const { result } = renderHook(() => usePayWithPerpsSection());
+
+    expect(result.current?.rows[0].isSelected).toBe(false);
   });
 
   it('treats a missing spendable balance as zero', () => {

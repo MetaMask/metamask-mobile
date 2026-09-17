@@ -3,7 +3,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { initialState } from '../../../_mocks_/initialState';
-import { LimitOrderExecutionType } from '../../../constants/limitOrders';
+import {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../../constants/limitOrders';
 import { InputSection } from './index';
 import { LimitOrderPriceAdjustInputSectionSelectorsIDs } from './testIds';
 
@@ -56,6 +59,26 @@ describe('InputSection', () => {
     expect(getByText(strings('bridge.limit.is_at_or_above'))).toBeOnTheScreen();
   });
 
+  it('renders the at or above comparison for a buy above market', () => {
+    const { getByText } = renderInputSection({
+      executionType: LimitOrderExecutionType.BUY,
+      priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+    });
+
+    expect(getByText(strings('bridge.limit.buy_when'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.limit.is_at_or_above'))).toBeOnTheScreen();
+  });
+
+  it('renders the at or below comparison for a sell below market', () => {
+    const { getByText } = renderInputSection({
+      executionType: LimitOrderExecutionType.SELL,
+      priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+    });
+
+    expect(getByText(strings('bridge.limit.sell_when'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.limit.is_at_or_below'))).toBeOnTheScreen();
+  });
+
   it('calls quote unit and dismiss handlers when the quote unit is pressed', () => {
     const onQuoteUnitPress = jest.fn();
     const onDismissKeypad = jest.fn();
@@ -83,6 +106,67 @@ describe('InputSection', () => {
     );
 
     expect(onInputPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('appends the unit symbol as a non-editable suffix after the amount', () => {
+    const { getByTestId } = renderInputSection({
+      isLimitFiatMode: false,
+      value: '0.00345665',
+      unitSymbol: 'ETH',
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toHaveProp('value', '0.00345665 ETH');
+  });
+
+  it('appends the unit symbol even when the amount is zero', () => {
+    const { getByTestId } = renderInputSection({
+      isLimitFiatMode: false,
+      value: '0',
+      unitSymbol: 'ETH',
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toHaveProp('value', '0 ETH');
+  });
+
+  it('omits the unit symbol suffix when none is provided', () => {
+    const { getByTestId } = renderInputSection({
+      value: '100',
+      unitSymbol: undefined,
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toHaveProp('value', '100');
+  });
+
+  it('clamps the caret selection so it cannot move into the unit symbol suffix', () => {
+    const onSelectionChange = jest.fn();
+    const { getByTestId } = renderInputSection({
+      isLimitFiatMode: false,
+      value: '100',
+      unitSymbol: 'ETH',
+      onSelectionChange,
+    });
+
+    fireEvent(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+      'selectionChange',
+      {
+        nativeEvent: { selection: { start: 6, end: 6 } },
+      },
+    );
+
+    expect(onSelectionChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({
+          selection: { start: 3, end: 3 },
+        }),
+      }),
+    );
   });
 
   it('renders secondary value and market comparison labels', () => {

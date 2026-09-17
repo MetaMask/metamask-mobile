@@ -85,10 +85,6 @@ export const testSpecificMock: TestSpecificMock = async (
         { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
     },
-    stxMigrationBatchStatus: false,
-    stxMigrationCancel: false,
-    stxMigrationGetFees: false,
-    stxMigrationSubmitTransactions: false,
   });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
@@ -271,10 +267,6 @@ export const createBridgeQuoteStatusManagerMock = (
         ],
       },
       bridgeQuoteStatusManager: { enabled: true },
-      stxMigrationBatchStatus: false,
-      stxMigrationCancel: false,
-      stxMigrationGetFees: false,
-      stxMigrationSubmitTransactions: false,
     });
 
     // Mock Ethereum token list

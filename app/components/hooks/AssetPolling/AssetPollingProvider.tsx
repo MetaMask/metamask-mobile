@@ -1,12 +1,5 @@
-import { useMemo, memo } from 'react';
+import { memo } from 'react';
 import { Hex } from '@metamask/utils';
-import { useSelector } from 'react-redux';
-import useCurrencyRatePolling from './useCurrencyRatePolling';
-import useTokenRatesPolling from './useTokenRatesPolling';
-import useTokenDetectionPolling from './useTokenDetectionPolling';
-import useTokenBalancesPolling from './useTokenBalancesPolling';
-import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useArcDefaultTokens } from '../useArcDefaultTokens';
 
 export interface AssetPollingProviderProps {
@@ -14,37 +7,17 @@ export interface AssetPollingProviderProps {
   address?: Hex;
 }
 
-// This provider is a step towards making controller polling fully UI based.
-// Eventually, individual UI components will call the use*Polling hooks to
-// poll and return particular data. This polls globally in the meantime.
-// Each hook no-ops (empty polling input) when unified assets state is enabled.
-export const AssetPollingProvider = memo((props: AssetPollingProviderProps) => {
-  const { chainIds, address } = props;
+// AssetsController is now the sole source of truth for asset data and
+// manages its own polling/refresh lifecycle internally, so this provider no
+// longer needs to drive any of the legacy per-asset polling hooks. It is
+// kept (with the same props) so call sites don't need to change, and still
+// runs the Arc default-token bootstrap effect.
+export const AssetPollingProvider = memo(
+  (_props: AssetPollingProviderProps) => {
+    useArcDefaultTokens();
 
-  const chainParams = useMemo(
-    () => (chainIds ? { chainIds } : undefined),
-    [chainIds],
-  );
-
-  const tokenDetectionParams = useMemo(
-    () => (chainIds && address ? { chainIds, address } : undefined),
-    [chainIds, address],
-  );
-
-  const account = useSelector(selectSelectedInternalAccount);
-
-  useCurrencyRatePolling(chainParams);
-  useTokenRatesPolling(chainParams);
-  useTokenDetectionPolling(tokenDetectionParams);
-  useTokenBalancesPolling(chainParams);
-
-  useMultichainAssetsRatePolling(
-    account?.id ? { accountId: account.id } : { accountId: '' },
-  );
-
-  useArcDefaultTokens();
-
-  return null;
-});
+    return null;
+  },
+);
 
 AssetPollingProvider.displayName = 'AssetPollingProvider';

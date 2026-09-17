@@ -670,6 +670,7 @@ export function useCardHomeActions({
         .addProperties(
           withCardProvider(activeProviderId, {
             action: CardActions.CASHBACK_BUTTON,
+            type: 'open_redeem',
           }),
         )
         .build(),
@@ -686,6 +687,20 @@ export function useCardHomeActions({
     createEventBuilder,
     activeProviderId,
   ]);
+
+  const redeemCreditAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CREDIT_BUTTON,
+            type: 'open_redeem',
+          }),
+        )
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.CREDIT_REDEEM);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
 
   const transactionHistoryAction = useCallback(
     (destination: 'card' | 'money') => {
@@ -734,6 +749,7 @@ export function useCardHomeActions({
     logoutAction,
     orderMetalCardAction,
     cashbackAction,
+    redeemCreditAction,
     transactionHistoryAction,
     navigateToTravelPage,
     navigateToCardTosPage,

@@ -1,49 +1,24 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
-import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import {
-  createBridgeTestState,
-  createMockTokenWithBalance,
-} from '../../testUtils';
+import { createBridgeTestState } from '../../testUtils';
 import LimitOrderDetails from './index';
 import { LimitOrderDetailsSelectorsIDs } from './testIds';
 import { ExpirationRowSelectorsIDs } from './ExpirationRow/testIds';
-import { NetworkFeeRowSelectorsIDs } from './NetworkFeeRow/testIds';
-import { PriceRowSelectorsIDs } from './PriceRow/testIds';
+import { CostToleranceRowSelectorsIDs } from './CostToleranceRow/testIds';
 import type { LimitOrderDetailsProps } from './types';
 
 /**
- * Unit fallback: LimitOrderDetails is a nested card, not a screen. Visibility
- * depends on quote context that component-view tests would need the full
- * BridgeQuoteDataProvider and quote fetch to drive.
+ * Unit fallback: LimitOrderDetails is a nested card, not a screen. Its rows are
+ * driven entirely by props, so only the source-amount visibility gate needs
+ * Redux state.
  */
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
-  useBridgeQuoteDataContext: jest.fn(),
-}));
-
-type QuoteContextValue = ReturnType<typeof useBridgeQuoteDataContext>;
-
-const mockFeeToken = createMockTokenWithBalance({
-  symbol: 'ETH',
-  name: 'Ether',
-});
 
 const defaultProps: LimitOrderDetailsProps = {
   expiration: '1 hour',
   onExpirationPress: jest.fn(),
-  slippage: '2%',
-  onPricePress: jest.fn(),
-  networkFee: '$1.69',
-  feeToken: mockFeeToken,
-};
-
-const setQuoteData = (overrides: Partial<QuoteContextValue> = {}) => {
-  jest.mocked(useBridgeQuoteDataContext).mockReturnValue({
-    ...mockUseBridgeQuoteData,
-    ...overrides,
-  } as unknown as QuoteContextValue);
+  costTolerance: '2%',
+  onCostTolerancePress: jest.fn(),
 };
 
 function renderLimitOrderDetails(
@@ -65,18 +40,18 @@ function renderLimitOrderDetails(
 describe('LimitOrderDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    setQuoteData();
   });
 
-  it('renders expiration, slippage, and network fee rows when an active quote exists', () => {
+  it('renders expiration and cost tolerance rows when an amount is entered', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
     expect(
       getByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByTestId(ExpirationRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(PriceRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(NetworkFeeRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(
+      getByTestId(CostToleranceRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('applies a custom testID when provided', () => {
@@ -95,7 +70,6 @@ describe('LimitOrderDetails', () => {
     });
 
     expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
   });
 
   it('renders nothing when source amount is empty', () => {
@@ -104,7 +78,6 @@ describe('LimitOrderDetails', () => {
     });
 
     expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
   });
 
   it('renders nothing when source amount is zero', () => {
@@ -113,99 +86,6 @@ describe('LimitOrderDetails', () => {
     });
 
     expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
-  });
-
-  it('renders a three-row loading skeleton when quotes are still loading', () => {
-    setQuoteData({
-      activeQuote: undefined,
-      isLoading: true,
-      needsNewQuote: false,
-      quoteFetchError: null,
-      isNoQuotesAvailable: false,
-    });
-
-    const { getByTestId, getAllByTestId, queryByTestId } =
-      renderLimitOrderDetails();
-
-    expect(
-      getByTestId(LimitOrderDetailsSelectorsIDs.SKELETON),
-    ).toBeOnTheScreen();
-    expect(
-      getAllByTestId(LimitOrderDetailsSelectorsIDs.SKELETON_ROW),
-    ).toHaveLength(3);
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-  });
-
-  it('renders a loading skeleton when a non-zero amount has no active quote yet', () => {
-    setQuoteData({
-      activeQuote: undefined,
-      isLoading: false,
-      needsNewQuote: false,
-      quoteFetchError: null,
-      isNoQuotesAvailable: false,
-    });
-
-    const { getByTestId, queryByTestId } = renderLimitOrderDetails();
-
-    expect(
-      getByTestId(LimitOrderDetailsSelectorsIDs.SKELETON),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-  });
-
-  it('renders nothing when a new quote is required and none is active', () => {
-    setQuoteData({
-      activeQuote: undefined,
-      needsNewQuote: true,
-      isLoading: false,
-      quoteFetchError: null,
-      isNoQuotesAvailable: false,
-    });
-
-    const { queryByTestId } = renderLimitOrderDetails();
-
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
-  });
-
-  it('renders nothing when no quotes are available', () => {
-    setQuoteData({
-      activeQuote: undefined,
-      isNoQuotesAvailable: true,
-      isLoading: false,
-    });
-
-    const { queryByTestId } = renderLimitOrderDetails();
-
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
-  });
-
-  it('renders nothing when quote fetch fails', () => {
-    setQuoteData({
-      activeQuote: undefined,
-      quoteFetchError: 'Quote fetch failed',
-      isLoading: false,
-    });
-
-    const { queryByTestId } = renderLimitOrderDetails();
-
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
-  });
-
-  it('keeps details visible while refreshing an existing quote', () => {
-    setQuoteData({
-      isLoading: true,
-    });
-
-    const { getByTestId, queryByTestId } = renderLimitOrderDetails();
-
-    expect(
-      getByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
   });
 
   it('calls onExpirationPress when the expiration row is pressed', () => {
@@ -216,20 +96,11 @@ describe('LimitOrderDetails', () => {
     expect(defaultProps.onExpirationPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onPricePress when the slippage row is pressed', () => {
+  it('calls onCostTolerancePress when the cost tolerance row is pressed', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
-    fireEvent.press(getByTestId(PriceRowSelectorsIDs.CONTAINER));
+    fireEvent.press(getByTestId(CostToleranceRowSelectorsIDs.CONTAINER));
 
-    expect(defaultProps.onPricePress).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onNetworkFeePress when the network fee row is pressed', () => {
-    const onNetworkFeePress = jest.fn();
-    const { getByTestId } = renderLimitOrderDetails({}, { onNetworkFeePress });
-
-    fireEvent.press(getByTestId(NetworkFeeRowSelectorsIDs.CONTAINER));
-
-    expect(onNetworkFeePress).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onCostTolerancePress).toHaveBeenCalledTimes(1);
   });
 });

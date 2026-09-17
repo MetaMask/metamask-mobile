@@ -381,20 +381,16 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
               layout={LinearTransition.duration(ANIMATION_DURATION)}
               testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  hasWatchlist
-                    ? TextColor.TextAlternative
-                    : TextColor.TextDefault
-                }
-                style={styles.suggestedSubtitle}
-                testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
-              >
-                {hasWatchlist
-                  ? strings('perps.watchlist.suggested')
-                  : strings('perps.watchlist.empty_subtitle')}
-              </Text>
+              {hasWatchlist ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  style={styles.suggestedSubtitle}
+                  testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
+                >
+                  {strings('perps.watchlist.suggested')}
+                </Text>
+              ) : null}
               {suggestedMarkets?.map((market) => (
                 <Animated.View
                   key={market.symbol}

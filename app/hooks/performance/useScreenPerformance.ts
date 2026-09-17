@@ -12,6 +12,7 @@ import {
   type OnboardingScreenId,
 } from './onboardingPerformanceIds';
 import { useRenderStormMonitor } from './useRenderStormMonitor';
+import { recordScreenTtc } from './screenTtcRegistry';
 
 interface UseScreenPerformanceConfig {
   screenId: OnboardingScreenId;
@@ -136,6 +137,7 @@ export const useScreenPerformance = ({
 
   useEffect(() => {
     if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {
+      const durationMs = getPerformanceTimestamp() - mountTime;
       endTrace({
         name: TraceName.OnboardingScreenTimeToContent,
         id: ttcTraceId.current,
@@ -145,9 +147,11 @@ export const useScreenPerformance = ({
           content_state: traceContentState,
         },
       });
+      // Same duration Sentry records — expose to Appium on e2e/perf builds.
+      recordScreenTtc(screenId, durationMs, traceContentState);
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, screenId, traceContentState]);
+  }, [enabled, contentReady, screenId, traceContentState, mountTime]);
 
   useEffect(() => {
     if (
