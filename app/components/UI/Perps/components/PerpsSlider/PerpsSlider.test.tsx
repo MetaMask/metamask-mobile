@@ -33,6 +33,15 @@ describe('PerpsSlider', () => {
   const getSliderProps = () =>
     MockedSlider.mock.calls[MockedSlider.mock.calls.length - 1][0];
 
+  /** `step` is optional on the Slider's props but PerpsSlider always sets it. */
+  const getSliderStep = () => {
+    const { step } = getSliderProps();
+    if (step === undefined) {
+      throw new Error('PerpsSlider must always pass step');
+    }
+    return step;
+  };
+
   it('renders the design-system Slider in the percent domain', () => {
     render(<PerpsSlider {...defaultProps} />);
 
@@ -335,7 +344,8 @@ describe('PerpsSlider', () => {
           />,
         );
 
-        const { step: percentStep, onValueChange } = getSliderProps();
+        const percentStep = getSliderStep();
+        const { onValueChange } = getSliderProps();
         const midpoint = 50;
         onValueChange(midpoint);
         const before = defaultProps.onValueChange.mock.calls.at(-1)?.[0];
@@ -378,7 +388,7 @@ describe('PerpsSlider', () => {
           />,
         );
 
-        const percentStep = getSliderProps().step;
+        const percentStep = getSliderStep();
 
         for (let index = 0; index * percentStep <= 100; index += 1) {
           const emitted = index * percentStep;
@@ -416,7 +426,7 @@ describe('PerpsSlider', () => {
         />,
       );
 
-      getSliderProps().onDragEnd(100);
+      getSliderProps().onDragEnd?.(100);
 
       expect(onDragEnd).toHaveBeenCalledWith(34);
     });
