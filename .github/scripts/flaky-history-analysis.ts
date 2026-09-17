@@ -9,8 +9,15 @@
  * Historical fail-then-pass is a HINT, not proof — a file can be flagged here
  * with zero AI findings, or have AI findings with no historical signal.
  *
- * Failure modes are always downgraded to warnings + empty results so the
- * workflow stays informational and never blocks a PR.
+ * Logging rule:
+ *   - core.info — expected no-op (no modified tests, unchanged since last
+ *     analysis, missing log blob, unreachable prior SHA).
+ *   - core.warning — degraded but still correct (unused here; reserved).
+ *   - core.setFailed — stage cannot do its job (git diff / token / API after
+ *     retry / uncaught exception). Outputs are still written for the Summary;
+ *     has_test_files stays unset so Stage 3 never posts a false all-clear.
+ * The workflow is not a required check; continue-on-error + a final gate make
+ * real failures visible without blocking the PR.
  *
  * Why same SHA only: a later commit can change production code, Jest setup, or
  * another test and make a previously failing unit test pass. That is
@@ -54,6 +61,7 @@ import {
   collectSameShaHitsForGroup,
   failedUnitTestJobs,
   groupRunsByHeadSha,
+  listedWorkflowRunFromApi,
   parseJestFailPaths,
   snapshotInspectOrder,
   snapshotsToInspect,
@@ -181,6 +189,10 @@ type Stage1SkipReason =
   | 'no_modified_unit_tests'
   | 'unchanged_since_last_analysis'
   | 'stage1_crash'
+  | 'git_diff_failed'
+  | 'missing_token'
+  | 'prior_state_fetch_failed'
+  | 'list_runs_failed'
   | '';
 
 function setStage1Outputs({
@@ -211,6 +223,31 @@ function setStage1Outputs({
   core.setOutput('historically_flaky_count', String(historicallyFlakyCount));
   core.setOutput('unread_failed_runs', String(unreadFailedRuns));
   core.setOutput('missing_prior_sha_count', String(missingPriorShaCount));
+}
+
+// setFailed + Summary outputs; deliberately omit has_test_files so Stage 3
+// never takes the "no unit tests → all-clear" path after a Stage 1 failure.
+function failStage1(
+  message: string,
+  skipReason: Stage1SkipReason,
+  counts?: {
+    modifiedFileCount?: number;
+    unreadFailedRuns?: number;
+    missingPriorShaCount?: number;
+  },
+): void {
+  core.setFailed(message);
+  core.setOutput('should_analyze', 'false');
+  core.setOutput('files_to_analyze', '');
+  core.setOutput('skip_reason', skipReason);
+  core.setOutput('files_to_analyze_count', '0');
+  core.setOutput('historically_flaky_count', '0');
+  core.setOutput('modified_file_count', String(counts?.modifiedFileCount ?? 0));
+  core.setOutput('unread_failed_runs', String(counts?.unreadFailedRuns ?? 0));
+  core.setOutput(
+    'missing_prior_sha_count',
+    String(counts?.missingPriorShaCount ?? 0),
+  );
 }
 
 async function mapWithConcurrency<T, R>(
@@ -249,12 +286,16 @@ function parseStateFromComment(body: string): CommentState | null {
   }
 }
 
+type PriorStateResult =
+  | { ok: true; state: CommentState | null }
+  | { ok: false; message: string };
+
 async function fetchPriorState(
   octokit: Octokit,
   owner: string,
   repo: string,
-): Promise<CommentState | null> {
-  if (!env.prNumber) return null;
+): Promise<PriorStateResult> {
+  if (!env.prNumber) return { ok: true, state: null };
   try {
     const comments = await withRetryOnce(() =>
       octokit.paginate(octokit.rest.issues.listComments, {
@@ -265,11 +306,13 @@ async function fetchPriorState(
       }),
     );
     const sticky = comments.find((c) => c.body?.startsWith(COMMENT_MARKER));
-    if (!sticky?.body) return null;
-    return parseStateFromComment(sticky.body);
+    if (!sticky?.body) return { ok: true, state: null };
+    return { ok: true, state: parseStateFromComment(sticky.body) };
   } catch (error) {
-    core.warning(`fetchPriorState failed: ${(error as Error).message}`);
-    return null;
+    return {
+      ok: false,
+      message: `fetchPriorState failed: ${(error as Error).message}`,
+    };
   }
 }
 
@@ -339,7 +382,11 @@ function computeNeedsAnalysis(
   };
 }
 
-function getModifiedUnitTestFiles(): string[] {
+type ModifiedFilesResult =
+  | { ok: true; files: string[] }
+  | { ok: false; message: string };
+
+function getModifiedUnitTestFiles(): ModifiedFilesResult {
   let diffOutput: string;
   try {
     diffOutput = sh('git', [
@@ -348,15 +395,20 @@ function getModifiedUnitTestFiles(): string[] {
       `origin/${env.baseRef}...${env.headSha || 'HEAD'}`,
     ]);
   } catch (error) {
-    core.warning(`git diff failed: ${(error as Error).message}`);
-    return [];
+    return {
+      ok: false,
+      message: `git diff failed: ${(error as Error).message}`,
+    };
   }
 
-  return diffOutput
-    .split('\n')
-    .map((f) => f.trim())
-    .filter(Boolean)
-    .filter((f) => isFlakyWorkflowUnitTestPath(f));
+  return {
+    ok: true,
+    files: diffOutput
+      .split('\n')
+      .map((f) => f.trim())
+      .filter(Boolean)
+      .filter((f) => isFlakyWorkflowUnitTestPath(f)),
+  };
 }
 
 async function collectCompletedRuns(
@@ -380,27 +432,30 @@ async function collectCompletedRuns(
   );
   for await (const { data } of iterator) {
     for (const r of data) {
-      runs.push({
-        id: r.id,
-        conclusion: r.conclusion,
-        createdAt: r.created_at,
-        headSha: r.head_sha,
-        runAttempt: r.run_attempt,
-      });
+      runs.push(listedWorkflowRunFromApi(r));
       if (runs.length >= MAX_RUNS_LISTED) return runs;
     }
   }
   return runs;
 }
 
+type ListedRunsResult =
+  | { ok: true; runs: ListedWorkflowRun[] }
+  | { ok: false; message: string };
+
 async function getCompletedRunsInLookback(
   octokit: Octokit,
-): Promise<ListedWorkflowRun[]> {
+): Promise<ListedRunsResult> {
   try {
-    return await withRetryOnce(() => collectCompletedRuns(octokit));
+    return {
+      ok: true,
+      runs: await withRetryOnce(() => collectCompletedRuns(octokit)),
+    };
   } catch (error) {
-    core.warning(`listWorkflowRuns failed: ${(error as Error).message}`);
-    return [];
+    return {
+      ok: false,
+      message: `listWorkflowRuns failed: ${(error as Error).message}`,
+    };
   }
 }
 
@@ -649,7 +704,12 @@ function writePriorStateFile(state: CommentState | null): void {
 }
 
 async function main(): Promise<void> {
-  const modifiedFiles = getModifiedUnitTestFiles();
+  const modifiedResult = getModifiedUnitTestFiles();
+  if (!modifiedResult.ok) {
+    failStage1(modifiedResult.message, 'git_diff_failed');
+    return;
+  }
+  const modifiedFiles = modifiedResult.files;
   console.log(
     `📁 Found ${modifiedFiles.length} modified unit test file(s): ${modifiedFiles.join(', ') || 'none'}`,
   );
@@ -677,28 +737,8 @@ async function main(): Promise<void> {
   }
 
   if (!env.token) {
-    core.warning('No GitHub token — skipping history sampling');
-    writeHistoryFile(
-      modifiedFiles.map((path) => emptyHistoryFile(path)),
-      modifiedFiles,
-      env.headSha,
-      {
-        sampledRunCount: 0,
-        candidateShaCount: 0,
-        jobListCalls: 0,
-        unreadFailedRuns: 0,
-      },
-    );
-    writePriorStateFile(null);
-    setStage1Outputs({
-      hasTestFiles: true,
-      shouldAnalyze: true,
-      filesToAnalyze: modifiedFiles,
-      skipReason: '',
+    failStage1('No GitHub token — cannot sample history', 'missing_token', {
       modifiedFileCount: modifiedFiles.length,
-      historicallyFlakyCount: 0,
-      unreadFailedRuns: 0,
-      missingPriorShaCount: 0,
     });
     return;
   }
@@ -706,7 +746,14 @@ async function main(): Promise<void> {
   const [owner, repo] = env.repo.split('/');
   const octokit = getOctokit(env.token);
 
-  const priorState = await fetchPriorState(octokit, owner, repo);
+  const priorResult = await fetchPriorState(octokit, owner, repo);
+  if (!priorResult.ok) {
+    failStage1(priorResult.message, 'prior_state_fetch_failed', {
+      modifiedFileCount: modifiedFiles.length,
+    });
+    return;
+  }
+  const priorState = priorResult.state;
   const { files: needsAnalysis, missingPriorShaCount } = computeNeedsAnalysis(
     modifiedFiles,
     priorState,
@@ -731,7 +778,15 @@ async function main(): Promise<void> {
 
   writePriorStateFile(priorState);
 
-  const runs = await getCompletedRunsInLookback(octokit);
+  const runsResult = await getCompletedRunsInLookback(octokit);
+  if (!runsResult.ok) {
+    failStage1(runsResult.message, 'list_runs_failed', {
+      modifiedFileCount: modifiedFiles.length,
+      missingPriorShaCount,
+    });
+    return;
+  }
+  const runs = runsResult.runs;
   const { files, unreadFailedRuns, candidateShaCount, jobListCalls } =
     await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
@@ -764,12 +819,5 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: Error) => {
-  core.warning(`Stage 1 failed: ${error.message}`);
-  core.setOutput('should_analyze', 'false');
-  core.setOutput('files_to_analyze', '');
-  core.setOutput('skip_reason', 'stage1_crash');
-  core.setOutput('files_to_analyze_count', '0');
-  core.setOutput('historically_flaky_count', '0');
-  core.setOutput('unread_failed_runs', '0');
-  core.setOutput('missing_prior_sha_count', '0');
+  failStage1(`Stage 1 failed: ${error.message}`, 'stage1_crash');
 });

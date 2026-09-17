@@ -17,6 +17,23 @@ export type ListedWorkflowRun = {
   runAttempt: number;
 };
 
+export function listedWorkflowRunFromApi(run: {
+  id: number;
+  conclusion: string | null;
+  created_at: string;
+  head_sha: string;
+  run_attempt?: number;
+}): ListedWorkflowRun {
+  return {
+    id: run.id,
+    conclusion: run.conclusion,
+    createdAt: run.created_at,
+    headSha: run.head_sha,
+    // Octokit types run_attempt as optional; a missing value is the first attempt.
+    runAttempt: run.run_attempt ?? 1,
+  };
+}
+
 export type WorkflowJob = {
   id: number;
   name: string;

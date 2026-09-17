@@ -8,6 +8,7 @@ import {
   intersectWithModifiedFiles,
   isCandidateShaGroup,
   isLaterSnapshot,
+  listedWorkflowRunFromApi,
   parseJestFailPaths,
   renderSameShaHistoryTable,
   snapshotInspectOrder,
@@ -38,6 +39,19 @@ const jobs = (
     name: entry.name,
     conclusion: entry.conclusion,
   }));
+
+describe('listedWorkflowRunFromApi', () => {
+  it('defaults a missing run_attempt to 1', () => {
+    expect(
+      listedWorkflowRunFromApi({
+        id: 1,
+        conclusion: 'success',
+        created_at: '2026-09-01T00:00:00Z',
+        head_sha: 'abc',
+      }).runAttempt,
+    ).toBe(1);
+  });
+});
 
 describe('groupRunsByHeadSha', () => {
   it('groups by headSha and drops empty SHAs', () => {

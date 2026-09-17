@@ -94,4 +94,62 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('| Missing prior SHAs | 2 |');
     expect(markdown).toContain('| SHA | `f758dbb` |');
   });
+
+  it('reports Job result passed on the happy path', () => {
+    const markdown = renderFlakyJobSummary(baseInput);
+
+    expect(markdown).toContain('| Job result | passed |');
+  });
+
+  it('reports Job result failed when Stage 1 outcome is failure', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      stage1Outcome: 'failure',
+      skipReason: '',
+      shouldAnalyze: '',
+    });
+
+    expect(markdown).toContain('| Job result | failed (a stage failed) |');
+    expect(markdown).toContain('**Failed to gather history.** Stage 1 failed.');
+  });
+
+  it('labels new Stage 1 skip reasons', () => {
+    expect(
+      renderFlakyJobSummary({
+        ...baseInput,
+        shouldAnalyze: 'false',
+        skipReason: 'git_diff_failed',
+        stage1Outcome: 'failure',
+      }),
+    ).toContain('**Failed to gather history.** git diff failed.');
+
+    expect(
+      renderFlakyJobSummary({
+        ...baseInput,
+        shouldAnalyze: 'false',
+        skipReason: 'missing_token',
+        stage1Outcome: 'failure',
+      }),
+    ).toContain('**Failed to gather history.** Missing GitHub token.');
+
+    expect(
+      renderFlakyJobSummary({
+        ...baseInput,
+        shouldAnalyze: 'false',
+        skipReason: 'prior_state_fetch_failed',
+        stage1Outcome: 'failure',
+      }),
+    ).toContain(
+      '**Failed to gather history.** Prior sticky-comment state fetch failed.',
+    );
+
+    expect(
+      renderFlakyJobSummary({
+        ...baseInput,
+        shouldAnalyze: 'false',
+        skipReason: 'list_runs_failed',
+        stage1Outcome: 'failure',
+      }),
+    ).toContain('**Failed to gather history.** listWorkflowRuns failed.');
+  });
 });

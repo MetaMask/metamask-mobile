@@ -13,8 +13,13 @@
  *   no findings + sticky  → update to "all previously flagged issues fixed"
  *   no findings + none    → do nothing
  *
- * Never fails the job — GitHub API errors are downgraded to warnings so the
- * check stays informational-only.
+ * Logging rule:
+ *   - core.warning — degraded but still correct (dropped AI finding with a
+ *     bad snippet, malformed AI artifact → conservative empty shape).
+ *   - core.setFailed — stage cannot do its job (missing token/PR, missing or
+ *     malformed history artifact, comment API failure, uncaught exception).
+ * Outputs are still written for the Summary. continue-on-error + a final gate
+ * make real failures visible; the check is not required so the PR is not blocked.
  */
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
@@ -165,10 +170,9 @@ function readFileAtHead(relativePath: string, headSha: string): string | null {
   }
 }
 
-// Missing/malformed artifacts are treated as their empty shape rather than a
-// hard error: Stage 2 may have been skipped (no unit tests changed, or a fork
-// PR without secrets), and we still want Stage 3 to reason about whatever
-// artifacts DO exist so the all-clear path can fire.
+// Missing AI / prior-state artifacts use their empty shape so Stage 3 can still
+// run (Stage 2 may have been skipped). A malformed history artifact is a Stage
+// 1 wiring failure and must fail the step.
 function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
   if (!existsSync(path)) return emptyShape;
   try {
@@ -176,6 +180,17 @@ function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
   } catch (error) {
     core.warning(`Failed to parse ${path}: ${(error as Error).message}`);
     return emptyShape;
+  }
+}
+
+function readHistoryArtifact(): HistoryArtifact | null {
+  try {
+    return JSON.parse(readFileSync(HISTORY_PATH, 'utf8')) as HistoryArtifact;
+  } catch (error) {
+    core.setFailed(
+      `Failed to parse history artifact: ${(error as Error).message}`,
+    );
+    return null;
   }
 }
 
@@ -338,7 +353,9 @@ async function findExistingStickyComment(
 
 async function main(): Promise<void> {
   if (!env.token || !env.repo || !env.prNumber) {
-    console.log('⏭️  Missing token/repo/PR number — skipping sticky comment');
+    core.setFailed(
+      'Missing token, repo, or PR number — cannot post sticky comment',
+    );
     setStage3Outputs({
       commentPosted: false,
       commentAction: 'none',
@@ -349,8 +366,8 @@ async function main(): Promise<void> {
   }
 
   if (!existsSync(HISTORY_PATH)) {
-    console.log(
-      '⏭️  History artifact missing — Stage 1 did not complete, skipping',
+    core.setFailed(
+      'History artifact missing — Stage 1 did not complete; cannot post sticky comment',
     );
     setStage3Outputs({
       commentPosted: false,
@@ -364,7 +381,16 @@ async function main(): Promise<void> {
   const [owner, repo] = env.repo.split('/');
   const octokit = getOctokit(env.token);
 
-  const history = readJsonOrEmpty<HistoryArtifact>(HISTORY_PATH, { files: [] });
+  const history = readHistoryArtifact();
+  if (history === null) {
+    setStage3Outputs({
+      commentPosted: false,
+      commentAction: 'none',
+      findingCount: 0,
+      skipReason: 'history_artifact_missing',
+    });
+    return;
+  }
   const aiAnalysis = readJsonOrEmpty<AiAnalysisArtifact>(AI_ANALYSIS_PATH, {
     findings: [],
   });
@@ -607,7 +633,7 @@ async function main(): Promise<void> {
       skipReason: '',
     });
   } catch (error) {
-    core.warning(
+    core.setFailed(
       `Failed to manage sticky comment: ${(error as Error).message}`,
     );
     setStage3Outputs({
@@ -620,7 +646,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: Error) => {
-  core.warning(`Stage 3 failed: ${error.message}`);
+  core.setFailed(`Stage 3 failed: ${error.message}`);
   setStage3Outputs({
     commentPosted: false,
     commentAction: 'none',

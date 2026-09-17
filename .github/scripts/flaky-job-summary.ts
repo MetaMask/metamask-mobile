@@ -69,6 +69,18 @@ const skipReasonLabel = (reason: string): string => {
   if (reason === 'stage1_crash') {
     return 'Stage 1 crashed.';
   }
+  if (reason === 'git_diff_failed') {
+    return 'git diff failed.';
+  }
+  if (reason === 'missing_token') {
+    return 'Missing GitHub token.';
+  }
+  if (reason === 'prior_state_fetch_failed') {
+    return 'Prior sticky-comment state fetch failed.';
+  }
+  if (reason === 'list_runs_failed') {
+    return 'listWorkflowRuns failed.';
+  }
   if (reason === 'missing_token_or_pr') {
     return 'Missing token, repo, or PR number.';
   }
@@ -84,6 +96,14 @@ const skipReasonLabel = (reason: string): string => {
   return reason;
 };
 
+const stageOutcomesFailed = (input: FlakyJobSummaryInput): boolean =>
+  input.stage1Outcome === 'failure' ||
+  input.skillSyncOutcome === 'failure' ||
+  input.aiCheckoutOutcome === 'failure' ||
+  input.aiInstallOutcome === 'failure' ||
+  input.aiOutcome === 'failure' ||
+  input.stage3Outcome === 'failure';
+
 export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
   const setupStopped =
     input.checkoutOutcome === 'failure' ||
@@ -98,7 +118,7 @@ export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
     input.stage1Outcome !== 'failure'
   ) {
     headline =
-      '**Stopped before analysis.** Checkout, Node setup, or yarn install did not complete.';
+      '**Stopped before analysis.** Checkout, base-branch fetch, Node setup, or yarn install did not complete.';
   } else if (input.stage1Outcome === 'failure') {
     headline = `**Failed to gather history.** ${skipReasonLabel(input.skipReason) || 'Stage 1 failed.'}`;
   } else if (input.shouldAnalyze !== 'true') {
@@ -127,12 +147,17 @@ export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
       ? commentActionLabel(input.commentAction)
       : 'not posted';
 
+  const jobResult = stageOutcomesFailed(input)
+    ? 'failed (a stage failed)'
+    : 'passed';
+
   return `## Flaky unit test detection
 
 ${headline}
 
 | | |
 | --- | --- |
+| Job result | ${jobResult} |
 | SHA | \`${shortSha(input.headSha)}\` |
 | Has unit test files | ${input.hasTestFiles || 'unknown'} |
 | Modified unit test files | ${input.modifiedFileCount || '0'} |

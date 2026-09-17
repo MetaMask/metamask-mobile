@@ -20,9 +20,11 @@
 # Same-SHA fail-then-pass is treated as a HINT — a file can be flagged in (1)
 # with zero AI findings, or have AI findings with no historical signal.
 #
-# The workflow is informational only: every step exits 0, no required check
-# gates the PR, and Stage 2 is gracefully skipped on fork PRs (their secrets
-# aren't propagated by GitHub).
+# Not a required check: expected no-ops (no modified tests, unchanged since
+# last analysis, fork PR) exit 0. When a stage cannot do its job it fails the
+# job for visibility; continue-on-error lets later stages still run, and a
+# final gate turns the job red. Stage 2 is skipped on fork PRs (secrets aren't
+# propagated by GitHub).
 
 name: Flaky unit test detection
 
@@ -81,8 +83,9 @@ jobs:
       # ignored because a new commit can be a real fix. When no modified test
       # file changed since its last-analyzed SHA (stored in the sticky comment),
       # the step emits should_analyze=false and returns immediately, leaving
-      # the existing comment untouched. Never hard-fails — writes an
-      # empty-but-valid JSON artifact when there is nothing to analyze.
+      # the existing comment untouched. Expected no-ops write an empty-but-valid
+      # JSON artifact; wiring/API failures call setFailed (continue-on-error
+      # keeps later stages running; the final gate fails the job).
       - name: Detect modified unit test files and same-SHA fail-then-pass
         id: detect-history
         working-directory: .github/scripts
@@ -239,6 +242,23 @@ jobs:
             {
               echo "## Flaky unit test detection"
               echo
-              echo "**Stopped before analysis.** Checkout, Node setup, or yarn install did not complete, so Stage 1 never ran."
+              echo "**Stopped before analysis.** Checkout, base-branch fetch, Node setup, or yarn install did not complete, so Stage 1 never ran."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # continue-on-error above keeps later stages running; this gate turns the
+      # job red when any stage could not do its job. Skipped steps (fork PR)
+      # are outcome=skipped and do not trigger it. Not a required check.
+      - name: Fail job when a stage failed
+        if: >-
+          always() && (
+            steps.detect-history.outcome == 'failure' ||
+            steps.skill-sync.outcome == 'failure' ||
+            steps.ai-checkout.outcome == 'failure' ||
+            steps.ai-install.outcome == 'failure' ||
+            steps.ai.outcome == 'failure' ||
+            steps.sticky.outcome == 'failure'
+          )
+        run: |
+          echo "::error::A flaky unit test detection stage failed; see the Summary tab."
+          exit 1
