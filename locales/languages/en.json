@@ -66,6 +66,10 @@
       "title": "Inaccurate fee",
       "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Insufficient funds",
       "message": "You do not have enough {{nativeCurrency}} in your account to pay for network fees.",

@@ -1,8 +1,6 @@
 import { strings } from '../../../../../../locales/i18n';
+import { MIN_GAS_LIMIT } from '../../constants/gas';
 import { normalizeGasInput } from '../gas';
-
-// Lowest intrinsic transaction cost defined by EIP-2780 (a self-transfer).
-const MIN_GAS_LIMIT = 12000n;
 
 export const validateGas = (value: string): string | boolean => {
   const field = strings('transactions.gas_modal.gas_limit');
