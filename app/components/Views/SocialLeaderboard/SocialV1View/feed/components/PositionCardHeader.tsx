@@ -58,17 +58,24 @@ const TitleMeta: React.FC<{
   leverageLabel?: string;
   side?: SocialV1SpotSide;
 }> = ({ layout, symbol, direction, leverageLabel, side }) => (
+  // No `flex-1`: this row's parent is a column, so `flex-1` would resolve
+  // against the height and give the row a zero basis. The open layout hides
+  // that -- its mark-price sibling gives the column height to grow into -- but
+  // on a closed card this is the only child, and the title vanished.
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     gap={1}
-    twClassName="flex-1 min-w-0"
+    twClassName="w-full min-w-0"
   >
+    {/* `shrink` so a long symbol truncates instead of pushing the
+      direction off the row. */}
     <Text
       variant={TextVariant.BodyLg}
       fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
       numberOfLines={1}
+      twClassName="shrink"
     >
       {symbol}
     </Text>
@@ -157,7 +164,12 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={3}
-      twClassName="flex-1 min-w-0"
+      // `flex-1` only makes sense in the open layout, where this row shares a
+      // Row with the values column. The closed layout stacks them, and there
+      // `flex-1` resolves against the *height* -- collapsing this row to zero,
+      // which left the fixed-size avatar painting over a title that had no box
+      // to lay out in.
+      twClassName={layout === 'closed' ? 'w-full min-w-0' : 'flex-1 min-w-0'}
     >
       <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
       <Box twClassName="flex-1 min-w-0">
