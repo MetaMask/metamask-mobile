@@ -1017,6 +1017,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
   CLOSE_BUTTON: 'perps-trade-sheet-close-button',
+  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
   HEADER_PRICE: 'perps-trade-sheet-header-price',
   HEADER_CHANGE: 'perps-trade-sheet-header-change',
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',

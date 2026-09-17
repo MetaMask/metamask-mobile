@@ -352,6 +352,13 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             endArrowDirection="down"
           />
           <ButtonIcon
+            testID={PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON}
+            size={ButtonIconSize.Md}
+            iconName={IconName.Setting}
+            accessibilityLabel={strings('perps.trade_sheet.settings')}
+            onPress={() => navigateTo('settings')}
+          />
+          <ButtonIcon
             testID={PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON}
             size={ButtonIconSize.Md}
             iconName={IconName.Close}

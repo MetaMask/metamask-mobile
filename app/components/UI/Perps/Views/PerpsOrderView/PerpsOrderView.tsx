@@ -36,6 +36,7 @@ import {
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -87,7 +88,10 @@ import PerpsTradeBottomSheet, {
   type PerpsTradeSheetScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
-import { PerpsTradeLeverageScreen } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
+import {
+  PerpsTradeLeverageScreen,
+  PerpsTradeSettingsScreen,
+} from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
@@ -185,6 +189,8 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
+import { RootState } from '../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -227,6 +233,7 @@ interface PerpsOrderViewContentProps {
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
+  settings: 1,
 };
 
 /**
@@ -326,6 +333,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Check if there's an active transaction
   const activeTransactionMeta = useTransactionMetadataRequest();
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(
+      state,
+      activeTransactionMeta?.id ?? '',
+    ),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
   const isPayWithDisabled = Boolean(
     isHardwareAccount(activeTransactionMeta?.txParams?.from ?? ''),
   );
@@ -2086,9 +2101,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
-    const payWithName = isPayTokenPerpsBalance
-      ? strings('perps.adjust_margin.perps_balance')
-      : (payToken?.symbol ?? '');
+    let payWithName = payToken?.symbol ?? '';
+    if (isPayTokenPerpsBalance) {
+      payWithName = strings('perps.adjust_margin.perps_balance');
+    }
+    if (isMoneyAccountSelected) {
+      payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
+    }
     const payWithBalance = formatPerpsFiat(
       isPayTokenPerpsBalance
         ? (account?.totalBalance ?? '0')
@@ -2286,6 +2305,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 asset={orderForm.asset}
                 limitPrice={orderForm.limitPrice}
                 orderType={orderForm.type}
+              />
+            ),
+            settings: (
+              <PerpsTradeSettingsScreen
+                currentValueBps={maxSlippageBps}
+                onSave={handleSlippageSave}
               />
             ),
           }}

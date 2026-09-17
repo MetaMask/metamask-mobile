@@ -9,6 +9,7 @@ import {
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
 
@@ -613,6 +614,7 @@ jest.mock(
 );
 
 let mockPerpsAdvancedChartEnabled = false;
+let mockPaymentOverride: PaymentOverride | undefined;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -630,6 +632,9 @@ jest.mock('react-redux', () => ({
     }
     if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
       return false;
+    }
+    if (selector.toString().includes('selectPaymentOverrideByTransactionId')) {
+      return mockPaymentOverride;
     }
     if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
       return {};
@@ -1211,6 +1216,7 @@ describe('PerpsOrderView', () => {
     jest.clearAllMocks();
     applyDefaultHookMocks();
     jest.mocked(isHardwareAccount).mockReturnValue(false);
+    mockPaymentOverride = undefined;
     (usePerpsOrderValidation as jest.Mock).mockReturnValue({
       isValid: true,
       errors: [],
@@ -1221,6 +1227,7 @@ describe('PerpsOrderView', () => {
       validateNow: jest.fn(),
     });
     mockPerpsAdvancedChartEnabled = false;
+    mockPaymentOverride = undefined;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
     mockIsPaySubmitReady = true;
@@ -1475,6 +1482,16 @@ describe('PerpsOrderView', () => {
     );
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+    );
+  });
+
+  it('labels the Money Account payment override in the Trade sheet', () => {
+    mockPaymentOverride = PaymentOverride.MoneyAccount;
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().payWithName).toBe(
+      'confirm.pay_with_bottom_sheet.money_account',
     );
   });
 

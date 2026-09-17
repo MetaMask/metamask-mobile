@@ -163,6 +163,11 @@ describe('PerpsTradeScreen errors', () => {
     expect(mockNavigateTo).toHaveBeenCalledWith('leverage');
 
     fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON),
+    );
+    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
+
+    fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
