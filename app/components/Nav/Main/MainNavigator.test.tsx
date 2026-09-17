@@ -9,8 +9,8 @@ import AddBookmark from '../../Views/AddBookmark';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import OfflineMode from '../../Views/OfflineMode';
-
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -1315,6 +1315,13 @@ describe('MainNavigator', () => {
 
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
+
+    const manageProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
+    );
+
+    expect(manageProfileScreen).toBeDefined();
+    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
   });
 
   it('omits Social V1 screens for the control variant', () => {
@@ -1357,6 +1364,14 @@ describe('MainNavigator', () => {
 
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+    );
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+    );
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 
@@ -1663,13 +1678,10 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders ExploreHome', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.TRENDING_VIEW,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+      it('points the TrendingView tab straight at the Explore feed', () => {
+        expect(
+          getScreenComponent(homeTabsRoot, Routes.TRENDING_VIEW, 'TabScreen'),
+        ).toBe(ExploreFeed);
       });
 
       it('renders BrowserFlow', () => {

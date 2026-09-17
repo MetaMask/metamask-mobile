@@ -11,7 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
-import { truncateNumber } from '../../../../UI/Earn/utils';
+import { formatEarnRatePercentage } from '../../../../UI/Earn/utils';
 import EarnNewTag from '../../../../UI/Earn/components/EarnNewTag';
 import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';
 import { EarnMoneyAccountRowTestIds } from './EarnMoneyAccountRow.testIds';
@@ -52,7 +52,7 @@ const EarnMoneyAccountRow = ({
     item.apyPercent === undefined
       ? strings('earn_module.rate_unavailable')
       : strings('earn_module.rate_apy', {
-          percentage: truncateNumber(item.apyPercent),
+          percentage: formatEarnRatePercentage(item.apyPercent),
         });
 
   const getRateText = () => {

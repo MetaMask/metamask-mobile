@@ -268,6 +268,11 @@ class ActivitiesView {
     );
   }
 
+  /** Redesigned Activity row title once a swap leaves the pending state. */
+  get swappedActivityTitle(): Promise<AppiumElement> {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.SWAPPED);
+  }
+
   swapApprovalActivityTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }

@@ -58,18 +58,18 @@ export interface LimitOrderConfirmationModalParams {
 export interface LimitOrderConfirmationModalProps
   extends LimitOrderConfirmationModalParams {
   /**
-   * Slippage label, e.g. "2%". Read from state by the host screen so edits
-   * made in the slippage modal are reflected here.
+   * Cost tolerance label, e.g. "2%". Read from state by the host screen so
+   * edits made in the cost tolerance modal are reflected here.
    */
-  slippage: string;
+  costTolerance: string;
   /**
    * Fired when the user confirms the order.
    */
   onConfirm: () => void;
   /**
-   * Fired when the user taps the edit icon on the slippage row.
+   * Fired when the user taps the edit icon on the cost tolerance row.
    */
-  onEditSlippagePress: () => void;
+  onEditCostTolerancePress: () => void;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

@@ -29,31 +29,31 @@ export const LimitOrderConfirmationModal = ({
   triggerComparison,
   triggerToken,
   expiry,
-  slippage,
+  costTolerance,
   networkFee,
   feeToken,
   feeDisclaimer,
   onConfirm,
-  onEditSlippagePress,
+  onEditCostTolerancePress,
   onClose,
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
 }: LimitOrderConfirmationModalProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const initialSlippageRef = useRef(slippage);
+  const initialCostToleranceRef = useRef(costTolerance);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  // If the user edits slippage while this sheet is still mounted, that quote is
-  // stale until a new one is fetched, so close the sheet rather than show
-  // outdated order details.
+  // If the user edits the cost tolerance while this sheet is still mounted,
+  // that quote is stale until a new one is fetched, so close the sheet rather
+  // than show outdated order details.
   useEffect(() => {
-    if (slippage !== initialSlippageRef.current) {
+    if (costTolerance !== initialCostToleranceRef.current) {
       closeSheet();
     }
-  }, [slippage, closeSheet]);
+  }, [costTolerance, closeSheet]);
 
   const triggerComparisonColor = triggerComparison?.isNegative
     ? TextColor.ErrorDefault
@@ -111,22 +111,24 @@ export const LimitOrderConfirmationModal = ({
           </Text>
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <DetailRow label={strings('bridge.slippage')}>
+        <DetailRow label={strings('bridge.cost_tolerance')}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
           >
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-              {slippage}
+              {costTolerance}
             </Text>
             <ButtonIcon
               iconName={IconName.Edit}
               size={ButtonIconSize.Sm}
               iconProps={{ color: IconColor.IconAlternative }}
-              onPress={onEditSlippagePress}
-              accessibilityLabel={strings('bridge.limit.edit_slippage')}
-              testID={LimitOrderConfirmationModalSelectorsIDs.SLIPPAGE_EDIT}
+              onPress={onEditCostTolerancePress}
+              accessibilityLabel={strings('bridge.limit.edit_cost_tolerance')}
+              testID={
+                LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_EDIT
+              }
             />
           </Box>
         </DetailRow>
