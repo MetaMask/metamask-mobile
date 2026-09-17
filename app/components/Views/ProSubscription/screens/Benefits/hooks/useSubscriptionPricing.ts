@@ -1,20 +1,84 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { selectMoneyAccountPlusPricing } from '../../../../../../selectors/subscriptionController';
 import type { MoneyAccountPlusPricingView } from '../utils/mapMoneyAccountPlusPricing';
 
 export interface UseSubscriptionPricingResult {
   plusPricing: MoneyAccountPlusPricingView;
+  isLoading: boolean;
+  hasError: boolean;
+  retry: () => void;
 }
 
+const PRICING_ERROR_LOG_OPTIONS = {
+  tags: {
+    feature: 'pro-subscription',
+  },
+  context: {
+    name: 'subscription_pricing',
+    data: {
+      method: 'getPricing',
+    },
+  },
+} as const;
+
 /**
- * Reads Money Account Plus pricing from persisted SubscriptionController
- * state. Fetch status is not tracked here; missing cache is unavailable
- * until Core hydrates `state.pricing`.
+ * Fetches Money Account Plus pricing through SubscriptionController and
+ * exposes loading, error, and retry state for the Pro plan-selection UI.
  *
- * @returns Mapped Plus pricing from controller state.
+ * Duplicate in-flight requests are ignored. Prices stay in controller state
+ * and are read via {@link selectMoneyAccountPlusPricing}.
+ *
+ * @returns Mapped Plus pricing, fetch status, and a retry callback.
  */
 export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   const plusPricing = useSelector(selectMoneyAccountPlusPricing);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const inFlightRef = useRef(false);
+  const isMountedRef = useRef(true);
 
-  return { plusPricing };
+  const fetchPricing = useCallback(async () => {
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
+    setIsLoading(true);
+    setHasError(false);
+
+    try {
+      await Engine.context.SubscriptionController.getPricing();
+    } catch (error) {
+      const loggedError =
+        error instanceof Error ? error : new Error(String(error));
+      Logger.error(loggedError, PRICING_ERROR_LOG_OPTIONS);
+      if (isMountedRef.current) {
+        setHasError(true);
+      }
+    } finally {
+      inFlightRef.current = false;
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    fetchPricing();
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [fetchPricing]);
+
+  return {
+    plusPricing,
+    isLoading,
+    hasError,
+    retry: fetchPricing,
+  };
 };

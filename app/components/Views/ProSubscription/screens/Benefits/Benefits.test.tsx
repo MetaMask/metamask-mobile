@@ -23,6 +23,7 @@ jest.mock('./hooks/useSubscriptionPricing', () => ({
 }));
 
 const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
+const mockRetry = jest.fn();
 
 const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
   status: 'ready',
@@ -50,11 +51,20 @@ const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
 
 const mockOnSuccess = jest.fn();
 
-const mockPricingState = (
-  plusPricing: MoneyAccountPlusPricingView = READY_PLUS_PRICING,
-) => {
+const mockPricingState = ({
+  isLoading = false,
+  hasError = false,
+  plusPricing = READY_PLUS_PRICING,
+}: {
+  isLoading?: boolean;
+  hasError?: boolean;
+  plusPricing?: MoneyAccountPlusPricingView;
+} = {}) => {
   mockUseSubscriptionPricing.mockReturnValue({
     plusPricing,
+    isLoading,
+    hasError,
+    retry: mockRetry,
   });
 };
 
@@ -458,9 +468,54 @@ describe('Benefits', () => {
 
   // ── Pricing fetch states ───────────────────────────────────────────────────
 
-  describe('Pricing states', () => {
-    it('does not call onSuccess when Plus pricing is unavailable', () => {
-      mockPricingState({ status: 'unavailable' });
+  describe('Pricing fetch states', () => {
+    it('shows a plan card skeleton per plan instead of plan cards while pricing is fetching', () => {
+      mockPricingState({ isLoading: true });
+
+      const { getAllByTestId, getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_LOADING)).toBeOnTheScreen();
+      expect(getAllByTestId(BenefitsTestIds.PLAN_CARD_SKELETON)).toHaveLength(
+        PLANS.length,
+      );
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+      expect(queryByTestId(BenefitsTestIds.PRICING_ERROR)).toBeNull();
+    });
+
+    it('shows an error and retry control when pricing fetch fails', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_ERROR)).toBeOnTheScreen();
+      expect(
+        getByTestId(BenefitsTestIds.PRICING_RETRY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+    });
+
+    it('calls retry when the retry control is pressed', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PRICING_RETRY_BUTTON));
+
+      expect(mockRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onSuccess when the CTA is pressed while pricing is loading', () => {
+      mockPricingState({ isLoading: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSuccess when the CTA is pressed after a pricing error', () => {
+      mockPricingState({ hasError: true });
 
       const { getByTestId } = renderBenefits();
 
@@ -471,8 +526,10 @@ describe('Benefits', () => {
 
     it('hides the annual card when only monthly pricing is mapped', () => {
       mockPricingState({
-        status: 'ready',
-        monthly: READY_PLUS_PRICING.monthly,
+        plusPricing: {
+          status: 'ready',
+          monthly: READY_PLUS_PRICING.monthly,
+        },
       });
 
       const { getByTestId, queryByTestId } = renderBenefits();
@@ -488,9 +545,11 @@ describe('Benefits', () => {
 
     it('hides the savings badge when annual savings are undefined', () => {
       mockPricingState({
-        status: 'ready',
-        monthly: READY_PLUS_PRICING.monthly,
-        annual: READY_PLUS_PRICING.annual,
+        plusPricing: {
+          status: 'ready',
+          monthly: READY_PLUS_PRICING.monthly,
+          annual: READY_PLUS_PRICING.annual,
+        },
       });
 
       const { queryByTestId } = renderBenefits();
@@ -501,7 +560,7 @@ describe('Benefits', () => {
     });
 
     it('shows unavailable copy when Plus pricing is missing', () => {
-      mockPricingState({ status: 'unavailable' });
+      mockPricingState({ plusPricing: { status: 'unavailable' } });
 
       const { getByTestId, queryByTestId } = renderBenefits();
 
@@ -512,7 +571,7 @@ describe('Benefits', () => {
     });
 
     it('shows malformed copy when Plus prices cannot be read', () => {
-      mockPricingState({ status: 'malformed' });
+      mockPricingState({ plusPricing: { status: 'malformed' } });
 
       const { getByTestId, queryByTestId } = renderBenefits();
 
@@ -520,8 +579,18 @@ describe('Benefits', () => {
       expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
     });
 
+    it('does not call onSuccess when Plus pricing is unavailable', () => {
+      mockPricingState({ plusPricing: { status: 'unavailable' } });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
     it('does not call onSuccess when Plus prices are malformed', () => {
-      mockPricingState({ status: 'malformed' });
+      mockPricingState({ plusPricing: { status: 'malformed' } });
 
       const { getByTestId } = renderBenefits();
 

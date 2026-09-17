@@ -26,6 +26,7 @@ import { BenefitsTestIds } from './Benefits.testIds';
 import { BenefitRow } from '../../../shared/pro';
 import BenefitDetails from './components/BenefitDetails';
 import PlanSelectorCard from './components/PlanSelectorCard';
+import PlanSelectorCardSkeleton from './components/PlanSelectorCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
 import {
@@ -45,7 +46,7 @@ interface BenefitsProps {
 }
 
 const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
-  const { plusPricing } = useSubscriptionPricing();
+  const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -71,7 +72,8 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
     [plusPricing],
   );
 
-  const canSelectPlans = isPricingReady && visiblePlans.length > 0;
+  const canSelectPlans =
+    !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
   const isCtaDisabled = !canSelectPlans;
 
   const handleBenefitPress = useCallback((id: string) => {
@@ -154,7 +156,40 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
 
       {/* Plan selector */}
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
-        {plusPricing.status === 'unavailable' ? (
+        {isLoading ? (
+          <Box
+            twClassName="flex flex-col gap-y-4"
+            testID={BenefitsTestIds.PRICING_LOADING}
+            accessibilityLabel={strings('pro_subscription.pricing.loading')}
+          >
+            {PLANS.map((plan) => (
+              <PlanSelectorCardSkeleton key={plan.id} />
+            ))}
+          </Box>
+        ) : null}
+
+        {hasError ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_ERROR}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Danger}
+              description={strings('pro_subscription.pricing.error')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {!isLoading && !hasError && plusPricing.status === 'unavailable' ? (
           <Box
             twClassName="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_UNAVAILABLE}
@@ -163,10 +198,19 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
               severity={BannerAlertSeverity.Warning}
               description={strings('pro_subscription.pricing.unavailable')}
             />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
           </Box>
         ) : null}
 
-        {plusPricing.status === 'malformed' ? (
+        {!isLoading && !hasError && plusPricing.status === 'malformed' ? (
           <Box
             twClassName="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_MALFORMED}
@@ -175,6 +219,15 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
               severity={BannerAlertSeverity.Danger}
               description={strings('pro_subscription.pricing.malformed')}
             />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
           </Box>
         ) : null}
 

@@ -1,7 +1,11 @@
 import React from 'react';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -14,9 +18,22 @@ import {
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 import TradeAllowanceRow from './TradeAllowanceRow';
 
-const MemberPricingOnTrades = () => {
-  const { status, items, resetsOn } = useMoneyAccountPlusBenefits();
+const LoadingSkeletons = () => (
+  <Box
+    twClassName="gap-y-6"
+    testID={MemberPricingOnTradesTestIds.LOADING_SKELETON}
+  >
+    <Skeleton height={72} twClassName="w-full rounded-xl" />
+    <Skeleton height={72} twClassName="w-full rounded-xl" />
+    <Skeleton height={72} twClassName="w-full rounded-xl" />
+  </Box>
+);
 
+const MemberPricingOnTrades = () => {
+  const { status, items, resetsOn, retry } = useMoneyAccountPlusBenefits();
+
+  const showError = status === MoneyAccountPlusBenefitsStatus.Failed;
+  const showLoading = status === MoneyAccountPlusBenefitsStatus.Loading;
   const showRows =
     status === MoneyAccountPlusBenefitsStatus.Ready ||
     status === MoneyAccountPlusBenefitsStatus.Incomplete;
@@ -31,6 +48,24 @@ const MemberPricingOnTrades = () => {
       >
         {strings('pro_hub.member_pricing.title')}
       </Text>
+
+      {showLoading ? <LoadingSkeletons /> : null}
+
+      {showError ? (
+        <Box twClassName="gap-y-4" testID={MemberPricingOnTradesTestIds.ERROR}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('pro_hub.member_pricing.load_error')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={retry}
+            testID={MemberPricingOnTradesTestIds.RETRY_BUTTON}
+          >
+            {strings('pro_hub.member_pricing.retry')}
+          </Button>
+        </Box>
+      ) : null}
 
       {showRows ? (
         <Box twClassName="gap-y-6">
