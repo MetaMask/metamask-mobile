@@ -6021,7 +6021,6 @@
       "only_numbers_allowed": "Nur Zahlen sind erlaubt",
       "negative_values_not_allowed": "Negative Werte sind nicht erlaubt",
       "max_base_fee_must_be_greater_than_priority_fee": "Max. Grundgebühr muss höher sein als die Prioritätsgebühr",
-      "gas_limit_too_low": "Gas-Limit muss größer als 21000 sein",
       "priority_fee_too_high": "Prioritätsgebühr muss niedriger sein als die max. Grundgebühr",
       "no_zero_value": "{{field}} muss größer als 0 sein",
       "speed": "Geschwindigkeit",
