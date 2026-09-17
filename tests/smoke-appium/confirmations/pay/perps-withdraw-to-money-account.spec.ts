@@ -127,8 +127,6 @@ appiumTest.describe(
               '-$5',
             );
 
-            // TMCU-1376: Perps → Money settle is not an Arbitrum indexed tx.
-            // Details must still open from the Perps row (not EVM by-hash).
             await ActivitiesView.tapOnActivityItemByLabel('Perps withdrawal');
 
             await Assertions.expectElementToBeVisible(ActivityDetails.screen, {

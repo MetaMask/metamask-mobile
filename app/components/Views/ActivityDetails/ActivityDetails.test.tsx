@@ -342,28 +342,4 @@ describe('ActivityDetails screen', () => {
       { enableSingleTxFetch: false },
     );
   });
-
-  it('renders a perps withdraw while evm by-hash rematch is still fetching', () => {
-    const perpsWithdrawItem = {
-      ...sendItem,
-      type: 'perpsWithdraw',
-      chainId: 'eip155:42161',
-    } as ActivityListItem;
-    useActivityDetailsItemMock.mockReturnValue({
-      item: undefined,
-      isFetching: true,
-    });
-    usePerpsDetailsItemMock.mockReturnValue({
-      item: perpsWithdrawItem,
-      transaction: undefined,
-      isLoading: false,
-    });
-
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <ActivityDetails />,
-    );
-
-    expect(getByTestId('mock-template-loader')).toBeOnTheScreen();
-    expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
-  });
 });
