@@ -73,6 +73,7 @@ import {
   type RecurringPriceRange,
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
+import type { LimitOrderConfirmationMarketComparison } from '../../../../components/UI/Bridge/components/LimitOrderConfirmationModal/types';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -139,6 +140,16 @@ export interface BridgeState {
    * `undefined` means the Auto option is in effect.
    */
   limitOrderCostTolerance: string | undefined;
+  /**
+   * Live market-comparison label for the in-progress limit order (e.g.
+   * "(-5% from market)"), continuously recomputed by the limit order screen
+   * from a real-time rate. The confirmation modal reads this directly rather
+   * than deriving its own value, so both surfaces always show the same
+   * number. `undefined` while at market or before a price is available.
+   */
+  limitOrderMarketComparison:
+    | LimitOrderConfirmationMarketComparison
+    | undefined;
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: CaipChainId | undefined;
@@ -180,6 +191,7 @@ export const initialState: BridgeState = {
 
   // Limit orders
   limitOrderCostTolerance: undefined,
+  limitOrderMarketComparison: undefined,
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,
@@ -334,6 +346,12 @@ const slice = createSlice({
       action: PayloadAction<string | undefined>,
     ) => {
       state.limitOrderCostTolerance = action.payload;
+    },
+    setLimitOrderMarketComparison: (
+      state,
+      action: PayloadAction<LimitOrderConfirmationMarketComparison | undefined>,
+    ) => {
+      state.limitOrderMarketComparison = action.payload;
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
@@ -820,6 +838,11 @@ export const selectLimitOrderCostTolerance = createSelector(
   (bridgeState) => bridgeState.limitOrderCostTolerance,
 );
 
+export const selectLimitOrderMarketComparison = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderMarketComparison,
+);
+
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -1255,6 +1278,7 @@ export const {
   setSlippage,
   setSlippageUserOverride,
   setLimitOrderCostTolerance,
+  setLimitOrderMarketComparison,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
