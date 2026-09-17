@@ -143,6 +143,7 @@ export type CardModalsNavigationParamList = {
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
   CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
+  CardDigitalWalletInstructionsModal: undefined;
 };
 
 /**
