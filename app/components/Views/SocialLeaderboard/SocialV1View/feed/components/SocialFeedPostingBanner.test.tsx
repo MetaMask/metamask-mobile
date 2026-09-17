@@ -54,6 +54,41 @@ describe('SocialFeedPostingBanner', () => {
     ).toHaveStyle({ width: '100%' });
   });
 
+  it('renders a remote author avatar when imageUrl is provided', () => {
+    renderWithProvider(
+      <SocialFeedPostingBanner
+        authorHandle="giga-whale"
+        authorImageUrl="https://cdn.test/avatar.png"
+        startedAtMs={1_000_000}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.AVATAR),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+  });
+
+  it('commits immediately when the posting delay already elapsed', () => {
+    submitSocialV1ComposedPost({
+      id: 'composed-late',
+      authorHandle: 'giga-whale',
+      timestampMs: 1_000_000,
+      likeCount: 0,
+      commentCount: 0,
+      item: mockOpenPerpsFeedItem({ comment: 'late banner' }),
+    });
+
+    renderWithProvider(
+      <SocialFeedPostingBanner
+        authorHandle="giga-whale"
+        startedAtMs={1_000_000 - COMPOSER_POSTING_DELAY_MS}
+      />,
+    );
+
+    expect(getSocialV1ComposedPosts()[0]?.id).toBe('composed-late');
+  });
+
   it('commits the queued post when the progress bar completes', () => {
     submitSocialV1ComposedPost({
       id: 'composed-1',

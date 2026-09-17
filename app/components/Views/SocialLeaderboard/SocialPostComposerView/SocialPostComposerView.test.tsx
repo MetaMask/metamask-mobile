@@ -271,6 +271,30 @@ describe('SocialPostComposerView', () => {
     expect(getSocialV1ComposedPosts()).toHaveLength(1);
   });
 
+  it('closes the composer from the header close button', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('shows a gif preview when the keyboard inserts an image', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'onImageChange',
+      { nativeEvent: { uri: 'https://media.test/party.gif' } },
+    );
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW),
+    ).toBeOnTheScreen();
+  });
+
   it('opens the share sheet from the Position chip', () => {
     renderWithProvider(<SocialPostComposerView />);
 

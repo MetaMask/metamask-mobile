@@ -1,4 +1,5 @@
 import {
+  COMPOSER_POSTING_DELAY_MS,
   commitSocialV1PendingPost,
   consumeSocialV1FocusTrending,
   getSocialV1ComposedPosts,
@@ -39,5 +40,22 @@ describe('socialV1ComposedFeedStore', () => {
 
     expect(getSocialV1PendingPost()).toBeNull();
     expect(getSocialV1ComposedPosts()[0].id).toBe('composed-1');
+  });
+
+  it('commits via the store posting timer', () => {
+    submitSocialV1ComposedPost(composedPost);
+
+    expect(getSocialV1PendingPost()).not.toBeNull();
+
+    jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+
+    expect(getSocialV1PendingPost()).toBeNull();
+    expect(getSocialV1ComposedPosts()[0].id).toBe('composed-1');
+  });
+
+  it('no-ops when committing without a pending post', () => {
+    commitSocialV1PendingPost();
+
+    expect(getSocialV1ComposedPosts()).toHaveLength(0);
   });
 });

@@ -130,10 +130,14 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => callback(), [callback]);
+    },
   };
 });
 
@@ -268,6 +272,25 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
+  it('consumes the focus-trending flag when the screen gains focus', () => {
+    act(() => {
+      submitSocialV1ComposedPost({
+        id: 'composed-focus',
+        authorHandle: 'giga-whale',
+        timestampMs: Date.now(),
+        likeCount: 0,
+        commentCount: 0,
+        item: mockOpenPerpsFeedItem({ id: 'focus-item', comment: 'focus me' }),
+      });
+    });
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('shows the posting progress banner then prepends the composed post', () => {
