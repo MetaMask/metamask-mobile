@@ -3,13 +3,14 @@ import { MOCK_SOCIAL_V1_FEED_ITEMS } from '../mocks/socialV1Feed.mock';
 import { useSocialV1Feed } from './useSocialV1Feed';
 
 describe('useSocialV1Feed', () => {
-  it('returns the three mocked V1 feed variants', () => {
+  it('returns the four mocked V1 feed variants', () => {
     const { result } = renderHook(() => useSocialV1Feed());
 
     expect(result.current.items.map((item) => item.variant)).toEqual([
       'perpsOpen',
+      'spotOpen',
       'perpsClosed',
-      'spotCompact',
+      'spotClosed',
     ]);
     expect(result.current.items).toHaveLength(MOCK_SOCIAL_V1_FEED_ITEMS.length);
     expect(result.current.isLoading).toBe(false);
