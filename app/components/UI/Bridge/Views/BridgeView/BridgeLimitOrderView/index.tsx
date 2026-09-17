@@ -17,6 +17,7 @@ import {
   selectLimitOrderCostTolerance,
   selectSourceToken,
   setLimitOrderCostTolerance,
+  setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs from '../../../components/OrdersTabs';
@@ -295,7 +296,6 @@ const BridgeLimitOrderViewContent = ({
         destToken,
         payingAmount: formatTokenAmountValue(sourceAmount, sourceToken?.symbol),
         triggerPrice,
-        triggerComparison: marketComparison,
         triggerToken: quotedToken,
         expiry: expiration,
         networkFee: '0',
@@ -307,7 +307,6 @@ const BridgeLimitOrderViewContent = ({
     destToken,
     dismissInputAndKeypad,
     expiration,
-    marketComparison,
     navigation,
     quotedToken,
     sourceAmount,
@@ -320,6 +319,14 @@ const BridgeLimitOrderViewContent = ({
     dispatch(setLimitOrderCostTolerance(LIMIT_ORDER_DEFAULT_COST_TOLERANCE));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keeps the market-comparison label in sync everywhere it's shown: this
+  // screen keeps running (and this effect keeps firing) behind the
+  // confirmation modal, which reads the same Redux value instead of
+  // deriving its own, so the two surfaces never disagree.
+  useEffect(() => {
+    dispatch(setLimitOrderMarketComparison(marketComparison));
+  }, [dispatch, marketComparison]);
 
   return (
     <Box twClassName="flex-1 bg-default">
