@@ -177,6 +177,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
 }
 
@@ -665,6 +666,7 @@ export interface ICardProvider {
   getFundingSources?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult[]>;
+  getContactDetails?(tokens: CardAuthTokens): Promise<CardContactDetails>;
   patchContactDetails?(
     details: CardContactDetails,
     tokens: CardAuthTokens,

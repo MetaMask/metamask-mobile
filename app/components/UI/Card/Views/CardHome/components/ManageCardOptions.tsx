@@ -34,6 +34,7 @@ interface ManageCardOptionsProps {
   onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
+  onContactDetails: () => void;
   showUnlinkMoneyAccount: boolean;
   onUnlinkMoneyAccount: () => void;
   onOrderMetalCard: () => void;
@@ -65,6 +66,7 @@ const ManageCardOptions = ({
   onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
+  onContactDetails,
   showUnlinkMoneyAccount,
   onUnlinkMoneyAccount,
   onOrderMetalCard,
@@ -138,6 +140,15 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
             />
           )}
+        {isFullySetUp && !hideManageOptions && onTransactionHistory ? (
+          <ManageCardListItem
+            title={strings('card.transactions.manage_entry_title')}
+            description={strings('card.transactions.manage_entry_description')}
+            rightIcon={IconName.ArrowRight}
+            onPress={onTransactionHistory}
+            testID="card-transaction-history-item"
+          />
+        ) : null}
         {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
           ((isAuthenticated &&
             capabilities?.supportsCashback &&
@@ -246,15 +257,21 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
-        {isFullySetUp && !hideManageOptions && onTransactionHistory ? (
-          <ManageCardListItem
-            title={strings('card.transactions.manage_entry_title')}
-            description={strings('card.transactions.manage_entry_description')}
-            rightIcon={IconName.ArrowRight}
-            onPress={onTransactionHistory}
-            testID="card-transaction-history-item"
-          />
-        ) : null}
+        {isFullySetUp &&
+          capabilities?.supportsContactDetails &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.contact_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.contact_details_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onContactDetails}
+              testID={CardHomeSelectors.CONTACT_DETAILS_ITEM}
+            />
+          )}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(

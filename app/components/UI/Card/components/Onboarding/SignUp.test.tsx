@@ -339,6 +339,9 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             return state;
         }
       },
+      settings: () => ({
+        avatarAccountType: 'Maskicon',
+      }),
     },
   });
 };
@@ -884,6 +887,7 @@ describe('SignUp Component', () => {
         getByTestId('signup-immersve-phone-number-input'),
       ).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
+      expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 

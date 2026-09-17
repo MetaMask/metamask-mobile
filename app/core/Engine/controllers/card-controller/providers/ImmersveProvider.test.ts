@@ -676,6 +676,59 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('getContactDetails returns normalized email and phone values', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        email: { emailAddress: 'cardholder@example.com' },
+        phone: { phoneNumber: '+441234567890' },
+      });
+
+      const result = await provider.getContactDetails(TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/contact-details',
+        TOKENS,
+      );
+      expect(result).toStrictEqual({
+        email: 'cardholder@example.com',
+        phone: '+441234567890',
+      });
+    });
+
+    it('getContactDetails returns undefined values for absent contact fields', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({});
+
+      await expect(provider.getContactDetails(TOKENS)).resolves.toStrictEqual({
+        email: undefined,
+        phone: undefined,
+      });
+    });
+
+    it('getContactDetails throws when cardholderAccountId is missing', async () => {
+      const { provider } = createProvider();
+
+      await expect(
+        provider.getContactDetails({
+          ...TOKENS,
+          cardholderAccountId: undefined,
+        }),
+      ).rejects.toMatchObject({
+        message: 'getContactDetails: missing cardholder account id',
+      });
+    });
+
+    it('getContactDetails maps API failures', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(403, '/api/accounts/x/contact-details', 'forbidden'),
+      );
+
+      await expect(provider.getContactDetails(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+      });
+    });
+
     it('patchContactDetails PATCHes the account contact-details path', async () => {
       const { provider, service } = createProvider();
       service.patch.mockResolvedValue({});
@@ -899,6 +952,7 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsPinView).toBe(false);
       expect(provider.capabilities.supportsPinSet).toBe(true);
       expect(provider.capabilities.supportsTravel).toBe(false);
+      expect(provider.capabilities.supportsContactDetails).toBe(true);
     });
   });
 

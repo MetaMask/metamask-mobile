@@ -3113,6 +3113,7 @@ describe('CardController — getCapabilities', () => {
     supportsTravel: true,
     supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
+    supportsContactDetails: false,
   };
 
   it('returns base capabilities', () => {
@@ -5732,6 +5733,30 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
 
     expect(createCard).toHaveBeenCalledWith('fs-1', mockTokenSet);
     expect(result).toStrictEqual({ cardId: 'card-1' });
+  });
+
+  it('getContactDetails forwards valid tokens and returns contact details', async () => {
+    const getContactDetails = jest.fn().mockResolvedValue({
+      email: 'cardholder@example.com',
+      phone: '+441234567890',
+    });
+    const { controller } = withValidSession({ getContactDetails });
+
+    const result = await controller.getContactDetails();
+
+    expect(getContactDetails).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual({
+      email: 'cardholder@example.com',
+      phone: '+441234567890',
+    });
+  });
+
+  it('getContactDetails throws when the active provider does not support contact reads', async () => {
+    const { controller } = withValidSession();
+
+    await expect(controller.getContactDetails()).rejects.toMatchObject({
+      message: 'Contact details retrieval not supported',
+    });
   });
 
   it('patchContactDetails forwards details with tokens', async () => {

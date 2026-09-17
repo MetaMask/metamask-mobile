@@ -667,6 +667,7 @@ const BAANX_CAPABILITIES = {
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
   supportsTransactionHistory: true,
+  supportsContactDetails: false,
   supportsMoneyAccountLinking: true,
 };
 

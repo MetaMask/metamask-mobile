@@ -591,6 +591,32 @@ export function useCardHomeActions({
     activeProviderId,
   ]);
 
+  const contactDetailsAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CONTACT_DETAILS_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.CONTACT_DETAILS);
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+        postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
+      });
+    }
+  }, [
+    activeProviderId,
+    createEventBuilder,
+    isAuthenticated,
+    navigation,
+    trackEvent,
+  ]);
+
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
@@ -745,6 +771,7 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
+    contactDetailsAction,
     unlinkMoneyAccountAction,
     logoutAction,
     orderMetalCardAction,
