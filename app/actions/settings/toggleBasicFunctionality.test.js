@@ -10,6 +10,7 @@ import {
 } from './index';
 import {
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectIsInBasicFunctionalityConsolidationRollout,
   selectIsSocialLoginBasicFunctionalityLocked,
   selectShouldRepairSocialLoginBasicFunctionality,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -21,6 +22,9 @@ const mockSyncConsolidatedBasicFunctionalityPreferences = jest.mocked(
 );
 const mockSelectMobileUxBftcConsolidationFlagEnabled = jest.mocked(
   selectMobileUxBftcConsolidationFlagEnabled,
+);
+const mockSelectIsInBasicFunctionalityConsolidationRollout = jest.mocked(
+  selectIsInBasicFunctionalityConsolidationRollout,
 );
 const mockSelectIsSocialLoginBasicFunctionalityLocked = jest.mocked(
   selectIsSocialLoginBasicFunctionalityLocked,
@@ -77,6 +81,7 @@ jest.mock(
   '../../selectors/featureFlagController/basicFunctionalityConsolidation',
   () => ({
     selectMobileUxBftcConsolidationFlagEnabled: jest.fn(() => false),
+    selectIsInBasicFunctionalityConsolidationRollout: jest.fn(() => false),
     selectIsSocialLoginBasicFunctionalityLocked: jest.fn(() => false),
     selectShouldRepairSocialLoginBasicFunctionality: jest.fn(() => false),
     BFT_CHILD_PREFERENCES: [
@@ -114,6 +119,7 @@ describe('toggleBasicFunctionality action', () => {
     mockSetBasicFunctionality.mockResolvedValue(undefined);
     mockSetIsBackupAndSyncFeatureEnabled.mockResolvedValue(undefined);
     mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockReturnValue(false);
     mockSelectIsSocialLoginBasicFunctionalityLocked.mockReturnValue(false);
     mockSelectShouldRepairSocialLoginBasicFunctionality.mockReturnValue(false);
   });
@@ -230,14 +236,14 @@ describe('toggleBasicFunctionality action', () => {
   });
 
   it('syncs consolidated preferences when the rollout is enabled', async () => {
-    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(true);
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockReturnValue(true);
     const action = toggleBasicFunctionality(false);
     await action(mockDispatch, mockGetState);
 
     expect(mockGetState).toHaveBeenCalled();
-    expect(mockSelectMobileUxBftcConsolidationFlagEnabled).toHaveBeenCalledWith(
-      {},
-    );
+    expect(
+      mockSelectIsInBasicFunctionalityConsolidationRollout,
+    ).toHaveBeenCalledWith({});
     expect(mockDispatch).toHaveBeenCalledWith(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
@@ -248,10 +254,12 @@ describe('toggleBasicFunctionality action', () => {
 
   it('evaluates the rollout before flipping BF so mixed users still sync', async () => {
     const callOrder = [];
-    mockSelectMobileUxBftcConsolidationFlagEnabled.mockImplementation(() => {
-      callOrder.push('select');
-      return true;
-    });
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockImplementation(
+      () => {
+        callOrder.push('select');
+        return true;
+      },
+    );
     mockDispatch.mockImplementation((action) => {
       callOrder.push(action.type);
       return action;
@@ -281,6 +289,18 @@ describe('toggleBasicFunctionality action', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
+  });
+
+  it('keeps syncing children for an enrolled wallet once the enrollment flag reads false', async () => {
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockReturnValue(true);
+
+    const action = toggleBasicFunctionality(false);
+    await action(mockDispatch, mockGetState);
+
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).toHaveBeenCalledWith(false);
   });
 });
 

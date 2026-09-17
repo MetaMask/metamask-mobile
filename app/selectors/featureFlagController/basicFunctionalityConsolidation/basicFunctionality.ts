@@ -149,6 +149,24 @@ export const selectIsBasicFunctionalityConsolidationEnabled = createSelector(
     (isRemoteFlagEnabled && isConsistentLegacyUser),
 );
 
+/**
+ * True when Basic Functionality behaves as one consolidated control, covering
+ * both enrolled wallets and wallets the enrollment flag is about to migrate.
+ *
+ * Broader than `selectIsBasicFunctionalityConsolidationEnabled`, which decides
+ * what Settings renders: this also covers a mixed wallet whose background
+ * migration has not finished, so a toggle it makes in the meantime still moves
+ * every child preference. The persisted marker keeps it true after the
+ * enrollment flag is disabled or becomes unreadable, otherwise an enrolled
+ * wallet would leave hidden child preferences behind at their old values.
+ */
+export const selectIsInBasicFunctionalityConsolidationRollout = createSelector(
+  selectIsBasicFunctionalityConsolidatedEnabled,
+  selectMobileUxBftcConsolidationFlagEnabled,
+  (isPersistedConsolidatedUser, isEnrollmentFlagEnabled) =>
+    isPersistedConsolidatedUser || isEnrollmentFlagEnabled,
+);
+
 const selectBasicFunctionalityMigrationNotification = (state: RootState) =>
   (state.settings?.basicFunctionalityMigrationNotification ??
     null) as BasicFunctionalityMigrationNotification;

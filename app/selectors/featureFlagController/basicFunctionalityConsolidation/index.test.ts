@@ -5,6 +5,7 @@ import {
   selectIsBasicFunctionalityConsolidationEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
   selectIsExistingSocialWalletRestore,
+  selectIsInBasicFunctionalityConsolidationRollout,
   selectIsSocialLoginBasicFunctionalityLocked,
   selectMobileUxBftcConsolidationFlagEnabled,
   selectShouldRepairSocialLoginBasicFunctionality,
@@ -15,6 +16,7 @@ import {
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 import { AccountType } from '../../../constants/onboarding';
 import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.60.0'),
@@ -231,6 +233,35 @@ describe('basicFunctionalityConsolidation selectors', () => {
     });
   });
 
+  describe('selectIsInBasicFunctionalityConsolidationRollout', () => {
+    it('covers an enrolled wallet after the enrollment flag is disabled', () => {
+      expect(
+        selectIsInBasicFunctionalityConsolidationRollout.resultFunc(
+          true,
+          false,
+        ),
+      ).toBe(true);
+    });
+
+    it('covers an unmarked wallet the enrollment flag is about to migrate', () => {
+      expect(
+        selectIsInBasicFunctionalityConsolidationRollout.resultFunc(
+          false,
+          true,
+        ),
+      ).toBe(true);
+    });
+
+    it('excludes a wallet outside the rollout', () => {
+      expect(
+        selectIsInBasicFunctionalityConsolidationRollout.resultFunc(
+          false,
+          false,
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe('migration notification selectors', () => {
     it('shows only the scheduled bottom sheet', () => {
       expect(
@@ -306,7 +337,12 @@ describe('basicFunctionalityConsolidation selectors', () => {
         undefined,
         false,
       ],
-      ['a seedless auth connection', AccountType.Metamask, 'google', false],
+      [
+        'a seedless auth connection',
+        AccountType.Metamask,
+        AuthConnection.Google,
+        false,
+      ],
       ['a seedless vault', AccountType.Metamask, undefined, true],
     ])(
       'detects a social wallet from %s',

@@ -5,6 +5,7 @@ export {
   selectIsBasicFunctionalityConsolidationEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
   selectIsExistingSocialWalletRestore,
+  selectIsInBasicFunctionalityConsolidationRollout,
   selectIsSocialLoginBasicFunctionalityLocked,
   selectMobileUxBftcConsolidationFlagEnabled,
   selectShouldRepairSocialLoginBasicFunctionality,

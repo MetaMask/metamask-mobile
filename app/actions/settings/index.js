@@ -191,7 +191,7 @@ export function consolidateBasicFunctionality() {
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch, getState) => {
     const {
-      selectMobileUxBftcConsolidationFlagEnabled,
+      selectIsInBasicFunctionalityConsolidationRollout,
       selectIsSocialLoginBasicFunctionalityLocked,
     } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
     const {
@@ -213,8 +213,11 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
     // this through Backup & Sync before its background migration completes; in
     // that case the persisted cohort marker is still false, but the user action
     // must still update BF and every consolidated child as one logical change.
+    // An enrolled wallet keeps syncing children even once the enrollment flag
+    // reads false, since Settings still presents Basic Functionality as the
+    // single control for them.
     const shouldSyncConsolidatedPreferences =
-      selectMobileUxBftcConsolidationFlagEnabled(state);
+      selectIsInBasicFunctionalityConsolidationRollout(state);
 
     const Engine = require('../../core/Engine').default;
     const { UserStorageController } = Engine.context;
