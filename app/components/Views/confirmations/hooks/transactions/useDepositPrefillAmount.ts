@@ -193,16 +193,23 @@ export function useDepositPrefillAmount({
   }, [enabled, tokenKey, prefillAmount, committedKey]);
 
   const hasPrefilled = committedKey === tokenKey;
+  // Disabled tokens are excluded from automatic pay-token selection, so a
+  // funded-but-disabled token would leave this waiting on a pay token that can
+  // never arrive.
   const hasFundedToken = availableTokens.some(
-    (token) => (token.fiat?.balance ?? 0) > 0,
+    (token) => !token.disabled && (token.fiat?.balance ?? 0) > 0,
   );
   const isFiatPrefillSkipped =
     autoSelectFiatPayment ||
     (Boolean(fiatPayment?.selectedPaymentMethodId) && !payToken);
+  // `balanceUsd` comes from the pay token's snapshot, which can be absent or
+  // non-numeric while the reactive balance shown by the pay-with row is fine.
+  // `NaN` produces no prefill amount, so it has to skip rather than wait.
+  const hasUsableBalance = Number.isFinite(balanceUsd) && balanceUsd > 0;
   const isSkipped =
     enabled &&
     (isFiatPrefillSkipped ||
-      (Boolean(payToken) && balanceUsd <= 0) ||
+      (Boolean(payToken) && !hasUsableBalance) ||
       (!payToken && !hasFundedToken));
 
   let status = DepositPrefillStatus.Loading;

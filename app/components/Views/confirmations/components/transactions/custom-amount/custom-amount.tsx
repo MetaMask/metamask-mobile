@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated, View } from 'react-native';
+import { Animated, Pressable, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -59,7 +59,13 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
-    return <CustomAmountSkeleton />;
+    // Pressable so the user can always fall back to entering an amount, even
+    // when the prefill or quote being awaited never resolves.
+    return (
+      <Pressable onPress={disabled ? undefined : onPress}>
+        <CustomAmountSkeleton />
+      </Pressable>
+    );
   }
 
   return (
