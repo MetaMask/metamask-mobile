@@ -196,7 +196,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).toContain('run-appium-ios-tests label');
     });
 
-    it('builds both platforms and runs Appium iOS with skip-smart-e2e-selection', () => {
+    it('builds Android only with skip-smart-e2e-selection', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'main',
@@ -206,16 +206,31 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
 
       expect(outputs).toMatchObject({
         android_final: 'true',
-        ios_final: 'true',
+        ios_final: 'false',
       });
       expect(stdout).toContain('skip-smart-e2e-selection label');
     });
 
-    it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
-      const { stdout, outputs } = runEntrypoint({
+    it('keeps Android only with skip-smart-e2e-selection on an Android-only PR', () => {
+      const { outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'main',
         SKIP_SMART_SELECTION: 'true',
+        ...androidOnlyPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'false',
+      });
+    });
+
+    it('builds both platforms when both request labels are applied', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        SKIP_SMART_SELECTION: 'true',
+        RUN_APPIUM_IOS_LABEL: 'true',
         ...androidOnlyPR,
       });
 
@@ -235,6 +250,21 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
 
       expect(outputs.ios_final).toBe('true');
       expect(stdout).toContain('e2e smoke infrastructure changes');
+    });
+
+    it('keeps both platforms for smoke-infrastructure changes with skip-smart-e2e-selection', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        SKIP_SMART_SELECTION: 'true',
+        E2E_SMOKE_INFRA_COUNT: '3',
+        ...androidOnlyPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'true',
+      });
     });
 
     it('leaves no E2E to run for an iOS-only PR', () => {
@@ -287,6 +317,20 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).not.toContain('e2e smoke infrastructure changes');
     });
 
+    it('keeps iOS disabled with skip-smart-e2e-selection on release/* PRs', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'release/1.0.0',
+        SKIP_SMART_SELECTION: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'false',
+      });
+    });
+
     it('does not apply the smoke-infrastructure exception on release/* PRs', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
@@ -334,9 +378,40 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).toContain('Skipping E2E (merge queue)');
     });
 
-    it('builds both platforms for a shared app push', () => {
+    it('builds iOS only for scheduled runs', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'schedule',
+        CI_REF_NAME: 'main',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
+      expect(stdout).toContain('E2E for iOS only (scheduled)');
+    });
+
+    it('builds Android only for a shared app push to main', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
+        CI_REF_NAME: 'main',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'false',
+        e2e_needed: 'true',
+      });
+      expect(stdout).toContain('iOS not selected for pushes to main');
+    });
+
+    it('builds both platforms for a shared app push to release/*', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        CI_REF_NAME: 'release/1.0.0',
         ...bothPlatformsPR,
       });
 
@@ -345,12 +420,60 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         ios_final: 'true',
         e2e_needed: 'true',
       });
-      expect(stdout).not.toContain('iOS build disabled for PRs into main');
+    });
+
+    it('skips E2E for an iOS-only push to main', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        CI_REF_NAME: 'main',
+        ...bothPlatformsPR,
+        ANDROID_COUNT: '0',
+        ANDROID_OR_IGNORABLE_COUNT: '0',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+      });
+      expect(stdout).toContain('iOS not selected for pushes to main');
+    });
+
+    it('builds iOS only for an iOS-only push to release/*', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        CI_REF_NAME: 'release/1.0.0',
+        ...bothPlatformsPR,
+        ANDROID_COUNT: '0',
+        ANDROID_OR_IGNORABLE_COUNT: '0',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
+    });
+
+    it('builds iOS only for an iOS-only push', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        ...bothPlatformsPR,
+        ANDROID_COUNT: '0',
+        ANDROID_OR_IGNORABLE_COUNT: '0',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
     });
 
     it('skips ignorable-only pushes to main or release/*', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
+        CI_REF_NAME: 'main',
         ...bothPlatformsPR,
         E2E_IGNORABLE_COUNT: '1',
         E2E_TEST_FILES_COUNT: '0',

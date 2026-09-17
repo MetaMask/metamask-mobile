@@ -101,6 +101,16 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
     );
   });
 
+  it('renders the accept button from the design system at size Lg', () => {
+    const { getByTestId } = renderWithProvider(
+      <BasicFunctionalityMigrationBottomSheet />,
+    );
+
+    expect(getByTestId('basic-functionality-migration-accept')).toHaveStyle({
+      height: 48,
+    });
+  });
+
   it('opens the migration information links', () => {
     const { getByText } = renderWithProvider(
       <BasicFunctionalityMigrationBottomSheet />,

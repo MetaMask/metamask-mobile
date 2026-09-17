@@ -23,7 +23,10 @@ import {
   type PredictEntityId,
 } from '../../../components/UI/PredictNext/types';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getPredictLiveDataServiceMessenger } from '../messengers/predict-live-data-service-messenger';
+import {
+  getPredictLiveDataServiceMessenger,
+  type PredictLiveDataServiceInitMessenger,
+} from '../messengers/predict-live-data-service-messenger';
 import type {
   MessengerClientInitRequest,
   RootExtendedMessenger,
@@ -52,6 +55,9 @@ describe('Predict service initialization', () => {
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
+      initMessenger: {
+        call: jest.fn().mockResolvedValue('test-bearer-token'),
+      } as never,
     };
     const { controller } = predictMarketDataServiceInit(request);
 
@@ -108,8 +114,13 @@ describe('Predict service initialization', () => {
     const request = {
       ...buildMessengerClientInitRequestMock(rootMessenger),
       controllerMessenger: messenger,
-      initMessenger: undefined,
-    } as unknown as MessengerClientInitRequest<PredictLiveDataServiceMessenger>;
+      initMessenger: {
+        call: jest.fn().mockResolvedValue('test-bearer-token'),
+      },
+    } as unknown as MessengerClientInitRequest<
+      PredictLiveDataServiceMessenger,
+      PredictLiveDataServiceInitMessenger
+    >;
     const listener = jest.fn();
     messenger.subscribe('PredictLiveDataService:gameLiveUpdated', listener);
     const update = {

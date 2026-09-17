@@ -24,6 +24,7 @@ export const ActivitiesViewSelectorsText = {
   SENT_TOKENS_MESSAGE_TEXT: (unit: string) => getSentUnitMessage(unit),
   SET_APPROVAL_FOR_ALL_METHOD: enContent.transactions.set_approval_for_all,
   SWAP: enContent.swaps.transaction_label.swap,
+  SWAPPED: enContent.transactions.activity_swapped,
   BRIDGE: enContent.bridge_transaction_details.bridge_to_chain,
   APPROVE: enContent.transactions.approve,
   TITLE: enContent.transactions_view.title,
