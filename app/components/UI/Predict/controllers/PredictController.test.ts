@@ -5041,7 +5041,9 @@ describe('PredictController', () => {
           balance: '100',
           status: PredictPositionStatus.WON,
         };
-        mockPolymarketProvider.getPositions.mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
 
         // Act
         await controller.getPositions({
