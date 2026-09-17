@@ -1,5 +1,3 @@
-import { TRACES_CLEANUP_INTERVAL } from '../../../../util/trace';
-
 export const RAMPS_BUY_CUF_TAG = {
   FEATURE: 'feature',
   SURFACE: 'surface',
@@ -8,9 +6,13 @@ export const RAMPS_BUY_CUF_TAG = {
   REASON: 'reason',
   BOUNDARY: 'boundary',
   RAMP_TYPE: 'ramp_type',
+  LIFECYCLE_CONTEXT: 'lifecycle_context',
+  BACKGROUND_COUNT: 'background_count',
+  RESUME_COUNT: 'resume_count',
 } as const;
 
 export const RAMPS_BUY_CUF_FEATURE = 'buy';
+export const RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS = 'foreground_active_ms';
 
 export const RAMPS_BUY_CUF_SURFACE = {
   FUND_MENU: 'fund_menu',
@@ -47,6 +49,13 @@ export const RAMPS_BUY_CUF_END_REASON = {
   CANCELLED: 'cancelled',
   ABANDONED: 'abandoned',
   HEADLESS: 'headless',
+  APP_BACKGROUNDED: 'app_backgrounded',
 } as const;
-/** Aligned with `TRACES_CLEANUP_INTERVAL` so Sentry does not end the span first. */
-export const RAMPS_BUY_CUF_TIMEOUT_MS = TRACES_CLEANUP_INTERVAL;
+/**
+ * Buy can legitimately spend significant time in external KYC, banking, or
+ * SMS apps. Keep the journey open while bounded child spans own app latency.
+ */
+export const RAMPS_BUY_CUF_TIMEOUT_MS = 30 * 60 * 1000;
+/** Lets the CUF-owned timeout attach outcome/lifecycle data before core cleanup. */
+export const RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS =
+  RAMPS_BUY_CUF_TIMEOUT_MS + 60 * 1000;
