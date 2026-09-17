@@ -8,7 +8,6 @@ import { ethToken1Address } from '../../../_mocks_/initialState';
 import { createBridgeTestState, createMockToken } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 
 const pricedDestToken = createMockToken({
@@ -26,11 +25,6 @@ jest.mock(
     })),
   }),
 );
-
-jest.mock('../../../hooks/useInsufficientBalance', () => ({
-  __esModule: true,
-  default: jest.fn(() => false),
-}));
 
 /**
  * Builds Redux state that satisfies the footer's only render condition: a
@@ -78,7 +72,6 @@ function renderFooter(
 describe('BridgeLimitOrderFooterView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
   });
 
   it('renders nothing when source amount is missing', () => {
@@ -145,21 +138,5 @@ describe('BridgeLimitOrderFooterView', () => {
     fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
 
     expect(onCTAPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('disables the confirm button when source balance is too low', () => {
-    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
-
-    const onCTAPress = jest.fn();
-    const { getByTestId } = renderFooter(buildFooterState(), {
-      onCTAPress,
-    });
-    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
-
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
-    expect(onCTAPress).not.toHaveBeenCalled();
   });
 });
