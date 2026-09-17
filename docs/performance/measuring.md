@@ -78,6 +78,15 @@ For day-to-day FPS checks without it, use the in-app Perf Monitor and the RN Dev
 
 Core flows have timing budgets enforced in CI. The framework lives in `tests/performance/` (specs grouped by `login` / `onboarding`; MMConnect Appium smoke lives under `tests/smoke-appium/mm-connect/`) on top of `tests/framework/TimerHelper.ts` (platform-specific thresholds with a 10% margin). Add a gate for your flow following the **`mms-performance-testing`** skill.
 
+## Unlock API call-volume meter
+
+Separately from latency timers, unlock HTTP volume is measured **in-app on real network** (no Mockttp):
+
+- Meter: `app/core/UnlockNetworkMeter.ts`
+- Local dump: Developer Options → Unlock HTTP meter
+- Perf budget: `tests/performance/budgets/wallet-unlock-api-calls.json`
+- Runbook: [unlock-api-call-budget.md](./unlock-api-call-budget.md)
+
 ## Production — Sentry & Release Profiler
 
 - **Sentry** surfaces real-device metrics and alerts (`#metamask-mobile-release-monitoring`); `trace()` spans/measurements flow here.

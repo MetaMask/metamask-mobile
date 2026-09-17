@@ -34,6 +34,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from './Engine/controllers/remote-feature-flag-controller/utils';
+import { installUnlockNetworkMeterTransport } from './UnlockNetworkMeter';
 
 /**
  * Single source of truth for startup prefetches.
@@ -147,6 +148,10 @@ function installProductionNitroFetch(): void {
     // not that the request fails — swallow so it never becomes an unhandled rejection.
     prefetchOnAppStart(url, { prefetchKey: key }).catch(() => undefined);
   }
+
+  // Wrap the live nitro fetch (and XHR) so unlock → homepage HTTP volume can be
+  // measured on real builds without Mockttp.
+  installUnlockNetworkMeterTransport();
 }
 
 if (!hasTestOverrides) {

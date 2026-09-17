@@ -47,6 +47,7 @@ Always measure on **Android** (more sensitive, more representative) with the **p
 - **[anti-patterns.md](./anti-patterns.md)** — the catalogue: selectors, Redux/`useSelector`, Context, hook deps, unstable hook returns, lists, layout animations, eager-work-on-mount, streaming, bundle/barrel, memory.
 - **[tools.md](./tools.md)** — symptom-first decision tree + when/how to use each tool (Perf Monitor, RN DevTools, Flashlight, `trace()`, Reassure, E2E gates, Release Profiler, Sentry).
 - **[measuring.md](./measuring.md)** — the power-user scenario, TTI via `trace()`, render-regression tests, FPS benchmarking, CI gates.
+- **[unlock-api-call-budget.md](./unlock-api-call-budget.md)** — In-app unlock → homepage HTTP call-volume meter (real network, zero mocks).
 - **[react-compiler.md](./react-compiler.md)** — automatic memoization: how it's set up here and how to opt a feature in.
 
 ## Deep dives & references
