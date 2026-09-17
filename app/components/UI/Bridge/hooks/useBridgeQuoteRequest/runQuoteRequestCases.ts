@@ -265,6 +265,7 @@ export const runQuoteRequestCases = ({
 
       act(() => {
         result.current.cancel?.();
+        jest.advanceTimersByTime(debounceMs);
       });
 
       expect(mockTrace).not.toHaveBeenCalled();
