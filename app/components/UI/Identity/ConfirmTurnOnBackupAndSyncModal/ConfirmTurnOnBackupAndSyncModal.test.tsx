@@ -14,6 +14,36 @@ jest.mock('../../../../actions/settings', () => ({
   toggleBasicFunctionality: jest.fn(() => jest.fn()),
 }));
 
+// Spy on the props the real sheet receives, since overlay taps and swipe-down
+// are only reachable through its `isInteractable` prop.
+const mockBottomSheetProps = jest.fn(
+  (_props: { isInteractable?: boolean }) => undefined,
+);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+  const actualReact = jest.requireActual('react');
+
+  return {
+    ...actualDesignSystem,
+    BottomSheet: actualReact.forwardRef(
+      (props: { isInteractable?: boolean }, ref: unknown) => {
+        mockBottomSheetProps(props);
+        return actualReact.createElement(actualDesignSystem.BottomSheet, {
+          ...props,
+          ref,
+        });
+      },
+    ),
+  };
+});
+
+const getLatestIsInteractable = () => {
+  const { calls } = mockBottomSheetProps.mock;
+  return calls[calls.length - 1][0].isInteractable;
+};
+
 const mockEnableBackupAndSync = jest.fn();
 const mockTrackEnableBackupAndSyncEvent = jest.fn();
 
@@ -148,6 +178,36 @@ describe('ConfirmTurnOnBackupAndSyncModal', () => {
 
     await waitFor(() => {
       expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  it('locks out overlay taps and swipe-down while enabling', async () => {
+    let resolveEnableBackupAndSync: () => void = () => undefined;
+    mockEnableBackupAndSync.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveEnableBackupAndSync = resolve;
+        }),
+    );
+
+    const { getByText } = renderWithProvider(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
+    );
+
+    expect(getLatestIsInteractable()).toBe(true);
+
+    fireEvent.press(
+      getByText(strings('default_settings.sheet.buttons.turn_on')),
+    );
+
+    await waitFor(() => {
+      expect(getLatestIsInteractable()).toBe(false);
+    });
+
+    await act(async () => {
+      resolveEnableBackupAndSync();
     });
   });
 

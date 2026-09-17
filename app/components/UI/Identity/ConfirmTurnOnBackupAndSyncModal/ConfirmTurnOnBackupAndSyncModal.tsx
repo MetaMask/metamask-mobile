@@ -48,6 +48,8 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
     trackEnableBackupAndSyncEvent,
   ]);
 
+  // Overlay taps, swipe-down and Android back reach the dialog directly instead
+  // of going through this handler, so `isInteractable` has to block them.
   const handleCancel = useCallback(() => {
     if (isEnabling) {
       return;
@@ -66,7 +68,11 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      goBack={navigation.goBack}
+      isInteractable={!isEnabling}
+    >
       <ModalContent
         title={turnContent.bottomSheetTitle}
         message={turnContent.bottomSheetMessage}
