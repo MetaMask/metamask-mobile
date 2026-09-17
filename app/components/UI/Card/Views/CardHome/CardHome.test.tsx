@@ -92,7 +92,10 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
-import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectMetalCardCheckoutFeatureFlag,
+  selectCardIntercomSupportEnabled,
+} from '../../../../../selectors/featureFlagController/card';
 import {
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -101,10 +104,12 @@ import {
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardProviderUserId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -510,6 +515,10 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
+}));
+
 // Mock bridge actions
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   setDestToken: jest.fn((token) => ({
@@ -780,6 +789,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('../../../../../util/support/betaSupportUrl', () => ({
+  getBetaSupportUrl: jest.fn(() => ''),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -832,6 +845,8 @@ function setupMockSelectors(
       decimals: number;
     } | null;
     activeProviderId: string;
+    isCardIntercomSupportEnabled: boolean;
+    providerUserId: string | null;
   }>,
 ) {
   const defaults = {
@@ -854,6 +869,8 @@ function setupMockSelectors(
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
     activeProviderId: 'baanx',
+    isCardIntercomSupportEnabled: false,
+    providerUserId: 'cardholder-1',
   };
 
   const config = { ...defaults, ...overrides };
@@ -878,6 +895,9 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    if (selector === selectCardIntercomSupportEnabled)
+      return config.isCardIntercomSupportEnabled;
+    if (selector === selectCardProviderUserId) return config.providerUserId;
 
     if (selector === selectSelectedInternalAccountByScope)
       return () => config.selectedAccount;
@@ -1900,6 +1920,31 @@ describe('CardHome Component', () => {
         `mailto:${CARD_SUPPORT_EMAIL}`,
       );
     });
+  });
+
+  it('opens an Intercom support conversation instead of an email draft when the flag is on', async () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      isCardIntercomSupportEnabled: true,
+      activeProviderId: 'immersve',
+      providerUserId: 'cardholder-1',
+    });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+    mockNavigate.mockClear();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
+        }),
+      );
+    });
+    expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
   it('uses the Immersve terms URL for the Immersve provider', () => {
@@ -7151,15 +7196,30 @@ describe('CardHome Component', () => {
         cardDetails: { type: CardType.VIRTUAL },
         countryOfResidence: 'GB',
       });
+      jest.mocked(useCardUkMigrationUpdateBadge).mockReturnValue('danger');
 
       render();
       mockNavigate.mockClear();
+      mockEventBuilder.addProperties.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockTrackEvent.mockClear();
 
       fireEvent.press(screen.getByTestId('confirm-button'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.UK_MIGRATION,
       });
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
+        flow: 'migration',
+        migration_phase: 'post_cutoff',
+        badge_reasons: ['card_migration'],
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

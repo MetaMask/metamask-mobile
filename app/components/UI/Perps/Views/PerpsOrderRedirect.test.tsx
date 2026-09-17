@@ -10,7 +10,9 @@ import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -32,6 +34,10 @@ jest.mock('../hooks/usePerpsTrading', () => ({
 jest.mock('../hooks/usePerpsToasts', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: jest.fn(),
 }));
 
 const MockPerpsLoader = jest.fn((_props: Record<string, unknown>) => null);
@@ -67,6 +73,9 @@ const mockUseRoute = jest.mocked(useRoute);
 const mockUsePerpsConnection = jest.mocked(usePerpsConnection);
 const mockUsePerpsTrading = jest.mocked(usePerpsTrading);
 const mockUsePerpsToasts = jest.mocked(usePerpsToasts);
+const mockUsePerpsScreenVsBottomSheetAbTest = jest.mocked(
+  usePerpsScreenVsBottomSheetAbTest,
+);
 
 describe('PerpsOrderRedirect', () => {
   beforeEach(() => {
@@ -92,6 +101,10 @@ describe('PerpsOrderRedirect', () => {
       showToast: mockShowToast,
       PerpsToastOptions: mockToastOptions,
     } as never);
+
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: false,
+    });
   });
 
   it('renders loader with preparing message', () => {
@@ -166,6 +179,15 @@ describe('PerpsOrderRedirect', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
     expect(mockDepositWithOrder).toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+      tags: {
+        feature: 'perps',
+        component: 'PerpsOrderRedirect',
+        action: 'financial_deposit',
+        operation: 'financial_operations',
+      },
+      context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
+    });
   });
 
   it('calls depositWithOrder and navigates to confirmation on success', async () => {
@@ -253,6 +275,29 @@ describe('PerpsOrderRedirect', () => {
         expect.objectContaining({
           direction: 'short',
           asset: 'BTC',
+        }),
+      );
+    });
+  });
+
+  it('forwards the treatment assignment from Token Details', async () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: true,
+    });
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          useBottomSheet: true,
         }),
       );
     });
