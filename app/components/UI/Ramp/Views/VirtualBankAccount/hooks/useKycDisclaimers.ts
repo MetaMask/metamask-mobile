@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KycDisclaimer, KycUserStatus } from '@metamask/kyc-controller';
+import type {
+  KycDisclaimer,
+  KycSessionStatus,
+} from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 
@@ -24,13 +27,14 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs) for the
- * VBA KYC flow via {@link Engine.context.KycController.refreshKycStatus}, then
- * {@link Engine.context.KycController.initialize} and
+ * VBA KYC flow via {@link Engine.context.KycController.initialize}, then
+ * {@link Engine.context.KycController.refreshKycStatus} and
  * {@link Engine.context.KycController.loadDisclaimers}.
  *
- * When `refreshKycStatus` reports `pending`, `completed`, or `terminal-failure`,
- * initialize is skipped and `skipToStatus` is `true` so the caller can send the
- * user to the KYC status placeholder.
+ * `initialize` reuses any existing UKYC session for the vendor. When
+ * `refreshKycStatus` then reports `pending`, `approved`, or `rejected`,
+ * disclaimers are skipped and `skipToStatus` is `true` so the caller can send
+ * the user to the KYC status placeholder.
  *
  * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
  * Identity (`useKycSessionDisclaimers` → `KycController.fetchSessionDisclaimers`).
@@ -77,22 +81,26 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     });
 
     const controllerLoad = (async () => {
-      try {
-        const { status } =
-          await Engine.context.KycController.refreshKycStatus();
-        if (SKIP_TO_STATUS_USER_STATUSES.has(status)) {
-          return { skipToStatus: true };
-        }
-        // TODO: `need-more-information` should skip onboarding and reopen the
-        // Sumsub flow. Until that path is wired, fall through to initialize.
-      } catch {
-        // Status is unavailable: continue into the first-time onboarding path.
-      }
-
       await Engine.context.KycController.initialize({
         vendor: VBA_KYC_VENDOR,
         product: VBA_KYC_PRODUCT,
       });
+
+      try {
+        const sessionStatus =
+          await Engine.context.KycController.refreshKycStatus();
+        if (
+          sessionStatus &&
+          SKIP_TO_STATUS_SESSION_STATUSES.has(sessionStatus.finalStatus)
+        ) {
+          return { skipToStatus: true };
+        }
+        // TODO: `retry` should skip onboarding and reopen the Sumsub flow.
+        // Until that path is wired, fall through to load disclaimers.
+      } catch {
+        // Status is unavailable: continue into the first-time onboarding path.
+      }
+
       await Engine.context.KycController.loadDisclaimers({ country });
       return { skipToStatus: false };
     })();

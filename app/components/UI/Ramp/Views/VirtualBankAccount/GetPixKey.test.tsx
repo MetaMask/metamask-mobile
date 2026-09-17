@@ -7,12 +7,14 @@ import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
 const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    replace: mockReplace,
     goBack: mockGoBack,
   }),
 }));
@@ -149,7 +151,7 @@ describe('GetPixKey', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to the KYC status placeholder when existing status should skip onboarding', () => {
+  it('replaces this screen with the KYC status placeholder when existing status should skip onboarding', () => {
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: null,
       isLoading: false,
@@ -160,6 +162,7 @@ describe('GetPixKey', () => {
 
     renderWithProvider(<GetPixKey />);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycStatus');
+    expect(mockReplace).toHaveBeenCalledWith('RampVbaKycStatus');
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
