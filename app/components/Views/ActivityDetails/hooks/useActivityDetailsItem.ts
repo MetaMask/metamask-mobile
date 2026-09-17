@@ -23,7 +23,7 @@ import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityIt
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import {
   mapNonEvmTransactions,
-  shouldSkipTransaction,
+  shouldSkipUnrelatedTransaction,
 } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
 import {
@@ -194,13 +194,18 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    // Same gate as the activity list (`transformApiTransactions`). Without it,
-    // by-hash results whose top-level from/to are not the subject (relayer
-    // gasless txs, unrelated hashes) still map to a plausible "Sent" with the
-    // native value fallback.
+    // Participation gate only. Without it, by-hash results whose top-level
+    // from/to are not the subject (relayer gasless txs, unrelated hashes) still
+    // map to a plausible "Sent" with the native value fallback. The list's
+    // inbound-transfer filtering is deliberately not applied here: this request
+    // always includes value transfers, so it would drop genuine receives.
     const subjectAddress = evmAddress.toLowerCase();
     if (
-      shouldSkipTransaction(subjectAddress, apiTransaction, excludedTxHashes)
+      shouldSkipUnrelatedTransaction(
+        subjectAddress,
+        apiTransaction,
+        excludedTxHashes,
+      )
     ) {
       return undefined;
     }

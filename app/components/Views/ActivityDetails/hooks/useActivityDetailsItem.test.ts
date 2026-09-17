@@ -505,14 +505,104 @@ describe('useActivityDetailsItem', () => {
         cumulativeGasUsed: 21000,
         value: '1',
         transactionCategory: 'TRANSFER',
-        // No valueTransfers: list keeps top-level to=subject receives, but skips
-        // rows that only match via incoming native valueTransfers.
       } as V1TransactionByHashResponse,
       isFetching: false,
     });
 
     const { result } = renderHook(() =>
       useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('classifies a fetched native receive that carries incoming value transfers', () => {
+    const subject = '0x1234567890abcdef1234567890abcdef12345678';
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchednativereceive',
+        from: counterparty,
+        to: subject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '1000000000000000000',
+        transactionCategory: 'TRANSFER',
+        // The by-hash request always sets `includeValueTransfers`, so real
+        // receives arrive with transfers the list gate would filter out.
+        valueTransfers: [
+          {
+            from: counterparty,
+            to: subject,
+            amount: '1000000000000000000',
+            decimal: 18,
+            contractAddress: '',
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchednativereceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('classifies a fetched token receive that carries incoming value transfers', () => {
+    const subject = '0x1234567890abcdef1234567890abcdef12345678';
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchedtokenreceive',
+        from: counterparty,
+        to: subject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        transactionCategory: 'TRANSFER',
+        valueTransfers: [
+          {
+            from: counterparty,
+            to: subject,
+            amount: '1000000',
+            decimal: 6,
+            contractAddress: '0x3333333333333333333333333333333333333333',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            transferType: 'ERC20',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchedtokenreceive', 'eip155:1'),
     );
 
     expect(result.current.item?.type).toBe('receive');
