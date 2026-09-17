@@ -338,6 +338,7 @@ describe('CustomAmountInfo', () => {
     depositPrefillStatus: DepositPrefillStatus.Disabled,
     hasInput: true,
     hasPrefetchedQuote: false,
+    hasUserEditedAmountRef: { current: false },
     isInputChanged: false,
     isPrefillPending: false,
     updatePendingAmount: noop,
@@ -2304,6 +2305,71 @@ describe('CustomAmountInfo', () => {
       );
 
       render();
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    // Regression: a prefill is skipped for the frames where the pay token and
+    // its balance are still resolving, which opens the keypad. The resolved
+    // prefill then stayed stranded on the keypad instead of advancing to the
+    // quote, because an open keypad was read as the user editing.
+    async function renderReleasedPrefillSkip({
+      hasUserEditedAmountRef,
+      updateTokenAmount,
+    }: {
+      hasUserEditedAmountRef: { current: boolean };
+      updateTokenAmount: jest.Mock;
+    }) {
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          hasInput: false,
+          depositPrefillStatus: DepositPrefillStatus.Skipped,
+          hasUserEditedAmountRef,
+          updateTokenAmount,
+        }),
+      );
+
+      const { rerender } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          depositPrefillStatus: DepositPrefillStatus.Prefilled,
+          hasUserEditedAmountRef,
+          updateTokenAmount,
+        }),
+      );
+
+      await act(async () => {
+        rerender(
+          createCustomAmountInfo({
+            transactionType: TransactionType.moneyAccountDeposit,
+          }),
+        );
+      });
+    }
+
+    it('auto-submits when a transiently skipped prefill later resolves', async () => {
+      const updateTokenAmountMock = jest.fn();
+
+      await renderReleasedPrefillSkip({
+        hasUserEditedAmountRef: { current: false },
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-submit a released prefill skip once the user has typed', async () => {
+      const updateTokenAmountMock = jest.fn();
+
+      await renderReleasedPrefillSkip({
+        hasUserEditedAmountRef: { current: true },
+        updateTokenAmount: updateTokenAmountMock,
+      });
 
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
     });

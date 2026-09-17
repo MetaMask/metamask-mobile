@@ -29,6 +29,7 @@ import {
 import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 
@@ -138,7 +139,11 @@ export function useDepositPrefillAmount({
     selectAccountOverrideByTransactionId(state, transactionId),
   );
 
-  const balanceUsd = new BigNumber(payToken?.balanceUsd ?? 0).toNumber();
+  // `payToken.balanceUsd` is a one-time snapshot written when the token is
+  // selected, so it reads 0 until AccountTracker catches up. Skipping on that
+  // opened the keypad on a funded wallet, so read the reactive balance — the
+  // same source `updatePendingAmountPercentage` applies the amount from.
+  const { balanceUsd } = useTransactionPayBalance();
 
   const tokenKey = `${payToken?.address}:${payToken?.chainId}:${accountOverride}`;
   const [committedKey, setCommittedKey] = useState<string | null>(null);
@@ -202,9 +207,8 @@ export function useDepositPrefillAmount({
   const isFiatPrefillSkipped =
     autoSelectFiatPayment ||
     (Boolean(fiatPayment?.selectedPaymentMethodId) && !payToken);
-  // `balanceUsd` comes from the pay token's snapshot, which can be absent or
-  // non-numeric while the reactive balance shown by the pay-with row is fine.
-  // `NaN` produces no prefill amount, so it has to skip rather than wait.
+  // `NaN` produces no prefill amount and is not `<= 0`, so treating it as a
+  // skip rather than waiting prevents an unbounded loader.
   const hasUsableBalance = Number.isFinite(balanceUsd) && balanceUsd > 0;
   const isSkipped =
     enabled &&

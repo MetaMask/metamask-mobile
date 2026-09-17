@@ -18,6 +18,7 @@ import { selectAccountOverrideByTransactionId } from '../../../../../selectors/t
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
@@ -50,6 +51,7 @@ jest.mock('../../utils/relayFixedSpread', () => ({
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayAvailableTokens');
+jest.mock('../pay/useTransactionPayBalance');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('./useTransactionMetadataRequest');
 
@@ -72,6 +74,7 @@ const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 const useTransactionPayAvailableTokensMock = jest.mocked(
   useTransactionPayAvailableTokens,
 );
+const useTransactionPayBalanceMock = jest.mocked(useTransactionPayBalance);
 const useTransactionPayFiatPaymentMock = jest.mocked(
   useTransactionPayFiatPayment,
 );
@@ -119,12 +122,28 @@ function makePayToken(
   } as TransactionPaymentToken;
 }
 
+/**
+ * Sets the pay token together with the reactive balance the hook reads, so a
+ * token's `balanceUsd` keeps describing what the wallet holds.
+ */
+function setPayTokenWithBalance(payToken?: TransactionPaymentToken) {
+  useTransactionPayTokenMock.mockReturnValue({
+    payToken,
+  } as ReturnType<typeof useTransactionPayToken>);
+  useTransactionPayBalanceMock.mockReturnValue({
+    balanceRaw: '0',
+    balanceUsd: Number(payToken?.balanceUsd ?? 0),
+  });
+}
+
 function setupMocks(
   overrides: {
     prefilledAmountDefault?: { enabled: boolean };
     prefilledAmountOverrides?: Record<string, { enabled: boolean }>;
     depositLimits?: Record<string, number>;
     payToken?: TransactionPaymentToken | null;
+    /** Reactive balance, when it must differ from the pay token snapshot. */
+    payBalanceUsd?: number;
     transactionMeta?: TransactionMeta;
     accountOverride?: string;
     availableTokenBalances?: number[];
@@ -151,9 +170,14 @@ function setupMocks(
       : makePayToken();
 
   useTransactionMetadataRequestMock.mockReturnValue(transactionMeta);
-  useTransactionPayTokenMock.mockReturnValue({
-    payToken: resolvedPayToken,
-  } as ReturnType<typeof useTransactionPayToken>);
+  setPayTokenWithBalance(resolvedPayToken);
+
+  if (overrides.payBalanceUsd !== undefined) {
+    useTransactionPayBalanceMock.mockReturnValue({
+      balanceRaw: '0',
+      balanceUsd: overrides.payBalanceUsd,
+    });
+  }
   useTransactionPayAvailableTokensMock.mockReturnValue({
     availableTokens: availableTokenBalances.map((balance, index) => ({
       address: `${TOKEN_ADDRESS_MOCK}-${index}`,
@@ -386,9 +410,7 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('500');
 
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: makePayToken({ balanceUsd: '9999' }),
-      } as ReturnType<typeof useTransactionPayToken>);
+      setPayTokenWithBalance(makePayToken({ balanceUsd: '9999' }));
 
       await act(async () => {
         rerender({});
@@ -408,11 +430,29 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBeUndefined();
     });
 
-    it('settles instead of loading when the balance snapshot is not numeric', () => {
-      // The snapshot on the pay token can be non-numeric while the reactive
-      // balance in the pay-with row is fine. `NaN` produces no prefill amount
-      // and is not `<= 0`, so waiting on it loaded forever.
-      setupMocks({ payToken: makePayToken({ balanceUsd: 'US$49.14' }) });
+    // Regression (device): `payToken.balanceUsd` is snapshotted when the token
+    // is selected and reads 0 until AccountTracker catches up. Skipping on it
+    // opened the keypad on a funded wallet for the ~2s until the real balance
+    // landed, instead of holding the amount loader.
+    it('prefills from the reactive balance when the pay token snapshot reads zero', () => {
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '0' }),
+        payBalanceUsd: 59.64,
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('59.64');
+    });
+
+    it('settles instead of loading when the reactive balance is not numeric', () => {
+      // `NaN` produces no prefill amount and is not `<= 0`, so waiting on it
+      // loaded forever.
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '0' }),
+        payBalanceUsd: Number.NaN,
+      });
 
       const { result } = runHook();
 
@@ -486,9 +526,7 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
 
       selectAccountOverrideMock.mockReturnValue('new-account-override');
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: makePayToken({ balanceUsd: '0' }),
-      } as ReturnType<typeof useTransactionPayToken>);
+      setPayTokenWithBalance(makePayToken({ balanceUsd: '0' }));
 
       await act(async () => {
         rerender({});
@@ -511,12 +549,12 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('500');
 
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: makePayToken({
+      setPayTokenWithBalance(
+        makePayToken({
           address: TOKEN_ADDRESS_B_MOCK,
           balanceUsd: '800',
         }),
-      } as ReturnType<typeof useTransactionPayToken>);
+      );
 
       await act(async () => {
         rerender({});
