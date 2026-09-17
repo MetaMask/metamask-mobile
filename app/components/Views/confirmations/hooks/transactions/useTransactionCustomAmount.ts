@@ -14,10 +14,6 @@ import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmo
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ADDRESS,
-} from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
 import {
   useIsTransactionPayQuoteLoading,
@@ -117,16 +113,17 @@ export function useTransactionCustomAmount({
     TransactionType.moneyAccountWithdraw,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const payTokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
-  const musdFiatRate =
-    useTokenFiatRate(
-      MUSD_TOKEN_ADDRESS,
-      MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-      currency,
-    ) ?? 1;
-  const tokenFiatRate = isMoneyAccountWithdraw
-    ? musdFiatRate
-    : payTokenFiatRate;
+  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
+  // Deposit/withdraw amounts are human mUSD and the input is already USD, so
+  // the typed value is the mUSD amount. Converting through a market rate is
+  // not just lossy, it disagrees with the background: the UI priced mUSD from
+  // mainnet (withdraw) or vault-chain (deposit) market data while
+  // TransactionPayController values the committed `requiredAssets` from the
+  // vault chain's, and Total came out short of amount + fee by that spread.
+  // The money account itself counts 1 mUSD as $1, so par is the figure every
+  // other surface uses.
+  const skipFiatRateConversion =
+    isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = `${payToken?.chainId ?? ''}:${
@@ -195,10 +192,8 @@ export function useTransactionCustomAmount({
 
   const amountHuman = useMemo(
     () =>
-      tokenFiatRate
-        ? new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10)
-        : '0',
-    [amountFiat, tokenFiatRate],
+      getAmountHumanFromFiat(amountFiat, tokenFiatRate, skipFiatRateConversion),
+    [amountFiat, skipFiatRateConversion, tokenFiatRate],
   );
 
   useEffect(() => {
@@ -521,4 +516,20 @@ export function useTransactionCustomAmount({
     updatePendingAmountPercentage,
     updateTokenAmount,
   };
+}
+
+function getAmountHumanFromFiat(
+  amountFiatValue: string,
+  tokenFiatRate: number | undefined,
+  skipFiatRateConversion: boolean,
+): string {
+  if (skipFiatRateConversion) {
+    return amountFiatValue || '0';
+  }
+
+  return tokenFiatRate
+    ? new BigNumber(amountFiatValue || '0')
+        .dividedBy(tokenFiatRate)
+        .toString(10)
+    : '0';
 }
