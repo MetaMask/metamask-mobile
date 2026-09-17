@@ -1203,6 +1203,11 @@
       "all": "All",
       "trade": "Trade",
       "just_now": "Just now",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "opened",
         "perps_added": "added",
@@ -9982,7 +9987,12 @@
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
         "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
-        "retry_button": "Try again"
+        "retry_button": "Try again",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -10158,11 +10168,6 @@
         "kyc_pending": {
           "title": "Verification in progress",
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
-        },
-        "pending_verification": {
-          "title": "Finish setting up your card",
-          "description": "You have pending verification steps to complete before your card can be enabled.",
-          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -10205,6 +10210,8 @@
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
@@ -10223,6 +10230,14 @@
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token"
       }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "Transactions",
