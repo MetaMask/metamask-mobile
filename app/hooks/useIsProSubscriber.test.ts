@@ -1,27 +1,43 @@
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { useIsProSubscriber } from './useIsProSubscriber';
-import { selectIsMoneyAccountPlusSubscriber } from '../selectors/subscriptionController';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from './useMoneyAccountPlusAccess';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+jest.mock('./useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('./useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: jest.fn(),
 }));
 
-const mockUseSelector = jest.mocked(useSelector);
+const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
 
 describe('useIsProSubscriber', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it.each([true, false])('returns the selected value %s', (isSubscriber) => {
-    mockUseSelector.mockReturnValue(isSubscriber);
+  it.each([
+    {
+      access: MoneyAccountPlusAccess.Subscriber,
+      expected: true,
+    },
+    {
+      access: MoneyAccountPlusAccess.Eligible,
+      expected: false,
+    },
+    {
+      access: MoneyAccountPlusAccess.Disabled,
+      expected: false,
+    },
+  ])(
+    'returns $expected when Plus access is $access',
+    ({ access, expected }) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(access);
 
-    const { result } = renderHook(() => useIsProSubscriber());
+      const { result } = renderHook(() => useIsProSubscriber());
 
-    expect(mockUseSelector).toHaveBeenCalledWith(
-      selectIsMoneyAccountPlusSubscriber,
-    );
-    expect(result.current).toBe(isSubscriber);
-  });
+      expect(result.current).toBe(expected);
+    },
+  );
 });

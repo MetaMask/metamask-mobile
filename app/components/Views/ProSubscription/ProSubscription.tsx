@@ -12,7 +12,11 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../hooks/useMoneyAccountPlusAccess';
+import Engine from '../../../core/Engine';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
@@ -37,7 +41,7 @@ const ProSubscription = () => {
       >
     >();
 
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const proAccess = useMoneyAccountPlusAccess();
   const [currentScreen, setCurrentScreen] =
     useState<ProSubscriptionScreen>('benefits');
   const [selectedPlan, setSelectedPlan] = useState<PlanId>(
@@ -47,12 +51,26 @@ const ProSubscription = () => {
     SelectedPlusPlan | undefined
   >();
 
-  // Guard: dismiss immediately if the Pro feature flag is off.
+  // Dismiss when the Pro flag is off, and send anyone already entitled to the
+  // hub so an existing subscriber never lands on the upsell.
   useEffect(() => {
-    if (!isProSubscriptionEnabled) {
+    if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
+      return;
     }
-  }, [isProSubscriptionEnabled, navigation]);
+
+    // On the success screen the user has just subscribed, so becoming a
+    // subscriber is expected — let them read the confirmation instead of
+    // yanking them to the hub.
+    if (
+      proAccess === MoneyAccountPlusAccess.Subscriber &&
+      currentScreen !== 'success'
+    ) {
+      navigation.replace(Routes.PRO_HUB.ROOT, {
+        source: 'pro_subscription_already_subscribed',
+      });
+    }
+  }, [proAccess, currentScreen, navigation]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -71,7 +89,12 @@ const ProSubscription = () => {
     setCurrentScreen('success');
   }, []);
 
-  const handleSubscriptionOnSuccess = useCallback(() => {
+  const handleSubscriptionOnSuccess = useCallback(async () => {
+    // Card checkout completes outside the controller, so explicitly refresh
+    // its canonical state before opening the hub.
+    await Engine.context.SubscriptionController.getSubscriptions().catch(
+      () => undefined,
+    );
     navigation.replace(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_success',
     });
@@ -105,7 +128,9 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {screenContent}
+      {(proAccess === MoneyAccountPlusAccess.Eligible ||
+        currentScreen === 'success') &&
+        screenContent}
     </SafeAreaView>
   );
 };

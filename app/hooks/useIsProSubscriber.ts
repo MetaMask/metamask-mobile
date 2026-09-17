@@ -1,13 +1,14 @@
-import { useSelector } from 'react-redux';
-import { selectIsMoneyAccountPlusSubscriber } from '../selectors/subscriptionController';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from './useMoneyAccountPlusAccess';
 
 /**
- * Returns whether the user currently has an active MetaMask Pro (Money Account
- * Plus) subscription, as reported by the SubscriptionController.
+ * Returns whether the user may see subscriber-only Pro chrome.
  *
- * Subscription state is only populated while something polls the controller —
- * see `useSubscriptionPolling`.
+ * True only when {@link useMoneyAccountPlusAccess} reports
+ * {@link MoneyAccountPlusAccess.Subscriber}.
  */
 export function useIsProSubscriber(): boolean {
-  return useSelector(selectIsMoneyAccountPlusSubscriber);
+  return useMoneyAccountPlusAccess() === MoneyAccountPlusAccess.Subscriber;
 }
