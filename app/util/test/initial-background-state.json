@@ -819,15 +819,12 @@
     "activeProduct": null,
     "kycRequiredByProduct": {},
     "lastCheckedAt": null,
-    "userStatus": null,
-    "userStatusSumsubSessionId": null,
-    "userStatusErrorCode": null,
+    "sessionId": null,
+    "sessionStatus": null,
     "sumsub": {
       "status": "idle",
       "result": null,
-      "sessionId": null,
-      "applicantAccessToken": null,
-      "sessionStatus": null
+      "applicantAccessToken": null
     }
   },
   "ConnectivityController": {

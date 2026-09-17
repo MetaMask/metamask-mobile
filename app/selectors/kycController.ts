@@ -7,17 +7,19 @@ const selectKycControllerState = (state: RootState) =>
     | KycControllerState
     | undefined;
 
-export const selectKycUserStatus = createSelector(
+export const selectKycSessionStatus = createSelector(
   selectKycControllerState,
-  (kycControllerState) => kycControllerState?.userStatus ?? null,
+  (kycControllerState) =>
+    kycControllerState?.sessionStatus?.finalStatus ?? null,
 );
 
-export const selectKycUserStatusSumsubSessionId = createSelector(
+export const selectKycSessionId = createSelector(
   selectKycControllerState,
-  (kycControllerState) => kycControllerState?.userStatusSumsubSessionId ?? null,
+  (kycControllerState) => kycControllerState?.sessionId ?? null,
 );
 
-export const selectKycUserStatusErrorCode = createSelector(
+export const selectKycSessionStatusMessage = createSelector(
   selectKycControllerState,
-  (kycControllerState) => kycControllerState?.userStatusErrorCode ?? null,
+  (kycControllerState) =>
+    kycControllerState?.sessionStatus?.statusMessage ?? null,
 );

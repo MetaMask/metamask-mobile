@@ -5,10 +5,10 @@ import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 
 export type { KycDisclaimer };
 
-const SKIP_TO_STATUS_USER_STATUSES: ReadonlySet<KycUserStatus> = new Set([
+const SKIP_TO_STATUS_SESSION_STATUSES: ReadonlySet<KycSessionStatus> = new Set([
   'pending',
-  'completed',
-  'terminal-failure',
+  'approved',
+  'rejected',
 ]);
 
 interface UseKycDisclaimersResult {

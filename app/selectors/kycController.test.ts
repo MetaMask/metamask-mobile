@@ -1,7 +1,7 @@
 import {
-  selectKycUserStatus,
-  selectKycUserStatusErrorCode,
-  selectKycUserStatusSumsubSessionId,
+  selectKycSessionId,
+  selectKycSessionStatus,
+  selectKycSessionStatusMessage,
 } from './kycController';
 import { RootState } from '../reducers';
 
@@ -19,24 +19,40 @@ const createState = (
   }) as RootState;
 
 describe('KycController selectors', () => {
-  it('returns userStatus from KycController state', () => {
-    const state = createState({ userStatus: 'pending' });
-
-    expect(selectKycUserStatus(state)).toBe('pending');
-  });
-
-  it('returns userStatusSumsubSessionId from KycController state', () => {
-    const state = createState({ userStatusSumsubSessionId: 'session-1' });
-
-    expect(selectKycUserStatusSumsubSessionId(state)).toBe('session-1');
-  });
-
-  it('returns userStatusErrorCode from KycController state', () => {
+  it('returns sessionStatus.finalStatus from KycController state', () => {
     const state = createState({
-      userStatusErrorCode: 'session_not_in_valid_state',
+      sessionStatus: {
+        finalStatus: 'pending',
+        externalUserId: 'user-1',
+        kycStatus: 'pending',
+        vendor: 'iron',
+        vendorStatus: 'pending',
+        sessionId: 'session-1',
+      },
     });
 
-    expect(selectKycUserStatusErrorCode(state)).toBe(
+    expect(selectKycSessionStatus(state)).toBe('pending');
+  });
+
+  it('returns sessionId from KycController state', () => {
+    const state = createState({ sessionId: 'session-1' });
+
+    expect(selectKycSessionId(state)).toBe('session-1');
+  });
+
+  it('returns sessionStatus.statusMessage from KycController state', () => {
+    const state = createState({
+      sessionStatus: {
+        finalStatus: 'rejected',
+        statusMessage: 'session_not_in_valid_state',
+        externalUserId: 'user-1',
+        kycStatus: 'rejected',
+        vendor: 'iron',
+        vendorStatus: 'rejected',
+      },
+    });
+
+    expect(selectKycSessionStatusMessage(state)).toBe(
       'session_not_in_valid_state',
     );
   });
@@ -44,8 +60,8 @@ describe('KycController selectors', () => {
   it('returns null when KycController state is missing', () => {
     const state = { engine: { backgroundState: {} } } as RootState;
 
-    expect(selectKycUserStatus(state)).toBeNull();
-    expect(selectKycUserStatusSumsubSessionId(state)).toBeNull();
-    expect(selectKycUserStatusErrorCode(state)).toBeNull();
+    expect(selectKycSessionStatus(state)).toBeNull();
+    expect(selectKycSessionId(state)).toBeNull();
+    expect(selectKycSessionStatusMessage(state)).toBeNull();
   });
 });

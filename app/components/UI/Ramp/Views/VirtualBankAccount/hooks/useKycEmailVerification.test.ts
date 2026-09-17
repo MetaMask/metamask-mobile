@@ -88,9 +88,12 @@ describe('useKycEmailVerification', () => {
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycController.refreshKycStatus.mockResolvedValue({
-      status: 'pending',
-      sumsubSessionId: null,
-      errorCode: null,
+      finalStatus: 'pending',
+      externalUserId: 'user-1',
+      kycStatus: 'pending',
+      vendor: 'iron',
+      vendorStatus: 'pending',
+      sessionId: 'session-1',
     });
   });
 

@@ -1150,9 +1150,9 @@
     "kyc_status": {
       "title": "KYC status",
       "description": "Placeholder after Sumsub. Values come from KycController.",
-      "user_status": "userStatus",
-      "user_status_sumsub_session_id": "userStatusSumsubSessionId",
-      "user_status_error_code": "userStatusErrorCode",
+      "session_status": "sessionStatus",
+      "session_id": "sessionId",
+      "session_status_message": "sessionStatusMessage",
       "null_value": "null"
     }
   },

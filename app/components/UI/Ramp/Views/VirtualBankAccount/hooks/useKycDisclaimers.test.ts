@@ -1,4 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import type {
+  KycSessionStatus,
+  KycSessionStatusResponse,
+} from '@metamask/kyc-controller';
 import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
@@ -25,11 +29,16 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-const notStartedStatus = {
-  status: 'not-started' as const,
-  sumsubSessionId: null,
-  errorCode: null,
-};
+const createSessionStatus = (
+  finalStatus: KycSessionStatus,
+): KycSessionStatusResponse => ({
+  finalStatus,
+  externalUserId: 'user-1',
+  kycStatus: finalStatus,
+  vendor: 'iron',
+  vendorStatus: finalStatus,
+  sessionId: 'session-1',
+});
 
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
@@ -37,7 +46,7 @@ describe('useKycDisclaimers', () => {
     mockKycControllerState.vendorDisclaimers = [];
     mockKycControllerState.vendorError = null;
     mockInitialize.mockResolvedValue(undefined);
-    mockRefreshKycStatus.mockResolvedValue(notStartedStatus);
+    mockRefreshKycStatus.mockResolvedValue(createSessionStatus('new'));
     mockLoadDisclaimers.mockImplementation(async () => {
       mockKycControllerState.vendorDisclaimers = [
         { id: '1', url: 'https://t.c', display_name: 'T&C' },
@@ -51,11 +60,11 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
     expect(mockInitialize).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
       product: VBA_KYC_PRODUCT,
     });
+    expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
     expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
     expect(result.current.disclaimers).toStrictEqual([
       { id: '1', url: 'https://t.c', display_name: 'T&C' },
@@ -64,21 +73,20 @@ describe('useKycDisclaimers', () => {
     expect(result.current.skipToStatus).toBe(false);
   });
 
-  it.each(['pending', 'completed', 'terminal-failure'] as const)(
-    'skips initialize when refreshKycStatus returns %s',
-    async (status) => {
-      mockRefreshKycStatus.mockResolvedValue({
-        status,
-        sumsubSessionId: 'session-1',
-        errorCode: null,
-      });
+  it.each(['pending', 'approved', 'rejected'] as const)(
+    'skips disclaimers when refreshKycStatus returns %s',
+    async (finalStatus) => {
+      mockRefreshKycStatus.mockResolvedValue(createSessionStatus(finalStatus));
 
       const { result } = renderHook(() => useKycDisclaimers('BRA'));
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+      expect(mockInitialize).toHaveBeenCalledWith({
+        vendor: VBA_KYC_VENDOR,
+        product: VBA_KYC_PRODUCT,
+      });
       expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
-      expect(mockInitialize).not.toHaveBeenCalled();
       expect(mockLoadDisclaimers).not.toHaveBeenCalled();
       expect(result.current.skipToStatus).toBe(true);
       expect(result.current.disclaimers).toBeNull();
@@ -86,12 +94,8 @@ describe('useKycDisclaimers', () => {
     },
   );
 
-  it('loads disclaimers when refreshKycStatus returns need-more-information', async () => {
-    mockRefreshKycStatus.mockResolvedValue({
-      status: 'need-more-information',
-      sumsubSessionId: 'session-1',
-      errorCode: null,
-    });
+  it('loads disclaimers when refreshKycStatus returns retry', async () => {
+    mockRefreshKycStatus.mockResolvedValue(createSessionStatus('retry'));
 
     const { result } = renderHook(() => useKycDisclaimers('BRA'));
 
