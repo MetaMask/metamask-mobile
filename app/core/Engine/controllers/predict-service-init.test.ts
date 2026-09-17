@@ -138,7 +138,10 @@ describe('Predict service initialization', () => {
     ]);
     controller.onGameUpdate(update);
 
-    expect(listener).toHaveBeenCalledWith(update);
+    expect(listener).toHaveBeenCalledWith({
+      ...update,
+      observedAtByField: { status: update.observedAt },
+    });
     controller.destroy();
   });
 });
