@@ -1,6 +1,5 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { Platform, StyleSheet } from 'react-native';
-import { colors as importedColors } from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
 
 export const GRADIENT_COLORS = ['#1D002E', '#360853'];
