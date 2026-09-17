@@ -17,13 +17,17 @@ export type ListedWorkflowRun = {
   runAttempt: number;
 };
 
-export function listedWorkflowRunFromApi(run: {
+export type WorkflowRunListItem = {
   id: number;
   conclusion: string | null;
   created_at: string;
   head_sha: string;
   run_attempt?: number;
-}): ListedWorkflowRun {
+};
+
+export function listedWorkflowRunFromApi(
+  run: WorkflowRunListItem,
+): ListedWorkflowRun {
   return {
     id: run.id,
     conclusion: run.conclusion,
@@ -32,6 +36,46 @@ export function listedWorkflowRunFromApi(run: {
     // Octokit types run_attempt as optional; a missing value is the first attempt.
     runAttempt: run.run_attempt ?? 1,
   };
+}
+
+export type ListedRunsPage = {
+  data: WorkflowRunListItem[];
+};
+
+export type CollectListedRunsFromPagesResult = {
+  runs: ListedWorkflowRun[];
+  pageErrorMessage?: string;
+};
+
+/**
+ * Walks listWorkflowRuns pages. A later-page failure keeps already-listed
+ * runs so Stage 1 can still sample instead of failing the job on a mid-walk
+ * 429/5xx after `withRetryOnce` restarted from page 1.
+ */
+export async function collectListedRunsFromPages(
+  pages: AsyncIterable<ListedRunsPage>,
+  maxRuns: number,
+): Promise<CollectListedRunsFromPagesResult> {
+  const runs: ListedWorkflowRun[] = [];
+  try {
+    for await (const { data } of pages) {
+      for (const run of data) {
+        runs.push(listedWorkflowRunFromApi(run));
+        if (runs.length >= maxRuns) {
+          return { runs };
+        }
+      }
+    }
+  } catch (error) {
+    if (runs.length === 0) {
+      throw error;
+    }
+    return {
+      runs,
+      pageErrorMessage: (error as Error).message,
+    };
+  }
+  return { runs };
 }
 
 export type WorkflowJob = {

@@ -12,7 +12,7 @@
  * Logging rule:
  *   - core.info — expected no-op (no modified tests, unchanged since last
  *     analysis, missing log blob, unreachable prior SHA).
- *   - core.warning — degraded but still correct (unused here; reserved).
+ *   - core.warning — degraded but still correct (partial listWorkflowRuns pages).
  *   - core.setFailed — stage cannot do its job (git diff / token / API after
  *     retry / uncaught exception). Outputs are still written for the Summary;
  *     has_test_files stays unset so Stage 3 never posts a false all-clear.
@@ -58,10 +58,10 @@ import {
   allUnitTestJobsSucceeded,
   aggregateHitsByFile,
   candidateShaGroupsNewestFirst,
+  collectListedRunsFromPages,
   collectSameShaHitsForGroup,
   failedUnitTestJobs,
   groupRunsByHeadSha,
-  listedWorkflowRunFromApi,
   parseJestFailPaths,
   snapshotInspectOrder,
   snapshotsToInspect,
@@ -418,7 +418,6 @@ async function collectCompletedRuns(
   const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
-  const runs: ListedWorkflowRun[] = [];
   const iterator = octokit.paginate.iterator(
     octokit.rest.actions.listWorkflowRuns,
     {
@@ -430,11 +429,14 @@ async function collectCompletedRuns(
       per_page: 100,
     },
   );
-  for await (const { data } of iterator) {
-    for (const r of data) {
-      runs.push(listedWorkflowRunFromApi(r));
-      if (runs.length >= MAX_RUNS_LISTED) return runs;
-    }
+  const { runs, pageErrorMessage } = await collectListedRunsFromPages(
+    iterator,
+    MAX_RUNS_LISTED,
+  );
+  if (pageErrorMessage) {
+    core.warning(
+      `listWorkflowRuns pagination stopped after ${runs.length} run(s): ${pageErrorMessage}`,
+    );
   }
   return runs;
 }

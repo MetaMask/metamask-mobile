@@ -95,6 +95,23 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('| SHA | `f758dbb` |');
   });
 
+  it('reports posted all-clear when Stage 3 posted after no modified unit tests', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      shouldAnalyze: 'false',
+      skipReason: 'no_modified_unit_tests',
+      commentPosted: 'true',
+      commentAction: 'all_clear',
+      modifiedFileCount: '0',
+      filesToAnalyzeCount: '0',
+      aiOutcome: 'skipped',
+      stage3Outcome: 'success',
+    });
+
+    expect(markdown).toContain('**Posted sticky comment** (all-clear).');
+    expect(markdown).toContain('| Comment | all-clear |');
+  });
+
   it('reports Job result passed on the happy path', () => {
     const markdown = renderFlakyJobSummary(baseInput);
 

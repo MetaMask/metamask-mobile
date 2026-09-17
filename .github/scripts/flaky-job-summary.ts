@@ -121,10 +121,10 @@ export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
       '**Stopped before analysis.** Checkout, base-branch fetch, Node setup, or yarn install did not complete.';
   } else if (input.stage1Outcome === 'failure') {
     headline = `**Failed to gather history.** ${skipReasonLabel(input.skipReason) || 'Stage 1 failed.'}`;
-  } else if (input.shouldAnalyze !== 'true') {
-    headline = `**Skipped.** ${skipReasonLabel(input.skipReason) || 'Analyzer and comment were not run.'}`;
   } else if (input.commentPosted === 'true') {
     headline = `**Posted sticky comment** (${commentActionLabel(input.commentAction)}).`;
+  } else if (input.shouldAnalyze !== 'true') {
+    headline = `**Skipped.** ${skipReasonLabel(input.skipReason) || 'Analyzer and comment were not run.'}`;
   } else if (input.stage3SkipReason) {
     headline = `**Analyzed; comment not posted.** ${skipReasonLabel(input.stage3SkipReason)}`;
   } else {
