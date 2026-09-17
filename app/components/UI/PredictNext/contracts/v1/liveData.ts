@@ -38,7 +38,7 @@ export interface PredictGameLive {
   eventId: PredictEntityId;
   type: string;
   status?: PredictGameStatus | (string & {});
-  score?: PredictGame['score'];
+  score?: NonNullable<PredictGame['score']>;
   period?: string;
   clock?: string;
   observedAt: PredictTimestamp;
