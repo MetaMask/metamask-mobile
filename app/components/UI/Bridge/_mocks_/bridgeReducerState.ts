@@ -55,6 +55,7 @@ export const mockBridgeReducerState: BridgeState = {
 
   // Limit orders
   limitOrderCostTolerance: undefined,
+  limitOrderMarketComparison: undefined,
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,

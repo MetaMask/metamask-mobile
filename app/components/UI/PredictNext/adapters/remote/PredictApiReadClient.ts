@@ -60,7 +60,7 @@ export interface PredictApiReadClientOptions {
   baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
-  getBearerToken?: () => Promise<string | undefined>;
+  getBearerToken: () => Promise<string | undefined>;
 }
 
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
@@ -91,7 +91,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   readonly #baseUrl?: URL;
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
-  readonly #getBearerToken?: () => Promise<string | undefined>;
+  readonly #getBearerToken: () => Promise<string | undefined>;
 
   constructor({
     baseUrl,
@@ -116,11 +116,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#getAuthenticated(
-      ['v1', 'venues', venueId, 'balance'],
-      undefined,
-      options,
-    );
+    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options);
   }
 
   fetchPositions(
@@ -128,11 +124,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#getAuthenticated(
-      ['v1', 'venues', venueId, 'positions'],
-      params,
-      options,
-    );
+    return this.#get(['v1', 'venues', venueId, 'positions'], params, options);
   }
 
   fetchActivity(
@@ -140,11 +132,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#getAuthenticated(
-      ['v1', 'venues', venueId, 'activity'],
-      params,
-      options,
-    );
+    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
   }
 
   fetchFeed(
@@ -197,26 +185,27 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
-  async #getAuthenticated(
-    segments: readonly string[],
-    params?: PredictApiReadQueryParams,
-    options?: PredictReadOptions,
-  ): Promise<unknown> {
+  /**
+   * Every predict-api route requires a bearer token, so one is resolved for
+   * each request rather than per endpoint.
+   */
+  async #resolveBearerToken(): Promise<string> {
     // A missing or failing token provider is an authentication failure, not a
     // malformed response. Never let the provider's error text escape.
-    const token = await this.#getBearerToken?.().catch(() => undefined);
+    const token = await this.#getBearerToken().catch(() => undefined);
     if (!token?.trim()) {
       throw new PredictHttpError(401);
     }
-    return this.#get(segments, params, options, token);
+    return token;
   }
 
   async #get(
     segments: readonly string[],
     params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
-    bearerToken?: string,
   ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
@@ -234,7 +223,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         Accept: 'application/json',
         'x-metamask-clientproduct': 'metamask-mobile',
         'x-metamask-clientversion': this.#clientVersion,
-        ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+        Authorization: `Bearer ${bearerToken}`,
       },
       signal: options?.signal,
     });
@@ -258,13 +247,8 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     body: FetchOrderPreviewParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    // A missing or failing token provider is an authentication failure, not a
-    // malformed response. Never let the provider's error text escape.
-    const token = await this.#getBearerToken?.().catch(() => undefined);
-    if (!token?.trim()) {
-      throw new PredictHttpError(401);
-    }
-    return this.#post(segments, body, token, options);
+    const bearerToken = await this.#resolveBearerToken();
+    return this.#post(segments, body, bearerToken, options);
   }
 
   async #post(

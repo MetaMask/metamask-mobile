@@ -15,7 +15,7 @@ flowchart TD
     L2 -->|ignorable-only changes| NoBlock[🟢 Merge allowed]
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
-    GR -->|Scheduled| Scheduled[🧪 Run all E2E for iOS only]
+    GR -->|Scheduled to main| Scheduled[🧪 Run all E2E for iOS only]
     GR -->|Push to release/*| FullRelease[🧪 Path filter to run all E2E for Android and/or iOS]
     GR -->|Push to main| AndroidMain[🧪 Path filter; run all E2E for Android if selected]
 
@@ -38,11 +38,11 @@ After the global gates, path filters classify non-ignorable changes as Android-o
 
 For every eligible pull request, iOS runs on explicit request:
 
-| Request | Effect |
-| --- | --- |
-| `run-appium-ios-tests` | Adds iOS while preserving the path-selected Android platform. |
+| Request                    | Effect                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `run-appium-ios-tests`     | Adds iOS while preserving the path-selected Android platform.                          |
 | `skip-smart-e2e-selection` | Runs all Android E2E tags and bypasses AI test tag selection. It does not request iOS. |
-| Both labels | Runs all E2E tags on Android and iOS. |
+| Both labels                | Runs all E2E tags on Android and iOS.                                                  |
 
 For non-PR events:
 
@@ -51,8 +51,8 @@ For non-PR events:
 
 Forced platform runs:
 
-| Condition | Effect |
-| --- | --- |
+| Condition                                           | Effect                                                                                   |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | E2E infrastructure changes on a PR targeting `main` | Select both Android and iOS as required to run to catch breaking infrastructure changes. |
 
 ## E2E tests skipped by default on new PRs during peak hours

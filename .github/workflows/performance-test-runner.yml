@@ -260,3 +260,12 @@ jobs:
             tests/test-reports/playwright-report/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Upload Hermes CPU profiles
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: hermes-cpuprofiles-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          path: tests/reporters/reports/hermes-cpuprofiles/
+          if-no-files-found: ignore
+          retention-days: 14
