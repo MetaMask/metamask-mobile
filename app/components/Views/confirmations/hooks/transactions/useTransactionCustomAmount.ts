@@ -511,6 +511,9 @@ export function useTransactionCustomAmount({
     amountHumanDebounced,
     hasInput,
     hasPrefetchedQuote,
+    // Exposed so callers can tell a keypad the user is typing on apart from
+    // one opened for them. Resets when the pay token changes.
+    hasUserEditedAmountRef: userHasEditedRef,
     depositPrefillStatus: depositPrefill.status,
     isInputChanged,
     isPrefillPending,
