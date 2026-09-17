@@ -31,7 +31,6 @@ import type { MoneyNavigationParamList } from '../../types/navigation';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
-import MoneyDivider from '../MoneyDivider';
 import { MoneyPasskeyDetailsSheetTestIds } from './MoneyPasskeyDetailsSheet.testIds';
 
 type DetailsMode = 'details' | 'rename';
@@ -78,41 +77,28 @@ const styles = StyleSheet.create({
   passkeyName: {
     flexShrink: 1,
   },
-  usedForDivider: {
-    height: 1,
-    width: '100%',
-    marginTop: 8,
-    marginBottom: 16,
+  usageIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
-const MetadataRow = ({ label, value }: { label: string; value: string }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    justifyContent={BoxJustifyContent.Between}
-    gap={4}
-    twClassName="py-2"
-  >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {label}
-    </Text>
-    <Text variant={TextVariant.BodyMd}>{value}</Text>
-  </Box>
-);
-
-const UsageRow = ({ label }: { label: string }) => (
+const UsageRow = ({ icon, label }: { icon: IconName; label: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     gap={3}
     twClassName="py-2"
   >
-    <Icon
-      name={IconName.Check}
-      size={IconSize.Md}
-      color={IconColor.SuccessDefault}
-    />
-    <Text variant={TextVariant.BodyMd}>{label}</Text>
+    <Box style={styles.usageIcon} twClassName="bg-muted">
+      <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
+    </Box>
+    <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      {label}
+    </Text>
   </Box>
 );
 
@@ -220,67 +206,74 @@ const MoneyPasskeyDetailsView = () => {
       >
         {mode === 'details' && (
           <>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={3}
-              twClassName="pb-4"
-            >
-              <Box style={styles.identityIcon} twClassName="bg-muted">
-                <Icon
-                  name={IconName.Key}
-                  size={IconSize.Md}
-                  color={IconColor.IconDefault}
-                />
-              </Box>
+            <Box twClassName="rounded-2xl border border-muted p-4">
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                gap={4}
-                twClassName="flex-1"
+                gap={3}
               >
-                <Text
-                  variant={TextVariant.HeadingSm}
-                  fontWeight={FontWeight.Bold}
-                  style={styles.passkeyName}
-                >
-                  {passkey.name}
-                </Text>
-                <Pressable
-                  style={styles.editButton}
-                  hitSlop={12}
-                  onPress={() => setMode('rename')}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings('money.passkey_details.rename')}
-                  testID={MoneyPasskeyDetailsSheetTestIds.RENAME_BUTTON}
-                >
+                <Box style={styles.identityIcon} twClassName="bg-muted">
                   <Icon
-                    name={IconName.Edit}
+                    name={IconName.Key}
                     size={IconSize.Md}
                     color={IconColor.IconAlternative}
                   />
-                </Pressable>
+                </Box>
+                <Box twClassName="flex-1">
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={3}
+                  >
+                    <Text
+                      variant={TextVariant.HeadingSm}
+                      fontWeight={FontWeight.Bold}
+                      style={styles.passkeyName}
+                    >
+                      {passkey.name}
+                    </Text>
+                    <Pressable
+                      style={styles.editButton}
+                      hitSlop={12}
+                      onPress={() => setMode('rename')}
+                      accessibilityRole="button"
+                      accessibilityLabel={strings(
+                        'money.passkey_details.rename',
+                      )}
+                      testID={MoneyPasskeyDetailsSheetTestIds.RENAME_BUTTON}
+                    >
+                      <Icon
+                        name={IconName.Edit}
+                        size={IconSize.Md}
+                        color={IconColor.IconAlternative}
+                      />
+                    </Pressable>
+                  </Box>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    twClassName="mt-0.5"
+                  >
+                    {strings('money.passkeys.created_on')} {createdOn}
+                  </Text>
+                </Box>
               </Box>
             </Box>
-            <MetadataRow
-              label={strings('money.passkeys.created_on')}
-              value={createdOn}
-            />
-            <MetadataRow
-              label={strings('money.passkeys.last_used')}
-              value={strings('money.passkeys.today')}
-            />
 
-            <MoneyDivider
-              color={colors.border.muted}
-              style={styles.usedForDivider}
-            />
-            <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+            <Text
+              variant={TextVariant.HeadingSm}
+              fontWeight={FontWeight.Bold}
+              twClassName="mt-6 mb-2"
+            >
               {strings('money.passkeys.used_for')}
             </Text>
-            <Box twClassName="mt-2">
-              <UsageRow label={strings('money.passkeys.wallet_recovery')} />
+            <Box>
               <UsageRow
+                icon={IconName.Lock}
+                label={strings('money.passkeys.wallet_recovery')}
+              />
+              <UsageRow
+                icon={IconName.SecurityTick}
                 label={strings('money.passkeys.verifying_transactions')}
               />
             </Box>

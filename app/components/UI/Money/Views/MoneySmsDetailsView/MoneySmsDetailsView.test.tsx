@@ -29,12 +29,15 @@ describe('MoneySmsDetailsView', () => {
   });
 
   it('shows the phone, metadata, and usages', () => {
-    const { getByText } = renderWithProvider(<MoneySmsDetailsView />);
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneySmsDetailsView />,
+    );
 
     expect(getByText('+1 ••• ••• 0123')).toBeOnTheScreen();
-    expect(getByText('Verified phone number')).toBeOnTheScreen();
-    expect(getByText('Sep 8, 2026')).toBeOnTheScreen();
-    expect(getByText('Today')).toBeOnTheScreen();
+    expect(queryByText('Verified phone number')).not.toBeOnTheScreen();
+    expect(getByText('Created on Sep 8, 2026')).toBeOnTheScreen();
+    expect(queryByText('Last used')).not.toBeOnTheScreen();
+    expect(queryByText('Today')).not.toBeOnTheScreen();
     expect(getByText('Wallet recovery')).toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });

@@ -44,13 +44,14 @@ describe('MoneyPasskeyDetailsSheet', () => {
   });
 
   it('shows passkey metadata and renames the passkey', () => {
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
       <MoneyPasskeyDetailsSheet />,
     );
 
     expect(getByText('Passkey #1 - 1Password')).toBeOnTheScreen();
-    expect(getByText('Wed, Sep 02')).toBeOnTheScreen();
-    expect(getByText('Today')).toBeOnTheScreen();
+    expect(getByText('Created on Wed, Sep 02')).toBeOnTheScreen();
+    expect(queryByText('Last used')).not.toBeOnTheScreen();
+    expect(queryByText('Today')).not.toBeOnTheScreen();
 
     fireEvent.press(getByTestId(MoneyPasskeyDetailsSheetTestIds.RENAME_BUTTON));
     expect(

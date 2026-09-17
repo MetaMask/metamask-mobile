@@ -8025,6 +8025,7 @@
       "provider_google": "Gmail",
       "provider_apple": "Apple",
       "provider_telegram": "Telegram",
+      "linked_on": "Linked on",
       "remove": "Remove social login",
       "remove_title": "Remove social login?",
       "remove_description": "This account will no longer be available for wallet recovery or transaction verification. You can add a different social login after removing it.",

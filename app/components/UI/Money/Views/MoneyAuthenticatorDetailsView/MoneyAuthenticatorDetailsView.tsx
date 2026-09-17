@@ -25,8 +25,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
-import MoneyDivider from '../../components/MoneyDivider';
-import { useTheme } from '../../../../../util/theme';
 import { MoneyAuthenticatorDetailsViewTestIds } from './MoneyAuthenticatorDetailsView.testIds';
 
 const styles = StyleSheet.create({
@@ -55,47 +53,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  usedForDivider: {
-    height: 1,
-    width: '100%',
-    marginTop: 8,
-    marginBottom: 16,
+  usageIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
-const MetadataRow = ({ label, value }: { label: string; value: string }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    justifyContent={BoxJustifyContent.Between}
-    gap={4}
-    twClassName="py-2"
-  >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {label}
-    </Text>
-    <Text variant={TextVariant.BodyMd}>{value}</Text>
-  </Box>
-);
-
-const UsageRow = ({ label }: { label: string }) => (
+const UsageRow = ({ icon, label }: { icon: IconName; label: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     gap={3}
     twClassName="py-2"
   >
-    <Icon
-      name={IconName.Check}
-      size={IconSize.Md}
-      color={IconColor.SuccessDefault}
-    />
-    <Text variant={TextVariant.BodyMd}>{label}</Text>
+    <Box style={styles.usageIcon} twClassName="bg-muted">
+      <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
+    </Box>
+    <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      {label}
+    </Text>
   </Box>
 );
 
 const MoneyAuthenticatorDetailsView = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const footerStyle = [
     styles.footer,
@@ -151,45 +135,55 @@ const MoneyAuthenticatorDetailsView = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={3}
-          twClassName="pb-4"
-        >
-          <Box style={styles.identityIcon} twClassName="bg-muted">
-            <Icon
-              name={IconName.QrCode}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
-            />
+        <Box twClassName="rounded-2xl border border-muted p-4">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={3}
+          >
+            <Box style={styles.identityIcon} twClassName="bg-muted">
+              <Icon
+                name={IconName.QrCode}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.HeadingSm}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('money.authenticator_details.provider')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="mt-0.5"
+              >
+                {strings('money.passkeys.created_on')} {createdOn}
+              </Text>
+            </Box>
           </Box>
-          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('money.authenticator_details.provider')}
-          </Text>
         </Box>
 
-        <MetadataRow
-          label={strings('money.passkeys.created_on')}
-          value={createdOn}
-        />
-        <MetadataRow
-          label={strings('money.passkeys.last_used')}
-          value={strings('money.passkeys.today')}
-        />
-
-        <MoneyDivider
-          color={colors.border.muted}
-          style={styles.usedForDivider}
-        />
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Bold}
+          twClassName="mt-6 mb-2"
+        >
           {strings('money.passkeys.used_for')}
         </Text>
-        <Box twClassName="mt-2">
+        <Box>
           {(isSocialLogin || isSocialAdded) && (
-            <UsageRow label={strings('money.passkeys.wallet_recovery')} />
+            <UsageRow
+              icon={IconName.Lock}
+              label={strings('money.passkeys.wallet_recovery')}
+            />
           )}
-          <UsageRow label={strings('money.passkeys.verifying_transactions')} />
+          <UsageRow
+            icon={IconName.SecurityTick}
+            label={strings('money.passkeys.verifying_transactions')}
+          />
         </Box>
       </ScrollView>
       <Box style={footerStyle}>

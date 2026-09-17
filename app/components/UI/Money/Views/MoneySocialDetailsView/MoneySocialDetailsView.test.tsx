@@ -28,15 +28,15 @@ describe('MoneySocialDetailsView', () => {
       <MoneySocialDetailsView />,
     );
 
-    expect(getByText('Gmail')).toBeTruthy();
+    expect(queryByText('Gmail')).toBeNull();
     expect(getByTestId(MoneySocialDetailsViewTestIds.PROVIDER_ICON)).toHaveProp(
       'name',
       'google',
     );
     expect(getByText('money.user@gmail.com')).toBeTruthy();
-    expect(getByText('Sep 3, 2026')).toBeTruthy();
-    expect(getByText('Last used')).toBeTruthy();
-    expect(getByText('Today')).toBeTruthy();
+    expect(getByText('Linked on Sep 3, 2026')).toBeTruthy();
+    expect(queryByText('Last used')).toBeNull();
+    expect(queryByText('Today')).toBeNull();
     expect(getByText('Wallet recovery')).toBeTruthy();
     expect(queryByText('Verifying Money transactions')).toBeNull();
     expect(queryByText('Remove social login')).toBeNull();

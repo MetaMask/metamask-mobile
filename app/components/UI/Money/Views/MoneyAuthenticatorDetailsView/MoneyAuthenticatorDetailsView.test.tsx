@@ -43,12 +43,16 @@ describe('MoneyAuthenticatorDetailsView', () => {
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
 
-  it('shows metadata, wallet recovery, and transaction verification', () => {
-    const { getByText } = renderWithProvider(<MoneyAuthenticatorDetailsView />);
+  it('shows compact metadata and usage details', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyAuthenticatorDetailsView />,
+    );
 
     expect(getByText('Google Authenticator')).toBeOnTheScreen();
-    expect(getByText('Sep 3, 2026')).toBeOnTheScreen();
-    expect(getByText('Today')).toBeOnTheScreen();
+    expect(getByText('Created on Sep 3, 2026')).toBeOnTheScreen();
+    expect(queryByText('Active')).not.toBeOnTheScreen();
+    expect(queryByText('Last used')).not.toBeOnTheScreen();
+    expect(queryByText('Today')).not.toBeOnTheScreen();
     expect(getByText('Wallet recovery')).toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
