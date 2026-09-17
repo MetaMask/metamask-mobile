@@ -17,6 +17,7 @@ import {
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
+import { selectExcludedActivityTransactionHashes } from '../../../../selectors/transactionController';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
@@ -156,6 +157,9 @@ describe('useActivityDetailsItem', () => {
       }
       if (selector === selectEvmAddress) {
         return '0x1234567890abcdef1234567890abcdef12345678';
+      }
+      if (selector === selectExcludedActivityTransactionHashes) {
+        return new Set<string>();
       }
       return { transactions: [] };
     });
@@ -414,6 +418,50 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
   });
 
+  it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xnotours',
+        // Relayer / unrelated sender — subject only appears (if at all) in
+        // valueTransfers. List path drops these via shouldSkipTransaction.
+        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '2500000000000000000',
+        transactionCategory: 'STANDARD',
+        valueTransfers: [
+          {
+            from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            to: '0x1234567890abcdef1234567890abcdef12345678',
+            amount: '1',
+            decimal: 18,
+            contractAddress: '',
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xnotours', 'eip155:1'),
+    );
+
+    expect(result.current.item).toBeUndefined();
+  });
+
   it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {
     const checksummedSubject = '0x1234567890AbCdEf1234567890aBcDeF12345678';
     const lowercaseSubject = checksummedSubject.toLowerCase();
@@ -431,6 +479,9 @@ describe('useActivityDetailsItem', () => {
       }
       if (selector === selectEvmAddress) {
         return checksummedSubject;
+      }
+      if (selector === selectExcludedActivityTransactionHashes) {
+        return new Set<string>();
       }
       return { transactions: [] };
     });

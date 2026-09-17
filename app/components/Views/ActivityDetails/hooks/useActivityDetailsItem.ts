@@ -14,13 +14,17 @@ import {
   selectSelectedAccountGroupInternalAccounts,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
+import { selectExcludedActivityTransactionHashes } from '../../../../selectors/transactionController';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
 import { isValidTransactionHash } from '../../ActivityList/hooks/activity/isValidTransactionHash';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
-import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
+import {
+  mapNonEvmTransactions,
+  shouldSkipTransaction,
+} from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
 import {
   findBridgeHistoryItemBySrcTxHash,
@@ -141,6 +145,7 @@ export function useActivityDetailsItem(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
   const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
+  const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const txHash =
@@ -189,11 +194,20 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    // Match the activity list (`transformApiTransactions`): API from/to are
-    // lowercase while account addresses are often EIP-55 checksummed.
+    // Same gate as the activity list (`transformApiTransactions`). Without it,
+    // by-hash results whose top-level from/to are not the subject (relayer
+    // gasless txs, unrelated hashes) still map to a plausible "Sent" with the
+    // native value fallback.
+    const subjectAddress = evmAddress.toLowerCase();
+    if (
+      shouldSkipTransaction(subjectAddress, apiTransaction, excludedTxHashes)
+    ) {
+      return undefined;
+    }
+
     const activity = {
       ...mapApiTransaction({
-        subjectAddress: evmAddress.toLowerCase(),
+        subjectAddress,
         transaction: apiTransaction,
       }),
       raw: { type: 'apiEvmTransaction' as const, data: apiTransaction },
@@ -205,7 +219,7 @@ export function useActivityDetailsItem(
     }
 
     return classified;
-  }, [apiTransaction, chainId, evmAddress]);
+  }, [apiTransaction, chainId, evmAddress, excludedTxHashes]);
 
   const item = useMemo(() => {
     if (!txIdentifier) {
