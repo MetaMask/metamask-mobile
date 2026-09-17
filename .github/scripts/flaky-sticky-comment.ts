@@ -101,6 +101,10 @@ interface Finding {
 interface PerFileState {
   analyzedSha: string;
   findings: Finding[];
+  // Whether Stage 2 reviewed the file at analyzedSha. Absent in comments
+  // written before this field existed, which reads as "not reviewed" until
+  // the file is analyzed again — the safe direction for the Signals verdict.
+  patternsReviewed?: boolean;
 }
 
 interface CommentState {
@@ -299,12 +303,14 @@ function buildFindingsSection(findings: Finding[], headSha: string): string {
 function buildCommentBody({
   historyFiles,
   findings,
+  patternsReviewedFiles,
   runHistoryUrl,
   stateBlock,
   headSha,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
+  patternsReviewedFiles: Set<string>;
   runHistoryUrl: string;
   stateBlock: string;
   headSha: string;
@@ -318,6 +324,7 @@ function buildCommentBody({
       path: file.path,
       hasHistoryHit: file.flaky,
       hasPatternFinding: findingFiles.has(file.path),
+      patternsReviewed: patternsReviewedFiles.has(file.path),
     })),
   );
   const historyTable = buildHistoryTable(tableFiles);
@@ -524,6 +531,10 @@ async function main(): Promise<void> {
   //     prior findings verbatim.
   const mergedFindings: Finding[] = [];
   const mergedStateFiles: Record<string, PerFileState> = {};
+  // Files whose current content Stage 2 actually reviewed. A file re-analyzed
+  // by Stage 1 but missed by Stage 2 loses its prior reviewed state: that
+  // review covered an older version of the file.
+  const patternsReviewedFiles = new Set<string>();
 
   for (const histFile of historyFiles) {
     const { path } = histFile;
@@ -533,13 +544,23 @@ async function main(): Promise<void> {
     if (analyzedFiles.has(path) && aiAnalyzedFiles.has(path)) {
       const fresh = freshFindingsByFile.get(path) ?? [];
       mergedFindings.push(...fresh);
-      mergedStateFiles[path] = { analyzedSha: headSha, findings: fresh };
+      mergedStateFiles[path] = {
+        analyzedSha: headSha,
+        findings: fresh,
+        patternsReviewed: true,
+      };
+      patternsReviewedFiles.add(path);
     } else {
+      const patternsReviewed = analyzedFiles.has(path)
+        ? false
+        : (prior?.patternsReviewed ?? false);
       mergedFindings.push(...priorFindings);
       mergedStateFiles[path] = {
         analyzedSha: prior?.analyzedSha ?? headSha,
         findings: priorFindings,
+        patternsReviewed,
       };
+      if (patternsReviewed) patternsReviewedFiles.add(path);
     }
   }
 
@@ -591,6 +612,7 @@ async function main(): Promise<void> {
         body: buildCommentBody({
           historyFiles,
           findings: mergedFindings,
+          patternsReviewedFiles,
           runHistoryUrl,
           stateBlock,
           headSha,
@@ -614,6 +636,7 @@ async function main(): Promise<void> {
         body: buildCommentBody({
           historyFiles,
           findings: mergedFindings,
+          patternsReviewedFiles,
           runHistoryUrl,
           stateBlock,
           headSha,

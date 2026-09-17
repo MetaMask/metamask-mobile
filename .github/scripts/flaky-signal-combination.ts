@@ -10,6 +10,7 @@
 
 export type SignalCombination =
   | 'history_only'
+  | 'history_unreviewed'
   | 'pattern_only'
   | 'history_and_pattern';
 
@@ -17,6 +18,10 @@ export type FileSignals = {
   path: string;
   hasHistoryHit: boolean;
   hasPatternFinding: boolean;
+  // False when Stage 2 never reviewed this file's current content (fork PR,
+  // analyzer failure, conservative fallback). "No pattern found" would be an
+  // overclaim then, so history_unreviewed is reported instead of history_only.
+  patternsReviewed: boolean;
 };
 
 export type FileSignalCombination = {
@@ -29,6 +34,8 @@ const COMBINATION_LABELS: Record<SignalCombination, string> = {
     'Failed then passed on an identical commit **and** still contains a flaky pattern — unfixed. Start with the suggested fix below.',
   history_only:
     'Failed then passed on an identical commit, but no flaky pattern was found in the current file — check whether the cause was already fixed, or is environmental (runner load, shard timing).',
+  history_unreviewed:
+    'Failed then passed on an identical commit. Pattern analysis did not review this version of the file, so there is no verdict on the cause — audit it manually.',
   pattern_only:
     'Flaky pattern found in this PR, with no same-SHA fail-then-pass in the sampled window — most likely introduced here.',
 };
@@ -36,11 +43,12 @@ const COMBINATION_LABELS: Record<SignalCombination, string> = {
 export function combineFileSignals(
   signals: FileSignals,
 ): SignalCombination | null {
-  if (signals.hasHistoryHit && signals.hasPatternFinding) {
-    return 'history_and_pattern';
+  if (signals.hasPatternFinding) {
+    return signals.hasHistoryHit ? 'history_and_pattern' : 'pattern_only';
   }
-  if (signals.hasHistoryHit) return 'history_only';
-  if (signals.hasPatternFinding) return 'pattern_only';
+  if (signals.hasHistoryHit) {
+    return signals.patternsReviewed ? 'history_only' : 'history_unreviewed';
+  }
   return null;
 }
 

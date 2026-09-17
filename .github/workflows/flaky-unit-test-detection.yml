@@ -21,8 +21,9 @@
 # (1) and (2) are additive, never exclusive. A file can be flagged in (1) with
 # zero AI findings (possibly fixed since, or environmental), carry both (an
 # unfixed flake), or have AI findings alone (introduced by this PR). Stage 3
-# labels that combination per file. A same-SHA hit widens (2) from the PR diff
-# to the whole current file for that file only.
+# labels that combination per file, and says "not reviewed" rather than "no
+# pattern" when (2) never ran on that file. A same-SHA hit widens (2) from the
+# PR diff to the whole current file for that file only.
 #
 # Not a required check: expected no-ops (no modified tests, unchanged since
 # last analysis, fork PR) exit 0. When a stage cannot do its job it fails the

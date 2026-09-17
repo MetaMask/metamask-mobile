@@ -8,11 +8,14 @@ Consumed by [`.github/workflows/flaky-unit-test-detection.yml`](../../../.github
 
 Pattern findings and the deterministic same-SHA history written to `.ai-pr-analyzer/flaky-history.json` are independent. Neither suppresses the other, and the sticky comment labels their per-file combination:
 
-| Combination         | What the reviewer concludes                                       |
-| ------------------- | ----------------------------------------------------------------- |
-| History + pattern   | Unfixed flake; the reported snippet is the likely cause           |
-| History, no pattern | Possibly fixed since, or environmental rather than a code pattern |
-| Pattern, no history | The pattern was most likely introduced by this PR                 |
+| Combination           | What the reviewer concludes                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| History + pattern     | Unfixed flake; the reported snippet is the likely cause           |
+| History, no pattern   | Possibly fixed since, or environmental rather than a code pattern |
+| History, not reviewed | No verdict — this mode never ran on that version of the file      |
+| Pattern, no history   | The pattern was most likely introduced by this PR                 |
+
+"History, not reviewed" covers a fork PR, an analyzer failure, or the conservative fallback: Stage 3 will not claim a file is pattern-free when this mode did not review it.
 
 A `"flaky": true` history entry widens the AI's scope for that one file from the PR diff to the whole current file — a same-SHA failure means no fix landed, so a pre-existing pattern is the answer. Files without a history entry stay diff-scoped so PRs touching old test files are not buried in legacy findings. `historicalHintUsed` carries the distinction into [`flaky-sticky-comment.ts`](../../../.github/scripts/flaky-sticky-comment.ts).
 
