@@ -620,7 +620,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
         </Box>
 
         {isInputFocused && (
-          <Box accessible={false} paddingHorizontal={4} paddingTop={3}>
+          <Box accessible={false} paddingHorizontal={4} paddingTop={3} gap={3}>
             <Box
               accessible={false}
               flexDirection={BoxFlexDirection.Row}
