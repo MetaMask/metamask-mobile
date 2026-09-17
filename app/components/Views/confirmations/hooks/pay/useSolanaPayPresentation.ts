@@ -10,17 +10,17 @@ const LAMPORTS_PER_SOL = new BigNumber(1_000_000_000);
 
 export function useSolanaPayPresentation() {
   const quote = useSolanaPayQuote();
-  const { isSolana, solanaAsset, solanaIntent } = useTransactionPaySource();
+  const { isSolana, solanaAsset } = useTransactionPaySource();
   const assets = useAccountTokens({ includeNoBalance: true });
 
   return useMemo(() => {
-    if (!isSolana || !quote || !solanaAsset || !solanaIntent) {
+    if (!isSolana || !quote || !solanaAsset) {
       return undefined;
     }
 
     const nativeAsset = assets.find(
       (asset) =>
-        asset.accountId === solanaIntent.sourceWalletAccountId &&
+        asset.accountId === solanaAsset.accountId &&
         asset.address === `${SolScope.Mainnet}/slip44:501`,
     );
     const solPrice = new BigNumber(nativeAsset?.fiat?.conversionRate ?? 0);
@@ -48,5 +48,5 @@ export function useSolanaPayPresentation() {
       sourceSymbol: solanaAsset.symbol,
       totalUsd: sourceAmountUsd.plus(feeUsd),
     };
-  }, [assets, isSolana, quote, solanaAsset, solanaIntent]);
+  }, [assets, isSolana, quote, solanaAsset]);
 }

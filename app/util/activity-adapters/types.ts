@@ -9,7 +9,7 @@ import type {
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
-import type { MetamaskPayIntent } from '@metamask/transaction-controller';
+import type { SolanaPayOutcome } from '@metamask/transaction-pay-controller';
 import type { TriggerOrderType } from '@metamask/perps-controller';
 
 export type {
@@ -100,7 +100,7 @@ type SplitByKind<T> = {
 type WithMobileFields<T> = T extends unknown
   ? T & {
       isEarliestNonce?: boolean;
-      payOutcome?: NonNullable<MetamaskPayIntent['outcome']>['type'];
+      payOutcome?: SolanaPayOutcome;
     }
   : never;
 

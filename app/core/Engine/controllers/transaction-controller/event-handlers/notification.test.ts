@@ -22,9 +22,14 @@ describe('handleShowSolanaPayStatusNotification', () => {
   it('shows the persistent neutral notification for an unknown Solana outcome', () => {
     const transactionMeta = {
       metamaskPay: {
-        intent: { outcome: { phase: 'source', type: 'unknown' } },
+        solanaExecution: {
+          phase: 'unknown',
+          sourceStatus: 'unknown',
+          relayStatus: 'unknown',
+          followUpStatus: 'not-required',
+        } as never,
       },
-    } as TransactionMeta;
+    } as unknown as TransactionMeta;
 
     handleShowSolanaPayStatusNotification(transactionMeta);
 
@@ -36,8 +41,15 @@ describe('handleShowSolanaPayStatusNotification', () => {
 
   it('retains the normal product notification for a submitted outcome', () => {
     const transactionMeta = {
-      metamaskPay: { intent: { outcome: { type: 'submitted' } } },
-    } as TransactionMeta;
+      metamaskPay: {
+        solanaExecution: {
+          phase: 'submitted',
+          sourceStatus: 'pending',
+          relayStatus: 'pending',
+          followUpStatus: 'not-required',
+        } as never,
+      },
+    } as unknown as TransactionMeta;
 
     handleShowSolanaPayStatusNotification(transactionMeta);
 

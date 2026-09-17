@@ -5,30 +5,24 @@ import { getAvailableTokens } from '../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { useTransactionPayBlockedTokens } from './useTransactionPayBlockedTokens';
-import { useSelector } from 'react-redux';
-import { selectTransactionPayIntentByTransactionId } from '../../../../../selectors/transactionPayController';
-import type { RootState } from '../../../../../reducers';
 
 export function useTransactionPayAvailableTokens() {
   const tokens = useAccountTokens({ includeNoBalance: true });
   const transactionMeta = useTransactionMetadataRequest();
   const isPostQuote = isTransactionPayWithdraw(transactionMeta);
   const blockedTokens = useTransactionPayBlockedTokens();
-  const transactionId = transactionMeta?.id ?? '';
-  const payIntent = useSelector((state: RootState) =>
-    selectTransactionPayIntentByTransactionId(state, transactionId),
-  );
+  const paySource = transactionMeta?.metamaskPay?.source;
 
   const availableTokens = useMemo(
     () =>
       getAvailableTokens({
         tokens,
         blockedTokens,
-        selectedAssetId: payIntent?.sourceChainId.startsWith('solana:')
-          ? payIntent.sourceAssetId
+        selectedAssetId: paySource?.sourceAccountId.startsWith('solana:')
+          ? paySource.sourceAssetId
           : undefined,
       }),
-    [tokens, blockedTokens, payIntent],
+    [tokens, blockedTokens, paySource],
   );
 
   // For post-quote transactions, tokens are always available

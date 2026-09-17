@@ -12,7 +12,7 @@ jest.mock('../../Engine', () => ({
   default: {
     context: {
       TransactionPayController: {
-        recoverSolanaPay: jest.fn(),
+        recoverSolanaPayStatus: jest.fn(),
       },
     },
   },
@@ -34,7 +34,7 @@ describe('recoverSolanaPayTransactions', () => {
   it('shares one observation-only recovery across concurrent app opens', async () => {
     const deferred = createDeferred<Record<string, never>>();
     const recover = jest.mocked(
-      Engine.context.TransactionPayController.recoverSolanaPay,
+      Engine.context.TransactionPayController.recoverSolanaPayStatus,
     );
     recover.mockReturnValue(deferred.promise);
 
@@ -47,13 +47,13 @@ describe('recoverSolanaPayTransactions', () => {
     expect(recover).toHaveBeenCalledTimes(1);
   });
 
-  it('restores the status-unavailable notification once per recovered intent', async () => {
+  it('restores the status-unavailable notification once per recovered execution', async () => {
     const recover = jest.mocked(
-      Engine.context.TransactionPayController.recoverSolanaPay,
+      Engine.context.TransactionPayController.recoverSolanaPayStatus,
     );
     recover.mockResolvedValue({
       'unknown-transaction-id': {
-        outcome: { phase: 'source', type: 'unknown' },
+        outcome: 'unknown',
       },
     } as never);
 
@@ -66,7 +66,7 @@ describe('recoverSolanaPayTransactions', () => {
   it('logs a recovery failure and permits a later foreground retry', async () => {
     const error = new Error('Relay unavailable');
     const recover = jest.mocked(
-      Engine.context.TransactionPayController.recoverSolanaPay,
+      Engine.context.TransactionPayController.recoverSolanaPayStatus,
     );
     recover.mockRejectedValueOnce(error).mockResolvedValueOnce({});
     const logger = jest.spyOn(Logger, 'error').mockImplementation();

@@ -22,13 +22,17 @@ const TRANSACTION_ID_MOCK = 'tx-1';
 
 function createMockRootState(
   transactionData: Record<string, Record<string, unknown>> = {},
-  payIntents: Record<string, Record<string, unknown>> = {},
+  transactionMetadata: Record<string, Record<string, unknown>> = {},
 ): RootState {
   return {
     engine: {
       backgroundState: {
+        TransactionController: {
+          transactions: Object.entries(transactionMetadata).map(
+            ([id, metadata]) => ({ id, ...metadata }),
+          ),
+        },
         TransactionPayController: {
-          payIntents,
           transactionData,
         },
       },
@@ -422,7 +426,14 @@ describe('transactionPayController selectors', () => {
           },
         },
         {
-          [TRANSACTION_ID_MOCK]: { sourceChainId: 'solana:mainnet' },
+          [TRANSACTION_ID_MOCK]: {
+            metamaskPay: {
+              source: {
+                sourceAccountId: 'solana:mainnet:account',
+                sourceAssetId: 'solana:mainnet/slip44:501',
+              },
+            },
+          },
         },
       );
 
@@ -444,7 +455,14 @@ describe('transactionPayController selectors', () => {
           },
         },
         {
-          [TRANSACTION_ID_MOCK]: { sourceChainId: 'solana:mainnet' },
+          [TRANSACTION_ID_MOCK]: {
+            metamaskPay: {
+              source: {
+                sourceAccountId: 'solana:mainnet:account',
+                sourceAssetId: 'solana:mainnet/slip44:501',
+              },
+            },
+          },
         },
       );
 

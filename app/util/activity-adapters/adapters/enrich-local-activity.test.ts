@@ -73,14 +73,24 @@ describe('local activity call-site mapping', () => {
     const item = mapLocalActivity(
       buildGroup({
         metamaskPay: {
-          intent: {
-            outcome: { type: 'refunded' },
+          source: {
             sourceAccountId: 'solana:mainnet:account',
-            sourceAmountRaw: '1',
             sourceAssetId: 'solana:mainnet/slip44:501',
+          },
+          solanaExecution: {
+            atomicProductActionIncluded: true,
+            atomicProductActionRequired: true,
+            followUpStatus: 'not-required',
+            notificationStatus: 'success',
+            phase: 'submitted',
+            relayStatus: 'refund',
+            requestId: 'relay-request-id',
+            requiresNonAtomicFollowUp: false,
+            sourceAmountRaw: '1',
             sourceChainId: 'solana:mainnet',
+            sourceStatus: 'confirmed',
+            sourceTransactionId: 'solana-signature',
             sourceWalletAccountId: 'wallet-account-id',
-            version: 2,
           },
         },
       } as never),
@@ -93,14 +103,23 @@ describe('local activity call-site mapping', () => {
     const item = mapLocalActivity(
       buildGroup({
         metamaskPay: {
-          intent: {
-            outcome: { phase: 'source', type: 'unknown' },
+          source: {
             sourceAccountId: 'solana:mainnet:account',
-            sourceAmountRaw: '1',
             sourceAssetId: 'solana:mainnet/slip44:501',
+          },
+          solanaExecution: {
+            atomicProductActionIncluded: true,
+            atomicProductActionRequired: true,
+            followUpStatus: 'not-required',
+            notificationStatus: 'not-ready',
+            phase: 'unknown',
+            relayStatus: 'unknown',
+            requestId: 'relay-request-id',
+            requiresNonAtomicFollowUp: false,
+            sourceAmountRaw: '1',
             sourceChainId: 'solana:mainnet',
+            sourceStatus: 'unknown',
             sourceWalletAccountId: 'wallet-account-id',
-            version: 2,
           },
         },
       } as never),

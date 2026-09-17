@@ -12,7 +12,7 @@ function showRecoveredStatusNotifications(
 ): void {
   for (const [transactionId, status] of Object.entries(statuses)) {
     if (
-      status.outcome.type !== 'unknown' ||
+      status.outcome !== 'unknown' ||
       unavailableNotificationIds.has(transactionId)
     ) {
       continue;
@@ -36,7 +36,7 @@ export function recoverSolanaPayTransactions(): Promise<unknown> {
   }
 
   activeRecovery =
-    Engine.context.TransactionPayController.recoverSolanaPay().then(
+    Engine.context.TransactionPayController.recoverSolanaPayStatus().then(
       (result) => {
         activeRecovery = undefined;
         showRecoveredStatusNotifications(result);

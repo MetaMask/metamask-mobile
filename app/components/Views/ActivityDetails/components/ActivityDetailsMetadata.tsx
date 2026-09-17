@@ -18,6 +18,10 @@ import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 import { useActivityPayMetadata } from '../hooks/useActivityPayMetadata';
 import { getSolanaPayStatusLabel } from '../solana-pay-status';
+import {
+  getSolanaPaySourceAccountAddress,
+  isSolanaPaySource,
+} from '../../../../util/transactions/solana-pay';
 
 /**
  * The type-agnostic metadata block: status, date, account, network, and a
@@ -39,10 +43,11 @@ export function ActivityDetailsMetadata({
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
   const payMetadata = useActivityPayMetadata(item);
-  const solanaIntent = payMetadata?.intent?.sourceChainId.startsWith('solana:')
-    ? payMetadata.intent
+  const solanaSource = isSolanaPaySource(payMetadata?.source)
+    ? payMetadata.source
     : undefined;
-  const payStatusLabel = getSolanaPayStatusLabel(solanaIntent);
+  const solanaExecution = payMetadata?.solanaExecution;
+  const payStatusLabel = getSolanaPayStatusLabel(solanaExecution);
   const showAddressOnly = item.type === 'smartAccountUpgrade';
   const showFromTo =
     !showAddressOnly && Boolean(addressRows?.from && addressRows?.to);
@@ -60,21 +65,19 @@ export function ActivityDetailsMetadata({
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
 
-      {solanaIntent ? (
+      {solanaSource ? (
         <ActivityDetailRow
           label={strings('confirm.solana_pay.source_account')}
           value={renderShortAddress(
-            solanaIntent.sourceAccountId.slice(
-              `${solanaIntent.sourceChainId}:`.length,
-            ),
+            getSolanaPaySourceAccountAddress(solanaSource),
           )}
         />
       ) : null}
 
-      {solanaIntent?.sourceTransactionId ? (
+      {solanaExecution?.phase === 'submitted' ? (
         <ActivityDetailRow
           label={strings('confirm.solana_pay.source_transaction')}
-          value={solanaIntent.sourceTransactionId}
+          value={solanaExecution.sourceTransactionId}
         />
       ) : null}
 

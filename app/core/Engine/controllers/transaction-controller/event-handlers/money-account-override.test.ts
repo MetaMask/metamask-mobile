@@ -110,10 +110,7 @@ describe('money-account-override', () => {
     TransactionType.membershipSubscription;
   beforeEach(() => {
     jest.clearAllMocks();
-    Engine.context.TransactionPayController.state = {
-      payIntents: {},
-      transactionData: {},
-    };
+    Engine.context.TransactionPayController.state = { transactionData: {} };
     Engine.context.NetworkController.state = {
       networkConfigurationsByChainId: { '0x1': {}, '0x89': {} },
     } as never;
