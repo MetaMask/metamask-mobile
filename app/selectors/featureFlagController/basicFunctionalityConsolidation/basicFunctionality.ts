@@ -10,6 +10,7 @@ import {
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 import { selectOnboardingAccountType } from '../../onboarding';
+import { isImportedSocialAccountType } from '../../../constants/onboarding';
 import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
 import {
   BFT_CHILD_PREFERENCES,
@@ -68,6 +69,16 @@ export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
 
     return isBftcConsolidationBuildEnabled() && isPersistedConsolidated;
   },
+);
+
+/**
+ * True when this wallet arrived through social rehydration. That restore runs
+ * inside onboarding but is never enrolled by it, so consolidation migrates it
+ * as an existing wallet in the same session.
+ */
+export const selectIsExistingSocialWalletRestore = createSelector(
+  selectOnboardingAccountType,
+  isImportedSocialAccountType,
 );
 
 const selectPreferencesControllerState = (state: RootState) =>
