@@ -130,6 +130,7 @@ describe('MainNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -568,6 +569,49 @@ describe('MainNavigator', () => {
       ]);
     });
 
+    it('shares slide-from-right options on one Group for the nft screens', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, 'NftDetails');
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        'NftDetails',
+        'NftDetailsFullImage',
+        Routes.WALLET.NFTS_FULL_VIEW,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the reward benefits', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.REWARD_BENEFIT_FULL_VIEW);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.REWARD_BENEFIT_FULL_VIEW,
+        Routes.REWARD_BENEFITS_FULL_VIEW,
+      ]);
+    });
+
+    it('keeps the reward benefits out of the nft group', () => {
+      // The two clusters are adjacent and share options, but they are separate
+      // products and must not collapse into one group.
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const nftGroup = findGroupContaining(root, 'NftDetails');
+
+      expect(groupedScreenNames(nftGroup)).not.toContain(
+        Routes.REWARD_BENEFIT_FULL_VIEW,
+      );
+    });
+
     it('keeps BROWSER.HOME out of the explore group', () => {
       // BROWSER.HOME is also registered as a hidden tab in HomeTabs, so it is a
       // duplicate route name rather than an Explore sub-page.
@@ -578,6 +622,148 @@ describe('MainNavigator', () => {
       const group = findGroupContaining(root, Routes.BROWSER.HOME);
 
       expect(group).toBeUndefined();
+    });
+
+    it('shares slide-from-right options on one Group for Social V1 screens', () => {
+      const stateWithSocialV1 = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                socialAiTSA1122AbtestSocialBundleV1: 'treatment',
+              },
+            },
+          },
+        },
+      };
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialV1,
+      });
+
+      const group = findGroupContaining(root, Routes.SOCIAL.V1);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.SOCIAL.V1,
+        Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.MANAGE_PROFILE,
+        Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+        Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+        Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
+    });
+
+    it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
+      const stateWithSocialLeaderboard = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                socialAiTSA1122AbtestSocialBundleV1: 'control',
+              },
+            },
+          },
+        },
+      };
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialLeaderboard,
+      });
+
+      const group = findGroupContaining(root, Routes.SOCIAL.PROFILE);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.SOCIAL.PROFILE,
+        Routes.SOCIAL.POSITION,
+        Routes.SOCIAL.ONBOARDING,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V1);
+      expect(groupedScreenNames(group)).not.toContain(
+        Routes.SOCIAL.TRADING_SIGNALS_SETUP,
+      );
+    });
+
+    it('shares slide-from-right options on one Group for Money push screens', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.MONEY.ROOT);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.MONEY.ROOT,
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.TRANSACTION_DETAILS,
+        Routes.MONEY.CARD_TRANSACTION_DETAILS,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
+      expect(groupedScreenNames(group)).not.toContain(
+        Routes.MONEY.FIRST_TIME_DEPOSIT,
+      );
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
+      expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('shares slide-from-right options on one Group for the VBA screens', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.RAMP.GET_PIX_KEY);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.RAMP.GET_PIX_KEY,
+        Routes.RAMP.VBA_VERIFY_IDENTITY,
+        Routes.RAMP.VBA_KYC_EMAIL,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);
+    });
+
+    it('shares slide-from-right options on one Group for trending and RWA full views', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(
+        root,
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      );
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+      ]);
     });
 
     it('includes Bridge routes', () => {
@@ -1090,7 +1276,6 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
       expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
@@ -1175,7 +1360,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
       expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
@@ -1288,8 +1472,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1303,8 +1485,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('ios_from_right');
     });
   });
 
@@ -1690,22 +1870,28 @@ describe('MainNavigator', () => {
         );
       });
 
-      it('hides the header for the root REWARDS_FLOW route', () => {
-        // The flow renders its own headers, so the outer root-stack screen must
-        // not draw one on top.
+      it('inherits the hidden header for the root REWARDS_FLOW route', () => {
+        // The flow renders its own headers. MainNavigator already defaults
+        // headerShown to false, so this screen does not need to repeat it.
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
 
+        const mainNavigator = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Navigator' &&
+            node.props?.initialRouteName === 'Home',
+        )[0];
         const rewardsFlowScreen = root.findAll(
           (node: ReactTestInstance) =>
             node.type?.toString?.() === 'Screen' &&
             node.props?.name === Routes.REWARDS_FLOW,
         )[0];
 
-        expect(rewardsFlowScreen?.props?.options).toEqual(
+        expect(mainNavigator?.props?.screenOptions).toEqual(
           expect.objectContaining({ headerShown: false }),
         );
+        expect(rewardsFlowScreen?.props?.options).toBeUndefined();
       });
     });
 
