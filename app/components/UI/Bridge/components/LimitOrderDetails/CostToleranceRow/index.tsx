@@ -16,17 +16,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { PriceRowSelectorsIDs } from './testIds';
-import type { PriceRowProps } from './types';
+import { CostToleranceRowSelectorsIDs } from './testIds';
+import type { CostToleranceRowProps } from './types';
 
-const PriceRow: React.FC<PriceRowProps> = ({
+const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
   value,
   onPress,
-  testID = PriceRowSelectorsIDs.CONTAINER,
+  testID = CostToleranceRowSelectorsIDs.CONTAINER,
 }) => (
   <KeyValueRow
     variant={KeyValueRowVariant.Summary}
-    keyLabel={strings('bridge.slippage')}
+    keyLabel={strings('bridge.cost_tolerance')}
     keyTextProps={{
       variant: TextVariant.BodyMd,
       color: TextColor.TextAlternative,
@@ -35,7 +35,7 @@ const PriceRow: React.FC<PriceRowProps> = ({
     value={
       <TouchableOpacity
         accessibilityRole="button"
-        accessibilityLabel={strings('bridge.slippage')}
+        accessibilityLabel={strings('bridge.cost_tolerance')}
         onPress={onPress}
         activeOpacity={0.6}
         testID={testID}
@@ -48,7 +48,7 @@ const PriceRow: React.FC<PriceRowProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            testID={PriceRowSelectorsIDs.VALUE}
+            testID={CostToleranceRowSelectorsIDs.VALUE}
           >
             {value}
           </Text>
@@ -65,4 +65,4 @@ const PriceRow: React.FC<PriceRowProps> = ({
   />
 );
 
-export default PriceRow;
+export default CostToleranceRow;
