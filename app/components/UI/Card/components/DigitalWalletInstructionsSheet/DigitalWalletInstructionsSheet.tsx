@@ -143,13 +143,14 @@ const DigitalWalletInstructionsSheet = () => {
     });
   }, [runReveal]);
 
+  // Shimmer only while fetching details after auth succeeds — not during Face ID /
+  // password verification. Keep the retry button visible during auth to avoid
+  // hide/show jank; disable it so a second tap cannot start a parallel reveal.
   const showDetailsSkeleton =
-    isRevealPending ||
     isSensitiveDetailsLoading ||
     isCardDetailsLoading ||
     (Boolean(cardDetailsImageUrl) && isCardDetailsImageLoading);
-  const showRetry =
-    !isDetailsVisible && !showDetailsSkeleton && !isRevealPending;
+  const showRetry = !isDetailsVisible && !showDetailsSkeleton;
 
   return (
     <BottomSheet
@@ -174,14 +175,16 @@ const DigitalWalletInstructionsSheet = () => {
 
       <ScrollView>
         <Box paddingBottom={6} paddingHorizontal={4} gap={4}>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-alternative"
-            testID={DigitalWalletInstructionsSheetSelectors.DESCRIPTION}
-          >
-            {strings('card.digital_wallet_instructions.description')}
-          </Text>
+          {!isDetailsVisible && !showDetailsSkeleton && (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              twClassName="text-alternative"
+              testID={DigitalWalletInstructionsSheetSelectors.DESCRIPTION}
+            >
+              {strings('card.digital_wallet_instructions.description')}
+            </Text>
+          )}
 
           <Box testID={DigitalWalletInstructionsSheetSelectors.CARD_DETAILS}>
             {(isDetailsVisible || showDetailsSkeleton) && (
@@ -201,6 +204,7 @@ const DigitalWalletInstructionsSheet = () => {
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 isFullWidth
+                isDisabled={isRevealPending}
                 onPress={handleRetryReveal}
                 testID={
                   DigitalWalletInstructionsSheetSelectors.VIEW_CARD_DETAILS_BUTTON

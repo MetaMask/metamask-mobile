@@ -221,7 +221,9 @@ describe('DigitalWalletInstructionsSheet', () => {
   });
 
   it('requests reveal on mount and shows retry when auth fails', async () => {
-    const { getByTestId } = render(<DigitalWalletInstructionsSheet />);
+    const { getByTestId, queryByTestId } = render(
+      <DigitalWalletInstructionsSheet />,
+    );
 
     await waitFor(() => {
       expect(mockRevealCardDetails).toHaveBeenCalledTimes(1);
@@ -244,6 +246,52 @@ describe('DigitalWalletInstructionsSheet', () => {
     await waitFor(() => {
       expect(mockRevealCardDetails).toHaveBeenCalledTimes(2);
     });
+
+    expect(
+      queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON),
+    ).toBeNull();
+  });
+
+  it('does not show a details shimmer while biometric auth is pending', () => {
+    mockRevealCardDetails.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <DigitalWalletInstructionsSheet />,
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON),
+    ).toBeNull();
+    expect(
+      getByTestId(
+        DigitalWalletInstructionsSheetSelectors.VIEW_CARD_DETAILS_BUTTON,
+      ),
+    ).toBeDisabled();
+  });
+
+  it('shows a details shimmer only while fetching after auth', () => {
+    mockRevealState = {
+      ...mockRevealState,
+      isSensitiveDetailsLoading: true,
+    };
+
+    const { getByTestId, queryByTestId } = render(
+      <DigitalWalletInstructionsSheet />,
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.CARD_DETAILS_IMAGE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        DigitalWalletInstructionsSheetSelectors.VIEW_CARD_DETAILS_BUTTON,
+      ),
+    ).toBeNull();
+    expect(
+      queryByTestId(DigitalWalletInstructionsSheetSelectors.DESCRIPTION),
+    ).toBeNull();
   });
 
   it('renders Immersve sensitive details and enables screenshot deterrence', async () => {
@@ -258,7 +306,9 @@ describe('DigitalWalletInstructionsSheet', () => {
       },
     };
 
-    const { getByTestId } = render(<DigitalWalletInstructionsSheet />);
+    const { getByTestId, queryByTestId } = render(
+      <DigitalWalletInstructionsSheet />,
+    );
 
     await waitFor(() => {
       expect(
@@ -266,6 +316,9 @@ describe('DigitalWalletInstructionsSheet', () => {
       ).toBeOnTheScreen();
     });
     expect(getByTestId('screenshot-deterrent-true')).toBeOnTheScreen();
+    expect(
+      queryByTestId(DigitalWalletInstructionsSheetSelectors.DESCRIPTION),
+    ).toBeNull();
   });
 
   it('renders Baanx secure image when provided', async () => {
