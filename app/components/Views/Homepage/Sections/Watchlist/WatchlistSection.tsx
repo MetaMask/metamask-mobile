@@ -93,7 +93,6 @@ const WatchlistSection = forwardRef<
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-
   const title = strings('homepage.sections.watchlist');
 
   const displayTokens = useMemo(
@@ -163,14 +162,59 @@ const WatchlistSection = forwardRef<
     enabled: isWatchlistEnabled,
   });
 
-  if (!isWatchlistEnabled) {
-    return null;
-  }
-
   const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
   const showSuggestedSection = suggestedTokens.length > 0;
   const showFallback =
     isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
+
+  const renderSectionContent = () => {
+    if (isLoading) {
+      return Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, i) => (
+        <TrendingTokensSkeleton key={`watchlist-skeleton-${i}`} />
+      ));
+    }
+
+    if (showFallback) {
+      return <WatchlistEmptyFallback />;
+    }
+
+    if (showSuggestedSkeletons) {
+      return (
+        <Box testID="watchlist-suggested-skeleton">
+          {Array.from({ length: SUGGESTED_SKELETON_COUNT }, (_, index) => (
+            <TrendingTokensSkeleton
+              key={`watchlist-suggested-skeleton-${index}`}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return (
+      <>
+        {displayTokens.map((token, index) => (
+          <WatchlistAnimatedRow key={token.assetId}>
+            <TrendingTokenRowItem
+              token={token}
+              position={index}
+              tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+            />
+          </WatchlistAnimatedRow>
+        ))}
+        {showSuggestedSection ? (
+          <WatchlistSuggestedSection
+            tokens={suggestedTokens}
+            hasWatchlist={displayTokens.length > 0}
+            onAddPress={handleAddPress}
+          />
+        ) : null}
+      </>
+    );
+  };
+
+  if (!isWatchlistEnabled) {
+    return null;
+  }
 
   return (
     <View ref={sectionViewRef} onLayout={onLayout}>
@@ -181,45 +225,7 @@ const WatchlistSection = forwardRef<
         onPress={handleSectionPress}
         testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')}
       />
-      <SectionRow>
-        {isLoading ? (
-          Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, i) => (
-            <TrendingTokensSkeleton key={`watchlist-skeleton-${i}`} />
-          ))
-        ) : (
-          <>
-            {displayTokens.map((token, index) => (
-              <WatchlistAnimatedRow key={token.assetId}>
-                <TrendingTokenRowItem
-                  token={token}
-                  position={index}
-                  tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
-                />
-              </WatchlistAnimatedRow>
-            ))}
-            {showSuggestedSkeletons ? (
-              <Box testID="watchlist-suggested-skeleton">
-                {Array.from(
-                  { length: SUGGESTED_SKELETON_COUNT },
-                  (_, index) => (
-                    <TrendingTokensSkeleton
-                      key={`watchlist-suggested-skeleton-${index}`}
-                    />
-                  ),
-                )}
-              </Box>
-            ) : null}
-            {showSuggestedSection ? (
-              <WatchlistSuggestedSection
-                tokens={suggestedTokens}
-                hasWatchlist={displayTokens.length > 0}
-                onAddPress={handleAddPress}
-              />
-            ) : null}
-            {showFallback ? <WatchlistEmptyFallback /> : null}
-          </>
-        )}
-      </SectionRow>
+      <SectionRow>{renderSectionContent()}</SectionRow>
     </View>
   );
 });

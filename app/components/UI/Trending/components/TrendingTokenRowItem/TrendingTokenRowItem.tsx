@@ -287,7 +287,7 @@ const TrendingTokenRowItem = ({
           onPress={() => endAction.onPress(token)}
           accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
           testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
-          style={styles.watchlistAddButton}
+          twClassName="self-center"
         />
       )}
       {endAction?.type === 'quick-trade' && (
