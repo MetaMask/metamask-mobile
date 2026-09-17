@@ -31,6 +31,7 @@ import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal
 import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
+import ImmersveRevokeAllowanceSheet from '../components/ImmersveRevokeAllowanceSheet';
 import UkMigrationBottomSheet from '../components/UkMigrationBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
@@ -205,6 +206,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT}
       component={MoneyUnlinkCardSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.REVOKE_ALLOWANCE}
+      component={ImmersveRevokeAllowanceSheet}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.UK_MIGRATION}

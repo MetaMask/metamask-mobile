@@ -36,6 +36,10 @@ import { selectBatchSellEnabled } from '../../../selectors/featureFlagController
 import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
 } from './TradeWalletActions';
+import {
+  TRADE_TRAY_GLASS_FILL_OPACITY,
+  TRADE_TRAY_GLASS_RADIUS,
+} from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -190,6 +194,25 @@ jest.mock('../../../hooks/useABTest', () => ({
     };
   },
 }));
+
+let mockIsGlassEnabled = false;
+const mockGlassView = jest.fn();
+jest.mock('../../../component-library/hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => ({
+    isGlassEnabled: mockIsGlassEnabled,
+    glassColorScheme: 'dark',
+  }),
+}));
+jest.mock('expo-glass-effect', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    GlassView: (props: Record<string, unknown>) => {
+      mockGlassView(props);
+      return ReactActual.createElement(View, props);
+    },
+  };
+});
 
 let mockIsBlurAvailable = true;
 jest.mock('../../../component-library/hooks/useBlurMaterial', () => ({
@@ -698,6 +721,106 @@ describe('TradeWalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
       ).toBeOnTheScreen();
       expect(mockBlurView).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Liquid Glass sheet', () => {
+    const nativeTrayParams = {
+      onDismiss: mockOnDismiss,
+      hasBottomNotch: false,
+      anchorsToTabBar: true,
+    };
+
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+      mockIsTradeFocusedArm = false;
+    });
+
+    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline', () => {
+      mockUseParams.mockReturnValue(nativeTrayParams);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(mockGlassView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          glassEffectStyle: 'regular',
+          colorScheme: 'dark',
+        }),
+      );
+      const [glassProps] = mockGlassView.mock.calls[0];
+      expect(StyleSheet.flatten(glassProps.style)).toMatchObject({
+        borderRadius: TRADE_TRAY_GLASS_RADIUS,
+      });
+      const fill = jest
+        .mocked(
+          getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+        )
+        .children.find(
+          (child) =>
+            typeof child !== 'string' &&
+            StyleSheet.flatten(child.props.style)?.opacity ===
+              TRADE_TRAY_GLASS_FILL_OPACITY,
+        );
+      expect(fill).toBeDefined();
+    });
+
+    it('takes precedence over the blur sheet in the trade-focused arm', () => {
+      mockIsTradeFocusedArm = true;
+      mockUseParams.mockReturnValue(nativeTrayParams);
+
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockGlassView).toHaveBeenCalled();
+      expect(mockBlurView).not.toHaveBeenCalled();
+    });
+
+    it('never draws the notched sheet as glass', () => {
+      mockUseParams.mockReturnValue({
+        onDismiss: mockOnDismiss,
+        buttonLayout: { height: 100, width: 100, x: 654, y: 321 },
+      });
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockGlassView).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to the opaque sheet when glass is unavailable', () => {
+      mockIsGlassEnabled = false;
+      mockUseParams.mockReturnValue(nativeTrayParams);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockGlassView).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -92,6 +92,19 @@ const TOKENS: CardAuthTokens = {
   accountAddress: '0xabc',
 };
 
+const activeCard = {
+  id: 'card-1',
+  accountId: 'cardholder-1',
+  type: 'virtual',
+  createdAt: '2024-01-02T00:00:00.000Z',
+  modifiedAt: '2024-01-02T00:00:00.000Z',
+  expiresAt: '2029-01-01T00:00:00.000Z',
+  isBlocked: false,
+  status: 'active',
+  fundingSourceIds: ['fs-1'],
+  panLast4: '1234',
+};
+
 describe('ImmersveProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -798,8 +811,9 @@ describe('ImmersveProvider', () => {
       ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
     });
 
-    it('createCard posts cardProgramId + fundingSourceId', async () => {
+    it('createCard posts cardProgramId + fundingSourceId when the account has no card', async () => {
       const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
       service.post.mockResolvedValue({ cardId: 'card-1' });
 
       const result = await provider.createCard('fs-1', TOKENS);
@@ -812,9 +826,55 @@ describe('ImmersveProvider', () => {
       expect(result.cardId).toBe('card-1');
     });
 
+    it('createCard reuses the existing card instead of issuing a duplicate', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [activeCard] });
+
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(result.cardId).toBe('card-1');
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('createCard reuses a frozen card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...activeCard, isBlocked: true }],
+      });
+
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(result.cardId).toBe('card-1');
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('createCard ignores cancelled cards', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...activeCard, status: 'cancelled' }],
+      });
+      service.post.mockResolvedValue({ cardId: 'card-2' });
+
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(result.cardId).toBe('card-2');
+      expect(service.post).toHaveBeenCalled();
+    });
+
+    it('createCard does not post when the card lookup fails', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(500, '/api/cards', 'down'),
+      );
+
+      await expect(provider.createCard('fs-1', TOKENS)).rejects.toThrow();
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
     it('createCard maps API failures', async () => {
       const { provider, service } = createProvider();
       const apiError = new CardApiError(500, '/api/cards', 'down');
+      service.get.mockResolvedValue({ items: [] });
       service.post.mockRejectedValue(apiError);
 
       await expect(provider.createCard('fs-1', TOKENS)).rejects.toMatchObject({
@@ -901,19 +961,6 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsTravel).toBe(false);
     });
   });
-
-  const activeCard = {
-    id: 'card-1',
-    accountId: 'cardholder-1',
-    type: 'virtual',
-    createdAt: '2024-01-02T00:00:00.000Z',
-    modifiedAt: '2024-01-02T00:00:00.000Z',
-    expiresAt: '2029-01-01T00:00:00.000Z',
-    isBlocked: false,
-    status: 'active',
-    fundingSourceIds: ['fs-1'],
-    panLast4: '1234',
-  };
 
   const activeCardDetail = {
     ...activeCard,
@@ -1189,6 +1236,64 @@ describe('ImmersveProvider', () => {
       expect(mockReadErc20AllowanceAndBalance).not.toHaveBeenCalled();
       expect(data.primaryFundingAsset).toMatchObject({
         spendableBalance: '',
+        spendingCap: '',
+      });
+    });
+
+    it('raises allowance_revoked and keeps the card when spendingCap is a numeric zero', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '0.0',
+        spendableBalance: '0',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      // The cardholder still has a card — surfacing it as provisioning would
+      // send Card Home into the onboarding reconcile loop.
+      expect(data.card).toMatchObject({ id: 'card-1' });
+      expect(data.alerts).toStrictEqual([
+        { type: 'allowance_revoked', dismissable: false },
+      ]);
+      expect(data.actions).toStrictEqual([]);
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendingCap: '0.0',
+        spendableBalance: '0',
+      });
+      expect(data.fundingAssets).toHaveLength(1);
+    });
+
+    it('does not treat an empty spendingCap as revoked', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).not.toBeNull();
+      expect(data.alerts).toStrictEqual([]);
+      expect(data.primaryFundingAsset).toMatchObject({
         spendingCap: '',
       });
     });

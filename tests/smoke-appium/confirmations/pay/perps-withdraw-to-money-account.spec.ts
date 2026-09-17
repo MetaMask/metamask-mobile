@@ -35,15 +35,12 @@ const PERPS_MONEY_HOLDINGS: TokenHolding[] = [
   { ...PREDEFINED_TOKENS.MONAD.MUSD, amount: '10' },
 ];
 
-// Skipped: after #36186, Activity Details never opens for this Perps
-// withdrawal (activity-details-screen). Consistently fails Android and iOS
-// confirmations smoke-1. Product: TMCU-1376. Selector gap: MMQA-2412.
-appiumTest.describe.skip(
+appiumTest.describe(
   SmokeConfirmations('MM Pay - Perps withdraw to Money account'),
   () => {
     appiumTest.describe.configure({ timeout: 300_000 });
 
-    appiumTest(
+    appiumTest.skip(
       'withdraws Perps balance directly to Money account',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
