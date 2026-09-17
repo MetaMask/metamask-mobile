@@ -39,8 +39,13 @@ import {
 } from '../utils/moneyTransactionGuards';
 import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 import {
-  haveRequiredTransactionsBeenSigned,
+  findDepositsAwaitingSignature,
+  isHardwareDepositSigningComplete,
+  isHardwareFundedDeposit,
+} from '../utils/hardwareDepositSigning';
+import {
   isTransactionStatusSignedOrLater,
+  type BatchSigningState,
 } from '../../../Views/confirmations/utils/batch-signing';
 import useMoneyToasts from './useMoneyToasts';
 import {
@@ -120,50 +125,25 @@ function latestTransactionMeta(
   );
 }
 
-function getTransactionPayData(transactionId: string) {
-  return Engine.controllerMessenger.call('TransactionPayController:getState')
-    .transactionData[transactionId];
+// Same event-time read as `latestTransactionMeta`: funding-leg statuses must
+// be judged as of the event, not from the trailing Redux copy.
+function getTransactionControllerState(): BatchSigningState {
+  return Engine.context.TransactionController.state;
 }
 
-function getPayingAccountAddress(
-  transactionMeta: TransactionMeta,
-): string | undefined {
-  const accountOverride = getTransactionPayData(
-    transactionMeta.id,
-  )?.accountOverride;
-  return (
-    (accountOverride as string | undefined) ??
-    (transactionMeta.txParams?.from as string | undefined)
-  );
-}
-
-function shouldDeferInProgressForHardware(
+// A hardware payer signs funding legs on-device after `approved`; showing the
+// toast then would cover the device confirmation sheet.
+function isAwaitingHardwareSignature(
   transactionMeta: TransactionMeta,
 ): boolean {
-  if (!isMoneyDepositTx(transactionMeta)) {
-    return false;
-  }
-  // Fiat deposits never sign funding legs on-device, even when accountOverride
-  // still identifies a hardware wallet.
-  if (transactionMeta.metamaskPay?.fiat) {
-    return false;
-  }
-  const fiatPayment = getTransactionPayData(transactionMeta.id)?.fiatPayment as
-    | { selectedPaymentMethodId?: string }
-    | undefined;
-  if (fiatPayment?.selectedPaymentMethodId) {
-    return false;
-  }
-  const payingAccount = getPayingAccountAddress(transactionMeta);
-  return Boolean(payingAccount && isHardwareAccount(payingAccount));
-}
-
-function isHardwareDepositSigningComplete(
-  transactionMeta: TransactionMeta,
-): boolean {
+  const state = store.getState();
   return (
-    isTransactionStatusSignedOrLater(transactionMeta.status) ||
-    haveRequiredTransactionsBeenSigned(transactionMeta.id)
+    isHardwareFundedDeposit(state, transactionMeta) &&
+    !isHardwareDepositSigningComplete(
+      state,
+      transactionMeta,
+      getTransactionControllerState(),
+    )
   );
 }
 
@@ -194,7 +174,6 @@ export const useMoneyTransactionStatus = () => {
   useEffect(() => {
     const pendingInProgress = pendingInProgressRef.current;
     const pendingCleanups = pendingCleanupsRef.current;
-    const waitingForHardwareSigning = new Set<string>();
 
     const cancelPendingInProgress = (transactionId: string) => {
       const timeoutId = pendingInProgress.get(transactionId);
@@ -202,7 +181,6 @@ export const useMoneyTransactionStatus = () => {
         clearTimeout(timeoutId);
         pendingInProgress.delete(transactionId);
       }
-      waitingForHardwareSigning.delete(transactionId);
     };
 
     const scheduleCleanup = (transactionId: string, finalKey: string) => {
@@ -227,10 +205,14 @@ export const useMoneyTransactionStatus = () => {
       getMoneyAccountDepositIntent(transactionMeta.batchId) ??
       resolveMoneyDepositIntent(transactionMeta);
 
-    const scheduleInProgressToast = (transactionMeta: TransactionMeta) => {
-      if (pendingInProgress.has(transactionMeta.id)) return;
-      waitingForHardwareSigning.delete(transactionMeta.id);
+    const showInProgressFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      // Not reserved yet: a later `signed` event retries via
+      // `showInProgressForSignedDeposits`.
+      if (isAwaitingHardwareSignature(transactionMeta)) return;
+      if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
+      if (pendingInProgress.has(transactionMeta.id)) return;
       const onPress = () =>
         navigateToMoneyTransactionDetails(transactionMeta.id);
       const timeoutId = setTimeout(() => {
@@ -249,42 +231,16 @@ export const useMoneyTransactionStatus = () => {
       pendingInProgress.set(transactionMeta.id, timeoutId);
     };
 
-    const showInProgressFor = (transactionMeta: TransactionMeta) => {
-      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
-      if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
-      if (pendingInProgress.has(transactionMeta.id)) return;
-
-      // Hardware-funded deposits stay on the device confirmation sheet after
-      // `approved`. Wait until funding legs are signed (or the parent advances)
-      // so the toast appears after signing and the confirmation closes.
-      if (shouldDeferInProgressForHardware(transactionMeta)) {
-        waitingForHardwareSigning.add(transactionMeta.id);
-        if (isHardwareDepositSigningComplete(transactionMeta)) {
-          scheduleInProgressToast(transactionMeta);
-        }
-        return;
-      }
-
-      scheduleInProgressToast(transactionMeta);
-    };
-
-    // Any status update may complete signing for a waiting deposit: a funding
-    // leg reaching `signed`, or the parent itself advancing past `approved`.
-    const maybeScheduleDeferredHardwareInProgress = (
+    // A funding leg (or the parent itself) reaching `signed` may complete a
+    // hardware deposit's signing; re-run the in-progress toast for those.
+    const showInProgressForSignedDeposits = (
       transactionMeta: TransactionMeta,
     ) => {
-      for (const parentId of [...waitingForHardwareSigning]) {
-        if (pendingInProgress.has(parentId)) {
-          continue;
-        }
-        const parentMeta =
-          latestTransactionMeta(parentId) ??
-          (transactionMeta.id === parentId ? transactionMeta : undefined);
-        if (parentMeta && isHardwareDepositSigningComplete(parentMeta)) {
-          scheduleInProgressToast(parentMeta);
-        }
-      }
+      if (!isTransactionStatusSignedOrLater(transactionMeta.status)) return;
+      findDepositsAwaitingSignature(
+        transactionMeta,
+        getTransactionControllerState().transactions,
+      ).forEach(showInProgressFor);
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
@@ -312,14 +268,11 @@ export const useMoneyTransactionStatus = () => {
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
       // The in-progress toast has no timeout and is normally dismissed by the
       // final toast replacing it. It has actually been displayed only if its
-      // key was reserved, it is not still waiting on hardware signing, and its
-      // deferral timer already fired.
+      // key was reserved and its deferral timer already fired.
       const inProgressToastDisplayed =
         shownToastsRef.current.has(
           `${transactionMeta.id}-${IN_PROGRESS_KEY}`,
-        ) &&
-        !waitingForHardwareSigning.has(transactionMeta.id) &&
-        !pendingInProgress.has(transactionMeta.id);
+        ) && !pendingInProgress.has(transactionMeta.id);
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
       const onPress = () =>
@@ -418,7 +371,6 @@ export const useMoneyTransactionStatus = () => {
       transactionMeta: TransactionMeta;
     }) => {
       flushActivityState(transactionMeta);
-      maybeScheduleDeferredHardwareInProgress(transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
@@ -435,6 +387,7 @@ export const useMoneyTransactionStatus = () => {
           }
           break;
         default:
+          showInProgressForSignedDeposits(transactionMeta);
           break;
       }
     };

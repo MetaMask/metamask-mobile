@@ -120,16 +120,10 @@ const mockUnsubscribe = jest.fn<
   void,
   [string, TransactionStatusUpdatedHandler | TransactionConfirmedHandler]
 >();
-const mockControllerCall = jest.fn();
-
 const mockNavigate = jest.fn();
 
 Object.defineProperty(Engine, 'controllerMessenger', {
-  value: {
-    subscribe: mockSubscribe,
-    unsubscribe: mockUnsubscribe,
-    call: mockControllerCall,
-  },
+  value: { subscribe: mockSubscribe, unsubscribe: mockUnsubscribe },
   writable: true,
   configurable: true,
 });
@@ -145,10 +139,25 @@ const mockTransactionPayData: Record<
   }
 > = {};
 
+jest.mock('../../../../selectors/transactionPayController', () => ({
+  ...jest.requireActual('../../../../selectors/transactionPayController'),
+  selectAccountOverrideByTransactionId: (_state: unknown, id: string) =>
+    mockTransactionPayData[id]?.accountOverride,
+  selectTransactionPayFiatPaymentByTransactionId: (
+    _state: unknown,
+    id: string,
+  ) => mockTransactionPayData[id]?.fiatPayment,
+  selectTransactionPayRawQuotesByTransactionId: (_state: unknown, id: string) =>
+    mockTransactionPayData[id]?.quotes,
+}));
+
 Object.defineProperty(Engine, 'context', {
   value: {
     TransactionController: {
-      state: { transactions: mockControllerTransactions },
+      state: {
+        transactions: mockControllerTransactions,
+        batchTransactionCounts: mockBatchTransactionCounts,
+      },
     },
   },
   writable: true,
@@ -296,18 +305,6 @@ describe('useMoneyTransactionStatus', () => {
       delete mockTransactionPayData[key];
     });
     (isHardwareAccount as jest.Mock).mockReturnValue(false);
-    mockControllerCall.mockImplementation((action: string) => {
-      if (action === 'TransactionController:getState') {
-        return {
-          batchTransactionCounts: mockBatchTransactionCounts,
-          transactions: mockControllerTransactions,
-        };
-      }
-      if (action === 'TransactionPayController:getState') {
-        return { transactionData: mockTransactionPayData };
-      }
-      throw new Error(`Unexpected messenger action: ${action}`);
-    });
 
     Object.assign(NavigationService.navigation, { navigate: mockNavigate });
     mockUseMoneyToasts.mockReturnValue({
@@ -1835,9 +1832,8 @@ describe('useMoneyTransactionStatus', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({ transactionMeta: parent });
-      statusUpdatedHandler({
-        transactionMeta: { ...parent, status: TransactionStatus.rejected },
-      });
+      parent.status = TransactionStatus.rejected;
+      statusUpdatedHandler({ transactionMeta: parent });
       leg.status = TransactionStatus.signed;
       statusUpdatedHandler({ transactionMeta: leg });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
@@ -1853,9 +1849,8 @@ describe('useMoneyTransactionStatus', () => {
 
       statusUpdatedHandler({ transactionMeta: parent });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-      statusUpdatedHandler({
-        transactionMeta: { ...parent, status: TransactionStatus.failed },
-      });
+      parent.status = TransactionStatus.failed;
+      statusUpdatedHandler({ transactionMeta: parent });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(depositInProgressFn).not.toHaveBeenCalled();
@@ -1966,7 +1961,8 @@ describe('useMoneyTransactionStatus', () => {
 
       statusUpdatedHandler({ transactionMeta: parent });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-      confirmedHandler({ ...parent, status: TransactionStatus.confirmed });
+      parent.status = TransactionStatus.confirmed;
+      confirmedHandler(parent);
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(mockCloseToast).not.toHaveBeenCalled();

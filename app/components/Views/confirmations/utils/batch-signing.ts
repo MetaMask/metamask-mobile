@@ -1,30 +1,22 @@
 import {
   TransactionStatus,
+  type TransactionControllerState,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 
-import Engine from '../../../../core/Engine';
+/** Slice of controller state needed to judge batch signing progress. */
+export type BatchSigningState = Pick<
+  TransactionControllerState,
+  'transactions' | 'batchTransactionCounts'
+>;
 
-function getTransactionControllerState() {
-  return Engine.controllerMessenger.call('TransactionController:getState');
-}
-
-export function getRequiredTransactionIds(transactionId: string): string[] {
+export function getRequiredTransactionIds(
+  transactionId: string,
+  transactions: TransactionMeta[],
+): string[] {
   return (
-    getTransactionControllerState().transactions.find(
-      (transaction) => transaction.id === transactionId,
-    )?.requiredTransactionIds ?? []
-  );
-}
-
-/**
- * Pay submits one quote at a time, so legs of later quotes only appear in
- * `requiredTransactionIds` after earlier ones confirm.
- */
-function getExpectedQuoteCount(transactionId: string): number {
-  return (
-    Engine.controllerMessenger.call('TransactionPayController:getState')
-      .transactionData[transactionId]?.quotes?.length ?? 1
+    transactions.find((transaction) => transaction.id === transactionId)
+      ?.requiredTransactionIds ?? []
   );
 }
 
@@ -41,15 +33,20 @@ export function isTransactionStatusSignedOrLater(
 /**
  * Each quote adds either one plain transaction or one batch. Signing is done
  * once every expected quote has all of its legs present and signed.
+ *
+ * Pay submits one quote at a time, so legs of later quotes only appear in
+ * `requiredTransactionIds` after earlier ones confirm; `expectedQuoteCount`
+ * keeps the check from completing early on the first quote.
  */
 export function haveRequiredTransactionsBeenSigned(
   transactionId: string,
+  { batchTransactionCounts, transactions }: BatchSigningState,
+  expectedQuoteCount = 1,
 ): boolean {
-  const { batchTransactionCounts, transactions } =
-    getTransactionControllerState();
-  const requiredTransactions = getRequiredTransactionIds(transactionId).map(
-    (id) => transactions.find((transaction) => transaction.id === id),
-  );
+  const requiredTransactions = getRequiredTransactionIds(
+    transactionId,
+    transactions,
+  ).map((id) => transactions.find((transaction) => transaction.id === id));
 
   if (requiredTransactions.some((transaction) => !transaction)) {
     return false;
@@ -61,7 +58,7 @@ export function haveRequiredTransactionsBeenSigned(
     legsByGroup.set(group, [...(legsByGroup.get(group) ?? []), transaction]);
   }
 
-  if (legsByGroup.size < getExpectedQuoteCount(transactionId)) {
+  if (legsByGroup.size < expectedQuoteCount) {
     return false;
   }
 

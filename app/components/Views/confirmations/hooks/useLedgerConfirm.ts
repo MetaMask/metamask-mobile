@@ -12,6 +12,23 @@ import {
   haveRequiredTransactionsBeenSigned,
 } from '../utils/batch-signing';
 
+// Evaluated inside a messenger event predicate, so it must read controller
+// state at event time rather than the Redux copy that trails it.
+function getTransactionControllerState() {
+  return Engine.controllerMessenger.call('TransactionController:getState');
+}
+
+/**
+ * Pay submits one quote at a time, so legs of later quotes only appear in
+ * `requiredTransactionIds` after earlier ones confirm.
+ */
+function getExpectedQuoteCount(transactionId: string): number {
+  return (
+    Engine.controllerMessenger.call('TransactionPayController:getState')
+      .transactionData[transactionId]?.quotes?.length ?? 1
+  );
+}
+
 interface UseLedgerConfirmOptions {
   fromAddress: string;
   onReject: () => void;
@@ -110,14 +127,21 @@ export function useLedgerConfirm({
             completeSigningOnce();
           },
           ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-            const requiredTransactionIds =
-              getRequiredTransactionIds(transactionId);
+            const state = getTransactionControllerState();
+            const requiredTransactionIds = getRequiredTransactionIds(
+              transactionId,
+              state.transactions,
+            );
 
             if (!requiredTransactionIds.includes(transactionMeta.id)) {
               return false;
             }
 
-            return haveRequiredTransactionsBeenSigned(transactionId);
+            return haveRequiredTransactionsBeenSigned(
+              transactionId,
+              state,
+              getExpectedQuoteCount(transactionId),
+            );
           },
         );
 
