@@ -4,6 +4,18 @@ Custom [`MetaMask/ai-analyzer`](https://github.com/MetaMask/ai-analyzer) mode th
 
 Consumed by [`.github/workflows/flaky-unit-test-detection.yml`](../../../.github/workflows/flaky-unit-test-detection.yml). Not a shipped built-in — this is a Tier 3 fully-custom mode defined entirely in this repo.
 
+## Additive signals
+
+Pattern findings and the deterministic same-SHA history written to `.ai-pr-analyzer/flaky-history.json` are independent. Neither suppresses the other, and the sticky comment labels their per-file combination:
+
+| Combination         | What the reviewer concludes                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| History + pattern   | Unfixed flake; the reported snippet is the likely cause           |
+| History, no pattern | Possibly fixed since, or environmental rather than a code pattern |
+| Pattern, no history | The pattern was most likely introduced by this PR                 |
+
+A `"flaky": true` history entry widens the AI's scope for that one file from the PR diff to the whole current file — a same-SHA failure means no fix landed, so a pre-existing pattern is the answer. Files without a history entry stay diff-scoped so PRs touching old test files are not buried in legacy findings. `historicalHintUsed` carries the distinction into [`flaky-sticky-comment.ts`](../../../.github/scripts/flaky-sticky-comment.ts).
+
 ## Files
 
 | File                   | Purpose                                                                          |

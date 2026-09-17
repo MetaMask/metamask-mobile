@@ -10,15 +10,19 @@
 #
 #   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
 #      (defined in .ai-pr-analyzer/modes/) scans only the modified test files
-#      for J1-J10 patterns from the flaky-test-detection skill.
+#      for J1-J10 patterns from the flaky-test-detection skill, independently
+#      of what (1) found.
 #      → writes .ai-pr-analyzer/flaky-ai-analysis.json
 #
 #   3. Sticky comment — flaky-sticky-comment.ts merges both artifacts into
 #      one PR comment under the <!-- metamask-flaky-test-detection --> marker,
 #      with 4-state create/update/no-op/all-clear logic.
 #
-# Same-SHA fail-then-pass is treated as a HINT — a file can be flagged in (1)
-# with zero AI findings, or have AI findings with no historical signal.
+# (1) and (2) are additive, never exclusive. A file can be flagged in (1) with
+# zero AI findings (possibly fixed since, or environmental), carry both (an
+# unfixed flake), or have AI findings alone (introduced by this PR). Stage 3
+# labels that combination per file. A same-SHA hit widens (2) from the PR diff
+# to the whole current file for that file only.
 #
 # Not a required check: expected no-ops (no modified tests, unchanged since
 # last analysis, fork PR) exit 0. When a stage cannot do its job it fails the

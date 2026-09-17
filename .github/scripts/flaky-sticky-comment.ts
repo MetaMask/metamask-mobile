@@ -7,6 +7,11 @@
  * invoked via the analyzer CLI (not the composite action) so it never posts
  * its own comment.
  *
+ * The two signals are additive, never exclusive: the comment opens with a
+ * per-file "Signals" verdict (see flaky-signal-combination.ts) so a reviewer
+ * can tell an unfixed flake (history + pattern) from one that may already be
+ * fixed (history alone) or one this PR introduced (pattern alone).
+ *
  * 4-state logic (per MCWP-474 AC):
  *   findings + no sticky  → create
  *   findings + sticky     → update with latest findings
@@ -33,6 +38,7 @@ import {
 } from './flaky-sticky-snippet';
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
 import { renderSameShaHistoryTable } from './flaky-same-sha-history';
+import { renderSignalsSection } from './flaky-signal-combination';
 
 // Stable HTML comment on the first line — used to identify and update this
 // script's own comment across runs. Any change breaks stickiness (a new
@@ -274,8 +280,11 @@ function buildFindingsSection(findings: Finding[], headSha: string): string {
   for (const [file, fileFindings] of byFile) {
     out += `#### \`${file}\`\n\n`;
     for (const f of fileFindings) {
+      // historicalHintUsed marks a file that same-SHA history also flagged —
+      // the two signals are independent, so this is corroboration, not the
+      // reason the pattern was reported.
       const hint = f.historicalHintUsed
-        ? ' _(matches historical failure signal)_'
+        ? ' _(also seen in same-SHA history)_'
         : '';
       out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}\n`;
       out += `  - ${f.explanation}\n`;
@@ -304,17 +313,25 @@ function buildCommentBody({
   const tableFiles = historyFiles.filter(
     (f) => f.flaky || findingFiles.has(f.path),
   );
+  const signalsSection = renderSignalsSection(
+    tableFiles.map((file) => ({
+      path: file.path,
+      hasHistoryHit: file.flaky,
+      hasPatternFinding: findingFiles.has(file.path),
+    })),
+  );
   const historyTable = buildHistoryTable(tableFiles);
   const findingsSection = buildFindingsSection(findings, headSha);
 
   return `${MARKER}
 ## 🧪 Flaky unit test detection
 
+${signalsSection}
+Neither signal is proof on its own — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
+
 ### Run history flaky detection
 
 [View recent run history](${runHistoryUrl})
-
-Same-SHA fail-then-pass is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
 
 ${historyTable}
 
