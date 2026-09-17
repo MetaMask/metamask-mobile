@@ -16,6 +16,7 @@ type WorkflowStep = {
 };
 
 type Workflow = {
+  concurrency?: { group: string; 'cancel-in-progress'?: boolean };
   on: {
     schedule?: { cron: string }[];
     pull_request?: unknown;
@@ -66,6 +67,14 @@ describe('Analyze App Profiling triggers', () => {
     );
     expect(condition).toContain(
       "github.event.workflow_run.event == 'workflow_dispatch'",
+    );
+  });
+
+  it('collapses a chain and a dispatch of the same performance run', () => {
+    const workflow = loadWorkflow();
+
+    expect(workflow.concurrency?.group).toBe(
+      'analyze-app-profiling-${{ github.event.workflow_run.id || github.event.inputs.run_id || github.run_id }}',
     );
   });
 

@@ -990,7 +990,10 @@ function buildConclusions(report) {
     (left, right) => right.scenarios.length - left.scenarios.length,
   );
   const dominant = rankedGroups[0];
-  if (dominant && dominant.scenarios.length >= Math.min(3, scenarios.length)) {
+  const dominantThreshold = Math.min(3, scenarios.length);
+  const namedDominant =
+    Boolean(dominant) && dominant.scenarios.length >= dominantThreshold;
+  if (namedDominant) {
     const minSelf = Math.min(...dominant.selfMs);
     const maxSelf = Math.max(...dominant.selfMs);
     const maxScenario = dominant.scenarios.reduce((best, scenario) =>
@@ -1001,7 +1004,10 @@ function buildConclusions(report) {
     );
   }
 
-  for (const group of rankedGroups.slice(1)) {
+  // If the leading group was not named as dominant, still consider it as a
+  // secondary hotspot. Skipping it dropped the most common frame whenever it
+  // appeared in fewer than min(3, n) scenarios.
+  for (const group of namedDominant ? rankedGroups.slice(1) : rankedGroups) {
     const maxSelf = Math.max(...group.selfMs);
     if (group.scenarios.length < 2 && maxSelf < 500) {
       continue;

@@ -63,8 +63,10 @@ permissions:
 
 concurrency:
   # Key on the performance run being analyzed so a chained run and a manual
-  # dispatch of the same run id collapse instead of racing.
-  group: analyze-app-profiling-${{ github.event.workflow_run.id || github.run_id }}
+  # dispatch of the same run id collapse instead of racing. `inputs` is only
+  # set on workflow_dispatch; use github.event.inputs so a workflow_run event
+  # still evaluates.
+  group: analyze-app-profiling-${{ github.event.workflow_run.id || github.event.inputs.run_id || github.run_id }}
   cancel-in-progress: true
 
 jobs:
