@@ -60,6 +60,43 @@ describe('CardHome', () => {
         expect(params.screen).toBe(Routes.CARD.MODALS.ASSET_SELECTION);
       });
 
+      it('opens digital wallet instructions for an Immersve cardholder', async () => {
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'immersve',
+                  providerData: {
+                    immersve: { location: 'international' },
+                  },
+                },
+              },
+            },
+          },
+          extraRoutes: [
+            {
+              name: Routes.CARD.MODALS.ID,
+              Component: createRouteParamsProbe(Routes.CARD.MODALS.ID),
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        );
+
+        const paramsEl = await findByTestId(
+          getRouteParamsProbeTestId(Routes.CARD.MODALS.ID),
+        );
+        const params = JSON.parse(paramsEl.props.children as string);
+        expect(params.screen).toBe(
+          Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+        );
+      });
+
       it('opens Spending Limit screen with flow=manage when Manage Spending Limit button is pressed', async () => {
         const { getByTestId, findByTestId } = renderCardHomeView({
           extraRoutes: [

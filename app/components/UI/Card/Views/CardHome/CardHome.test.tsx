@@ -1973,6 +1973,72 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('digital wallet instructions', () => {
+    beforeEach(() => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'immersve',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    it('opens the instructions sheet for an Immersve cardholder', () => {
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+      });
+    });
+
+    it('hides the instructions while push eligibility is loading', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: true,
+        canAddToWallet: false,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the instructions when push provisioning is available', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   it('shows the pending verification warning and continues from the CTA', () => {
     mockImmersvePendingAction = { type: 'kyc' };
     setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });

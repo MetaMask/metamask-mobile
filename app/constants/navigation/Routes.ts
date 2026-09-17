@@ -612,6 +612,7 @@ const Routes = {
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
     },
   },
   SEND: {

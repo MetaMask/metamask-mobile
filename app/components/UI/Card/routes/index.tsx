@@ -40,6 +40,7 @@ import CardTransactionDetails from '../Views/CardTransactionDetails/CardTransact
 import CardReportTransaction from '../Views/CardReportTransaction/CardReportTransaction';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
+import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -209,6 +210,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.UK_MIGRATION}
       component={UkMigrationBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS}
+      component={DigitalWalletInstructionsSheet}
     />
   </ModalsStack.Navigator>
 );

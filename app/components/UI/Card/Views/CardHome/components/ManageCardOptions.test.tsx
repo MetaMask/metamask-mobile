@@ -69,6 +69,8 @@ const renderComponent = (
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
+      showDigitalWalletInstructions={false}
+      onDigitalWalletInstructions={jest.fn()}
       showUnlinkMoneyAccount={showUnlinkMoneyAccount}
       onUnlinkMoneyAccount={jest.fn()}
       onOrderMetalCard={jest.fn()}
@@ -137,6 +139,58 @@ describe('ManageCardOptions travel gating', () => {
     );
 
     expect(queryByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeNull();
+  });
+});
+
+describe('ManageCardOptions digital wallet instructions gating', () => {
+  it('shows digital wallet instructions for a fully set up card when enabled', () => {
+    const { getByTestId } = render(
+      <ManageCardOptions
+        card={CARD}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsFundingLimits: false })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="international"
+        isFrozen={false}
+        isFreezeLoading={false}
+        isPinLoading={false}
+        cardDetailsVisible={false}
+        onViewCardDetails={jest.fn()}
+        onViewPin={jest.fn()}
+        onSetPin={jest.fn()}
+        onToggleFreeze={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showDigitalWalletInstructions
+        onDigitalWalletInstructions={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance={false}
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides digital wallet instructions when the Card Home gate is disabled', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: false }),
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+    ).not.toBeOnTheScreen();
   });
 });
 

@@ -591,6 +591,12 @@ export function useCardHomeActions({
     activeProviderId,
   ]);
 
+  const digitalWalletInstructionsAction = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+    });
+  }, [navigation]);
+
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
@@ -745,6 +751,7 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
+    digitalWalletInstructionsAction,
     unlinkMoneyAccountAction,
     logoutAction,
     orderMetalCardAction,

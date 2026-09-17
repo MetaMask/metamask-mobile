@@ -170,6 +170,11 @@ jest.mock(
   },
 );
 
+jest.mock('../components/DigitalWalletInstructionsSheet', () => {
+  const { View } = require('react-native');
+  return () => <View testID="digital-wallet-instructions-sheet" />;
+});
+
 jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
 }));
@@ -207,6 +212,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       FORGOT_PASSWORD: 'ForgotPassword',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
     },
   },
 }));
@@ -265,6 +271,14 @@ describe('CardRoutes', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
       expect(getByTestId('screen-CardUnlinkMoneyAccountSheet')).toBeTruthy();
+    });
+
+    it('includes digital wallet instructions modal screen', () => {
+      const { getByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByTestId('screen-CardDigitalWalletInstructionsModal'),
+      ).toBeTruthy();
     });
   });
 

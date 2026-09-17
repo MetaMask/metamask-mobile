@@ -218,8 +218,14 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
-  const { initiateProvisioning, isProvisioning, canAddToWallet } =
-    useCardProvisioning(data);
+  const {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+  } = useCardProvisioning(data);
+  const showDigitalWalletInstructions =
+    isImmersve && !isPushProvisioningLoading && !canAddToWallet;
 
   const {
     pendingAction: immersvePendingAction,
@@ -878,6 +884,10 @@ const CardHome = () => {
             onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
+            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            onDigitalWalletInstructions={
+              actions.digitalWalletInstructionsAction
+            }
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
