@@ -247,7 +247,7 @@ describe('WatchlistSection', () => {
     });
 
     const { getAllByTestId } = renderSection();
-    expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
+    expect(getAllByTestId('trending-skeleton')).toHaveLength(5);
   });
 
   it('renders up to 5 suggested tokens with add buttons when the watchlist is empty', () => {
@@ -370,7 +370,7 @@ describe('WatchlistSection', () => {
     const { getAllByTestId, getByTestId } = renderSection();
 
     expect(getByTestId('watchlist-suggested-skeleton')).toBeOnTheScreen();
-    expect(getAllByTestId('trending-skeleton')).toHaveLength(3);
+    expect(getAllByTestId('trending-skeleton')).toHaveLength(5);
   });
 
   it('renders the static fallback below the header when no suggested tokens are available', () => {
@@ -383,13 +383,15 @@ describe('WatchlistSection', () => {
     expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 
-  it('renders up to 3 tokens when watchlist has items (newest first)', () => {
+  it('renders up to 5 tokens when watchlist has items (newest first)', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [
         makeWatchlistToken('eth'),
         makeWatchlistToken('btc'),
         makeWatchlistToken('sol'),
         makeWatchlistToken('doge'),
+        makeWatchlistToken('ada'),
+        makeWatchlistToken('link'),
       ],
       isLoading: false,
       refetch: jest.fn(),
@@ -398,10 +400,37 @@ describe('WatchlistSection', () => {
     const { getByTestId, queryByTestId } = renderSection();
 
     // Storage appends newest last; section reverses so newest appears first.
+    // Six watched tokens: the five newest render, the oldest (eth) drops.
+    expect(getByTestId('row-link')).toBeDefined();
+    expect(getByTestId('row-ada')).toBeDefined();
     expect(getByTestId('row-doge')).toBeDefined();
     expect(getByTestId('row-sol')).toBeDefined();
     expect(getByTestId('row-btc')).toBeDefined();
     expect(queryByTestId('row-eth')).toBeNull();
+  });
+
+  it('hides the suggested section once the watchlist holds 5 tokens', () => {
+    const names = ['eth', 'btc', 'sol', 'doge', 'ada'];
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: names.map(makeWatchlistToken),
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mockWatchlistAssetIds = names.map((name) => `eip155:1/erc20:0x${name}`);
+    // Pool still has unwatched tokens to offer — the cap must hide them all.
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: makeSuggestedPool('bitcoin', 'ethereum', 'solana'),
+      isLoading: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderSection();
+
+    // 5 watched → 5 rows, 5 - 5 = 0 suggestions: the section never overflows.
+    expect(getByTestId('row-eth')).toBeOnTheScreen();
+    expect(getByTestId('row-ada')).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 
   it('renders section header with watchlist testID', () => {

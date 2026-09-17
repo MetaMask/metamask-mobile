@@ -46,9 +46,11 @@ import type { SectionRefreshHandle } from '../../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
-const MAX_ITEMS_DISPLAYED = 3;
+/** Homepage watchlist rows shown before the user taps through to the full view. */
+const MAX_ITEMS_DISPLAYED = 5;
 
-const SUGGESTED_SKELETON_COUNT = 3;
+/** Matches the suggested-row count that replaces these skeletons (limit − 0 watched). */
+const SUGGESTED_SKELETON_COUNT = 5;
 
 interface WatchlistSectionProps {
   sectionIndex: number;
