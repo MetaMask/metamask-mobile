@@ -613,6 +613,7 @@ const Routes = {
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
     },
   },
   SEND: {
