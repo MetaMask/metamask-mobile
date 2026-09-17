@@ -9,6 +9,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 import { RootState } from '../../../reducers';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const useCheckNftAutoDetectionModal = () => {
   const dispatch = useDispatch();
@@ -18,8 +19,18 @@ const useCheckNftAutoDetectionModal = () => {
   const isNFTAutoDetectionModalViewed = useSelector(
     (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
+  // Gate on the rollout flag, not the persisted cohort. Mixed and social-restore
+  // wallets still have `useNftDetection` off until consolidateBasicFunctionality
+  // finishes, which would otherwise race the migration sheet on ROOT_MODAL_FLOW.
+  const isBasicFunctionalityConsolidationRolloutEnabled = useSelector(
+    selectMobileUxBftcConsolidationFlagEnabled,
+  );
 
   const checkNftAutoDetectionModal = useCallback(() => {
+    if (isBasicFunctionalityConsolidationRolloutEnabled) {
+      return;
+    }
+
     const isOnMainnet = isMainNet(chainId);
     if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -29,6 +40,7 @@ const useCheckNftAutoDetectionModal = () => {
     }
   }, [
     dispatch,
+    isBasicFunctionalityConsolidationRolloutEnabled,
     isNFTAutoDetectionModalViewed,
     navigation,
     chainId,
