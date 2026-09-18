@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../../core/Engine';
 import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
@@ -68,6 +69,24 @@ describe('useKycSessionDisclaimers', () => {
       },
     ]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('surfaces an error when KycService is unavailable', async () => {
+    const originalKycService = Engine.context.KycService;
+    (Engine.context as { KycService?: typeof originalKycService }).KycService =
+      undefined;
+
+    try {
+      const { result } = renderHook(() => useKycSessionDisclaimers());
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.disclaimers).toBeNull();
+      expect(result.current.error).toBe('KYC service is unavailable');
+      expect(mockFetchSessionDisclaimers).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.KycService = originalKycService;
+    }
   });
 
   it('treats an empty catalog as an error so the CTA is not soft-locked', async () => {

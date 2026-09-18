@@ -82,7 +82,12 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
     });
 
     const controllerLoad = (async () => {
-      const country = await Engine.context.KycService.getGeoCountry();
+      const kycService = Engine.context.KycService;
+      if (!kycService) {
+        throw new Error('KYC service is unavailable');
+      }
+
+      const country = await kycService.getGeoCountry();
       return Engine.context.KycController.fetchVendorDisclaimers({
         vendor: VBA_KYC_VENDOR,
         country,

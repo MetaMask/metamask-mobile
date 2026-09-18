@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
@@ -42,6 +43,24 @@ describe('useKycDisclaimers', () => {
     });
     expect(result.current.disclaimers).toStrictEqual(disclaimers);
     expect(result.current.error).toBeNull();
+  });
+
+  it('surfaces an error when KycService is unavailable', async () => {
+    const originalKycService = Engine.context.KycService;
+    (Engine.context as { KycService?: typeof originalKycService }).KycService =
+      undefined;
+
+    try {
+      const { result } = renderHook(() => useKycDisclaimers());
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.disclaimers).toBeNull();
+      expect(result.current.error).toBe('KYC service is unavailable');
+      expect(mockFetchVendorDisclaimers).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.KycService = originalKycService;
+    }
   });
 
   it('surfaces errors returned by KycController', async () => {

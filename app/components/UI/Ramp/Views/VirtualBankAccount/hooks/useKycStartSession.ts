@@ -37,7 +37,12 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
         );
       }
 
-      const country = await Engine.context.KycService.getGeoCountry();
+      const kycService = Engine.context.KycService;
+      if (!kycService) {
+        throw new Error('KYC service is unavailable');
+      }
+
+      const country = await kycService.getGeoCountry();
       const catalog =
         await Engine.context.KycController.fetchSessionDisclaimers({
           country,

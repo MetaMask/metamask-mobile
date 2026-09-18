@@ -84,7 +84,12 @@ export const useKycSessionDisclaimers = (): UseKycSessionDisclaimersResult => {
 
         const catalog = await Promise.race([
           (async () => {
-            const country = await Engine.context.KycService.getGeoCountry();
+            const kycService = Engine.context.KycService;
+            if (!kycService) {
+              throw new Error('KYC service is unavailable');
+            }
+
+            const country = await kycService.getGeoCountry();
             return kycController.fetchSessionDisclaimers({ country });
           })(),
           abortedPromise,

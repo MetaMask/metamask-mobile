@@ -90,6 +90,27 @@ describe('useKycStartSession', () => {
     expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
   });
 
+  it('alerts when KycService is unavailable', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    const originalKycService = Engine.context.KycService;
+    // KycService is optional on Engine.context when KYC is not enabled.
+    (Engine.context as { KycService?: typeof originalKycService }).KycService =
+      undefined;
+    const { result } = renderHook(() => useKycStartSession());
+
+    try {
+      await act(result.current.startSession);
+    } finally {
+      Engine.context.KycService = originalKycService;
+    }
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'KYC service is unavailable',
+    );
+    expect(mockKycController.recordSessionDisclaimers).not.toHaveBeenCalled();
+  });
+
   it('alerts when no email is stored', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     mockKycControllerState.email = null;
