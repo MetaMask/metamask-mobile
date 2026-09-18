@@ -2127,12 +2127,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               value={parseFloat(displayAmount || '0')}
               onValueChange={handleSliderValueChange}
               onDragEnd={handleSliderDragEnd}
-              key={payToken?.symbol ?? ''}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
+              testID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER}
             />
           </View>
         )}

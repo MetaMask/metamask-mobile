@@ -13,6 +13,7 @@ import {
   mergeTransactionsByTime,
   selectApiEvmTransactions,
   shouldSkipTransaction,
+  shouldSkipUnrelatedTransaction,
 } from './transformations';
 
 const address = '0x0000000000000000000000000000000000000001';
@@ -161,6 +162,104 @@ describe('ActivityList transformations', () => {
       const result = shouldSkipTransaction(address, transaction);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('shouldSkipUnrelatedTransaction', () => {
+    it('keeps direct receives that the list gate drops via their value transfers', () => {
+      const nativeReceive = buildTransaction({
+        from: otherAddress,
+        to: address,
+        value: '1000000000000000000',
+        valueTransfers: [
+          {
+            amount: '1000000000000000000',
+            contractAddress: '',
+            decimal: 18,
+            from: otherAddress,
+            name: 'Ether',
+            symbol: 'ETH',
+            to: address,
+            transferType: 'NATIVE',
+          },
+        ],
+      });
+      const tokenReceive = buildTransaction({
+        from: otherAddress,
+        to: address,
+        value: '0',
+        valueTransfers: [
+          {
+            amount: '1000000',
+            contractAddress: '0x3333333333333333333333333333333333333333',
+            decimal: 6,
+            from: otherAddress,
+            name: 'USD Coin',
+            symbol: 'USDC',
+            to: address,
+            transferType: 'ERC20',
+          },
+        ],
+      });
+
+      expect(shouldSkipTransaction(address, nativeReceive)).toBe(true);
+      expect(shouldSkipTransaction(address, tokenReceive)).toBe(true);
+      expect(shouldSkipUnrelatedTransaction(address, nativeReceive)).toBe(
+        false,
+      );
+      expect(shouldSkipUnrelatedTransaction(address, tokenReceive)).toBe(false);
+    });
+
+    it('still skips excluded hashes, non-participant, spam, and empty self transfers', () => {
+      expect(
+        shouldSkipUnrelatedTransaction(
+          address,
+          buildTransaction(),
+          new Set(['0xhash']),
+        ),
+      ).toBe(true);
+      expect(
+        shouldSkipUnrelatedTransaction(
+          address,
+          buildTransaction({
+            from: otherAddress,
+            to: otherAddress,
+            valueTransfers: [
+              {
+                amount: '1',
+                contractAddress: '',
+                decimal: 18,
+                from: otherAddress,
+                name: 'Ether',
+                symbol: 'ETH',
+                to: address,
+                transferType: 'NATIVE',
+              },
+            ],
+          }),
+        ),
+      ).toBe(true);
+      expect(
+        shouldSkipUnrelatedTransaction(
+          address,
+          buildTransaction({ transactionType: 'SPAM_TOKEN_TRANSFER' }),
+        ),
+      ).toBe(true);
+      expect(
+        shouldSkipUnrelatedTransaction(
+          address,
+          buildTransaction({
+            from: address,
+            methodId: '0x',
+            to: address,
+            value: '0',
+            valueTransfers: [],
+          }),
+        ),
+      ).toBe(true);
+      expect(shouldSkipUnrelatedTransaction(address, buildTransaction())).toBe(
+        false,
+      );
     });
   });
 

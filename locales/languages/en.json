@@ -1256,8 +1256,31 @@
         "status": "Status",
         "closed": "Closed",
         "buy": "Buy",
-        "sell": "Sell"
+        "sell": "Sell",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1872,6 +1895,8 @@
         "active": "Active",
         "history": "History",
         "fill_history": "Fill history",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Previous",
         "next": "Next",
         "page_count": "Page {{page}} of {{total}}"
@@ -2088,10 +2113,7 @@
         "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
-        "active": "Active",
-        "history": "History",
         "filled_only": "Filled orders only",
-        "visible_count": "{{count}} visible",
         "running": "Running",
         "running_with_progress": "Running · {{progress}}",
         "cancel": "Cancel",
@@ -3264,6 +3286,7 @@
       "loading_accessibility_label": "Loading market history",
       "unable_to_load": "Market history could not be loaded.",
       "unavailable_for_range": "Market history is not available for this range.",
+      "range_live": "LIVE",
       "chart_accessibility_label": "Market probability history. {{values}}",
       "chart_scrub_accessibility_label": "Market probability history at {{time}}. {{values}}"
     },
@@ -6361,14 +6384,12 @@
     "skip_button_confirm": "Skip",
     "skip_title": "Skip account security?",
     "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
-    "what_is_seedphrase_text_2": "You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.",
-    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
@@ -6462,10 +6483,8 @@
   "manual_backup_step_1": {
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "action": "Save your Secret Recovery Phrase",
-    "info-1": "Your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "gives full wallet access.",
-    "info-4": "Write it down with the correct order and numbers. Keep it safe and never share it.",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "Continue",
     "reveal": "Tap to reveal",
     "watching": "Make sure no one is watching your screen.",
@@ -9066,7 +9085,9 @@
       "empty": {
         "open_orders": "Open orders appear here",
         "history": "Order history appears here"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9173,6 +9194,7 @@
       "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "completed": "Completed",
+      "cancelled": "Cancelled",
       "you_sent": "You sent",
       "you_receive": "You receive",
       "filled_progress": "{{percent}}%",
@@ -9186,6 +9208,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
       "not_enough_gas": "Not enough gas",
       "out_of_price_range": "Out of price range",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "Failed",
       "filled": "Filled",
       "order_not_found": "Order not found",
@@ -10224,7 +10252,42 @@
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
-        "change_asset_description": "Select a different token"
+        "change_asset_description": "Select a different token",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
+      }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
       }
     },
     "revoke_allowance_sheet": {

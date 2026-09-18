@@ -173,6 +173,7 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  SocialPostComposerView,
   MyProfileView,
   ManageProfileView,
   ManageProfileTextEditorView,
@@ -1021,36 +1022,32 @@ const MainNavigator = () => {
         component={RewardsNavigator}
         options={{ headerShown: false }}
       />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-        component={RewardsInfoSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
-      />
+      <NativeStack.Group screenOptions={rewardsModalScreenOptions}>
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+          component={RewardsBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+          component={RewardsInfoSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+          component={RewardsClaimBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+          component={RewardOptInAccountGroupModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+          component={EndOfSeasonClaimBottomSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_SELECT_SHEET}
+          component={RewardsSelectSheet}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
@@ -1424,6 +1421,19 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.V1}
             component={SocialV1View}
+            options={{
+              headerShown: false,
+              // `enableFreeze(true)` is global (index.js). The feed must keep
+              // reacting to the composed-post store while the composer sits on
+              // top, otherwise the posting banner and the committed post are
+              // both swallowed by the frozen subtree.
+              freezeOnBlur: false,
+              ...slideFromRightNativeOptions,
+            }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_COMPOSER}
+            component={SocialPostComposerView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
