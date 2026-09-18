@@ -58,60 +58,60 @@ export const OrderPreviewRows = ({
   preview: PredictOrderPreview;
 }) => (
   <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+    <QuoteRow
+      label={strings('predict_next.order_preview.estimated_contracts')}
+      value={String(preview.estimatedContracts)}
+      testID={PredictOrderFlowTestIds.ESTIMATED_CONTRACTS}
+    />
+    <QuoteRow
+      label={strings('predict_next.order_preview.average_price')}
+      value={formatCents(preview.averagePrice)}
+      testID={PredictOrderFlowTestIds.AVERAGE_PRICE}
+    />
+    <QuoteRow
+      label={strings('predict_next.order_preview.potential_payout')}
+      value={formatUsd(preview.potentialPayout)}
+      testID={PredictOrderFlowTestIds.POTENTIAL_PAYOUT}
+      valueColor={TextColor.SuccessDefault}
+    />
+    <QuoteRow
+      label={strings('predict_next.order_preview.potential_profit')}
+      value={formatUsd(preview.potentialProfit)}
+      testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
+      valueColor={
+        preview.potentialProfit.startsWith('-')
+          ? TextColor.ErrorDefault
+          : TextColor.SuccessDefault
+      }
+    />
+    <Box twClassName="gap-1">
       <QuoteRow
-        label={strings('predict_next.order_preview.estimated_contracts')}
-        value={String(preview.estimatedContracts)}
-        testID={PredictOrderFlowTestIds.ESTIMATED_CONTRACTS}
+        label={strings('predict_next.order_preview.fee')}
+        value={formatUsd(preview.fee)}
+        testID={PredictOrderFlowTestIds.FEE}
       />
-      <QuoteRow
-        label={strings('predict_next.order_preview.average_price')}
-        value={formatCents(preview.averagePrice)}
-        testID={PredictOrderFlowTestIds.AVERAGE_PRICE}
-      />
-      <QuoteRow
-        label={strings('predict_next.order_preview.potential_payout')}
-        value={formatUsd(preview.potentialPayout)}
-        testID={PredictOrderFlowTestIds.POTENTIAL_PAYOUT}
-        valueColor={TextColor.SuccessDefault}
-      />
-      <QuoteRow
-        label={strings('predict_next.order_preview.potential_profit')}
-        value={formatUsd(preview.potentialProfit)}
-        testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
-        valueColor={
-          preview.potentialProfit.startsWith('-')
-            ? TextColor.ErrorDefault
-            : TextColor.SuccessDefault
-        }
-      />
-      <Box twClassName="gap-1">
+      {preview.feeBreakdown.map((component) => (
         <QuoteRow
-          label={strings('predict_next.order_preview.fee')}
-          value={formatUsd(preview.fee)}
-          testID={PredictOrderFlowTestIds.FEE}
+          key={component.source}
+          label={strings(
+            `predict_next.order_preview.${FEE_SOURCE_LABELS[component.source]}`,
+          )}
+          value={formatUsd(component.amount)}
+          testID={PredictOrderFlowTestIds.FEE_COMPONENT(component.source)}
         />
-        {preview.feeBreakdown.map((component) => (
-          <QuoteRow
-            key={component.source}
-            label={strings(
-              `predict_next.order_preview.${FEE_SOURCE_LABELS[component.source]}`,
-            )}
-            value={formatUsd(component.amount)}
-            testID={PredictOrderFlowTestIds.FEE_COMPONENT(component.source)}
-          />
-        ))}
-      </Box>
-      <Box twClassName="mt-1 flex-row items-center justify-between gap-4 border-t border-muted pt-3">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {strings('predict_next.order_preview.total_debit')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
-        >
-          {formatUsd(preview.totalDebit)}
-        </Text>
-      </Box>
+      ))}
     </Box>
+    <Box twClassName="mt-1 flex-row items-center justify-between gap-4 border-t border-muted pt-3">
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+        {strings('predict_next.order_preview.total_debit')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+        testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
+      >
+        {formatUsd(preview.totalDebit)}
+      </Text>
+    </Box>
+  </Box>
 );
