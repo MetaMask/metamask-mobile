@@ -129,7 +129,11 @@ function validatePackageInstalled(serial: string): void {
     .split(/\r?\n/u)
     .map((line) => line.trim())
     .filter(Boolean);
-  if (packages.length !== 1 || packages[0] !== `package:${ANDROID_APP_ID}`) {
+  // `cmd package list packages <filter>` matches by prefix, so co-installed
+  // packages such as io.metamask.devicemcp.snapshothelper (installed by
+  // @metamask/device-mcp) or io.metamask.flask also appear. Assert the exact
+  // base package is present instead of requiring a single-line result.
+  if (!packages.includes(`package:${ANDROID_APP_ID}`)) {
     throwRunnerError(
       `${ANDROID_APP_ID} is not installed for the current Android user.`,
     );
