@@ -3263,6 +3263,7 @@
       "loading_accessibility_label": "Loading market history",
       "unable_to_load": "Market history could not be loaded.",
       "unavailable_for_range": "Market history is not available for this range.",
+      "range_live": "LIVE",
       "chart_accessibility_label": "Market probability history. {{values}}",
       "chart_scrub_accessibility_label": "Market probability history at {{time}}. {{values}}"
     },
