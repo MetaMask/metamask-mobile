@@ -23,6 +23,7 @@ import {
 } from '../../contexts/PerpsOrderContext';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { selectPerpsProvider } from '../../selectors/perpsController';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import PerpsLoader from '../../components/PerpsLoader';
 import PerpsProOrderFormPanel from '../PerpsProMarketView/components/PerpsProOrderFormPanel';
 import { PerpsBalanceOrderViewSelectorsIDs } from './PerpsBalanceOrderView.testIds';
@@ -51,7 +52,20 @@ const PerpsBalanceOrderView = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const activeProvider = useSelector(selectPerpsProvider);
   const { markets, isLoading } = usePerpsMarkets();
-  const market = markets.find(({ symbol }) => symbol === params.asset);
+  const orderProvider = params.providerId ?? activeProvider;
+  const isLighterOrder = orderProvider === 'lighter';
+  const defaultMarketProvider =
+    activeProvider !== undefined &&
+    activeProvider !== PROVIDER_CONFIG.AggregatedProvider
+      ? activeProvider
+      : PROVIDER_CONFIG.DefaultProvider;
+  const market = isLighterOrder
+    ? markets.find(
+        ({ symbol, providerId }) =>
+          symbol === params.asset &&
+          (providerId ?? defaultMarketProvider) === orderProvider,
+      )
+    : undefined;
 
   return (
     <Box
@@ -65,7 +79,7 @@ const PerpsBalanceOrderView = () => {
         onBack={navigation.goBack}
         backButtonProps={{ testID: PerpsBalanceOrderViewSelectorsIDs.BACK }}
       />
-      {activeProvider !== 'lighter' || (!isLoading && !market) ? (
+      {!isLighterOrder || (!isLoading && !market) ? (
         <Text
           variant={TextVariant.BodyMd}
           testID={PerpsBalanceOrderViewSelectorsIDs.ERROR}
@@ -81,7 +95,7 @@ const PerpsBalanceOrderView = () => {
           contentContainerStyle={tw.style('p-4 pb-12')}
         >
           <PerpsOrderProvider
-            key={market.symbol}
+            key={`${market.providerId}:${market.symbol}`}
             initialAsset={market.symbol}
             initialDirection={params.direction}
             initialAmount={params.amount}

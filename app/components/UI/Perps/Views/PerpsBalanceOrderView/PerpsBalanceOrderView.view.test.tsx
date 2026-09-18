@@ -99,6 +99,7 @@ describe('PerpsBalanceOrderView', () => {
         expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             symbol: 'ETH',
+            providerId: 'lighter',
             orderType: 'market',
             isBuy: button === PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
           }),
@@ -130,6 +131,27 @@ describe('PerpsBalanceOrderView', () => {
     },
   );
 
+  it('accepts a providerless market while Lighter is the active provider', async () => {
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      streamOverrides: {
+        ...options.streamOverrides,
+        marketData: [{ ...market, providerId: undefined }],
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+      },
+    });
+
+    expect(
+      await screen.findByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsBalanceOrderViewSelectorsIDs.ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
   it('preserves an order-book limit price and allows editing it', async () => {
     renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
       ...options,
@@ -151,5 +173,72 @@ describe('PerpsBalanceOrderView', () => {
     expect(
       Engine.context.PerpsController.depositWithOrder,
     ).not.toHaveBeenCalled();
+  });
+
+  it('selects the explicit Lighter market while aggregated', async () => {
+    const hyperliquidMarket = {
+      ...market,
+      name: 'Ethereum HyperLiquid',
+      providerId: 'hyperliquid' as const,
+    };
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: { activeProvider: 'aggregated' as const },
+          },
+        },
+      },
+      streamOverrides: {
+        ...options.streamOverrides,
+        marketData: [hyperliquidMarket, market],
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        providerId: 'lighter',
+      },
+    });
+
+    const input = await screen.findByTestId(
+      PerpsProOrderFormSelectorsIDs.SIZE_INPUT,
+    );
+    fireEvent.changeText(input, '10');
+    const submit = screen.getByTestId(
+      PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.press(submit);
+
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          providerId: 'lighter',
+        }),
+      ),
+    );
+    expect(
+      Engine.context.PerpsController.depositWithOrder,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('rejects an explicit non-Lighter provider', async () => {
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        providerId: 'hyperliquid',
+      },
+    });
+
+    expect(
+      await screen.findByTestId(PerpsBalanceOrderViewSelectorsIDs.ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+    ).not.toBeOnTheScreen();
   });
 });

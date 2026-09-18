@@ -24,7 +24,11 @@ import {
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  CONFIRMATION_HEADER_CONFIG,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
+import { usePerpsProvider } from './usePerpsProvider';
 import {
   navigateToPerpsHomeTarget,
   resetToPerpsHomeTarget,
@@ -235,6 +239,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const { switchProvider } = usePerpsProvider();
   const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
@@ -242,15 +247,72 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
       const useBottomSheet = Boolean(params.useBottomSheet);
-      // Lighter has no deposit-with-order route. Trade its existing venue
-      // balance directly, without creating a transaction or changing UI mode.
-      if (activeProvider === 'lighter') {
+      const orderProvider = params.providerId ?? activeProvider;
+      const handleOrderError = (error: unknown) => {
+        const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
+        Logger.error(err, {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
+          [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+        });
+
+        showToast(
+          PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+        );
+      };
+      const switchToOrderProvider = async () => {
+        if (params.providerId === undefined) {
+          return;
+        }
+        const result = await switchProvider(params.providerId);
+        if (!result.success) {
+          throw new Error(
+            result.error ??
+              `Failed to switch perps provider to ${params.providerId}`,
+          );
+        }
+      };
+      // Lighter has no deposit-with-order route. Aggregated mode can trade its
+      // venue balance directly; a conflicting concrete mode must switch first.
+      if (orderProvider === 'lighter') {
+        if (
+          params.providerId === 'lighter' &&
+          activeProvider !== undefined &&
+          activeProvider !== PROVIDER_CONFIG.AggregatedProvider &&
+          activeProvider !== params.providerId
+        ) {
+          switchToOrderProvider()
+            .then(() => navigation.navigate(Routes.PERPS.BALANCE_ORDER, params))
+            .catch(handleOrderError);
+          return;
+        }
         navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
         return;
       }
+      const depositProvider =
+        activeProvider === undefined ||
+        activeProvider === PROVIDER_CONFIG.AggregatedProvider
+          ? PROVIDER_CONFIG.DefaultProvider
+          : activeProvider;
+      let createOrder = depositWithOrder;
+      if (
+        params.providerId !== undefined &&
+        params.providerId !== depositProvider
+      ) {
+        createOrder = async () => {
+          await switchToOrderProvider();
+          return depositWithOrder();
+        };
+      }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
-        depositWithOrder,
+        createOrder,
       )
         .then(() => {
           navigation.navigate(
@@ -264,29 +326,12 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             },
           );
         })
-        .catch((error: unknown) => {
-          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
-          Logger.error(err, {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
-          });
-
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
-          });
-
-          showToast(
-            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
-          );
-        });
+        .catch(handleOrderError);
     },
     [
       navigation,
       depositWithOrder,
+      switchProvider,
       activeProvider,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,

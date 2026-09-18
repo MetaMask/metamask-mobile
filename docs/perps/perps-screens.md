@@ -303,7 +303,7 @@ Feature-gated Lighter order entry for users with an existing venue balance. It r
 
 - **Route:** `Routes.PERPS.BALANCE_ORDER`
 - **From:** Lite market Long/Short actions and the token-details order redirect when Lighter is active
-- **Params:** Standard `PerpsOrderRouteParams`, including direction, asset, source, and optional limit price
+- **Params:** Standard `PerpsOrderRouteParams`, including direction, asset, optional provider ID, source, and optional limit price
 - **Back:** Returns to the previous Lite or token-details screen
 
 ### testIDs
