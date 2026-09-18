@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import {
   Dimensions,
   StyleSheet,
@@ -237,9 +237,9 @@ const completeOnboarding = async () => {
 
 const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
-const triggerRiveLayout = () => {
+const triggerRootLayout = (renderResult: ReturnType<typeof render>) => {
   act(() => {
-    mockRiveViewProps.current?.onLayout?.();
+    fireEvent(renderResult.root, 'layout');
   });
 };
 
@@ -278,10 +278,11 @@ describe('MoneyOnboardingView', () => {
 
   describe('Rendering', () => {
     it('renders the Rive animation component', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
+      const renderResult = renderMoneyOnboardingView();
+      triggerRootLayout(renderResult);
 
       expect(
-        getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
+        renderResult.getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
     });
 
@@ -343,13 +344,12 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Rive initial layout', () => {
-    it('starts hidden with Cover fit before native layout', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
+    it('keeps Rive unmounted before parent root layout', () => {
+      const { queryByTestId, getByTestId } = renderMoneyOnboardingView();
 
-      expect(mockRiveViewProps.current?.fit).toBe(Fit.Cover);
-      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
-        0,
-      );
+      expect(
+        queryByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
+      ).not.toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
@@ -357,10 +357,10 @@ describe('MoneyOnboardingView', () => {
       ).toBe(0);
     });
 
-    it('switches to Layout fit after native layout while remaining hidden', () => {
-      renderMoneyOnboardingView();
+    it('mounts Rive with Layout fit after parent root layout while remaining hidden', () => {
+      const renderResult = renderMoneyOnboardingView();
 
-      triggerRiveLayout();
+      triggerRootLayout(renderResult);
 
       expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
       expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
@@ -369,9 +369,9 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('reveals Rive and overlay on the animation frame after layout', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
+      const renderResult = renderMoneyOnboardingView();
 
-      triggerRiveLayout();
+      triggerRootLayout(renderResult);
 
       act(() => {
         jest.runOnlyPendingTimers();
@@ -382,7 +382,8 @@ describe('MoneyOnboardingView', () => {
       ).toBeUndefined();
       expect(
         StyleSheet.flatten(
-          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+          renderResult.getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER)
+            .props.style,
         ).opacity,
       ).toBe(1);
     });
@@ -391,11 +392,12 @@ describe('MoneyOnboardingView', () => {
   describe('Onboarding view gate', () => {
     it('renders the standard onboarding view outside E2E and performance tests', () => {
       mockIsE2EOrPerformanceTest = false;
+      const renderResult = renderMoneyOnboardingView();
 
-      const { getByTestId } = renderMoneyOnboardingView();
+      triggerRootLayout(renderResult);
 
       expect(
-        getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
+        renderResult.getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -911,7 +913,8 @@ describe('MoneyOnboardingView', () => {
     };
 
     const renderAndTriggerRiveError = () => {
-      renderMoneyOnboardingView();
+      const renderResult = renderMoneyOnboardingView();
+      triggerRootLayout(renderResult);
 
       act(() => {
         mockRiveViewProps.current?.onError?.(riveError);
