@@ -43,6 +43,7 @@ const Routes = {
     GET_PIX_KEY: 'RampGetPixKey',
     VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
     VBA_KYC_EMAIL: 'RampVbaKycEmail',
+    VBA_KYC_PENDING: 'RampVbaKycPending',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
