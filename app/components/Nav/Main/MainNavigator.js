@@ -769,6 +769,9 @@ const HomeTabs = () => {
               initialRouteName={Routes.WALLET.HOME}
               screenOptions={{
                 headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
                 // UIKit picks the inactive colour.
                 tabBarActiveTintColor: colors.icon.default,
                 tabBarMinimizeBehavior: 'onScrollDown',
@@ -799,7 +802,13 @@ const HomeTabs = () => {
           <JsTab.Navigator
             initialRouteName={Routes.WALLET.HOME}
             tabBar={renderTabBar}
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+              headerShown: false,
+              // Never suspend blurred tabs: react-native-screens' delayed freeze
+              // can drop the activityState commit when a tab is left mid-mount,
+              // leaving the old screen (usually Money) stuck on top.
+              freezeOnBlur: false,
+            }}
           >
             {tabs.slice(0, 3).map(renderJsTabScreen)}
 
