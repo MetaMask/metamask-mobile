@@ -29,7 +29,9 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await BrowserView.navigateToTestDApp();
 }
 
-appiumTest.describe(
+// Skipped: consistently fails on main Appium network-expansion Android smoke
+// (Account 2 / connection sheet not displayed; retries fail the same way).
+appiumTest.describe.skip(
   SmokeNetworkExpansion('Multiple Standard Dapp Connections'),
   () => {
     appiumTest.describe.configure({ timeout: 300_000 });

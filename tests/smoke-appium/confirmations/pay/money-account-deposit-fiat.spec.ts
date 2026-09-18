@@ -40,7 +40,9 @@ const MONEY_DEPOSIT_HOLDINGS: TokenHolding[] = [
   { ...PREDEFINED_TOKENS.MONAD.MUSD, amount: '10' },
 ];
 
-appiumTest.describe(
+// Skipped: consistently fails on main Appium confirmations iOS smoke
+// (unmocked PUT https://user-storage.api.cx.metamask.io/api/v1/userstorage/rampsOrders).
+appiumTest.describe.skip(
   SmokeConfirmations('MM Pay - Money Account deposit fiat'),
   () => {
     appiumTest.describe.configure({ timeout: 250_000 });
