@@ -752,7 +752,7 @@ describe('AssetSelectionBottomSheet', () => {
 
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Spend priority updated successfully' }],
+          labelOptions: [{ label: 'Spend priority updated' }],
         }),
       );
     });
