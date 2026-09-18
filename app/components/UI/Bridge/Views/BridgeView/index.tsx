@@ -1,10 +1,4 @@
-import React, {
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { startTransition, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -31,6 +25,7 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
@@ -42,16 +37,8 @@ import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
 
 const BridgeView = () => {
-  // `selectedTab` drives the tabs bar and updates urgently so a press is
-  // acknowledged on the same frame. `renderedTab` swaps the content, which is
-  // expensive enough to drop frames, so it is deferred to a transition instead
-  // of holding up that feedback.
-  const [selectedTab, setSelectedTab] = useState<BridgeTabKey>(
-    BridgeTabKey.Market,
-  );
-  const [renderedTab, setRenderedTab] = useState<BridgeTabKey>(
-    BridgeTabKey.Market,
-  );
+  const { selectedTab, renderedTab, setSelectedTab, setRenderedTab } =
+    useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -151,7 +138,7 @@ const BridgeView = () => {
       setSelectedTab(nextTab);
       startTransition(() => setRenderedTab(nextTab));
     },
-    [tabs],
+    [tabs, setRenderedTab, setSelectedTab],
   );
 
   const goToPreviousTab = useCallback(() => {
@@ -198,7 +185,7 @@ const BridgeView = () => {
       setSelectedTab(BridgeTabKey.Market);
       setRenderedTab(BridgeTabKey.Market);
     }
-  }, [tabs, renderedTab]);
+  }, [tabs, renderedTab, setRenderedTab, setSelectedTab]);
 
   // Stops any in-flight BridgeController quote polling, clears the amount
   // inputs and drops the destination token for the tab being left, whenever
@@ -243,6 +230,10 @@ const BridgeView = () => {
       <HeaderStandard
         title={headerTitle}
         onBack={handleBack}
+        backButtonProps={{
+          testID: BridgeViewSelectorsIDs.BACK_BUTTON,
+          accessibilityLabel: strings('navigation.back'),
+        }}
         endButtonIconProps={endButtonIconProps}
         includesTopInset
       />

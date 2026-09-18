@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef, type ReactNode } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   AvatarToken,
   AvatarTokenSize,
   BadgeWrapper,
   BadgeWrapperPosition,
+  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
@@ -15,6 +15,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
   Text,
   TextColor,
@@ -23,8 +24,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectDestToken,
@@ -37,6 +36,8 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import type { BridgeToken } from '../../types';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
@@ -49,9 +50,9 @@ import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
-import RecurringBottomSheet from '../RecurringBottomSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -105,6 +106,7 @@ function ConfirmOrderRow({
   value,
   testID,
   trailing,
+  labelAccessory,
   isLoading,
   skeletonTestID,
 }: {
@@ -112,6 +114,7 @@ function ConfirmOrderRow({
   value: string;
   testID: string;
   trailing?: ReactNode;
+  labelAccessory?: ReactNode;
   isLoading?: boolean;
   skeletonTestID?: string;
 }) {
@@ -125,9 +128,17 @@ function ConfirmOrderRow({
       paddingVertical={2}
       testID={testID}
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="shrink"
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -167,11 +178,14 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
-  isVisible,
-  onClose,
+  delegationFee,
+  isSubmitting,
+  onConfirm,
+  onEditSlippagePress,
+  onDelegationFeeInfoPress,
+  goBack,
 }: RecurringConfirmOrderSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<AppNavigationProp>();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -179,6 +193,29 @@ const RecurringConfirmOrderSheet = ({
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
+  const { latestSourceBalance } = useBridgeSession();
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+  const hasSufficientGas = useHasSufficientGas({
+    additionalGasFeeInHex:
+      delegationFee.status === 'ready'
+        ? delegationFee.preciseNativeFeeInHex
+        : undefined,
+    quote: activeQuote,
+  });
+  const hasInsufficientGas = !hasSufficientGas;
+  const isDelegationFeeReady =
+    delegationFee.status === 'ready' || delegationFee.status === 'not-required';
+  const isConfirmDisabled =
+    hasInsufficientBalance || hasInsufficientGas || !isDelegationFeeReady;
+  const confirmLabel = hasInsufficientBalance
+    ? strings('bridge.insufficient_funds')
+    : hasInsufficientGas
+      ? strings('bridge.insufficient_gas')
+      : strings('bridge.recurring.confirm');
   const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
   const showQuoteSkeletons = isLoading;
@@ -228,25 +265,11 @@ const RecurringConfirmOrderSheet = ({
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleSlippagePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken?.chainId,
-        destChainId: destToken?.chainId,
-      },
-    });
-  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
-
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <RecurringBottomSheet
+    <BottomSheet
       ref={sheetRef}
       testID={RecurringConfirmOrderSheetSelectorsIDs.SHEET}
-      onClose={onClose}
+      goBack={goBack}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -324,7 +347,7 @@ const RecurringConfirmOrderSheet = ({
             <ButtonIcon
               iconName={IconName.Edit}
               size={ButtonIconSize.Sm}
-              onPress={handleSlippagePress}
+              onPress={onEditSlippagePress}
               testID={RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT}
             />
           }
@@ -347,11 +370,57 @@ const RecurringConfirmOrderSheet = ({
             ) : undefined
           }
         />
+        {delegationFee.status !== 'not-required' ? (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <ConfirmOrderRow
+              label={strings('bridge.recurring.delegation_fee_one_time')}
+              value={
+                delegationFee.status === 'ready'
+                  ? delegationFee.displayFee
+                  : '--'
+              }
+              testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
+              isLoading={delegationFee.status === 'loading'}
+              skeletonTestID={
+                RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON
+              }
+              labelAccessory={
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Sm}
+                  onPress={onDelegationFeeInfoPress}
+                  testID={
+                    RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO
+                  }
+                  accessibilityLabel={strings(
+                    'bridge.recurring.delegation_fee_info_title',
+                  )}
+                />
+              }
+              trailing={
+                delegationFee.status === 'ready' && nativeToken ? (
+                  <AvatarToken
+                    name={nativeToken.symbol}
+                    src={nativeTokenImageSource}
+                    size={AvatarTokenSize.Xs}
+                    testID={
+                      RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN
+                    }
+                  />
+                ) : undefined
+              }
+            />
+          </>
+        ) : null}
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
-          children: strings('bridge.recurring.confirm'),
-          onPress: closeSheet,
+          children: confirmLabel,
+          onPress: onConfirm,
+          isDisabled: isConfirmDisabled || isSubmitting,
+          isLoading: isSubmitting,
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />
@@ -400,7 +469,7 @@ const RecurringConfirmOrderSheet = ({
           ) : null}
         </Box>
       ) : null}
-    </RecurringBottomSheet>
+    </BottomSheet>
   );
 };
 

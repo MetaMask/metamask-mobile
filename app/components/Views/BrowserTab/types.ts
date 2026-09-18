@@ -24,12 +24,14 @@ export enum WebViewNavigationEventName {
 }
 
 /**
- * A back/forward navigation awaiting its committed document URL. We keep the
- * navigation state captured at request time so the URL bar can be resolved once
- * the WebView reports back the actual `window.location` for that request.
+ * A back/forward navigation awaiting its document URL. The WebView navigation
+ * URL is kept so the address bar can be resolved when the document reports back.
  */
 export interface PendingBackForwardNav {
   requestId: string;
+  /** Native WebView URL at the time of the back/forward navigation event. */
+  url: string;
+  title?: string;
   canGoBack: boolean;
   canGoForward: boolean;
 }
@@ -127,6 +129,11 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from trending view
    */
   fromTrending?: boolean;
+  /**
+   * Whether browser was opened from the Explore search screen, which lives in
+   * the root stack — closing must pop back to it, not jump to the Explore tab.
+   */
+  fromExploreSearch?: boolean;
   /**
    * Whether browser was opened from Perps view
    */

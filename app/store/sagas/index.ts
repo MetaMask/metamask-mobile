@@ -31,6 +31,8 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
+import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -93,10 +95,15 @@ export function* waitForSDKServicesInitialization() {
   yield join(task);
 }
 
-export function* parseDeeplink(deeplink: string, origin: string) {
+export function* parseDeeplink(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
   try {
     yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
       origin,
+      ...(appStartType === undefined ? {} : { appStartType }),
     });
   } catch (error) {
     Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
@@ -134,7 +141,11 @@ export function* mainNavigatorReadyStateMachine() {
  * navigator" when `handleDeeplinkSaga` runs before the main screen stack
  * has rendered.
  */
-export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
+export function* parseDeeplinkAfterNavReady(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
   if (!hasMainNavigatorMounted) {
     const { timedOut } = yield race({
       ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
@@ -150,7 +161,7 @@ export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
     }
   }
 
-  yield call(parseDeeplink, deeplink, origin);
+  yield call(parseDeeplink, deeplink, origin, appStartType);
 }
 
 /**
@@ -191,9 +202,39 @@ async function tryBiometricUnlock(): Promise<void> {
 }
 
 /**
+ * Prompts authentication, falling back to the Login screen on failure. The
+ * lock screen has no affordances of its own, so every path off it runs this.
+ */
+async function promptUnlockFromLockScreen(): Promise<void> {
+  // This is in a try catch since errors are not propogated in event channels.
+  try {
+    await tryBiometricUnlock();
+  } catch (error) {
+    // Navigate to login.
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+    trackErrorAsAnalytics(
+      'Lockscreen: Authentication failed',
+      (error as Error)?.message,
+    );
+  }
+}
+
+/**
  * Listens to app state changes and prompts authentication when the app is foregrounded.
  */
 export function* appStateListenerTask() {
+  // The lock can land after the app is already foregrounded: Android delivers a
+  // pending background timer and the `active` event together on resume, in no
+  // guaranteed order. Waiting on the channel here would block on an `active`
+  // event that has already been and gone, stranding the user on the lock
+  // screen, so prompt straight away instead.
+  if (AppState.currentState === 'active') {
+    yield call(promptUnlockFromLockScreen);
+    return;
+  }
+
   // Create channel to listen to app state changes.
   const channel: EventChannel<AppStateStatus> = yield call(
     appStateListenerChannel,
@@ -203,21 +244,7 @@ export function* appStateListenerTask() {
     while (true) {
       const appState: AppStateStatus = yield take(channel);
       if (appState === 'active') {
-        yield call(async () => {
-          // This is in a try catch since errors are not propogated in event channels.
-          try {
-            await tryBiometricUnlock();
-          } catch (error) {
-            // Navigate to login.
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.LOGIN }],
-            });
-            trackErrorAsAnalytics(
-              'Lockscreen: Authentication failed',
-              (error as Error)?.message,
-            );
-          }
-        });
+        yield call(promptUnlockFromLockScreen);
         // Close channel once authentication is prompted.
         channel.close();
       }
@@ -405,9 +432,13 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
-      // Fork so the saga loop keeps listening for new deeplink events
-      // while parseDeeplinkAfterNavReady waits for navigation to settle.
-      yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
+      // Fork so the loop keeps listening. Fallback captured here — inside parse, post-unlock nav has already cleared it.
+      yield fork(
+        parseDeeplinkAfterNavReady,
+        deeplink,
+        deeplinkSource,
+        consumeNextParseAppStartType() ?? getUnlockAppStartType(),
+      );
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }

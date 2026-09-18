@@ -1,4 +1,10 @@
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+
 export interface RecurringConfirmOrderSheetProps {
-  isVisible: boolean;
-  onClose: () => void;
+  delegationFee: EIP7702UpgradeFee;
+  isSubmitting: boolean;
+  onConfirm: () => void;
+  onEditSlippagePress: () => void;
+  onDelegationFeeInfoPress: () => void;
+  goBack: () => void;
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -10,18 +9,15 @@ import {
   TokenInputAreaType,
 } from '../TokenInputArea';
 import { FLipQuoteButton } from '../FlipQuoteButton';
-import type { useLatestBalance } from '../../hooks/useLatestBalance';
 import type { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
 import type { BridgeToken } from '../../types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
   inputRef: React.Ref<TokenInputAreaRef>;
-  /** Chains both token selectors are restricted to. */
-  enabledChainIds?: CaipChainId[];
   sourceToken: BridgeToken | undefined;
   sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   destToken: BridgeToken | undefined;
   destTokenAmount: string | undefined;
   isDestAmountLoading: boolean;
@@ -41,10 +37,8 @@ interface SwapsInputsProps {
 
 export const SwapsInputs = ({
   inputRef,
-  enabledChainIds,
   sourceToken,
   sourceAmountInput,
-  latestSourceBalance,
   destToken,
   destTokenAmount,
   isDestAmountLoading,
@@ -62,6 +56,7 @@ export const SwapsInputs = ({
   destAmountReplacementLabelTestID,
 }: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
+  const { latestSourceBalance } = useBridgeSession();
 
   return (
     <Box style={styles.inputsContainer}>
@@ -73,6 +68,7 @@ export const SwapsInputs = ({
             selection={sourceAmountInput.selection}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
+            latestAtomicBalance={latestSourceBalance?.atomicBalance}
             networkImageSource={
               sourceToken?.chainId
                 ? getNetworkImageSource({ chainId: sourceToken.chainId })
@@ -85,7 +81,6 @@ export const SwapsInputs = ({
             onSelectionChange={sourceAmountInput.handleSelectionChange}
             onTokenPress={onSourceTokenPress}
             onMaxPress={onSourceMaxPress}
-            latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
             inputPrefix={sourceAmountInput.inputPrefix}
             secondaryValue={sourceAmountInput.secondaryValue}
@@ -96,8 +91,6 @@ export const SwapsInputs = ({
                 : undefined
             }
             amountTypeToggleTestID={sourceAmountTypeToggleTestID}
-            enabledChainIds={enabledChainIds}
-            excludeRwaTokens
             hideFiatValueWhenUnpriced
           />
         </Box>
@@ -131,8 +124,6 @@ export const SwapsInputs = ({
               hideDestAmount ? strings('bridge.recurring.you_get') : undefined
             }
             amountReplacementLabelTestID={destAmountReplacementLabelTestID}
-            enabledChainIds={enabledChainIds}
-            excludeRwaTokens
             hideFiatValueWhenUnpriced
           />
         </Box>

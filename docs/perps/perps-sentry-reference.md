@@ -227,6 +227,10 @@ four; reliability widgets count them by reason.
 | `PerpsWebSocketFirstOrderBook`        | Top-of-book connect → first order-book delivery                                 | direct `trace()` in `PerpsStreamManager`        |
 | `PerpsWebSocketReconnectToFreshData`  | Reconnect → first fresh positions delivery                                      | `perpsCufTrace` (`watchPerpsCufAnyPositions`)   |
 
+Chase termination skips `PerpsCancelOrderToConfirmation`. Chase rotates child
+order IDs while repricing, so there is no stable child-absence boundary for
+that confirmation trace.
+
 ### UI Screen Measurements (16 events)
 
 **Purpose:** Track screen load times and user-perceived performance.
@@ -699,6 +703,23 @@ component:PerpsConnectionManager action:connection_connection
 Use this to isolate genuine perps connection failures. You can also use `feature:perps` as a broader filter — the `feature` tag is set on all perps errors and already excludes Polymarket noise.
 
 Fires on initial `connect()` failures and programmatic `reconnectWithNewContext()` calls. User-initiated retries from the error screen only add a Sentry breadcrumb (no new event) to avoid noise.
+
+## Deposit and withdrawal errors
+
+Live on [Perps - Health](https://metamask.sentry.io/dashboard/314902/).
+
+```
+feature:perps action:financial_deposit
+feature:perps action:financial_withdrawal
+```
+
+Deposit widgets also include pre-tag Relay failures:
+
+```
+event.type:error feature:perps (action:financial_deposit OR message:"*HyperLiquid deposit*" OR message:"*Missing post-quote deposit*")
+```
+
+Do not use `message:*withdraw*` — it matches deposit errors such as `Insufficient balance for withdrawal`.
 
 ### MixPanel
 

@@ -1,8 +1,11 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
-import ListItem from '../../Base/ListItem';
-import { useTheme } from '../../../util/theme';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { formatActivityListDateHeader } from '../../../util/activity-adapters';
 
 export const ActivityListDateHeader = ({
@@ -12,28 +15,18 @@ export const ActivityListDateHeader = ({
   timestamp?: number;
   label?: string;
 }) => {
-  const { colors } = useTheme();
-  const styles = StyleSheet.create({
-    dateHeader: {
-      color: colors.text.alternative,
-      fontSize: 14,
-      marginBottom: 0,
-      paddingHorizontal: 0,
-      paddingTop: 16,
-      paddingBottom: 4,
-    },
-  });
-
   const text = label ?? formatActivityListDateHeader(timestamp ?? 0);
 
   return (
-    <Box twClassName="px-4">
-      <ListItem.Date
-        style={styles.dateHeader}
+    <Box twClassName="px-4 pt-4 pb-1">
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
         testID="activity-list-date-header"
       >
         {text}
-      </ListItem.Date>
+      </Text>
     </Box>
   );
 };

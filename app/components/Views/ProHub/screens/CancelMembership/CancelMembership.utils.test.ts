@@ -95,16 +95,8 @@ describe('buildPostCancellationResetState', () => {
 
   it('keeps nested HomeNav tab state so back from Pro Hub returns to Money', () => {
     const homeNavNestedState = {
-      index: 0,
-      routes: [
-        {
-          name: Routes.MAIN_FLOW,
-          state: {
-            index: 1,
-            routes: [{ name: Routes.WALLET.HOME }, { name: Routes.MONEY.HOME }],
-          },
-        },
-      ],
+      index: 1,
+      routes: [{ name: Routes.WALLET.HOME }, { name: Routes.MONEY.HOME }],
     };
     const homeNavParams = { screen: Routes.MONEY.HOME };
     const state: NavigationState = {

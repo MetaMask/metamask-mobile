@@ -10,6 +10,7 @@ import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateC
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
 import { Text } from '@metamask/design-system-react-native';
+import { formatAmountForDisplay } from '../../../utils/transaction-pay';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -37,7 +38,11 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
-  const formattedAmount = formatAmountWithLocaleSeparators(amountFiat);
+
+  const formattedAmount = formatAmountWithLocaleSeparators(
+    formatAmountForDisplay(amountFiat),
+  );
+
   const amountLength = formattedAmount.length;
 
   const { styles } = useStyles(styleSheet, {

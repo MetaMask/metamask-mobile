@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectBridgeQuotes,
+  selectQuoteStreamComplete,
   selectSlippage,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -30,6 +31,7 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
+  hasDestAssetRequireActivate,
   hasUsableQuote,
 }: {
   hasInsufficientBalance: boolean;
@@ -40,11 +42,13 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
+  hasDestAssetRequireActivate: boolean;
   hasUsableQuote?: boolean;
 }) => {
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
   );
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
   const isFirstQuoteUsable =
@@ -76,6 +80,8 @@ export const useBridgeQuoteEvents = ({
       latestWarnings.push('insufficient_native_reserve');
     hasTxAlert && latestWarnings.push('tx_alert');
     isPriceImpactWarningVisible && latestWarnings.push('price_impact');
+    hasDestAssetRequireActivate &&
+      latestWarnings.push('dest_asset_require_activate' as QuoteWarning);
 
     return latestWarnings;
   }, [
@@ -86,6 +92,7 @@ export const useBridgeQuoteEvents = ({
     hasInsufficientNativeReserveError,
     hasTxAlert,
     isPriceImpactWarningVisible,
+    hasDestAssetRequireActivate,
   ]);
 
   // Emit QuotesReceived event each time quotes are fetched successfully
@@ -125,16 +132,21 @@ export const useBridgeQuoteEvents = ({
     }
   }, [firstUsableQuoteRequestId]);
 
+  // The stream's complete event drives the empty-state UI before close updates
+  // loading status and refresh count. Finish on that same explicit signal.
   useEffect(() => {
-    if (
-      !isLoading &&
-      quotesRefreshCount > 0 &&
-      !quoteFetchError &&
-      hasNoQuotesAvailable
-    ) {
-      swapQuoteFetchTrace.finish('no_quotes');
+    if (!quoteFetchError && quoteStreamComplete?.hasQuotes === false) {
+      swapQuoteFetchTrace.finish(
+        'no_quotes',
+        undefined,
+        quoteStreamComplete?.reason,
+      );
     }
-  }, [hasNoQuotesAvailable, isLoading, quoteFetchError, quotesRefreshCount]);
+  }, [
+    quoteFetchError,
+    quoteStreamComplete?.hasQuotes,
+    quoteStreamComplete?.reason,
+  ]);
 
   useEffect(() => {
     if (quoteFetchError) {

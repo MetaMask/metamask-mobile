@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
@@ -15,28 +15,28 @@ import {
 } from '@metamask/design-system-react-native';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import I18n, { strings } from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { strings } from '../../../../../../locales/i18n';
+import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
+import {
+  buildCardMigrationBadgeReasons,
+  CardActions,
+  CardFlow,
+  CardScreens,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../util/metrics';
 
 export const createUkMigrationBottomSheetNavigationDetails =
   createNavigationDetails(
     Routes.CARD.MODALS.ID,
     Routes.CARD.MODALS.UK_MIGRATION,
   );
-
-/**
- * Placeholder UK migration cutoff until a remote feature flag supplies it.
- * Month is 0-indexed (8 = September).
- */
-const UK_MIGRATION_DEADLINE = new Date(2026, 8, 30);
-
-const formatUkMigrationDeadline = (deadline: Date): string =>
-  getIntlDateTimeFormatter(I18n.locale, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(deadline);
 
 const MIGRATION_STEP_KEYS = [
   'card.uk_migration_bottom_sheet.steps.reverify_identity',
@@ -47,28 +47,95 @@ const MIGRATION_STEP_KEYS = [
 /**
  * UK Card provider migration prompt.
  *
- * Intentionally unreachable from production Card Home until migration
- * entry points are wired. Registered on the Card modals stack for preview.
+ * Get started closes the sheet and opens Immersve SignUp with
+ * `fromMigration: true`. Soft vs forced presentation is owned by Card Home
+ * via `useCardUkMigrationState` (clock-aware phase).
  */
 const UkMigrationBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const hasTrackedView = useRef(false);
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    state: { deadline, phase },
+  } = useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const migrationPhase = mapUkMigrationPhaseToAnalytics(phase);
+  const badgeReasons = buildCardMigrationBadgeReasons(
+    Boolean(cardUpdateBadgeSeverity),
+  );
+
+  const migrationEventProperties = useMemo(
+    () =>
+      withCardProvider(CardProviderIds.Baanx, {
+        flow: CardFlow.MIGRATION,
+        ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+        ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
+      }),
+    [badgeReasons, migrationPhase],
+  );
+
+  const description = useMemo(() => {
+    if (!deadline) {
+      return strings('card.uk_migration_bottom_sheet.description_no_deadline');
+    }
+    return strings('card.uk_migration_bottom_sheet.description', {
+      deadline: formatUkMigrationDeadline(deadline, { includeYear: true }),
+    });
+  }, [deadline]);
+
+  useEffect(() => {
+    if (hasTrackedView.current) {
+      return;
+    }
+    hasTrackedView.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          ...migrationEventProperties,
+          screen: CardScreens.MIGRATION_UPDATE_SHEET,
+        })
+        .build(),
+    );
+  }, [createEventBuilder, migrationEventProperties, trackEvent]);
+
+  const trackMigrationButton = useCallback(
+    (action: CardActions) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            ...migrationEventProperties,
+            action,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, migrationEventProperties, trackEvent],
+  );
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleClose = useCallback(() => {
+    trackMigrationButton(CardActions.MIGRATION_SHEET_CLOSE_BUTTON);
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackMigrationButton]);
 
-  // Placeholder — will navigate into Immersve onboarding when wired.
   const handleGetStarted = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    trackMigrationButton(CardActions.MIGRATION_SHEET_GET_STARTED_BUTTON);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        params: { fromMigration: true },
+      });
+    });
+  }, [navigation, trackMigrationButton]);
 
-  // For now, same as X / dismiss (DF3). Re-entry UX still TBD.
-  const handleRemindLater = handleClose;
+  const handleRemindLater = useCallback(() => {
+    trackMigrationButton(CardActions.MIGRATION_SHEET_REMIND_ME_LATER_BUTTON);
+    sheetRef.current?.onCloseBottomSheet();
+  }, [trackMigrationButton]);
 
   const steps = useMemo(
     () =>
@@ -107,9 +174,7 @@ const UkMigrationBottomSheet = () => {
           twClassName="text-alternative"
           testID={UkMigrationBottomSheetSelectors.DESCRIPTION}
         >
-          {strings('card.uk_migration_bottom_sheet.description', {
-            deadline: formatUkMigrationDeadline(UK_MIGRATION_DEADLINE),
-          })}
+          {description}
         </Text>
 
         <Box twClassName="gap-4" testID={UkMigrationBottomSheetSelectors.STEPS}>

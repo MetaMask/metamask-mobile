@@ -24,7 +24,7 @@ const mockEarnData = [{ kind: 'money-account', id: 'money-account' }];
 const mockFetchMore = jest.fn();
 const mockTokensLoadMore = jest.fn();
 const mockStocksLoadMore = jest.fn();
-let mockIsEarnEnabled = false;
+let mockIsExploreEarnSectionVisible = false;
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({
@@ -72,9 +72,8 @@ jest.mock('../feeds/earn/useEarnSearchFeed', () => ({
   })),
 }));
 
-jest.mock('../../../UI/Earn/selectors/featureFlags', () => ({
-  selectExploreEarnSectionEnabledFlag: (state: { earnEnabled: boolean }) =>
-    state.earnEnabled,
+jest.mock('../../../UI/Earn/selectors/visibility', () => ({
+  selectIsExploreEarnSectionVisible: () => mockIsExploreEarnSectionVisible,
 }));
 
 // ---------------------------------------------------------------------------
@@ -87,7 +86,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (s: unknown) => unknown) =>
     selector({
       perpsEnabled: mockIsPerpsEnabled,
-      earnEnabled: mockIsEarnEnabled,
     }),
   ),
 }));
@@ -127,7 +125,7 @@ describe('useExploreSearch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
-    mockIsEarnEnabled = false;
+    mockIsExploreEarnSectionVisible = false;
     (useTokensFeed as jest.Mock).mockReturnValue({
       data: mockTokensData,
       isLoading: false,
@@ -158,8 +156,8 @@ describe('useExploreSearch', () => {
       expect(feedIds).not.toContain('perps');
     });
 
-    it('inserts Earn after Perps when the Explore Earn flag is enabled', () => {
-      mockIsEarnEnabled = true;
+    it('inserts Earn after Perps when the Explore Earn section is visible', () => {
+      mockIsExploreEarnSectionVisible = true;
 
       const { result } = renderExploreSearch();
 
@@ -173,7 +171,7 @@ describe('useExploreSearch', () => {
       ]);
     });
 
-    it('omits Earn when the Explore Earn flag is disabled', () => {
+    it('omits Earn when the Explore Earn section is not visible', () => {
       const { result } = renderExploreSearch();
 
       expect(result.current.sections.map((section) => section.feedId)).toEqual([
@@ -210,7 +208,7 @@ describe('useExploreSearch', () => {
     });
 
     it('maps Earn feed data without changing other feed sections', () => {
-      mockIsEarnEnabled = true;
+      mockIsExploreEarnSectionVisible = true;
 
       const { result } = renderExploreSearch();
       const earnSection = result.current.sections.find(
@@ -434,8 +432,8 @@ describe('useExploreSearch', () => {
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
     });
 
-    it('passes the enabled Earn flag to the Earn feed', () => {
-      mockIsEarnEnabled = true;
+    it('passes the visibility state to the Earn feed', () => {
+      mockIsExploreEarnSectionVisible = true;
 
       renderExploreSearch('');
 
@@ -445,7 +443,7 @@ describe('useExploreSearch', () => {
       });
     });
 
-    it('passes disabled state to the Earn feed when the flag is disabled', () => {
+    it('passes disabled state to the Earn feed when the section is not visible', () => {
       renderExploreSearch('');
 
       expect(useEarnSearchFeed).toHaveBeenCalledWith({

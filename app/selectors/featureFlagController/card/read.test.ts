@@ -6,12 +6,16 @@ import {
   defaultCardFeatureFlag,
 } from './defaults';
 import {
+  getCardUkMigrationUpdateBadgeSeverity,
+  isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationFlag,
   resolveCardProviderForCountry,
+  resolveCardUkMigrationState,
 } from './read';
 
 jest.mock('react-native-device-info', () => ({
@@ -326,6 +330,283 @@ describe('card feature flag readers', () => {
           'GB',
         ),
       ).toBe('baanx');
+    });
+  });
+
+  describe('readCardUkMigrationFlag', () => {
+    it('returns null when absent or invalid', () => {
+      expect(readCardUkMigrationFlag(undefined)).toBeNull();
+      expect(readCardUkMigrationFlag({ cardUkMigration: {} })).toBeNull();
+    });
+
+    it('unwraps a progressive-rollout value wrapper', () => {
+      expect(
+        readCardUkMigrationFlag({
+          cardUkMigration: {
+            name: 'treatment',
+            value: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+              startDate: '2026-09-01T00:00:00.000Z',
+              endDate: '2026-09-30T23:59:59.999Z',
+            },
+          },
+        }),
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '0.0.0',
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-09-30T23:59:59.999Z',
+      });
+    });
+
+    it('ignores a remote countries field when present', () => {
+      expect(
+        readCardUkMigrationFlag({
+          cardUkMigration: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            startDate: '2026-09-01T00:00:00.000Z',
+            endDate: '2026-09-30T23:59:59.999Z',
+            countries: ['US', 'GB'],
+          },
+        }),
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '0.0.0',
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-09-30T23:59:59.999Z',
+      });
+    });
+  });
+
+  describe('resolveCardUkMigrationState', () => {
+    const softFlag = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      startDate: '2026-09-01T00:00:00.000Z',
+      endDate: '2026-09-30T23:59:59.999Z',
+    };
+
+    it('is off when the flag is absent', () => {
+      expect(resolveCardUkMigrationState(undefined).phase).toBe('off');
+    });
+
+    it('is off when disabled', () => {
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: { ...softFlag, enabled: false } },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when version gate fails', () => {
+      mockGetVersion.mockReturnValue('8.0.0');
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              minimumVersion: '9.0.0',
+            },
+          },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off before startDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: softFlag },
+          new Date('2026-08-31T23:59:59.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is soft between startDate and endDate', () => {
+      const state = resolveCardUkMigrationState(
+        { cardUkMigration: softFlag },
+        new Date('2026-09-15T12:00:00.000Z'),
+      );
+      expect(state).toEqual({
+        phase: 'soft',
+        isActive: true,
+        deadline: new Date('2026-09-30T23:59:59.999Z'),
+      });
+    });
+
+    it('is forced at and after endDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: softFlag },
+          new Date('2026-09-30T23:59:59.999Z'),
+        ).phase,
+      ).toBe('forced');
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: softFlag },
+          new Date('2026-10-01T00:00:00.000Z'),
+        ).phase,
+      ).toBe('forced');
+    });
+
+    it('is off when startDate is missing', () => {
+      const { startDate: _startDate, ...withoutStart } = softFlag;
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: withoutStart },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when endDate is missing', () => {
+      const { endDate: _endDate, ...withoutEnd } = softFlag;
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: withoutEnd },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when a date is invalid', () => {
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              startDate: 'not-a-date',
+            },
+          },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when startDate equals endDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              startDate: '2026-09-30T23:59:59.999Z',
+              endDate: '2026-09-30T23:59:59.999Z',
+            },
+          },
+          new Date('2026-09-30T23:59:59.999Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when startDate is after endDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              startDate: '2026-10-01T00:00:00.000Z',
+              endDate: '2026-09-30T23:59:59.999Z',
+            },
+          },
+          new Date('2026-10-02T00:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+  });
+
+  describe('isCardUkMigrationEligible', () => {
+    const activeState = {
+      phase: 'soft' as const,
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+    };
+
+    it('requires an active phase, Baanx provider, and GB region', () => {
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'GB',
+        }),
+      ).toBe(true);
+      expect(
+        isCardUkMigrationEligible(
+          { ...activeState, isActive: false, phase: 'off' },
+          { providerId: 'baanx', regionCode: 'GB' },
+        ),
+      ).toBe(false);
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'immersve',
+          regionCode: 'GB',
+        }),
+      ).toBe(false);
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'US',
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('getCardUkMigrationUpdateBadgeSeverity', () => {
+    const deadline = new Date('2026-09-30T23:59:59.999Z');
+
+    it('returns null when migration is inactive', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity({
+          phase: 'off',
+          isActive: false,
+          deadline,
+        }),
+      ).toBeNull();
+    });
+
+    it('returns info when soft period started more than 7 days before end', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-20T00:00:00.000Z'),
+        ),
+      ).toBe('info');
+    });
+
+    it('returns warning when soft period is within 7 days of end', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-24T00:00:00.000Z'),
+        ),
+      ).toBe('warning');
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-30T12:00:00.000Z'),
+        ),
+      ).toBe('warning');
+    });
+
+    it('returns danger when soft period has ended (forced)', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'forced', isActive: true, deadline },
+          new Date('2026-10-01T00:00:00.000Z'),
+        ),
+      ).toBe('danger');
+    });
+
+    it('returns danger after deadline when cached phase remains soft', () => {
+      const state = { phase: 'soft' as const, isActive: true, deadline };
+
+      const severity = getCardUkMigrationUpdateBadgeSeverity(
+        state,
+        new Date('2026-10-01T00:00:00.000Z'),
+      );
+
+      expect(severity).toBe('danger');
     });
   });
 });

@@ -1,11 +1,12 @@
-import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
@@ -18,6 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import { RootState } from '../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectPerpsAccountState } from '../../../../../UI/Perps/selectors/perpsController';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
@@ -45,8 +48,16 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const perpsAccount = useSelector(selectPerpsAccountState);
   const { onPaymentTokenChange } = usePerpsPaymentToken();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
-  const { depositWithConfirmation } = usePerpsTrading();
+  const { depositWithConfirmation, depositWithOrder } = usePerpsTrading();
   const { onReject } = useApprovalRequest();
+  const hasLeftForDeposit = useRef(false);
+  const isRestoringOrder = useRef(false);
+  const transactionId = transactionMeta?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
@@ -68,18 +79,47 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     navigation.goBack();
   }, [clearPaymentOverride, navigation, onPaymentTokenChange]);
 
+  const restoreOrder = useCallback(() => {
+    if (isRestoringOrder.current) {
+      return;
+    }
+
+    isRestoringOrder.current = true;
+
+    depositWithOrder()
+      .then(() => {
+        hasLeftForDeposit.current = false;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        isRestoringOrder.current = false;
+      });
+  }, [depositWithOrder]);
+
   const handleAdd = useCallback(async () => {
     onReject();
     try {
       await depositWithConfirmation();
+      hasLeftForDeposit.current = true;
       navigation.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         { showPerpsHeader: true },
       );
     } catch {
-      // Deposit flow handles errors (e.g. user rejection or missing network).
+      hasLeftForDeposit.current = true;
+      restoreOrder();
     }
-  }, [depositWithConfirmation, navigation, onReject]);
+  }, [depositWithConfirmation, navigation, onReject, restoreOrder]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasLeftForDeposit.current || transactionMeta) {
+        return;
+      }
+
+      restoreOrder();
+    }, [restoreOrder, transactionMeta]),
+  );
 
   return useMemo(() => {
     if (!isPerpsDepositAndOrder) {
@@ -97,7 +137,7 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),
-      isSelected: isPerpsBalanceSelected,
+      isSelected: isPerpsBalanceSelected && !isMoneyAccountSelected,
       trailingElement: (
         <Button
           variant={ButtonVariant.Secondary}
@@ -123,5 +163,6 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     handleSelect,
     isPerpsBalanceSelected,
     isPerpsDepositAndOrder,
+    isMoneyAccountSelected,
   ]);
 }

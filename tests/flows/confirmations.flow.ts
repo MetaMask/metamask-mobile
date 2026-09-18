@@ -22,6 +22,7 @@ import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
+  ensureAccountListOpenPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
 
@@ -180,6 +181,15 @@ const tapTestDappButtonAndWaitForConfirm = async (
             buttonId,
             expectedUrl,
           );
+          // Do not tap while the contract is still unbound — a "successful"
+          // WebView tap with contractBound:false never opens the sheet.
+          if (!isTestDappButtonReady(lastState)) {
+            throw new Error(
+              `Test dapp #${buttonId} not ready before tap; state=${JSON.stringify(
+                lastState,
+              )}`,
+            );
+          }
           await WebView.tapById(buttonId, {
             pageUrl,
             description,
@@ -349,7 +359,7 @@ export const confirmSponsoredNativeSendAndOpenActivity =
  */
 export const openSmartAccountSwitchForSelectedAccount =
   async (): Promise<void> => {
-    await WalletView.tapIdenticon();
+    await ensureAccountListOpenPlaywright();
     await AccountListBottomSheet.waitForAccountListVisible();
     await AccountListBottomSheet.tapAccountEllipsisForAccountNameV2(
       'Account 1',

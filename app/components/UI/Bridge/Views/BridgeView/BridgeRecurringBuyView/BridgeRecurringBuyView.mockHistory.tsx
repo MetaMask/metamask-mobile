@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  FontWeight,
   Tag,
   TagSeverity,
   TextColor,
@@ -8,48 +7,58 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import OpenOrderRow from '../../../components/OpenOrderRow';
 import type { OrdersTabConfig } from '../../../components/OrdersTabs';
-import type { BridgeToken } from '../../../types';
+import {
+  getRecurringOrderSwapCounts,
+  MOCK_RECURRING_COMPLETED_ORDER,
+} from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.mock';
+import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
+import type {
+  OnRecurringOrderPress,
+  RecurringOrder,
+} from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 
-const MOCK_DEST_TOKEN: BridgeToken = {
-  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  chainId: '0x1',
-  decimals: 6,
-  symbol: 'USDC',
-  name: 'USD Coin',
-};
+export const MOCK_RECURRING_HISTORY_ORDERS = [MOCK_RECURRING_COMPLETED_ORDER];
 
-const MOCK_RECURRING_HISTORY_ORDER = {
-  id: 'mock-recurring-history-filled',
-  token: MOCK_DEST_TOKEN,
-};
+function renderRecurringHistoryOrder(
+  order: RecurringOrder,
+  onOrderPress: OnRecurringOrderPress,
+) {
+  const { filledPercent, totalSwapCount } = getRecurringOrderSwapCounts(order);
 
-type MockRecurringHistoryOrder = typeof MOCK_RECURRING_HISTORY_ORDER;
-
-function renderRecurringHistoryOrder(item: MockRecurringHistoryOrder) {
   return (
     <OpenOrderRow
-      token={item.token}
-      title={strings('bridge.tabs.recurring')}
-      subtitle={strings('bridge.recurring.pair', {
-        source: 'ETH',
-        dest: item.token.symbol,
+      token={order.destinationToken}
+      title={strings('bridge.recurring.pair', {
+        source: order.sourceToken.symbol,
+        dest: order.destinationToken.symbol,
       })}
-      primaryValue={`+0.325 ${item.token.symbol}`}
-      secondaryValue="-0.1 ETH"
+      subtitle={strings('bridge.recurring.schedule_summary', {
+        interval: order.interval,
+        count: totalSwapCount,
+      })}
+      primaryValue={`+${order.totalReceived}`}
+      secondaryValue={strings('bridge.recurring.percent_filled', {
+        percent: filledPercent,
+      })}
       primaryColor={TextColor.SuccessDefault}
       titleEndAccessory={
-        <Tag severity={TagSeverity.Success}>
-          {strings('bridge.recurring.filled')}
+        <Tag severity={TagSeverity.Neutral}>
+          {strings('bridge.recurring.completed')}
         </Tag>
       }
+      onPress={() => onOrderPress(order.orderId)}
+      testID={RecurringOrderDetailsViewSelectorsIDs.COMPLETED_ORDER_ROW}
     />
   );
 }
 
-export const RECURRING_MOCK_HISTORY_TAB: OrdersTabConfig<MockRecurringHistoryOrder> =
-  {
-    items: [MOCK_RECURRING_HISTORY_ORDER],
-    renderItem: renderRecurringHistoryOrder,
-    keyExtractor: (item) => item.id,
-    getItemChainId: (item) => item.token.chainId,
+export function createRecurringMockHistoryTab(
+  onOrderPress: OnRecurringOrderPress,
+): OrdersTabConfig<RecurringOrder> {
+  return {
+    items: MOCK_RECURRING_HISTORY_ORDERS,
+    renderItem: (order) => renderRecurringHistoryOrder(order, onOrderPress),
+    keyExtractor: (order) => order.orderId,
+    getItemChainId: (order) => order.destinationToken.chainId,
   };
+}

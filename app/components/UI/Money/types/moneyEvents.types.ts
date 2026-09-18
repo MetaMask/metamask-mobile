@@ -1,16 +1,21 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { TransactionMeta } from '@metamask/transaction-controller';
 import {
-  BOTTOM_SHEET_NAMES,
-  COMPONENT_NAMES,
+  BOTTOM_SHEET_NAMES as MONEY_BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   MONEY_ONBOARDING_STEP_ACTIONS,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
-  SCREEN_NAMES,
+  SCREEN_NAMES as MONEY_SCREEN_NAMES,
 } from '../constants/moneyEvents';
+import {
+  EARN_MODULE_BOTTOM_SHEET_NAMES,
+  EARN_MODULE_SCREEN_NAMES,
+  EARN_MODULE_COMPONENT_NAMES,
+} from '../../Earn/constants/earnModuleEvents';
 
 /**
  * Properties for tracking location-based events.
@@ -19,9 +24,9 @@ import {
  * bottom_sheet_name: The name of the bottom sheet the event occurred on.
  */
 export type MoneyLocationEventProperties = {
-  screen_name: SCREEN_NAMES;
-  bottom_sheet_name: BOTTOM_SHEET_NAMES;
-  component_name: COMPONENT_NAMES;
+  screen_name: MONEY_SCREEN_NAMES | EARN_MODULE_SCREEN_NAMES;
+  bottom_sheet_name: MONEY_BOTTOM_SHEET_NAMES | EARN_MODULE_BOTTOM_SHEET_NAMES;
+  component_name: MONEY_COMPONENT_NAMES | EARN_MODULE_COMPONENT_NAMES;
 };
 
 export type MoneyCardEventProperties = {
@@ -35,7 +40,7 @@ type MoneyFundedEventProperties = {
 };
 
 export type MoneyRedirectEventProperties = {
-  redirect_target: SCREEN_NAMES | BOTTOM_SHEET_NAMES | MONEY_URLS;
+  redirect_target: MONEY_SCREEN_NAMES | MONEY_BOTTOM_SHEET_NAMES | MONEY_URLS;
 };
 
 export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &

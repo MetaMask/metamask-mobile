@@ -23,7 +23,7 @@ export const SwapsLimitOrderConfirmButton = ({
   <Button
     variant={ButtonVariant.Primary}
     size={ButtonBaseSize.Lg}
-    isLoading={loading}
+    isLoading={Boolean(loading)}
     onPress={onPress}
     isFullWidth
     testID={testID}

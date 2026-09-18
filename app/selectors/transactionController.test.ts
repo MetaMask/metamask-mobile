@@ -4,7 +4,10 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '@metamask/money-account-utils';
 import {
+  selectCurrentTransaction,
+  selectBatchTransactionCounts,
   selectTransactions,
   selectHasUnapprovedTransactions,
   selectLastUsedPaymentMethod,
@@ -73,6 +76,22 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual([]);
+    });
+  });
+
+  describe('selectBatchTransactionCounts', () => {
+    it('returns the counts, or an empty object before the controller initializes', () => {
+      const buildState = (TransactionController?: object) =>
+        ({
+          engine: { backgroundState: { TransactionController } },
+        }) as unknown as RootState;
+
+      expect(
+        selectBatchTransactionCounts(
+          buildState({ batchTransactionCounts: { '0xbatch': 2 } }),
+        ),
+      ).toStrictEqual({ '0xbatch': 2 });
+      expect(selectBatchTransactionCounts(buildState())).toStrictEqual({});
     });
   });
 
@@ -438,6 +457,10 @@ describe('TransactionController Selectors', () => {
 
   describe('selectLocalTransactions', () => {
     const evmAddress = '0x0000000000000000000000000000000000000001';
+    const moneyAddress = '0x0000000000000000000000000000000000000002';
+    const otherEvmAddress = '0x0000000000000000000000000000000000000003';
+    const encodeTransfer = (recipient: string) =>
+      `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'1'.padStart(64, '0')}`;
 
     const buildLocalTxState = ({
       groupEvmAccount = { address: evmAddress },
@@ -478,6 +501,134 @@ describe('TransactionController Selectors', () => {
       expect(selectLocalTransactions(buildLocalTxState())).toStrictEqual([
         expect.objectContaining({ id: 'parent' }),
       ]);
+    });
+
+    it('includes a Money deposit parent linked to the EOA through its required funding transaction', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'funding-child',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'money-deposit',
+            chainId: '0x8f',
+            requiredTransactionIds: ['funding-child'],
+            nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'money-deposit' }),
+      ]);
+    });
+
+    it('includes a Money withdrawal whose nested transfer targets the EOA', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'money-withdraw',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(evmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'money-withdraw' }),
+      ]);
+    });
+
+    it('excludes a Money withdrawal targeting a different EOA', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'other-money-withdraw',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(otherEvmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('ignores non-mUSD nested transfer recipients in a Money withdrawal', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'money-withdraw-with-refund',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: '0x00000000000000000000000000000000000000aa',
+                data: encodeTransfer(evmAddress),
+              },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(otherEvmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('does not associate a non-Money parent through its required child sender', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'non-money-child',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'non-money-parent',
+            chainId: '0x1',
+            requiredTransactionIds: ['non-money-child'],
+            time: 100,
+            type: TransactionType.contractInteraction,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
     });
 
     it('filters gas_payment fee legs when activity redesign is on', () => {
@@ -750,6 +901,120 @@ describe('TransactionController Selectors', () => {
       expect(
         selectTransactionMetadataById(state, 'non-existent'),
       ).toBeUndefined();
+    });
+  });
+
+  describe('selectCurrentTransaction', () => {
+    const transaction = { id: 'pending' };
+    const override = { id: 'override' };
+
+    function createState(approvalId: string | null = transaction.id) {
+      return {
+        engine: {
+          backgroundState: {
+            ApprovalController: {
+              pendingApprovals:
+                approvalId === null
+                  ? {}
+                  : { [approvalId]: { id: approvalId, requestData: {} } },
+            },
+            TransactionController: {
+              transactions: [transaction, override],
+            },
+          },
+        },
+      } as unknown as Parameters<typeof selectCurrentTransaction>[0];
+    }
+
+    it('returns the transaction for the first pending approval', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state);
+
+      expect(result).toBe(transaction);
+    });
+
+    it('returns undefined when there are no pending approvals', () => {
+      const state = createState(null);
+
+      const result = selectCurrentTransaction(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the pending approval has no transaction', () => {
+      const state = createState('signature');
+
+      const result = selectCurrentTransaction(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the override transaction without a pending approval', () => {
+      const state = createState(null);
+
+      const result = selectCurrentTransaction(state, override.id);
+
+      expect(result).toBe(override);
+    });
+
+    it('prioritizes the override over the pending approval', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state, override.id);
+
+      expect(result).toBe(override);
+    });
+
+    it('does not fall back to the pending transaction for a missing override', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state, 'missing');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('uses the pending approval when the gas modal override is null', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state, null);
+
+      expect(result).toBe(transaction);
+    });
+
+    it('reuses the ID lookup when approval details change without changing its ID', () => {
+      const state = createState();
+      const initial = selectCurrentTransaction(state);
+      const recomputations = selectTransactionMetadataById.recomputations();
+      const approvalController =
+        state.engine.backgroundState.ApprovalController;
+      const approval = approvalController.pendingApprovals[transaction.id];
+      const nextState = {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            ApprovalController: {
+              ...approvalController,
+              pendingApprovals: {
+                ...approvalController.pendingApprovals,
+                [transaction.id]: {
+                  ...approval,
+                  requestData: { ...approval.requestData, name: 'Updated' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = selectCurrentTransaction(nextState);
+
+      expect(result).toBe(initial);
+      expect(selectTransactionMetadataById.recomputations()).toBe(
+        recomputations,
+      );
     });
   });
 

@@ -27,6 +27,8 @@ import {
   BottomSheetFooter,
   ButtonsAlignment,
   Button,
+  ButtonBase,
+  ButtonBaseSize,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
@@ -50,7 +52,7 @@ import {
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePositions, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -78,6 +80,35 @@ const priceValueTextProps = {
 } as const;
 
 /**
+ * Compact +/− control for %RoE fields. ButtonBase defaults to `self-start`,
+ * which pins the chip to the top of TextField's 48px row; force center so it
+ * lines up with the $ prefix, input text, and % suffix.
+ */
+const RoeSignBadge: React.FC<{
+  sign: '+' | '-';
+  onPress: () => void;
+  testID: string;
+  accessibilityLabel: string;
+  isDisabled: boolean;
+}> = ({ sign, onPress, testID, accessibilityLabel, isDisabled }) => (
+  <ButtonBase
+    size={ButtonBaseSize.Sm}
+    isDisabled={isDisabled}
+    onPress={onPress}
+    testID={testID}
+    accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel}
+    twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
+    textProps={{
+      variant: TextVariant.BodyMd,
+      color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+    }}
+  >
+    {sign}
+  </ButtonBase>
+);
+
+/**
  * Reserves HelpText vertical space so TP/SL sections do not jump when
  * expected PnL or validation errors appear. Uses an invisible danger+icon
  * HelpText as the in-flow sizer (tallest common single-line layout).
@@ -85,7 +116,8 @@ const priceValueTextProps = {
 const SectionHelpText: React.FC<{
   errorMessage?: string;
   expectedMessage?: string;
-}> = ({ errorMessage, expectedMessage }) => (
+  errorTestID?: string;
+}> = ({ errorMessage, expectedMessage, errorTestID }) => (
   <Box>
     <HelpText
       severity={HelpTextSeverity.Danger}
@@ -98,7 +130,11 @@ const SectionHelpText: React.FC<{
     </HelpText>
     {errorMessage ? (
       <Box twClassName="absolute inset-x-0 top-0">
-        <HelpText severity={HelpTextSeverity.Danger} showIcon>
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          showIcon
+          testID={errorTestID}
+        >
           {errorMessage}
         </HelpText>
       </Box>
@@ -248,7 +284,14 @@ const PerpsTPSLView: React.FC = () => {
   });
 
   // Extract form state and handlers for easier access
-  const { takeProfitPrice, stopLossPrice } = tpslForm.formState;
+  const {
+    takeProfitPrice,
+    stopLossPrice,
+    takeProfitPercentage,
+    stopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
+  } = tpslForm.formState;
 
   const {
     handleTakeProfitPriceChange,
@@ -270,6 +313,8 @@ const PerpsTPSLView: React.FC = () => {
     handleStopLossPercentageButton,
     handleTakeProfitOff,
     handleStopLossOff,
+    handleTakeProfitSignToggle,
+    handleStopLossSignToggle,
   } = tpslForm.buttons;
 
   const {
@@ -288,11 +333,23 @@ const PerpsTPSLView: React.FC = () => {
 
   // Determine if this is create (new order) or edit (existing position) TP/SL
   const isEditingExistingPosition = !!position;
+
+  // The route snapshot outlives the position. Once the live stream has loaded
+  // without it, submitting would attach TP/SL to nothing and the controller
+  // would record a failed Risk Management request for a benign venue race.
+  const { positions: livePositions, isInitialLoading: isPositionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
+    });
+  const isPositionGone =
+    isEditingExistingPosition &&
+    !isPositionsLoading &&
+    !livePositions.some((p) => p.symbol === position.symbol);
   const tpslScreenType = isEditingExistingPosition
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
 
-  usePerpsEventTracking({
+  const { track } = usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
@@ -397,12 +454,7 @@ const PerpsTPSLView: React.FC = () => {
       } else if (focusedInput === 'stopLossPrice') {
         handleStopLossPriceChange(value);
       } else if (focusedInput === 'stopLossPercentage') {
-        const trimmedValue = value.trim();
-        const valueToUse =
-          trimmedValue.length === 1 && trimmedValue !== '0'
-            ? `-${value}`
-            : value.trim();
-        handleStopLossPercentageChange(valueToUse);
+        handleStopLossPercentageChange(value.trim());
       }
     },
     [
@@ -490,7 +542,7 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput]);
 
   const handleConfirm = useCallback(async () => {
-    if (!hasChanges || !isValid || isUpdating) {
+    if (!hasChanges || !isValid || isUpdating || isPositionGone) {
       return;
     }
 
@@ -525,11 +577,13 @@ const PerpsTPSLView: React.FC = () => {
       source: riskSource,
       ...toPerpsEntryAttribution({ source: riskSource }),
       positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
-      takeProfitPercentage: formattedTakeProfitPercentage
-        ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+      takeProfitPercentage: takeProfitPercentage
+        ? (takeProfitSign === '-' ? -1 : 1) *
+          Math.abs(parseFloat(takeProfitPercentage.replace(/[^\d.-]/g, '')))
         : undefined,
-      stopLossPercentage: formattedStopLossPercentage
-        ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+      stopLossPercentage: stopLossPercentage
+        ? (stopLossSign === '-' ? -1 : 1) *
+          Math.abs(parseFloat(stopLossPercentage.replace(/[^\d.-]/g, '')))
         : undefined,
       isEditingExistingPosition,
       entryPrice: effectiveEntryPrice,
@@ -556,8 +610,10 @@ const PerpsTPSLView: React.FC = () => {
     navigation,
     actualDirection,
     position,
-    formattedTakeProfitPercentage,
-    formattedStopLossPercentage,
+    takeProfitPercentage,
+    stopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
     isEditingExistingPosition,
     effectiveEntryPrice,
     enableHaptics,
@@ -565,10 +621,60 @@ const PerpsTPSLView: React.FC = () => {
     hasChanges,
     isValid,
     isUpdating,
+    isPositionGone,
   ]);
 
-  const confirmDisabled = !hasChanges || !isValid || isUpdating;
+  const confirmDisabled =
+    !hasChanges || !isValid || isUpdating || isPositionGone;
   const inputsDisabled = isUpdating;
+
+  const handleTakeProfitSignPress = useCallback(() => {
+    if (inputsDisabled) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    const nextSign = takeProfitSign === '+' ? '-' : '+';
+    handleTakeProfitSignToggle();
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TPSL_ROE_SIGN_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.TP,
+      [PERPS_EVENT_PROPERTY.ROE_SIGN]: nextSign,
+    });
+  }, [
+    enableHaptics,
+    handleTakeProfitSignToggle,
+    inputsDisabled,
+    playSelection,
+    takeProfitSign,
+    track,
+  ]);
+
+  const handleStopLossSignPress = useCallback(() => {
+    if (inputsDisabled) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    const nextSign = stopLossSign === '-' ? '+' : '-';
+    handleStopLossSignToggle();
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TPSL_ROE_SIGN_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.SL,
+      [PERPS_EVENT_PROPERTY.ROE_SIGN]: nextSign,
+    });
+  }, [
+    enableHaptics,
+    handleStopLossSignToggle,
+    inputsDisabled,
+    playSelection,
+    stopLossSign,
+    track,
+  ]);
 
   const handleTakeProfitPresetPress = useCallback(
     (percentage: number) => {
@@ -865,12 +971,29 @@ const PerpsTPSLView: React.FC = () => {
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPercentageChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.profit_roe_placeholder')}
+                  placeholder={
+                    takeProfitSign === '-'
+                      ? strings('perps.tpsl.loss_roe_placeholder')
+                      : strings('perps.tpsl.profit_roe_placeholder')
+                  }
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
                   }}
                   onBlur={() => handleInputBlur('takeProfitPercentage')}
+                  startAccessory={
+                    <RoeSignBadge
+                      sign={takeProfitSign}
+                      onPress={handleTakeProfitSignPress}
+                      testID={
+                        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
+                      }
+                      accessibilityLabel={strings(
+                        'perps.tpsl.toggle_take_profit_sign',
+                      )}
+                      isDisabled={inputsDisabled}
+                    />
+                  }
                   endAccessory={
                     <Text
                       variant={TextVariant.BodyMd}
@@ -888,6 +1011,7 @@ const PerpsTPSLView: React.FC = () => {
               </Box>
 
               <SectionHelpText
+                errorTestID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR}
                 errorMessage={
                   takeProfitHasError ? takeProfitError || undefined : undefined
                 }
@@ -993,12 +1117,29 @@ const PerpsTPSLView: React.FC = () => {
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPercentageChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.loss_roe_placeholder')}
+                  placeholder={
+                    stopLossSign === '+'
+                      ? strings('perps.tpsl.gain_roe_placeholder')
+                      : strings('perps.tpsl.loss_roe_placeholder')
+                  }
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
                   }}
                   onBlur={() => handleInputBlur('stopLossPercentage')}
+                  startAccessory={
+                    <RoeSignBadge
+                      sign={stopLossSign}
+                      onPress={handleStopLossSignPress}
+                      testID={
+                        PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
+                      }
+                      accessibilityLabel={strings(
+                        'perps.tpsl.toggle_stop_loss_sign',
+                      )}
+                      isDisabled={inputsDisabled}
+                    />
+                  }
                   endAccessory={
                     <Text
                       variant={TextVariant.BodyMd}
@@ -1016,6 +1157,7 @@ const PerpsTPSLView: React.FC = () => {
               </Box>
 
               <SectionHelpText
+                errorTestID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR}
                 errorMessage={stopLossErrorMessage || undefined}
                 expectedMessage={
                   stopLossPrice

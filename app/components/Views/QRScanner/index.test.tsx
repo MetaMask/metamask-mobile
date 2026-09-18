@@ -74,6 +74,14 @@ jest.mock('../../../core/SDKConnectV2', () => ({
   },
 }));
 
+jest.mock(
+  '../../../core/DeeplinkManager/handlers/intent/handleBrowserUrl',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
+
 jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
   // Default to false (not handled) so QR scanner handles the content directly
   const mockParse = jest.fn().mockResolvedValue(false);
@@ -134,12 +142,6 @@ jest.mock('react-native/Libraries/Alert/Alert', () => {
   return { __esModule: true, default: alert, ...alert };
 });
 
-const { InteractionManager } = jest.requireActual('react-native');
-
-InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
-  callback(),
-);
-
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn().mockReturnValue(false),
 }));
@@ -190,7 +192,11 @@ const initialState = {
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/intent/handleBrowserUrl';
 
+const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
+  typeof handleBrowserUrl
+>;
 const mockUseAnalytics = jest.mocked(useAnalytics);
 
 describe('QrScanner', () => {
@@ -202,6 +208,7 @@ describe('QrScanner', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockLinkingOpenURL.mockClear();
+    mockHandleBrowserUrl.mockClear();
 
     // Reset isMetaMaskUniversalLink to default (false) — individual tests
     // that need it to return true will override this.
@@ -304,6 +311,12 @@ describe('QrScanner', () => {
     (SDKConnectV2Module.default.handleMwpDeeplink as jest.Mock).mockReset();
 
     mockNavigate.mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    // Restore real timers so waitFor() works in subsequent tests when a
+    // prior case enabled fake timers (J8 flaky-timer leak prevention).
+    jest.useRealTimers();
   });
 
   it('render matches snapshot', () => {
@@ -893,7 +906,7 @@ describe('QrScanner', () => {
         });
       });
 
-      it('tracks QR_SCANNED with url type when scanning URL and user confirms', async () => {
+      it('opens confirmed HTTP URLs in the in-app browser and tracks QR_SCANNED', async () => {
         const validatorsModule = jest.requireMock('../../../util/validators');
         (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
         (
@@ -952,9 +965,10 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]:
               ScanResult.URL_NAVIGATION_CONFIRMED,
           });
-          expect(mockLinkingOpenURL).toHaveBeenCalledWith(
-            'https://example.com',
-          );
+          expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+            url: 'https://example.com',
+          });
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
           expect(mockGoBack).toHaveBeenCalled();
         });
       });
@@ -1085,6 +1099,50 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
           });
           expect(lastCameraIsActive).toBe(false);
+        });
+      });
+
+      it('routes Solana Pay URIs through DeeplinkManager instead of unrecognized QR path', async () => {
+        const solanaPayUri =
+          'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=25.515000&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+        mockDerivePredefinedRecipientParams.mockReturnValue(undefined);
+        (SharedDeeplinkManager.parse as jest.Mock).mockImplementation(
+          async (
+            _url: string,
+            opts?: { onHandled?: () => void },
+          ): Promise<boolean> => {
+            opts?.onHandled?.();
+            return true;
+          },
+        );
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: solanaPayUri }]);
+        });
+
+        await waitFor(() => {
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            solanaPayUri,
+            expect.objectContaining({
+              origin: 'qr-code',
+            }),
+          );
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
+          expect(mockOnScanSuccess).not.toHaveBeenCalled();
         });
       });
 
@@ -1278,7 +1336,7 @@ describe('QrScanner', () => {
 
         expect(mockGoBack).toHaveBeenCalled();
 
-        // Wait for navigateToSendPage (happens in InteractionManager callback)
+        // Wait for navigateToSendPage (deferred with setTimeout)
         await waitFor(() => {
           expect(mockNavigateToSendPage).toHaveBeenCalledWith({
             location: 'qr_scanner',
@@ -1752,6 +1810,10 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
+        });
+
+        await waitFor(() => {
+          expect(mockNavigateToSendPage).toHaveBeenCalled();
         });
       });
     });

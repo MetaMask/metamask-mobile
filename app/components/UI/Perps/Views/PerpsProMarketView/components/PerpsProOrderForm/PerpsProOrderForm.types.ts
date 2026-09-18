@@ -59,6 +59,14 @@ export interface PerpsProOrderSummaryProps {
   feeDiscountPercentage?: number;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
+  /**
+   * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
+   * per suborder in place of Est Liquidation and Slippage.
+   */
+  twapSummary?: {
+    runtime: string;
+    sizePerSuborder: string;
+  };
 }
 
 export interface PerpsProTwapModel {
@@ -71,6 +79,7 @@ export interface PerpsProTwapModel {
   onHoursChange: (value: string) => void;
   onMinutesChange: (value: string) => void;
   onRandomizeChange: (value: boolean) => void;
+  onRuntimeInfoPress: () => void;
 }
 
 export interface PerpsProScaleOrderModel {
@@ -88,8 +97,8 @@ export interface PerpsProScaleOrderModel {
   onSizeSkewBlur: () => void;
   onSizeSkewInfoPress: () => void;
   rungs: ScaleOrderRung[];
-  marginRange: string;
-  liquidationRange: string;
+  margin: string;
+  liquidationPrice: string;
   fees: string;
 }
 
@@ -123,6 +132,8 @@ export interface PerpsProOrderFormProps {
   onLeveragePress?: () => void;
   orderType: OrderType;
   scaleOrder: PerpsProScaleOrderModel;
+  /** Live controller count used by the Chase limit guard. */
+  activeChaseCount?: number;
   scaleKeyboardScroll?: PerpsProScaleKeyboardScroll;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
@@ -137,6 +148,11 @@ export interface PerpsProOrderFormProps {
   /** Fires on every limit price field tap, including while already focused. */
   onLimitPriceFieldPress?: () => void;
   onUseMidPricePress?: () => void;
+  chaseMaxDistance?: string;
+  onChaseMaxDistanceChange?: (value: string) => void;
+  chaseMaxDistanceUnit?: 'usd' | 'percent';
+  onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
+  chaseReferencePrice?: string;
   triggerPrice?: string;
   onTriggerPriceChange?: (value: string) => void;
   onTriggerPriceFocus?: () => void;
@@ -170,5 +186,5 @@ export interface PerpsProOrderFormProps {
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;
   isPlaceOrderLoading?: boolean;
-  onPlaceOrderPress: () => void;
+  onPlaceOrderPress: () => Promise<void>;
 }

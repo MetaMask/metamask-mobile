@@ -1,11 +1,16 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
-import { HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY } from '../../components/Views/Homepage/abTestConfig';
+import {
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+  HOMEPAGE_EARN_SECTION_AB_KEY,
+  PERPS_SECTION_PRIORITY_AB_KEY,
+} from '../../components/Views/Homepage/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
+import { PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY } from '../../components/UI/Perps/abTestConfig';
 
 describe('enrichWithABTests', () => {
   it('injects one active assignment for a matching allowlisted event', () => {
@@ -314,6 +319,55 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
+  it('enriches homepage Earn section Home Viewed events', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
+      .addProperties({
+        section_name: 'earn',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      [HOMEPAGE_EARN_SECTION_AB_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(HOMEPAGE_EARN_SECTION_AB_KEY, 'treatment'),
+    ]);
+  });
+
+  it('attaches the Perps screen-vs-bottom-sheet assignment to close-position conversion events', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+        'treatment',
+      ),
+    ]);
+  });
+
+  it.each([
+    MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    MetaMetricsEvents.PERPS_UI_INTERACTION,
+  ])(
+    'does not attach the Perps screen-vs-bottom-sheet assignment to broad %s events',
+    (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    },
+  );
+
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       'Token Details Opened',
@@ -332,5 +386,131 @@ describe('enrichWithABTests', () => {
 
     expect(result.properties.button_type).toBe('card');
     expect(result.sensitiveProperties).toEqual({ sensitive: 'value' });
+  });
+
+  describe('perps section priority', () => {
+    it.each([
+      [MetaMetricsEvents.HOME_VIEWED],
+      [MetaMetricsEvents.PERPS_UI_INTERACTION],
+      [MetaMetricsEvents.PERPS_TRADE_TRANSACTION],
+    ])('enriches %s with the assigned variant', (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          PERPS_SECTION_PRIORITY_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    });
+
+    it('enriches a token-row tap so the guardrail can be split by variant', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+      )
+        .addProperties({ source: 'mobile-token-list' })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties).toMatchObject({
+        source: 'mobile-token-list',
+        active_ab_tests: [
+          createActiveABTestAssignment(
+            PERPS_SECTION_PRIORITY_AB_KEY,
+            'treatment',
+          ),
+        ],
+      });
+    });
+
+    it('carries the control variant so both arms are comparable', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      )
+        .addProperties({ location: 'home' })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'control',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(PERPS_SECTION_PRIORITY_AB_KEY, 'control'),
+      ]);
+    });
+
+    it('enriches a home action button so the guardrail can be split by variant', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      )
+        .addProperties({ location: 'home' })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          PERPS_SECTION_PRIORITY_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    });
+
+    // The experiment only reorders sections on wallet home, so guardrails
+    // fired from other surfaces would dilute the metric without biasing it.
+    it.each([['asset details'], ['navbar'], ['onboarding_checklist']])(
+      'does not enrich an action button clicked from %s',
+      (location) => {
+        const event = AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+        )
+          .addProperties({ location })
+          .build();
+
+        const result = enrichWithABTests(event, {
+          [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+        });
+
+        expect(result.properties.active_ab_tests).toBeUndefined();
+      },
+    );
+
+    it.each([['mobile-token-list-page'], ['search'], ['notification']])(
+      'does not enrich token details opened from %s',
+      (source) => {
+        const event = AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+        )
+          .addProperties({ source })
+          .build();
+
+        const result = enrichWithABTests(event, {
+          [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+        });
+
+        expect(result.properties.active_ab_tests).toBeUndefined();
+      },
+    );
+
+    it('does not enrich events outside the mapping', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_HOME_VIEWED,
+      ).build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    });
   });
 });

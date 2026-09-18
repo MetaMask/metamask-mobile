@@ -132,8 +132,13 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { predictNextControllerInit } from './controllers/predict-next-controller-init';
+import {
+  predictLiveDataServiceInit,
+  predictMarketDataServiceInit,
+  predictPortfolioServiceInit,
+} from './controllers/predict-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
+import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
@@ -165,13 +170,13 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
+import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
-import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -183,13 +188,16 @@ import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
-import { configRegistryApiServiceInit } from './controllers/config-registry-api-service-init.ts';
+import { kycServiceInit } from './controllers/kyc/kyc-service-init';
+import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -382,30 +390,36 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PredictNextController: predictNextControllerInit,
+        PredictMarketDataService: predictMarketDataServiceInit,
+        PredictLiveDataService: predictLiveDataServiceInit,
+        PredictPortfolioService: predictPortfolioServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
+        RewardsMoneyController: rewardsMoneyControllerInit,
+        RewardsMoneyDataService: rewardsMoneyDataServiceInit,
         DelegationController: DelegationControllerInit,
         NetworkConnectionBannerController:
           networkConnectionBannerControllerInit,
-        ConfigRegistryController: configRegistryControllerInit,
-        ConfigRegistryApiService: configRegistryApiServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
+        NeoBankService: neoBankServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
+        UiSlotsController: uiSlotsControllerInit,
         QrSyncController: qrSyncControllerInit,
         QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        KycService: kycServiceInit,
+        KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
@@ -440,8 +454,9 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
-    const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
+    const rewardsMoneyController =
+      messengerClientsByName.RewardsMoneyController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
     const selectedNetworkController =
@@ -462,6 +477,12 @@ export class Engine {
     const subscriptionService = this.#wallet.getInstance('SubscriptionService');
     const shieldController = this.#wallet.getInstance('ShieldController');
     const claimsController = this.#wallet.getInstance('ClaimsController');
+    const configRegistryController = this.#wallet.getInstance(
+      'ConfigRegistryController',
+    );
+    const configRegistryApiService = this.#wallet.getInstance(
+      'ConfigRegistryApiService',
+    );
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -469,6 +490,7 @@ export class Engine {
       messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
+    const neoBankService = messengerClientsByName.NeoBankService;
     const rampsController = messengerClientsByName.RampsController;
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
@@ -476,9 +498,12 @@ export class Engine {
     const authenticatedUserStorageService =
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
+    const uiSlotsController = messengerClientsByName.UiSlotsController;
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
+    const kycService = messengerClientsByName.KycService;
+    const kycController = messengerClientsByName.KycController;
     const qrSyncProvisioningService =
       messengerClientsByName.QrSyncProvisioningService;
 
@@ -593,8 +618,8 @@ export class Engine {
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
       NetworkConnectionBannerController: networkConnectionBannerController,
-      ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
-      ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
+      ConfigRegistryController: configRegistryController,
+      ConfigRegistryApiService: configRegistryApiService,
       SentinelApiService: messengerClientsByName.SentinelApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
@@ -669,25 +694,32 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
-      PredictNextController: predictNextController,
+      PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
+      PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       RewardsController: rewardsController,
+      RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
+      NeoBankService: neoBankService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
+      UiSlotsController: uiSlotsController,
       QrSyncController: messengerClientsByName.QrSyncController,
       QrSyncProvisioningService: qrSyncProvisioningService,
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      KycService: kycService,
+      KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
@@ -963,6 +995,30 @@ export class Engine {
       previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
       syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
     });
+
+    // Force-refresh flags when a canonical profile id first becomes available
+    let previousCanonicalProfileId =
+      Object.entries(
+        this.controllerMessenger.call('AuthenticationController:getState')
+          .srpSessionData ?? {},
+      )?.[0]?.[1]?.profile?.canonicalProfileId ?? '';
+
+    this.controllerMessenger.subscribe(
+      'AuthenticationController:stateChange',
+      ({ srpSessionData }) => {
+        const canonicalProfileId =
+          Object.entries(srpSessionData ?? {})?.[0]?.[1]?.profile
+            ?.canonicalProfileId ?? '';
+        if (canonicalProfileId === previousCanonicalProfileId) {
+          return;
+        }
+
+        previousCanonicalProfileId = canonicalProfileId;
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags(true)
+          .catch((error) => Logger.log('Feature flags update failed: ', error));
+      },
+    );
 
     Engine.instance = this;
   }
@@ -1352,6 +1408,7 @@ export class Engine {
       methodData: {},
       transactions: [],
       transactionBatches: [],
+      batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
@@ -1519,6 +1576,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       CardController,
+      UiSlotsController,
       ConfigRegistryController,
       ConnectivityController,
       NetworkConnectionBannerController,
@@ -1543,6 +1601,7 @@ export default {
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
+      RewardsMoneyController,
       SeedlessOnboardingController,
       SelectedNetworkController,
       SignatureController,
@@ -1561,6 +1620,7 @@ export default {
       ClientController,
       SocialController,
       ComplianceController,
+      KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
@@ -1623,6 +1683,7 @@ export default {
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,
+      RewardsMoneyController: RewardsMoneyController.state,
       SeedlessOnboardingController: SeedlessOnboardingController.state,
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
@@ -1641,8 +1702,10 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       CardController: CardController.state,
+      UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
+      KycController: KycController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -597,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -620,8 +622,10 @@
     "transactionData": {}
   },
   "ProfileMetricsController": {
+    "accountSourceBackfillEnqueued": false,
     "initialEnqueueCompleted": false,
     "proofBackfillEnqueued": false,
+    "reportedAccounts": [],
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -629,7 +633,8 @@
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
     "isContactSyncingEnabled": true,
-    "isContactSyncingInProgress": false
+    "isContactSyncingInProgress": false,
+    "isRampsSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
@@ -769,7 +774,13 @@
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {
@@ -783,6 +794,42 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "phase": "idle",
+    "statusMessage": "",
+    "error": null,
+    "email": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null,
+    "vendorDisclaimers": [],
+    "vendorError": null,
+    "sessionDisclaimers": null,
+    "geoCountry": null,
+    "moonpaySessionToken": null,
+    "moonpayAccessToken": null,
+    "moonpayCustomerId": null,
+    "activeVendor": "moonpay",
+    "activeProduct": null,
+    "kycRequiredByProduct": {},
+    "lastCheckedAt": null,
+    "userStatus": null,
+    "userStatusSumsubSessionId": null,
+    "userStatusErrorCode": null,
+    "sumsub": {
+      "status": "idle",
+      "result": null,
+      "sessionId": null,
+      "applicantAccessToken": null,
+      "sessionStatus": null
+    }
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -868,6 +915,7 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "perpsTradingCampaignPrizePool": {},
     "predictThePitchLeaderboard": {},
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
@@ -876,7 +924,6 @@
     "moneyAccountSweepstakesPrizePool": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
-    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -890,8 +937,20 @@
     "subscriptions": {},
     "rewardsEnvUrl": null
   },
+  "RewardsMoneyController": {
+    "referralMe": {},
+    "referralCodes": {},
+    "referralFunnel": {},
+    "earningsSummary": {},
+    "earningsLedgerFirstPage": {},
+    "claimHistoryFirstPage": {},
+    "commissionsFirstPage": {},
+    "claimById": {},
+    "rewardsMoneyEnvUrl": null
+  },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
@@ -915,11 +974,9 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

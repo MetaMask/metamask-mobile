@@ -4,6 +4,8 @@ export const BridgeViewSelectorsIDs = {
   SOURCE_TOKEN_INPUT: 'source-token-area-input',
   SOURCE_AMOUNT_TYPE_TOGGLE: 'source-token-area-amount-type-toggle',
   DESTINATION_TOKEN_INPUT: 'dest-token-area-input',
+  /** Dedicated back control — do not reuse generic `button-icon` (collides with settings). */
+  BACK_BUTTON: 'bridge-back-button',
   SLIPPAGE_SETTINGS_BUTTON: 'bridge-slippage-settings-button',
   CONFIRM_BUTTON: 'bridge-confirm-button',
   CONFIRM_BUTTON_KEYPAD: 'bridge-confirm-button-keypad',
@@ -12,6 +14,8 @@ export const BridgeViewSelectorsIDs = {
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
+  OFF_HOURS_TRADING_BANNER: 'bridge-off-hours-trading-banner',
+  MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',

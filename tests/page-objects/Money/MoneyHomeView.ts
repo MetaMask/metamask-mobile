@@ -90,10 +90,13 @@ class MoneyHomeView {
   private async waitForMoneyAccountReady(timeout: number): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const [hasBalance, isUnavailable] = await Promise.all([
-          Utilities.isElementVisible(this.balance),
-          Utilities.isElementVisible(this.unavailableBalance),
-        ]);
+        // Appium's implicit timeout is session-global. Running these probes in
+        // parallel lets each helper overwrite the other's timeout and can pair
+        // one selector with the other selector's response.
+        const hasBalance = await Utilities.isElementVisible(this.balance);
+        const isUnavailable = hasBalance
+          ? false
+          : await Utilities.isElementVisible(this.unavailableBalance);
         if (!hasBalance && !isUnavailable) {
           throw new Error('Money account not ready yet');
         }

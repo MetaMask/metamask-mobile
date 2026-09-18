@@ -40,7 +40,14 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
 }));
+
+const mockUsePerpsLivePositions =
+  jest.requireMock('../../hooks/stream').usePerpsLivePositions;
 
 jest.mock('../../hooks/usePerpsLiquidationPrice', () => ({
   usePerpsLiquidationPrice: jest.fn(() => ({
@@ -125,6 +132,8 @@ describe('PerpsTPSLView', () => {
       slPercentInputFocused: false,
       tpUsingPercentage: false,
       slUsingPercentage: false,
+      takeProfitSign: '+' as const,
+      stopLossSign: '-' as const,
     },
     handlers: {
       handleTakeProfitPriceChange: jest.fn(),
@@ -145,6 +154,8 @@ describe('PerpsTPSLView', () => {
       handleStopLossPercentageButton: jest.fn(),
       handleTakeProfitOff: jest.fn(),
       handleStopLossOff: jest.fn(),
+      handleTakeProfitSignToggle: jest.fn(),
+      handleStopLossSignToggle: jest.fn(),
     },
     validation: {
       isValid: true,
@@ -171,6 +182,10 @@ describe('PerpsTPSLView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
     mockRouteParams = { ...defaultRouteParams };
   });
 
@@ -199,6 +214,49 @@ describe('PerpsTPSLView', () => {
 
   const getStopLossPercentageInput = () =>
     screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT);
+
+  it('renders take profit and stop loss RoE sign badges', () => {
+    renderView();
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls take profit sign toggle when the TP badge is pressed', () => {
+    const mockHandler = jest.fn();
+    renderView({
+      buttons: {
+        ...defaultMockReturn.buttons,
+        handleTakeProfitSignToggle: mockHandler,
+      },
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
+    );
+
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls stop loss sign toggle when the SL badge is pressed', () => {
+    const mockHandler = jest.fn();
+    renderView({
+      buttons: {
+        ...defaultMockReturn.buttons,
+        handleStopLossSignToggle: mockHandler,
+      },
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    );
+
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
 
   // ==================== User Interactions ====================
 
@@ -786,6 +844,109 @@ describe('PerpsTPSLView', () => {
       expect(
         screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
       ).toBeOnTheScreen();
+    });
+  });
+
+  // ==================== Stale position ====================
+
+  describe('Stale position', () => {
+    const stalePosition: Position = {
+      symbol: 'ETH',
+      entryPrice: '2800.00',
+      size: '0.5',
+      positionValue: '1400.00',
+      unrealizedPnl: '100.00',
+      marginUsed: '140.00',
+      leverage: { type: 'isolated', value: 10 },
+      liquidationPrice: '2500.00',
+      maxLeverage: 50,
+      returnOnEquity: '0.71',
+      cumulativeFunding: {
+        allTime: '0.00',
+        sinceOpen: '0.00',
+        sinceChange: '0.00',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    const renderEditingView = (onConfirm: jest.Mock) => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        position: stalePosition,
+        onConfirm,
+      };
+
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
+    };
+
+    it('submits TP/SL while the live position is still open', async () => {
+      // Arrange
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [stalePosition],
+        isInitialLoading: false,
+      });
+      renderEditingView(mockOnConfirm);
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      // Assert
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    it('does not submit TP/SL once the live stream drops the position', async () => {
+      // Arrange
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      renderEditingView(mockOnConfirm);
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      // Assert
+      expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+
+    it('keeps TP/SL submittable while live positions are still loading', async () => {
+      // Arrange
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+      renderEditingView(mockOnConfirm);
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      // Assert
+      expect(mockOnConfirm).toHaveBeenCalled();
     });
   });
 

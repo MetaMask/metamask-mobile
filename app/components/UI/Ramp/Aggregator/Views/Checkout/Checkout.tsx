@@ -42,6 +42,7 @@ import styleSheet from './Checkout.styles';
 import { useTheme } from '../../../../../../util/theme';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 import { getProviderWebviewColors } from '../../../utils/getProviderWebviewColors';
+import { needsLegacyApplePay } from '../../../utils/needsLegacyApplePay';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -296,7 +297,7 @@ const CheckoutWebView = () => {
             }
           }}
           allowsInlineMediaPlayback
-          enableApplePay
+          enableApplePay={needsLegacyApplePay()}
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           originWhitelist={[

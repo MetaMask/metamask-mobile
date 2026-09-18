@@ -26,6 +26,7 @@ import {
 import { endTrace, TraceName } from '../../../../../util/trace';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../hooks/useViewportTracking';
+import { getMarketInsightsTraceEndData } from '../../utils/marketInsightsPerformance';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
@@ -165,6 +166,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   onPress,
   onDisclaimerPress,
   caip19Id,
+  traceId,
   source,
   testID,
 }) => {
@@ -222,16 +224,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   const { ref: cardRef, onLayout: onVisibilityLayout } = useViewportTracking(
     handleVisible,
     VISIBILITY_THRESHOLD,
+    { source, stage: 'entry_card' },
   );
 
   useEffect(() => {
-    if (caip19Id) {
+    const entryTraceId = traceId ?? caip19Id;
+    if (entryTraceId) {
       endTrace({
         name: TraceName.MarketInsightsEntryCardLoad,
-        id: caip19Id,
+        id: entryTraceId,
+        data: getMarketInsightsTraceEndData('success'),
       });
     }
-  }, [caip19Id]);
+  }, [caip19Id, traceId]);
 
   const handleLayout = useCallback(
     (event: { nativeEvent: { layout: { width: number; height: number } } }) => {

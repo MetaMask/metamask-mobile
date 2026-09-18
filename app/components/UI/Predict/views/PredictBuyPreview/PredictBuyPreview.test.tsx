@@ -553,6 +553,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$50'));
       fireEvent.press(screen.getByText('Done'));
       fireEvent.press(screen.getAllByText('Total')[0]);
 

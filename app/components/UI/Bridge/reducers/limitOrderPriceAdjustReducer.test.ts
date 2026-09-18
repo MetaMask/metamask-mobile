@@ -1,6 +1,6 @@
 import { LimitOrderExecutionType } from '../constants/limitOrders';
 import {
-  initialLimitOrderPriceAdjustState,
+  getInitialLimitOrderPriceAdjustState,
   limitOrderPriceAdjustReducer,
   type LimitOrderPriceAdjustState,
 } from './limitOrderPriceAdjustReducer';
@@ -9,25 +9,46 @@ const modifiedState: LimitOrderPriceAdjustState = {
   executionType: LimitOrderExecutionType.SELL,
   limitPrice: '120',
   isLimitFiatMode: false,
-  hasUserEditedLimitPrice: true,
+  isTrackingMarket: false,
   isCustomActive: true,
   customValue: '8',
 };
 
+const initialLimitOrderPriceAdjustState = getInitialLimitOrderPriceAdjustState({
+  executionType: LimitOrderExecutionType.BUY,
+  isLimitFiatMode: true,
+});
+
 describe('limitOrderPriceAdjustReducer', () => {
-  it('matches the expected initial state', () => {
+  it('starts price fields unset on the side and denomination it is given', () => {
     expect(initialLimitOrderPriceAdjustState).toEqual({
       executionType: LimitOrderExecutionType.BUY,
       limitPrice: undefined,
       isLimitFiatMode: true,
-      hasUserEditedLimitPrice: false,
+      isTrackingMarket: true,
+      isCustomActive: false,
+      customValue: undefined,
+    });
+  });
+
+  it('starts on the counter-token denomination when it is given one', () => {
+    expect(
+      getInitialLimitOrderPriceAdjustState({
+        executionType: LimitOrderExecutionType.SELL,
+        isLimitFiatMode: false,
+      }),
+    ).toEqual({
+      executionType: LimitOrderExecutionType.SELL,
+      limitPrice: undefined,
+      isLimitFiatMode: false,
+      isTrackingMarket: true,
       isCustomActive: false,
       customValue: undefined,
     });
   });
 
   describe('setLimitPrice', () => {
-    it('stores the limit price and marks the limit price as user edited', () => {
+    it('stores the limit price and stops market tracking', () => {
       const result = limitOrderPriceAdjustReducer(
         initialLimitOrderPriceAdjustState,
         { type: 'setLimitPrice', limitPrice: '95' },
@@ -36,7 +57,7 @@ describe('limitOrderPriceAdjustReducer', () => {
       expect(result).toEqual({
         ...initialLimitOrderPriceAdjustState,
         limitPrice: '95',
-        hasUserEditedLimitPrice: true,
+        isTrackingMarket: false,
       });
     });
   });
@@ -46,12 +67,29 @@ describe('limitOrderPriceAdjustReducer', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'applyPreset',
         limitPrice: '110',
+        isTrackingMarket: false,
       });
 
       expect(result).toEqual({
         ...modifiedState,
         limitPrice: '110',
-        hasUserEditedLimitPrice: true,
+        isTrackingMarket: false,
+        isCustomActive: false,
+        customValue: undefined,
+      });
+    });
+
+    it('resumes market tracking for a market preset', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'applyPreset',
+        limitPrice: '100',
+        isTrackingMarket: true,
+      });
+
+      expect(result).toEqual({
+        ...modifiedState,
+        limitPrice: '100',
+        isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
       });
@@ -60,6 +98,7 @@ describe('limitOrderPriceAdjustReducer', () => {
     it('clears custom mode without changing limit price when preset value is omitted', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'applyPreset',
+        isTrackingMarket: false,
       });
 
       expect(result).toEqual({
@@ -70,8 +109,59 @@ describe('limitOrderPriceAdjustReducer', () => {
     });
   });
 
+  describe('commitCustomPercent', () => {
+    it('stores the limit price and keeps custom mode active', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'commitCustomPercent',
+        limitPrice: '130',
+        isTrackingMarket: false,
+        customValue: '8',
+      });
+
+      expect(result).toEqual({
+        ...modifiedState,
+        limitPrice: '130',
+        isTrackingMarket: false,
+        isCustomActive: true,
+        customValue: '8',
+      });
+    });
+
+    it('resumes market tracking when the committed percent is market', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'commitCustomPercent',
+        limitPrice: '100',
+        isTrackingMarket: true,
+        customValue: '0',
+      });
+
+      expect(result).toEqual({
+        ...modifiedState,
+        limitPrice: '100',
+        isTrackingMarket: true,
+        customValue: '0',
+      });
+    });
+
+    it('stores the clamped custom value when a capped percent is committed', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'commitCustomPercent',
+        limitPrice: '199',
+        isTrackingMarket: false,
+        customValue: '99',
+      });
+
+      expect(result).toEqual({
+        ...modifiedState,
+        limitPrice: '199',
+        isTrackingMarket: false,
+        customValue: '99',
+      });
+    });
+  });
+
   describe('seedFromMarket', () => {
-    it('seeds market price without marking user edits or changing denomination', () => {
+    it('seeds market price without changing tracking or denomination', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'seedFromMarket',
         limitPrice: '100',
@@ -81,6 +171,15 @@ describe('limitOrderPriceAdjustReducer', () => {
         ...modifiedState,
         limitPrice: '100',
       });
+    });
+
+    it('returns the same state when the seeded price is unchanged', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'seedFromMarket',
+        limitPrice: modifiedState.limitPrice as string,
+      });
+
+      expect(result).toBe(modifiedState);
     });
   });
 
@@ -127,7 +226,7 @@ describe('limitOrderPriceAdjustReducer', () => {
   });
 
   describe('toggleFiatMode', () => {
-    it('toggles fiat mode, stores the converted limit price, and marks the limit price as user edited', () => {
+    it('toggles fiat mode, stores the converted limit price, and stops market tracking', () => {
       const result = limitOrderPriceAdjustReducer(
         {
           ...initialLimitOrderPriceAdjustState,
@@ -140,7 +239,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         ...initialLimitOrderPriceAdjustState,
         isLimitFiatMode: false,
         limitPrice: '0.05',
-        hasUserEditedLimitPrice: true,
+        isTrackingMarket: false,
       });
     });
 
@@ -165,35 +264,37 @@ describe('limitOrderPriceAdjustReducer', () => {
   });
 
   describe('flipSide', () => {
-    it('flips buy to sell and resets price fields', () => {
+    it('flips sell to buy and resets price fields onto the given denomination', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'flipSide',
+        isLimitFiatMode: true,
       });
 
       expect(result).toEqual({
         executionType: LimitOrderExecutionType.BUY,
         limitPrice: undefined,
         isLimitFiatMode: true,
-        hasUserEditedLimitPrice: false,
+        isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
       });
     });
 
-    it('flips sell to buy and resets price fields', () => {
+    it('flips buy to sell and resets price fields onto the given denomination', () => {
       const result = limitOrderPriceAdjustReducer(
         {
           ...modifiedState,
           executionType: LimitOrderExecutionType.BUY,
+          isLimitFiatMode: true,
         },
-        { type: 'flipSide' },
+        { type: 'flipSide', isLimitFiatMode: false },
       );
 
       expect(result).toEqual({
         executionType: LimitOrderExecutionType.SELL,
         limitPrice: undefined,
-        isLimitFiatMode: true,
-        hasUserEditedLimitPrice: false,
+        isLimitFiatMode: false,
+        isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
       });
@@ -201,16 +302,38 @@ describe('limitOrderPriceAdjustReducer', () => {
   });
 
   describe('reset', () => {
-    it('resets price fields while preserving execution type', () => {
+    it('resets price fields onto the given side and denomination', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'reset',
+        executionType: LimitOrderExecutionType.BUY,
+        isLimitFiatMode: true,
       });
+
+      expect(result).toEqual({
+        executionType: LimitOrderExecutionType.BUY,
+        limitPrice: undefined,
+        isLimitFiatMode: true,
+        isTrackingMarket: true,
+        isCustomActive: false,
+        customValue: undefined,
+      });
+    });
+
+    it('resets price fields onto the counter-token denomination of a sell', () => {
+      const result = limitOrderPriceAdjustReducer(
+        { ...modifiedState, executionType: LimitOrderExecutionType.BUY },
+        {
+          type: 'reset',
+          executionType: LimitOrderExecutionType.SELL,
+          isLimitFiatMode: false,
+        },
+      );
 
       expect(result).toEqual({
         executionType: LimitOrderExecutionType.SELL,
         limitPrice: undefined,
-        isLimitFiatMode: true,
-        hasUserEditedLimitPrice: false,
+        isLimitFiatMode: false,
+        isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
       });

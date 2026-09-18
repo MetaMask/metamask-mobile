@@ -14,8 +14,8 @@ import {
   TextButton,
   TextColor,
   TextVariant,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
-import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
@@ -39,6 +39,7 @@ export interface CardTransactionDetailsContentProps {
   locationLabel?: string;
   declineReason?: string;
   transactionId?: string;
+  networkFeeLabel?: string;
   heroToken: CardTransactionHeroToken;
   heroIconTestID?: string;
   onBack: () => void;
@@ -60,6 +61,7 @@ const CardTransactionDetailsContent = ({
   locationLabel,
   declineReason,
   transactionId,
+  networkFeeLabel,
   heroToken,
   heroIconTestID = 'card-transaction-details-asset-icon',
   onBack,
@@ -159,6 +161,14 @@ const CardTransactionDetailsContent = ({
                     testID="card-transaction-details-copy-id"
                   />
                 </Box>
+              </TransactionDetailsRow>
+            ) : null}
+
+            {networkFeeLabel ? (
+              <TransactionDetailsRow
+                label={strings('card.transactions.network_fee')}
+              >
+                <Text>{networkFeeLabel}</Text>
               </TransactionDetailsRow>
             ) : null}
 
