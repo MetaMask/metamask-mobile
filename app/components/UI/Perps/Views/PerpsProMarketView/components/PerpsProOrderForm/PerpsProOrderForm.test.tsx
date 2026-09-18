@@ -1604,8 +1604,8 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('direction control', () => {
-    it('uses semantic Long and Short palettes', () => {
-      renderForm();
+    it('fills only the selected Long side with the success palette', () => {
+      renderForm({ direction: 'long' });
 
       expect(screen.getByTestId(ids.DIRECTION_LONG)).toHaveStyle({
         backgroundColor: lightTheme.colors.success.default,
@@ -1613,11 +1613,28 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByText(strings('perps.market.long'))).toHaveStyle({
         color: lightTheme.colors.success.inverse,
       });
+      expect(screen.getByTestId(ids.DIRECTION_SHORT)).not.toHaveStyle({
+        backgroundColor: lightTheme.colors.error.default,
+      });
+      expect(screen.getByText(strings('perps.market.short'))).toHaveStyle({
+        color: lightTheme.colors.text.alternative,
+      });
+    });
+
+    it('fills only the selected Short side with the error palette', () => {
+      renderForm({ direction: 'short' });
+
       expect(screen.getByTestId(ids.DIRECTION_SHORT)).toHaveStyle({
         backgroundColor: lightTheme.colors.error.default,
       });
       expect(screen.getByText(strings('perps.market.short'))).toHaveStyle({
         color: lightTheme.colors.error.inverse,
+      });
+      expect(screen.getByTestId(ids.DIRECTION_LONG)).not.toHaveStyle({
+        backgroundColor: lightTheme.colors.success.default,
+      });
+      expect(screen.getByText(strings('perps.market.long'))).toHaveStyle({
+        color: lightTheme.colors.text.alternative,
       });
     });
 

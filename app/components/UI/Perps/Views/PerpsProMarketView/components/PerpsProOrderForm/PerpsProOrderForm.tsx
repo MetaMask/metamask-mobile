@@ -725,16 +725,22 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               testID={ids.DIRECTION_CONTROL}
             >
+              {/* Only the selected side is filled, so the control still reads
+                  as a selector rather than two competing CTAs. */}
               <FilterButton
                 value="long"
                 disabled={isScaleFormLocked}
-                twClassName="bg-success-default"
+                twClassName={isLong ? 'bg-success-default' : ''}
                 testID={ids.DIRECTION_LONG}
               >
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessInverse}
+                  color={
+                    isLong
+                      ? TextColor.SuccessInverse
+                      : TextColor.TextAlternative
+                  }
                 >
                   {strings('perps.market.long')}
                 </Text>
@@ -742,13 +748,15 @@ const PerpsProOrderForm = ({
               <FilterButton
                 value="short"
                 disabled={isScaleFormLocked}
-                twClassName="bg-error-default"
+                twClassName={isLong ? '' : 'bg-error-default'}
                 testID={ids.DIRECTION_SHORT}
               >
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.ErrorInverse}
+                  color={
+                    isLong ? TextColor.TextAlternative : TextColor.ErrorInverse
+                  }
                 >
                   {strings('perps.market.short')}
                 </Text>
