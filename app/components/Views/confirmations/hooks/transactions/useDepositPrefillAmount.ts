@@ -32,6 +32,7 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -65,6 +66,7 @@ export function useDepositPrefillAmount({
   autoSelectFiatPayment?: boolean;
 } = {}): DepositPrefillResult {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { amount } = useParams<{ amount?: string }>();
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
   const { availableTokens } = useTransactionPayAvailableTokens();
@@ -107,6 +109,11 @@ export function useDepositPrefillAmount({
       return prefilledAmountConfig.enabled;
     }
 
+    // An explicit starting amount must not be replaced by balance-based prefill.
+    if (amount !== undefined) {
+      return false;
+    }
+
     const { variantName } = resolveABTestAssignment(
       remoteFeatureFlags,
       MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
@@ -127,6 +134,7 @@ export function useDepositPrefillAmount({
       intent: depositIntent,
     });
   }, [
+    amount,
     depositIntent,
     isMoneyAccountDeposit,
     prefilledAmountConfig.enabled,
