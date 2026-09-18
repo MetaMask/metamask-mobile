@@ -7,7 +7,7 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
 import { selectNftByIdentity } from '../../../selectors/nftController';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { useNftActivityImage } from './useNftActivityImage';
-import { useApiEvmTransaction } from '../../hooks/useApiEvmTransaction';
+import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 jest.mock('@metamask/assets-controllers', () => ({
   getFormattedIpfsUrl: jest.fn(),
@@ -19,8 +19,8 @@ jest.mock('../../../selectors/nftController', () => ({
   selectNftByIdentity: jest.fn(),
 }));
 
-jest.mock('../../hooks/useApiEvmTransaction', () => ({
-  useApiEvmTransaction: jest.fn(),
+jest.mock('../../Views/ActivityList/hooks/activity/useCachedEvmTransaction', () => ({
+  useCachedEvmTransaction: jest.fn(),
 }));
 
 const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.MockedFunction<
@@ -32,9 +32,10 @@ const mockUseIpfsGateway = useIpfsGateway as jest.MockedFunction<
 const mockSelectNftByIdentity = selectNftByIdentity as jest.MockedFunction<
   typeof selectNftByIdentity
 >;
-const mockUseApiEvmTransaction = useApiEvmTransaction as jest.MockedFunction<
-  typeof useApiEvmTransaction
->;
+const mockUseCachedEvmTransaction =
+  useCachedEvmTransaction as jest.MockedFunction<
+    typeof useCachedEvmTransaction
+  >;
 
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
@@ -57,9 +58,9 @@ const makeNftBuyItem = (
     },
   ],
 ): ActivityListItem => {
-  mockUseApiEvmTransaction.mockReturnValue({
+  mockUseCachedEvmTransaction.mockReturnValue({
     valueTransfers,
-  } as ReturnType<typeof useApiEvmTransaction>);
+  } as ReturnType<typeof useCachedEvmTransaction>);
   return {
     type: 'nftBuy',
     chainId: 'eip155:1',
@@ -79,7 +80,7 @@ describe('useNftActivityImage', () => {
     jest.clearAllMocks();
     mockUseIpfsGateway.mockReturnValue(IPFS_GATEWAY);
     mockSelectNftByIdentity.mockReturnValue(undefined);
-    mockUseApiEvmTransaction.mockReturnValue(undefined);
+    mockUseCachedEvmTransaction.mockReturnValue(undefined);
   });
 
   it('returns undefined and skips the lookup for non-NFT kinds', () => {
@@ -126,7 +127,10 @@ describe('useNftActivityImage', () => {
 
     renderUseNftActivityImage(item);
 
-    expect(mockUseApiEvmTransaction).toHaveBeenCalledWith(undefined);
+    expect(mockUseCachedEvmTransaction).toHaveBeenCalledWith({
+      chainId: 'solana:mainnet',
+      txHash: 'solana-nft',
+    });
   });
 
   it('selects the NFT leg matching the activity, not the first NFT transfer', () => {

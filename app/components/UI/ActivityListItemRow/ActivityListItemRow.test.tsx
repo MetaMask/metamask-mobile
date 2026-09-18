@@ -180,14 +180,15 @@ jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
 
-const mockApiEvmTransactions = new Map<
+const mockCachedEvmTransactions = new Map<
   string,
   { transactionProtocol?: string }
 >();
 
-jest.mock('../../hooks/useApiEvmTransaction', () => ({
-  useApiEvmTransaction: (hash?: string) =>
-    (hash && mockApiEvmTransactions.get(hash.toLowerCase())) || undefined,
+jest.mock('../../Views/ActivityList/hooks/activity/useCachedEvmTransaction', () => ({
+  useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
+    (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
+    undefined,
 }));
 
 jest.mock('../Earn/constants/musd', () => ({
@@ -424,7 +425,7 @@ const makeItem = (
   };
 
   if (overrides.transactionProtocol) {
-    mockApiEvmTransactions.set(base.hash.toLowerCase(), {
+    mockCachedEvmTransactions.set(base.hash.toLowerCase(), {
       transactionProtocol: overrides.transactionProtocol,
     });
   }
@@ -473,7 +474,7 @@ const makeItem = (
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockApiEvmTransactions.clear();
+  mockCachedEvmTransactions.clear();
   jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
   jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
   jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);

@@ -51,7 +51,8 @@ import {
   resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
-import { useApiEvmTransaction } from '../../hooks/useApiEvmTransaction';
+/* eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list cache hook */
+import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -1172,18 +1173,17 @@ export function useActivityListItemRowContent(
     ? strings('transaction_details.label.money_account')
     : accountGroupName;
 
-  const apiEvmTransaction = useApiEvmTransaction(
-    item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
-      ? item.hash
-      : undefined,
-  );
+  const cachedEvmTransaction = useCachedEvmTransaction({
+    chainId: item.chainId,
+    txHash: item.hash,
+  });
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
     isMoneyAccountCounterparty,
-    apiEvmTransaction?.transactionProtocol,
+    cachedEvmTransaction?.transactionProtocol,
   );
 
   let basePrimaryToken: TokenAmount | undefined;
