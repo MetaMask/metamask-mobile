@@ -13,18 +13,23 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import {
-  BENEFITS,
+  BENEFITS_CONTENT_BY_VERSION,
   DEFAULT_PLAN,
   PLANS,
   type BenefitDetailItem,
   type PlanId,
-  BENEFIT_DETAILS,
 } from './Benefits.constants';
 import { BenefitsTestIds } from './Benefits.testIds';
 import { BenefitRow } from '../../../shared/pro';
 import BenefitDetails from './components/BenefitDetails';
 import PlanSelectorCard from './components/PlanSelectorCard';
 import { strings } from '../../../../../../locales/i18n';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  JOIN_PRO_PAYWALL_AB_TEST_EXPOSURE_OPTIONS,
+  JOIN_PRO_PAYWALL_AB_TEST_KEY,
+  JOIN_PRO_PAYWALL_VARIANTS,
+} from '../../abTestConfig';
 
 interface BenefitsProps {
   onSuccess: () => void;
@@ -32,6 +37,12 @@ interface BenefitsProps {
 }
 
 const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
+  const { variant } = useABTest(
+    JOIN_PRO_PAYWALL_AB_TEST_KEY,
+    JOIN_PRO_PAYWALL_VARIANTS,
+    JOIN_PRO_PAYWALL_AB_TEST_EXPOSURE_OPTIONS,
+  );
+  const content = BENEFITS_CONTENT_BY_VERSION[variant.contentVersion];
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -41,12 +52,15 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
   const [selectedBenfitDetail, setSelectedBenfitDetail] =
     useState<BenefitDetailItem | null>(null);
 
-  const handleBenefitPress = useCallback((id: string) => {
-    setIsBenefitDetailSheetOpen(true);
-    setSelectedBenfitDetail(
-      BENEFIT_DETAILS.find((detail) => detail.id === id) ?? null,
-    );
-  }, []);
+  const handleBenefitPress = useCallback(
+    (id: string) => {
+      setIsBenefitDetailSheetOpen(true);
+      setSelectedBenfitDetail(
+        content.benefitDetails.find((detail) => detail.id === id) ?? null,
+      );
+    },
+    [content.benefitDetails],
+  );
 
   const handleBenefitDetailSheetClose = useCallback(() => {
     setIsBenefitDetailSheetOpen(false);
@@ -64,7 +78,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
           twClassName="mb-2"
           testID={BenefitsTestIds.TITLE}
         >
-          {strings('pro_subscription.title')}
+          {strings(content.title)}
         </Text>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -77,7 +91,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
             color={TextColor.TextAlternative}
             testID={BenefitsTestIds.PRICE_LINE}
           >
-            {strings('pro_subscription.description')}
+            {strings(content.description)}
           </Text>
         </Box>
       </Box>
@@ -85,7 +99,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Benefits list */}
         <Box twClassName="px-4 pb-2">
-          {BENEFITS.map((item) => (
+          {content.benefits.map((item) => (
             <BenefitRow
               key={item.id}
               item={item}
@@ -114,7 +128,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
           testID={BenefitsTestIds.CTA_BUTTON}
           isFullWidth
         >
-          {strings('pro_subscription.join_pro')}
+          {strings(content.ctaLabel)}
         </Button>
       </Box>
 
