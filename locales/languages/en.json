@@ -9233,7 +9233,8 @@
       "order_not_found": "Order not found",
       "cancel_order": "Cancel order",
       "duplicate_order": "Duplicate order",
-      "cancel_confirmation_body": "Do you really want to cancel your order?"
+      "cancel_confirmation_title": "Are you sure?",
+      "cancel_confirmation_body": "If you continue, we'll cancel this recurring order. You'll have to create a new order to swap again."
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
