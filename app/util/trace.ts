@@ -217,6 +217,8 @@ export enum TraceName {
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Trade action -> bottom sheet content laid out and interactive. */
+  PerpsTradeSheetInteractive = 'Perps Trade Sheet Interactive',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
   /** Limit order submit tap -> resting order rendered in the live orders stream. */

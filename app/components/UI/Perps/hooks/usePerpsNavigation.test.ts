@@ -11,6 +11,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
+import { trace } from '../../../../util/trace';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -39,6 +40,12 @@ jest.mock('./usePerpsToasts', () => ({
 
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 jest.mock(
@@ -397,6 +404,11 @@ describe('usePerpsNavigation', () => {
           },
         );
       });
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps Trade Sheet Interactive',
+        }),
+      );
     });
 
     it('wraps order creation with transaction active A/B tests when provided', async () => {
