@@ -21,7 +21,12 @@
  */
 
 import fs from 'fs';
-import path from 'path';
+import {
+  listRunArtifacts,
+  linkScenarioNames,
+  readManifest,
+  scenarioDownloadMap,
+} from './link-scenario-artifacts.mjs';
 
 const SLACK_API = 'https://slack.com/api';
 /** Slack rejects text over 40k; leave room for the footer. */
@@ -137,62 +142,6 @@ function splitForSlack(markdown, maxLength = MAX_TEXT_LENGTH) {
   return parts;
 }
 
-function scenarioDownloadMap(artifacts, manifest, repo, runId) {
-  const byName = new Map(
-    artifacts
-      .filter((artifact) => !artifact.expired)
-      .map((artifact) => [artifact.name, artifact]),
-  );
-  return (manifest?.include || [])
-    .map((item) => {
-      const artifact = byName.get(item.artifactName);
-      if (!artifact || !item.scenario) {
-        return null;
-      }
-      return {
-        scenario: item.scenario,
-        url: `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`,
-      };
-    })
-    .filter(Boolean)
-    .sort((left, right) => right.scenario.length - left.scenario.length);
-}
-
-function linkScenarioNames(markdown, mappings) {
-  let text = String(markdown || '');
-  for (const { scenario, url } of mappings) {
-    const linked = `<${url}|${scenario}>`;
-    text = text
-      .split(/(<https?:\/\/[^>|]+\|[^>]+>)/)
-      .map((part, index) => {
-        if (index % 2 === 1) {
-          return part;
-        }
-        return part.split(`*${scenario}*`).join(linked).split(scenario).join(linked);
-      })
-      .join('');
-  }
-  return text;
-}
-
-async function listRunArtifacts(repo, runId, token, { fetchFn = fetch } = {}) {
-  const response = await fetchFn(
-    `https://api.github.com/repos/${repo}/actions/runs/${runId}/artifacts?per_page=100`,
-    {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    },
-  );
-  if (!response.ok) {
-    throw new Error(`GitHub artifacts HTTP ${response.status}`);
-  }
-  const payload = await response.json();
-  return payload.artifacts || [];
-}
-
 function addScenarioArtifactLinks(markdown, artifacts, { repo, runId, manifest }) {
   const mappings = scenarioDownloadMap(artifacts, manifest, repo, runId);
   if (mappings.length === 0) {
@@ -304,15 +253,10 @@ async function main() {
       githubRunId,
       githubToken,
     );
-    const manifestPath = path.join(
-      path.dirname(markdownPath),
-      'scenario-artifacts.json',
-    );
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
     markdown = addScenarioArtifactLinks(markdown, artifacts, {
       repo: githubRepository,
       runId: githubRunId,
-      manifest,
+      manifest: readManifest(markdownPath),
     });
   }
 
@@ -337,8 +281,6 @@ export {
   openDirectMessage,
   buildText,
   splitForSlack,
-  scenarioDownloadMap,
-  linkScenarioNames,
   addScenarioArtifactLinks,
   postSummary,
 };

@@ -173,8 +173,10 @@ jobs:
           set -euo pipefail
           echo "matrix=$(jq -c . /tmp/analyze-app-profiling/scenario-artifacts.json)" >> "$GITHUB_OUTPUT"
 
+      # The linked report is published by `publish-summary`, once artifact ids
+      # exist. This only covers the case where that job never runs.
       - name: Write job summary
-        if: always()
+        if: failure()
         run: |
           if [ -f /tmp/analyze-app-profiling/github-summary.md ]; then
             cat /tmp/analyze-app-profiling/github-summary.md >> "$GITHUB_STEP_SUMMARY"
@@ -253,16 +255,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  notify:
+  publish-summary:
     name: Post profiling summary
     needs:
       - analyze
       - upload-scenario-profiles
-    if: >-
-      always() &&
-      needs.analyze.result == 'success' &&
-      needs.upload-scenario-profiles.result == 'success' &&
-      (github.event_name != 'workflow_dispatch' || inputs.post_to_slack)
+    if: always() && needs.analyze.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -280,7 +278,25 @@ jobs:
           name: app-profiling-analysis
           path: /tmp/analyze-app-profiling
 
+      # Scenario names in the run report become the download for that
+      # scenario's profiles. Artifact ids do not exist before this job.
+      - name: Write job summary with per-scenario downloads
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          node .github/scripts/qa-automation/performance-tests/link-scenario-artifacts.mjs \
+            /tmp/analyze-app-profiling/github-summary.md \
+            /tmp/analyze-app-profiling/github-summary-linked.md \
+            --style markdown --optional
+          cat /tmp/analyze-app-profiling/github-summary-linked.md >> "$GITHUB_STEP_SUMMARY"
+
       - name: Post Slack summary
+        if: >-
+          needs.upload-scenario-profiles.result == 'success' &&
+          (github.event_name != 'workflow_dispatch' || inputs.post_to_slack)
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
