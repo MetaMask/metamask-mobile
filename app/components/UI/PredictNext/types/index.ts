@@ -132,9 +132,21 @@ export interface PredictMarket {
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
   group?: PredictMarketGroup;
+  /**
+   * Last traded price, yes-side, as of `updatedAt`. Absent when the Market has
+   * never traded. Streamed only; the REST read model does not carry it.
+   */
+  lastPrice?: PredictDecimal;
+  /** Contracts traded, not settlement currency. Same unit from REST and stream. */
   volume?: string;
   volume24h?: string;
   createdAt?: PredictTimestamp;
+  /**
+   * Two sources, two meanings. From REST it is the Venue's market-metadata
+   * update time and says nothing about when prices moved. Once a streamed
+   * quote has patched this Market it is that quote's observation time, i.e.
+   * when `lastPrice` and the outcome prices were last observed.
+   */
   updatedAt?: PredictTimestamp;
   opensAt?: PredictTimestamp;
   closesAt?: PredictTimestamp;

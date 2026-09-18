@@ -21,7 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFeed } from '../../hooks/useFeed';
-import { useEventsWithLiveGames } from '../../hooks/useEventsWithLiveGames';
+import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
 import {
@@ -182,7 +182,7 @@ const PredictFeedContent = ({
     () => getFeedWatchEventIds(feedEvents, visibleEventIds),
     [feedEvents, visibleEventIds],
   );
-  const events = useEventsWithLiveGames(venueId, feedEvents, watchEventIds);
+  const events = useEventsWithLiveData(venueId, feedEvents, watchEventIds);
   const hasInitialError = isError && events.length === 0;
 
   usePredictNextMeasurement({

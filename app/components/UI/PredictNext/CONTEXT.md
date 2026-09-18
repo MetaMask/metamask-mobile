@@ -177,11 +177,11 @@ The highest currently available per-share price to sell an Outcome, expressed in
 _Avoid_: Price, sell price, Yes bid
 
 **Volume**:
-Total settlement currency traded on a Market or Event across all users.
-_Avoid_: Liquidity
+Total number of contracts (shares) traded on a Market or Event across all users. This is the backend's share volume, sourced from Kalshi `volume_fp`; REST and streamed quotes report the same unit. Settlement-currency value traded is Dollar Volume, a separate backend field not yet served to mobile.
+_Avoid_: Liquidity, Dollar Volume
 
 **24-Hour Volume**:
-Settlement currency traded on a Market or Event during the trailing 24-hour window at the backend observation time.
+Number of contracts traded on a Market or Event during the trailing 24-hour window at the backend observation time.
 _Avoid_: Daily Volume, total Volume
 
 **Liquidity**:

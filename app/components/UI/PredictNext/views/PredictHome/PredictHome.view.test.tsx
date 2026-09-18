@@ -12,6 +12,7 @@ import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfo
 import type {
   PredictEntityId,
   PredictFeedId,
+  PredictTimestamp,
   PredictVenueId,
 } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
@@ -321,13 +322,11 @@ describe('PredictHome', () => {
         venueId: 'kalshi' as PredictVenueId,
         eventId: 'nfl-1' as PredictEntityId,
         type: 'football_game',
-        details: {
-          status: 'live',
-          away_points: 28,
-          home_points: 24,
-          quarter: 4,
-          clock: '01:12',
-        },
+        status: 'in_progress',
+        score: { away: '28', home: '24' },
+        period: 'Q4',
+        clock: '01:12',
+        observedAt: '2026-09-11T03:00:00.000Z' as PredictTimestamp,
       });
     });
 
