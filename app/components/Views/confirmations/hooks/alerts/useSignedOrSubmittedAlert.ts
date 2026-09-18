@@ -5,7 +5,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 
 import { useSelector } from 'react-redux';
@@ -75,7 +75,7 @@ export const useSignedOrSubmittedAlert = () => {
 
   return useMemo(() => {
     if (!showAlert || (isHardwarePayEnabled && isHardwareWallet)) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [
