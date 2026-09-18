@@ -15,6 +15,7 @@ import {
   writeGoldenSnapshotFingerprint,
 } from './AndroidGoldenSnapshot.ts';
 import { androidAdbServerPorts } from '../providers/emulator/android/androidDevicePool.ts';
+import { ensureAppiumSettingsAppInstalled } from './AppiumSettingsApp.ts';
 
 export {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
@@ -225,6 +226,16 @@ function enqueueAdb<T>(fn: () => Promise<T>): Promise<T> {
 async function ensureAdbServer(): Promise<void> {
   await enqueueAdb(async () => {
     await execAsync('adb start-server');
+  });
+}
+
+/**
+ * Sessions set `appium:skipDeviceInitialization`, so Appium never installs
+ * `io.appium.settings`. Media projection recording needs that package.
+ */
+async function installAppiumSettingsApp(serial: string): Promise<void> {
+  await enqueueAdb(async () => {
+    await ensureAppiumSettingsAppInstalled(serial);
   });
 }
 
@@ -732,12 +743,14 @@ export async function ensureAndroidEmulatorReady(
           `adb -s ${serial} shell getprop sys.boot_completed 2>/dev/null`,
         );
         if (stdout.trim() === '1') {
+          await installAppiumSettingsApp(serial);
           return serial;
         }
       } catch {
         // Fall through to full boot wait if the property check fails.
       }
       await waitForEmulatorBoot(serial);
+      await installAppiumSettingsApp(serial);
       return serial;
     }
     if (
@@ -748,6 +761,7 @@ export async function ensureAndroidEmulatorReady(
         `Configured Android emulator ${serial} is ${device.state} — waiting for boot instead of spawning a duplicate.`,
       );
       await waitForEmulatorBoot(serial);
+      await installAppiumSettingsApp(serial);
       return serial;
     }
     if (options?.preserveSiblingEmulators) {
@@ -919,6 +933,9 @@ export async function startAndroidEmulatorPool(
     },
   );
   await ensureAndroidPoolAdbServers(serials);
+  for (const serial of serials) {
+    await installAppiumSettingsApp(serial);
+  }
   logger.info(
     `Android emulator pool ready in ${Date.now() - bootStartedAt}ms: ${serials.join(',')}.`,
   );
@@ -931,6 +948,12 @@ export async function startAndroidEmulatorPool(
  * @returns adb serial for the booted emulator (e.g. emulator-5554)
  */
 export async function startAndroidEmulator(avdName: string): Promise<string> {
+  const serial = await bootAndroidEmulator(avdName);
+  await installAppiumSettingsApp(serial);
+  return serial;
+}
+
+async function bootAndroidEmulator(avdName: string): Promise<string> {
   const bootedSerial = await findEmulatorSerialForAvd(avdName, ['device']);
   if (bootedSerial) {
     logger.info(
@@ -1175,6 +1198,7 @@ export async function primeAndroidGoldenSnapshot(
 
   try {
     await waitForEmulatorBoot(serial);
+    await installAppiumSettingsApp(serial);
     logger.info(
       `Saving golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}"...`,
     );
