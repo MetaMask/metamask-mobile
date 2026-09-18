@@ -1032,7 +1032,11 @@ export class Engine {
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
         // Check if automatic backups are disabled (during wallet reset)
-        if (Engine.disableAutomaticVaultBackup || !state.vault) {
+        if (Engine.disableAutomaticVaultBackup) {
+          return;
+        }
+
+        if (!state.vault) {
           return;
         }
 
@@ -1041,7 +1045,7 @@ export class Engine {
         }
 
         lastVault = state.vault;
-        backupVault(state.vault)
+        backupVault(state)
           .then((result) => {
             if (!result.success) {
               throw new Error(result.error ?? 'Vault backup failed');

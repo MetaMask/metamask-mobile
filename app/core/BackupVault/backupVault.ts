@@ -1,3 +1,4 @@
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import {
   getInternetCredentials,
   setInternetCredentials,
@@ -60,8 +61,10 @@ export async function clearAllVaultBackups() {
   }
  */
 export async function backupVault(
-  vault: string | undefined,
+  keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
+  const keyringVault = keyringState.vault;
+
   try {
     // Does a primary backup exist?
     // Wrapped in its own try/catch because Android Keystore key invalidation
@@ -80,10 +83,14 @@ export async function backupVault(
     }
 
     // Keychain already holds this exact vault — nothing changed, skip the rewrite.
-    if (vault && existingBackup && existingBackup.password === vault) {
+    if (
+      keyringVault &&
+      existingBackup &&
+      existingBackup.password === keyringVault
+    ) {
       return {
         success: true,
-        vault,
+        vault: keyringVault,
         skipped: true,
         skipReason: 'identical_keychain',
       };
@@ -117,7 +124,7 @@ export async function backupVault(
     const backupResult = await setInternetCredentials(
       VAULT_BACKUP_KEY,
       VAULT_BACKUP_KEY,
-      vault as string,
+      keyringVault as string,
       options,
     );
 
@@ -131,7 +138,7 @@ export async function backupVault(
 
     return {
       success: true,
-      vault,
+      vault: keyringVault,
     };
   } catch (error) {
     Logger.error(error as Error, 'Vault backup failed');

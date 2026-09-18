@@ -8,6 +8,7 @@ import {
   getVaultFromBackup,
   clearAllVaultBackups,
 } from './backupVault';
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import {
   getInternetCredentials,
   resetInternetCredentials,
@@ -126,7 +127,13 @@ describe('backupVault file', () => {
       // Mock the setInternetCredentials function to return false, which simulates a failed vault backup
       (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
 
-      const response = await backupVault(undefined);
+      const keyringState: KeyringControllerState = {
+        vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
 
       expect(response).toEqual(mockedFailedResponse);
     });
@@ -140,7 +147,13 @@ describe('backupVault file', () => {
       // Mock the setInternetCredentials function to return false, which simulates a failed vault backup
       (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
 
-      const response = await backupVault(undefined);
+      const keyringState: KeyringControllerState = {
+        vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
 
       expect(response).toEqual(mockedFailedResponse);
     });
@@ -155,7 +168,13 @@ describe('backupVault file', () => {
         dummyPassword,
       );
 
-      const response = await backupVault(undefined);
+      const keyringState: KeyringControllerState = {
+        vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
 
       expect(response).toEqual(mockedSuccessResponse);
     });
@@ -168,7 +187,13 @@ describe('backupVault file', () => {
       (setInternetCredentials as jest.Mock).mockClear();
       (resetInternetCredentials as jest.Mock).mockClear();
 
-      const response = await backupVault(vault);
+      const keyringState: KeyringControllerState = {
+        vault,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
 
       expect(response).toEqual({
         success: true,
@@ -182,9 +207,14 @@ describe('backupVault file', () => {
 
     it('re-reads keychain on a later call even for a previously confirmed vault, to self-heal keystore invalidation', async () => {
       const vault = 'confirmed-vault';
+      const keyringState: KeyringControllerState = {
+        vault,
+        keyrings: [],
+        isUnlocked: false,
+      };
 
       await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
-      await backupVault(vault);
+      await backupVault(keyringState);
 
       // Simulate the keychain entry becoming unreadable in between calls
       // (e.g. Android Keystore key invalidated by a biometric enrollment
@@ -196,7 +226,7 @@ describe('backupVault file', () => {
         throw new Error('Android Keystore key permanently invalidated');
       });
 
-      const response = await backupVault(vault);
+      const response = await backupVault(keyringState);
 
       expect(getInternetCredentials).toHaveBeenCalledTimes(1);
       expect(response).toEqual({ success: true, vault });
@@ -218,7 +248,13 @@ describe('backupVault file', () => {
         throw new Error('Android Keystore key permanently invalidated');
       });
 
-      const response = await backupVault(newVault);
+      const keyringState: KeyringControllerState = {
+        vault: newVault,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
 
       expect(response).toEqual({ success: true, vault: newVault });
     });
@@ -240,7 +276,13 @@ describe('backupVault file', () => {
         password: dummyPassword,
       });
 
-      const response = await backupVault(undefined);
+      const keyringState: KeyringControllerState = {
+        vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
 
       // First reset temporary, then primary, then temporary again
       expect(resetInternetCredentials).toHaveBeenCalledTimes(3);
