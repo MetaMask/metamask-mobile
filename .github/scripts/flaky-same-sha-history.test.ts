@@ -4,7 +4,6 @@ import {
   candidateShaGroupsNewestFirst,
   chunkArray,
   confirmedFailThenPassJobs,
-  filesToAnalyzeWithHistoryHits,
   groupRunsByHeadSha,
   historyCoverageComplete,
   hitsFromConfirmedLogs,
@@ -414,6 +413,7 @@ describe('historyCoverageComplete', () => {
       historyCoverageComplete({
         everyFileHasHit: true,
         walkedAllCandidates: false,
+        unreadFailedRuns: 0,
       }),
     ).toBe(true);
   });
@@ -423,6 +423,7 @@ describe('historyCoverageComplete', () => {
       historyCoverageComplete({
         everyFileHasHit: false,
         walkedAllCandidates: true,
+        unreadFailedRuns: 0,
       }),
     ).toBe(true);
   });
@@ -432,6 +433,24 @@ describe('historyCoverageComplete', () => {
       historyCoverageComplete({
         everyFileHasHit: false,
         walkedAllCandidates: false,
+        unreadFailedRuns: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('is incomplete when confirmed fail-then-pass logs could not be read', () => {
+    expect(
+      historyCoverageComplete({
+        everyFileHasHit: false,
+        walkedAllCandidates: true,
+        unreadFailedRuns: 2,
+      }),
+    ).toBe(false);
+    expect(
+      historyCoverageComplete({
+        everyFileHasHit: true,
+        walkedAllCandidates: true,
+        unreadFailedRuns: 1,
       }),
     ).toBe(false);
   });
@@ -512,6 +531,16 @@ describe('renderIncompleteCoverageLine', () => {
       }),
     ).toContain('inspected 200 of 230 candidate SHA(s)');
   });
+
+  it('names unread fail-then-pass logs when they blocked coverage', () => {
+    expect(
+      renderIncompleteCoverageLine({
+        candidatesInspected: 5,
+        candidateShaCount: 5,
+        unreadFailedRuns: 2,
+      }),
+    ).toContain('2 confirmed fail-then-pass log(s) could not be read');
+  });
 });
 
 describe('jobLogUrl', () => {
@@ -527,32 +556,6 @@ describe('jobLogUrl', () => {
       'https://github.com/MetaMask/metamask-mobile/actions/runs/10/job/99',
     );
     expect(url).not.toMatch(/\/actions\/runs\/10$/);
-  });
-});
-
-describe('filesToAnalyzeWithHistoryHits', () => {
-  it('keeps needsAnalysis order and appends flaky paths that were skipped as unchanged', () => {
-    const needsAnalysis = ['app/new.test.ts', 'app/also-new.test.ts'];
-    const historyFiles = [
-      { path: 'app/new.test.ts', flaky: true },
-      { path: 'app/unchanged-flaky.test.ts', flaky: true },
-      { path: 'app/quiet.test.ts', flaky: false },
-    ];
-
-    expect(filesToAnalyzeWithHistoryHits(needsAnalysis, historyFiles)).toEqual([
-      'app/new.test.ts',
-      'app/also-new.test.ts',
-      'app/unchanged-flaky.test.ts',
-    ]);
-  });
-
-  it('does not duplicate a flaky file already in needsAnalysis', () => {
-    expect(
-      filesToAnalyzeWithHistoryHits(
-        ['app/new.test.ts'],
-        [{ path: 'app/new.test.ts', flaky: true }],
-      ),
-    ).toEqual(['app/new.test.ts']);
   });
 });
 

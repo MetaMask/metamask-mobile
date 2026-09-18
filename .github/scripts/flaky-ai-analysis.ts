@@ -101,6 +101,12 @@ export function historicallyFlakyPaths(
   );
 }
 
+/**
+ * Input is files that still need Stage 2 (`needsAnalysis`). Historically
+ * flaky paths go first so the per-run cap prefers known flakes. Already
+ * reviewed unchanged files are not in this list — Stage 3 keeps their
+ * prior findings.
+ */
 export function orderFilesForAnalysis(
   files: string[],
   historicallyFlaky: Set<string>,

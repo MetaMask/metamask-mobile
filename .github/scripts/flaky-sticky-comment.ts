@@ -95,6 +95,7 @@ interface HistoryArtifact {
   historyComplete?: boolean;
   candidatesInspected?: number;
   candidateShaCount?: number;
+  unreadFailedRuns?: number;
 }
 
 interface Finding {
@@ -630,6 +631,7 @@ async function main(): Promise<void> {
     : `${renderIncompleteCoverageLine({
         candidatesInspected: history.candidatesInspected ?? 0,
         candidateShaCount: history.candidateShaCount ?? 0,
+        unreadFailedRuns: history.unreadFailedRuns ?? 0,
       })}\n`;
 
   const commentBody = buildCommentBody({

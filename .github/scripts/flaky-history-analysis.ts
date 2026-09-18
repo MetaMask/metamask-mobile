@@ -47,7 +47,6 @@ import {
   chunkArray,
   collectListedRunsFromPages,
   confirmedFailThenPassJobs,
-  filesToAnalyzeWithHistoryHits,
   groupRunsByHeadSha,
   historyCoverageComplete,
   hitsFromConfirmedLogs,
@@ -594,6 +593,7 @@ async function buildHistory(
   const historyComplete = historyCoverageComplete({
     everyFileHasHit,
     walkedAllCandidates,
+    unreadFailedRuns,
   });
 
   const byFile = aggregateHitsByFile(allHits, exampleJobLogUrl);
@@ -767,7 +767,10 @@ async function main(): Promise<void> {
       `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'})`,
   );
 
-  const filesToAnalyze = filesToAnalyzeWithHistoryHits(needsAnalysis, files);
+  // Stage 2 only re-runs files that still need a review. Historically flaky
+  // files that already have patternsReviewed stay out so they cannot fill the
+  // per-run cap and starve files waiting for retry.
+  const filesToAnalyze = needsAnalysis;
   const result = writeHistoryFile(files, filesToAnalyze, env.headSha, {
     sampledRunCount: runs.length,
     candidateShaCount,

@@ -104,22 +104,6 @@ export function jobLogUrl(
   return `${serverUrl}/${repo}/actions/runs/${runId}/job/${jobId}`;
 }
 
-/**
- * Stage 2 `--changed-files` must include historically flaky paths even when
- * their bytes have not changed since `analyzedSha`. Otherwise skip-if-unchanged
- * starves pattern analysis and Stage 3 reports history_unreviewed.
- */
-export function filesToAnalyzeWithHistoryHits(
-  needsAnalysis: string[],
-  historyFiles: { path: string; flaky: boolean }[],
-): string[] {
-  const seen = new Set(needsAnalysis);
-  const extra = historyFiles
-    .filter((file) => file.flaky && !seen.has(file.path))
-    .map((file) => file.path);
-  return [...needsAnalysis, ...extra];
-}
-
 export type FailedUnitCheckRun = {
   name: string;
   jobId: number;
@@ -445,10 +429,15 @@ export function unansweredModifiedFiles(
 export function historyCoverageComplete({
   everyFileHasHit,
   walkedAllCandidates,
+  unreadFailedRuns,
 }: {
   everyFileHasHit: boolean;
   walkedAllCandidates: boolean;
+  unreadFailedRuns: number;
 }): boolean {
+  if (unreadFailedRuns > 0) {
+    return false;
+  }
   return everyFileHasHit || walkedAllCandidates;
 }
 
@@ -505,9 +494,15 @@ export function renderSameShaHistoryTable(
 export function renderIncompleteCoverageLine({
   candidatesInspected,
   candidateShaCount,
+  unreadFailedRuns = 0,
 }: {
   candidatesInspected: number;
   candidateShaCount: number;
+  unreadFailedRuns?: number;
 }): string {
-  return `_History coverage incomplete: inspected ${candidatesInspected} of ${candidateShaCount} candidate SHA(s). Findings above are a lower bound; this is not an all-clear._`;
+  const unread =
+    unreadFailedRuns > 0
+      ? ` ${unreadFailedRuns} confirmed fail-then-pass log(s) could not be read.`
+      : '';
+  return `_History coverage incomplete: inspected ${candidatesInspected} of ${candidateShaCount} candidate SHA(s).${unread} Findings above are a lower bound; this is not an all-clear._`;
 }
