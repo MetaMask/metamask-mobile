@@ -1079,6 +1079,11 @@ const MainNavigator = () => {
       </NativeStack.Screen>
       {/* Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak. */}
       <NativeStack.Screen
+        name={Routes.RAMP.VBA_KYC_EMAIL}
+        component={KycEmail}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
         name={Routes.RAMP.GET_PIX_KEY}
         component={GetPixKey}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
@@ -1086,11 +1091,6 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.VBA_VERIFY_IDENTITY}
         component={VbaVerifyIdentity}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.RAMP.VBA_KYC_EMAIL}
-        component={KycEmail}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
