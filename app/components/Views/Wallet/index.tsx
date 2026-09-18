@@ -1078,6 +1078,7 @@ const Wallet = ({
         sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
         receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
+        hasGlassButtons
       />
     )
   ) : null;
