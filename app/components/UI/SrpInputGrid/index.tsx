@@ -16,6 +16,8 @@ import {
   Box,
   Button,
   ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
   TextArea,
 } from '@metamask/design-system-react-native';
 import SrpInput from '../../Views/SrpInput';
@@ -426,13 +428,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         </Box>
 
         {Boolean(externalError || error) && (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.ErrorDefault}
-          >
+          <HelpText severity={HelpTextSeverity.Danger}>
             {externalError || error}
-          </Text>
+          </HelpText>
         )}
       </Box>
     );

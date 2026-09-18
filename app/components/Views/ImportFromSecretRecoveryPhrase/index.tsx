@@ -71,6 +71,8 @@ import {
   ButtonSize,
   FontWeight,
   HeaderStandard,
+  HelpText,
+  HelpTextSeverity,
   IconName,
   IconColor,
   Checkbox,
@@ -881,18 +883,16 @@ const ImportFromSecretRecoveryPhrase = () => {
                     keyboardAppearance: themeAppearance,
                   }}
                 />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={
-                    isPasswordTooShort
-                      ? TextColor.ErrorDefault
-                      : TextColor.TextAlternative
+                <HelpText
+                  severity={
+                    isPasswordTooShort ? HelpTextSeverity.Danger : undefined
                   }
+                  color={TextColor.TextAlternative}
                 >
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
-                </Text>
+                </HelpText>
               </Box>
 
               <Box twClassName="relative gap-2">
@@ -933,12 +933,9 @@ const ImportFromSecretRecoveryPhrase = () => {
                   }}
                 />
                 {isError && (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                  >
+                  <HelpText severity={HelpTextSeverity.Danger}>
                     {strings('import_from_seed.password_error')}
-                  </Text>
+                  </HelpText>
                 )}
               </Box>
 
