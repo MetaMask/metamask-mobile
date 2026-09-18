@@ -10,6 +10,9 @@ const baseInput = {
   historicallyFlakyCount: '0',
   unreadFailedRuns: '0',
   missingPriorShaCount: '0',
+  candidatesInspected: '0',
+  candidateShaCount: '0',
+  historyComplete: 'true',
   commentPosted: 'false',
   commentAction: 'none',
   findingCount: '0',
@@ -93,6 +96,19 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('| Unread failed CI runs | 1 |');
     expect(markdown).toContain('| Missing prior SHAs | 2 |');
     expect(markdown).toContain('| SHA | `f758dbb` |');
+  });
+
+  it('reports capped history coverage', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      candidatesInspected: '200',
+      candidateShaCount: '230',
+      historyComplete: 'false',
+    });
+
+    expect(markdown).toContain(
+      '| History coverage | 200 / 230 candidate SHA(s), capped |',
+    );
   });
 
   it('reports posted all-clear when Stage 3 posted after no modified unit tests', () => {

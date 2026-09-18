@@ -13,6 +13,9 @@ export type FlakyJobSummaryInput = {
   historicallyFlakyCount: string;
   unreadFailedRuns: string;
   missingPriorShaCount: string;
+  candidatesInspected: string;
+  candidateShaCount: string;
+  historyComplete: string;
   commentPosted: string;
   commentAction: string;
   findingCount: string;
@@ -163,6 +166,7 @@ ${headline}
 | Modified unit test files | ${input.modifiedFileCount || '0'} |
 | Files re-analyzed | ${input.filesToAnalyzeCount || '0'} |
 | Historically flaky files | ${input.historicallyFlakyCount || '0'} |
+| History coverage | ${input.candidatesInspected || '0'} / ${input.candidateShaCount || '0'} candidate SHA(s)${input.historyComplete === 'true' ? ', complete' : input.historyComplete === 'false' ? ', capped' : ''} |
 | Unread failed CI runs | ${input.unreadFailedRuns || '0'} |
 | Missing prior SHAs | ${input.missingPriorShaCount || '0'} |
 | AI findings | ${input.findingCount || '0'} |
@@ -192,6 +196,9 @@ export const writeFlakyJobSummaryFromEnv = (): void => {
     historicallyFlakyCount: env('FLAKY_HISTORICALLY_FLAKY_COUNT'),
     unreadFailedRuns: env('FLAKY_UNREAD_FAILED_RUNS'),
     missingPriorShaCount: env('FLAKY_MISSING_PRIOR_SHA_COUNT'),
+    candidatesInspected: env('FLAKY_CANDIDATES_INSPECTED'),
+    candidateShaCount: env('FLAKY_CANDIDATE_SHA_COUNT'),
+    historyComplete: env('FLAKY_HISTORY_COMPLETE'),
     commentPosted: env('FLAKY_COMMENT_POSTED'),
     commentAction: env('FLAKY_COMMENT_ACTION'),
     findingCount: env('FLAKY_FINDING_COUNT'),

@@ -6,8 +6,13 @@
  * ci.yml runs. Writes a machine-readable JSON artifact consumed by Stage 2
  * (AI analyzer) and Stage 3 (sticky PR comment).
  *
- * Historical fail-then-pass is a HINT, not proof — a file can be flagged here
- * with zero AI findings, or have AI findings with no historical signal.
+ * Funnel (IDs first, logs last):
+ *   0. REST listWorkflowRuns — run id, head_sha, run_attempt, conclusion
+ *   1. Candidate SHAs — re-run, or 2+ run ids with a failure AND a success
+ *   2. GraphQL batch — failed Unit tests check runs + latest successes
+ *   3. Confirm the same job name later succeeded on that SHA
+ *   4. Download logs only for those jobs; stop when every modified file has
+ *      a hit. historyComplete is false when a cap ends the walk early.
  *
  * Logging rule:
  *   - core.info — expected no-op (no modified tests, unchanged since last
@@ -24,24 +29,6 @@
  * indistinguishable from a real fix. An identical head SHA cannot be a code
  * fix, so FAIL then PASS on that SHA (GitHub Re-run jobs, or a second ci.yml
  * run on the same commit) is the history signal.
- *
- * Design note — why we rely on history + AI patterns only, and deliberately do
- * NOT execute the PR's changed tests or inspect the PR's own ci.yml unit-test
- * run to decide flakiness:
- *
- *   - New test with a flaky pattern: a single PR unit-test run almost never
- *     reproduces the flake, so a run-based signal would usually miss it. AI
- *     pattern detection on the diff is what actually catches this case.
- *   - Existing test changed by the PR: AI detects the pattern AND same-SHA
- *     fail-then-pass on any branch provides an independent signal, so both fire.
- *   - A modified test with an AI-detected pattern but zero historical hits
- *     is still worth flagging: passing so far may just be luck or ordering, and
- *     it can start failing under a different test order or in edge cases.
- *
- * Flagging on pattern rather than on an observed failure is intentional — the
- * output is informational and exists to prompt the author to review, not to
- * assert the test has already failed. Running or waiting on the PR's tests
- * would add cost and latency without meaningfully improving these outcomes.
  */
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
@@ -51,24 +38,22 @@ import { dirname, join } from 'path';
 import {
   isMissingLogBlobError,
   isRetriableGithubError,
-  unitTestLogsReadable,
   withRetryOnce,
 } from './flaky-github-request';
 import {
-  allUnitTestJobsSucceeded,
   aggregateHitsByFile,
+  buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
+  chunkArray,
   collectListedRunsFromPages,
-  collectSameShaHitsForGroup,
-  failedUnitTestJobs,
+  confirmedFailThenPassJobs,
   groupRunsByHeadSha,
+  historyCoverageComplete,
+  hitsFromConfirmedLogs,
   parseJestFailPaths,
-  snapshotInspectOrder,
-  snapshotsToInspect,
-  type InspectedSnapshot,
+  parseShaBatchResponse,
+  unansweredModifiedFiles,
   type ListedWorkflowRun,
-  type RunAttemptSnapshot,
-  type WorkflowJob,
 } from './flaky-same-sha-history';
 import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
 
@@ -89,7 +74,8 @@ const JOB_NAME = 'Unit tests';
 // shorter than the old 30d main walk.
 const LOOKBACK_DAYS = 14;
 const MAX_RUNS_LISTED = 2000;
-const MAX_JOB_LIST_CALLS = 200;
+const GRAPHQL_BATCH_SIZE = 6;
+const MAX_GRAPHQL_QUERIES = 60;
 const MAX_FAILED_LOG_FETCHES = 50;
 const DOWNLOAD_CONCURRENCY = 8;
 
@@ -126,7 +112,9 @@ interface HistoryResult {
   lookbackDays: number;
   sampledRunCount: number;
   candidateShaCount: number;
-  jobListCalls: number;
+  candidatesInspected: number;
+  historyComplete: boolean;
+  graphqlQueries: number;
   unreadFailedRuns: number;
   analyzedFiles: string[];
   headSha: string;
@@ -204,6 +192,9 @@ function setStage1Outputs({
   historicallyFlakyCount,
   unreadFailedRuns,
   missingPriorShaCount,
+  candidatesInspected,
+  candidateShaCount,
+  historyComplete,
 }: {
   hasTestFiles: boolean;
   shouldAnalyze: boolean;
@@ -213,6 +204,9 @@ function setStage1Outputs({
   historicallyFlakyCount: number;
   unreadFailedRuns: number;
   missingPriorShaCount: number;
+  candidatesInspected: number;
+  candidateShaCount: number;
+  historyComplete: boolean;
 }): void {
   core.setOutput('has_test_files', hasTestFiles ? 'true' : 'false');
   core.setOutput('should_analyze', shouldAnalyze ? 'true' : 'false');
@@ -223,6 +217,9 @@ function setStage1Outputs({
   core.setOutput('historically_flaky_count', String(historicallyFlakyCount));
   core.setOutput('unread_failed_runs', String(unreadFailedRuns));
   core.setOutput('missing_prior_sha_count', String(missingPriorShaCount));
+  core.setOutput('candidates_inspected', String(candidatesInspected));
+  core.setOutput('candidate_sha_count', String(candidateShaCount));
+  core.setOutput('history_complete', historyComplete ? 'true' : 'false');
 }
 
 // setFailed + Summary outputs; deliberately omit has_test_files so Stage 3
@@ -248,6 +245,9 @@ function failStage1(
     'missing_prior_sha_count',
     String(counts?.missingPriorShaCount ?? 0),
   );
+  core.setOutput('candidates_inspected', '0');
+  core.setOutput('candidate_sha_count', '0');
+  core.setOutput('history_complete', 'false');
 }
 
 async function mapWithConcurrency<T, R>(
@@ -461,55 +461,25 @@ async function getCompletedRunsInLookback(
   }
 }
 
-type JobListResult = { ok: true; jobs: WorkflowJob[] } | { ok: false };
-
-async function listJobsForSnapshot(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  snapshot: RunAttemptSnapshot,
-): Promise<JobListResult> {
-  try {
-    const jobs = await withRetryOnce(() =>
-      octokit.paginate(octokit.rest.actions.listJobsForWorkflowRunAttempt, {
-        owner,
-        repo,
-        run_id: snapshot.runId,
-        attempt_number: snapshot.attempt,
-        per_page: 100,
-      }),
-    );
-    return {
-      ok: true,
-      jobs: jobs.map((job) => ({
-        id: job.id,
-        name: job.name,
-        conclusion: job.conclusion,
-      })),
-    };
-  } catch (error) {
-    core.info(
-      `listJobsForWorkflowRunAttempt ${snapshot.runId} attempt ${snapshot.attempt} failed: ${(error as Error).message}`,
-    );
-    return { ok: false };
-  }
-}
-
 type FailedLogFetch = {
-  files: string[];
-  logsReadable: boolean;
+  filesByJobId: Map<number, string[]>;
+  unreadCount: number;
 };
 
 async function downloadFailedUnitLogs(
   octokit: Octokit,
   owner: string,
   repo: string,
-  failedUnitJobs: WorkflowJob[],
+  failedUnitJobs: { id: number }[],
 ): Promise<FailedLogFetch> {
   const logParts = await mapWithConcurrency(
     failedUnitJobs,
     DOWNLOAD_CONCURRENCY,
-    async (job): Promise<{ ok: true; text: string } | { ok: false }> => {
+    async (
+      job,
+    ): Promise<
+      { jobId: number; ok: true; text: string } | { jobId: number; ok: false }
+    > => {
       try {
         const res = await withRetryOnce(() =>
           octokit.rest.actions.downloadJobLogsForWorkflowRun({
@@ -518,7 +488,7 @@ async function downloadFailedUnitLogs(
             job_id: job.id,
           }),
         );
-        return { ok: true, text: String(res.data) };
+        return { jobId: job.id, ok: true, text: String(res.data) };
       } catch (error) {
         const reason = isMissingLogBlobError(error)
           ? 'missing log blob'
@@ -526,75 +496,32 @@ async function downloadFailedUnitLogs(
             ? 'GitHub API error after retry'
             : (error as Error).message;
         core.info(`downloadJobLogsForWorkflowRun ${job.id} failed: ${reason}`);
-        return { ok: false };
+        return { jobId: job.id, ok: false };
       }
     },
   );
 
-  const downloadedOkCount = logParts.filter((part) => part.ok).length;
-  const logsReadable = unitTestLogsReadable({
-    listJobsFailed: false,
-    failedUnitJobCount: failedUnitJobs.length,
-    downloadedOkCount,
-  });
-  if (!logsReadable) {
-    return { files: [], logsReadable: false };
+  const filesByJobId = new Map<number, string[]>();
+  let unreadCount = 0;
+  for (const part of logParts) {
+    if (!part.ok) {
+      unreadCount += 1;
+      continue;
+    }
+    filesByJobId.set(part.jobId, parseJestFailPaths(part.text));
   }
-
-  const logOutput = logParts
-    .filter((part): part is { ok: true; text: string } => part.ok)
-    .map((part) => part.text)
-    .join('\n');
-  return { files: parseJestFailPaths(logOutput), logsReadable: true };
+  return { filesByJobId, unreadCount };
 }
 
-async function inspectSnapshot(
+async function fetchShaBatch(
   octokit: Octokit,
   owner: string,
   repo: string,
-  snapshot: RunAttemptSnapshot,
-  budget: { jobListCalls: number; logFetches: number },
-): Promise<{
-  inspected: InspectedSnapshot | null;
-  unreadFailed: boolean;
-}> {
-  if (budget.jobListCalls >= MAX_JOB_LIST_CALLS) {
-    return { inspected: null, unreadFailed: false };
-  }
-  budget.jobListCalls += 1;
-  const listed = await listJobsForSnapshot(octokit, owner, repo, snapshot);
-  if (!listed.ok) {
-    return { inspected: null, unreadFailed: false };
-  }
-
-  const failedUnit = failedUnitTestJobs(listed.jobs);
-  if (failedUnit.length > 0) {
-    if (budget.logFetches >= MAX_FAILED_LOG_FETCHES) {
-      return { inspected: null, unreadFailed: true };
-    }
-    budget.logFetches += 1;
-    const logs = await downloadFailedUnitLogs(octokit, owner, repo, failedUnit);
-    if (!logs.logsReadable) {
-      return { inspected: null, unreadFailed: true };
-    }
-    return {
-      inspected: {
-        ...snapshot,
-        unitFailPaths: logs.files,
-        unitAllPassed: false,
-      },
-      unreadFailed: false,
-    };
-  }
-
-  return {
-    inspected: {
-      ...snapshot,
-      unitFailPaths: [],
-      unitAllPassed: allUnitTestJobsSucceeded(listed.jobs),
-    },
-    unreadFailed: false,
-  };
+  shas: string[],
+): Promise<ReturnType<typeof parseShaBatchResponse>> {
+  const { query, variables } = buildShaBatchQuery(shas, owner, repo);
+  const response = await withRetryOnce(() => octokit.graphql(query, variables));
+  return parseShaBatchResponse(response, shas);
 }
 
 async function buildHistory(
@@ -607,43 +534,96 @@ async function buildHistory(
   files: HistoryFile[];
   unreadFailedRuns: number;
   candidateShaCount: number;
-  jobListCalls: number;
+  candidatesInspected: number;
+  historyComplete: boolean;
+  graphqlQueries: number;
 }> {
   const groups = groupRunsByHeadSha(runs);
   const candidates = candidateShaGroupsNewestFirst(groups);
-  const budget = { jobListCalls: 0, logFetches: 0 };
-  let unreadFailedRuns = 0;
-  const allHits: { path: string; failRunId: number }[] = [];
+  const batches = chunkArray(
+    candidates.map((candidate) => candidate.headSha),
+    GRAPHQL_BATCH_SIZE,
+  );
 
-  for (const { runs: runsForSha } of candidates) {
-    if (budget.jobListCalls >= MAX_JOB_LIST_CALLS) {
+  const allHits: { path: string; failRunId: number }[] = [];
+  let unreadFailedRuns = 0;
+  let logFetches = 0;
+  let graphqlQueries = 0;
+  let candidatesInspected = 0;
+  let capped = false;
+
+  for (const batch of batches) {
+    if (graphqlQueries >= MAX_GRAPHQL_QUERIES) {
+      capped = true;
       break;
     }
-    const ordered = snapshotInspectOrder(
-      snapshotsToInspect(runsForSha),
-      runsForSha,
-    );
-    const inspected: InspectedSnapshot[] = [];
-    for (const snapshot of ordered) {
-      const result = await inspectSnapshot(
+    if (unansweredModifiedFiles(modifiedFiles, allHits).length === 0) {
+      break;
+    }
+
+    graphqlQueries += 1;
+    let shaResults: ReturnType<typeof parseShaBatchResponse>;
+    try {
+      shaResults = await fetchShaBatch(octokit, owner, repo, batch);
+    } catch (error) {
+      core.warning(
+        `GraphQL SHA batch failed after retry: ${(error as Error).message}`,
+      );
+      capped = true;
+      break;
+    }
+    candidatesInspected += shaResults.length;
+
+    for (const shaResult of shaResults) {
+      if (unansweredModifiedFiles(modifiedFiles, allHits).length === 0) {
+        break;
+      }
+      const confirmed = confirmedFailThenPassJobs(shaResult);
+      if (confirmed.length === 0) {
+        continue;
+      }
+
+      const remainingBudget = MAX_FAILED_LOG_FETCHES - logFetches;
+      if (remainingBudget <= 0) {
+        capped = true;
+        unreadFailedRuns += confirmed.length;
+        break;
+      }
+
+      const toFetch = confirmed.slice(0, remainingBudget);
+      if (toFetch.length < confirmed.length) {
+        capped = true;
+        unreadFailedRuns += confirmed.length - toFetch.length;
+      }
+      logFetches += toFetch.length;
+
+      const logs = await downloadFailedUnitLogs(
         octokit,
         owner,
         repo,
-        snapshot,
-        budget,
+        toFetch.map((job) => ({ id: job.jobId })),
       );
-      if (result.unreadFailed) {
-        unreadFailedRuns += 1;
-      }
-      if (result.inspected) {
-        inspected.push(result.inspected);
-      }
+      unreadFailedRuns += logs.unreadCount;
+      allHits.push(
+        ...hitsFromConfirmedLogs(toFetch, logs.filesByJobId, modifiedFiles),
+      );
     }
-    allHits.push(...collectSameShaHitsForGroup(inspected, modifiedFiles));
+
+    if (capped) {
+      break;
+    }
   }
 
-  const byFile = aggregateHitsByFile(allHits, runUrl);
+  const walkedAllCandidates =
+    !capped && candidatesInspected >= candidates.length;
+  const everyFileHasHit =
+    unansweredModifiedFiles(modifiedFiles, allHits).length === 0;
+  const historyComplete = historyCoverageComplete({
+    everyFileHasHit,
+    walkedAllCandidates,
+  });
 
+  const byFile = aggregateHitsByFile(allHits, runUrl);
   const files = modifiedFiles.map((path) => {
     const hit = byFile.get(path);
     if (!hit) {
@@ -662,7 +642,9 @@ async function buildHistory(
     files,
     unreadFailedRuns,
     candidateShaCount: candidates.length,
-    jobListCalls: budget.jobListCalls,
+    candidatesInspected,
+    historyComplete,
+    graphqlQueries,
   };
 }
 
@@ -673,7 +655,9 @@ function writeHistoryFile(
   meta: {
     sampledRunCount: number;
     candidateShaCount: number;
-    jobListCalls: number;
+    candidatesInspected: number;
+    historyComplete: boolean;
+    graphqlQueries: number;
     unreadFailedRuns: number;
   },
 ): HistoryResult {
@@ -685,7 +669,9 @@ function writeHistoryFile(
     lookbackDays: LOOKBACK_DAYS,
     sampledRunCount: meta.sampledRunCount,
     candidateShaCount: meta.candidateShaCount,
-    jobListCalls: meta.jobListCalls,
+    candidatesInspected: meta.candidatesInspected,
+    historyComplete: meta.historyComplete,
+    graphqlQueries: meta.graphqlQueries,
     unreadFailedRuns: meta.unreadFailedRuns,
     analyzedFiles,
     headSha,
@@ -720,7 +706,9 @@ async function main(): Promise<void> {
     writeHistoryFile([], [], env.headSha, {
       sampledRunCount: 0,
       candidateShaCount: 0,
-      jobListCalls: 0,
+      candidatesInspected: 0,
+      historyComplete: true,
+      graphqlQueries: 0,
       unreadFailedRuns: 0,
     });
     writePriorStateFile(null);
@@ -733,6 +721,9 @@ async function main(): Promise<void> {
       historicallyFlakyCount: 0,
       unreadFailedRuns: 0,
       missingPriorShaCount: 0,
+      candidatesInspected: 0,
+      candidateShaCount: 0,
+      historyComplete: true,
     });
     console.log('💡 No modified unit test files — skipping history sampling');
     return;
@@ -774,6 +765,9 @@ async function main(): Promise<void> {
       historicallyFlakyCount: 0,
       unreadFailedRuns: 0,
       missingPriorShaCount,
+      candidatesInspected: 0,
+      candidateShaCount: 0,
+      historyComplete: true,
     });
     return;
   }
@@ -789,17 +783,25 @@ async function main(): Promise<void> {
     return;
   }
   const runs = runsResult.runs;
-  const { files, unreadFailedRuns, candidateShaCount, jobListCalls } =
-    await buildHistory(octokit, owner, repo, modifiedFiles, runs);
+  const {
+    files,
+    unreadFailedRuns,
+    candidateShaCount,
+    candidatesInspected,
+    historyComplete,
+    graphqlQueries,
+  } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
     `🔍 Sampled ${runs.length} completed ci.yml run(s) on any branch over the last ${LOOKBACK_DAYS}d ` +
-      `(${candidateShaCount} candidate SHA(s), ${jobListCalls} job-list call(s))`,
+      `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'})`,
   );
 
   const result = writeHistoryFile(files, needsAnalysis, env.headSha, {
     sampledRunCount: runs.length,
     candidateShaCount,
-    jobListCalls,
+    candidatesInspected,
+    historyComplete,
+    graphqlQueries,
     unreadFailedRuns,
   });
 
@@ -813,6 +815,9 @@ async function main(): Promise<void> {
     historicallyFlakyCount: flakyCount,
     unreadFailedRuns,
     missingPriorShaCount,
+    candidatesInspected,
+    candidateShaCount,
+    historyComplete,
   });
   console.log(
     `✅ Wrote ${OUTPUT_PATH} — ${flakyCount} of ${files.length} modified test file(s) flagged as historically flaky`,

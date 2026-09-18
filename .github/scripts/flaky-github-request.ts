@@ -74,17 +74,12 @@ export async function withRetryOnce<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 export function unitTestLogsReadable({
-  listJobsFailed,
   failedUnitJobCount,
   downloadedOkCount,
 }: {
-  listJobsFailed: boolean;
   failedUnitJobCount: number;
   downloadedOkCount: number;
 }): boolean {
-  if (listJobsFailed) {
-    return false;
-  }
   if (failedUnitJobCount === 0) {
     return true;
   }

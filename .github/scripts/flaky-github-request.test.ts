@@ -67,7 +67,10 @@ describe('isMissingLogBlobError', () => {
 
 describe('isRetriableGithubError', () => {
   it('retries status 429', () => {
-    const error = makeError({ status: 429, message: 'API rate limit exceeded' });
+    const error = makeError({
+      status: 429,
+      message: 'API rate limit exceeded',
+    });
 
     expect(isRetriableGithubError(error)).toBe(true);
     expect(isMissingLogBlobError(error)).toBe(false);
@@ -84,7 +87,10 @@ describe('isRetriableGithubError', () => {
   });
 
   it('does not retry status 403', () => {
-    const error = makeError({ status: 403, message: 'Resource not accessible' });
+    const error = makeError({
+      status: 403,
+      message: 'Resource not accessible',
+    });
 
     expect(isRetriableGithubError(error)).toBe(false);
     expect(isMissingLogBlobError(error)).toBe(false);
@@ -124,7 +130,10 @@ describe('withRetryOnce', () => {
   });
 
   it('does not retry a 403', async () => {
-    const error = makeError({ status: 403, message: 'Resource not accessible' });
+    const error = makeError({
+      status: 403,
+      message: 'Resource not accessible',
+    });
     const fn = jest.fn().mockRejectedValue(error);
 
     await expect(withRetryOnce(fn)).rejects.toBe(error);
@@ -134,19 +143,8 @@ describe('withRetryOnce', () => {
 });
 
 describe('unitTestLogsReadable', () => {
-  it('returns false when listing jobs failed', () => {
-    const result = unitTestLogsReadable({
-      listJobsFailed: true,
-      failedUnitJobCount: 0,
-      downloadedOkCount: 0,
-    });
-
-    expect(result).toBe(false);
-  });
-
   it('returns true when no unit-test shard failed', () => {
     const result = unitTestLogsReadable({
-      listJobsFailed: false,
       failedUnitJobCount: 0,
       downloadedOkCount: 0,
     });
@@ -156,7 +154,6 @@ describe('unitTestLogsReadable', () => {
 
   it('returns false when any failed shard log download failed', () => {
     const result = unitTestLogsReadable({
-      listJobsFailed: false,
       failedUnitJobCount: 2,
       downloadedOkCount: 1,
     });
@@ -166,7 +163,6 @@ describe('unitTestLogsReadable', () => {
 
   it('returns true when every failed shard log downloaded', () => {
     const result = unitTestLogsReadable({
-      listJobsFailed: false,
       failedUnitJobCount: 2,
       downloadedOkCount: 2,
     });

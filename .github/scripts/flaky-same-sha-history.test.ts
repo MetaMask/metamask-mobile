@@ -1,21 +1,24 @@
 import {
   aggregateHitsByFile,
-  allUnitTestJobsSucceeded,
+  buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
-  collectSameShaHitsForGroup,
-  failedUnitTestJobs,
+  chunkArray,
+  confirmedFailThenPassJobs,
   groupRunsByHeadSha,
+  historyCoverageComplete,
+  hitsFromConfirmedLogs,
   intersectWithModifiedFiles,
   isCandidateShaGroup,
-  isLaterSnapshot,
+  jobIdFromDetailsUrl,
   listedWorkflowRunFromApi,
   parseJestFailPaths,
+  parseShaBatchResponse,
+  renderIncompleteCoverageLine,
   renderSameShaHistoryTable,
-  snapshotInspectOrder,
-  snapshotsToInspect,
-  type InspectedSnapshot,
+  shouldPostAllClear,
+  unansweredModifiedFiles,
   type ListedWorkflowRun,
-  type WorkflowJob,
+  type ShaCheckResult,
 } from './flaky-same-sha-history';
 
 const modifiedFile = 'app/core/createAsyncBatcher.test.ts';
@@ -30,15 +33,6 @@ const run = (
   runAttempt: 1,
   ...overrides,
 });
-
-const jobs = (
-  entries: { name: string; conclusion: string | null; id?: number }[],
-): WorkflowJob[] =>
-  entries.map((entry, index) => ({
-    id: entry.id ?? index + 1,
-    name: entry.name,
-    conclusion: entry.conclusion,
-  }));
 
 describe('listedWorkflowRunFromApi', () => {
   it('defaults a missing run_attempt to 1', () => {
@@ -68,7 +62,7 @@ describe('groupRunsByHeadSha', () => {
 });
 
 describe('isCandidateShaGroup', () => {
-  it('treats a rerun as a candidate', () => {
+  it('treats a rerun as a candidate even without a listed failure', () => {
     expect(
       isCandidateShaGroup([
         run({ id: 1, runAttempt: 2, conclusion: 'success' }),
@@ -76,13 +70,31 @@ describe('isCandidateShaGroup', () => {
     ).toBe(true);
   });
 
-  it('treats two run ids on the same SHA as a candidate', () => {
+  it('treats two run ids with a failure and a success as a candidate', () => {
     expect(
       isCandidateShaGroup([
         run({ id: 1 }),
         run({ id: 2, conclusion: 'success' }),
       ]),
     ).toBe(true);
+  });
+
+  it('skips two successful run ids with no failure', () => {
+    expect(
+      isCandidateShaGroup([
+        run({ id: 1, conclusion: 'success' }),
+        run({ id: 2, conclusion: 'success' }),
+      ]),
+    ).toBe(false);
+  });
+
+  it('skips two failed run ids with no success', () => {
+    expect(
+      isCandidateShaGroup([
+        run({ id: 1, conclusion: 'failure' }),
+        run({ id: 2, conclusion: 'failure' }),
+      ]),
+    ).toBe(false);
   });
 
   it('skips a single attempt-1 run', () => {
@@ -113,71 +125,234 @@ describe('candidateShaGroupsNewestFirst', () => {
   });
 });
 
-describe('snapshotsToInspect', () => {
-  it('includes attempt 1 and the latest attempt for a rerun', () => {
-    expect(snapshotsToInspect([run({ id: 9, runAttempt: 2 })])).toEqual([
-      { runId: 9, attempt: 2, createdAt: '2026-09-01T00:00:00Z' },
-      { runId: 9, attempt: 1, createdAt: '2026-09-01T00:00:00Z' },
+describe('chunkArray', () => {
+  it('splits into batches of the given size', () => {
+    expect(chunkArray(['a', 'b', 'c', 'd', 'e'], 2)).toEqual([
+      ['a', 'b'],
+      ['c', 'd'],
+      ['e'],
     ]);
   });
 });
 
-describe('snapshotInspectOrder', () => {
-  it('inspects rerun attempt 1 before the latest success attempt', () => {
-    const listed = [run({ id: 9, runAttempt: 2, conclusion: 'success' })];
-    const ordered = snapshotInspectOrder(snapshotsToInspect(listed), listed);
+describe('buildShaBatchQuery', () => {
+  it('aliases each SHA as c0, c1, … with GitObjectID variables', () => {
+    const { query, variables } = buildShaBatchQuery(
+      ['aaa', 'bbb'],
+      'MetaMask',
+      'metamask-mobile',
+    );
 
-    expect(ordered.map((s) => s.attempt)).toEqual([1, 2]);
+    expect(variables).toEqual({
+      owner: 'MetaMask',
+      name: 'metamask-mobile',
+      sha0: 'aaa',
+      sha1: 'bbb',
+    });
+    expect(query).toContain('c0: object(oid: $sha0)');
+    expect(query).toContain('c1: object(oid: $sha1)');
+    expect(query).toContain('checkType: ALL, conclusions: [FAILURE]');
+    expect(query).toContain('checkType: LATEST, conclusions: [SUCCESS]');
   });
 });
 
-describe('isLaterSnapshot', () => {
-  it('uses attempt number on the same run id', () => {
+describe('jobIdFromDetailsUrl', () => {
+  it('parses run id and job id from a GitHub detailsUrl', () => {
     expect(
-      isLaterSnapshot(
-        { runId: 1, attempt: 2, createdAt: '2026-09-01T00:00:00Z' },
-        { runId: 1, attempt: 1, createdAt: '2026-09-01T00:00:00Z' },
+      jobIdFromDetailsUrl(
+        'https://github.com/MetaMask/metamask-mobile/actions/runs/35130023071/job/104908899143',
       ),
-    ).toBe(true);
+    ).toEqual({ runId: 35130023071, jobId: 104908899143 });
   });
 
-  it('uses createdAt across different run ids', () => {
+  it('returns null when the URL has no job id', () => {
     expect(
-      isLaterSnapshot(
-        { runId: 2, attempt: 1, createdAt: '2026-09-02T00:00:00Z' },
-        { runId: 1, attempt: 1, createdAt: '2026-09-01T00:00:00Z' },
-      ),
-    ).toBe(true);
+      jobIdFromDetailsUrl('https://github.com/MetaMask/metamask-mobile'),
+    ).toBeNull();
   });
 });
 
-describe('unit job helpers', () => {
-  it('finds failed Unit tests shards and ignores e2e', () => {
-    expect(
-      failedUnitTestJobs(
-        jobs([
-          { name: 'Unit tests (8)', conclusion: 'failure' },
-          { name: 'E2E tests', conclusion: 'failure' },
-        ]),
-      ),
-    ).toEqual([{ id: 1, name: 'Unit tests (8)', conclusion: 'failure' }]);
+const rerunFixture = {
+  repository: {
+    c0: {
+      oid: '4c386e4f037e0a5adfd69a0e7666840af2253bb9',
+      checkSuites: {
+        nodes: [
+          {
+            workflowRun: {
+              databaseId: 35130017888,
+              runAttempt: 1,
+              workflow: { name: 'Flaky unit test detection' },
+            },
+            failed: { nodes: [] },
+            passed: { nodes: [] },
+          },
+          {
+            workflowRun: {
+              databaseId: 35130023071,
+              runAttempt: 2,
+              workflow: { name: 'ci' },
+            },
+            failed: {
+              nodes: [
+                {
+                  name: 'Unit tests (8)',
+                  detailsUrl:
+                    'https://github.com/MetaMask/metamask-mobile/actions/runs/35130023071/job/104908899143',
+                },
+                {
+                  name: 'E2E tests',
+                  detailsUrl:
+                    'https://github.com/MetaMask/metamask-mobile/actions/runs/35130023071/job/1',
+                },
+              ],
+            },
+            passed: {
+              nodes: [{ name: 'Unit tests (8)' }, { name: 'Unit tests (1)' }],
+            },
+          },
+        ],
+      },
+    },
+  },
+};
+
+describe('parseShaBatchResponse', () => {
+  it('keeps only ci Unit tests failures and parses the job id', () => {
+    const [sha] = parseShaBatchResponse(rerunFixture, [
+      '4c386e4f037e0a5adfd69a0e7666840af2253bb9',
+    ]);
+
+    expect(sha.suites).toHaveLength(1);
+    expect(sha.suites[0].failedUnit).toEqual([
+      {
+        name: 'Unit tests (8)',
+        jobId: 104908899143,
+        runId: 35130023071,
+        runAttempt: 2,
+        suiteOrder: 35130023071,
+      },
+    ]);
+    expect(sha.suites[0].passedUnitNames).toEqual([
+      'Unit tests (8)',
+      'Unit tests (1)',
+    ]);
   });
 
-  it('requires every Unit tests job to succeed', () => {
+  it('returns an empty suite list when the commit object is missing', () => {
+    const [sha] = parseShaBatchResponse({ repository: { c0: null } }, ['dead']);
+
+    expect(sha).toEqual({ headSha: 'dead', suites: [] });
+  });
+});
+
+const shaResult = (suites: ShaCheckResult['suites']): ShaCheckResult => ({
+  headSha: 'abc',
+  suites,
+});
+
+describe('confirmedFailThenPassJobs', () => {
+  it('confirms a same-suite re-run when LATEST SUCCESS includes the failed job name', () => {
     expect(
-      allUnitTestJobsSucceeded(
-        jobs([
-          { name: 'Unit tests (1)', conclusion: 'success' },
-          { name: 'Unit tests (8)', conclusion: 'success' },
-          { name: 'E2E tests', conclusion: 'failure' },
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 10,
+            runId: 10,
+            runAttempt: 2,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 10,
+                runAttempt: 2,
+                suiteOrder: 10,
+              },
+            ],
+            passedUnitNames: ['Unit tests (8)'],
+          },
         ]),
       ),
-    ).toBe(true);
+    ).toEqual([{ name: 'Unit tests (8)', jobId: 111, runId: 10 }]);
+  });
+
+  it('confirms a later ci suite that passed the same job name', () => {
     expect(
-      allUnitTestJobsSucceeded(
-        jobs([{ name: 'Unit tests (8)', conclusion: 'failure' }]),
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 1,
+            runId: 1,
+            runAttempt: 1,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 1,
+                runAttempt: 1,
+                suiteOrder: 1,
+              },
+            ],
+            passedUnitNames: [],
+          },
+          {
+            suiteOrder: 2,
+            runId: 2,
+            runAttempt: 1,
+            failedUnit: [],
+            passedUnitNames: ['Unit tests (8)'],
+          },
+        ]),
       ),
-    ).toBe(false);
+    ).toEqual([{ name: 'Unit tests (8)', jobId: 111, runId: 1 }]);
+  });
+
+  it('does not confirm when the retry also failed', () => {
+    expect(
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 10,
+            runId: 10,
+            runAttempt: 2,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 10,
+                runAttempt: 2,
+                suiteOrder: 10,
+              },
+            ],
+            passedUnitNames: ['Unit tests (1)'],
+          },
+        ]),
+      ),
+    ).toEqual([]);
+  });
+
+  it('does not confirm when a different shard passed', () => {
+    expect(
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 10,
+            runId: 10,
+            runAttempt: 2,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 10,
+                runAttempt: 2,
+                suiteOrder: 10,
+              },
+            ],
+            passedUnitNames: ['Unit tests (3)'],
+          },
+        ]),
+      ),
+    ).toEqual([]);
   });
 });
 
@@ -191,136 +366,115 @@ describe('parseJestFailPaths', () => {
   });
 });
 
-describe('collectSameShaHitsForGroup', () => {
-  const failThenPassRerun = (): InspectedSnapshot[] => [
-    {
-      runId: 10,
-      attempt: 1,
-      createdAt: '2026-09-01T00:00:00Z',
-      unitFailPaths: [modifiedFile],
-      unitAllPassed: false,
-    },
-    {
-      runId: 10,
-      attempt: 2,
-      createdAt: '2026-09-01T00:00:00Z',
-      unitFailPaths: [],
-      unitAllPassed: true,
-    },
-  ];
+describe('hitsFromConfirmedLogs', () => {
+  it('attributes FAIL paths from a confirmed job to modified files', () => {
+    const failPaths = new Map<number, string[]>([
+      [111, [modifiedFile, otherFile]],
+    ]);
 
-  it('flags a rerun where attempt 1 FAILs a modified file and later attempt unit tests pass', () => {
     expect(
-      collectSameShaHitsForGroup(failThenPassRerun(), [modifiedFile]),
+      hitsFromConfirmedLogs(
+        [{ name: 'Unit tests (8)', jobId: 111, runId: 10 }],
+        failPaths,
+        [modifiedFile],
+      ),
     ).toEqual([{ path: modifiedFile, failRunId: 10 }]);
   });
 
-  it('flags two run ids on the same SHA with FAIL then later unit pass', () => {
-    const snapshots: InspectedSnapshot[] = [
-      {
-        runId: 1,
-        attempt: 1,
-        createdAt: '2026-09-01T00:00:00Z',
-        unitFailPaths: [modifiedFile],
-        unitAllPassed: false,
-      },
-      {
-        runId: 2,
-        attempt: 1,
-        createdAt: '2026-09-02T00:00:00Z',
-        unitFailPaths: [],
-        unitAllPassed: true,
-      },
-    ];
-
-    expect(collectSameShaHitsForGroup(snapshots, [modifiedFile])).toEqual([
-      { path: modifiedFile, failRunId: 1 },
-    ]);
-  });
-
-  it('does not flag when the failed run has no unit-test FAIL jobs', () => {
-    const snapshots: InspectedSnapshot[] = [
-      {
-        runId: 1,
-        attempt: 1,
-        createdAt: '2026-09-01T00:00:00Z',
-        unitFailPaths: [],
-        unitAllPassed: false,
-      },
-      {
-        runId: 2,
-        attempt: 1,
-        createdAt: '2026-09-02T00:00:00Z',
-        unitFailPaths: [],
-        unitAllPassed: true,
-      },
-    ];
-
-    expect(collectSameShaHitsForGroup(snapshots, [modifiedFile])).toEqual([]);
-  });
-
-  it('does not flag a cancelled attempt followed by success', () => {
-    const snapshots: InspectedSnapshot[] = [
-      {
-        runId: 1,
-        attempt: 1,
-        createdAt: '2026-09-01T00:00:00Z',
-        unitFailPaths: [],
-        unitAllPassed: false,
-      },
-      {
-        runId: 1,
-        attempt: 2,
-        createdAt: '2026-09-01T00:00:00Z',
-        unitFailPaths: [],
-        unitAllPassed: true,
-      },
-    ];
-
-    expect(collectSameShaHitsForGroup(snapshots, [modifiedFile])).toEqual([]);
-  });
-
   it('does not flag a FAIL path that is not in the modified file set', () => {
-    expect(
-      collectSameShaHitsForGroup(failThenPassRerun(), [otherFile]),
-    ).toEqual([]);
     expect(intersectWithModifiedFiles([modifiedFile], [otherFile])).toEqual([]);
+  });
+});
+
+describe('unansweredModifiedFiles and early exit', () => {
+  it('drops files that already have a hit', () => {
+    expect(
+      unansweredModifiedFiles(
+        [modifiedFile, otherFile],
+        [{ path: modifiedFile }],
+      ),
+    ).toEqual([otherFile]);
+  });
+
+  it('is empty when every modified file has a hit', () => {
+    expect(
+      unansweredModifiedFiles(
+        [modifiedFile],
+        [{ path: modifiedFile }, { path: modifiedFile }],
+      ),
+    ).toEqual([]);
+  });
+});
+
+describe('historyCoverageComplete', () => {
+  it('is complete when every file has a hit even if candidates remain', () => {
+    expect(
+      historyCoverageComplete({
+        everyFileHasHit: true,
+        walkedAllCandidates: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('is complete when the walk finished with some files unanswered', () => {
+    expect(
+      historyCoverageComplete({
+        everyFileHasHit: false,
+        walkedAllCandidates: true,
+      }),
+    ).toBe(true);
+  });
+
+  it('is incomplete when a cap ended the walk with files still unanswered', () => {
+    expect(
+      historyCoverageComplete({
+        everyFileHasHit: false,
+        walkedAllCandidates: false,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('shouldPostAllClear', () => {
+  it('posts all-clear only when there are no findings and history finished', () => {
+    expect(shouldPostAllClear(false, true)).toBe(true);
+  });
+
+  it('does not post all-clear when history coverage is incomplete', () => {
+    expect(shouldPostAllClear(false, false)).toBe(false);
+  });
+
+  it('does not post all-clear when findings exist', () => {
+    expect(shouldPostAllClear(true, true)).toBe(false);
   });
 });
 
 describe('different SHA fail then pass', () => {
   it('does not pair a FAIL on SHA A with a pass on SHA B', () => {
-    const shaA = collectSameShaHitsForGroup(
-      [
-        {
-          runId: 1,
-          attempt: 1,
-          createdAt: '2026-09-01T00:00:00Z',
-          unitFailPaths: [modifiedFile],
-          unitAllPassed: false,
-        },
-      ],
+    const shaA = hitsFromConfirmedLogs(
+      [{ name: 'Unit tests (8)', jobId: 1, runId: 1 }],
+      new Map([[1, [modifiedFile]]]),
       [modifiedFile],
     );
-    const shaB = collectSameShaHitsForGroup(
-      [
+    const shaBJobs = confirmedFailThenPassJobs(
+      shaResult([
         {
+          suiteOrder: 2,
           runId: 2,
-          attempt: 1,
-          createdAt: '2026-09-02T00:00:00Z',
-          unitFailPaths: [],
-          unitAllPassed: true,
+          runAttempt: 1,
+          failedUnit: [],
+          passedUnitNames: ['Unit tests (8)'],
         },
-      ],
-      [modifiedFile],
+      ]),
     );
 
-    expect(shaA).toEqual([]);
-    expect(shaB).toEqual([]);
+    expect(shaA).toEqual([{ path: modifiedFile, failRunId: 1 }]);
+    expect(shaBJobs).toEqual([]);
     expect(
-      aggregateHitsByFile([...shaA, ...shaB], (id) => `https://example/${id}`)
-        .size,
-    ).toBe(0);
+      aggregateHitsByFile(shaA, (id) => `https://example/${id}`).get(
+        modifiedFile,
+      )?.count,
+    ).toBe(1);
   });
 });
 
@@ -344,5 +498,16 @@ describe('renderSameShaHistoryTable', () => {
     expect(renderSameShaHistoryTable([])).toBe(
       'No same-SHA unit-test fail-then-pass found for the changed tests in the sampled window.',
     );
+  });
+});
+
+describe('renderIncompleteCoverageLine', () => {
+  it('states how many candidate SHAs were inspected', () => {
+    expect(
+      renderIncompleteCoverageLine({
+        candidatesInspected: 200,
+        candidateShaCount: 230,
+      }),
+    ).toContain('inspected 200 of 230 candidate SHA(s)');
   });
 });

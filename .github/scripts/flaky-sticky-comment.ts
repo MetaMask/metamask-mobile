@@ -15,7 +15,8 @@
  * 4-state logic (per MCWP-474 AC):
  *   findings + no sticky  → create
  *   findings + sticky     → update with latest findings
- *   no findings + sticky  → update to "all previously flagged issues fixed"
+ *   no findings + sticky + history complete → all-clear
+ *   no findings + sticky + history incomplete → update with incomplete-coverage line
  *   no findings + none    → do nothing
  *
  * Logging rule:
@@ -37,7 +38,11 @@ import {
   sourceSliceAtLine,
 } from './flaky-sticky-snippet';
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
-import { renderSameShaHistoryTable } from './flaky-same-sha-history';
+import {
+  renderIncompleteCoverageLine,
+  renderSameShaHistoryTable,
+  shouldPostAllClear,
+} from './flaky-same-sha-history';
 import { renderSignalsSection } from './flaky-signal-combination';
 
 // Stable HTML comment on the first line — used to identify and update this
@@ -82,6 +87,9 @@ interface HistoryArtifact {
   analyzedFiles?: string[];
   headSha?: string;
   files?: HistoryFile[];
+  historyComplete?: boolean;
+  candidatesInspected?: number;
+  candidateShaCount?: number;
 }
 
 interface Finding {
@@ -307,6 +315,7 @@ function buildCommentBody({
   runHistoryUrl,
   stateBlock,
   headSha,
+  coverageLine,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
@@ -314,6 +323,7 @@ function buildCommentBody({
   runHistoryUrl: string;
   stateBlock: string;
   headSha: string;
+  coverageLine: string;
 }): string {
   const findingFiles = new Set(findings.map((f) => f.file));
   const tableFiles = historyFiles.filter(
@@ -341,7 +351,7 @@ Neither signal is proof on its own — review each suggestion in context. See th
 [View recent run history](${runHistoryUrl})
 
 ${historyTable}
-
+${coverageLine}
 ${findingsSection}
 _This check is informational only and does not block merging._
 ${stateBlock}`;
@@ -577,11 +587,27 @@ async function main(): Promise<void> {
   // skipped (fork PR / analyzer error / no LLM key).
   const hasFindings =
     historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
+  const historyComplete = history.historyComplete === true;
+  const coverageLine = historyComplete
+    ? ''
+    : `${renderIncompleteCoverageLine({
+        candidatesInspected: history.candidatesInspected ?? 0,
+        candidateShaCount: history.candidateShaCount ?? 0,
+      })}\n`;
 
   const runHistoryUrl =
     historyFiles.find((file) => file.flaky)?.runHistoryUrl ??
     historyFiles[0]?.runHistoryUrl ??
     `${env.serverUrl}/${env.repo}/actions/workflows/ci.yml`;
+  const commentBody = buildCommentBody({
+    historyFiles,
+    findings: mergedFindings,
+    patternsReviewedFiles,
+    runHistoryUrl,
+    stateBlock,
+    headSha,
+    coverageLine,
+  });
 
   try {
     const existingComment = await findExistingStickyComment(
@@ -609,14 +635,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         issue_number: env.prNumber,
-        body: buildCommentBody({
-          historyFiles,
-          findings: mergedFindings,
-          patternsReviewedFiles,
-          runHistoryUrl,
-          stateBlock,
-          headSha,
-        }),
+        body: commentBody,
       });
       console.log('📝 Created sticky flaky-test-detection comment');
       setStage3Outputs({
@@ -633,14 +652,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         comment_id: existingComment.id,
-        body: buildCommentBody({
-          historyFiles,
-          findings: mergedFindings,
-          patternsReviewedFiles,
-          runHistoryUrl,
-          stateBlock,
-          headSha,
-        }),
+        body: commentBody,
       });
       console.log(
         '🔄 Updated sticky flaky-test-detection comment with latest findings',
@@ -654,9 +666,27 @@ async function main(): Promise<void> {
       return;
     }
 
-    // !hasFindings && existingComment — flip the sticky to "all clear" so the
-    // author gets positive feedback that their fix landed. The state block is
-    // preserved so Stage 1 still knows the last-analyzed SHA on the next push.
+    // !hasFindings && existingComment. All-clear only when Stage 1 finished
+    // its walk; a truncated history must not look like "all fixed".
+    if (!shouldPostAllClear(hasFindings, historyComplete)) {
+      await octokit.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: existingComment!.id,
+        body: commentBody,
+      });
+      console.log(
+        '⚠️  Updated sticky comment — history coverage incomplete; not all-clear',
+      );
+      setStage3Outputs({
+        commentPosted: true,
+        commentAction: 'updated',
+        findingCount: mergedFindings.length,
+        skipReason: '',
+      });
+      return;
+    }
+
     await octokit.rest.issues.updateComment({
       owner,
       repo,
