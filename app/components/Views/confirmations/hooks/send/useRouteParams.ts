@@ -9,6 +9,9 @@ import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useEVMNfts } from './useNfts';
 
+const EMPTY_ASSETS: ReturnType<typeof selectAssetsBySelectedAccountGroup> = {};
+const selectEmptyAssets = () => EMPTY_ASSETS;
+
 /**
  * Creates an asset with default zero balance from navigation params.
  * Used when the user navigates to send a token they don't own.
@@ -20,14 +23,23 @@ const createAssetFromParams = (paramsAsset: AssetType): AssetType => ({
 });
 
 export const useRouteParams = () => {
-  const assets = useSelector(selectAssetsBySelectedAccountGroup);
-  const flatAssets = useMemo(() => Object.values(assets).flat(), [assets]);
-  const { nfts, isLoading: isNftsLoading } = useEVMNfts();
-
   const { asset: paramsAsset } = useParams<{
     asset: AssetType;
   }>();
   const { asset, updateAsset } = useSendContext();
+  const shouldResolveRouteAsset = Boolean(paramsAsset && !asset);
+  const assets = useSelector(
+    shouldResolveRouteAsset
+      ? selectAssetsBySelectedAccountGroup
+      : selectEmptyAssets,
+  );
+  const flatAssets = useMemo(
+    () => Object.values(assets ?? EMPTY_ASSETS).flat(),
+    [assets],
+  );
+  const { nfts, isLoading: isNftsLoading } = useEVMNfts(
+    shouldResolveRouteAsset && Boolean(paramsAsset?.tokenId),
+  );
 
   useEffect(() => {
     if (asset) {
