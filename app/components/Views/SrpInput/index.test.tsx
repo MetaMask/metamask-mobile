@@ -4,60 +4,52 @@ import { View } from 'react-native';
 
 // Internal dependencies.
 import SrpInput from './index';
-import {
-  TEXTFIELD_TEST_ID,
-  TEXTFIELD_STARTACCESSORY_TEST_ID,
-  TEXTFIELD_ENDACCESSORY_TEST_ID,
-} from '../../../component-library/components/Form/TextField/TextField.constants';
 import { act, fireEvent, render } from '@testing-library/react-native';
 
+const TEXTFIELD_TEST_ID = 'srpInputID';
 const INPUT_TEST_ID = 'testingInputID';
+const START_ACCESSORY_TEST_ID = 'startAccessoryID';
+const END_ACCESSORY_TEST_ID = 'endAccessoryID';
+
 describe('SrpInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
   it('renders default settings correctly', () => {
-    const wrapper = render(<SrpInput />);
+    const wrapper = render(<SrpInput value="" testID={TEXTFIELD_TEST_ID} />);
     expect(wrapper.getByTestId(TEXTFIELD_TEST_ID)).toBeOnTheScreen();
-  });
-
-  it('renders SrpInput', () => {
-    const wrapper = render(<SrpInput />);
-
-    const textFieldComponent = wrapper.getByTestId(TEXTFIELD_TEST_ID);
-
-    expect(textFieldComponent).toBeOnTheScreen();
   });
 
   it('renders the startAccessory when provided', () => {
     const wrapper = render(
-      <SrpInput startAccessory={<View />} testID={INPUT_TEST_ID} />,
+      <SrpInput
+        value=""
+        startAccessory={<View testID={START_ACCESSORY_TEST_ID} />}
+        inputProps={{ testID: INPUT_TEST_ID }}
+      />,
     );
 
-    const textFieldComponent = wrapper.getByTestId(
-      TEXTFIELD_STARTACCESSORY_TEST_ID,
-    );
-
-    expect(textFieldComponent).toBeOnTheScreen();
+    expect(wrapper.getByTestId(START_ACCESSORY_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders the endAccessory when provided', () => {
     const wrapper = render(
-      <SrpInput endAccessory={<View />} testID={INPUT_TEST_ID} />,
+      <SrpInput
+        value=""
+        endAccessory={<View testID={END_ACCESSORY_TEST_ID} />}
+        inputProps={{ testID: INPUT_TEST_ID }}
+      />,
     );
 
-    const textFieldComponent = wrapper.getByTestId(
-      TEXTFIELD_ENDACCESSORY_TEST_ID,
-    );
-
-    expect(textFieldComponent).toBeOnTheScreen();
+    expect(wrapper.getByTestId(END_ACCESSORY_TEST_ID)).toBeOnTheScreen();
   });
 
   describe('selection updates', () => {
     it('sets selection to end of value on focus', () => {
       const testValue = 'test recovery phrase';
       const wrapper = render(
-        <SrpInput value={testValue} testID={INPUT_TEST_ID} />,
+        <SrpInput value={testValue} inputProps={{ testID: INPUT_TEST_ID }} />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 
@@ -74,7 +66,7 @@ describe('SrpInput', () => {
     it('keeps selection at end of value on blur', () => {
       const testValue = 'test value';
       const wrapper = render(
-        <SrpInput value={testValue} testID={INPUT_TEST_ID} />,
+        <SrpInput value={testValue} inputProps={{ testID: INPUT_TEST_ID }} />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 
@@ -101,7 +93,7 @@ describe('SrpInput', () => {
     it('places caret at end again after blur then focus', () => {
       const testValue = 'wallet';
       const wrapper = render(
-        <SrpInput value={testValue} testID={INPUT_TEST_ID} />,
+        <SrpInput value={testValue} inputProps={{ testID: INPUT_TEST_ID }} />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 
@@ -123,7 +115,7 @@ describe('SrpInput', () => {
 
     it('updates selection state on selection change', () => {
       const wrapper = render(
-        <SrpInput value="test value" testID={INPUT_TEST_ID} />,
+        <SrpInput value="test value" inputProps={{ testID: INPUT_TEST_ID }} />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
       const mockSelection = { start: 5, end: 5 };
@@ -139,7 +131,11 @@ describe('SrpInput', () => {
 
     it('does not update selection when disabled on focus', () => {
       const wrapper = render(
-        <SrpInput value="test" isDisabled testID={INPUT_TEST_ID} />,
+        <SrpInput
+          value="test"
+          isDisabled
+          inputProps={{ testID: INPUT_TEST_ID }}
+        />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 
@@ -155,7 +151,11 @@ describe('SrpInput', () => {
     it('calls provided onFocus callback when focused', () => {
       const mockOnFocus = jest.fn();
       const wrapper = render(
-        <SrpInput onFocus={mockOnFocus} testID={INPUT_TEST_ID} />,
+        <SrpInput
+          value=""
+          onFocus={mockOnFocus}
+          inputProps={{ testID: INPUT_TEST_ID }}
+        />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 
@@ -169,7 +169,11 @@ describe('SrpInput', () => {
     it('calls provided onBlur callback when blurred', () => {
       const mockOnBlur = jest.fn();
       const wrapper = render(
-        <SrpInput onBlur={mockOnBlur} testID={INPUT_TEST_ID} />,
+        <SrpInput
+          value=""
+          onBlur={mockOnBlur}
+          inputProps={{ testID: INPUT_TEST_ID }}
+        />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 

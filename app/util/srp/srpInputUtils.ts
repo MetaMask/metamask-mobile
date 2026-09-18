@@ -23,6 +23,12 @@ export const getTrimmedSeedPhraseWords = (seedPhrase: string[]): string[] =>
   seedPhrase.map((word) => word.trim()).filter((word) => word !== '');
 
 /**
+ * Truncate an SRP word list to the longest supported phrase length (24).
+ */
+export const capSrpWordCount = (words: string[]): string[] =>
+  words.slice(0, MAX_SRP_LENGTH);
+
+/**
  * Check if SRP continue button should be disabled
  */
 export const isSRPLengthValid = (seedPhrase: string[]): boolean => {
