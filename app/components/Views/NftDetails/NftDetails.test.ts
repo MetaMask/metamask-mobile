@@ -1,5 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
+import { ReactTestInstance } from 'react-test-renderer';
 import { Icon, IconName } from '@metamask/design-system-react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import QrScanner from './';
@@ -287,7 +288,7 @@ describe('NftDetails', () => {
     );
 
     expect(contractCopyButton).toBeDefined();
-    fireEvent.press(contractCopyButton as React.ReactTestInstance);
+    fireEvent.press(contractCopyButton as ReactTestInstance);
 
     expect(setStringSpy).toHaveBeenCalledWith(TEST_COLLECTIBLE.address);
   });
