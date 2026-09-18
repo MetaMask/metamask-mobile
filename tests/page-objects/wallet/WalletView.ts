@@ -114,12 +114,21 @@ class WalletView extends WalletHomeSectionsBase {
   async checkActiveAccount(
     expectedName: string,
     timeout = 10_000,
+    exactMatch = true,
   ): Promise<void> {
-    await Assertions.expectElementToHaveText(
-      this.accountNameLabelText,
-      expectedName,
-      { timeout },
-    );
+    if (exactMatch) {
+      await Assertions.expectElementToHaveText(
+        this.accountNameLabelText,
+        expectedName,
+        { timeout },
+      );
+    } else {
+      await Assertions.expectElementToContainText(
+        this.accountNameLabelText,
+        expectedName,
+        { timeout },
+      );
+    }
   }
 
   get hideTokensLabel(): Promise<AppiumElement> {

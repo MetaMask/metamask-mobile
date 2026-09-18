@@ -960,7 +960,11 @@ export const selectAccountByDevice = async (
   await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
-  await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
+  await AccountListBottomSheet.tapAccountByNameV2(
+    accountName,
+    !isAccount3,
+    true,
+  );
 };
 
 /**
