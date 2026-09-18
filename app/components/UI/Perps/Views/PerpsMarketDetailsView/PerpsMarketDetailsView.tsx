@@ -2040,19 +2040,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (
-            perpsInsightsReport ? (
-              <MarketInsightsEntryCard
-                report={perpsInsightsReport}
-                timeAgo={perpsInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                traceId={perpsInsightsEntryTraceId}
-                source="perps"
-                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-              />
-            ) : (
-              <MarketInsightsEntryCardSkeleton />
-            )
+            <Box twClassName="mb-4">
+              {perpsInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={perpsInsightsReport}
+                  timeAgo={perpsInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                  traceId={perpsInsightsEntryTraceId}
+                  source="perps"
+                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
+            </Box>
           ) : null}
 
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
