@@ -1,17 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  DimensionValue,
-  Platform,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Label,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
@@ -88,7 +82,6 @@ interface ContactFormState {
   mode: ContactMode;
   memo: string | null;
   editable: boolean;
-  inputWidth: DimensionValue | undefined;
   openNetworkSelector: boolean;
 }
 
@@ -147,7 +140,6 @@ const createInitialState = ({
     mode,
     memo: null,
     editable: true,
-    inputWidth: Platform.OS === 'android' ? '99%' : undefined,
     openNetworkSelector: false,
   };
 
@@ -210,9 +202,6 @@ const ContactForm = ({
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const inputWidthTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const contactAddressToRemove = useRef<string | null>(null);
 
   const updateState = (updates: Partial<ContactFormState>) => {
@@ -247,24 +236,6 @@ const ContactForm = ({
       </TouchableOpacity>
     );
   };
-
-  useEffect(() => {
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    if (stateRef.current.inputWidth) {
-      inputWidthTimeoutId.current = setTimeout(() => {
-        setState((currentState) => ({
-          ...currentState,
-          inputWidth: '100%',
-        }));
-      }, 100);
-    }
-
-    return () => {
-      if (inputWidthTimeoutId.current) {
-        clearTimeout(inputWidthTimeoutId.current);
-      }
-    };
-  }, []);
 
   const onDelete = () => {
     contactAddressToRemove.current = state.address;
@@ -423,7 +394,6 @@ const ContactForm = ({
     addressReady,
     memo,
     editable,
-    inputWidth,
     toEnsAddress,
     errorContinue,
     contactChainId,
@@ -464,39 +434,37 @@ const ContactForm = ({
         }}
         endAccessory={headerEndAccessory ?? undefined}
       />
-      <KeyboardAwareScrollView style={styles.informationWrapper}>
-        <View style={styles.scrollWrapper}>
-          <ContactFormFields
-            address={address}
-            addressInputRef={addressInput}
-            colors={colors}
-            editable={editable}
-            inputWidth={inputWidth}
-            isAddMode={isAddMode}
-            isEditMode={isEditMode}
-            memo={memo}
-            memoInputRef={memoInput}
-            name={name}
-            onChangeAddress={onChangeAddress}
-            onChangeMemo={onChangeMemo}
-            onChangeName={onChangeName}
-            onScan={onScan}
-            styles={styles}
-            themeAppearance={themeAppearance}
-            toEnsAddress={toEnsAddress}
-            toEnsName={toEnsName}
-          />
+      <KeyboardAwareScrollView
+        style={styles.informationWrapper}
+        contentContainerStyle={styles.scrollWrapper}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ContactFormFields
+          address={address}
+          addressInputRef={addressInput}
+          editable={editable}
+          isAddMode={isAddMode}
+          isEditMode={isEditMode}
+          memo={memo}
+          memoInputRef={memoInput}
+          name={name}
+          onChangeAddress={onChangeAddress}
+          onChangeMemo={onChangeMemo}
+          onChangeName={onChangeName}
+          onScan={onScan}
+          themeAppearance={themeAppearance}
+          toEnsAddress={toEnsAddress}
+          toEnsName={toEnsName}
+        />
 
-          <>
-            <Text style={styles.label}>{strings('address_book.network')}</Text>
-            <ContactNetworkSelector
-              chainId={contactChainId || chainId}
-              editable={editable}
-              networkName={networkName}
-              onOpen={() => setOpenNetworkSelector(true)}
-              styles={styles}
-            />
-          </>
+        <View style={styles.networkField}>
+          <Label>{strings('address_book.network')}</Label>
+          <ContactNetworkSelector
+            chainId={contactChainId || chainId}
+            editable={editable}
+            networkName={networkName}
+            onOpen={() => setOpenNetworkSelector(true)}
+          />
         </View>
 
         {addressError && (
@@ -506,54 +474,47 @@ const ContactForm = ({
             onContinue={onErrorContinue}
           />
         )}
-
-        {!!editable && (
-          <View style={styles.buttonsWrapper}>
-            <View style={styles.buttonsContainer}>
-              <View style={styles.actionButton}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  isFullWidth
-                  isDisabled={!addressReady || !name || !!addressError}
-                  onPress={saveContact}
-                  testID={AddContactViewSelectorsIDs.ADD_BUTTON}
-                >
-                  {strings(`address_book.${mode}_contact`)}
-                </Button>
-              </View>
-              {mode === EDIT && (
-                <View style={styles.actionButton}>
-                  <Button
-                    variant={ButtonVariant.Tertiary}
-                    size={ButtonSize.Lg}
-                    isFullWidth
-                    isDanger
-                    isDisabled={!addressReady || !name || !!addressError}
-                    onPress={onDelete}
-                    testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
-                  >
-                    {strings(`address_book.delete`)}
-                  </Button>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
-        <ActionSheet
-          ref={actionSheet}
-          title={strings('address_book.delete_contact')}
-          options={[
-            strings('address_book.delete'),
-            strings('address_book.cancel'),
-          ]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          // eslint-disable-next-line react/jsx-no-bind
-          onPress={(index: number) => (index === 0 ? deleteContact() : null)}
-          theme={themeAppearance}
-        />
       </KeyboardAwareScrollView>
+      {!!editable && (
+        <View style={styles.buttonsWrapper}>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={!addressReady || !name || !!addressError}
+            onPress={saveContact}
+            testID={AddContactViewSelectorsIDs.ADD_BUTTON}
+          >
+            {strings(`address_book.${mode}_contact`)}
+          </Button>
+          {mode === EDIT && (
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDanger
+              isDisabled={!addressReady || !name || !!addressError}
+              onPress={onDelete}
+              testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
+            >
+              {strings(`address_book.delete`)}
+            </Button>
+          )}
+        </View>
+      )}
+      <ActionSheet
+        ref={actionSheet}
+        title={strings('address_book.delete_contact')}
+        options={[
+          strings('address_book.delete'),
+          strings('address_book.cancel'),
+        ]}
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        // eslint-disable-next-line react/jsx-no-bind
+        onPress={(index: number) => (index === 0 ? deleteContact() : null)}
+        theme={themeAppearance}
+      />
       {state.openNetworkSelector ? (
         <NetworkListBottomSheet
           selectedNetwork={state.contactChainId || null}
