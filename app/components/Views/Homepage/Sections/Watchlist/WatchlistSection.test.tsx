@@ -314,8 +314,9 @@ describe('WatchlistSection', () => {
   });
 
   it('adds a suggested token to the watchlist when its add button is pressed', () => {
+    const suggested = makeSuggestedToken('bitcoin');
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [makeSuggestedToken('bitcoin')],
+      data: [suggested],
       isLoading: false,
     });
 
@@ -325,7 +326,7 @@ describe('WatchlistSection', () => {
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockMutate).toHaveBeenCalledWith(
-      'eip155:1/erc20:0xbitcoin',
+      suggested,
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
   });

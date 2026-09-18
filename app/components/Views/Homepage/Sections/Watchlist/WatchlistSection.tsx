@@ -9,7 +9,6 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import type { CaipAssetType } from '@metamask/utils';
 import {
   Box,
   SectionDivider,
@@ -119,15 +118,15 @@ const WatchlistSection = forwardRef<
 
   const handleAddPress = useCallback(
     (token: WatchlistTokenWithBalance) => {
-      const assetId = String(token.assetId) as CaipAssetType;
-      addMutation.mutate(assetId, {
+      const assetId = String(token.assetId);
+      addMutation.mutate(token, {
         onSuccess: () => {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
               .addProperties({
                 source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
                 asset_id: assetId,
-                asset_type: getWatchlistAssetType(String(assetId)),
+                asset_type: getWatchlistAssetType(assetId),
                 has_balance: token.isInWallet,
               })
               .build(),
@@ -201,13 +200,13 @@ const WatchlistSection = forwardRef<
             />
           </WatchlistAnimatedRow>
         ))}
-        {showSuggestedSection ? (
+        {showSuggestedSection && (
           <WatchlistSuggestedSection
             tokens={suggestedTokens}
             hasWatchlist={displayTokens.length > 0}
             onAddPress={handleAddPress}
           />
-        ) : null}
+        )}
       </>
     );
   };
