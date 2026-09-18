@@ -363,6 +363,64 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
       version: 1,
     });
   });
+
+  it('seeds the hydrated cache with metadata passed alongside the added token', async () => {
+    mockedRead.mockResolvedValue({ assets: [ASSET_A], version: 1 });
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, { assets: [ASSET_A], version: 1 });
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+
+    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate(tokenFor(ASSET_B));
+    });
+
+    await waitFor(() =>
+      expect(readHydratedCache(queryClient)).toStrictEqual(
+        hydratedFor([ASSET_A, ASSET_B]),
+      ),
+    );
+    expect(readCache(queryClient)).toStrictEqual({
+      assets: [ASSET_A, ASSET_B],
+      version: 1,
+    });
+
+    await act(async () => {
+      await drainBatcher();
+    });
+  });
+
+  it('leaves the hydrated cache untouched when a bare asset id is added', async () => {
+    mockedRead.mockResolvedValue({ assets: [ASSET_A], version: 1 });
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, { assets: [ASSET_A], version: 1 });
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+
+    const { result } = renderHook(() => useTokenWatchlistAddItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate(ASSET_B);
+    });
+
+    await waitFor(() =>
+      expect(readCache(queryClient)).toStrictEqual({
+        assets: [ASSET_A, ASSET_B],
+        version: 1,
+      }),
+    );
+    expect(readHydratedCache(queryClient)).toStrictEqual(
+      hydratedFor([ASSET_A]),
+    );
+
+    await act(async () => {
+      await drainBatcher();
+    });
+  });
 });
 
 describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
