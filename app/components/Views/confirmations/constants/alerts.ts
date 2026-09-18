@@ -7,6 +7,7 @@ export enum AlertKeys {
   BurnAddress = 'burn_address',
   DomainMismatch = 'domain_mismatch',
   GasEstimateFailed = 'gas_estimate_failed',
+  GasLimitBelowMinimum = 'gas_limit_below_minimum',
   GasSponsorshipReserveBalance = 'gas_sponsorship_reserve_balance',
   FirstTimeInteraction = 'first_time_interaction',
   InsufficientBalance = 'insufficient_balance',

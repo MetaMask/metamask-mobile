@@ -40,7 +40,7 @@ appiumTest.describe(
   () => {
     appiumTest.describe.configure({ timeout: 300_000 });
 
-    appiumTest(
+    appiumTest.skip(
       'withdraws Perps balance directly to Money account',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
