@@ -43,10 +43,6 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
-import { BridgeSessionProvider } from '../Bridge/providers/BridgeSessionProvider';
-import { SwapQuotesProvider } from '../Bridge/providers/SwapQuotesProvider';
-import { FeatureId } from '@metamask/bridge-controller';
-import { QUICK_BUY_SOURCE_TO_FEATURE_ID } from './analytics/quickBuyEvents';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -197,52 +193,42 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   return (
     <BottomSheetDialog ref={bottomSheetRef} onClose={onClose}>
       {isContentReady ? (
-        <BridgeSessionProvider
-          featureId={
-            (analyticsContext?.source &&
-              QUICK_BUY_SOURCE_TO_FEATURE_ID[analyticsContext?.source]) ??
-            FeatureId.QUICK_BUY_TOKEN_DETAILS
-          }
+        <QuickBuyProvider
+          target={target}
+          onClose={requestClose}
+          features={features}
+          analyticsContext={analyticsContext}
+          activeScreen={activeScreen}
+          setActiveScreen={navigateToScreen}
         >
-          <SwapQuotesProvider>
-            <QuickBuyProvider
-              target={target}
-              onClose={requestClose}
-              features={features}
-              analyticsContext={analyticsContext}
-              activeScreen={activeScreen}
-              setActiveScreen={navigateToScreen}
+          <Box
+            testID={QuickBuySheetSelectorsIDs.CONTENT_CONTAINER}
+            onLayout={handleContentLayout}
+            style={
+              shouldLockHeight && lockedHeight !== null
+                ? {
+                    // Scroll-only screens reclaim the bottom safe-area inset
+                    // that BottomSheetDialog adds, so they sit flush to the
+                    // edge while keeping the same overall sheet height as the
+                    // CTA screens (no layout shift between screens).
+                    height: hasBottomCta
+                      ? lockedHeight
+                      : lockedHeight + bottomInset,
+                    ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
+                  }
+                : undefined
+            }
+          >
+            <Animated.View
+              key={activeScreen}
+              entering={hasNavigated ? entering : undefined}
+              exiting={isClosing ? undefined : exiting}
+              style={shouldLockHeight ? tw.style('flex-1') : undefined}
             >
-              <Box
-                testID={QuickBuySheetSelectorsIDs.CONTENT_CONTAINER}
-                onLayout={handleContentLayout}
-                style={
-                  shouldLockHeight && lockedHeight !== null
-                    ? {
-                        // Scroll-only screens reclaim the bottom safe-area inset
-                        // that BottomSheetDialog adds, so they sit flush to the
-                        // edge while keeping the same overall sheet height as the
-                        // CTA screens (no layout shift between screens).
-                        height: hasBottomCta
-                          ? lockedHeight
-                          : lockedHeight + bottomInset,
-                        ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
-                      }
-                    : undefined
-                }
-              >
-                <Animated.View
-                  key={activeScreen}
-                  entering={hasNavigated ? entering : undefined}
-                  exiting={isClosing ? undefined : exiting}
-                  style={shouldLockHeight ? tw.style('flex-1') : undefined}
-                >
-                  {renderActiveScreen(activeScreen, children)}
-                </Animated.View>
-              </Box>
-            </QuickBuyProvider>
-          </SwapQuotesProvider>
-        </BridgeSessionProvider>
+              {renderActiveScreen(activeScreen, children)}
+            </Animated.View>
+          </Box>
+        </QuickBuyProvider>
       ) : (
         <QuickBuyBottomSheetSkeleton />
       )}

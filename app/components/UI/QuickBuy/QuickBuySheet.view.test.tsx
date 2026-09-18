@@ -109,19 +109,21 @@ const selectTenDollarBuy = async (
   fireEvent.press(await screen.findByTestId(getQuickBuyBuyPillTestId(10)));
 };
 
-/** useQuickBuyQuotes call is (request, featureId, AbortSignal). */
+/** Local Quick Buy path: BridgeController.fetchQuotes, not Redux quote polling. */
 const expectDirectFetchQuotes = (featureId: FeatureId) => {
-  const analyticsCall = (
+  expect(Engine.context.BridgeController.fetchQuotes).toHaveBeenCalled();
+  const lastCall = (
     Engine.context.BridgeController.fetchQuotes as jest.Mock
-  ).mock.calls
-    .filter((call: unknown[]) => call.length >= 3)
-    .at(-1);
-  expect(analyticsCall?.[0]).toEqual(
+  ).mock.calls.at(-1);
+  expect(lastCall?.[0]).toEqual(
     expect.objectContaining({
       srcTokenAmount: expect.stringMatching(/^[1-9]/),
     }),
   );
-  expect(analyticsCall?.[1]).toBe(featureId);
+  expect(lastCall?.[1]).toBe(featureId);
+  expect(
+    Engine.context.BridgeController.updateBridgeQuoteRequestParams,
+  ).not.toHaveBeenCalled();
 };
 
 describeForPlatforms('QuickBuySheet', () => {
@@ -210,7 +212,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitFor(
       () => {
-        expect(screen.queryByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD)).toBeNull();
+        expect(Engine.context.BridgeController.fetchQuotes).toHaveBeenCalled();
       },
       { timeout: WAIT_MS },
     );
@@ -218,6 +220,7 @@ describeForPlatforms('QuickBuySheet', () => {
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(screen.queryByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD)).toBeNull();
   });
 
   it('keeps confirm disabled when fetchQuotes rejects', async () => {
@@ -238,6 +241,9 @@ describeForPlatforms('QuickBuySheet', () => {
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      Engine.context.BridgeController.updateBridgeQuoteRequestParams,
+    ).not.toHaveBeenCalled();
   });
 
   it('opens the pay-with token list when the pay-with row is pressed', async () => {

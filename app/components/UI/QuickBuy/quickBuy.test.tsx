@@ -248,7 +248,9 @@ const buildHookResult = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
+  refreshCount: 0,
   quoteRefreshRateMs: 30000,
+  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
