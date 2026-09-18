@@ -10703,9 +10703,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/kyc-controller@file:../core/packages/kyc-controller::locator=metamask%40workspace%3A.":
-  version: 0.3.0
-  resolution: "@metamask/kyc-controller@file:../core/packages/kyc-controller#../core/packages/kyc-controller::hash=f50522&locator=metamask%40workspace%3A."
+"@metamask/kyc-controller@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/kyc-controller@npm:0.4.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.0.0"
@@ -10720,9 +10720,8 @@ __metadata:
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^1.2.6"
     "@tanstack/query-core": "npm:^5.62.16"
-    reselect: "npm:^5.1.1"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/0f77a17d64a9ee2231fed0474b2b55f80411712cb4122079977bb4ac03c9ea978b5cc37fbb11516ed884a5749db1bfca2a211c50d137effdfbd5ba22a4f696aa
+  checksum: 10/10d821cf8779a56738398ad1e9f3578f27ec06bc4c1aa6c10f610fede63eccd155c71f5c0b5a8f800e5f5e3d35e32dc2fd6af9e9823cd0e501b9191ee5d55e29
   languageName: node
   linkType: hard
 
@@ -39328,7 +39327,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-snap-client": "npm:^10.0.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/kyc-controller": "file:../core/packages/kyc-controller"
+    "@metamask/kyc-controller": "npm:^0.4.0"
     "@metamask/logging-controller": "npm:^9.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
