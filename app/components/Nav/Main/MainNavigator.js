@@ -11,7 +11,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
-import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
@@ -71,7 +70,6 @@ import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import OptinMetrics from '../../UI/OptinMetrics';
 
 import RampRoutes from '../../UI/Ramp/Aggregator/routes';
@@ -106,6 +104,8 @@ import {
   SOCIAL_V1_VARIANTS,
 } from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
+import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
+import { toJsTabOptions } from './HomeTabs/homeTabs.mappers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -123,13 +123,8 @@ import {
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
-import { getDecimalChainId } from '../../../util/networks';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
@@ -222,7 +217,7 @@ import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } fr
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const JsTab = createBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
@@ -605,8 +600,17 @@ const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
+const HOME_TAB_COMPONENTS = {
+  home: WalletTabStackFlow,
+  explore: ExploreFeed,
+  browser: BrowserFlowUnmountOnTabBlur,
+  activity: TransactionsHomeUnmountOnTabBlur,
+  money: MoneyTabScreenStack,
+  rewards: RewardsHomeUnmountOnTabBlur,
+  social: SocialV0View,
+};
+
 const HomeTabs = () => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
@@ -628,101 +632,20 @@ const HomeTabs = () => {
   const registerMoneyTabPressTracker = useCallback((fn) => {
     trackMoneyTabPressRef.current = fn;
   }, []);
+  const trackMoneyTabPress = useCallback(() => {
+    trackMoneyTabPressRef.current?.();
+  }, []);
 
-  const accountsLength = useSelector(selectAccountsLength);
-
-  const chainId = useSelector((state) => {
-    const providerConfig = selectProviderConfig(state);
-    return ChainId[providerConfig.type];
+  const { tabs, trackBottomNavPress } = useHomeTabDefinitions({
+    isMoneyAccountVisible,
+    showSocialTab,
+    trackMoneyTabPress,
   });
 
-  const amountOfBrowserOpenTabs = useSelector(
-    (state) => state.browser.tabs.length,
-  );
-
-  const options = {
-    home: {
-      tabBarIconKey: TabBarIconKey.Wallet,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
-            .addProperties({
-              number_of_accounts: accountsLength,
-              chain_id: getDecimalChainId(chainId),
-            })
-            .build(),
-        );
-      },
-      rootScreenName: Routes.WALLET_VIEW,
-    },
-    trade: {
-      tabBarIconKey: TabBarIconKey.Trade,
-      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
-    },
-    browser: {
-      tabBarIconKey: TabBarIconKey.Browser,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
-            .addProperties({
-              number_of_accounts: accountsLength,
-              chain_id: getDecimalChainId(chainId),
-              source: 'Navigation Tab',
-              number_of_open_tabs: amountOfBrowserOpenTabs,
-            })
-            .build(),
-        );
-      },
-      rootScreenName: Routes.BROWSER_VIEW,
-      // Required with `withUnmountOnTabBlur` — freezing blocks the unmount.
-      freezeOnBlur: false,
-    },
-    activity: {
-      tabBarIconKey: TabBarIconKey.Activity,
-      rootScreenName: Routes.TRANSACTIONS_VIEW,
-      freezeOnBlur: false,
-    },
-    money: {
-      tabBarIconKey: TabBarIconKey.Money,
-      callback: () => {
-        trackMoneyTabPressRef.current?.();
-      },
-      rootScreenName: Routes.MONEY.HOME,
-    },
-    rewards: {
-      tabBarIconKey: TabBarIconKey.Rewards,
-      rootScreenName: Routes.REWARDS_VIEW,
-      freezeOnBlur: false,
-    },
-    social: {
-      tabBarIconKey: TabBarIconKey.Social,
-      rootScreenName: Routes.SOCIAL.TAB,
-      freezeOnBlur: false,
-    },
-    trending: {
-      tabBarIconKey: TabBarIconKey.Trending,
-      callback: () => {
-        // Re-enable AppState listener when returning to trending tab
-        // (it was disabled when leaving to prevent phantom sessions)
-        TrendingFeedSessionManager.getInstance().enableAppStateListener();
-        // Start a new session when returning to trending tab
-        // The session manager will ignore if a session is already active
-        TrendingFeedSessionManager.getInstance().startSession('tab_press');
-      },
-      onLeave: () => {
-        // End trending session when user switches to another tab
-        TrendingFeedSessionManager.getInstance().endSession();
-        // Disable AppState listener to prevent phantom sessions when app
-        // backgrounds/foregrounds while user is on a different tab (Explore
-        // stays mounted; Browser/Activity/Rewards use UnmountOnBlur layout).
-        TrendingFeedSessionManager.getInstance().disableAppStateListener();
-      },
-      rootScreenName: Routes.TRENDING_VIEW,
-    },
-    settings: {
-      tabBarIconKey: TabBarIconKey.Setting,
-      rootScreenName: Routes.SETTINGS_VIEW,
-    },
+  // Control only: a modal trigger the bar handles itself.
+  const tradeOptions = {
+    tabBarIconKey: TabBarIconKey.Trade,
+    rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
   };
 
   useEffect(() => {
@@ -756,22 +679,9 @@ const HomeTabs = () => {
       return null;
     }
 
-    // Hide tab bar when on rewards sub-pages (only show on home + onboarding)
-    if (currentRoute.name === Routes.REWARDS_VIEW) {
-      const rewardsHomeState = currentRoute?.state;
-      const rewardsViewRoute = rewardsHomeState?.routes?.find(
-        (r) => r.name === Routes.REWARDS_VIEW,
-      );
-      const rewardsNavState = rewardsViewRoute?.state;
-      const activeRewardsRouteName =
-        rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
-      const isRewardsHomePage =
-        !activeRewardsRouteName ||
-        activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
-        activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW;
-      if (!isRewardsHomePage) {
-        return null;
-      }
+    const currentTab = tabs.find((tab) => tab.name === currentRoute.name);
+    if (currentTab?.hidesTabBarFor?.(currentRoute)) {
+      return null;
     }
 
     if (isKeyboardHidden) {
@@ -794,96 +704,56 @@ const HomeTabs = () => {
     return null;
   };
 
+  const renderJsTabScreen = (tab) => (
+    <JsTab.Screen
+      key={tab.name}
+      name={tab.name}
+      options={toJsTabOptions(
+        tab,
+        // `TabBar` fires the Navigation Drawer event itself.
+        isFloatingTabBar ? { trackBottomNavPress } : undefined,
+      )}
+      component={HOME_TAB_COMPONENTS[tab.key]}
+    />
+  );
+
+  /*
+   * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
+   * mounted here (above Tab.Navigator) so their BottomSheets render inside
+   * the full-viewport Home screen card.
+   * BottomSheet uses `absolute inset-0` (see
+   * @metamask/design-system-react-native) and would be clipped by an
+   * individual tab's content area if mounted lower in the tree.
+   *
+   * A nested provider in PredictScreenStack still shadows this one for
+   * usage; the registration stack in PredictPreviewSheetContext keeps only
+   * the innermost (most recently mounted) provider active for state-based
+   * Retry toasts so we don't double-fire when both are mounted.
+   */
   return (
-    /*
-     * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
-     * mounted here (above Tab.Navigator) so their BottomSheets render inside
-     * the full-viewport Home screen card.
-     * BottomSheet uses `absolute inset-0` (see
-     * @metamask/design-system-react-native) and would be clipped by an
-     * individual tab's content area if mounted lower in the tree.
-     *
-     * A nested provider in PredictScreenStack still shadows this one for
-     * usage; the registration stack in PredictPreviewSheetContext keeps only
-     * the innermost (most recently mounted) provider active for state-based
-     * Retry toasts so we don't double-fire when both are mounted.
-     */
     <PredictPreviewSheetProvider>
       <TrendingQuickBuySheetProvider>
         {isMoneyAccountEnabled ? (
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
         <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-          <Tab.Navigator
+          <JsTab.Navigator
             initialRouteName={Routes.WALLET.HOME}
             tabBar={renderTabBar}
             screenOptions={{ headerShown: false }}
           >
-            {/* Home Tab */}
-            <Tab.Screen
-              name={Routes.WALLET.HOME}
-              options={options.home}
-              component={WalletTabStackFlow}
-            />
-
-            <>
-              <Tab.Screen
-                name={Routes.TRENDING_VIEW}
-                options={{
-                  ...options.trending,
-                  isSelected: (rootScreenName) =>
-                    [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                      rootScreenName,
-                    ),
-                }}
-                component={ExploreFeed}
-              />
-              <Tab.Screen
-                name={Routes.BROWSER.HOME}
-                options={{
-                  ...options.browser,
-                  isHidden: true,
-                }}
-                component={BrowserFlowUnmountOnTabBlur}
-              />
-            </>
+            {tabs.slice(0, 3).map(renderJsTabScreen)}
 
             {isFloatingTabBar ? null : (
-              <Tab.Screen
+              <JsTab.Screen
                 name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-                options={options.trade}
+                options={tradeOptions}
                 component={WalletTabStackFlow}
               />
             )}
 
-            {isMoneyAccountVisible ? (
-              <Tab.Screen
-                name={Routes.MONEY.ROOT}
-                options={options.money}
-                component={MoneyTabScreenStack}
-              />
-            ) : (
-              <Tab.Screen
-                name={Routes.TRANSACTIONS_VIEW}
-                options={options.activity}
-                component={TransactionsHomeUnmountOnTabBlur}
-              />
-            )}
-
-            {showSocialTab ? (
-              <Tab.Screen
-                name={Routes.SOCIAL.TAB}
-                options={options.social}
-                component={SocialV0View}
-              />
-            ) : (
-              <Tab.Screen
-                name={Routes.REWARDS_VIEW}
-                options={options.rewards}
-                component={RewardsHomeUnmountOnTabBlur}
-              />
-            )}
-          </Tab.Navigator>
+            {tabs.slice(3).map(renderJsTabScreen)}
+          </JsTab.Navigator>
         </FloatingTabBarInsetContext.Provider>
       </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
