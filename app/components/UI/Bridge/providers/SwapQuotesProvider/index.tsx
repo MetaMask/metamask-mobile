@@ -149,18 +149,24 @@ const useQuoteData = ({
     needsNewQuote,
     validQuotes,
     willRefresh,
+    refreshRate,
+    quotesLastFetched,
   } = useValidQuotes({ latestSourceAtomicBalance, isActive, quoteParams });
 
   // Validate solana quotes
   const blockaidError = useBlockaidError({ activeQuote, isActive });
 
   // Format quote data
-  const { destTokenAmount, formattedQuoteData, shouldShowPriceImpactWarning } =
-    useFormattedQuoteData({
-      activeQuote,
-      isActiveQuoteForCurrentTokenPair,
-      quoteParams,
-    });
+  const {
+    destTokenAmount,
+    formattedQuoteData,
+    shouldShowPriceImpactWarning,
+    shouldShowPriceImpactError,
+  } = useFormattedQuoteData({
+    activeQuote,
+    isActiveQuoteForCurrentTokenPair,
+    quoteParams,
+  });
 
   return useMemo(
     () => ({
@@ -177,8 +183,11 @@ const useQuoteData = ({
       quoteFetchError,
       quotesLoadingStatus,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     }),
     [
       activeQuote,
@@ -194,8 +203,11 @@ const useQuoteData = ({
       quoteFetchError,
       quotesLoadingStatus,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     ],
   );
 };

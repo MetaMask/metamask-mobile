@@ -938,14 +938,12 @@ export function useQuickBuyController(
     activeQuote?.quote?.priceData?.priceImpact?.amount,
   );
 
-  const isPriceImpactError = useMemo(
-    () =>
-      exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      ),
-    [activeQuote, bridgeFeatureFlags],
-  );
+  const isPriceImpactError = useMemo(() => {
+    return exceedsPriceImpactErrorThreshold(
+      parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
+      bridgeFeatureFlags?.priceImpactThreshold?.error,
+    );
+  }, [activeQuote, bridgeFeatureFlags]);
 
   const totalAmountFiat = useMemo(() => {
     const inputNum = parseFloat(fiatAmount);
