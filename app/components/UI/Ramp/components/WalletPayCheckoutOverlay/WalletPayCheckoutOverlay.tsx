@@ -20,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import { colors as commonColors } from '../../../../../styles/common';
 import { parseCrossmintCheckoutMessage } from '../../utils/crossmintCheckoutMessage';
+import { needsLegacyApplePay } from '../../utils/needsLegacyApplePay';
 import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from './WalletPayCheckoutOverlay.testIds';
 
 /** Undocumented: posted once the Apple Pay / Google Pay button has rendered. */
@@ -37,8 +38,8 @@ const MIN_WEBVIEW_HEIGHT = 44;
 const MAX_WEBVIEW_HEIGHT = 400;
 
 /**
- * Reveal deadline. `enableApplePay` blocks the postMessage polyfill on iOS, so
- * no events arrive there and this timeout is the only signal.
+ * Reveal deadline. On iOS 15 `enableApplePay` blocks the postMessage polyfill,
+ * so no events arrive there and this timeout is the only signal.
  */
 const READY_FALLBACK_MS = 1200;
 
@@ -129,8 +130,8 @@ function CrossmintTermsNotice() {
  * what they render and the screen is built natively around it.
  *
  * The URL comes from the on-ramp API buy-widget endpoint; no Crossmint API is
- * called from the client. `enableApplePay` disables injectJavaScript and the
- * postMessage polyfill on iOS, so completion is really observed through
+ * called from the client. On iOS 15 `enableApplePay` disables injectJavaScript
+ * and the postMessage polyfill, so completion is really observed through
  * precreated-order polling and onMessage is only an accelerator.
  */
 function WalletPayCheckoutOverlay({
@@ -272,7 +273,7 @@ function WalletPayCheckoutOverlay({
           style={styles.webView}
           onLoadEnd={handleLoadEnd}
           // Same flags as the Ramp Checkout WebView (working Apple Pay).
-          enableApplePay
+          enableApplePay={needsLegacyApplePay()}
           paymentRequestEnabled
           allowsInlineMediaPlayback
           mediaPlaybackRequiresUserAction={false}
