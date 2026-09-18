@@ -9292,9 +9292,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^16.0.0, @metamask/assets-controller@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "@metamask/assets-controller@npm:16.1.0"
+"@metamask/assets-controller@npm:@metamask-previews/assets-controller@16.1.0-preview-db287901b":
+  version: 16.1.0-preview-db287901b
+  resolution: "@metamask-previews/assets-controller@npm:16.1.0-preview-db287901b"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -9321,13 +9321,13 @@ __metadata:
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/snaps-controllers": "npm:^19.0.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
-    "@metamask/transaction-controller": "npm:^70.0.1"
+    "@metamask/transaction-controller": "npm:^70.1.0"
     "@metamask/utils": "npm:^12.0.0"
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.1.2"
     lodash-es: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/a3eef2c5238333f2cd45b45624b3fa7c3474a852b6ac931361571dc91049c13938b71e220b0313629734de637d77bf7194a21382ae71a1296823a9f74cae513e
+  checksum: 10/a4f9c27480126f8f7b4c1907e97b785a619a8f7300694fa521712fa5e6319ea05e006397c73768c77edee700df79c9de29cec7f5e480353908a1fb622e0710c2
   languageName: node
   linkType: hard
 
