@@ -383,8 +383,8 @@ describe('useMoneyAccountDeposit', () => {
     );
   });
 
-  it('forwards explicit amount and uses advanced custom amount loader', async () => {
-    mockDepositPrefillEnabled(true);
+  it('forwards explicit amount and uses prefill loader without balance prefill enabled', async () => {
+    mockDepositPrefillEnabled(false);
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
@@ -398,7 +398,7 @@ describe('useMoneyAccountDeposit', () => {
       bottomSheetHeightPercentage: undefined,
       forceBottomSheet: undefined,
       launchedFrom: undefined,
-      loader: ConfirmationLoader.AdvancedCustomAmount,
+      loader: ConfirmationLoader.PrefillCustomAmount,
       preferredPaymentToken: undefined,
       replace: undefined,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
@@ -428,6 +428,22 @@ describe('useMoneyAccountDeposit', () => {
       replace: undefined,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
+  });
+
+  it('keeps a zero initial amount on the editable amount loader', async () => {
+    mockDepositPrefillEnabled(true);
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ amount: '0' });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: '0',
+        loader: ConfirmationLoader.AdvancedCustomAmount,
+      }),
+    );
   });
 
   it('passes autoSelectFiatPayment to navigateToConfirmation', async () => {

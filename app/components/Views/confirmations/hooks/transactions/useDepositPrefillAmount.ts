@@ -109,9 +109,16 @@ export function useDepositPrefillAmount({
       return prefilledAmountConfig.enabled;
     }
 
-    // An explicit starting amount must not be replaced by balance-based prefill.
+    // Explicit amounts use the same quote preparation flow without opting into
+    // balance-based prefill or changing card/add-mUSD funding behavior.
     if (amount !== undefined) {
-      return false;
+      const explicitAmount = new BigNumber(amount);
+      return (
+        depositIntent !== 'card' &&
+        depositIntent !== 'addMusd' &&
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0)
+      );
     }
 
     const { variantName } = resolveABTestAssignment(
@@ -165,6 +172,14 @@ export function useDepositPrefillAmount({
       };
     }
 
+    if (isMoneyAccountDeposit && amount !== undefined) {
+      return {
+        prefillAmount: amount,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
+
     const stable = isRouteToken(relayFixedSpread, {
       chainId: payToken.chainId,
       address: payToken.address,
@@ -186,7 +201,15 @@ export function useDepositPrefillAmount({
       percentage: nextPercentage,
       isLimitCapped: capped,
     };
-  }, [enabled, balanceUsd, payToken, depositLimit, relayFixedSpread]);
+  }, [
+    amount,
+    isMoneyAccountDeposit,
+    enabled,
+    balanceUsd,
+    payToken,
+    depositLimit,
+    relayFixedSpread,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
