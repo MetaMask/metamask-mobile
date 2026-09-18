@@ -3,7 +3,7 @@ import Logger from '../util/Logger';
 import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
-import { Authentication } from './Authentication/Authentication';
+import { completeSeedlessPasswordChangeKeySync } from './Authentication/seedlessPasswordChangeCoordinator';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -93,7 +93,7 @@ export const recreateVaultsWithNewPassword = async (
   await KeyringController.changePassword(newPassword);
 
   if (isSeedlessFlow) {
-    await Authentication.syncKeyringEncryptionKey();
+    await completeSeedlessPasswordChangeKeySync();
   }
   Engine.setSelectedAddress(selectedAddress);
 };

@@ -247,9 +247,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         type: 'error',
         icon: IconName.Danger,
         isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
-        },
         closeOnPrimaryButtonPress: true,
       },
     });
@@ -353,8 +350,13 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           strings('choose_password.security_alert_message'),
         );
         setLoading(false);
-      } else if (castError.message.includes('SeedlessOnboardingController')) {
+      } else if (isSeedlessOnboardingLoginFlow) {
         Logger.error(castError);
+        try {
+          await Authentication.lockApp({ locked: true });
+        } catch (lockError) {
+          Logger.error(lockError as Error);
+        }
         if (
           castError.message ===
           SeedlessOnboardingControllerErrorMessage.OutdatedPassword
@@ -378,6 +380,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     recreateVault,
     handleSeedlessPasswordOutdated,
     handleSeedlessChangePasswordError,
+    isSeedlessOnboardingLoginFlow,
     dispatch,
     navigation,
   ]);
