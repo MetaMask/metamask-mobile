@@ -39,6 +39,8 @@ const APPLE_PAY_PAYMENT_METHOD_SUFFIX = 'apple-pay';
 const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
 const PREPARE_DEBOUNCE_MS = 400;
 
+const AWAITING_PAYMENT_STATUS = 'awaiting-payment';
+
 const PAID_ORDER_STATUSES: RampsOrderStatus[] = [
   RampsOrderStatus.Pending,
   RampsOrderStatus.Completed,
@@ -70,6 +72,12 @@ export interface UseCrossmintWalletPayOverlayResult {
   isCheckoutReady: boolean;
   /** Passed to the overlay so it can report the payment button as rendered. */
   onCheckoutReady: () => void;
+  /**
+   * True from payment authorization until hand-off (or a decline). Crossmint
+   * repaints their button through settlement, so the caller covers the slot
+   * with its own state while this holds.
+   */
+  isPaymentSettling: boolean;
   /** Best-effort handler for the overlay WebView postMessage events. */
   onMessage: (event: WebViewMessageEvent) => void;
 }
@@ -139,6 +147,8 @@ export default function useCrossmintWalletPayOverlay(
   const [prepared, setPrepared] = useState<PreparedOverlay | null>(null);
   const [preparationFailed, setPreparationFailed] = useState(false);
   const [checkoutReadyId, setCheckoutReadyId] = useState<number | null>(null);
+  const [settlingOrderId, setSettlingOrderId] = useState<string | null>(null);
+  const lastPaymentStatusRef = useRef<string | undefined>(undefined);
   const preparedKeyRef = useRef<string | null>(null);
   const prepareIdRef = useRef(0);
   const handedOffOrderIdRef = useRef<string | null>(null);
@@ -289,6 +299,11 @@ export default function useCrossmintWalletPayOverlay(
     [navigation, selectedToken?.symbol],
   );
 
+  // A new order starts with no payment history.
+  useEffect(() => {
+    lastPaymentStatusRef.current = undefined;
+  }, [activePrepared?.orderId]);
+
   const onCheckoutReady = useCallback(() => {
     if (activePrepared) {
       setCheckoutReadyId(activePrepared.preparationId);
@@ -305,20 +320,39 @@ export default function useCrossmintWalletPayOverlay(
 
       const failure = getCrossmintFailureMessage(message);
       if (failure) {
-        // Their UI surfaces the failure inline and allows a retry, so only log.
+        // Their UI surfaces the failure inline and allows a retry, so log and
+        // give them the slot back.
         Logger.error(new Error(failure), {
           message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
         });
+        setSettlingOrderId(null);
         return;
       }
 
       const order = message.data?.order;
+      if (message.event !== 'order:updated') {
+        return;
+      }
       if (
-        message.event === 'order:updated' &&
-        (isCrossmintPaymentInProgress(order) ||
-          isCrossmintPaymentCompleted(order))
+        isCrossmintPaymentInProgress(order) ||
+        isCrossmintPaymentCompleted(order)
       ) {
         handOffToOrderDetails(activePrepared);
+      }
+      // Authorization shows up as the status moving into awaiting-payment
+      // (from requires-email, which the wallet sheet resolves) or in-progress.
+      // A first report that is already awaiting-payment is the idle checkout.
+      const status = order?.payment?.status;
+      const previousStatus = lastPaymentStatusRef.current;
+      lastPaymentStatusRef.current = status;
+      if (
+        activePrepared?.orderId &&
+        ((status === AWAITING_PAYMENT_STATUS &&
+          previousStatus !== undefined &&
+          previousStatus !== AWAITING_PAYMENT_STATUS) ||
+          isCrossmintPaymentInProgress(order))
+      ) {
+        setSettlingOrderId(activePrepared.orderId);
       }
     },
     [activePrepared, handOffToOrderDetails],
@@ -351,6 +385,8 @@ export default function useCrossmintWalletPayOverlay(
   }, [isEligible, activePrepared?.checkoutUrl, colors]);
 
   const isCheckoutReady = activePrepared?.preparationId === checkoutReadyId;
+  const isPaymentSettling =
+    settlingOrderId !== null && settlingOrderId === activePrepared?.orderId;
 
   // Derived during render, not state: effects run after paint, so a flag set
   // in the prepare effect leaves one frame where Continue flashes in enabled.
@@ -363,6 +399,7 @@ export default function useCrossmintWalletPayOverlay(
     checkoutUrl,
     isPreparing,
     isCheckoutReady,
+    isPaymentSettling,
     onCheckoutReady,
     onMessage,
   };

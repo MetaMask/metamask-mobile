@@ -663,7 +663,8 @@ function BuildQuote() {
 
   const isWalletPayButtonVisible =
     Boolean(crossmintWalletPay.checkoutUrl) &&
-    crossmintWalletPay.isCheckoutReady;
+    crossmintWalletPay.isCheckoutReady &&
+    !crossmintWalletPay.isPaymentSettling;
 
   const hasNoQuotes =
     hasAmount &&
@@ -852,6 +853,7 @@ function BuildQuote() {
                     key={crossmintWalletPay.checkoutUrl}
                     checkoutUrl={crossmintWalletPay.checkoutUrl}
                     interactive={canContinue}
+                    concealed={crossmintWalletPay.isPaymentSettling}
                     onMessage={crossmintWalletPay.onMessage}
                     onReady={crossmintWalletPay.onCheckoutReady}
                   />
@@ -862,13 +864,25 @@ function BuildQuote() {
                     size={ButtonSize.Lg}
                     onPress={handleContinuePress}
                     isFullWidth
-                    isDisabled={!canContinue || crossmintWalletPay.isPreparing}
+                    isDisabled={
+                      !canContinue ||
+                      crossmintWalletPay.isPreparing ||
+                      crossmintWalletPay.isPaymentSettling
+                    }
                     isLoading={
                       selectedQuoteLoading ||
                       isContinueLoading ||
                       isTokenUnavailable ||
                       !tokenStateIsSettled ||
-                      crossmintWalletPay.isPreparing
+                      crossmintWalletPay.isPreparing ||
+                      crossmintWalletPay.isPaymentSettling
+                    }
+                    loadingText={
+                      crossmintWalletPay.isPaymentSettling
+                        ? strings(
+                            'fiat_on_ramp_aggregator.order_status_processing',
+                          )
+                        : undefined
                     }
                     testID={BuildQuoteSelectors.CONTINUE_BUTTON}
                   >

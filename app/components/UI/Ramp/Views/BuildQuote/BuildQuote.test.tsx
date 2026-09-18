@@ -354,6 +354,7 @@ const mockCrossmintWalletPayDefaults = {
   checkoutUrl: null as string | null,
   isPreparing: false,
   isCheckoutReady: false,
+  isPaymentSettling: false,
   onCheckoutReady: jest.fn(),
   onMessage: jest.fn(),
 };
@@ -2223,6 +2224,32 @@ describe('BuildQuote', () => {
         getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
       ).toBeOnTheScreen();
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+    });
+
+    it('covers the payment button with a processing state while payment settles', () => {
+      mockCrossmintWalletPay = {
+        ...mockCrossmintWalletPayDefaults,
+        isEligible: true,
+        checkoutUrl: 'https://staging.crossmint.com/embedded-checkout',
+        isCheckoutReady: true,
+        isPaymentSettling: true,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      // The checkout stays mounted for order events, hidden behind our own
+      // state, so Crossmint's post-authorization repaint is never visible.
+      expect(
+        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      ).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      // The spinner is mocked in Jest, so the loading label is asserted
+      // through the accessibility label the button derives from it.
+      expect(continueButton.props.accessibilityLabel).toBe('Processing');
     });
 
     it('shows Continue in a loading state while the overlay is preparing', () => {
