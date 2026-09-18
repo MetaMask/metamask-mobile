@@ -714,14 +714,6 @@ jest.mock('../../hooks/usePerpsMode', () => ({
   })),
 }));
 
-// Mock useABTest to return default (control/white) variant
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variantName: 'control',
-    isActive: false,
-  }),
-}));
-
 // Mock usePerpsOICap to return not at cap by default
 jest.mock('../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({

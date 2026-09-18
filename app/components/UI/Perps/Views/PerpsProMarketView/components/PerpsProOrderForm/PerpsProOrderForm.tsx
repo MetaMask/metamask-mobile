@@ -8,8 +8,6 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   Checkbox,
   FilterButton,
   FontWeight,
@@ -49,6 +47,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
+import PerpsDirectionButton from '../../../../components/PerpsDirectionButton';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -729,17 +728,13 @@ const PerpsProOrderForm = ({
               <FilterButton
                 value="long"
                 disabled={isScaleFormLocked}
-                twClassName={isLong ? 'bg-success-muted' : ''}
+                twClassName="bg-success-default"
                 testID={ids.DIRECTION_LONG}
               >
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={
-                    isLong
-                      ? TextColor.SuccessDefault
-                      : TextColor.TextAlternative
-                  }
+                  color={TextColor.SuccessInverse}
                 >
                   {strings('perps.market.long')}
                 </Text>
@@ -747,15 +742,13 @@ const PerpsProOrderForm = ({
               <FilterButton
                 value="short"
                 disabled={isScaleFormLocked}
-                twClassName={!isLong ? 'bg-error-muted' : ''}
+                twClassName="bg-error-default"
                 testID={ids.DIRECTION_SHORT}
               >
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={
-                    isLong ? TextColor.TextAlternative : TextColor.ErrorDefault
-                  }
+                  color={TextColor.ErrorInverse}
                 >
                   {strings('perps.market.short')}
                 </Text>
@@ -1005,12 +998,8 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <ButtonSemantic
-            severity={
-              placeOrderIntent === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
+          <PerpsDirectionButton
+            direction={placeOrderIntent}
             size={ButtonBaseSize.Lg}
             isFullWidth
             isDisabled={isPlaceOrderDisabled}
@@ -1019,7 +1008,7 @@ const PerpsProOrderForm = ({
             testID={ids.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}
-          </ButtonSemantic>
+          </PerpsDirectionButton>
           {isScaleOrder ? (
             <ScalePreview model={scaleOrder} summary={summary} />
           ) : null}

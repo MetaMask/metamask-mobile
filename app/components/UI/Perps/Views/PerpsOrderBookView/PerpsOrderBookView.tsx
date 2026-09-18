@@ -8,8 +8,6 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   FilterButton,
   HeaderSubpage,
   IconColor,
@@ -76,11 +74,7 @@ import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsB
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  BUTTON_COLOR_VARIANTS,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
-} from '../../abTestConfig';
+import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -113,16 +107,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
-
-  // A/B Testing: Button color test (TAT-1937)
-  const { variantName: buttonColorVariant } = useABTest(
-    PERPS_BUTTON_COLOR_AB_TEST_KEY,
-    BUTTON_COLOR_VARIANTS,
-    {
-      experimentName: 'Long/Short Button Color Test',
-      variationNames: { control: 'White/White', colors: 'Green/Red' },
-    },
-  );
 
   // Geo-restriction eligibility check
   const isEligible = useSelector(selectPerpsEligibility);
@@ -741,49 +725,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           </View>
         ) : (
           <View style={styles.actionsContainer} accessible={false}>
-            {buttonColorVariant === 'colors' ? (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Success}
-                onPress={handleLongPress}
-                size={ButtonSize.Lg}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </ButtonSemantic>
-            ) : (
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleLongPress}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </Button>
-            )}
+            <PerpsDirectionButton
+              direction="long"
+              onPress={handleLongPress}
+              size={ButtonSize.Lg}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+            >
+              {strings('perps.market.long')}
+            </PerpsDirectionButton>
 
-            {buttonColorVariant === 'colors' ? (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Danger}
-                onPress={handleShortPress}
-                size={ButtonSize.Lg}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </ButtonSemantic>
-            ) : (
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleShortPress}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </Button>
-            )}
+            <PerpsDirectionButton
+              direction="short"
+              onPress={handleShortPress}
+              size={ButtonSize.Lg}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+            >
+              {strings('perps.market.short')}
+            </PerpsDirectionButton>
           </View>
         )}
       </View>

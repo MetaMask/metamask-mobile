@@ -10,8 +10,6 @@ import {
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -30,6 +28,7 @@ import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsDirectionButton from '../PerpsDirectionButton';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
@@ -481,12 +480,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ))}
               </Box>
             ) : null}
-            <ButtonSemantic
-              severity={
-                direction === 'long'
-                  ? ButtonSemanticSeverity.Success
-                  : ButtonSemanticSeverity.Danger
-              }
+            <PerpsDirectionButton
+              direction={direction}
               size={ButtonBaseSize.Lg}
               isFullWidth
               isDisabled={isSubmitDisabled}
@@ -496,7 +491,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               twClassName="rounded-xl"
             >
               {submitLabel ?? directionLabel}
-            </ButtonSemantic>
+            </PerpsDirectionButton>
             {feePercentage ? (
               <Text
                 variant={TextVariant.BodyXs}
