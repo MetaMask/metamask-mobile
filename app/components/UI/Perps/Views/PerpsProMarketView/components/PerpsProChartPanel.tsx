@@ -408,6 +408,8 @@ const PerpsProChartPanel = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                twClassName="gap-6"
+                testID={PerpsProMarketViewSelectorsIDs.CHART_NAV}
               >
                 <CandlePeriodSelector
                   selectedPeriod={selectedCandlePeriod}
@@ -415,11 +417,12 @@ const PerpsProChartPanel = ({
                   onMorePress={onMorePress}
                   visiblePeriods={PRO_CANDLE_PERIODS}
                   twClassName="flex-1 py-0"
-                  groupTwClassName="gap-2 justify-start"
+                  groupTwClassName="gap-2"
                   filterVariant={FilterButtonVariant.Secondary}
-                  periodButtonTwClassName="h-7 rounded px-1"
-                  moreButtonTwClassName="h-7 rounded px-1"
-                  textVariant={TextVariant.BodyXs}
+                  periodButtonTwClassName="h-8 rounded-lg px-1"
+                  moreButtonTwClassName="h-8 rounded-lg px-1"
+                  textVariant={TextVariant.BodySm}
+                  fillWidth
                   testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
                 />
                 <ButtonIcon
