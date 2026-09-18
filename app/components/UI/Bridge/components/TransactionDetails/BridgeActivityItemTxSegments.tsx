@@ -10,6 +10,11 @@ import { FlexDirection } from '../../../Box/box.types';
 import { Transaction } from '@metamask/keyring-api';
 import { StatusTypes } from '@metamask/bridge-controller';
 
+type TransactionDisplayStatus =
+  | TransactionStatus
+  | Transaction['status']
+  | 'pending';
+
 const getTxIndex = (srcTxStatus: StatusTypes) => {
   if (srcTxStatus === StatusTypes.PENDING) {
     return 1;
@@ -22,9 +27,7 @@ const getTxIndex = (srcTxStatus: StatusTypes) => {
   throw new Error('No more possible states for srcTxStatus');
 };
 
-const getSrcTxStatus = (
-  transactionStatus: TransactionStatus | Transaction['status'],
-) =>
+const getSrcTxStatus = (transactionStatus: TransactionDisplayStatus) =>
   transactionStatus === TransactionStatus.confirmed
     ? StatusTypes.COMPLETE
     : StatusTypes.PENDING;
@@ -51,14 +54,14 @@ const getDestTxStatus = ({
  *
  * @param options
  * @param options.bridgeTxHistoryItem - The bridge history item for the transaction
- * @param options.transactionStatus - The transaction status for the transaction. TransactionStatus is for EVM, Transaction['status'] is for Solana
+ * @param options.transactionStatus - The transaction status for the transaction. TransactionStatus is for EVM, Transaction['status'] is for Solana, and pending is used by intent-backed bridge activity
  */
 export default function BridgeActivityItemTxSegments({
   bridgeTxHistoryItem,
   transactionStatus,
 }: {
   bridgeTxHistoryItem?: BridgeHistoryItem;
-  transactionStatus: TransactionStatus | Transaction['status'];
+  transactionStatus: TransactionDisplayStatus;
 }) {
   const srcTxStatus = getSrcTxStatus(transactionStatus);
   const destTxStatus = getDestTxStatus({ bridgeTxHistoryItem, srcTxStatus });
