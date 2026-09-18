@@ -536,14 +536,13 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_CHASE: 'perps-pro-market-positions-panel-tab-chase',
   CHASE_SIDE_FILTER_BUTTON: 'perps-chase-side-filter-button',
   CHASE_SIDE_FILTER_SHEET: 'perps-chase-side-filter',
-  CHASE_ACTIVE_FILTER: 'perps-chase-active-filter',
-  CHASE_HISTORY_FILTER: 'perps-chase-history-filter',
   CHASE_FILLED_ONLY: 'perps-chase-filled-only',
   CHASE_EMPTY_STATE: 'perps-chase-empty-state',
   CHASE_FOREGROUND_WARNING: 'perps-chase-foreground-warning',
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
+  POSITIONS_FILTER_ROW: 'perps-pro-market-positions-filter-row',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
@@ -572,10 +571,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_TWAP: 'perps-pro-market-positions-panel-tab-twap',
   TWAP_LIST: 'perps-pro-market-twap-list',
   TWAP_TAB_BODY: 'perps-pro-market-twap-tab-body',
-  TWAP_VIEW_TABS: 'perps-pro-market-twap-view-tabs',
-  TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
-  TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
-  TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
+  ACTIVITY_VIEW_TOGGLE: 'perps-pro-market-activity-view-toggle',
+  ACTIVITY_FILTER_SHEET: 'perps-pro-market-activity-filter-sheet',
   TWAP_SIDE_FILTER_BUTTON: 'perps-pro-market-twap-side-filter-button',
   TWAP_SIDE_FILTER_SHEET: 'perps-pro-market-twap-side-filter-sheet',
   TWAP_SIDE_FILTER_SHEET_CLOSE: 'perps-pro-market-twap-side-filter-sheet-close',
@@ -627,9 +624,6 @@ export const getPerpsProChaseRowSelector = (
   isPrimary = false,
 ) => `perps-chase-running-row-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
-export const PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR =
-  'perps-chase-visible-count';
-
 export const getPerpsProChaseSideFilterOptionSelector = (
   side: 'long' | 'short' | 'all',
 ) => `${PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET}-option-${side}`;
@@ -637,6 +631,14 @@ export const getPerpsProChaseSideFilterOptionSelector = (
 export const getPerpsProTwapSideFilterOptionSelector = (
   side: 'long' | 'short' | 'all',
 ) => `${PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET}-option-${side}`;
+
+/**
+ * Which view the Chase/TWAP activity toggle is currently showing. The toggle
+ * itself keeps a stable testID so a recipe can press it without knowing the
+ * state; this selector is on its label so the same recipe can assert the state.
+ */
+export const getPerpsProActivityViewSelector = (view: string) =>
+  `perps-pro-market-activity-view-${view.replace(/_/gu, '-')}`;
 
 export const getPerpsProChaseFormActiveCountSelector = (count: number) =>
   `perps-pro-chase-active-count-${count}`;
@@ -998,6 +1000,7 @@ export const PerpsOrderViewSelectorsIDs = {
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
   SCROLL_VIEW: 'perps-order-view-scroll-view',
+  AMOUNT_SLIDER: 'perps-order-view-amount-slider',
   KEYPAD: 'perps-order-view-keypad',
   // Keypad action buttons
   KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
@@ -1011,6 +1014,17 @@ export const PerpsOrderViewSelectorsIDs = {
   SLIPPAGE_ROW: 'perps-order-view-slippage-row',
   SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
+};
+
+export const PerpsTradeSheetSelectorsIDs = {
+  SHEET: 'perps-trade-sheet',
+  CONTENT: 'perps-trade-sheet-content',
+  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
+  CLOSE_BUTTON: 'perps-trade-sheet-close-button',
+  AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
+  LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
+  LIQUIDATION_ROW: 'perps-trade-sheet-liquidation-row',
+  PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
 // ========================================
@@ -1325,3 +1339,17 @@ export const PerpsTooltipViewSelectorsIDs = {
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
+
+// ========================================
+// PERPS TRADE ACTIVITY LIST SELECTORS
+// ========================================
+
+export const PerpsMarketTradesListSelectorsIDs = {
+  LIST: 'perps-market-trades-list',
+  ROW: (index: number) => `perps-market-trades-row-${index}`,
+} as const;
+
+export const PerpsRecentActivityListSelectorsIDs = {
+  LIST: 'perps-recent-activity-list',
+  ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;

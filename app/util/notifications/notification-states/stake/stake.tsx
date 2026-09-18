@@ -64,23 +64,13 @@ const imageUrl = (n: StakeNotification) => {
   return token.image;
 };
 
-const modalTitle = (n: StakeNotification) => {
-  const title = isStaked(n)
-    ? strings('notifications.modal.title_stake', {
-        symbol: n.payload.data.stake_in.symbol,
-      })
-    : strings('notifications.modal.title_unstake_completed');
-
-  return title;
-};
-
 const state: NotificationState<StakeNotification> = {
   guardFn: [
     isStakeNotification,
     (notification) => !!notification.payload.chain_id,
   ],
   createMenuItem: (notification) => ({
-    title: strings(`notifications.menu_item_title.${notification.type}`),
+    title: notification.template?.title ?? '',
 
     description: {
       start: descriptionStart(notification),
@@ -141,7 +131,7 @@ const state: NotificationState<StakeNotification> = {
     ];
 
     return {
-      title: modalTitle(notification),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {

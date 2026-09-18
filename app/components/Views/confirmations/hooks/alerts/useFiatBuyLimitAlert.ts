@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
@@ -41,7 +41,7 @@ export function useFiatBuyLimitAlert({
 
   return useMemo(() => {
     if (!isGated || !amountLimitError) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

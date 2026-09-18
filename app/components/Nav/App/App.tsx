@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import { Platform } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -1564,9 +1565,13 @@ const App: React.FC = () => {
           no toast is active. Toasts are non-blocking so non-modal AX behaviour is correct.
           See: https://consensyssoftware.atlassian.net/browse/DSYS-931
         */}
-        <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
+        {Platform.OS === 'ios' ? (
+          <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
+            <Toaster />
+          </FullWindowOverlay>
+        ) : (
           <Toaster />
-        </FullWindowOverlay>
+        )}
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
