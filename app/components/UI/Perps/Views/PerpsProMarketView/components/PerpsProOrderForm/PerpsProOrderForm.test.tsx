@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
@@ -1603,6 +1604,23 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('direction control', () => {
+    it('uses semantic Long and Short palettes', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.DIRECTION_LONG)).toHaveStyle({
+        backgroundColor: lightTheme.colors.success.default,
+      });
+      expect(screen.getByText(strings('perps.market.long'))).toHaveStyle({
+        color: lightTheme.colors.success.inverse,
+      });
+      expect(screen.getByTestId(ids.DIRECTION_SHORT)).toHaveStyle({
+        backgroundColor: lightTheme.colors.error.default,
+      });
+      expect(screen.getByText(strings('perps.market.short'))).toHaveStyle({
+        color: lightTheme.colors.error.inverse,
+      });
+    });
+
     it('fills the remaining row width whether or not the order book icon is shown', () => {
       const { rerender } = renderForm();
 
