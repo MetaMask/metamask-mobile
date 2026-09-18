@@ -10,6 +10,8 @@ import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 let openCallback: (() => void) | undefined;
 let hardwareBackHandler: (() => boolean | null | undefined) | undefined;
+const mockCloseBottomSheet = jest.fn();
+let mockDeferSheetClose = false;
 const tradeSheetConfig = {
   rootScreen: 'trade' as const,
   screenDepth: {
@@ -26,7 +28,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    BottomSheet: ReactMock.forwardRef(
       (
         {
           children,
@@ -35,10 +37,16 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: React.Ref<unknown>,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (callback: () => void) => {
+          onOpenBottomSheet: (callback: () => void) => {
             openCallback = callback;
           },
-          onCloseDialog: (callback: () => void) => callback(),
+          onCloseBottomSheet: (callback?: () => void) => {
+            mockCloseBottomSheet();
+            if (!mockDeferSheetClose) {
+              onClose();
+            }
+            callback?.();
+          },
         }));
         return ReactMock.createElement(
           MockView,
@@ -107,6 +115,8 @@ describe('PerpsTradeBottomSheet', () => {
   beforeEach(() => {
     openCallback = undefined;
     hardwareBackHandler = undefined;
+    mockCloseBottomSheet.mockClear();
+    mockDeferSheetClose = false;
     jest
       .spyOn(BackHandler, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -127,7 +137,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
-          settings: <Text>Settings</Text>,
+          settings: null,
         }}
       />,
     );
@@ -150,7 +160,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
-          settings: <Text>Settings</Text>,
+          settings: null,
         }}
       />,
     );
@@ -172,7 +182,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
-          settings: <Text>Settings</Text>,
+          settings: null,
         }}
       />,
     );
@@ -194,10 +204,12 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('closes the dialog through the nested screen API', () => {
     const onClose = jest.fn();
+    const onCancelBeforeInteractive = jest.fn();
 
     render(
       <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={onClose}
+        onCancelBeforeInteractive={onCancelBeforeInteractive}
         {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
@@ -211,6 +223,60 @@ describe('PerpsTradeBottomSheet', () => {
     fireEvent.press(screen.getByTestId('close-trade'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onCancelBeforeInteractive).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts the close animation only once for synchronous close requests', () => {
+    mockDeferSheetClose = true;
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <CloseTestScreen />,
+          leverage: null,
+          settings: null,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    const closeButton = screen.getByTestId('close-trade');
+    fireEvent.press(closeButton);
+    fireEvent.press(closeButton);
+
+    expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the root screen interactive once after layout', () => {
+    const onInteractive = jest.fn();
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        onInteractive={onInteractive}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <TradeTestScreen />,
+          leverage: null,
+          settings: null,
+        }}
+      />,
+    );
+
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+
+    expect(onInteractive).toHaveBeenCalledTimes(1);
   });
 
   it('does not render a title or banner when the parent omits them', () => {
