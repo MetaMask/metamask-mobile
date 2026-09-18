@@ -95,12 +95,16 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
               : IconAlertSeverity.Danger
           }
           title={title}
+          titleProps={{
+            testID: SuccessErrorSheetSelectorsIDs.TITLE,
+          }}
         />
         {typeof description === 'string' ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="text-left"
+            testID={SuccessErrorSheetSelectorsIDs.DESCRIPTION}
           >
             {description}
           </Text>
@@ -117,6 +121,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                   children: primaryButtonLabel,
                   onPress: handlePrimaryButtonPress,
                   size: ButtonSize.Lg,
+                  testID: SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON,
                 }
               : undefined
           }
@@ -126,6 +131,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                   children: secondaryButtonLabel,
                   onPress: handleSecondaryButtonPress,
                   size: ButtonSize.Lg,
+                  testID: SuccessErrorSheetSelectorsIDs.SECONDARY_BUTTON,
                 }
               : undefined
           }
