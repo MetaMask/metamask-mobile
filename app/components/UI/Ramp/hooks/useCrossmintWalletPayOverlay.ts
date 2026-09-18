@@ -37,7 +37,6 @@ import useRampAccountAddress from './useRampAccountAddress';
 const CROSSMINT_PROVIDER_ID_FRAGMENT = 'crossmint';
 const APPLE_PAY_PAYMENT_METHOD_SUFFIX = 'apple-pay';
 const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
-const PREPARE_DEBOUNCE_MS = 400;
 
 const AWAITING_PAYMENT_STATUS = 'awaiting-payment';
 
@@ -119,9 +118,9 @@ function getPreparationKey(
  * payment button inline. The order id is registered as precreated so the order
  * processor polls it to completion even when the WebView posts no events.
  *
- * Preparation is debounced and cached per provider/asset/payment/amount, so
- * quote refreshes do not create a new order on every poll. Any failure leaves
- * the standard Continue button as the checkout path.
+ * Preparation is cached per provider/asset/payment/amount, so quote refreshes
+ * do not create a new order on every poll. Any failure leaves the standard
+ * Continue button as the checkout path.
  *
  * Once payment is authorized, navigation resets onto OrderDetails, the same
  * handoff the Checkout WebView performs on its callback redirect.
@@ -197,13 +196,16 @@ export default function useCrossmintWalletPayOverlay(
 
     const prepareId = prepareIdRef.current + 1;
     prepareIdRef.current = prepareId;
+    // Claimed before the request so a quote refresh that lands mid-flight
+    // with the same key does not create a second order.
+    preparedKeyRef.current = key;
     // Drop the checkout prepared for the previous amount: it points at an
     // order for the wrong total and would read as "ready" while the new one
     // is still being created.
     setPrepared(null);
     setPreparationFailed(false);
 
-    const timer = setTimeout(async () => {
+    (async () => {
       try {
         const quoteForWidget = buildQuoteWithRedirectUrl(
           quote,
@@ -216,6 +218,7 @@ export default function useCrossmintWalletPayOverlay(
         }
 
         if (!buyWidget?.url) {
+          preparedKeyRef.current = null;
           setPreparationFailed(true);
           return;
         }
@@ -236,7 +239,6 @@ export default function useCrossmintWalletPayOverlay(
           });
         }
 
-        preparedKeyRef.current = key;
         setPrepared({
           key,
           preparationId: prepareId,
@@ -254,11 +256,7 @@ export default function useCrossmintWalletPayOverlay(
             'useCrossmintWalletPayOverlay error while preparing wallet-pay checkout',
         });
       }
-    }, PREPARE_DEBOUNCE_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    })();
   }, [
     isEligible,
     quote,

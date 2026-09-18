@@ -91,7 +91,6 @@ function setPlatform(platform: 'ios' | 'android') {
 describe('useCrossmintWalletPayOverlay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     jest.mocked(useSelector).mockReturnValue(true);
     setPlatform('ios');
     setupController();
@@ -102,13 +101,9 @@ describe('useCrossmintWalletPayOverlay', () => {
     });
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
+  /** Flushes the preparation request so its result reaches state. */
   async function settle() {
     await act(async () => {
-      jest.advanceTimersByTime(500);
       await Promise.resolve();
     });
   }
