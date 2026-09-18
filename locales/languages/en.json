@@ -1256,8 +1256,31 @@
         "status": "Status",
         "closed": "Closed",
         "buy": "Buy",
-        "sell": "Sell"
+        "sell": "Sell",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -9062,7 +9085,9 @@
       "empty": {
         "open_orders": "Open orders appear here",
         "history": "Order history appears here"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9169,6 +9194,7 @@
       "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "completed": "Completed",
+      "cancelled": "Cancelled",
       "you_sent": "You sent",
       "you_receive": "You receive",
       "filled_progress": "{{percent}}%",
@@ -9182,6 +9208,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
       "not_enough_gas": "Not enough gas",
       "out_of_price_range": "Out of price range",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "Failed",
       "filled": "Filled",
       "order_not_found": "Order not found",
