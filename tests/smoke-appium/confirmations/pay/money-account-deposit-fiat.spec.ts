@@ -26,6 +26,7 @@ import { applyTokenHoldingsMocks } from '../../../api-mocking/mock-responses/pay
 import {
   BUY_ORDER_STATUS_MOCKS,
   setupRegionAwareOnRampMocks,
+  RAMPS_ORDER_STORAGE_MOCKS,
   RAMPS_QUOTE_MOCKS,
 } from '../../../api-mocking/mock-responses/ramps/ramps-mocks.js';
 import {
@@ -92,6 +93,7 @@ appiumTest.describe(
               );
               await RAMPS_QUOTE_MOCKS(mockServer, 'native');
               await BUY_ORDER_STATUS_MOCKS(mockServer);
+              await RAMPS_ORDER_STORAGE_MOCKS(mockServer);
             },
           },
           async () => {
