@@ -13,6 +13,10 @@ import {
 const SOURCE_AMOUNT = '1500000000000000';
 const DESTINATION_AMOUNT = '3000000';
 
+function createMockTxHash(index: number): string {
+  return `0x${String(index).padStart(64, 'm')}`;
+}
+
 function createFilledSwap(
   orderId: string,
   index: number,
@@ -28,7 +32,7 @@ function createFilledSwap(
       minAmount: '2985000',
     },
     requestId: `request-${orderId}-${index}`,
-    txHash: `0x${String(index).padStart(64, '0')}`,
+    txHash: createMockTxHash(index),
     scheduledAt: executedAt,
     executedAt,
   };
@@ -63,7 +67,7 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
     swapId: `${MOCK_RECURRING_OPEN_ORDER.orderId}-3`,
     orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
     status: RecurringSwapStatus.Skipped,
-    skipReason: 'not_enough_gas',
+    skipReason: 'insufficient_balance',
     src: { amount: '0' },
     dest: { amount: '0' },
     scheduledAt: '2026-09-03T12:00:00.000Z',
@@ -86,9 +90,19 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
     src: { amount: '0' },
     dest: { amount: '0' },
     requestId: `request-${MOCK_RECURRING_OPEN_ORDER.orderId}-5`,
-    txHash: `0x${'5'.padStart(64, '0')}`,
+    txHash: createMockTxHash(5),
     scheduledAt: '2026-09-05T12:00:00.000Z',
     executedAt: '2026-09-05T12:00:00.000Z',
+  },
+  {
+    swapId: `${MOCK_RECURRING_OPEN_ORDER.orderId}-6`,
+    orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
+    status: RecurringSwapStatus.Skipped,
+    skipReason: 'needs_smart_account',
+    src: { amount: '0' },
+    dest: { amount: '0' },
+    scheduledAt: '2026-09-05T13:00:00.000Z',
+    executedAt: '2026-09-05T13:00:00.000Z',
   },
 ];
 
