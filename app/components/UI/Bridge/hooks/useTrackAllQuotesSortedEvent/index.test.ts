@@ -28,12 +28,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock useLatestBalance
-const mockUseLatestBalance = jest.fn();
-jest.mock('../useLatestBalance', () => ({
-  useLatestBalance: (params: unknown) => mockUseLatestBalance(params),
-}));
-
 // Mock useIsInsufficientBalance
 const mockUseIsInsufficientBalance = jest.fn();
 jest.mock('../useInsufficientBalance', () => ({

@@ -1,11 +1,22 @@
 import React from 'react';
-import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   BridgeQuoteDataProvider,
   useBridgeQuoteDataContext,
 } from './BridgeQuoteDataContext';
 import { runQuoteProviderCases } from './runQuoteProviderCases';
+import { FeatureId } from '@metamask/bridge-controller';
+
+// `@metamask/bridge-controller` is ESM-only; Babel compiles its re-exports to
+// non-configurable getters that `jest.spyOn` cannot redefine. Re-exporting the
+// real module through a plain object restores spy-able properties for the
+// `selectBridgeQuotes` / `selectBridgeFeatureFlags` spies in the shared cases.
+jest.mock('@metamask/bridge-controller', () => ({
+  // `__esModule` keeps Babel's interop from wrapping this object in a copy,
+  // so the namespace the spies patch is the one consumers read from.
+  __esModule: true,
+  ...jest.requireActual('@metamask/bridge-controller'),
+}));
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -40,6 +51,14 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
 const Consumer = () => {
   useBridgeQuoteDataContext();
   return null;
@@ -48,12 +67,10 @@ const Consumer = () => {
 runQuoteProviderCases({
   name: 'BridgeQuoteDataContext',
   missingProviderError:
-    'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
+    'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider and SwapQuotesProvider',
   renderProvider: (state) =>
     renderWithProvider(
-      <BridgeQuoteDataProvider
-        latestSourceAtomicBalance={BigNumber.from('1000000000')}
-      >
+      <BridgeQuoteDataProvider>
         <Consumer />
         <Consumer />
         <Consumer />
@@ -63,4 +80,6 @@ runQuoteProviderCases({
       { state },
     ),
   renderWithoutProvider: () => renderWithProvider(<Consumer />),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+  quoteParams: {},
 });

@@ -177,6 +177,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
 }
 
@@ -263,6 +264,8 @@ export interface CardAccountStatus {
 export type CardAlertType =
   | 'kyc_pending'
   | 'card_provisioning'
+  /** Cardholder zeroed their on-chain allowance; the card needs re-approval. */
+  | 'allowance_revoked'
   | 'close_to_spending_limit'
   | 'limited_allowance';
 
@@ -665,6 +668,7 @@ export interface ICardProvider {
   getFundingSources?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult[]>;
+  getContactDetails?(tokens: CardAuthTokens): Promise<CardContactDetails>;
   patchContactDetails?(
     details: CardContactDetails,
     tokens: CardAuthTokens,

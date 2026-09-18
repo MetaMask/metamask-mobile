@@ -43,6 +43,8 @@ let mockRouteParams:
           address: `0x${string}`;
           chainId: `0x${string}`;
         };
+        autoSelectFiatPayment?: boolean;
+        intent?: 'convert' | 'addMusd' | 'card';
       };
     }
   | undefined;
@@ -658,6 +660,27 @@ describe('MoneyOnboardingView', () => {
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         }),
       );
+    });
+
+    it('preserves fiat deposit options after completing onboarding', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          autoSelectFiatPayment: true,
+          intent: 'card',
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: undefined,
+        autoSelectFiatPayment: true,
+        intent: 'card',
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+      });
     });
 
     it('logs error when post-onboarding deposit fails', async () => {

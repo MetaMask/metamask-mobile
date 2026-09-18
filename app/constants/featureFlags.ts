@@ -1,6 +1,15 @@
 import type { Json } from '@metamask/utils';
 
 /**
+ * Build-time rollout flag for consolidated Basic Functionality. Remote flags
+ * are unavailable while Basic Functionality is off, so those wallets fall back
+ * to this flag to receive the migration notice.
+ */
+export function isBftcConsolidationBuildEnabled(): boolean {
+  return process.env.MM_BFTC_CONSOLIDATION_ENABLED === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/
@@ -21,6 +30,7 @@ export enum FeatureFlagNames {
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  nativeTabBarEnabled = 'nativeTabBarEnabled',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

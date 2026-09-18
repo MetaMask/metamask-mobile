@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { FeatureId } from '@metamask/bridge-controller';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import {
   selectDestToken,
@@ -80,8 +79,14 @@ jest.mock('../../../hooks/useSwitchTokens', () => ({
   useSwitchTokens: () => ({ handleSwitchTokens: jest.fn(() => jest.fn()) }),
 }));
 
+jest.mock('../../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn().mockReturnValue({
+    latestSourceBalance: undefined,
+  }),
+}));
+
 import { useSelector } from 'react-redux';
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = jest.mocked(useSelector);
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [
   'eip155:1',
@@ -119,9 +124,7 @@ const renderRecurringBuySwapInputsHook = (
     return undefined;
   });
 
-  return renderHook(() =>
-    useRecurringBuySwapInputs({ latestSourceBalance: undefined }),
-  );
+  return renderHook(() => useRecurringBuySwapInputs());
 };
 
 describe('useRecurringBuySwapInputs', () => {
@@ -322,7 +325,6 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Source,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
-          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
@@ -345,7 +347,6 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: ['eip155:1'],
           excludeRwaTokens: true,
-          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
@@ -368,7 +369,6 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: ['eip155:56'],
           excludeRwaTokens: true,
-          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
@@ -391,7 +391,6 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: [],
           excludeRwaTokens: true,
-          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
