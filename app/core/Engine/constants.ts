@@ -40,6 +40,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictMarketDataService',
   'PredictLiveDataService',
   'PredictPortfolioService',
+  'RecurringOrdersDataService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
