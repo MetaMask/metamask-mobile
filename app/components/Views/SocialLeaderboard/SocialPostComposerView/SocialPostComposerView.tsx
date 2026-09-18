@@ -44,7 +44,7 @@ import { useTheme } from '../../../../util/theme';
 import superheroAvatar from '../../../../images/socialV1/superhero.png';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import SocialFeedPositionCard from '../SocialV1View/feed/components/SocialFeedPositionCard';
+import { PositionCardBody } from '../SocialV1View/feed/components/SocialFeedPositionCard';
 import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import type { SocialV1FeedItem } from '../SocialV1View/feed/types';
 import {
@@ -52,7 +52,10 @@ import {
   COMPOSER_COMMENT_MAX_LENGTH,
   isComposerCommentValid,
 } from './commentValidation';
-import { mapPositionToFeedItem } from './mapPositionToFeedItem';
+import {
+  COMPOSER_FEED_AUTHOR,
+  mapPositionToFeedItem,
+} from './mapPositionToFeedItem';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 
@@ -79,14 +82,25 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
 
+  const composerAuthor = useMemo(
+    () => ({
+      id: profile?.profileId ?? COMPOSER_FEED_AUTHOR.id,
+      username: profile?.handle ?? COMPOSER_FEED_AUTHOR.username,
+      avatarUri: profile?.imageUrl,
+      winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
+    }),
+    [profile?.handle, profile?.imageUrl, profile?.profileId],
+  );
+
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
     if (!selectedPosition) {
       return null;
     }
     return mapPositionToFeedItem(selectedPosition.position, text.trim(), {
       isClosed: selectedPosition.isClosed,
+      author: composerAuthor,
     });
-  }, [selectedPosition, text]);
+  }, [composerAuthor, selectedPosition, text]);
 
   const canSubmit = selectedPosition != null && isComposerCommentValid(text);
 
@@ -146,6 +160,7 @@ const SocialPostComposerView: React.FC = () => {
     }
     const item = mapPositionToFeedItem(selectedPosition.position, text.trim(), {
       isClosed: selectedPosition.isClosed,
+      author: composerAuthor,
     });
     submitSocialV1ComposedPost({
       id: `composed-${Date.now()}`,
@@ -165,6 +180,7 @@ const SocialPostComposerView: React.FC = () => {
     canSubmit,
     gifUri,
     navigation,
+    composerAuthor,
     profile?.handle,
     profile?.imageUrl,
     selectedPosition,
@@ -256,7 +272,7 @@ const SocialPostComposerView: React.FC = () => {
 
           {previewItem ? (
             <Box twClassName="relative">
-              <SocialFeedPositionCard item={previewItem} hideComment />
+              <PositionCardBody item={previewItem} />
               <Pressable
                 onPress={() => setSelectedPosition(null)}
                 accessibilityRole="button"

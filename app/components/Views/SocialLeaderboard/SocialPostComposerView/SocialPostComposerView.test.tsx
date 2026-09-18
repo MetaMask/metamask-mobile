@@ -23,6 +23,7 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
   return {
     __esModule: true,
     default: () => <View testID="composer-position-preview" />,
+    PositionCardBody: () => <View testID="composer-position-preview" />,
   };
 });
 

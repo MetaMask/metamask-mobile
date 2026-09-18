@@ -18,7 +18,7 @@ import { Image } from 'react-native';
 import superheroAvatar from '../../../../../../images/socialV1/superhero.png';
 import { formatFeedTimestamp } from '../../../utils/formatters';
 import type { SocialV1FeedPost } from '../types';
-import SocialFeedPositionCard from './SocialFeedPositionCard';
+import { PositionCardBody } from './SocialFeedPositionCard';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -73,7 +73,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Text>
       ) : null}
 
-      <SocialFeedPositionCard item={post.item} hideComment />
+      <PositionCardBody item={post.item} />
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">

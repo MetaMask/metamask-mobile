@@ -21,8 +21,10 @@ export interface SocialFeedPositionCardProps {
    * refresh can recompute every post's label together.
    */
   now?: number;
-  /** When true, the caption is omitted (e.g. the parent already rendered it). */
-  hideComment?: boolean;
+}
+
+export interface PositionCardBodyProps {
+  item: SocialV1FeedItem;
 }
 
 const compactSubHeader = (
@@ -43,7 +45,7 @@ const compactSubHeader = (
 };
 
 /** The position card that forms the body of a post, per feed item variant. */
-const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
+export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
   if (item.variant === 'perpsOpen') {
     const stats: PositionCardStatRow[] = [
       {
@@ -196,13 +198,12 @@ const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
 const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   item,
   now,
-  hideComment = false,
 }) => (
   <FeedPost
     id={item.id}
     author={item.author}
     timestamp={item.timestamp}
-    comment={hideComment ? undefined : item.comment}
+    comment={item.comment}
     now={now}
   >
     <PositionCardBody item={item} />

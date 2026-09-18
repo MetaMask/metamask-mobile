@@ -13,6 +13,9 @@ jest.mock('./SocialFeedPositionCard', () => {
     default: ({ item }: { item: { id: string } }) => (
       <View testID={`social-feed-position-card-${item.id}`} />
     ),
+    PositionCardBody: ({ item }: { item: { id: string } }) => (
+      <View testID={`social-feed-position-card-${item.id}`} />
+    ),
   };
 });
 

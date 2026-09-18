@@ -11,7 +11,10 @@ import {
   isPerpPosition,
 } from '../utils/perp';
 import { tradeTimestampToMs } from '../utils/tradeTimestamp';
-import type { SocialV1FeedItem } from '../SocialV1View/feed/types';
+import type {
+  SocialV1FeedAuthor,
+  SocialV1FeedItem,
+} from '../SocialV1View/feed/types';
 import { holdDurationFromTimestamps } from './formatHoldDuration';
 
 const leverageLabel = (position: Position): string | undefined => {
@@ -73,6 +76,19 @@ const pnlSignSource = (
   return position.pnlValueUsd ?? position.pnlPercent ?? null;
 };
 
+/** Stand-in until the composer has a real authenticated social profile. */
+export const COMPOSER_FEED_AUTHOR: SocialV1FeedAuthor = {
+  id: 'current-user',
+  username: 'giga-whale',
+  winRatePercent: 78,
+};
+
+export interface MapPositionToFeedItemOptions {
+  isClosed?: boolean;
+  author?: SocialV1FeedAuthor;
+  timestamp?: number;
+}
+
 /**
  * Maps a social-API position into the V1 feed card model so the composer
  * preview and the mocked Trending insert share one card implementation.
@@ -80,7 +96,7 @@ const pnlSignSource = (
 export const mapPositionToFeedItem = (
   position: Position,
   comment: string,
-  options?: { isClosed?: boolean },
+  options?: MapPositionToFeedItemOptions,
 ): SocialV1FeedItem => {
   const closed = options?.isClosed ?? isClosedPosition(position);
   const isPerp = isPerpPosition(position);
@@ -96,12 +112,16 @@ export const mapPositionToFeedItem = (
     tokenSymbol: position.tokenSymbol,
   };
   const id = `composer-${position.positionId}`;
+  const author = options?.author ?? COMPOSER_FEED_AUTHOR;
+  const timestamp = options?.timestamp ?? Date.now();
 
   if (isPerp) {
     const direction = getPerpPositionDirection(position) ?? 'long';
     if (closed) {
       return {
         id,
+        author,
+        timestamp,
         variant: 'perpsClosed',
         comment,
         asset: { symbol: displaySymbol, avatar },
@@ -119,6 +139,8 @@ export const mapPositionToFeedItem = (
 
     return {
       id,
+      author,
+      timestamp,
       variant: 'perpsOpen',
       comment,
       asset: { symbol: displaySymbol, avatar },
@@ -135,6 +157,8 @@ export const mapPositionToFeedItem = (
   const side = position.positionAmount < 0 ? 'sell' : 'buy';
   return {
     id,
+    author,
+    timestamp,
     variant: 'spotShare',
     comment,
     asset: { symbol: displaySymbol, avatar },

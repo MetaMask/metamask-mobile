@@ -76,6 +76,8 @@ describe('mapPositionToFeedItem', () => {
       return;
     }
     expect(item.comment).toBe('this is alpha');
+    expect(item.author.username).toBe('giga-whale');
+    expect(item.timestamp).toEqual(expect.any(Number));
     expect(item.side).toBe('buy');
     expect(item.showCopyTrade).toBe(true);
     expect(item.asset.symbol).toBe('ETH');

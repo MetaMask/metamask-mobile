@@ -1,7 +1,9 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import SocialFeedPositionCard from './SocialFeedPositionCard';
+import SocialFeedPositionCard, {
+  PositionCardBody,
+} from './SocialFeedPositionCard';
 import {
   mockClosedPerpsFeedItem,
   mockCompactSpotFeedItem,
@@ -225,5 +227,16 @@ describe('SocialFeedPositionCard', () => {
     expect(
       screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the position body without the post author header', () => {
+    const item = mockOpenPerpsFeedItem();
+
+    renderWithProvider(<PositionCardBody item={item} />);
+
+    expect(
+      screen.queryByTestId(getSocialFeedPostAuthorTestId(item.id)),
+    ).toBeNull();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 });
