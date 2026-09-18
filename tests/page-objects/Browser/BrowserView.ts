@@ -14,11 +14,14 @@ import {
   Gestures,
   Matchers,
   Utilities,
+  getDriver,
   sleep,
 } from '../../framework';
 import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import { executeMobileDeepLink } from '../../framework/AppiumUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import ConnectedAccountsModal from './ConnectedAccountsModal.js';
+import ToastModal from '../wallet/ToastModal.js';
 
 /** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
 const HOMEPAGE_URL =
@@ -463,6 +466,69 @@ class Browser {
     await Gestures.waitAndTap(this.networkAvatarOrAccountButton, {
       elemDescription: 'Network avatar or account button',
     });
+  }
+
+  /**
+   * Opens the browser connected-accounts sheet and retries until it is visible.
+   *
+   * After a fresh dapp connect, `AccountRightButton` may still lack
+   * `selectedAddress` (permitted accounts not yet on the URL bar) and open the
+   * network selector instead — or the connect-sheet dismiss may swallow the
+   * first tap. Re-tap with a short probe, mirroring
+   * `ensureAccountListOpenPlaywright`.
+   */
+  async openConnectedAccountsModal(
+    timeout: number = 30_000,
+  ): Promise<void> {
+    const deadline = Date.now() + timeout;
+
+    await ToastModal.waitForToastToDismiss({ appearTimeout: 2_000 });
+
+    const isConnectedAccountsSheetVisible = async (
+      probeTimeout: number,
+    ): Promise<boolean> =>
+      (await Utilities.isElementVisible(
+        ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
+        probeTimeout,
+      )) ||
+      (await Utilities.isElementVisible(
+        ConnectedAccountsModal.accountListBottomSheet,
+        probeTimeout,
+      )) ||
+      (await Utilities.isElementVisible(
+        ConnectedAccountsModal.permissionsButton,
+        probeTimeout,
+      ));
+
+    while (Date.now() < deadline) {
+      if (await isConnectedAccountsSheetVisible(1_500)) {
+        return;
+      }
+
+      try {
+        await Gestures.waitAndTap(this.networkAvatarOrAccountButton, {
+          elemDescription: 'Network avatar or account button',
+          timeout: 5_000,
+        });
+      } catch {
+        await sleep(250);
+        continue;
+      }
+
+      if (await isConnectedAccountsSheetVisible(3_000)) {
+        return;
+      }
+
+      // Wrong sheet (e.g. network selector) or tap missed — back out and retry.
+      try {
+        await getDriver().back();
+      } catch {
+        // ignore transient back failures
+      }
+      await sleep(250);
+    }
+
+    throw new Error(`Connected accounts modal not open within ${timeout}ms`);
   }
 
   async tapAddToFavoritesButton(): Promise<void> {

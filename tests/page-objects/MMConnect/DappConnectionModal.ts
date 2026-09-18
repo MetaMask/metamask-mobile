@@ -1,7 +1,12 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { getDriver, sleep, type AppiumElement } from '../../framework';
+import {
+  getDriver,
+  sleep,
+  Utilities,
+  type AppiumElement,
+} from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import {
@@ -83,6 +88,9 @@ class DappConnectionModal {
       timeout,
       elemDescription: 'DappConnectionModal connect button',
     });
+    // Wait for the connect sheet to leave hierarchy so the next navbar tap
+    // (e.g. open connected accounts) is not swallowed by the dismissing sheet.
+    await Utilities.waitForElementToDisappear(this.connectButton, timeout);
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
