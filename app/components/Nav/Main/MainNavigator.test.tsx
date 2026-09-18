@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -657,12 +658,21 @@ describe('MainNavigator', () => {
       expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
       expect(groupedScreenNames(group)).toEqual([
         Routes.SOCIAL.V1,
+        Routes.SOCIAL.POST_COMPOSER,
         Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.FOLLOW_CONNECTIONS,
         Routes.SOCIAL.MANAGE_PROFILE,
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
       ]);
+      const v1Screen = (group?.children ?? []).find(
+        (child): child is ReactTestInstance =>
+          typeof child === 'object' &&
+          'props' in child &&
+          child.props?.name === Routes.SOCIAL.V1,
+      );
+      expect(v1Screen?.props?.options?.freezeOnBlur).toBe(false);
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
     });
@@ -1553,6 +1563,22 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const followConnectionsScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
+    );
+
+    expect(followConnectionsScreen).toBeDefined();
+    expect(followConnectionsScreen?.component.name).toBe(
+      'FollowConnectionsView',
+    );
+
+    const postComposerScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
+    );
+
+    expect(postComposerScreen).toBeDefined();
+    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
+
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
     );
@@ -1598,7 +1624,9 @@ describe('MainNavigator', () => {
       .map((child) => child.props.name);
 
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
+    expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
     expect(screenNames).not.toContain(
