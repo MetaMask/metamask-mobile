@@ -30,4 +30,8 @@ module.exports = {
   testTimeout: 30000,
   forceExit: true,
   maxWorkers: 1,
+  // Recycle the single worker before its heap accumulates to the CI limit.
+  // With maxWorkers: 1 all view test files run in one long-lived process;
+  // leaked memory builds up across files and OOMs the 12GB CI heap.
+  workerIdleMemoryLimit: '4GB',
 };

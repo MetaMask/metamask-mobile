@@ -48,7 +48,7 @@ jobs:
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ios-build' ||
+        'namespace-profile-metamask-ios-build-tahoe-slim' ||
         (startsWith(github.base_ref, 'release/') &&
          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') ||
          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]'))
@@ -331,6 +331,11 @@ jobs:
           platform: ios
           setup-simulator: false
           install-foundry: false
+          # Expo SDK 57 requires Xcode 26.6, only present on the tahoe-slim
+          # build image. Pinned here (not via the setup-e2e-env default) so
+          # the Appium/e2e jobs on the ios-e2e image keep the Xcode that
+          # matches their simulator runtime.
+          xcode-version: '26.6'
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       - name: Print iOS tool versions
