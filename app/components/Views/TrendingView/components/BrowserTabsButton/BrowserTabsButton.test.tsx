@@ -11,6 +11,15 @@ describe('BrowserTabsButton', () => {
     expect(getByText('3')).toBeDefined();
   });
 
+  it('renders the explore icon instead of a count when no tabs are open', () => {
+    const { getByTestId, queryByText } = render(
+      <BrowserTabsButton tabCount={0} onPress={jest.fn()} testID="tabs" />,
+    );
+
+    expect(getByTestId('tabs')).toBeDefined();
+    expect(queryByText('0')).toBeNull();
+  });
+
   it('calls onPress when pressed', () => {
     const mockOnPress = jest.fn();
 
