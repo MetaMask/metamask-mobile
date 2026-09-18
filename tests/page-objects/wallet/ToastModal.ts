@@ -2,6 +2,7 @@ import {
   ToastSelectorsIDs,
   ToastSelectorsText,
 } from '../../../app/component-library/components/Toast/ToastModal.testIds';
+import { AppSelectorsIDs } from '../../../app/components/Nav/App/App.testIds';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -19,6 +20,10 @@ class ToastModal {
 
   get notificationTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
+  }
+
+  get designSystemToast(): Promise<AppiumElement> {
+    return Matchers.getElementByID(AppSelectorsIDs.DESIGN_SYSTEM_TOASTER);
   }
 
   get toastCloseButton(): Promise<AppiumElement> {
@@ -42,16 +47,43 @@ class ToastModal {
       appearTimeout?: number;
     } = {},
   ): Promise<void> {
+    await this.waitForToastElementToDismiss(() => this.container, options);
+  }
+
+  /**
+   * Same contract as `waitForToastToDismiss`, for the design system `<Toaster />`
+   * rendered at the app root. On Android it is anchored to the top of the screen
+   * and covers header controls such as the browser network/account button.
+   */
+  async waitForDesignSystemToastToDismiss(
+    options: {
+      timeout?: number;
+      appearTimeout?: number;
+    } = {},
+  ): Promise<void> {
+    await this.waitForToastElementToDismiss(
+      () => this.designSystemToast,
+      options,
+    );
+  }
+
+  private async waitForToastElementToDismiss(
+    getToast: () => Promise<AppiumElement>,
+    options: {
+      timeout?: number;
+      appearTimeout?: number;
+    },
+  ): Promise<void> {
     const dismissTimeout = options.timeout ?? DEFAULT_TOAST_DISMISS_TIMEOUT_MS;
     const appearTimeout =
       options.appearTimeout ?? DEFAULT_TOAST_APPEAR_TIMEOUT_MS;
 
-    const visible = await this.pollToastVisible(appearTimeout);
+    const visible = await this.pollToastVisible(getToast, appearTimeout);
     if (!visible) {
       return;
     }
     try {
-      await Assertions.expectElementToNotBeVisible(this.container, {
+      await Assertions.expectElementToNotBeVisible(getToast, {
         description: 'Toast dismissed',
         timeout: dismissTimeout,
       });
@@ -60,11 +92,14 @@ class ToastModal {
     }
   }
 
-  private async pollToastVisible(appearTimeout: number): Promise<boolean> {
+  private async pollToastVisible(
+    getToast: () => Promise<AppiumElement>,
+    appearTimeout: number,
+  ): Promise<boolean> {
     const deadline = Date.now() + appearTimeout;
     while (Date.now() < deadline) {
       try {
-        await Assertions.expectElementToBeVisible(this.container, {
+        await Assertions.expectElementToBeVisible(getToast, {
           timeout: TOAST_POLL_INTERVAL_MS,
         });
         return true;

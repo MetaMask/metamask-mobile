@@ -57,6 +57,7 @@ import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
+import { AppSelectorsIDs } from './App.testIds';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
@@ -1534,10 +1535,10 @@ const App: React.FC = () => {
         */}
         {Platform.OS === 'ios' ? (
           <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
-            <Toaster />
+            <Toaster testID={AppSelectorsIDs.DESIGN_SYSTEM_TOASTER} />
           </FullWindowOverlay>
         ) : (
-          <Toaster />
+          <Toaster testID={AppSelectorsIDs.DESIGN_SYSTEM_TOASTER} />
         )}
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
