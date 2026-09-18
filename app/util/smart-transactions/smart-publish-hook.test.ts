@@ -328,10 +328,12 @@ describe('submitSmartTransactionHook', () => {
         expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             signedTransactions: [createSignedTransaction()],
-            signedCanceledTransactions: [],
             txParams,
             transactionMeta: request.transactionMeta,
           }),
+        );
+        expect(submitSignedTransactionsSpy.mock.calls[0][0]).not.toHaveProperty(
+          'signedCanceledTransactions',
         );
       },
     );
@@ -509,9 +511,11 @@ describe('submitBatchSmartTransactionHook', () => {
         expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             signedTransactions: [mockSignedTx, mockSignedTx],
-            signedCanceledTransactions: [],
             transactionMeta: request.transactionMeta,
           }),
+        );
+        expect(submitSignedTransactionsSpy.mock.calls[0][0]).not.toHaveProperty(
+          'signedCanceledTransactions',
         );
       },
     );
