@@ -8,7 +8,7 @@ const mockIsMoneyAccountEnabled = jest.requireMock(
   '../../lib/Money/feature-flags',
 ).isMoneyAccountEnabled as jest.Mock;
 
-const mockUpdateAccounts = jest.fn();
+const mockInit = jest.fn();
 const mockAccountTreeInit = jest.fn();
 const mockAccountTreeClearState = jest.fn();
 const mockMoneyAccountInit = jest.fn();
@@ -18,9 +18,7 @@ jest.mock('../../core/Engine', () => ({
   default: {
     context: {
       AccountsController: {
-        updateAccounts: jest
-          .fn()
-          .mockImplementation(() => mockUpdateAccounts()),
+        init: jest.fn().mockImplementation(() => mockInit()),
       },
       AccountTreeController: {
         init: jest.fn().mockImplementation(() => mockAccountTreeInit()),
@@ -51,9 +49,9 @@ describe('AccountTreeInitService', () => {
   });
 
   describe('initializeAccountTree', () => {
-    it('calls AccountsController.updateAccounts', async () => {
+    it('calls AccountsController.init', async () => {
       await service.initializeAccountTree();
-      expect(mockUpdateAccounts).toHaveBeenCalled();
+      expect(mockInit).toHaveBeenCalled();
     });
 
     it('calls AccountTreeController.init', async () => {
