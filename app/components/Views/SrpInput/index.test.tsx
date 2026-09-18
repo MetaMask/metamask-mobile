@@ -17,13 +17,14 @@ describe('SrpInput', () => {
   });
 
   it('renders default settings correctly', () => {
-    const wrapper = render(<SrpInput testID={TEXTFIELD_TEST_ID} />);
+    const wrapper = render(<SrpInput value="" testID={TEXTFIELD_TEST_ID} />);
     expect(wrapper.getByTestId(TEXTFIELD_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders the startAccessory when provided', () => {
     const wrapper = render(
       <SrpInput
+        value=""
         startAccessory={<View testID={START_ACCESSORY_TEST_ID} />}
         inputProps={{ testID: INPUT_TEST_ID }}
       />,
@@ -35,6 +36,7 @@ describe('SrpInput', () => {
   it('renders the endAccessory when provided', () => {
     const wrapper = render(
       <SrpInput
+        value=""
         endAccessory={<View testID={END_ACCESSORY_TEST_ID} />}
         inputProps={{ testID: INPUT_TEST_ID }}
       />,
@@ -150,6 +152,7 @@ describe('SrpInput', () => {
       const mockOnFocus = jest.fn();
       const wrapper = render(
         <SrpInput
+          value=""
           onFocus={mockOnFocus}
           inputProps={{ testID: INPUT_TEST_ID }}
         />,
@@ -166,7 +169,11 @@ describe('SrpInput', () => {
     it('calls provided onBlur callback when blurred', () => {
       const mockOnBlur = jest.fn();
       const wrapper = render(
-        <SrpInput onBlur={mockOnBlur} inputProps={{ testID: INPUT_TEST_ID }} />,
+        <SrpInput
+          value=""
+          onBlur={mockOnBlur}
+          inputProps={{ testID: INPUT_TEST_ID }}
+        />,
       );
       const input = wrapper.getByTestId(INPUT_TEST_ID);
 
