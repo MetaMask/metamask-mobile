@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KycDisclaimer } from '@metamask/kyc-controller';
+import type {
+  KycDisclaimer,
+  KycSessionStatus,
+} from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 
 export type { KycDisclaimer };
 
+const SKIP_TO_STATUS_SESSION_STATUSES: ReadonlySet<KycSessionStatus> = new Set([
+  'pending',
+  'approved',
+  'rejected',
+]);
+
 interface UseKycDisclaimersResult {
   disclaimers: KycDisclaimer[] | null;
   isLoading: boolean;
   error: string | null;
+  skipToStatus: boolean;
   retry: () => void;
 }
 
@@ -17,8 +27,14 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs) for the
- * VBA KYC flow via {@link Engine.context.KycController.initialize} then
+ * VBA KYC flow via {@link Engine.context.KycController.initialize}, then
+ * {@link Engine.context.KycController.refreshKycStatus} and
  * {@link Engine.context.KycController.loadDisclaimers}.
+ *
+ * `initialize` reuses any existing UKYC session for the vendor. When
+ * `refreshKycStatus` then reports `pending`, `approved`, or `rejected`,
+ * disclaimers are skipped and `skipToStatus` is `true` so the caller can send
+ * the user to the KYC status placeholder.
  *
  * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
  * Identity (`useKycSessionDisclaimers` → `KycController.fetchSessionDisclaimers`).
@@ -32,12 +48,13 @@ const FETCH_TIMEOUT_MS = 10_000;
  * `retry()` invalidates an in-flight load via {@link Engine.context.KycController.reset}.
  *
  * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
- * @returns The disclaimers, loading state, error, and a `retry` function.
+ * @returns The disclaimers, loading state, skip-to-status flag, error, and a `retry` function.
  */
 export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [skipToStatus, setSkipToStatus] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   const retry = useCallback(() => setRetryCount((count) => count + 1), []);
@@ -46,6 +63,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     let isMounted = true;
     setIsLoading(true);
     setError(null);
+    setSkipToStatus(false);
 
     const abortController = new AbortController();
     const timeoutId = setTimeout(
@@ -67,7 +85,43 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         vendor: VBA_KYC_VENDOR,
         product: VBA_KYC_PRODUCT,
       });
+      console.log('[VBA KYC] initialize complete', {
+        country,
+        phase: Engine.context.KycController.state.phase,
+        sessionId: Engine.context.KycController.state.sessionId,
+        sessionStatus: Engine.context.KycController.state.sessionStatus,
+      });
+
+      try {
+        const sessionStatus =
+          await Engine.context.KycController.refreshKycStatus();
+        const finalStatus = sessionStatus?.finalStatus ?? null;
+        const skipToStatus = Boolean(
+          sessionStatus &&
+            SKIP_TO_STATUS_SESSION_STATUSES.has(sessionStatus.finalStatus),
+        );
+        console.log('[VBA KYC] refreshKycStatus', {
+          sessionStatus,
+          finalStatus,
+          skipToStatus,
+        });
+        if (skipToStatus) {
+          return { skipToStatus: true };
+        }
+        // TODO: `retry` should skip onboarding and reopen the Sumsub flow.
+        // Until that path is wired, fall through to load disclaimers.
+      } catch (refreshError) {
+        console.log('[VBA KYC] refreshKycStatus failed; continuing onboarding', {
+          error:
+            refreshError instanceof Error
+              ? refreshError.message
+              : String(refreshError),
+        });
+      }
+
       await Engine.context.KycController.loadDisclaimers({ country });
+      console.log('[VBA KYC] skipToStatus false; loading disclaimers');
+      return { skipToStatus: false };
     })();
 
     // True until this attempt finishes writing controller state (including after timeout).
@@ -79,9 +133,15 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
 
     const loadDisclaimers = async () => {
       try {
-        await Promise.race([controllerLoad, abortedPromise]);
+        const loadResult = await Promise.race([controllerLoad, abortedPromise]);
 
         if (!isMounted) {
+          return;
+        }
+
+        if (loadResult.skipToStatus) {
+          console.log('[VBA KYC] applying skipToStatus true');
+          setSkipToStatus(true);
           return;
         }
 
@@ -139,5 +199,5 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     };
   }, [country, retryCount]);
 
-  return { disclaimers, isLoading, error, retry };
+  return { disclaimers, isLoading, error, skipToStatus, retry };
 };

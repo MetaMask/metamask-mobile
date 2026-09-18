@@ -245,17 +245,14 @@
             "sumsub": null
           },
           "sessionDisclaimers": null,
+          "sessionId": null,
+          "sessionStatus": null,
           "statusMessage": "",
           "sumsub": {
             "applicantAccessToken": null,
             "result": null,
-            "sessionId": null,
-            "sessionStatus": null,
             "status": "idle"
           },
-          "userStatus": null,
-          "userStatusErrorCode": null,
-          "userStatusSumsubSessionId": null,
           "vendorDisclaimers": [],
           "vendorDisclaimersAccepted": {
             "iron": null,

@@ -9,10 +9,12 @@ import {
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -30,6 +32,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       createVendorCustomer: jest.fn(),
       fetchSessionDisclaimers: jest.fn(),
       acceptTermsAndStartSession: jest.fn(),
+      refreshKycStatus: jest.fn(),
     },
   },
 }));
@@ -46,6 +49,7 @@ const mockKycController = Engine.context.KycController as unknown as {
   createVendorCustomer: jest.Mock<Promise<void>, [unknown]>;
   fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown]>;
+  refreshKycStatus: jest.Mock<Promise<unknown>, []>;
 };
 
 const catalog = {
@@ -83,6 +87,14 @@ describe('useKycEmailVerification', () => {
     mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockKycController.refreshKycStatus.mockResolvedValue({
+      finalStatus: 'pending',
+      externalUserId: 'user-1',
+      kycStatus: 'pending',
+      vendor: 'iron',
+      vendorStatus: 'pending',
+      sessionId: 'session-1',
+    });
   });
 
   afterEach(() => {
@@ -119,6 +131,19 @@ describe('useKycEmailVerification', () => {
       providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
     });
+    expect(mockKycController.refreshKycStatus).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycStatus');
+  });
+
+  it('navigates to KYC status when status refresh fails after Sumsub', async () => {
+    mockKycController.refreshKycStatus.mockRejectedValue(
+      new Error('status refresh failed'),
+    );
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await enterEmailAndStart(result);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycStatus');
   });
 
   it('alerts without starting the session when customer creation rejects', async () => {
@@ -135,6 +160,7 @@ describe('useKycEmailVerification', () => {
       'Customer creation failed.',
     );
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('alerts when vendor terms have not been loaded', async () => {
@@ -149,6 +175,7 @@ describe('useKycEmailVerification', () => {
       'Terms are not loaded yet. Go back to Get your Pix Key and try again.',
     );
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does not alert when the applicant abandons Sumsub', async () => {
@@ -164,6 +191,7 @@ describe('useKycEmailVerification', () => {
 
     expect(alertSpy).not.toHaveBeenCalled();
     expect(result.current.isVerifying).toBe(false);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does not start verification when the email is blank', async () => {

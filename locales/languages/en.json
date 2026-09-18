@@ -1150,6 +1150,14 @@
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+    },
+    "kyc_status": {
+      "title": "KYC status",
+      "description": "Placeholder after Sumsub. Values come from KycController.",
+      "session_status": "sessionStatus",
+      "session_id": "sessionId",
+      "session_status_message": "sessionStatusMessage",
+      "null_value": "null"
     }
   },
   "social_leaderboard": {

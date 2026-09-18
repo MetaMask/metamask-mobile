@@ -7,12 +7,14 @@ import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
 const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    replace: mockReplace,
     goBack: mockGoBack,
   }),
 }));
@@ -27,16 +29,19 @@ const loadedDisclaimer = {
   display_name: 'Iron T&C',
 };
 
+const loadedDisclaimersResult = {
+  disclaimers: [loadedDisclaimer],
+  isLoading: false,
+  error: null,
+  skipToStatus: false,
+  retry: mockRetry,
+};
+
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [loadedDisclaimer],
-      isLoading: false,
-      error: null,
-      retry: mockRetry,
-    });
+    mockUseKycDisclaimers.mockReturnValue(loadedDisclaimersResult);
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -77,6 +82,7 @@ describe('GetPixKey', () => {
       disclaimers: null,
       isLoading: true,
       error: null,
+      skipToStatus: false,
       retry: mockRetry,
     });
 
@@ -95,6 +101,7 @@ describe('GetPixKey', () => {
       disclaimers: null,
       isLoading: false,
       error: null,
+      skipToStatus: false,
       retry: mockRetry,
     });
 
@@ -127,6 +134,7 @@ describe('GetPixKey', () => {
       disclaimers: null,
       isLoading: false,
       error: 'Request timed out',
+      skipToStatus: false,
       retry: mockRetry,
     });
 
@@ -141,5 +149,20 @@ describe('GetPixKey', () => {
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces this screen with the KYC status placeholder when existing status should skip onboarding', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: false,
+      error: null,
+      skipToStatus: true,
+      retry: mockRetry,
+    });
+
+    renderWithProvider(<GetPixKey />);
+
+    expect(mockReplace).toHaveBeenCalledWith('RampVbaKycStatus');
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

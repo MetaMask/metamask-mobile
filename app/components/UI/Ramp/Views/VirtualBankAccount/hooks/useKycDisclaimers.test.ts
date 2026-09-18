@@ -1,10 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import type {
+  KycSessionStatus,
+  KycSessionStatusResponse,
+} from '@metamask/kyc-controller';
 import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockInitialize = jest.fn();
 const mockLoadDisclaimers = jest.fn();
 const mockReset = jest.fn();
+const mockRefreshKycStatus = jest.fn();
 const mockKycControllerState = {
   vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
   vendorError: null as string | null,
@@ -15,6 +20,7 @@ jest.mock('../../../../../../core/Engine', () => ({
     KycController: {
       initialize: (...args: unknown[]) => mockInitialize(...args),
       loadDisclaimers: (...args: unknown[]) => mockLoadDisclaimers(...args),
+      refreshKycStatus: (...args: unknown[]) => mockRefreshKycStatus(...args),
       reset: (...args: unknown[]) => mockReset(...args),
       get state() {
         return mockKycControllerState;
@@ -23,12 +29,24 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+const createSessionStatus = (
+  finalStatus: KycSessionStatus,
+): KycSessionStatusResponse => ({
+  finalStatus,
+  externalUserId: 'user-1',
+  kycStatus: finalStatus,
+  vendor: 'iron',
+  vendorStatus: finalStatus,
+  sessionId: 'session-1',
+});
+
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycControllerState.vendorDisclaimers = [];
     mockKycControllerState.vendorError = null;
     mockInitialize.mockResolvedValue(undefined);
+    mockRefreshKycStatus.mockResolvedValue(createSessionStatus('new'));
     mockLoadDisclaimers.mockImplementation(async () => {
       mockKycControllerState.vendorDisclaimers = [
         { id: '1', url: 'https://t.c', display_name: 'T&C' },
@@ -46,11 +64,64 @@ describe('useKycDisclaimers', () => {
       vendor: VBA_KYC_VENDOR,
       product: VBA_KYC_PRODUCT,
     });
+    expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
     expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
     expect(result.current.disclaimers).toStrictEqual([
       { id: '1', url: 'https://t.c', display_name: 'T&C' },
     ]);
     expect(result.current.error).toBeNull();
+    expect(result.current.skipToStatus).toBe(false);
+  });
+
+  it.each(['pending', 'approved', 'rejected'] as const)(
+    'skips disclaimers when refreshKycStatus returns %s',
+    async (finalStatus) => {
+      mockRefreshKycStatus.mockResolvedValue(createSessionStatus(finalStatus));
+
+      const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(mockInitialize).toHaveBeenCalledWith({
+        vendor: VBA_KYC_VENDOR,
+        product: VBA_KYC_PRODUCT,
+      });
+      expect(mockRefreshKycStatus).toHaveBeenCalledTimes(1);
+      expect(mockLoadDisclaimers).not.toHaveBeenCalled();
+      expect(result.current.skipToStatus).toBe(true);
+      expect(result.current.disclaimers).toBeNull();
+      expect(result.current.error).toBeNull();
+    },
+  );
+
+  it('loads disclaimers when refreshKycStatus returns retry', async () => {
+    mockRefreshKycStatus.mockResolvedValue(createSessionStatus('retry'));
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockInitialize).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      product: VBA_KYC_PRODUCT,
+    });
+    expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
+    expect(result.current.skipToStatus).toBe(false);
+  });
+
+  it('loads disclaimers when refreshKycStatus rejects', async () => {
+    mockRefreshKycStatus.mockRejectedValue(new Error('status unavailable'));
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockInitialize).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      product: VBA_KYC_PRODUCT,
+    });
+    expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
+    expect(result.current.skipToStatus).toBe(false);
   });
 
   it('surfaces vendorError from KycController state when the load fails', async () => {

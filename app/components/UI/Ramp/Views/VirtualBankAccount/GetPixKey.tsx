@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,7 +23,7 @@ import { brandColor } from '@metamask/design-tokens';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import TagBase from '../../../../../component-library/base-components/TagBase';
 import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
@@ -58,16 +58,25 @@ const BenefitRow = ({
 );
 
 const GetPixKey = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } =
+  const { disclaimers, isLoading, error, skipToStatus, retry } =
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading && !error && Boolean(disclaimers?.length);
+    !isLoading && !error && !skipToStatus && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
+  useEffect(() => {
+    if (!skipToStatus) {
+      return;
+    }
+
+    // Replace so the status screen's back button skips this already-satisfied step.
+    navigation.replace(Routes.RAMP.VBA_KYC_STATUS);
+  }, [navigation, skipToStatus]);
 
   const handleAgreeAndContinue = useCallback(() => {
     navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
