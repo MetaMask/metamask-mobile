@@ -45,6 +45,8 @@ import {
   assembleAllClearMarkdown,
   assembleFlakyCommentMarkdown,
   renderFlakyFindingsTable,
+  resolveUnreviewedReason,
+  type AnalyzerRunHint,
   type FlakyTableFile,
 } from './flaky-signal-combination';
 
@@ -132,6 +134,8 @@ interface AiAnalysisArtifact {
   analyzedFiles?: string[];
   findings?: Finding[];
   confidence?: number;
+  runs?: AnalyzerRunHint[];
+  maxFiles?: number;
 }
 
 interface Comment {
@@ -170,6 +174,8 @@ const env = {
   prNumber: Number(process.env.PR_NUMBER ?? '0'),
   serverUrl: process.env.GITHUB_SERVER_URL ?? 'https://github.com',
   headSha: process.env.HEAD_SHA ?? '',
+  aiStepOutcome: process.env.FLAKY_AI_STEP_OUTCOME ?? '',
+  runId: process.env.GITHUB_RUN_ID ?? '',
 };
 
 /** Blob at `headSha` so snippet links and validation share the same tree. */
@@ -287,6 +293,13 @@ function buildSuggestedFixesSection(
     .join('\n\n');
 }
 
+function workflowRunUrl(): string {
+  if (!env.runId || !env.repo) {
+    return '';
+  }
+  return `${env.serverUrl}/${env.repo}/actions/runs/${env.runId}`;
+}
+
 function findingsByFile(findings: Finding[]): Map<string, Finding[]> {
   const byFile = new Map<string, Finding[]>();
   for (const finding of findings) {
@@ -302,29 +315,48 @@ function buildTableFiles({
   findings,
   patternsReviewedFiles,
   headSha,
+  runs,
+  maxFiles,
+  aiStepOutcome,
+  logUrl,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
   patternsReviewedFiles: Set<string>;
   headSha: string;
+  runs: AnalyzerRunHint[] | undefined;
+  maxFiles: number | undefined;
+  aiStepOutcome: string;
+  logUrl: string;
 }): FlakyTableFile[] {
   const findingFiles = new Set(findings.map((finding) => finding.file));
   const byFile = findingsByFile(findings);
   return historyFiles
     .filter((file) => file.flaky || findingFiles.has(file.path))
-    .map((file) => ({
-      path: file.path,
-      hasHistoryHit: file.flaky,
-      patternsReviewed: patternsReviewedFiles.has(file.path),
-      sameShaFailThenPass: file.sameShaFailThenPass ?? 0,
-      exampleRunUrl: file.exampleRunUrl ?? '',
-      findings: (byFile.get(file.path) ?? []).map((finding) => ({
-        patternId: finding.patternId,
-        patternName: finding.patternName,
-        severity: finding.severity,
-        blobUrl: blobUrl(finding.file, finding.line, headSha),
-      })),
-    }));
+    .map((file) => {
+      const patternsReviewed = patternsReviewedFiles.has(file.path);
+      return {
+        path: file.path,
+        hasHistoryHit: file.flaky,
+        patternsReviewed,
+        sameShaFailThenPass: file.sameShaFailThenPass ?? 0,
+        exampleRunUrl: file.exampleRunUrl ?? '',
+        findings: (byFile.get(file.path) ?? []).map((finding) => ({
+          patternId: finding.patternId,
+          patternName: finding.patternName,
+          severity: finding.severity,
+          blobUrl: blobUrl(finding.file, finding.line, headSha),
+        })),
+        unreviewed: resolveUnreviewedReason({
+          file: file.path,
+          patternsReviewed,
+          runs,
+          aiStepOutcome,
+          maxFiles,
+          logUrl,
+        }),
+      };
+    });
 }
 
 function buildCommentBody({
@@ -334,6 +366,8 @@ function buildCommentBody({
   stateBlock,
   headSha,
   coverageLine,
+  runs,
+  maxFiles,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
@@ -341,6 +375,8 @@ function buildCommentBody({
   stateBlock: string;
   headSha: string;
   coverageLine: string;
+  runs: AnalyzerRunHint[] | undefined;
+  maxFiles: number | undefined;
 }): string {
   return assembleFlakyCommentMarkdown({
     marker: MARKER,
@@ -350,6 +386,10 @@ function buildCommentBody({
         findings,
         patternsReviewedFiles,
         headSha,
+        runs,
+        maxFiles,
+        aiStepOutcome: env.aiStepOutcome,
+        logUrl: workflowRunUrl(),
       }),
     ),
     diffs: buildSuggestedFixesSection(findings, headSha),
@@ -599,6 +639,9 @@ async function main(): Promise<void> {
     stateBlock,
     headSha,
     coverageLine,
+    runs: Array.isArray(aiAnalysis.runs) ? aiAnalysis.runs : undefined,
+    maxFiles:
+      typeof aiAnalysis.maxFiles === 'number' ? aiAnalysis.maxFiles : undefined,
   });
 
   try {

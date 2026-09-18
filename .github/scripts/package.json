@@ -11,6 +11,7 @@
     "gen:commits": "node generate-rc-commits.mjs",
     "check-feature-flag-registry": "ts-node ./qa-automation/feature-flags-registry/check-feature-flag-registry.ts",
     "flaky-history-analysis": "ts-node ./flaky-history-analysis.ts",
+    "flaky-ai-analysis": "ts-node ./flaky-ai-analysis.ts",
     "flaky-sticky-comment": "ts-node ./flaky-sticky-comment.ts",
     "flaky-job-summary": "ts-node ./flaky-job-summary.ts"
   },

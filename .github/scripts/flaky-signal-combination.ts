@@ -47,6 +47,30 @@ export type FlakyTableFinding = {
   blobUrl: string;
 };
 
+export type UnreviewedReason =
+  | 'did_not_complete'
+  | 'skipped_cap'
+  | 'skipped_fork'
+  | 'not_run';
+
+export type UnreviewedDetails = {
+  reason: UnreviewedReason;
+  attempts?: number;
+  cap?: number;
+  logUrl?: string;
+};
+
+export type AnalyzerRunStatusHint =
+  | 'reviewed'
+  | 'did_not_complete'
+  | 'skipped_cap';
+
+export type AnalyzerRunHint = {
+  file: string;
+  status: AnalyzerRunStatusHint;
+  attempts: number;
+};
+
 export type FlakyTableFile = {
   path: string;
   hasHistoryHit: boolean;
@@ -54,6 +78,7 @@ export type FlakyTableFile = {
   sameShaFailThenPass: number;
   exampleRunUrl: string;
   findings: FlakyTableFinding[];
+  unreviewed?: UnreviewedDetails;
 };
 
 export function combineFileSignals(
@@ -101,6 +126,66 @@ export function patternSeverityLight(severity: string): string {
   return TRAFFIC_LIGHT.yellow;
 }
 
+export function renderUnreviewedPatternsCell(
+  details: UnreviewedDetails,
+): string {
+  if (details.reason === 'did_not_complete') {
+    const attempts = details.attempts ?? 0;
+    const attemptLabel = attempts === 1 ? 'attempt' : 'attempts';
+    const log =
+      details.logUrl && details.logUrl.length > 0
+        ? ` ([log](${details.logUrl}))`
+        : '';
+    return `not reviewed — analysis did not complete after ${attempts} ${attemptLabel}${log}`;
+  }
+  if (details.reason === 'skipped_cap') {
+    const cap = details.cap ?? 0;
+    return `not reviewed — over the ${cap}-file cap`;
+  }
+  if (details.reason === 'skipped_fork') {
+    return 'not reviewed — AI stage skipped on fork PRs';
+  }
+  return 'not reviewed — analyzer did not run';
+}
+
+export function resolveUnreviewedReason({
+  file,
+  patternsReviewed,
+  runs,
+  aiStepOutcome,
+  maxFiles,
+  logUrl,
+}: {
+  file: string;
+  patternsReviewed: boolean;
+  runs: AnalyzerRunHint[] | undefined;
+  aiStepOutcome: string;
+  maxFiles?: number;
+  logUrl?: string;
+}): UnreviewedDetails | undefined {
+  if (patternsReviewed) {
+    return undefined;
+  }
+  const run = runs?.find((entry) => entry.file === file);
+  if (run?.status === 'did_not_complete') {
+    return {
+      reason: 'did_not_complete',
+      attempts: run.attempts,
+      logUrl,
+    };
+  }
+  if (run?.status === 'skipped_cap') {
+    return {
+      reason: 'skipped_cap',
+      cap: maxFiles,
+    };
+  }
+  if (aiStepOutcome === 'skipped') {
+    return { reason: 'skipped_fork' };
+  }
+  return { reason: 'not_run' };
+}
+
 export function renderFlakyPatternsCell(finding: FlakyTableFinding): string {
   const light = patternSeverityLight(finding.severity);
   const label = `${finding.patternId} — ${finding.patternName}`;
@@ -129,7 +214,11 @@ function rowsForFile(file: FlakyTableFile): string[] {
     exampleRunUrl: file.exampleRunUrl,
   });
   if (file.findings.length === 0) {
-    const pattern = file.patternsReviewed ? 'none' : 'not reviewed';
+    const pattern = file.patternsReviewed
+      ? 'none'
+      : renderUnreviewedPatternsCell(
+          file.unreviewed ?? { reason: 'not_run' },
+        );
     return [tableRow(file.path, pastFlakyness, pattern)];
   }
   return file.findings.map((finding) =>

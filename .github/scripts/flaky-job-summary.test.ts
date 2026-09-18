@@ -25,6 +25,9 @@ const baseInput = {
   aiInstallOutcome: 'success',
   aiOutcome: 'success',
   stage3Outcome: 'success',
+  aiReviewedCount: '1',
+  aiDidNotCompleteFiles: '',
+  aiSkippedCapFiles: '',
 };
 
 describe('renderFlakyJobSummary', () => {
@@ -67,6 +70,7 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('**Posted sticky comment** (created).');
     expect(markdown).toContain('| Comment | created |');
     expect(markdown).toContain('| AI findings | 2 |');
+    expect(markdown).toContain('| AI analysis | reviewed 1/1 files |');
   });
 
   it('reports AI skipped for a fork when analyze ran but AI was skipped', () => {
@@ -132,6 +136,21 @@ describe('renderFlakyJobSummary', () => {
     const markdown = renderFlakyJobSummary(baseInput);
 
     expect(markdown).toContain('| Job result | passed |');
+    expect(markdown).toContain('| AI analysis | reviewed 1/1 files |');
+  });
+
+  it('lists files that did not complete or exceeded the cap', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      filesToAnalyzeCount: '3',
+      aiReviewedCount: '1',
+      aiDidNotCompleteFiles: 'a.test.ts',
+      aiSkippedCapFiles: 'b.test.ts',
+    });
+
+    expect(markdown).toContain(
+      '| AI analysis | reviewed 1/3 files; did not complete: a.test.ts; over cap: b.test.ts |',
+    );
   });
 
   it('reports Job result failed when Stage 1 outcome is failure', () => {

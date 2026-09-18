@@ -7,6 +7,8 @@ import {
   renderFlakyFindingsTable,
   renderFlakyPatternsCell,
   renderPastFlakynessCell,
+  renderUnreviewedPatternsCell,
+  resolveUnreviewedReason,
   TRAFFIC_LIGHT,
   type FlakyTableFile,
 } from './flaky-signal-combination';
@@ -214,7 +216,7 @@ describe('renderFlakyFindingsTable', () => {
     );
   });
 
-  it('writes not reviewed when history fired and Stage 2 never scanned the file', () => {
+  it('writes not reviewed with the Stage 2 miss reason when history fired', () => {
     const markdown = renderFlakyFindingsTable([
       {
         path: flakyFile,
@@ -223,11 +225,16 @@ describe('renderFlakyFindingsTable', () => {
         sameShaFailThenPass: 2,
         exampleRunUrl: jobLogUrl,
         findings: [],
+        unreviewed: {
+          reason: 'did_not_complete',
+          attempts: 2,
+          logUrl: 'https://github.com/org/repo/actions/runs/10',
+        },
       },
     ]);
 
     expect(markdown).toContain(
-      `| \`${flakyFile}\` | ${TRAFFIC_LIGHT.yellow} 2 ([run](${jobLogUrl})) | not reviewed |`,
+      `| \`${flakyFile}\` | ${TRAFFIC_LIGHT.yellow} 2 ([run](${jobLogUrl})) | not reviewed — analysis did not complete after 2 attempts ([log](https://github.com/org/repo/actions/runs/10)) |`,
     );
   });
 
@@ -313,6 +320,75 @@ describe('assembleFlakyCommentMarkdown', () => {
     );
     expect(body).not.toContain('Neither signal is proof');
     expect(body).not.toContain('### Signals');
+  });
+});
+
+describe('renderUnreviewedPatternsCell', () => {
+  it('names the miss reason for each unreviewed status', () => {
+    expect(
+      renderUnreviewedPatternsCell({
+        reason: 'did_not_complete',
+        attempts: 1,
+        logUrl: 'https://example/run',
+      }),
+    ).toBe(
+      'not reviewed — analysis did not complete after 1 attempt ([log](https://example/run))',
+    );
+    expect(
+      renderUnreviewedPatternsCell({ reason: 'skipped_cap', cap: 10 }),
+    ).toBe('not reviewed — over the 10-file cap');
+    expect(renderUnreviewedPatternsCell({ reason: 'skipped_fork' })).toBe(
+      'not reviewed — AI stage skipped on fork PRs',
+    );
+    expect(renderUnreviewedPatternsCell({ reason: 'not_run' })).toBe(
+      'not reviewed — analyzer did not run',
+    );
+  });
+});
+
+describe('resolveUnreviewedReason', () => {
+  it('reads did_not_complete and skipped_cap from the runs manifest', () => {
+    expect(
+      resolveUnreviewedReason({
+        file: 'a.test.ts',
+        patternsReviewed: false,
+        runs: [{ file: 'a.test.ts', status: 'did_not_complete', attempts: 2 }],
+        aiStepOutcome: 'success',
+        logUrl: 'https://example/run',
+      }),
+    ).toEqual({
+      reason: 'did_not_complete',
+      attempts: 2,
+      logUrl: 'https://example/run',
+    });
+    expect(
+      resolveUnreviewedReason({
+        file: 'b.test.ts',
+        patternsReviewed: false,
+        runs: [{ file: 'b.test.ts', status: 'skipped_cap', attempts: 0 }],
+        aiStepOutcome: 'success',
+        maxFiles: 10,
+      }),
+    ).toEqual({ reason: 'skipped_cap', cap: 10 });
+  });
+
+  it('uses the AI step outcome when the file has no run record', () => {
+    expect(
+      resolveUnreviewedReason({
+        file: 'a.test.ts',
+        patternsReviewed: false,
+        runs: undefined,
+        aiStepOutcome: 'skipped',
+      }),
+    ).toEqual({ reason: 'skipped_fork' });
+    expect(
+      resolveUnreviewedReason({
+        file: 'a.test.ts',
+        patternsReviewed: false,
+        runs: undefined,
+        aiStepOutcome: 'failure',
+      }),
+    ).toEqual({ reason: 'not_run' });
   });
 });
 

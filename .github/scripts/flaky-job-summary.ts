@@ -28,6 +28,9 @@ export type FlakyJobSummaryInput = {
   aiInstallOutcome: string;
   aiOutcome: string;
   stage3Outcome: string;
+  aiReviewedCount: string;
+  aiDidNotCompleteFiles: string;
+  aiSkippedCapFiles: string;
 };
 
 const shortSha = (sha: string): string =>
@@ -107,6 +110,29 @@ const stageOutcomesFailed = (input: FlakyJobSummaryInput): boolean =>
   input.aiOutcome === 'failure' ||
   input.stage3Outcome === 'failure';
 
+const describeAiAnalysis = (input: FlakyJobSummaryInput): string => {
+  if (input.shouldAnalyze !== 'true') {
+    return 'skipped';
+  }
+  if (input.aiOutcome === 'skipped') {
+    return 'skipped (fork PR or secrets unavailable)';
+  }
+  if (input.aiOutcome !== 'success' && input.aiOutcome !== 'failure') {
+    return input.aiOutcome === '' ? 'did not run' : input.aiOutcome;
+  }
+
+  const requested = input.filesToAnalyzeCount || '0';
+  const reviewed = input.aiReviewedCount || '0';
+  const parts = [`reviewed ${reviewed}/${requested} files`];
+  if (input.aiDidNotCompleteFiles) {
+    parts.push(`did not complete: ${input.aiDidNotCompleteFiles}`);
+  }
+  if (input.aiSkippedCapFiles) {
+    parts.push(`over cap: ${input.aiSkippedCapFiles}`);
+  }
+  return parts.join('; ');
+};
+
 export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
   const setupStopped =
     input.checkoutOutcome === 'failure' ||
@@ -134,16 +160,7 @@ export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
     headline = '**Analyzed.** Check the comment step below.';
   }
 
-  const aiLine =
-    input.shouldAnalyze !== 'true'
-      ? 'skipped'
-      : input.aiOutcome === 'success'
-        ? 'completed'
-        : input.aiOutcome === 'skipped'
-          ? 'skipped (fork PR or secrets unavailable)'
-          : input.aiOutcome === 'failure'
-            ? 'failed'
-            : 'did not run';
+  const aiLine = describeAiAnalysis(input);
 
   const commentLine =
     input.commentPosted === 'true'
@@ -211,6 +228,9 @@ export const writeFlakyJobSummaryFromEnv = (): void => {
     aiInstallOutcome: env('FLAKY_AI_INSTALL_OUTCOME'),
     aiOutcome: env('FLAKY_AI_OUTCOME'),
     stage3Outcome: env('FLAKY_STAGE3_OUTCOME'),
+    aiReviewedCount: env('FLAKY_AI_REVIEWED_COUNT'),
+    aiDidNotCompleteFiles: env('FLAKY_AI_DID_NOT_COMPLETE_FILES'),
+    aiSkippedCapFiles: env('FLAKY_AI_SKIPPED_CAP_FILES'),
   });
 
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;

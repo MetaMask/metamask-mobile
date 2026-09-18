@@ -58,6 +58,7 @@ import {
   type ListedWorkflowRun,
 } from './flaky-same-sha-history';
 import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
+import { computeNeedsAnalysis } from './flaky-needs-analysis';
 
 type Octokit = ReturnType<typeof getOctokit>;
 
@@ -91,6 +92,7 @@ const PRIOR_STATE_PATH = join(
 interface PerFileState {
   analyzedSha: string;
   findings: unknown[];
+  patternsReviewed?: boolean;
 }
 
 interface CommentState {
@@ -318,70 +320,35 @@ async function fetchPriorState(
   }
 }
 
-function computeNeedsAnalysis(
+function computeNeedsAnalysisWithGit(
   modifiedFiles: string[],
   priorState: CommentState | null,
 ): { files: string[]; missingPriorShaCount: number } {
-  if (!priorState)
-    return { files: [...modifiedFiles], missingPriorShaCount: 0 };
-
-  const byAnalyzedSha = new Map<string, string[]>();
-  const nopriorFiles: string[] = [];
-
-  for (const file of modifiedFiles) {
-    const prior = priorState.files[file];
-    if (!prior?.analyzedSha) {
-      nopriorFiles.push(file);
-    } else {
-      const list = byAnalyzedSha.get(prior.analyzedSha) ?? [];
-      list.push(file);
-      byAnalyzedSha.set(prior.analyzedSha, list);
-    }
-  }
-
-  const changedFiles = new Set<string>(nopriorFiles);
-  let missingPriorShaCount = 0;
-
-  for (const [analyzedSha, files] of byAnalyzedSha) {
-    if (!ensureCommitReachable(analyzedSha)) {
-      core.info(
-        `Prior analyzedSha ${analyzedSha} is not in this checkout — re-analyzing group`,
-      );
-      missingPriorShaCount += 1;
-      files.forEach((f) => changedFiles.add(f));
-      continue;
-    }
-
-    let changedInDiff: Set<string>;
-    try {
-      const diffOutput = sh('git', [
-        'diff',
-        '--name-only',
-        analyzedSha,
-        env.headSha || 'HEAD',
-      ]);
-      changedInDiff = new Set(
-        diffOutput
+  return computeNeedsAnalysis(modifiedFiles, priorState, {
+    headSha: env.headSha || 'HEAD',
+    isCommitReachable: (sha) => {
+      const reachable = ensureCommitReachable(sha);
+      if (!reachable) {
+        core.info(
+          `Prior analyzedSha ${sha} is not in this checkout — re-analyzing group`,
+        );
+      }
+      return reachable;
+    },
+    diffNameOnly: (fromSha, toSha) => {
+      try {
+        return sh('git', ['diff', '--name-only', fromSha, toSha])
           .split('\n')
-          .map((f) => f.trim())
-          .filter(Boolean),
-      );
-    } catch (error) {
-      core.info(
-        `git diff ${analyzedSha}..HEAD failed — re-analyzing group: ${(error as Error).message}`,
-      );
-      files.forEach((f) => changedFiles.add(f));
-      continue;
-    }
-    for (const file of files) {
-      if (changedInDiff.has(file)) changedFiles.add(file);
-    }
-  }
-
-  return {
-    files: modifiedFiles.filter((f) => changedFiles.has(f)),
-    missingPriorShaCount,
-  };
+          .map((file) => file.trim())
+          .filter(Boolean);
+      } catch (error) {
+        core.info(
+          `git diff ${fromSha}..HEAD failed — re-analyzing group: ${(error as Error).message}`,
+        );
+        throw error;
+      }
+    },
+  });
 }
 
 type ModifiedFilesResult =
@@ -753,10 +720,8 @@ async function main(): Promise<void> {
     return;
   }
   const priorState = priorResult.state;
-  const { files: needsAnalysis, missingPriorShaCount } = computeNeedsAnalysis(
-    modifiedFiles,
-    priorState,
-  );
+  const { files: needsAnalysis, missingPriorShaCount } =
+    computeNeedsAnalysisWithGit(modifiedFiles, priorState);
 
   if (needsAnalysis.length === 0 && priorState !== null) {
     console.log(

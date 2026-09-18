@@ -10,10 +10,12 @@
 #      historyComplete is false when a cap ends the walk early.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
-#   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
-#      (defined in .ai-pr-analyzer/modes/) scans only the modified test files
-#      for J1-J10 patterns from the flaky-test-detection skill, independently
-#      of what (1) found.
+#   2. AI analyzer — flaky-ai-analysis.ts runs MetaMask/ai-analyzer once per
+#      modified (or historically flaky) unit test file, in parallel under a
+#      concurrency cap. Each child uses an isolated --config dir so output
+#      files do not collide. A failed or truncated finalize is retried once;
+#      remaining misses are recorded per file rather than wiping the whole
+#      review.
 #      → writes .ai-pr-analyzer/flaky-ai-analysis.json
 #
 #   3. Sticky comment — flaky-sticky-comment.ts merges both artifacts into
@@ -169,33 +171,32 @@ jobs:
         working-directory: .ai-analyzer-action
         run: npm ci
 
-      # Invokes the analyzer CLI directly (instead of `uses: ./.ai-analyzer-action`)
-      # so --changed-files can hard-scope analysis to only the modified unit
-      # test files — the composite action always analyzes the full PR diff.
-      # This also means the analyzer never has a chance to post its own PR
-      # comment; Stage 3 below is the only PR-visible output.
-      # --skip-scope bypasses the analyzer's default minimum-changed-lines
-      # gate: Stage 1 already narrowed the input to modified unit test files,
-      # so a 1-2 line edit that introduces a flaky pattern must still be
-      # analyzed instead of being skipped for being "too small".
+      # Stage 2: one AI analyzer process per unit test file, invoked by
+      # flaky-ai-analysis.ts (instead of `uses: ./.ai-analyzer-action`) so
+      # --changed-files can hard-scope each child to a single file. The
+      # composite action always analyzes the full PR diff. Stage 3 below is
+      # the only PR-visible output. --skip-scope bypasses the analyzer's
+      # default minimum-changed-lines gate: Stage 1 already narrowed the
+      # input to modified unit test files.
       - name: Run flaky unit test AI analysis
         id: ai
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
+        timeout-minutes: 15
         env:
           LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: 'true'
           NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
-        run: |
-          node -r esbuild-register .ai-analyzer-action/src/index.ts \
-            --config .ai-pr-analyzer \
-            --mode flaky-unit-test-analysis \
-            --base-branch "origin/${{ github.base_ref }}" \
-            --changed-files "${{ steps.detect-history.outputs.files_to_analyze }}" \
-            --skip-scope
+          AI_ANALYZER_DIR: ${{ github.workspace }}/.ai-analyzer-action
+          FILES_TO_ANALYZE: ${{ steps.detect-history.outputs.files_to_analyze }}
+          BASE_REF: ${{ github.base_ref }}
+          FLAKY_AI_MAX_FILES: '10'
+          FLAKY_AI_MAX_ATTEMPTS: '2'
+          FLAKY_AI_CONCURRENCY: '3'
+        run: yarn --cwd .github/scripts flaky-ai-analysis
 
       # Stage 3: unified sticky PR comment combining Stage 1 + Stage 2
       # output. Runs when should_analyze is true, or when the PR no longer
@@ -215,6 +216,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FLAKY_AI_STEP_OUTCOME: ${{ steps.ai.outcome }}
         run: yarn flaky-sticky-comment
 
       - name: Job summary
@@ -243,6 +245,9 @@ jobs:
           FLAKY_AI_CHECKOUT_OUTCOME: ${{ steps.ai-checkout.outcome }}
           FLAKY_AI_INSTALL_OUTCOME: ${{ steps.ai-install.outcome }}
           FLAKY_AI_OUTCOME: ${{ steps.ai.outcome }}
+          FLAKY_AI_REVIEWED_COUNT: ${{ steps.ai.outputs.reviewed_count }}
+          FLAKY_AI_DID_NOT_COMPLETE_FILES: ${{ steps.ai.outputs.did_not_complete_files }}
+          FLAKY_AI_SKIPPED_CAP_FILES: ${{ steps.ai.outputs.skipped_cap_files }}
           FLAKY_STAGE3_OUTCOME: ${{ steps.sticky.outcome }}
         run: |
           if [ -f .github/scripts/node_modules/.bin/ts-node ]; then
