@@ -710,6 +710,12 @@ export function useQuickBuyController(
     refreshKey: liveSourceBalance ?? '',
   });
 
+  useEffect(() => {
+    console.log('====', {
+      latestSourceBalance: latestSourceBalance?.displayBalance,
+    });
+  }, [latestSourceBalance]);
+
   const sourceTokenAmount = useMemo(() => {
     // Max ("sell all"): spend the exact on-chain balance. `displayBalance` is
     // `formatUnits(atomicBalance)`, so it round-trips back to the precise
@@ -843,6 +849,13 @@ export function useQuickBuyController(
     quoteRefreshRateMs,
     refetchQuotes,
   } = quotesToUse;
+
+  useEffect(() => {
+    console.log('==== maybeSwapQuotes', {
+      isLoading: maybeSwapQuotes?.isLoading,
+      maybeSwapQuotes: maybeSwapQuotes?.activeQuote,
+    });
+  }, [maybeSwapQuotes]);
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
   useEffect(() => {
