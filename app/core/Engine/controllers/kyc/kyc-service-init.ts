@@ -2,8 +2,7 @@ import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
 
 /** UAT hosts used when env vars are not inlined (e.g. local Metro, Jest). */
-// TEMP LOCAL OVERRIDE: restore `https://kyc-api.uat-api.cx.metamask.io` before committing.
-const DEFAULT_KYC_API_BASE_URL = 'http://192.168.1.98:3000';
+const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
 const DEFAULT_IDOS_ENCLAVE_BASE_URL =
   'https://enclave.staging.sandbox.fractal.id';
 const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.staging.idos.network';
@@ -30,8 +29,7 @@ export const kycServiceInit: MessengerClientInitFunction<
   const controller = new KycService({
     fetch,
     messenger: controllerMessenger,
-    // TEMP LOCAL OVERRIDE: restore `process.env.KYC_API_URL || DEFAULT_KYC_API_BASE_URL` before committing.
-    baseUrl: DEFAULT_KYC_API_BASE_URL,
+    baseUrl: process.env.KYC_API_URL || DEFAULT_KYC_API_BASE_URL,
     idosEnclaveBaseUrl:
       process.env.IDOS_ENCLAVE_URL || DEFAULT_IDOS_ENCLAVE_BASE_URL,
     idosRelayBaseUrl: process.env.IDOS_RELAY_URL || DEFAULT_IDOS_RELAY_BASE_URL,
