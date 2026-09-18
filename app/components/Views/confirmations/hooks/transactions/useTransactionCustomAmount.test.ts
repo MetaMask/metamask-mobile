@@ -46,6 +46,7 @@ import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { DepositPrefillStatus } from './useDepositPrefillAmount';
+import { ConfirmationLaunchSource } from '../../components/confirm/confirm-component';
 
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -740,6 +741,53 @@ describe('useTransactionCustomAmount', () => {
     const { result } = runHook();
 
     expect(result.current.amountFiat).toBe('43.21');
+  });
+
+  it('rejects keypad and percentage edits for membership top-ups', () => {
+    useParamsMock.mockReturnValue({
+      amount: '5',
+      launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
+    });
+    const { result } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    act(() => {
+      result.current.updatePendingAmount('50');
+      expect(result.current.updatePendingAmountPercentage(100)).toBe(false);
+      expect(result.current.updatePendingAmountPercentage(50)).toBe(false);
+    });
+
+    expect(result.current.amountFiat).toBe('5');
+    expect(result.current.hasUserEditedAmountRef.current).toBe(false);
+  });
+
+  it('keeps the membership amount when the payment token loses its balance', () => {
+    useParamsMock.mockReturnValue({
+      amount: '5',
+      launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
+    });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '500',
+        chainId: '0x1',
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
+    });
+    const { result, rerender } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    act(() => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      rerender({});
+    });
+
+    expect(result.current.amountFiat).toBe('5');
   });
 
   it('preserves an explicit money account deposit amount when balance prefill is enabled', async () => {
