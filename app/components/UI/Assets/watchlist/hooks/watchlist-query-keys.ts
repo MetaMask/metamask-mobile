@@ -2,7 +2,6 @@ export const tokenWatchlistQueryKeys = {
   all: ['tokenWatchlist'] as const,
   blob: ['tokenWatchlist', 'blob'] as const,
   hydrated: ['tokenWatchlist', 'hydrated'] as const,
-  suggestedAll: ['tokenWatchlist', 'suggested'] as const,
   suggested: (includeSpaceX: boolean) =>
     [
       'tokenWatchlist',
