@@ -3,6 +3,7 @@ export const ContactsViewSelectorIDs = {
   CONTAINER: 'contacts-screen',
   HEADER: 'contacts-header',
   HEADER_BACK_BUTTON: 'back-arrow-button',
+  EMPTY_STATE: 'contacts-empty-state',
 };
 
 export const ContactsViewSelectorsText = {
