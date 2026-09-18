@@ -10,6 +10,8 @@ import {
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { addTransaction } from '../../../../../../util/transaction-controller';
+import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../../core/AppConstants';
 const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
@@ -252,7 +254,105 @@ const mockOrder3 = {
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
-const mockedOrders = [mockOrder, mockOrder2, mockOrder3];
+const SOLANA_WALLET_ADDRESS = '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv';
+const SOLANA_DEPOSIT_ADDRESS = 'HToZyUbXz2Vp8b6kY3p8qXxLnQ4F2u2pP5pUz6m9ELDR';
+
+const mockSolanaAccount = {
+  id: 'solana-account-id',
+  address: SOLANA_WALLET_ADDRESS,
+  type: 'solana:data-account',
+  metadata: {
+    name: 'Solana Account',
+    snap: { id: 'npm:@metamask/solana-wallet-snap' },
+  },
+};
+
+const mockSolanaOrder = {
+  ...mockOrder,
+  id: 'test-id-solana',
+  cryptocurrency: 'SOL',
+  network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  account: SOLANA_WALLET_ADDRESS,
+  cryptoAmount: '1.5',
+  data: {
+    ...mockOrder.data,
+    id: 'test-id-solana',
+    providerOrderId: 'test-id-solana',
+    cryptoAmount: '1.5',
+    cryptoCurrency: {
+      id: '/currencies/crypto/solana/sol',
+      network: {
+        active: true,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chainName: 'Solana',
+        shortName: 'Solana',
+      },
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/solana.svg',
+      decimals: 9,
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'SOL',
+      name: 'Solana',
+      assetId: 'slip44:501',
+    },
+    network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    walletAddress: SOLANA_WALLET_ADDRESS,
+    depositWallet: SOLANA_DEPOSIT_ADDRESS,
+  } as DeepPartial<SellOrder>,
+} as FiatOrder;
+
+const TRON_WALLET_ADDRESS = 'TJRabPrwbZy45sbavfcjinPJC18kjpRTv8';
+const TRON_DEPOSIT_ADDRESS = 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE';
+
+const mockTronAccount = {
+  id: 'tron-account-id',
+  address: TRON_WALLET_ADDRESS,
+  type: 'tron:eoa',
+  metadata: {
+    name: 'Tron Account',
+    snap: { id: 'npm:@metamask/tron-wallet-snap' },
+  },
+};
+
+const mockTronOrder = {
+  ...mockOrder,
+  id: 'test-id-tron',
+  cryptocurrency: 'TRX',
+  network: 'tron:728126428',
+  account: TRON_WALLET_ADDRESS,
+  cryptoAmount: '42',
+  data: {
+    ...mockOrder.data,
+    id: 'test-id-tron',
+    providerOrderId: 'test-id-tron',
+    cryptoAmount: '42',
+    cryptoCurrency: {
+      id: '/currencies/crypto/tron/trx',
+      network: {
+        active: true,
+        chainId: 'tron:728126428',
+        chainName: 'Tron',
+        shortName: 'Tron',
+      },
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/tron.svg',
+      decimals: 6,
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'TRX',
+      name: 'Tron',
+      assetId: 'slip44:195',
+    },
+    network: 'tron:728126428',
+    walletAddress: TRON_WALLET_ADDRESS,
+    depositWallet: TRON_DEPOSIT_ADDRESS,
+  } as DeepPartial<SellOrder>,
+} as FiatOrder;
+
+const mockedOrders = [
+  mockOrder,
+  mockOrder2,
+  mockOrder3,
+  mockSolanaOrder,
+  mockTronOrder,
+];
 
 function render(Component: React.ComponentType, orders = mockedOrders) {
   return renderScreen(
@@ -312,6 +412,21 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
 }));
 
+jest.mock('../../../../../Views/confirmations/utils/multichain-snaps', () => ({
+  sendMultichainTransactionForReview: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../../../selectors/accountsController'),
+  getMemoizedInternalAccountByAddress: jest.fn(),
+}));
+
+const mockSendMultichainTransactionForReview =
+  sendMultichainTransactionForReview as jest.Mock;
+const mockGetInternalAccountByAddress =
+  getMemoizedInternalAccountByAddress as unknown as jest.Mock;
+
 const mockDispatch = jest.fn();
 
 jest.mock('react-redux', () => ({
@@ -330,12 +445,16 @@ describe('SendTransaction View', () => {
     mockDispatch.mockClear();
     mockTrackEvent.mockClear();
     mockAddTransaction.mockClear();
+    mockSendMultichainTransactionForReview.mockClear();
+    mockGetInternalAccountByAddress.mockReset();
   });
 
   beforeEach(() => {
     mockUseParamsValues = {
       orderId: 'test-id-1',
     };
+    // Default: no resolvable non-EVM account (EVM tests don't read it).
+    mockGetInternalAccountByAddress.mockReturnValue(undefined);
   });
 
   it('shows header with back navigation when order data has no cryptoCurrency', async () => {
@@ -608,6 +727,121 @@ describe('SendTransaction View', () => {
       const nextButton = screen.getByRole('button', { name: 'Next' });
       await act(async () => fireEvent.press(nextButton));
       expect(mockAddTransaction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Non-EVM (Solana) send', () => {
+    beforeEach(() => {
+      mockUseParamsValues = { orderId: 'test-id-solana' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockSolanaAccount);
+    });
+
+    it('sends via the Snap and stores the returned transaction id', async () => {
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        transactionId: 'solana-signature-123',
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
+        mockSolanaAccount,
+        {
+          fromAccountId: mockSolanaAccount.id,
+          toAddress: SOLANA_DEPOSIT_ADDRESS,
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          amount: '1.5',
+        },
+      );
+      expect(mockDispatch.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            {
+              "payload": {
+                "orderId": "test-id-solana",
+                "txHash": "solana-signature-123",
+              },
+              "type": "FIAT_SET_SELL_TX_HASH",
+            },
+          ],
+        ]
+      `);
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+      );
+    });
+
+    it('tracks rejected and does not store a hash when the Snap returns no transaction id', async () => {
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        valid: false,
+        errors: [{ code: 'rejected' }],
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+      );
+    });
+
+    it('sends a Tron order via the same Snap path', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        transactionId: 'tron-tx-hash-456',
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
+        mockTronAccount,
+        {
+          fromAccountId: mockTronAccount.id,
+          toAddress: TRON_DEPOSIT_ADDRESS,
+          assetId: 'tron:728126428/slip44:195',
+          amount: '42',
+        },
+      );
+      expect(mockDispatch.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            {
+              "payload": {
+                "orderId": "test-id-tron",
+                "txHash": "tron-tx-hash-456",
+              },
+              "type": "FIAT_SET_SELL_TX_HASH",
+            },
+          ],
+        ]
+      `);
+    });
+
+    it('does not call the Snap when the account has no snap id', async () => {
+      mockGetInternalAccountByAddress.mockReturnValue({
+        ...mockSolanaAccount,
+        metadata: { name: 'Solana Account' },
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+      );
     });
   });
 });
