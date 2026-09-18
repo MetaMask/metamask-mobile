@@ -173,7 +173,9 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  SocialPostComposerView,
   MyProfileView,
+  FollowConnectionsView,
   ManageProfileView,
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
@@ -1420,11 +1422,29 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.V1}
             component={SocialV1View}
+            options={{
+              headerShown: false,
+              // `enableFreeze(true)` is global (index.js). The feed must keep
+              // reacting to the composed-post store while the composer sits on
+              // top, otherwise the posting banner and the committed post are
+              // both swallowed by the frozen subtree.
+              freezeOnBlur: false,
+              ...slideFromRightNativeOptions,
+            }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_COMPOSER}
+            component={SocialPostComposerView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
+            component={FollowConnectionsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

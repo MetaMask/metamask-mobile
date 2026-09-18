@@ -1811,6 +1811,10 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
         });
+
+        await waitFor(() => {
+          expect(mockNavigateToSendPage).toHaveBeenCalled();
+        });
       });
     });
     ///: END:ONLY_INCLUDE_IF

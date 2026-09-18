@@ -5,6 +5,7 @@ import {
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
   publishPredictNextGameLiveUpdate,
+  publishPredictNextQuoteUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { renderPredictEventScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
@@ -288,13 +289,10 @@ describe('PredictEventScreen', () => {
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
     expect(
-      (['1D', '1W', '1M', 'ALL'] as const).map((range) =>
+      (['LIVE', '1D', '1W', '1M', 'ALL'] as const).map((range) =>
         view.getByTestId(PredictMarketHistoryTestIds.range(range)),
       ),
-    ).toHaveLength(4);
-    expect(
-      view.queryByTestId(PredictMarketHistoryTestIds.range('LIVE')),
-    ).not.toBeOnTheScreen();
+    ).toHaveLength(5);
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.range('1Y')),
     ).not.toBeOnTheScreen();
@@ -312,6 +310,20 @@ describe('PredictEventScreen', () => {
     expect(
       await view.findByTestId(PredictMarketHistoryTestIds.CHART),
     ).toBeOnTheScreen();
+
+    messengerCall.mockClear();
+    fireEvent.press(
+      view.getByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+    );
+
+    await waitFor(() =>
+      expectMessengerCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        venueId,
+        'market-1',
+        'LIVE',
+      ),
+    );
   });
 
   it('renders complete Market history after async load', async () => {
@@ -339,6 +351,131 @@ describe('PredictEventScreen', () => {
     expect(
       within(chart).getByTestId(PredictMarketHistoryTestIds.chartValue('no')),
     ).toBeOnTheScreen();
+  });
+
+  it('adds a chart entry for every live quote on the live range', async () => {
+    const publishQuote = (lastPrice: string, updatedAt: string) =>
+      act(() => {
+        publishPredictNextQuoteUpdate({
+          venueId,
+          marketId: 'market-1' as PredictEntityId,
+          outcomes: [
+            {
+              id: 'yes' as PredictEntityId,
+              side: 'yes',
+              bidPrice: '0.77' as PredictDecimal,
+              askPrice: '0.88' as PredictDecimal,
+            },
+            {
+              id: 'no' as PredictEntityId,
+              side: 'no',
+              bidPrice: '0.12' as PredictDecimal,
+              askPrice: '0.23' as PredictDecimal,
+            },
+          ],
+          lastPrice: lastPrice as PredictDecimal,
+          updatedAt: updatedAt as PredictTimestamp,
+        });
+      });
+    resolveEvent();
+    const view = renderPredictEventScreen(routeParams);
+    const yesLinePath = () =>
+      view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props
+        .d as string;
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    fireEvent.press(
+      view.getByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+    );
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictMarketHistoryTestIds.CHART).props
+          .accessibilityLabel,
+      ).toContain('Yes 42%'),
+    );
+
+    publishQuote('0.67', '2026-08-17T21:00:00.000Z');
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(PredictMarketHistoryTestIds.CHART).props
+          .accessibilityLabel,
+      ).toContain('Yes 67%');
+    });
+    const afterFirstQuote = yesLinePath();
+
+    publishQuote('0.77', '2026-08-17T22:00:00.000Z');
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(PredictMarketHistoryTestIds.CHART).props
+          .accessibilityLabel,
+      ).toContain('Yes 77%');
+    });
+    // The second quote extends the line instead of moving its last point.
+    expect(yesLinePath().length).toBeGreaterThan(afterFirstQuote.length);
+    // The No line complements the yes-side last traded price.
+    expect(
+      view.getByTestId(PredictMarketHistoryTestIds.CHART).props
+        .accessibilityLabel,
+    ).toContain('No 23%');
+  });
+
+  it('keeps the chart on the REST snapshot outside the live range while cards stay live', async () => {
+    resolveEvent();
+    const view = renderPredictEventScreen(routeParams);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 150 } },
+    });
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictMarketHistoryTestIds.CHART).props
+          .accessibilityLabel,
+      ).toContain('Yes 42%'),
+    );
+    const beforeQuote = view.getByTestId(
+      `${PredictMarketHistoryTestIds.CHART}-line-yes`,
+    ).props.d as string;
+
+    act(() => {
+      publishPredictNextQuoteUpdate({
+        venueId,
+        marketId: 'market-1' as PredictEntityId,
+        outcomes: [
+          {
+            id: 'yes' as PredictEntityId,
+            side: 'yes',
+            bidPrice: '0.77' as PredictDecimal,
+            askPrice: '0.88' as PredictDecimal,
+          },
+          {
+            id: 'no' as PredictEntityId,
+            side: 'no',
+            bidPrice: '0.12' as PredictDecimal,
+            askPrice: '0.23' as PredictDecimal,
+          },
+        ],
+        lastPrice: '0.67' as PredictDecimal,
+        updatedAt: '2026-08-17T21:00:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    await waitFor(() =>
+      expect(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('market-1')),
+      ).toHaveTextContent(/88¢/),
+    );
+    expect(
+      view.getByTestId(PredictMarketHistoryTestIds.CHART).props
+        .accessibilityLabel,
+    ).toContain('Yes 42%');
+    expect(
+      view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props.d,
+    ).toBe(beforeQuote);
   });
 
   it('retries Market history after an initial error', async () => {
@@ -1512,13 +1649,11 @@ describe('PredictEventScreen', () => {
         venueId,
         eventId,
         type: 'football_game',
-        details: {
-          status: 'live',
-          away_points: 28,
-          home_points: 24,
-          quarter: 4,
-          clock: '01:12',
-        },
+        status: 'in_progress',
+        score: { away: '28', home: '24' },
+        period: 'Q4',
+        clock: '01:12',
+        observedAt: '2026-09-11T03:00:00.000Z' as PredictTimestamp,
       });
     });
 

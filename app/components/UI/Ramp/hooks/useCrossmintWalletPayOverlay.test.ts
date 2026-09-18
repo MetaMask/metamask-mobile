@@ -91,7 +91,6 @@ function setPlatform(platform: 'ios' | 'android') {
 describe('useCrossmintWalletPayOverlay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     jest.mocked(useSelector).mockReturnValue(true);
     setPlatform('ios');
     setupController();
@@ -102,13 +101,9 @@ describe('useCrossmintWalletPayOverlay', () => {
     });
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
+  /** Flushes the preparation request so its result reaches state. */
   async function settle() {
     await act(async () => {
-      jest.advanceTimersByTime(500);
       await Promise.resolve();
     });
   }
@@ -569,6 +564,83 @@ describe('useCrossmintWalletPayOverlay', () => {
     });
 
     expect(mockNavigationReset).not.toHaveBeenCalled();
+  });
+
+  describe('payment settling', () => {
+    function report(
+      result: { current: { onMessage: (event: never) => void } },
+      payment: Record<string, unknown>,
+    ) {
+      act(() => {
+        result.current.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              event: 'order:updated',
+              data: { order: { payment } },
+            }),
+          },
+        } as never);
+      });
+    }
+
+    it('settles once the status moves into awaiting-payment', async () => {
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      // The idle checkout reports requires-email; the wallet sheet resolves
+      // it and the order becomes payable in the same moment.
+      report(result, { status: 'requires-email' });
+      expect(result.current.isPaymentSettling).toBe(false);
+
+      report(result, { status: 'awaiting-payment' });
+      expect(result.current.isPaymentSettling).toBe(true);
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
+    it('does not settle for a checkout that is already awaiting payment', async () => {
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      report(result, { status: 'awaiting-payment' });
+      report(result, { status: 'awaiting-payment' });
+
+      expect(result.current.isPaymentSettling).toBe(false);
+    });
+
+    it('settles on in-progress alongside the hand-off', async () => {
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      report(result, { status: 'in-progress' });
+
+      expect(result.current.isPaymentSettling).toBe(true);
+      expect(mockNavigationReset).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives the slot back on a decline', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      report(result, { status: 'requires-email' });
+      report(result, { status: 'awaiting-payment' });
+      expect(result.current.isPaymentSettling).toBe(true);
+
+      report(result, {
+        status: 'awaiting-payment',
+        failureReason: { message: 'Card declined' },
+      });
+
+      expect(result.current.isPaymentSettling).toBe(false);
+    });
   });
 
   it('hands off when the polled order reaches PENDING', async () => {
