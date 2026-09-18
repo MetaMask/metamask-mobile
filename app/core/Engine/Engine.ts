@@ -62,7 +62,7 @@ import {
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
-import { scheduleVaultBackup } from '../BackupVault';
+import { backupVault } from '../BackupVault';
 import { CaipAssetType, Hex, Json, parseCaipAssetType } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 import { captureException } from '@sentry/react-native';
@@ -1041,7 +1041,21 @@ export class Engine {
         }
 
         lastVault = state.vault;
-        scheduleVaultBackup(state.vault);
+        backupVault(state.vault)
+          .then((result) => {
+            if (!result.success) {
+              throw new Error(result.error ?? 'Vault backup failed');
+            }
+            Logger.log(
+              'Engine',
+              result.skipped
+                ? `Vault back up skipped (${result.skipReason})`
+                : 'Vault back up successful',
+            );
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          });
       },
     );
   }

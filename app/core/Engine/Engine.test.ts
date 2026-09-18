@@ -32,18 +32,10 @@ jest.mock('react-native-device-info', () => ({
 
 jest.mock('redux-persist-filesystem-storage');
 
-jest.mock('../BackupVault', () => {
-  const backupVault = jest
-    .fn()
-    .mockResolvedValue({ success: true, vault: 'vault' });
-  return {
-    backupVault,
-    scheduleVaultBackup: jest.fn((vault: unknown) => {
-      backupVault(vault);
-    }),
-    clearAllVaultBackups: jest.fn().mockResolvedValue(undefined),
-  };
-});
+jest.mock('../BackupVault', () => ({
+  backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
+  clearAllVaultBackups: jest.fn().mockResolvedValue(undefined),
+}));
 
 jest.mock('@react-native-community/netinfo', () => ({
   __esModule: true,

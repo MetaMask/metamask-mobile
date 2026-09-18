@@ -7,7 +7,6 @@ import {
   backupVault,
   getVaultFromBackup,
   clearAllVaultBackups,
-  scheduleVaultBackup,
 } from './backupVault';
 import {
   getInternetCredentials,
@@ -16,8 +15,6 @@ import {
   type Result,
   STORAGE_TYPE,
 } from 'react-native-keychain';
-import Logger from '../../util/Logger';
-import { waitFor } from '@testing-library/react-native';
 
 let mockKeychainState: Record<string, { username: string; password: string }> =
   {};
@@ -249,44 +246,6 @@ describe('backupVault file', () => {
       expect(resetInternetCredentials).toHaveBeenCalledTimes(3);
 
       expect(response).toEqual(mockedSuccessResponse);
-    });
-  });
-
-  describe('scheduleVaultBackup', () => {
-    it('backs up the vault it was given', async () => {
-      const vault = 'a-vault';
-
-      scheduleVaultBackup(vault);
-
-      await waitFor(() => {
-        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
-      });
-    });
-
-    it('logs the failure when the underlying backup fails', async () => {
-      const loggerErrorSpy = jest
-        .spyOn(Logger, 'error')
-        .mockImplementation(() => undefined);
-      (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
-
-      const vault = 'vault-that-fails-to-back-up';
-      scheduleVaultBackup(vault);
-
-      await waitFor(() => {
-        expect(loggerErrorSpy).toHaveBeenCalledWith(
-          new Error('Vault backup failed'),
-          'Engine Vault backup failed',
-        );
-      });
-
-      // A later call for the same vault still runs — scheduleVaultBackup
-      // performs no dedup of its own, so a retry is always attempted.
-      (setInternetCredentials as jest.Mock).mockClear();
-      scheduleVaultBackup(vault);
-
-      await waitFor(() => {
-        expect(setInternetCredentials).toHaveBeenCalled();
-      });
     });
   });
 

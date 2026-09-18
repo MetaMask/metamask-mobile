@@ -143,30 +143,6 @@ export async function backupVault(
 }
 
 /**
- * Entry point for KeyringController:stateChange. Performs no dedup or
- * staleness checks of its own, it's on the caller to filter out calls that
- * shouldn't happen (today, that's Engine.handleVaultBackup's lastVault
- * guard and the disableAutomaticVaultBackup flag).
- */
-export function scheduleVaultBackup(vault: string): void {
-  backupVault(vault)
-    .then((result) => {
-      if (!result.success) {
-        throw new Error(result.error ?? VAULT_BACKUP_FAILED);
-      }
-      Logger.log(
-        'Engine',
-        result.skipped
-          ? `Vault back up skipped (${result.skipReason})`
-          : 'Vault back up successful',
-      );
-    })
-    .catch((error) => {
-      Logger.error(error as Error, 'Engine Vault backup failed');
-    });
-}
-
-/**
  * retrieves the vault backup from react-native-keychain
  * @returns Promise<KeyringBackupResponse>
   interface KeyringBackupResponse {
