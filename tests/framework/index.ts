@@ -64,3 +64,5 @@ export {
   type ReinstallAppOptions,
   type UninstallAppOptions,
 } from './services/device-commands';
+
+// Touched to request Appium smoke on CI.
