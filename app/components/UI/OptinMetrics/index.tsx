@@ -38,7 +38,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
-import Checkbox from '../../../component-library/components/Checkbox';
+import { Checkbox } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -324,19 +324,16 @@ const OptinMetrics = () => {
     [onPressLink],
   );
 
-  const handleBasicUsageToggle = useCallback(() => {
-    setIsBasicUsageChecked((prevValue) => {
-      const newValue = !prevValue;
-      if (!newValue) {
-        setIsMarketingChecked(false);
-      }
-      return newValue;
-    });
+  const handleBasicUsageToggle = useCallback((newValue: boolean) => {
+    setIsBasicUsageChecked(newValue);
+    if (!newValue) {
+      setIsMarketingChecked(false);
+    }
   }, []);
 
-  const handleMarketingToggle = useCallback(() => {
+  const handleMarketingToggle = useCallback((newValue: boolean) => {
     if (isBasicUsageChecked) {
-      setIsMarketingChecked((prev) => !prev);
+      setIsMarketingChecked(newValue);
     }
   }, [isBasicUsageChecked]);
 
@@ -491,8 +488,8 @@ const OptinMetrics = () => {
                   </Text>
                 </Box>
                 <Checkbox
-                  onPress={handleBasicUsageToggle}
-                  isChecked={isBasicUsageChecked}
+                  onChange={handleBasicUsageToggle}
+                  isSelected={isBasicUsageChecked}
                   accessibilityRole={'checkbox'}
                   accessible
                 />
@@ -550,11 +547,11 @@ const OptinMetrics = () => {
                   </Text>
                 </Box>
                 <Checkbox
-                  onPress={handleMarketingToggle}
-                  isChecked={isMarketingChecked}
+                  onChange={handleMarketingToggle}
+                  isSelected={isMarketingChecked}
                   accessibilityRole={'checkbox'}
                   accessible
-                  disabled={isMarketingDisabled}
+                  isDisabled={isMarketingDisabled}
                 />
               </Box>
               <Text
