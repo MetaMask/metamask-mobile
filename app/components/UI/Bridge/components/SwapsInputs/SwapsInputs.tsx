@@ -9,16 +9,15 @@ import {
   TokenInputAreaType,
 } from '../TokenInputArea';
 import { FLipQuoteButton } from '../FlipQuoteButton';
-import type { useLatestBalance } from '../../hooks/useLatestBalance';
 import type { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
 import type { BridgeToken } from '../../types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
   inputRef: React.Ref<TokenInputAreaRef>;
   sourceToken: BridgeToken | undefined;
   sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   destToken: BridgeToken | undefined;
   destTokenAmount: string | undefined;
   isDestAmountLoading: boolean;
@@ -40,7 +39,6 @@ export const SwapsInputs = ({
   inputRef,
   sourceToken,
   sourceAmountInput,
-  latestSourceBalance,
   destToken,
   destTokenAmount,
   isDestAmountLoading,
@@ -58,6 +56,7 @@ export const SwapsInputs = ({
   destAmountReplacementLabelTestID,
 }: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
+  const { latestSourceBalance } = useBridgeSession();
 
   return (
     <Box style={styles.inputsContainer}>
@@ -69,6 +68,7 @@ export const SwapsInputs = ({
             selection={sourceAmountInput.selection}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
+            latestAtomicBalance={latestSourceBalance?.atomicBalance}
             networkImageSource={
               sourceToken?.chainId
                 ? getNetworkImageSource({ chainId: sourceToken.chainId })
@@ -81,7 +81,6 @@ export const SwapsInputs = ({
             onSelectionChange={sourceAmountInput.handleSelectionChange}
             onTokenPress={onSourceTokenPress}
             onMaxPress={onSourceMaxPress}
-            latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
             inputPrefix={sourceAmountInput.inputPrefix}
             secondaryValue={sourceAmountInput.secondaryValue}

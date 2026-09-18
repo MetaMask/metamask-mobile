@@ -1,7 +1,10 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
   FilterButtonVariant,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -473,23 +476,46 @@ describe('PerpsProChartPanel', () => {
     expect(screen.getByText('1d')).toBeOnTheScreen();
   });
 
-  it('left-aligns the configured Pro candle periods', () => {
-    renderChartPanel();
-
-    expect(
-      screen.UNSAFE_getByType(PerpsCandlePeriodSelector).props.groupTwClassName,
-    ).toBe('gap-2 justify-start');
-  });
-
-  it('uses the Figma compact candle-period appearance', () => {
+  it('spreads the configured Pro candle periods across the chart nav width', () => {
     renderChartPanel();
 
     const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
 
+    expect(selector.props.fillWidth).toBe(true);
+    expect(selector.props.groupTwClassName).toBe('gap-2');
+  });
+
+  it('separates the candle periods from the fullscreen button by 24px', () => {
+    renderChartPanel();
+
+    const chartNavRow = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_NAV,
+    );
+
+    expect(StyleSheet.flatten(chartNavRow?.props.style)).toMatchObject({
+      flexDirection: 'row',
+      gap: 24,
+    });
+  });
+
+  it('uses the Figma candle-period appearance', () => {
+    renderChartPanel();
+
+    const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
+
+    const fullscreenButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (button) =>
+          button.props.testID ===
+          PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      );
+
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
-    expect(selector.props.periodButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.moreButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.textVariant).toBe(TextVariant.BodyXs);
+    expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded-lg px-1');
+    expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded-lg px-1');
+    expect(selector.props.textVariant).toBe(TextVariant.BodySm);
+    expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Sm);
   });
 
   it('forwards a selected Pro candle period', () => {

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -135,7 +135,7 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
   return useMemo(() => {
     if (addressesToScan.length === 0 || shouldSuppressForRevoke) {
-      return [];
+      return NO_ALERTS;
     }
 
     const alerts: Alert[] = [];
