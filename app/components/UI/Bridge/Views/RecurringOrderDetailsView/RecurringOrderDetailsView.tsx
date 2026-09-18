@@ -59,6 +59,7 @@ import {
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
   getUsdToCurrentCurrencyRate,
+  isRecurringSwapEligibleForAddFunds,
 } from '../../utils/recurringOrders';
 import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
@@ -157,9 +158,13 @@ function RecurringOrderDetailsView() {
       navigation.navigate(Routes.BRIDGE.RECURRING_SWAP_DETAILS, {
         order,
         swap,
+        showAddFundsCta: isRecurringSwapEligibleForAddFunds(
+          swap,
+          swapsQuery.swaps,
+        ),
       });
     },
-    [navigation, order],
+    [navigation, order, swapsQuery.swaps],
   );
 
   const handleScroll = useCallback(

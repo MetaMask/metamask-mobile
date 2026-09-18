@@ -6,4 +6,5 @@ import type {
 export interface RecurringSwapDetailsRouteParams {
   order: RecurringOrder;
   swap: RecurringSwap;
+  showAddFundsCta?: boolean;
 }

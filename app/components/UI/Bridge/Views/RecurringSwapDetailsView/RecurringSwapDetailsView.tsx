@@ -233,10 +233,20 @@ export function RecurringSwapAgainButton({
   );
 }
 
+function handleAddFunds() {
+  // TODO: Replace this log with Add funds navigation once the destination is defined.
+  // eslint-disable-next-line no-console
+  console.log('[RecurringSwapDetails:AddFunds] Add funds pressed');
+}
+
 function RecurringSwapDetailsView() {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { order, swap } = useParams<RecurringSwapDetailsRouteParams>();
+  const {
+    order,
+    swap,
+    showAddFundsCta = false,
+  } = useParams<RecurringSwapDetailsRouteParams>();
   const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
   const chainId = parseCaipAssetType(order.src.asset.assetId).chainId;
   const networkName = useActivityNetworkName(chainId);
@@ -381,6 +391,15 @@ function RecurringSwapDetailsView() {
                   address={order.src.walletAddress}
                   chainId={chainId}
                 />
+              ) : showAddFundsCta ? (
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleAddFunds}
+                >
+                  {strings('wallet.add_funds')}
+                </Button>
               ) : null
             }
           />

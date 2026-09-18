@@ -23,6 +23,7 @@ const BLOCK_EXPLORER_BUTTON_LABEL = strings(
   'activity_details.view_on_block_explorer',
 );
 const SWAP_AGAIN_BUTTON_LABEL = strings('activity_details.swap_again');
+const ADD_FUNDS_BUTTON_LABEL = strings('wallet.add_funds');
 
 function getRequiredTxHash(swap: RecurringSwap): string {
   if (!swap.txHash) {
@@ -60,6 +61,7 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    jest.restoreAllMocks();
   });
 
   it('shows filled swap details and returns to the order', async () => {
@@ -161,6 +163,9 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
 
   it('shows skipped attempt details without transaction-only content', async () => {
     const { renderResult } = await openSwapDetails(2);
+    const consoleLogSpy = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
 
     expect(
       within(
@@ -199,6 +204,14 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(
       renderResult.queryByText(SWAP_AGAIN_BUTTON_LABEL),
     ).not.toBeOnTheScreen();
+    const addFundsButton = renderResult.getByText(ADD_FUNDS_BUTTON_LABEL);
+    expect(addFundsButton).toBeOnTheScreen();
+
+    await userEvent.press(addFundsButton);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[RecurringSwapDetails:AddFunds] Add funds pressed',
+    );
   });
 
   it('shows a smart-account-required attempt without transaction-only content', async () => {
@@ -226,6 +239,30 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     ).not.toBeOnTheScreen();
     expect(
       renderResult.queryByText(SWAP_AGAIN_BUTTON_LABEL),
+    ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByText(ADD_FUNDS_BUTTON_LABEL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Add funds when a successful swap occurred after the skipped swap', async () => {
+    const insufficientBalanceSwap = MOCK_RECURRING_OPEN_ORDER_SWAPS[2];
+    const successfulSwapAfter = {
+      ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
+      swapId: `${MOCK_RECURRING_OPEN_ORDER.orderId}-success-after-skip`,
+      scheduledAt: '2026-09-04T13:00:00.000Z',
+      executedAt: '2026-09-04T13:00:00.000Z',
+    };
+    setupRecurringOrdersDataServiceMock({
+      recurringSwaps: async () => ({
+        swaps: [successfulSwapAfter, insufficientBalanceSwap],
+      }),
+    });
+
+    const { renderResult } = await openSwapDetails(2);
+
+    expect(
+      renderResult.queryByText(ADD_FUNDS_BUTTON_LABEL),
     ).not.toBeOnTheScreen();
   });
 
