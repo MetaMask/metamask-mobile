@@ -90,9 +90,13 @@ export class WalletHomeSections {
   async scrollAndTapTokensSection(
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
+    // Prefer the homepage section SELECT testID over section text — text
+    // matchers flake when the Tokens header is still mounting after unlock.
+    const tokensSectionTarget = this.tokensSection;
+
     if (
       await WalletHomeScroll.tapIfAlreadyVisible(
-        this.tokensSectionHeader,
+        tokensSectionTarget,
         'Tokens section',
       )
     ) {
@@ -110,7 +114,7 @@ export class WalletHomeSections {
 
     try {
       await WalletHomeScroll.scrollAndTapSection(
-        this.tokensSectionHeader,
+        tokensSectionTarget,
         'Tokens section',
         direction,
         getScrollOptions(direction),
@@ -118,7 +122,7 @@ export class WalletHomeSections {
     } catch {
       const fallbackDirection = direction === 'down' ? 'up' : 'down';
       await WalletHomeScroll.scrollAndTapSection(
-        this.tokensSectionHeader,
+        tokensSectionTarget,
         'Tokens section',
         fallbackDirection,
         getScrollOptions(fallbackDirection),

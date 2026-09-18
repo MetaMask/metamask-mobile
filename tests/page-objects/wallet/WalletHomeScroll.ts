@@ -91,7 +91,10 @@ export class WalletHomeScroll {
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
+    visibilityTimeoutMs = 15_000,
   ): Promise<void> {
+    const visibilityTimeout = resolveE2EWaitTimeoutMs(visibilityTimeoutMs);
+
     await Assertions.expectElementToBeVisible(this.walletScrollView, {
       timeout: resolveE2EWaitTimeoutMs(10_000),
       description: `wallet-scroll-view for ${description}`,
@@ -101,7 +104,9 @@ export class WalletHomeScroll {
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
       )) as AppiumElement;
-      await Gestures.scrollIntoView(
+      // Fully-visible scroll clears the bottom tab bar so the follow-up
+      // visibility assert does not race a still-clipped section header.
+      await Gestures.scrollIntoViewFullyVisible(
         await this.resolveFreshWalletHomeTarget(target),
         {
           scrollableElement: scrollView,
@@ -112,7 +117,7 @@ export class WalletHomeScroll {
       await Assertions.expectElementToBeVisible(
         await this.resolveFreshWalletHomeTarget(target),
         {
-          timeout: 5_000,
+          timeout: visibilityTimeout,
           description,
         },
       );
@@ -137,7 +142,7 @@ export class WalletHomeScroll {
     await Assertions.expectElementToBeVisible(
       await this.resolveFreshWalletHomeTarget(target),
       {
-        timeout: 5_000,
+        timeout: visibilityTimeout,
         description,
       },
     );
@@ -184,6 +189,7 @@ export class WalletHomeScroll {
       description,
       direction,
       Math.max(8, Math.ceil(timeout / 2_000)),
+      timeout,
     );
     if (overshootSwipe) {
       const overshootScrollDirection =
