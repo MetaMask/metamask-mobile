@@ -467,7 +467,7 @@ const OptinMetrics = () => {
                   pressed && 'opacity-70',
                 )
               }
-              onPress={handleBasicUsageToggle}
+              onPress={() => handleBasicUsageToggle(!isBasicUsageChecked)}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
@@ -521,7 +521,7 @@ const OptinMetrics = () => {
                   pressed && !isMarketingDisabled && 'opacity-70',
                 )
               }
-              onPress={handleMarketingToggle}
+              onPress={() => handleMarketingToggle(!isMarketingChecked)}
               disabled={isMarketingDisabled}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
