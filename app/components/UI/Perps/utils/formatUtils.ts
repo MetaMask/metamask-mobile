@@ -575,3 +575,44 @@ export const formatDateSection = (timestamp: number): string => {
 
   return `${month} ${day}`; // 'Jul, 26'
 };
+
+/**
+ * Formats a limit price for display while preserving in-progress input — a
+ * trailing "." or trailing zeros after the decimal survive, which
+ * `formatPerpsFiat` alone would collapse.
+ */
+export const formatLimitPriceInput = (price: string): string => {
+  if (!price || price === '0') {
+    return '';
+  }
+
+  if (price.endsWith('.') || /\.\d*0$/.test(price)) {
+    const parts = price.split('.');
+    const integerPart = parts[0] || '0';
+    const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
+
+    const formatted = formatPerpsFiat(integerPart, {
+      ranges: [
+        {
+          condition: () => true,
+          threshold: 0,
+          maximumDecimals: 0,
+          minimumDecimals: 0,
+        },
+      ],
+    });
+
+    return `${formatted}${decimalPart}`;
+  }
+
+  return formatPerpsFiat(price, {
+    ranges: [
+      {
+        condition: () => true,
+        threshold: 0.00000001,
+        maximumDecimals: 7,
+        minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+      },
+    ],
+  });
+};

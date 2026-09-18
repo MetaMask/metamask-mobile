@@ -4,6 +4,10 @@ import type {
   PerpsMarketData,
   Position,
 } from '@metamask/perps-controller';
+import {
+  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+  type ScreenVsBottomSheetVariant,
+} from '../../../app/components/UI/Perps/abTestConfig';
 
 export const createFundedAccountForViews = (balance: string): AccountState => ({
   spendableBalance: balance,
@@ -122,4 +126,18 @@ export const createLimitOrderForViews = (
 ): Order => ({
   ...defaultLimitOrderForViews,
   ...overrides,
+});
+
+export const createScreenVsBottomSheetAssignmentForViews = (
+  variant: ScreenVsBottomSheetVariant,
+) => ({
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: variant,
+        },
+      },
+    },
+  },
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState, memo } from 'react';
+import React, { useEffect, useMemo, useState, memo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
@@ -18,31 +18,24 @@ import {
 import Keypad from '../../../../Base/Keypad';
 import {
   formatPerpsFiat,
-  formatWithSignificantDigits,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
-  DECIMAL_PRECISION_CONFIG,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import {
-  usePerpsLiveAccount,
-  usePerpsLivePrices,
-  usePerpsTopOfBook,
-} from '../../hooks/stream';
-import {
-  LIMIT_PRICE_CONFIG,
-  MAX_PERPS_INPUT_DIGITS,
-} from '../../constants/perpsConfig';
+import { usePerpsLiveAccount } from '../../hooks/stream';
+import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
-import { isPriceOutsideDeviationBand } from '../../utils/orderUtils';
-import { BigNumber } from 'bignumber.js';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+/** Separate bid and ask buttons here, unlike the close sheet's single one. */
+const LIMIT_PRESET_TEST_IDS = {
+  mid: PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+  bid: PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID,
+  ask: PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK,
+  percentPrefix: PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT,
+};
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -90,11 +83,25 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
-  // Track input method for MetaMetrics (preset = Mid/Bid/Ask, percentage_button = %, keyboard = manual)
-  const [inputMethod, setInputMethod] = useState<string | null>(null);
-
-  // MetaMetrics tracking
-  const { track } = usePerpsEventTracking();
+  const {
+    currentPrice,
+    formattedLimitPrice,
+    presets,
+    exceedsMaxDeviation,
+    directionWarning,
+    handleKeypadChange,
+    trackInputMethod,
+    resetInputMethod,
+  } = usePerpsLimitPriceInput({
+    asset,
+    currentPrice: passedCurrentPrice,
+    direction,
+    limitPrice,
+    setLimitPrice,
+    isClosingPosition,
+    enabled: isVisible,
+    testIDs: LIMIT_PRESET_TEST_IDS,
+  });
 
   const isOpenOrderPriceEdit = restingOrderSize !== undefined;
   const { account, isInitialLoading: isAccountLoading } = usePerpsLiveAccount({
@@ -103,259 +110,26 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const isAccountReady = !isAccountLoading && account !== null;
   const spendableBalance = Number.parseFloat(account?.spendableBalance ?? '0');
 
-  // Get real-time price data with 1000ms throttle for limit price bottom sheet
-  // Only subscribe when visible
-  const priceData = usePerpsLivePrices({
-    symbols: isVisible ? [asset] : [],
-    throttleMs: 1000,
-  });
-  const currentPriceData = priceData[asset];
-
-  // Use live data directly - updates automatically every 1000ms
-  const currentPrice = currentPriceData?.price
-    ? parseFloat(currentPriceData.price)
-    : passedCurrentPrice;
-
-  // Mark price used as the reference for HyperLiquid's oracle price band. Falls
-  // back to the mid/mark currentPrice when the mark price is missing or does
-  // not parse to a finite positive number (otherwise a NaN reference would
-  // silently skip the band check).
-  const parsedMarkPrice = currentPriceData?.markPrice
-    ? parseFloat(currentPriceData.markPrice)
-    : NaN;
-  const referencePrice =
-    Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
-      ? parsedMarkPrice
-      : currentPrice;
-
-  // Get top of book (bid/ask) data for Bid/Ask preset buttons
-  // Note: Mid price comes from currentPrice above (from allMids stream)
-  const topOfBook = usePerpsTopOfBook({ symbol: isVisible ? asset : '' });
-  const bidPrice = topOfBook?.bestBid;
-  const askPrice = topOfBook?.bestAsk;
-
   useEffect(() => {
     if (isVisible) {
       // Re-seed from props whenever visibility or the target order's price
       // changes — otherwise switching edit targets while mounted keeps the
       // previous order's typed keypad value.
       setLimitPrice(initialLimitPrice || '');
-      setInputMethod(null); // Reset input method tracking for new session
+      resetInputMethod(); // Reset input method tracking for new session
     }
-  }, [initialLimitPrice, isVisible]);
+  }, [initialLimitPrice, isVisible, resetInputMethod]);
 
   const handleConfirm = () => {
     // Remove any formatting (commas, dollar signs) before passing the value
     const cleanPrice = limitPrice.replace(/[$,]/g, '');
 
-    // Track limit price input method
-    if (inputMethod) {
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
-        [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
-        [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethod,
-        [PERPS_EVENT_PROPERTY.ASSET]: asset,
-        [PERPS_EVENT_PROPERTY.DIRECTION]: direction,
-      });
-    }
+    trackInputMethod();
 
     // Only call onConfirm; parent controls visibility. Avoid calling onClose here
     // to distinguish between confirm vs dismiss (onClose used for cancel/dismiss).
     onConfirm(cleanPrice);
   };
-
-  const handleKeypadChange = useCallback(
-    ({ value }: { value: string; valueAsNumber: number }) => {
-      // Enforce digit limit (ignore non-digits like '.' or ',')
-      const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
-        return; // Ignore input that would exceed the max digit limit
-      }
-      setLimitPrice(value || '');
-      setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.KEYBOARD);
-    },
-    [],
-  );
-
-  /**
-   * Format limit price with proper decimal handling
-   * Shows raw input during typing (preserves ".", "0.", "0.00", etc.)
-   * Only formats complete numbers
-   * @param price - Price string to format
-   * @returns Formatted price string with proper currency symbol
-   */
-  const formatLimitPriceValue = useCallback((price: string) => {
-    if (!price || price === '0') {
-      return '';
-    }
-
-    // Preserve raw input if it ends with a decimal point or has trailing zeros after decimal
-    // Format the base number to get proper currency symbol, then append the typed decimal part
-    if (price.endsWith('.') || /\.\d*0$/.test(price)) {
-      const parts = price.split('.');
-      const integerPart = parts[0] || '0';
-      const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
-
-      // Format the integer part to get proper currency formatting
-      const formatted = formatPerpsFiat(integerPart, {
-        ranges: [
-          {
-            condition: () => true,
-            threshold: 0,
-            maximumDecimals: 0,
-            minimumDecimals: 0,
-          },
-        ],
-      });
-
-      // Append the decimal part as typed by user
-      return `${formatted}${decimalPart}`;
-    }
-
-    const formatConfig = {
-      ranges: [
-        {
-          condition: () => true,
-          threshold: 0.00000001,
-          maximumDecimals: 7,
-          minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
-        },
-      ],
-    };
-
-    return formatPerpsFiat(price, formatConfig);
-  }, []);
-
-  /**
-   * Compute contextual warning based on limit price vs current price
-   * Open Long: warn if limit > current (above)
-   * Open Short: warn if limit < current (below)
-   * Close Long (isClosingPosition && direction === 'short'): warn if limit < current (below)
-   * Close Short (isClosingPosition && direction === 'long'): warn if limit > current (above)
-   */
-  const limitPriceWarning = React.useMemo(() => {
-    // Sanitize inputs
-    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
-    const price = Number(currentPrice);
-
-    if (!limitPrice || isNaN(parsedLimit) || !price || price <= 0) {
-      return '';
-    }
-
-    // Opening orders
-    if (!isClosingPosition) {
-      if (direction === 'long' && parsedLimit > price) {
-        return strings('perps.order.limit_price_modal.limit_price_above');
-      }
-      if (direction === 'short' && parsedLimit < price) {
-        return strings('perps.order.limit_price_modal.limit_price_below');
-      }
-      return '';
-    }
-
-    // Closing positions: direction prop is opposite of the underlying position
-    // direction === 'short' => closing a LONG position
-    if (isClosingPosition && direction === 'short' && parsedLimit < price) {
-      return strings('perps.order.limit_price_modal.limit_price_below');
-    }
-    // direction === 'long' => closing a SHORT position
-    if (isClosingPosition && direction === 'long' && parsedLimit > price) {
-      return strings('perps.order.limit_price_modal.limit_price_above');
-    }
-
-    return '';
-  }, [limitPrice, currentPrice, direction, isClosingPosition]);
-
-  /**
-   * HyperLiquid rejects orders whose price is more than 95% away from the
-   * reference (mark) price ("oracleRejected"). Shows immediate feedback while
-   * the price is being set; the authoritative gate is the shared rule enforced
-   * in the Close button validation (usePerpsClosePositionValidation), which
-   * re-evaluates as the market moves. Both use isPriceOutsideDeviationBand with
-   * the same reference (mark) price.
-   *
-   * Only applied when closing a position. Opening a normal limit order is left
-   * to the order form's own validation.
-   */
-  const exceedsMaxDeviation = React.useMemo(() => {
-    if (!isClosingPosition) {
-      return false;
-    }
-    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
-    return isPriceOutsideDeviationBand(
-      parsedLimit,
-      referencePrice,
-      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-    );
-  }, [isClosingPosition, limitPrice, referencePrice]);
-
-  /**
-   * Calculate limit price based on percentage from the current limit price (or
-   * market price when no limit price is set yet).
-   * @param percentage - Percentage to add/subtract from current price
-   * @returns Calculated price as string (e.g., "45123.50")
-   *
-   * For long orders: Negative percentages create buy limits below market
-   * For short orders: Positive percentages create sell limits above market
-   */
-  const calculatePriceForPercentage = useCallback(
-    (percentage: number) => {
-      const parsedLimitPrice = limitPrice
-        ? parseFloat(limitPrice.replace(/[$,]/g, ''))
-        : 0;
-      const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
-
-      if (!basePrice || basePrice === 0) {
-        return '';
-      }
-
-      const multiplier = 1 + percentage / 100;
-      const calculatedPrice = BigNumber(basePrice)
-        .multipliedBy(multiplier)
-        .toString();
-      return calculatedPrice;
-    },
-    [currentPrice, limitPrice],
-  );
-
-  const applyLimitPrice = useCallback((price: number, method: string) => {
-    setLimitPrice(
-      formatWithSignificantDigits(
-        price,
-        DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-      ).value.toString(),
-    );
-    setInputMethod(method);
-  }, []);
-
-  const handlePresetPrice = useCallback(
-    (price: string | number | undefined) => {
-      if (price === undefined || price === null || price === '') {
-        return;
-      }
-      const numericPrice =
-        typeof price === 'number' ? price : parseFloat(price);
-      if (!numericPrice) {
-        return;
-      }
-      applyLimitPrice(numericPrice, PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
-    },
-    [applyLimitPrice],
-  );
-
-  const handlePercentagePreset = useCallback(
-    (percentage: number) => {
-      const calculatedPrice = calculatePriceForPercentage(percentage);
-      if (calculatedPrice) {
-        applyLimitPrice(
-          parseFloat(calculatedPrice),
-          PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
-        );
-      }
-    },
-    [applyLimitPrice, calculatePriceForPercentage],
-  );
 
   const marginError = useMemo(() => {
     if (!isOpenOrderPriceEdit || !isAccountReady || !isMarketDataReady) {
@@ -411,13 +185,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     Boolean(marginError);
 
   const hasInputError = Boolean(
-    exceedsMaxDeviation || limitPriceWarning || marginError,
+    exceedsMaxDeviation || directionWarning || marginError,
   );
-  const formattedLimitPrice = formatLimitPriceValue(limitPrice);
-  const isLong = direction === 'long';
-  const percentagePresets = isLong
-    ? LIMIT_PRICE_CONFIG.LongPresets
-    : LIMIT_PRICE_CONFIG.ShortPresets;
 
   if (!isVisible) return null;
 
@@ -452,7 +221,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           <HelpText severity={HelpTextSeverity.Danger} showIcon>
             {exceedsMaxDeviation
               ? strings('perps.order.limit_price_modal.limit_price_too_far')
-              : marginError || limitPriceWarning}
+              : marginError || directionWarning}
           </HelpText>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -466,52 +235,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         )}
 
         <Box twClassName="mb-4 flex-row gap-2">
-          <Button
-            testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID}
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            twClassName="flex-1"
-            onPress={() => handlePresetPrice(currentPrice)}
-          >
-            {strings('perps.order.limit_price_modal.mid_price')}
-          </Button>
-
-          {isLong ? (
+          {presets.map((preset) => (
             <Button
-              testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID}
+              key={preset.label}
+              testID={preset.testID}
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               twClassName="flex-1"
-              onPress={() =>
-                handlePresetPrice(bidPrice || currentPriceData?.price)
-              }
+              onPress={preset.onPress}
             >
-              {strings('perps.order.limit_price_modal.bid_price')}
-            </Button>
-          ) : (
-            <Button
-              testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              twClassName="flex-1"
-              onPress={() =>
-                handlePresetPrice(askPrice || currentPriceData?.price)
-              }
-            >
-              {strings('perps.order.limit_price_modal.ask_price')}
-            </Button>
-          )}
-
-          {percentagePresets.map((percentage) => (
-            <Button
-              key={percentage}
-              testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              twClassName="flex-1"
-              onPress={() => handlePercentagePreset(percentage)}
-            >
-              {`${percentage > 0 ? '+' : ''}${percentage}%`}
+              {preset.label}
             </Button>
           ))}
         </Box>

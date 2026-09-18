@@ -36,6 +36,7 @@ import {
   defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import PerpsClosePositionView from './PerpsClosePositionView';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
@@ -265,6 +266,7 @@ describe('PerpsClosePositionView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLastCloseOrderType();
     mockLimitPriceConfirmValue = '0';
 
     // Setup navigation mocks

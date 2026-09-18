@@ -5,6 +5,16 @@ import {
   SCREEN_VS_BOTTOM_SHEET_VARIANTS,
 } from '../abTestConfig';
 
+const ASSIGNMENT_ONLY_EXPOSURE_OPTIONS = {
+  ...SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
+  trackExposure: false,
+} as const;
+
+export interface UsePerpsScreenVsBottomSheetAbTestOptions {
+  /** False where the read configures the surface rather than presenting it. */
+  readonly trackExposure?: boolean;
+}
+
 export interface UsePerpsScreenVsBottomSheetAbTestResult {
   /**
    * True when the user is assigned the bottom-sheet experience. Conversion
@@ -20,11 +30,15 @@ export interface UsePerpsScreenVsBottomSheetAbTestResult {
  * defining its own experiment. `useABTest` emits Experiment Viewed once per
  * session per assignment.
  */
-export function usePerpsScreenVsBottomSheetAbTest(): UsePerpsScreenVsBottomSheetAbTestResult {
+export function usePerpsScreenVsBottomSheetAbTest(
+  options?: UsePerpsScreenVsBottomSheetAbTestOptions,
+): UsePerpsScreenVsBottomSheetAbTestResult {
   const { variant } = useABTest(
     PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
     SCREEN_VS_BOTTOM_SHEET_VARIANTS,
-    SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
+    options?.trackExposure === false
+      ? ASSIGNMENT_ONLY_EXPOSURE_OPTIONS
+      : SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
   );
 
   return { useBottomSheet: variant?.useBottomSheet ?? false };
