@@ -13,6 +13,7 @@ import Assertions from '../../framework/Assertions.js';
 import { IDENTITY_TEAM_IMPORTED_PRIVATE_KEY } from '../../smoke/identity/utils/constants.js';
 import {
   MANAGE_ACCOUNTS_ACCOUNT_1,
+  MANAGE_ACCOUNTS_ACCOUNT_1_HD_IMPORT_COUNT,
   MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
   MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID,
   MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME,
@@ -22,10 +23,9 @@ import {
   manageAccountsLoginAndOpenAccountList,
 } from './manage-accounts-utils.js';
 
-const ACCOUNT_2 = 'Account 2';
-
 /**
- * Account group ID of {@link ACCOUNT_2} in the primary fixture HD wallet.
+ * Account group ID of {@link MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME} in the
+ * primary fixture HD wallet.
  *
  * The fixture's vault carries a deterministic keyring `metadata.id` (entropy
  * source), so the AccountTreeController builds a stable group ID for it:
@@ -35,15 +35,18 @@ const ACCOUNT_2 = 'Account 2';
 const ACCOUNT_2_GROUP_ID = `entropy:${DEFAULT_FIXTURE_HD_KEYRING_1_ID}/1`;
 
 /**
- * The Manage Accounts screen lets a user hide an entropy account group; the
- * account list must then drop it, and unhiding must bring it back. Hiding is
- * display-only, so the KeyringController keeps the account — otherwise
- * unhiding could never restore the group.
+ * The Manage Accounts screen lets a user hide an entropy or hardware account
+ * group; the account list must then drop it, and unhiding must bring it back.
+ * Hiding is display-only, so the KeyringController keeps the account —
+ * otherwise unhiding could never restore the group.
  *
- * Imported and hardware wallet accounts are NOT hideable (product decision
- * 2026-09-10, docs/account-management/manage-accounts-screen.md) — the
- * remove-only tests below pin that gating. Their removal flows live in
+ * Imported accounts are NOT hideable (product decision 2026-09-10,
+ * docs/account-management/manage-accounts-screen.md) — the remove-only test
+ * below pins that gating. Their removal flow lives in
  * `manage-accounts-delete-accounts.spec.ts`.
+ *
+ * Hardware accounts ARE hideable and are NOT removable from this screen
+ * (product decision 2026-09-16).
  */
 appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
   appiumTest(
@@ -60,26 +63,57 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
         async () => {
           await manageAccountsLoginAndOpenAccountList();
 
-          // Baseline: both fixture HD accounts show up in the account list.
-          await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_1, 1);
-          await assertAccountCount(ACCOUNT_2, 1);
+          // Baseline: Account 2 is unique; Account 1 is not — the imported HD
+          // keyring's first group also renders as exact 'Account 1'.
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_1,
+            MANAGE_ACCOUNTS_ACCOUNT_1_HD_IMPORT_COUNT,
+            5000,
+            true,
+          );
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
+            1,
+            5000,
+            true,
+          );
 
           // Hide Account 2 from the Manage Accounts screen.
           await ManageAccounts.tapManageAccountsButton();
           await ManageAccounts.tapHideToggle(ACCOUNT_2_GROUP_ID);
           await manageAccountsBackAndReopenAccountList();
 
-          // Hidden: Account 2 disappears from the account list, Account 1 stays.
-          await assertAccountCount(ACCOUNT_2, 0, 10_000);
-          await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_1, 1);
+          // Hidden: Account 2 disappears; both Account 1 rows stay.
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
+            0,
+            10_000,
+            true,
+          );
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_1,
+            MANAGE_ACCOUNTS_ACCOUNT_1_HD_IMPORT_COUNT,
+            5000,
+            true,
+          );
 
           // Unhide it again and confirm it reappears.
           await ManageAccounts.tapManageAccountsButton();
           await ManageAccounts.tapHideToggle(ACCOUNT_2_GROUP_ID);
           await manageAccountsBackAndReopenAccountList();
 
-          await assertAccountCount(ACCOUNT_2, 1, 10_000);
-          await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_1, 1);
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
+            1,
+            10_000,
+            true,
+          );
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_1,
+            MANAGE_ACCOUNTS_ACCOUNT_1_HD_IMPORT_COUNT,
+            5000,
+            true,
+          );
         },
       );
     },
@@ -143,13 +177,13 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
   );
 
   /**
-   * Product decision 2026-09-10 (docs/account-management/manage-accounts-screen.md):
-   * hardware wallet accounts are NOT hideable — the row exposes the remove
-   * control only. Removal flow coverage lives in
-   * `manage-accounts-delete-accounts.spec.ts`.
+   * Product decision 2026-09-16 (docs/account-management/manage-accounts-screen.md):
+   * hardware wallet accounts are hideable and are NOT removable from this
+   * screen — the row exposes the eye toggle only. Hardware removal remains
+   * on the account-actions sheet, not Manage Accounts.
    */
   appiumTest(
-    'renders remove-only controls for a QR hardware wallet account',
+    'renders hide-only controls for a QR hardware wallet account',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -181,23 +215,22 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
             },
           );
           await Assertions.expectElementToBeVisible(
-            ManageAccounts.getRemoveButton(
+            ManageAccounts.getHideToggle(
               MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID,
             ),
             {
               timeout: 10_000,
-              description:
-                'QR hardware account remove control should be visible',
+              description: 'QR hardware account hide toggle should be visible',
             },
           );
           await Assertions.expectElementToNotBeVisible(
-            ManageAccounts.getHideToggle(
+            ManageAccounts.getRemoveButton(
               MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID,
             ),
             {
               timeout: 5_000,
               description:
-                'QR hardware account hide toggle should not be present (not hideable)',
+                'QR hardware account remove control should not be present (not removable from this screen)',
             },
           );
         },

@@ -42,7 +42,7 @@ class ManageAccounts {
     return Matchers.getElementByID(getManageAccountRowEyeToggleId(groupId));
   }
 
-  /** Minus / remove control for a given account group ID (imported or hardware groups). */
+  /** Minus / remove control for a given account group ID (imported private-key groups). */
   getRemoveButton(groupId: string): Promise<AppiumElement> {
     return Matchers.getElementByID(getManageAccountRowRemoveId(groupId));
   }
@@ -119,11 +119,11 @@ class ManageAccounts {
   }
 
   /**
-   * Taps the remove (minus) control of an account group (imported or hardware
-   * groups), opening the matching confirmation sheet.
+   * Taps the remove (minus) control of an imported private-key account group,
+   * opening the remove-account confirmation sheet.
    *
-   * @param groupId - The account group ID (`keyring:<type>/<subId>` or
-   * `entropy:<entropySource>/<index>`).
+   * @param groupId - The imported private-key account group ID
+   * (`keyring:Simple Key Pair/<address>`).
    */
   async tapRemoveButton(groupId: string): Promise<void> {
     await Gestures.scrollIntoView(this.getRemoveButton(groupId), {
@@ -159,7 +159,8 @@ class ManageAccounts {
   /**
    * Toggles the hidden state of an account group by tapping its eye control.
    *
-   * @param groupId - The account group ID (`entropy:<entropySource>/<index>`).
+   * @param groupId - The account group ID (`entropy:<entropySource>/<index>`
+   * or `keyring:<type>/<subId>` for hideable hardware groups).
    */
   async tapHideToggle(groupId: string): Promise<void> {
     await Gestures.scrollIntoView(this.getHideToggle(groupId), {

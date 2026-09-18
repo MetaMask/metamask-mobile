@@ -5,7 +5,7 @@ import {
 } from '../../flows/wallet.flow.js';
 import ManageAccounts from '../../page-objects/MultichainAccounts/ManageAccounts.js';
 
-/** Display name of the fixture's primary HD account. */
+/** Default entropy group name for the first account in an HD wallet. */
 export const MANAGE_ACCOUNTS_ACCOUNT_1 = 'Account 1';
 
 /** Address derived from IDENTITY_TEAM_IMPORTED_PRIVATE_KEY. */
@@ -36,10 +36,18 @@ export const MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID = `keyring:QR Hardware Wa
 export const MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME = 'QR Account 1';
 
 /**
- * Only collision-free control name in the QR-combo fixture: the second HD
- * key tree renders a duplicate exact 'Account 1' row.
+ * Only collision-free control name in the two-HD-keyring fixtures
+ * (`withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController`
+ * and the QR-combo fixture): each second HD key tree's first group also
+ * renders as an exact 'Account 1' row.
  */
 export const MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME = 'Account 2';
+
+/**
+ * Exact 'Account 1' count in those same two-HD-keyring fixtures: the primary
+ * HD wallet's first group plus the imported HD keyring's first group.
+ */
+export const MANAGE_ACCOUNTS_ACCOUNT_1_HD_IMPORT_COUNT = 2;
 
 /**
  * Logs in and opens the account list, dismissing the push-notification
