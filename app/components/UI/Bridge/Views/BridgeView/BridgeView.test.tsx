@@ -1794,12 +1794,8 @@ describe('BridgeView', () => {
         location: MetaMetricsSwapsEventSource.MainView,
       } as BridgeRouteParams;
 
-      // A priceImpact above the error threshold causes handleContinue to
-      // navigate to the PriceImpactModal — the location value is embedded in
-      // the navigation params, making this the easiest observable side-effect
-      // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
-      // so we must override it alongside the formatted display string.
+      // shouldShowPriceImpactError causes handleContinue to navigate to the
+      // PriceImpactModal. The location value is embedded in the navigation params.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1808,13 +1804,14 @@ describe('BridgeView', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const testState = createBridgeTestState(
