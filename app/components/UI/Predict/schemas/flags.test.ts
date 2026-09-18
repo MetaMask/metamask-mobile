@@ -4,11 +4,13 @@ import {
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
   PredictHiddenMarketsSchema,
+  PredictHomeCategoriesSchema,
   PredictSportsFeedSchema,
 } from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_HIDDEN_MARKETS_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
@@ -518,6 +520,60 @@ describe('PredictSportsFeedSchema', () => {
           ],
         },
         PredictSportsFeedSchema,
+      ),
+    ).toThrow(StructError);
+  });
+});
+
+describe('PredictHomeCategoriesSchema', () => {
+  it('returns bundled categories when input is undefined', () => {
+    expect(create(undefined, PredictHomeCategoriesSchema)).toStrictEqual(
+      DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+    );
+  });
+
+  it('preserves order and defaults enabled to true', () => {
+    const result = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        categories: [
+          { id: 'culture', tagSlug: 'pop-culture', label: 'Culture' },
+          { id: 'sports', tagSlug: 'sports', enabled: false },
+        ],
+      },
+      PredictHomeCategoriesSchema,
+    );
+
+    expect(result.categories.map((category) => category.id)).toEqual([
+      'culture',
+      'sports',
+    ]);
+    expect(result.categories[0].enabled).toBe(true);
+    expect(result.categories[1].enabled).toBe(false);
+  });
+
+  it('fills in bundled categories when the array is omitted', () => {
+    const result = create(
+      { enabled: true, minimumVersion: '1.0.0' },
+      PredictHomeCategoriesSchema,
+    );
+
+    expect(result.categories).toStrictEqual(
+      DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.categories,
+    );
+  });
+
+  it.each([
+    [{ tagSlug: 'tech' }],
+    [{ id: 'tech' }],
+    [{ id: '', tagSlug: 'tech' }],
+    [{ id: 'tech', tagSlug: '  ' }],
+  ])('rejects a category entry %j', (entry) => {
+    expect(() =>
+      create(
+        { enabled: true, minimumVersion: '1.0.0', categories: [entry] },
+        PredictHomeCategoriesSchema,
       ),
     ).toThrow(StructError);
   });

@@ -19,6 +19,7 @@ import {
   DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
   PREDICT_MARKET_LIST_ORDERS,
@@ -236,4 +237,37 @@ export const PredictSportsFeedSchema = defaulted(
     ),
   }),
   () => DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+);
+
+const NonEmptyStringSchema = refine(
+  string(),
+  'non-empty string',
+  (value) => value.trim().length > 0,
+);
+
+export const PredictHomeCategorySchema = type({
+  id: NonEmptyStringSchema,
+  tagSlug: NonEmptyStringSchema,
+  titleKey: optional(string()),
+  label: optional(string()),
+  iconName: optional(string()),
+  enabled: defaulted(optional(boolean()), () => true),
+});
+
+export const PredictHomeCategoriesSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.minimumVersion,
+    ),
+    categories: defaulted(
+      array(PredictHomeCategorySchema),
+      () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.categories,
+    ),
+  }),
+  () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
 );
