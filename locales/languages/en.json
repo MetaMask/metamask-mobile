@@ -1875,6 +1875,8 @@
         "active": "Active",
         "history": "History",
         "fill_history": "Fill history",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Previous",
         "next": "Next",
         "page_count": "Page {{page}} of {{total}}"
@@ -2091,10 +2093,7 @@
         "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
-        "active": "Active",
-        "history": "History",
         "filled_only": "Filled orders only",
-        "visible_count": "{{count}} visible",
         "running": "Running",
         "running_with_progress": "Running · {{progress}}",
         "cancel": "Cancel",
@@ -10228,9 +10227,24 @@
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
         "add_to_digital_wallet": "Add to digital wallet",
         "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
     },
     "digital_wallet_instructions": {
       "title": "Add card to digital wallet",
