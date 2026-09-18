@@ -91,9 +91,10 @@ jobs:
       # GraphQL-batch failed Unit tests check runs, confirm a later pass of
       # the same job name, download logs only for those jobs, stop when every
       # modified file has a hit. historyComplete is false when a cap ends the
-      # walk. When no modified test file changed since last analysis, the step
-      # emits should_analyze=false. Expected no-ops write an empty-but-valid
-      # JSON artifact; wiring/API failures call setFailed.
+      # walk. When no modified test file changed since last analysis and the
+      # set of modified files still matches the sticky comment, the step emits
+      # should_analyze=false. Expected no-ops write an empty-but-valid JSON
+      # artifact; wiring/API failures call setFailed.
       - name: Detect modified unit test files and same-SHA fail-then-pass
         id: detect-history
         working-directory: .github/scripts
@@ -126,6 +127,7 @@ jobs:
         id: skill-sync
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         env:
@@ -152,6 +154,7 @@ jobs:
         id: ai-checkout
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         uses: actions/checkout@v6
@@ -166,6 +169,7 @@ jobs:
         id: ai-install
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         working-directory: .ai-analyzer-action
@@ -177,11 +181,14 @@ jobs:
       # composite action always analyzes the full PR diff. Stage 3 below is
       # the only PR-visible output. --skip-scope bypasses the analyzer's
       # default minimum-changed-lines gate: Stage 1 already narrowed the
-      # input to modified unit test files.
+      # input to modified unit test files. files_to_analyze_count is 0 when
+      # Stage 1 only needs Stage 3 to re-render the comment for a changed
+      # file set, so that case spends no AI run.
       - name: Run flaky unit test AI analysis
         id: ai
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         timeout-minutes: 15
@@ -203,8 +210,9 @@ jobs:
       # modifies any unit test file — the latter lets the 4-state matrix flip
       # a stale sticky comment to "all fixed" when test changes are removed.
       # If Stage 1 determined no modified test file changed since last
-      # analysis (should_analyze=false but has_test_files=true), the existing
-      # comment is left untouched and Stage 3 is skipped. Never blocks the PR.
+      # analysis and the file set still matches the comment
+      # (should_analyze=false but has_test_files=true), the existing comment
+      # is left untouched and Stage 3 is skipped. Never blocks the PR.
       - name: Post unified sticky comment
         id: sticky
         if: >-

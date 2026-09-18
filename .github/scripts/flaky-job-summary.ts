@@ -114,6 +114,11 @@ const describeAiAnalysis = (input: FlakyJobSummaryInput): string => {
   if (input.shouldAnalyze !== 'true') {
     return 'skipped';
   }
+  // Stage 1 still runs Stage 3 with nothing to analyze when only the set of
+  // modified test files changed, so the comment can drop the files that left.
+  if ((input.filesToAnalyzeCount || '0') === '0') {
+    return 'skipped (no file needed a new review)';
+  }
   if (input.aiOutcome === 'skipped') {
     return 'skipped (fork PR or secrets unavailable)';
   }

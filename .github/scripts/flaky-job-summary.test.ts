@@ -153,6 +153,19 @@ describe('renderFlakyJobSummary', () => {
     );
   });
 
+  it('explains an AI skip caused by a comment-only refresh', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      filesToAnalyzeCount: '0',
+      aiOutcome: 'skipped',
+      aiReviewedCount: '0',
+    });
+
+    expect(markdown).toContain(
+      '| AI analysis | skipped (no file needed a new review) |',
+    );
+  });
+
   it('reports Job result failed when Stage 1 outcome is failure', () => {
     const markdown = renderFlakyJobSummary({
       ...baseInput,

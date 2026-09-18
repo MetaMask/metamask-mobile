@@ -1,4 +1,5 @@
 import {
+  commentFileSetChanged,
   computeNeedsAnalysis,
   fileNeedsAnalysisFromPriorState,
 } from './flaky-needs-analysis';
@@ -87,5 +88,45 @@ describe('computeNeedsAnalysis', () => {
         diffNameOnly: () => [],
       }),
     ).toEqual({ files: ['a.test.ts', 'b.test.ts'], missingPriorShaCount: 0 });
+  });
+});
+
+describe('commentFileSetChanged', () => {
+  const reviewed = { analyzedSha: 'aaa111', patternsReviewed: true };
+
+  it('reports a change when there is no prior comment', () => {
+    expect(commentFileSetChanged(['a.test.ts'], null)).toBe(true);
+  });
+
+  it('reports a change when a file dropped out of the PR', () => {
+    expect(
+      commentFileSetChanged(['a.test.ts'], {
+        files: { 'a.test.ts': reviewed, 'reverted.test.ts': reviewed },
+      }),
+    ).toBe(true);
+  });
+
+  it('reports a change when the PR added a file the comment never listed', () => {
+    expect(
+      commentFileSetChanged(['a.test.ts', 'b.test.ts'], {
+        files: { 'a.test.ts': reviewed },
+      }),
+    ).toBe(true);
+  });
+
+  it('reports a change when one file swapped for another', () => {
+    expect(
+      commentFileSetChanged(['b.test.ts'], {
+        files: { 'a.test.ts': reviewed },
+      }),
+    ).toBe(true);
+  });
+
+  it('reports no change when both sides list the same files', () => {
+    expect(
+      commentFileSetChanged(['b.test.ts', 'a.test.ts'], {
+        files: { 'a.test.ts': reviewed, 'b.test.ts': reviewed },
+      }),
+    ).toBe(false);
   });
 });

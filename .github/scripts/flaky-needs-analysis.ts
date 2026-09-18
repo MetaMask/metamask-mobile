@@ -28,6 +28,26 @@ export function fileNeedsAnalysisFromPriorState(
   return !prior?.analyzedSha || prior.patternsReviewed !== true;
 }
 
+/**
+ * The comment renders one section per unit-test file the PR modifies, so it
+ * goes stale as soon as that set changes — a reverted file keeps its findings
+ * on screen forever if staleness is only ever judged file by file.
+ */
+export function commentFileSetChanged(
+  modifiedFiles: string[],
+  priorState: PriorCommentState | null,
+): boolean {
+  if (!priorState) {
+    return true;
+  }
+  const priorFiles = Object.keys(priorState.files);
+  const modified = new Set(modifiedFiles);
+  return (
+    priorFiles.length !== modified.size ||
+    priorFiles.some((file) => !modified.has(file))
+  );
+}
+
 export function computeNeedsAnalysis(
   modifiedFiles: string[],
   priorState: PriorCommentState | null,

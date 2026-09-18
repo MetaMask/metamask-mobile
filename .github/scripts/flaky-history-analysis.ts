@@ -57,7 +57,10 @@ import {
   type ListedWorkflowRun,
 } from './flaky-same-sha-history';
 import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
-import { computeNeedsAnalysis } from './flaky-needs-analysis';
+import {
+  commentFileSetChanged,
+  computeNeedsAnalysis,
+} from './flaky-needs-analysis';
 
 type Octokit = ReturnType<typeof getOctokit>;
 
@@ -723,7 +726,12 @@ async function main(): Promise<void> {
   const { files: needsAnalysis, missingPriorShaCount } =
     computeNeedsAnalysisWithGit(modifiedFiles, priorState);
 
-  if (needsAnalysis.length === 0 && priorState !== null) {
+  // A shrinking or growing file set still needs a fresh comment even when no
+  // single file needs a new review, so Stage 3 can drop sections for files the
+  // PR no longer touches.
+  const staleFileSet = commentFileSetChanged(modifiedFiles, priorState);
+
+  if (needsAnalysis.length === 0 && priorState !== null && !staleFileSet) {
     console.log(
       '⏭️  No modified test files changed since last analysis — skipping',
     );
