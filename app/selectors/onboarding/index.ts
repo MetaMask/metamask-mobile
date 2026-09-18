@@ -11,7 +11,7 @@ export const selectCompletedOnboarding = createSelector(
 
 export const selectOnboardingAccountType = createSelector(
   selectOnboarding,
-  (onboardingState) => onboardingState.accountType,
+  (onboardingState) => onboardingState?.accountType,
 );
 
 export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(

@@ -101,6 +101,26 @@ describe('hasNotificationModal()', () => {
 });
 
 describe('NotificationComponentState', () => {
+  it('uses the API template for wallet activity titles', () => {
+    const notification = processNotification(createMockNotificationEthSent());
+    if (notification.type !== TRIGGER_TYPES.ETH_SENT) {
+      throw new Error('Expected an ETH sent notification');
+    }
+    notification.template = {
+      title: 'Localized API title',
+      body: 'Localized API body',
+    };
+
+    const notificationState = NotificationComponentState[notification.type];
+
+    expect(notificationState.createMenuItem(notification).title).toBe(
+      'Localized API title',
+    );
+    expect(notificationState.createModalDetails?.(notification)?.title).toBe(
+      'Localized API title',
+    );
+  });
+
   it.each(mockNotificationsWithMetaData)(
     'computes notification component state for each notification type - $type',
     ({ notification, hasModal }) => {
