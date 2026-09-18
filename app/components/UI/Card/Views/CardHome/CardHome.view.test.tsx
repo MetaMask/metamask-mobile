@@ -6,6 +6,7 @@ import { renderCardHomeView } from '../../../../../../tests/component-view/rende
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
+  getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import { CardHomeSelectors } from './CardHome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -16,7 +17,16 @@ import { CashbackSelectors } from '../Cashback/Cashback.testIds';
 import { ChooseYourCardSelectors } from '../ChooseYourCard/ChooseYourCard.testIds';
 import { CardAuthenticationSelectors } from '../CardAuthentication/CardAuthentication.testIds';
 
+const mockGetCapabilities = jest.mocked(
+  Engine.context.CardController.getCapabilities,
+);
+const defaultCapabilities = mockGetCapabilities();
+
 describe('CardHome', () => {
+  afterEach(() => {
+    mockGetCapabilities.mockReturnValue(defaultCapabilities);
+  });
+
   describe('navigation', () => {
     describe('when authenticated', () => {
       it('opens Add Funds modal with the active USDC funding token when Add Funds button is pressed', async () => {
@@ -177,6 +187,34 @@ describe('CardHome', () => {
         expect(paramsEl).toBeOnTheScreen();
         const params = JSON.parse(paramsEl.props.children as string);
         expect(params.flow).toBe('manage');
+      });
+
+      it('opens Contact Details for a fully set up Immersve card', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          supportsContactDetails: true,
+        });
+        const { getByTestId, findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'immersve',
+                  providerData: {
+                    immersve: { location: 'international' },
+                  },
+                },
+              },
+            },
+          },
+          extraRoutes: [{ name: Routes.CARD.CONTACT_DETAILS }],
+        });
+
+        fireEvent.press(getByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM));
+
+        expect(
+          await findByTestId(getRouteProbeTestId(Routes.CARD.CONTACT_DETAILS)),
+        ).toBeOnTheScreen();
       });
 
       it('opens Cashback screen showing balance and withdrawal button when Cashback button is pressed', async () => {
