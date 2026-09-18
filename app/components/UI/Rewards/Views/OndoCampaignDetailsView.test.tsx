@@ -567,7 +567,9 @@ describe('OndoCampaignDetailsView', () => {
       refetch: jest.fn(),
     });
     mockUseGetOndoCampaignDeposits.mockReturnValue({
-      deposits: null,
+      // The prize pool section is hidden when there is no deposits total and
+      // nothing in flight, so tests asserting it renders need a real value.
+      deposits: { totalUsdDeposited: '1250000.000000' },
       isLoading: false,
       hasError: false,
       refetch: jest.fn(),

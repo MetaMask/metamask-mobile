@@ -4,6 +4,7 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -60,7 +61,7 @@ const PredictMarketDetailsStatus = memo(
                 />
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
                 >
                   {strings('predict.market_details.market_resulted_to', {
@@ -77,7 +78,7 @@ const PredictMarketDetailsStatus = memo(
                 />
                 <Text
                   variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
                 >
                   {strings('predict.market_details.market_ended_on', {
@@ -102,7 +103,7 @@ const PredictMarketDetailsStatus = memo(
               />
               <Text
                 variant={TextVariant.BodyMd}
-                twClassName="font-medium"
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
                 {strings('predict.market_details.waiting_for_final_resolution')}

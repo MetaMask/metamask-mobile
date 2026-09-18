@@ -49,6 +49,26 @@ const styleSheet = (params: { theme: Theme }) => {
       lineHeight: 24,
       paddingTop: 16,
     },
+    // Section rhythm mirrors the token details page (TokenDetails.styles):
+    // 24px between sections, 8px around a section title, and 8px between the
+    // title and its rows (4px wrapper + 4px row padding).
+    sectionsContainer: {
+      marginTop: 16,
+      gap: 24,
+    },
+    sectionHeading: {
+      paddingVertical: 8,
+    },
+    sectionList: {
+      paddingVertical: 4,
+    },
+    attributesFrame: {
+      gap: 16,
+      flexWrap: 'wrap',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingTop: 8,
+    },
     generalInfoValueStyle: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -58,7 +78,7 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
     },
     disclaimer: {
-      paddingTop: 16,
+      paddingTop: 24,
     },
     description: {
       ...fontStyles.normal,
@@ -103,13 +123,6 @@ const styleSheet = (params: { theme: Theme }) => {
       lineHeight: 22,
       fontSize: 14,
     },
-    informationRowValueAddressStyle: {
-      color: colors.primary.default,
-      ...fontStyles.normal,
-      fontWeight: '500',
-      lineHeight: 20,
-      fontSize: 12,
-    },
     iconExport: {
       color: colors.text.alternative,
       paddingLeft: 16,
@@ -128,9 +141,6 @@ const styleSheet = (params: { theme: Theme }) => {
       lineHeight: 20,
       fontSize: 12,
     },
-    buttonSend: {
-      flexGrow: 1,
-    },
     fullImageScreen: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -147,9 +157,6 @@ const styleSheet = (params: { theme: Theme }) => {
       left: 0,
       right: 0,
       padding: 16,
-    },
-    iconPadding: {
-      paddingLeft: 8,
     },
   });
 };

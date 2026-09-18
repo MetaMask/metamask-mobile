@@ -151,6 +151,45 @@ describe('PerpsTradingCampaignLeaderboard', () => {
     expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(1);
   });
 
+  it('crowns only up to numberOfWinners from the API, not the local default', () => {
+    const entries = [
+      createPerpsEntry({ rank: 1, referralCode: 'AAA111' }),
+      createPerpsEntry({ rank: 2, referralCode: 'BBB222' }),
+      createPerpsEntry({ rank: 3, referralCode: 'CCC333' }),
+    ];
+    const { UNSAFE_queryAllByProps } = render(
+      <PerpsTradingCampaignLeaderboard
+        {...defaultProps}
+        entries={entries}
+        numberOfWinners={2}
+      />,
+    );
+
+    expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(2);
+  });
+
+  it('falls back to the local default when the API omits numberOfWinners', () => {
+    const entries = [
+      createPerpsEntry({
+        rank: PERPS_TRADING_MAX_WINNERS,
+        referralCode: 'WINNER',
+      }),
+      createPerpsEntry({
+        rank: PERPS_TRADING_MAX_WINNERS + 1,
+        referralCode: 'NEXT',
+      }),
+    ];
+    const { UNSAFE_queryAllByProps } = render(
+      <PerpsTradingCampaignLeaderboard
+        {...defaultProps}
+        entries={entries}
+        numberOfWinners={undefined}
+      />,
+    );
+
+    expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(1);
+  });
+
   it('hides crown in preview mode for perps winner ranks', () => {
     const entries = [
       createPerpsEntry({ rank: 1, referralCode: 'AAA111' }),

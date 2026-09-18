@@ -1,4 +1,6 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
+import { TokenDetailsSource } from '../../UI/TokenDetails/constants/constants';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -410,15 +412,18 @@ export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
 
 export enum HeaderNavBarVariant {
   Control = 'control',
-  TreatmentA = 'treatmentA',
-  TreatmentB = 'treatmentB',
+  SearchFocused = 'searchFocused',
+  TradeFocused = 'tradeFocused',
 }
 
-export type HeaderNavBarLayout = 'a' | 'b';
+/** Trailing circular button alongside the floating NavBar pill. */
+export type HeaderNavBarTrailingAction = 'none' | 'search' | 'trade';
 
 interface HeaderNavBarVariantConfig {
   isCompactHeaderEnabled: boolean;
-  layout: HeaderNavBarLayout | null;
+  trailingNavBarAction: HeaderNavBarTrailingAction;
+  /** Search moves into the header when the NavBar button opens the trade tray. */
+  isHeaderSearchEnabled: boolean;
 }
 
 export const HEADER_NAV_BAR_VARIANTS: Record<
@@ -427,15 +432,18 @@ export const HEADER_NAV_BAR_VARIANTS: Record<
 > = {
   [HeaderNavBarVariant.Control]: {
     isCompactHeaderEnabled: false,
-    layout: null,
+    trailingNavBarAction: 'none',
+    isHeaderSearchEnabled: false,
   },
-  [HeaderNavBarVariant.TreatmentA]: {
+  [HeaderNavBarVariant.SearchFocused]: {
     isCompactHeaderEnabled: true,
-    layout: 'a',
+    trailingNavBarAction: 'search',
+    isHeaderSearchEnabled: false,
   },
-  [HeaderNavBarVariant.TreatmentB]: {
+  [HeaderNavBarVariant.TradeFocused]: {
     isCompactHeaderEnabled: true,
-    layout: 'b',
+    trailingNavBarAction: 'trade',
+    isHeaderSearchEnabled: true,
   },
 };
 
@@ -443,8 +451,9 @@ export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
   experimentName: 'Header and Nav Bar refresh',
   variationNames: {
     control: 'Current header and NavBar',
-    treatmentA: 'Refreshed header and NavBar, design A',
-    treatmentB: 'Refreshed header and NavBar, design B',
+    searchFocused:
+      'Refreshed header with consolidated hamburger menu and NavBar search',
+    tradeFocused: 'Refreshed header with NavBar trade button and header search',
   },
 } as const;
 
@@ -452,5 +461,67 @@ export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
     flagKey: HEADER_NAV_BAR_AB_KEY,
     validVariants: Object.values(HeaderNavBarVariant),
-    eventNames: [EVENT_NAME.HOME_VIEWED],
+    eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACCOUNT_LIST_VIEWED],
+  };
+
+// ─── Perps section priority on wallet home (TAT-3597) ────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `perps`, ticket TAT-3597).
+ */
+export const PERPS_SECTION_PRIORITY_AB_KEY =
+  'perpsTAT3597AbtestPerpsSectionPriority';
+
+export enum PerpsSectionPriorityVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface PerpsSectionPriorityVariantConfig {
+  /** Permits the reorder; still gated at render time by active-trader status. */
+  perpsAboveTokensEligible: boolean;
+}
+
+export const PERPS_SECTION_PRIORITY_VARIANTS: Record<
+  PerpsSectionPriorityVariant,
+  PerpsSectionPriorityVariantConfig
+> = {
+  [PerpsSectionPriorityVariant.Control]: {
+    perpsAboveTokensEligible: false,
+  },
+  [PerpsSectionPriorityVariant.Treatment]: {
+    perpsAboveTokensEligible: true,
+  },
+};
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Section Priority',
+  variationNames: {
+    control: 'Tokens above Perps (current)',
+    treatment: 'Perps above Tokens when eligible',
+  },
+} as const;
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_SECTION_PRIORITY_AB_KEY,
+    validVariants: Object.values(PerpsSectionPriorityVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.ACTION_BUTTON_CLICKED,
+      EVENT_NAME.TOKEN_DETAILS_OPENED,
+    ],
+    // Both guardrails fire from surfaces this experiment does not touch
+    // (asset details, navbar, the token list page). Tagging those would not
+    // bias the comparison, since it tags both arms equally, but it dilutes the
+    // metric with traffic the section order cannot influence.
+    eventPropertyRequirements: {
+      [EVENT_NAME.ACTION_BUTTON_CLICKED]: { location: ActionLocation.HOME },
+      [EVENT_NAME.TOKEN_DETAILS_OPENED]: {
+        source: TokenDetailsSource.MobileTokenList,
+      },
+    },
   };

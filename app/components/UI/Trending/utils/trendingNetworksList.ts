@@ -165,9 +165,12 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
  */
 export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
   TRENDING_NETWORKS_LIST.filter((n) =>
-    [NetworkToCaipChainId.ETHEREUM, NetworkToCaipChainId.BNB].includes(
-      n.caipChainId as NetworkToCaipChainId,
-    ),
+    [
+      NetworkToCaipChainId.ETHEREUM,
+      NetworkToCaipChainId.BNB,
+      // TODO: re-enable Robinhood RWA when cleared for release (#35854).
+      // NetworkToCaipChainId.ROBINHOOD,
+    ].includes(n.caipChainId as NetworkToCaipChainId),
   );
 
 export const RWA_CHAIN_IDS: CaipChainId[] = RWA_NETWORKS_LIST.map(

@@ -1,5 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useSearchTokens } from './useSearchTokens';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 import {
   createMockPopularToken,
   createMockSearchResponse,
@@ -16,6 +18,12 @@ import {
 
 global.fetch = jest.fn();
 
+jest.mock('./useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
@@ -30,13 +38,14 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
-const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
 
 describe('useSearchTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
   });
 
   afterEach(() => {
@@ -178,6 +187,25 @@ describe('useSearchTokens', () => {
           body: expect.stringContaining('includeAssets'),
         }),
       );
+    });
+
+    it('includes featureId in the request body when provided', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.RECURRING_BUY);
+      const mockResponse = createMockSearchResponse();
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => mockResponse,
+      });
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('test');
+      });
+
+      const [, requestInit] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(JSON.parse(requestInit.body)).toMatchObject({
+        featureId: FeatureId.RECURRING_BUY,
+      });
     });
 
     it('falls back to an empty array for malformed responses', async () => {

@@ -74,7 +74,12 @@ jobs:
             pull_requests: write
             workflows: write
       - name: Checkout
-        uses: actions/checkout@v3
+        # Pinned to v5 (not v6): crowdin/github-action is a Docker container
+        # action and needs to `git push` using this token. v6 moved persisted
+        # credentials to a host-only $RUNNER_TEMP file that Docker container
+        # actions cannot read (see actions/checkout#2313, #2359); v5 still
+        # writes the token into .git/config, which the container can see.
+        uses: actions/checkout@v5
         with:
           ref: ${{ matrix.branch }}
           # Use installation token to ensure that the commit later can trigger status check workflows

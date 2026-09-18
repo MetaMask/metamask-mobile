@@ -81,7 +81,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
-      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
 
     it('renders as a touchable component', () => {
@@ -191,7 +191,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={customVolumeMarket} />);
 
-      expect(screen.getByText('$150M Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $150M Vol')).toBeOnTheScreen();
     });
 
     it('handles large price changes', () => {
@@ -228,8 +228,7 @@ describe('PerpsMarketRowItem', () => {
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
       expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
-      expect(screen.queryByText('BTC · $2.5B Vol')).not.toBeOnTheScreen();
-      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
 
     it('strips the provider prefix from the ticker when the flag is disabled', () => {
@@ -248,7 +247,7 @@ describe('PerpsMarketRowItem', () => {
       ).toHaveTextContent('TSLA');
       expect(screen.queryByText('xyz:TSLA')).not.toBeOnTheScreen();
       expect(screen.queryByText('Tesla')).not.toBeOnTheScreen();
-      expect(screen.queryByText('TSLA · $2.5B Vol')).not.toBeOnTheScreen();
+      expect(screen.getByText('TSLA · $2.5B Vol')).toBeOnTheScreen();
     });
 
     it('shows the full asset name for a provider-prefixed symbol when the flag is enabled', () => {
@@ -269,27 +268,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('TSLA · $2.5B Vol')).toBeOnTheScreen();
     });
 
-    it('does not show ticker suffix when the HIP-3 bare symbol equals the name', () => {
-      mockSelectors(true);
-
-      render(
-        <PerpsMarketRowItem
-          market={{ ...mockMarketData, symbol: 'xyz:AAPL', name: 'AAPL' }}
-        />,
-      );
-
-      // Asset label should show the bare ticker 'AAPL' (name == stripped symbol)
-      expect(
-        screen.getByTestId(
-          getPerpsMarketRowItemSelector.assetLabel('xyz:AAPL'),
-        ),
-      ).toHaveTextContent('AAPL');
-      // No suffix — it would be a duplicate of the asset label
-      expect(screen.queryByText('AAPL · $2.5B Vol')).not.toBeOnTheScreen();
-      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
-    });
-
-    it('falls back to the ticker when the flag is enabled but name is missing', () => {
+    it('falls back to the ticker in the title when the flag is enabled but name is missing', () => {
       mockSelectors(true);
 
       render(<PerpsMarketRowItem market={{ ...mockMarketData, name: '' }} />);
@@ -297,11 +276,29 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
-      expect(screen.queryByText('BTC · $2.5B Vol')).not.toBeOnTheScreen();
-      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
+  });
 
-    it('does not show a duplicate ticker when the name falls back to the symbol', () => {
+  // Markets with no human-readable name render the ticker as the title, so the
+  // second row has to repeat it rather than treating it as redundant.
+  describe('Ticker In Second Row', () => {
+    it.each([true, false])(
+      'shows the ticker in the second row when the full asset name flag is %s',
+      (showFullAssetNames) => {
+        // Arrange
+        mockSelectors(showFullAssetNames);
+
+        // Act
+        render(<PerpsMarketRowItem market={mockMarketData} />);
+
+        // Assert
+        expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
+      },
+    );
+
+    it('shows the ticker in the second row when the name falls back to the symbol', () => {
+      // Arrange
       mockSelectors(true);
 
       render(
@@ -310,11 +307,78 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      expect(
-        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
-      ).toHaveTextContent('BTC');
-      expect(screen.queryByText('BTC · $2.5B Vol')).not.toBeOnTheScreen();
-      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
+      // Act
+      const assetLabel = screen.getByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('BTC'),
+      );
+
+      // Assert - the ticker is duplicated between the two rows by design
+      expect(assetLabel).toHaveTextContent('BTC');
+      expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
+    });
+
+    it('shows the bare ticker in the second row when the HIP-3 stripped symbol equals the name', () => {
+      // Arrange
+      mockSelectors(true);
+
+      render(
+        <PerpsMarketRowItem
+          market={{ ...mockMarketData, symbol: 'xyz:AAPL', name: 'AAPL' }}
+        />,
+      );
+
+      // Act
+      const assetLabel = screen.getByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('xyz:AAPL'),
+      );
+
+      // Assert - the provider prefix is stripped from both rows
+      expect(assetLabel).toHaveTextContent('AAPL');
+      expect(screen.getByText('AAPL · $2.5B Vol')).toBeOnTheScreen();
+      expect(screen.queryByText('xyz:AAPL · $2.5B Vol')).not.toBeOnTheScreen();
+    });
+
+    it('shows the ticker in the second row when the name is missing', () => {
+      // Arrange
+      mockSelectors(true);
+
+      // Act
+      render(<PerpsMarketRowItem market={{ ...mockMarketData, name: '' }} />);
+
+      // Assert
+      expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
+    });
+
+    it('shows the ticker in the second row for the funding rate metric', () => {
+      // Arrange
+      mockSelectors(false);
+
+      // Act
+      render(
+        <PerpsMarketRowItem
+          market={{ ...mockMarketData, fundingRate: 0.0005 }}
+          displayMetric="fundingRate"
+        />,
+      );
+
+      // Assert
+      expect(screen.getByText('BTC · 0.0500% Funding')).toBeOnTheScreen();
+    });
+
+    it('shows the ticker in the second row for the price change metric, which has no metric label', () => {
+      // Arrange
+      mockSelectors(false);
+
+      // Act
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          displayMetric="priceChange"
+        />,
+      );
+
+      // Assert
+      expect(screen.getByText('BTC · +4.00%')).toBeOnTheScreen();
     });
   });
 
@@ -457,7 +521,7 @@ describe('PerpsMarketRowItem', () => {
       // Should show the new live price
       expect(screen.getByText('$55,000')).toBeOnTheScreen();
       // Should show updated volume (2 decimals with formatVolume)
-      expect(screen.getByText('$3.00B Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $3.00B Vol')).toBeOnTheScreen();
     });
 
     it('does not update when live price matches current price', () => {
@@ -517,7 +581,7 @@ describe('PerpsMarketRowItem', () => {
 
       // Price shows $0, volume shows $0.00 Vol
       expect(screen.getByText('$0')).toBeOnTheScreen();
-      expect(screen.getByText('$0.00 Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $0.00 Vol')).toBeOnTheScreen();
     });
 
     it('formats different volume ranges correctly', () => {
@@ -528,28 +592,28 @@ describe('PerpsMarketRowItem', () => {
       const { rerender } = render(
         <PerpsMarketRowItem market={mockMarketData} />,
       );
-      expect(screen.getByText('$5.50B Vol')).toBeOnTheScreen(); // B shows 2 decimals
+      expect(screen.getByText('BTC · $5.50B Vol')).toBeOnTheScreen(); // B shows 2 decimals
 
       // Test millions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 750000000 },
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$750.00M Vol')).toBeOnTheScreen(); // M shows 2 decimals
+      expect(screen.getByText('BTC · $750.00M Vol')).toBeOnTheScreen(); // M shows 2 decimals
 
       // Test thousands (0 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 50000 },
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$50K Vol')).toBeOnTheScreen(); // K shows no decimals
+      expect(screen.getByText('BTC · $50K Vol')).toBeOnTheScreen(); // K shows no decimals
 
       // Test small values (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 123.45 },
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$123.45 Vol')).toBeOnTheScreen(); // Shows 2 decimals
+      expect(screen.getByText('BTC · $123.45 Vol')).toBeOnTheScreen(); // Shows 2 decimals
     });
 
     it('handles missing live price fields gracefully', () => {
@@ -564,7 +628,7 @@ describe('PerpsMarketRowItem', () => {
       // Should keep original change data when percentChange24h is missing
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       // Should keep original volume when volume24h is missing
-      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
 
     it('handles live prices for multiple symbols independently', () => {
@@ -652,7 +716,7 @@ describe('PerpsMarketRowItem', () => {
       // With 5 significant digits, this rounds to $100,000,000 (trailing zeros removed)
       expect(screen.getByText('$100,000,000')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
-      expect(screen.getByText('$10.00B Vol')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · $10.00B Vol')).toBeOnTheScreen();
     });
   });
 
@@ -729,7 +793,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display formatted funding rate using formatFundingRate utility
-      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('displays negative funding rate correctly', () => {
@@ -746,7 +810,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display negative funding rate
-      expect(screen.getByText('-0.2300% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · -0.2300% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is undefined', () => {
@@ -763,7 +827,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display zero funding rate using formatFundingRate utility
-      expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is null', () => {
@@ -780,7 +844,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display zero funding rate
-      expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is 0', () => {
@@ -797,7 +861,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display zero funding rate
-      expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
     });
 
     it('updates funding rate from live WebSocket data', () => {
@@ -822,7 +886,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display the updated live funding rate
-      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('updates funding rate even when price has not changed', () => {
@@ -848,7 +912,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display the updated funding rate even though price didn't change
-      expect(screen.getByText('0.1200% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.1200% Funding')).toBeOnTheScreen();
       // Price should remain the same
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
     });
@@ -876,7 +940,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display the original funding rate
-      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('handles very small funding rates correctly', () => {
@@ -894,7 +958,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display with 4 decimal places
-      expect(screen.getByText('0.0001% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 0.0001% Funding')).toBeOnTheScreen();
     });
 
     it('handles large funding rates correctly', () => {
@@ -912,7 +976,7 @@ describe('PerpsMarketRowItem', () => {
       );
 
       // Should display with 4 decimal places
-      expect(screen.getByText('15.7500% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 15.7500% Funding')).toBeOnTheScreen();
     });
 
     it('uses formatFundingRate utility for consistent formatting', () => {
@@ -931,7 +995,7 @@ describe('PerpsMarketRowItem', () => {
 
       // Should use formatFundingRate which formats to 4 decimal places
       // This ensures consistency with PerpsMarketStatisticsCard
-      expect(screen.getByText('1.2500% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · 1.2500% Funding')).toBeOnTheScreen();
     });
 
     it('passes updated funding rate to onPress callback', async () => {

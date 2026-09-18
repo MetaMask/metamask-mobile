@@ -20,6 +20,22 @@ The agreed next-contract direction is documented in [`canonical-read-model-and-a
 - `PredictEntityId` is venue-local and opaque. An Outcome ID may be native or adapter-derived.
 - `PredictTimestamp` is an RFC 3339/ISO-8601 UTC string.
 
+## Live data patch contract
+
+`PredictLiveDataService` streams canonical patches over one WebSocket (`/v1/stream/live-data`) and exposes them through `useEventsWithLiveData`, which returns the same Events with Game fields and Market prices patched. The stream never writes to the query cache; REST is the recovery path.
+
+- Topics are `game` (keyed by Event id) and `market` (keyed by Market id), both Venue-qualified. The server sends a snapshot on first subscription, then deltas.
+- `PredictGameLive` is a patch onto `PredictGame`: `status`, `score`, `period`, `clock` under the canonical names, plus `observedAt`. Omitted fields are unchanged. Mobile accumulates frames per Event and applies a field only when its observation time is not older than the REST value; an unknown `status` string leaves the current status in place.
+- `PredictQuote` is a full snapshot onto `PredictMarket`, matched by `marketId` and then `outcomes[].id`. On a live-patched Market:
+  - `PredictOutcome.bidPrice` / `askPrice` are the streamed values; an omitted side clears the REST price, because absence means no current quote.
+  - `PredictMarket.lastPrice` is stream-only: the last traded Yes price as of the quote. The REST read model never carries it, and it is absent until the Market has traded.
+  - `PredictMarket.volume` takes the streamed value when present; stream and REST share the contract-count unit.
+  - `PredictMarket.updatedAt` becomes the quote's observation time. On a REST-only Market it stays the Venue's market-metadata update time, so the field has two sources and the type's JSDoc records both.
+- `PredictOutcome.label` and `gameSelection` are REST-only and survive a quote untouched.
+- Only the Event Screen's `LIVE` history range consumes quotes as chart points, appending one per `lastPrice`/`updatedAt` pair after the REST snapshot's last timestamp; the trail is bounded and lives in component state.
+
+Runtime validation lives in `contracts/v1/liveData.ts`: unknown fields are discarded, malformed known fields fail closed, and Game `status` is deliberately validated as a string so a new server status cannot reject the frame.
+
 ## Agreed next-contract changes
 
 The next public-read contract will use `Feed → Event → Market → Outcome`, with the same complete Event shape in Feed and detail responses. It will add an optional single Category and Series to Event; optional Event and Market Volume, 24-Hour Volume, and image URL; optional Sport, Competition, Game, Team, Game status, and Game Selection metadata; product-owned Feed reads; and a current-Event read for Rolling Series. Every Event has one parent Venue Event. An immutable Game detail read may append validated Markets from authoritative sibling Venue Events without changing that parent identity.
@@ -37,10 +53,14 @@ marketDataQueries.getMarketHistory(venueId, marketId, range);
 
 All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
 
+## Portfolio
+
+`portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
+
 ## Runtime boundary
 
 Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Parsers discard unknown fields, reject malformed known fields, and return generic errors that do not retain received payload values. Kalshi and Polymarket DTOs, status mapping, price-field mapping, and identifier derivation are backend adapter responsibilities and must not enter this module. Contract-version header enforcement and cross-repository fixture tooling are deferred.
 
 ## Testing boundary
 
-Contract tests should validate canonical response parsing, binary outcome invariants, decimal price bounds, one-sided or missing quotes, recursive removal of unknown fields, malformed known fields failing closed, the complete pagination envelope, Venue Status, and descriptor behavior. Duplicate-ID validation is intentionally left to the backend. Adapter mapping and service/controller integration tests belong to their respective delivery slices.
+Contract tests should validate canonical response parsing, binary outcome invariants, decimal price bounds, one-sided or missing quotes, recursive removal of unknown fields, malformed known fields failing closed, the complete pagination envelope, Venue Status, and descriptor behavior. Duplicate-ID validation is intentionally left to the backend. Adapter mapping and service integration tests belong to their respective delivery slices.

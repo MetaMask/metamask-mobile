@@ -33,19 +33,39 @@ import type {
 } from '../../components/EarnStrategyCard/EarnStrategyCard.types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import type { TokenI } from '../../../Tokens/types';
+import type { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import Logger from '../../../../../util/Logger';
 import useEarnToasts from '../../hooks/useEarnToasts';
 import {
   isMoneyAccountDepositExperience,
   isNonMoneyAccountExperience,
-  truncateNumber,
+  formatEarnRatePercentage,
 } from '../../utils';
-import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import { getEarnInputExperiences } from '../../utils/earnAssets';
+import useEarnOpportunityNavigation, {
+  getSelectedEarnStrategyRedirectTarget,
+  type EarnDepositNavigationRoute,
+} from '../../hooks/useEarnOpportunityNavigation';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
+import useMountEffect from '../../../Money/hooks/useMountEffect';
+import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import {
+  EARN_MODULE_BUTTON_INTENTS,
+  EARN_MODULE_BUTTON_TYPES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_BOTTOM_SHEET_NAMES,
+  EARN_MODULE_STRATEGY_TYPES,
+  EARN_MODULE_COMPONENT_NAMES,
+} from '../../constants/earnModuleEvents';
+import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
+import type { EarnModuleNavigationContext } from '../../types/earnModuleEvents.types';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
 
 export interface EarnStrategySelectionModalRouteParams {
   earnAsset: EarnAsset;
+  tokenDetailsSource?: TokenDetailsSource;
+  analyticsContext?: EarnModuleNavigationContext;
 }
 
 type EarnStrategySelectionModalRoute = RouteProp<
@@ -81,7 +101,7 @@ const renderMoneyStrategyCard = (
   const row1Text =
     strategy.rate.status === 'ready'
       ? strings('earn.strategy_selection.strategies.money.info_rows.row_1', {
-          percentage: truncateNumber(strategy.rate.percentage),
+          percentage: formatEarnRatePercentage(strategy.rate.percentage),
         })
       : strings('earn.strategy_selection.strategies.rate_unavailable_subtitle');
 
@@ -121,23 +141,22 @@ const renderNonMoneyStrategyCard = (
   strategy: NonMoneyAccountExperience,
   { earnAsset, selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
 ) => {
-  if (strategy.rate.status !== 'ready' || earnAsset.kind !== 'held') {
-    return null;
-  }
-
   const assetSymbol =
     strategy.type === EARN_EXPERIENCES.STABLECOIN_LENDING
-      ? earnAsset.asset.symbol
+      ? earnAsset.metadata.symbol
       : undefined;
 
   const title = strings(
     `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.title`,
     { asset: assetSymbol },
   );
-  const subtitle = strings(
-    `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
-    { percentage: truncateNumber(strategy.rate.percentage) },
-  );
+  const subtitle =
+    strategy.rate.status === 'ready'
+      ? strings(
+          `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
+          { percentage: formatEarnRatePercentage(strategy.rate.percentage) },
+        )
+      : strings('earn.strategy_selection.strategies.rate_unavailable_subtitle');
 
   return (
     <EarnStrategyCard
@@ -155,17 +174,38 @@ const renderNonMoneyStrategyCard = (
 
 const EarnStrategySelectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isNavigatingToDepositRef = useRef(false);
+  // Preserve resolved route while bottom sheet closes before navigation runs.
+  const pendingEarnDepositRouteRef = useRef<
+    EarnDepositNavigationRoute | undefined
+  >(undefined);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
+  const { isOnboardingRedirectNeeded } = useMoneyNavigation();
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
-  const { navigateToDepositForExperience } = useEarnOpportunityNavigation();
+  const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
+    useEarnOpportunityNavigation();
+  const { trackBottomSheetViewed, trackButtonClicked, trackSurfaceClicked } =
+    useEarnAnalytics({
+      bottom_sheet_name:
+        EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
+      entry_point:
+        params.analyticsContext?.entry_point ??
+        EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+      screen_name: params.analyticsContext?.screen_name,
+    });
 
-  const strategies = earnAsset.experiences;
+  useMountEffect(trackBottomSheetViewed);
+
+  const strategies = useMemo(
+    () => getEarnInputExperiences(earnAsset.experiences),
+    [earnAsset.experiences],
+  );
 
   useEffect(() => {
     if (
@@ -185,40 +225,123 @@ const EarnStrategySelectionModal = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const handleGoBack = useCallback(() => {
+    /**
+     * Get Started also closes the bottom sheet before navigating to deposit.
+     * Track only user-initiated non-deposit dismissals as close events.
+     */
+    if (!isNavigatingToDepositRef.current) {
+      trackSurfaceClicked({
+        component_name:
+          EARN_MODULE_COMPONENT_NAMES.EARN_STRATEGY_SELECTION_MODAL_CLOSE_ICON,
+      });
+    }
+    navigation.goBack();
+  }, [navigation, trackSurfaceClicked]);
+
+  const handleNavigationError = useCallback(
+    (error: unknown) => {
+      showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
+      Logger.error(
+        error as Error,
+        '[Earn Strategy Selection Modal] Failed to navigate from strategy selection for earn asset',
+      );
+    },
+    [EarnToastOptions.earnStrategySelection.navigationToDeposit, showToast],
+  );
+
   const handleGetStartedAfterClose = useCallback(async () => {
     try {
       if (!selectedStrategy || !earnAsset) {
         throw new Error('Selected strategy or earn asset is not available');
       }
 
-      await navigateToDepositForExperience(earnAsset, selectedStrategy);
-    } catch (error) {
-      showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
-      Logger.error(
-        error as Error,
-        '[Earn Strategy Selection Modal] Failed to navigate to deposit screen for earn asset',
+      await navigateToDepositForExperience(
+        earnAsset,
+        selectedStrategy,
+        params.tokenDetailsSource,
+        pendingEarnDepositRouteRef.current,
       );
+    } catch (error) {
+      handleNavigationError(error);
     } finally {
+      pendingEarnDepositRouteRef.current = undefined;
       setIsNavigatingToDeposit(false);
     }
   }, [
     earnAsset,
+    handleNavigationError,
     navigateToDepositForExperience,
+    params.tokenDetailsSource,
     selectedStrategy,
-    showToast,
-    EarnToastOptions.earnStrategySelection.navigationToDeposit,
   ]);
 
   const handleGetStartedPress = useCallback(() => {
-    setIsNavigatingToDeposit(true);
-
     if (!selectedStrategy || !earnAsset) {
       handleGetStartedAfterClose();
       return;
     }
 
+    const selectedStrategyIndex = strategies.findIndex(
+      ({ id }) => id === selectedStrategy.id,
+    );
+    const selectedStrategyType =
+      selectedStrategy.type as EARN_MODULE_STRATEGY_TYPES;
+
+    try {
+      pendingEarnDepositRouteRef.current = resolveEarnDepositNavigationRoute(
+        earnAsset,
+        selectedStrategy,
+      );
+    } catch (error) {
+      handleNavigationError(error);
+      return;
+    }
+
+    trackButtonClicked({
+      button_type: EARN_MODULE_BUTTON_TYPES.TEXT,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.DEPOSIT,
+      label_key: 'earn.strategy_selection.get_started',
+      ...getEarnModuleAssetProperties(
+        earnAsset,
+        params.analyticsContext?.asset_position,
+        params.analyticsContext?.assets_in_list,
+      ),
+      selected_strategy_type:
+        selectedStrategyType.toLowerCase() as Lowercase<EARN_MODULE_STRATEGY_TYPES>,
+      selected_strategy_position: selectedStrategyIndex + 1,
+      rate_type: selectedStrategy.rate.type.toLowerCase() as Lowercase<
+        'apr' | 'apy'
+      >,
+      ...(selectedStrategy.rate.status === 'ready'
+        ? {
+            selected_strategy_rate_percentage: Number(
+              formatEarnRatePercentage(selectedStrategy.rate.percentage),
+            ),
+          }
+        : {}),
+      is_fee_subsidized: selectedStrategy.isFeeSubsidized,
+      redirect_target: getSelectedEarnStrategyRedirectTarget(
+        selectedStrategy,
+        isOnboardingRedirectNeeded,
+        pendingEarnDepositRouteRef.current,
+      ),
+    });
+    isNavigatingToDepositRef.current = true;
+    setIsNavigatingToDeposit(true);
     sheetRef.current?.onCloseBottomSheet(handleGetStartedAfterClose);
-  }, [earnAsset, handleGetStartedAfterClose, selectedStrategy]);
+  }, [
+    earnAsset,
+    handleGetStartedAfterClose,
+    handleNavigationError,
+    isOnboardingRedirectNeeded,
+    params.analyticsContext?.asset_position,
+    params.analyticsContext?.assets_in_list,
+    resolveEarnDepositNavigationRoute,
+    selectedStrategy,
+    strategies,
+    trackButtonClicked,
+  ]);
 
   const handleStrategyPress = useCallback((strategyId: string) => {
     setSelectedStrategyId(strategyId);
@@ -251,13 +374,16 @@ const EarnStrategySelectionModal = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      goBack={navigation.goBack}
+      goBack={handleGoBack}
       isInteractable
       testID={EarnStrategySelectionModalTestIds.MODAL}
       twClassName="flex-1"
     >
       <BottomSheetHeader
         onClose={handleClose}
+        closeButtonProps={{
+          testID: EarnStrategySelectionModalTestIds.CLOSE_BUTTON,
+        }}
         testID={EarnStrategySelectionModalTestIds.MODAL_HEADER}
       >
         {strings('earn.strategy_selection.title')}

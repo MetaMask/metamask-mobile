@@ -1,0 +1,94 @@
+import React from 'react';
+import { screen } from '@testing-library/react-native';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import LeaderboardShellTabPage from './LeaderboardShellTabPage';
+import {
+  SOCIAL_V1_TRADER_ROW_HEIGHT,
+  SocialV1TraderRow,
+  SocialV1TraderRowSkeleton,
+} from '../TopTradersView/components';
+
+const TOP_TRADERS_TEST_ID = 'top-traders-view';
+
+const mockTopTradersProps = jest.fn();
+
+jest.mock('../TopTradersView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockTopTradersProps(props);
+      return ReactActual.createElement(View, { testID: 'top-traders-view' });
+    },
+  };
+});
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
+describe('LeaderboardShellTabPage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('enables the Social V1 filter chrome on the list', () => {
+    renderWithProvider(
+      <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
+    );
+
+    expect(mockTopTradersProps).toHaveBeenCalledWith(
+      expect.objectContaining({ useV1Filters: true }),
+    );
+    expect(
+      mockTopTradersProps.mock.calls[0][0].pinnedTypeFilter,
+    ).toBeUndefined();
+  });
+
+  it('injects the Social V1 row, skeleton, and matching row height', () => {
+    renderWithProvider(
+      <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
+    );
+
+    expect(mockTopTradersProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        RowComponent: SocialV1TraderRow,
+        SkeletonComponent: SocialV1TraderRowSkeleton,
+        rowHeight: SOCIAL_V1_TRADER_ROW_HEIGHT,
+      }),
+    );
+  });
+
+  it('holds the list back until the tab is opened', () => {
+    const { rerender } = renderWithProvider(
+      <LeaderboardShellTabPage
+        isActive={false}
+        containerTestID="leaderboard-page"
+      />,
+    );
+
+    expect(screen.queryByTestId(TOP_TRADERS_TEST_ID)).toBeNull();
+
+    rerender(
+      <LeaderboardShellTabPage isActive containerTestID="leaderboard-page" />,
+    );
+
+    expect(screen.getByTestId(TOP_TRADERS_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('keeps the list mounted once the tab has been opened', () => {
+    const { rerender } = renderWithProvider(
+      <LeaderboardShellTabPage isActive containerTestID="leaderboard-page" />,
+    );
+
+    rerender(
+      <LeaderboardShellTabPage
+        isActive={false}
+        containerTestID="leaderboard-page"
+      />,
+    );
+
+    expect(screen.getByTestId(TOP_TRADERS_TEST_ID)).toBeOnTheScreen();
+  });
+});

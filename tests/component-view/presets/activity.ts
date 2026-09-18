@@ -61,6 +61,38 @@ export const activityMusdTokenRatesOverride = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'mUSD',
+            name: 'MetaMask USD',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
     },
   },
 } as unknown as DeepPartial<RootState>;
@@ -727,6 +759,51 @@ export const activityMonadBaseNetworkOverride = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          'eip155:143/slip44:268435779': {
+            type: 'native',
+            symbol: 'MON',
+            name: 'Monad',
+            decimals: 18,
+          },
+          'eip155:8453/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+          'eip155:143/slip44:268435779': {
+            assetPriceType: 'fungible',
+            price: 5,
+            usdPrice: 5,
+            lastUpdated: 1700000000000,
+          },
+          'eip155:8453/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
     },
   },
 } as unknown as DeepPartial<RootState>;
@@ -739,6 +816,24 @@ export const activityMonToBaseTokenRatesOverride = {
         marketData: {
           [ACTIVITY_CV_BASE_CHAIN_ID]: {
             [ACTIVITY_CV_BASE_USDC]: { price: 1 },
+          },
+        },
+      },
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          [`eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
           },
         },
       },
@@ -999,6 +1094,50 @@ export const activityUsdcTokenRatesOverride = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            type: 'erc20',
+            symbol: 'mUSD',
+            name: 'MetaMask USD',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2500,
+            usdPrice: 2500,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
     },
   },
 } as unknown as DeepPartial<RootState>;
@@ -1205,21 +1344,21 @@ export const buildFailedLocalPredictDepositWithPayTransaction =
       txReceipt: { status: '0x0' },
     }) as unknown as TransactionMeta;
 
-/** Seeds TokensController so Pay bridge-fee rows resolve the USDC symbol. */
+/** Seeds AssetsController so Pay bridge-fee rows resolve the USDC symbol. */
 export const activityPredictPayUsdcTokenOverride = {
   engine: {
     backgroundState: {
-      TokensController: {
-        allTokens: {
-          '0x1': {
-            [ACTIVITY_CV_ACCOUNT]: [
-              {
-                address: ACTIVITY_CV_USDC,
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            ],
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
           },
+        },
+        customAssets: {
+          'acc-1': [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`],
         },
       },
     },
@@ -1364,6 +1503,26 @@ export const initialStateActivity = () =>
               ETH: {
                 conversionRate: 2500,
                 usdConversionRate: 2500,
+              },
+            },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2500,
+                usdPrice: 2500,
+                lastUpdated: 1700000000000,
               },
             },
           },
@@ -1700,6 +1859,25 @@ export const activityCvSolanaSendStateOverrides = {
           [ACTIVITY_CV_SOLANA_ASSET_ID]: {
             rate: '4',
             currency: 'usd',
+          },
+        },
+      },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            type: 'native',
+            symbol: 'SOL',
+            name: 'Solana',
+            decimals: 9,
+          },
+        },
+        assetsPrice: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 4,
+            usdPrice: 4,
+            lastUpdated: 1700000000000,
           },
         },
       },
@@ -2211,17 +2389,17 @@ export const activityPerpsDetailsStateOverrides = {
           },
         },
       },
-      TokensController: {
-        allTokens: {
-          '0x1': {
-            [ACTIVITY_CV_ACCOUNT]: [
-              {
-                address: ACTIVITY_CV_USDC,
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            ],
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
           },
+        },
+        customAssets: {
+          'acc-1': [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`],
         },
       },
     },
@@ -2259,6 +2437,37 @@ export const activityCvSolanaSwapStateOverrides = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            type: 'native',
+            symbol: 'SOL',
+            name: 'Solana',
+            decimals: 9,
+          },
+          [ACTIVITY_CV_SOLANA_USDC_ASSET_ID]: {
+            type: 'spl',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+        },
+        assetsPrice: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 4,
+            usdPrice: 4,
+            lastUpdated: 1700000000000,
+          },
+          [ACTIVITY_CV_SOLANA_USDC_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
     },
   },
 } as unknown as DeepPartial<RootState>;
@@ -2267,6 +2476,7 @@ export const initialStateActivityWithPerpsDetails = (
   transactions: TransactionMeta[] = [],
 ) =>
   initialStateActivity()
+    .withRemoteFeatureFlags(activityPerpsTradingEnabledFlag)
     .withOverrides(activityPerpsDetailsStateOverrides)
     .withOverrides({
       engine: {
