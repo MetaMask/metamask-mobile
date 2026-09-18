@@ -53,6 +53,7 @@ jest.mock(
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockCanGoBack = jest.fn();
   const mockGoBack = jest.fn();
   const mockDispatch = jest.fn();
@@ -71,7 +72,6 @@ describe('usePerpsNavigation', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
@@ -105,6 +105,7 @@ describe('usePerpsNavigation', () => {
     mockGetState.mockReturnValue({ routeNames: [] });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
       dispatch: mockDispatch,
@@ -255,6 +256,23 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('resets the Perps stack to home instead of pushing it', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.resetToHome('market_list');
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.PERPS_HOME,
+            params: { source: 'market_list' },
+          },
+        ],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('navigates to the default Pro market instead of home when Pro mode is active', () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectPerpsProModeEnabledFlag) return true;
@@ -354,6 +372,28 @@ describe('usePerpsNavigation', () => {
             ...params,
             showPerpsHeader:
               CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          },
+        );
+      });
+    });
+
+    it('opens order confirmation as a headerless bottom sheet for treatment', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'SOL',
+        useBottomSheet: true,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            useBottomSheet: true,
+            showPerpsHeader: false,
           },
         );
       });

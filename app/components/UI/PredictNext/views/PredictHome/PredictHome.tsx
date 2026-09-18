@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { type LayoutChangeEvent } from 'react-native';
 import {
   type RouteProp,
   useFocusEffect,
@@ -9,12 +9,15 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  HeaderStandard,
+  HeaderStandardAnimated,
   Text,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
+import Reanimated from 'react-native-reanimated';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useFeed } from '../../hooks/useFeed';
+import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
 import {
   FEED_SCREENS,
@@ -32,8 +35,10 @@ import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { PortfolioActions } from './internal/PortfolioActions';
 import { PredictHomeTestIds } from './PredictHome.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const PREVIEW_LIMIT = 2;
+const NO_EVENTS: readonly PredictEvent[] = [];
 const NFL_GAMES_FEED_ID = getFeedScreenTab(
   FEED_SCREENS[NFL_FEED_SCREEN_ID],
 ).feedId;
@@ -54,10 +59,27 @@ export const PredictHome = () => {
   const ncaaQuery = useFeed(KALSHI_VENUE_ID, NCAA_GAMES_FEED_ID, {
     limit: PREVIEW_LIMIT,
   });
-  const nflEvents =
-    nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
-  const ncaaEvents =
-    ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
+  const feedNflEvents = useMemo(
+    () => nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? NO_EVENTS,
+    [nflQuery.data],
+  );
+  const feedNcaaEvents = useMemo(
+    () => ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? NO_EVENTS,
+    [ncaaQuery.data],
+  );
+  const feedEvents = useMemo(
+    () => [...feedNflEvents, ...feedNcaaEvents],
+    [feedNflEvents, feedNcaaEvents],
+  );
+  const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents);
+  const nflEvents = useMemo(
+    () => liveEvents.slice(0, feedNflEvents.length),
+    [liveEvents, feedNflEvents.length],
+  );
+  const ncaaEvents = useMemo(
+    () => liveEvents.slice(feedNflEvents.length),
+    [liveEvents, feedNflEvents.length],
+  );
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
@@ -80,6 +102,17 @@ export const PredictHome = () => {
         }
       };
     }, [entryPoint, navigation]),
+  );
+
+  const homeTitle = strings('predict_next.home_title');
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+
+  const handleTitleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
   );
 
   const openPortfolio = useCallback(
@@ -109,8 +142,12 @@ export const PredictHome = () => {
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandard
+      <HeaderStandardAnimated
         includesTopInset
+        title={homeTitle}
+        titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
+        scrollY={scrollY}
+        titleSectionHeight={titleSectionHeightSv}
         {...(navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
@@ -118,9 +155,19 @@ export const PredictHome = () => {
             }
           : {})}
       />
-      <ScrollView testID={PredictHomeTestIds.SCROLL}>
+      <Reanimated.ScrollView
+        testID={PredictHomeTestIds.SCROLL}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
         <Box twClassName="gap-6 px-4 pb-8">
-          <Text variant={TextVariant.HeadingLg}>Predictions</Text>
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={PredictHomeTestIds.TITLE_SECTION}
+            onLayout={handleTitleLayout}
+          >
+            {homeTitle}
+          </Text>
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}
@@ -154,7 +201,7 @@ export const PredictHome = () => {
             onRetry={() => ncaaQuery.refetch()}
           />
         </Box>
-      </ScrollView>
+      </Reanimated.ScrollView>
     </Box>
   );
 };

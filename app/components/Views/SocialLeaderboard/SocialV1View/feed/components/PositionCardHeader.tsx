@@ -120,7 +120,7 @@ const PnlValues: React.FC<{
         {valueLabel}
       </Text>
       <Text
-        variant={isClosedHero ? TextVariant.BodyMd : TextVariant.BodySm}
+        variant={TextVariant.BodyMd}
         twClassName={pnlClassName(isPnlPositive)}
         numberOfLines={1}
       >
@@ -164,13 +164,13 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
           side={side}
         />
         {layout === 'open' && markPriceLabel ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {markPriceLabel}
           </Text>
         ) : null}
         {layout === 'compact' && subHeaderLabel ? (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >

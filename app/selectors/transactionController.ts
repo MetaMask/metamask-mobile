@@ -5,6 +5,7 @@ import {
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
+import { selectFirstPendingApproval } from './approvalController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
@@ -27,6 +28,7 @@ type LocalTransaction = TransactionMeta | SmartTransaction;
 const MONEY_DEPOSIT_TYPES = [TransactionType.moneyAccountDeposit];
 const MONEY_WITHDRAW_TYPES = [TransactionType.moneyAccountWithdraw];
 const EMPTY_TRANSACTIONS: TransactionMeta[] = [];
+const EMPTY_BATCH_TRANSACTION_COUNTS: Record<string, number> = {};
 
 function isTerminalFailedStatus(status: unknown): boolean {
   return (
@@ -137,6 +139,14 @@ export const selectTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
     transactionControllerState?.transactions ?? EMPTY_TRANSACTIONS,
+);
+
+/** Expected leg count per in-flight batch, keyed by batch ID. */
+export const selectBatchTransactionCounts = createSelector(
+  selectTransactionControllerState,
+  (transactionControllerState) =>
+    transactionControllerState?.batchTransactionCounts ??
+    EMPTY_BATCH_TRANSACTION_COUNTS,
 );
 
 const selectTransactionBatchesStrict = createSelector(
@@ -528,6 +538,22 @@ export const selectTransactionMetadataById = createSelector(
   selectTransactions,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
+);
+
+export const selectCurrentTransaction = createSelector(
+  [
+    (state: RootState) => state,
+    selectFirstPendingApproval,
+    (_: RootState, overrideTransactionId?: string | null) =>
+      overrideTransactionId,
+  ],
+  (state, approvalRequest, overrideTransactionId) => {
+    const transactionId = overrideTransactionId ?? approvalRequest?.id;
+
+    return transactionId === undefined
+      ? undefined
+      : selectTransactionMetadataById(state, transactionId);
+  },
 );
 
 export const makeSelectTransactionMetadataById =

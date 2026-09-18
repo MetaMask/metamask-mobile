@@ -4022,3 +4022,82 @@ export const POWER_USER_STATE = {
     },
   },
 };
+
+export const SPOT_PRICES_SUPPORT_INFO: Record<string, string> = {
+  '0x1': 'eip155:1/slip44:60', // Ethereum Mainnet - Native symbol: ETH
+  '0xa': 'eip155:10/slip44:60', // OP Mainnet - Native symbol: ETH
+  '0x19': 'eip155:25/slip44:394', // Cronos Mainnet - Native symbol: CRO
+  '0x1e': 'eip155:30/slip44:137', // Rootstock Mainnet - Native symbol: RBTC
+  '0x2a': 'eip155:42/erc20:0x0000000000000000000000000000000000000000', // Lukso - native symbol: LYX
+  '0x32': 'eip155:50/erc20:0x0000000000000000000000000000000000000000', // xdc-network - native symbol: XDC
+  '0x38': 'eip155:56/slip44:714', // BNB Smart Chain Mainnet - Native symbol: BNB
+  '0x39': 'eip155:57/slip44:57', // Syscoin Mainnet - Native symbol: SYS
+  '0x52': 'eip155:82/slip44:18000', // Meter Mainnet - Native symbol: MTR
+  '0x58': 'eip155:88/slip44:889', // TomoChain - Native symbol: TOMO
+  '0x64': 'eip155:100/erc20:0x0000000000000000000000000000000000000000', // Gnosis (formerly xDAI Chain) - Native symbol: xDAI
+  '0x6a': 'eip155:106/slip44:5655640', // Velas EVM Mainnet - Native symbol: VLX
+  '0x7a': 'eip155:122/erc20:0x0000000000000000000000000000000000000000', // Fuse Mainnet - Native symbol: FUSE
+  '0x80': 'eip155:128/slip44:1010', // Huobi ECO Chain Mainnet - Native symbol: HT
+  '0x89': 'eip155:137/slip44:966', // Polygon Mainnet - Native symbol: POL
+  '0x8f': 'eip155:143/slip44:268435779', // Monad Mainnet - Native symbol: MON
+  '0x92': 'eip155:146/slip44:10007', // Sonic Mainnet - Native symbol: S
+  '0xc4': 'eip155:196/erc20:0x0000000000000000000000000000000000000000', // X Layer Mainnet - Native symbol: OKB
+  '0xe8': 'eip155:232/erc20:0x0000000000000000000000000000000000000000', // Lens Mainnet - Native symbol: GHO
+  '0xfa': 'eip155:250/slip44:1007', // Fantom Opera - Native symbol: FTM
+  '0xfc': 'eip155:252/erc20:0x0000000000000000000000000000000000000000', // Fraxtal - native symbol: FRAX
+  '0x120': 'eip155:288/slip44:60', // Boba Network (Ethereum L2) - Native symbol: ETH
+  '0x141': 'eip155:321/slip44:641', // KCC Mainnet - Native symbol: KCS
+  '0x144': 'eip155:324/slip44:60', // zkSync Era Mainnet (Ethereum L2) - Native symbol: ETH
+  '0x150': 'eip155:336/slip44:809', // Shiden - Native symbol: SDN
+  '0x169': 'eip155:361/slip44:589', // Theta Mainnet - Native symbol: TFUEL
+  '0x2eb': 'eip155:747/slip44:539', // Flow evm - Native symbol: Flow
+  '0x3dc': 'eip155:988/erc20:0x0000000000000000000000000000000000000000', // Stable - Native symbol: USDT0
+  '0x3e7': 'eip155:999/slip44:2457', // HyperEVM - Native symbol: HYPE
+  '0x440': 'eip155:1088/erc20:0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000', // Metis Andromeda Mainnet (Ethereum L2) - Native symbol: METIS
+  '0x44d': 'eip155:1101/slip44:60', // Polygon zkEVM mainnet - Native symbol: ETH
+  '0x504': 'eip155:1284/slip44:1284', // Moonbeam - Native symbol: GLMR
+  '0x505': 'eip155:1285/slip44:1285', // Moonriver - Native symbol: MOVR
+  '0x531': 'eip155:1329/slip44:19000118', // Sei Mainnet - Native symbol: SEI
+  '0x6f0': 'eip155:1776/slip44:22000119', // Injective Mainnet - Native symbol: INJ
+  '0x74c': 'eip155:1868/erc20:0x0000000000000000000000000000000000000000', // Soneium - Native symbol: ETH
+  '0x9dd': 'eip155:2525/erc20:0x0000000000000000000000000000000000000000', // inEVM Mainnet - Native symbol: INV
+  '0xab5': 'eip155:2741/erc20:0x0000000000000000000000000000000000000000', // Abstract - Native symbol: ETH
+  '0x1079': 'eip155:4217/slip44:60', // Tempo Mainnet - No native asset
+  '0x10e6': 'eip155:4326/erc20:0x0000000000000000000000000000000000000000', // MegaETH Mainnet - Native symbol: ETH
+  '0x1388': 'eip155:5000/erc20:0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000', // Mantle - Native symbol: MNT
+  '0x13a7': 'eip155:5031/slip44:5031', // Somnia Mainnet - Native symbol: SOMI
+  '0x13b2': 'eip155:5042/slip44:5042', // Arc - Native symbol: USDC
+  '0x1b58': 'eip155:7000/slip44:7000', // ZetaChain - Native symbol: ZETA
+  '0x2105': 'eip155:8453/slip44:60', // Base - Native symbol: ETH
+  '0x1237': 'eip155:4663/slip44:60', // Robinhood Chain - Native symbol: ETH
+  '0x2611': 'eip155:9745/erc20:0x0000000000000000000000000000000000000000', // Plasma mainnet - native symbol: XPL
+  '0x2710': 'eip155:10000/slip44:145', // Smart Bitcoin Cash - Native symbol: BCH
+  '0x8173': 'eip155:33139/erc20:0x0000000000000000000000000000000000000000', // Apechain Mainnet - Native symbol: APE
+  '0xa3c3': 'eip155:41923/erc20:0x0000000000000000000000000000000000000000', // EDU Chain - Native symbol: EDU
+  '0xa4b1': 'eip155:42161/slip44:60', // Arbitrum One - Native symbol: ETH
+  '0xa4ec': 'eip155:42220/slip44:52752', // Celo Mainnet - Native symbol: CELO
+  '0xa516': 'eip155:42262/slip44:474', // Oasis Emerald - Native symbol: ROSE
+  '0xa5bf': 'eip155:42431/slip44:60', // Tempo Testnet Moderato - No native asset
+  '0xa729': 'eip155:42793/erc20:0x0000000000000000000000000000000000000000', // Etherlink - Native symbol: XTZ (Tezos L2)
+  '0xa867': 'eip155:43111/erc20:0x0000000000000000000000000000000000000000', // Hemi - Native symbol: ETH
+  '0xa86a': 'eip155:43114/slip44:9005', // Avalanche C-Chain - Native symbol: AVAX
+  '0xdef1': 'eip155:57073/slip44:60', // Ink Mainnet - Native symbol: ETH
+  '0xe708': 'eip155:59144/slip44:60', // Linea Mainnet - Native symbol: ETH
+  '0xed88': 'eip155:60808/erc20:0x0000000000000000000000000000000000000000', // BOB - Native symbol: ETH
+  '0x10b3e': 'eip155:68414/erc20:0x0000000000000000000000000000000000000000', // MapleStory Universe - no slip44
+  '0x11d9b': 'eip155:73115/erc20:0x0000000000000000000000000000000000000000', // ICB Network - Native symbol: ICBX,
+  '0x138de': 'eip155:80094/erc20:0x0000000000000000000000000000000000000000', // Berachain - Native symbol: Bera',
+  '0x13e31': 'eip155:81457/slip44:60', // Blast Mainnet - Native symbol: ETH
+  '0x15b38': 'eip155:88888/erc20:0x0000000000000000000000000000000000000000', // Chiliz Chain - Native symbol: CHZ
+  '0x17dcd': 'eip155:97741/erc20:0x0000000000000000000000000000000000000000', // Pepe Unchained Mainnet - Native symbol: PEPU
+  '0x18232': 'eip155:98866/erc20:0x0000000000000000000000000000000000000000', // Plume Mainnet - Narive symbol: Plume
+  '0x28c58': 'eip155:167000/slip44:60', // Taiko Mainnet - Native symbol: ETH
+  '0x518af': 'eip155:333999/slip44:1997', // Polis Mainnet - Native symbol: POLIS
+  '0x82750': 'eip155:534352/slip44:60', // Scroll Mainnet - Native symbol: ETH
+  '0xb67d2': 'eip155:747474/erc20:0x0000000000000000000000000000000000000000', // katana - Native symbol: ETH
+  '0xf043a': 'eip155:984122/erc20:0x0000000000000000000000000000000000000000', // Forma - Native symbol: TIA (Celestia)
+  '0x15f900': 'eip155:1440000/erc20:0x0000000000000000000000000000000000000000', // xrpl-evm - native symbol: XRP
+  '0x4e454152': 'eip155:1313161554/slip44:60', // Aurora Mainnet (Ethereum L2 on NEAR) - Native symbol: ETH
+  '0x63564c40': 'eip155:1666600000/slip44:1023', // Harmony Mainnet Shard 0 - Native symbol: ONE
+  '0x4115': 'eip155:16661/slip44:1111116661', // 0G Chain - Native symbol: 0G
+};
