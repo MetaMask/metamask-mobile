@@ -536,14 +536,13 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_CHASE: 'perps-pro-market-positions-panel-tab-chase',
   CHASE_SIDE_FILTER_BUTTON: 'perps-chase-side-filter-button',
   CHASE_SIDE_FILTER_SHEET: 'perps-chase-side-filter',
-  CHASE_ACTIVE_FILTER: 'perps-chase-active-filter',
-  CHASE_HISTORY_FILTER: 'perps-chase-history-filter',
   CHASE_FILLED_ONLY: 'perps-chase-filled-only',
   CHASE_EMPTY_STATE: 'perps-chase-empty-state',
   CHASE_FOREGROUND_WARNING: 'perps-chase-foreground-warning',
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
+  POSITIONS_FILTER_ROW: 'perps-pro-market-positions-filter-row',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
@@ -572,10 +571,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_TWAP: 'perps-pro-market-positions-panel-tab-twap',
   TWAP_LIST: 'perps-pro-market-twap-list',
   TWAP_TAB_BODY: 'perps-pro-market-twap-tab-body',
-  TWAP_VIEW_TABS: 'perps-pro-market-twap-view-tabs',
-  TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
-  TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
-  TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
+  ACTIVITY_VIEW_TOGGLE: 'perps-pro-market-activity-view-toggle',
+  ACTIVITY_FILTER_SHEET: 'perps-pro-market-activity-filter-sheet',
   TWAP_SIDE_FILTER_BUTTON: 'perps-pro-market-twap-side-filter-button',
   TWAP_SIDE_FILTER_SHEET: 'perps-pro-market-twap-side-filter-sheet',
   TWAP_SIDE_FILTER_SHEET_CLOSE: 'perps-pro-market-twap-side-filter-sheet-close',
@@ -627,9 +624,6 @@ export const getPerpsProChaseRowSelector = (
   isPrimary = false,
 ) => `perps-chase-running-row-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
-export const PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR =
-  'perps-chase-visible-count';
-
 export const getPerpsProChaseSideFilterOptionSelector = (
   side: 'long' | 'short' | 'all',
 ) => `${PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET}-option-${side}`;
@@ -637,6 +631,14 @@ export const getPerpsProChaseSideFilterOptionSelector = (
 export const getPerpsProTwapSideFilterOptionSelector = (
   side: 'long' | 'short' | 'all',
 ) => `${PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET}-option-${side}`;
+
+/**
+ * Which view the Chase/TWAP activity toggle is currently showing. The toggle
+ * itself keeps a stable testID so a recipe can press it without knowing the
+ * state; this selector is on its label so the same recipe can assert the state.
+ */
+export const getPerpsProActivityViewSelector = (view: string) =>
+  `perps-pro-market-activity-view-${view.replace(/_/gu, '-')}`;
 
 export const getPerpsProChaseFormActiveCountSelector = (count: number) =>
   `perps-pro-chase-active-count-${count}`;
