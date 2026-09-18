@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
 import { useCallback, useEffect, useState } from 'react';
 import type { KycCatalogDocument } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
@@ -55,17 +54,10 @@ export const useKycSessionDisclaimers = (
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const retry = useCallback(() => {
-    console.log('[VBA KYC][Session disclaimers] Retrying fetch');
-    setRetryCount((count) => count + 1);
-  }, []);
+  const retry = useCallback(() => setRetryCount((count) => count + 1), []);
 
   useEffect(() => {
     let isMounted = true;
-    console.log('[VBA KYC][Session disclaimers] Fetching', {
-      country,
-      retryCount,
-    });
     setIsLoading(true);
     setError(null);
 
@@ -98,9 +90,6 @@ export const useKycSessionDisclaimers = (
         ]);
 
         if (!isMounted) {
-          console.log(
-            '[VBA KYC][Session disclaimers] Ignoring result after unmount',
-          );
           return;
         }
 
@@ -110,27 +99,17 @@ export const useKycSessionDisclaimers = (
         ];
 
         if (!links.length) {
-          console.log('[VBA KYC][Session disclaimers] Empty response');
           setDisclaimers(null);
           setError('No KYC disclaimers returned');
           return;
         }
 
-        console.log('[VBA KYC][Session disclaimers] Fetch succeeded', {
-          idOSCount: catalog.idOS?.length ?? 0,
-          providerCount: catalog.kycProvider?.length ?? 0,
-        });
         setDisclaimers(links);
         setError(null);
       } catch (err) {
         const isTimeout =
           err instanceof Error &&
           (err.name === 'AbortError' || err.name === 'TimeoutError');
-        console.log('[VBA KYC][Session disclaimers] Fetch failed', {
-          error: err,
-          isMounted,
-          isTimeout,
-        });
         if (isMounted) {
           setDisclaimers(null);
           setError(
@@ -152,7 +131,6 @@ export const useKycSessionDisclaimers = (
     loadCatalog();
 
     return () => {
-      console.log('[VBA KYC][Session disclaimers] Cleaning up fetch');
       isMounted = false;
       clearTimeout(timeoutId);
       abortController.abort();

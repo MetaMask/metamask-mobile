@@ -1,5 +1,4 @@
-/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -37,11 +36,6 @@ const KycEmail = () => {
     startVerification,
     resetKyc,
   } = useKycEmailVerification();
-
-  useEffect(() => {
-    console.log('[VBA KYC][View] KycEmail mounted');
-    return () => console.log('[VBA KYC][View] KycEmail unmounted');
-  }, []);
 
   return (
     <SafeAreaView

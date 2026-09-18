@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
 import { useCallback, useEffect, useState } from 'react';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
@@ -41,35 +40,20 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const retry = useCallback(() => {
-    console.log('[VBA KYC][Vendor disclaimers] Retrying fetch');
-    setRetryCount((count) => count + 1);
-  }, []);
+  const retry = useCallback(() => setRetryCount((count) => count + 1), []);
   const acceptDisclaimers = useCallback(async (): Promise<boolean> => {
     if (!disclaimers?.length || isAccepting) {
-      console.log('[VBA KYC][Vendor disclaimers] Acceptance skipped', {
-        disclaimerCount: disclaimers?.length ?? 0,
-        isAccepting,
-      });
       return false;
     }
 
-    console.log('[VBA KYC][Vendor disclaimers] Recording acceptance', {
-      disclaimerIds: disclaimers.map(({ id }) => id),
-    });
     setIsAccepting(true);
     setError(null);
     try {
       await Engine.context.KycController.recordVendorDisclaimers({
         disclaimerIds: disclaimers.map(({ id }) => id),
       });
-      console.log('[VBA KYC][Vendor disclaimers] Acceptance recorded');
       return true;
     } catch (acceptError) {
-      console.log(
-        '[VBA KYC][Vendor disclaimers] Failed to record acceptance',
-        acceptError,
-      );
       setError(
         acceptError instanceof Error ? acceptError.message : 'Unknown error',
       );
@@ -81,11 +65,6 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
 
   useEffect(() => {
     let isMounted = true;
-    console.log('[VBA KYC][Vendor disclaimers] Fetching', {
-      country,
-      retryCount,
-      vendor: VBA_KYC_VENDOR,
-    });
     setIsLoading(true);
     setError(null);
 
@@ -116,35 +95,22 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         ]);
 
         if (!isMounted) {
-          console.log(
-            '[VBA KYC][Vendor disclaimers] Ignoring result after unmount',
-          );
           return;
         }
 
         // Empty list is not usable success; surface as error so retry is reachable.
         if (!loadedDisclaimers?.length) {
-          console.log('[VBA KYC][Vendor disclaimers] Empty response');
           setDisclaimers(null);
           setError('No KYC disclaimers returned');
           return;
         }
 
-        console.log('[VBA KYC][Vendor disclaimers] Fetch succeeded', {
-          disclaimerCount: loadedDisclaimers.length,
-          disclaimerIds: loadedDisclaimers.map(({ id }) => id),
-        });
         setDisclaimers(loadedDisclaimers);
         setError(null);
       } catch (err) {
         const isTimeout =
           err instanceof Error &&
           (err.name === 'AbortError' || err.name === 'TimeoutError');
-        console.log('[VBA KYC][Vendor disclaimers] Fetch failed', {
-          error: err,
-          isMounted,
-          isTimeout,
-        });
         if (isMounted) {
           setDisclaimers(null);
           setError(
@@ -166,7 +132,6 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     loadDisclaimers();
 
     return () => {
-      console.log('[VBA KYC][Vendor disclaimers] Cleaning up fetch');
       isMounted = false;
       clearTimeout(timeoutId);
       abortController.abort();

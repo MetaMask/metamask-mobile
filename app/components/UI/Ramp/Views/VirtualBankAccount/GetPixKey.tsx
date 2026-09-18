@@ -1,5 +1,4 @@
-/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -74,22 +73,10 @@ const GetPixKey = () => {
   const canAgreeAndContinue =
     !isLoading && !isAccepting && !error && Boolean(disclaimers?.length);
 
-  useEffect(() => {
-    console.log('[VBA KYC][View] GetPixKey mounted');
-    return () => console.log('[VBA KYC][View] GetPixKey unmounted');
-  }, []);
-
-  const handleBack = useCallback(() => {
-    console.log('[VBA KYC][View] GetPixKey back pressed');
-    navigation.goBack();
-  }, [navigation]);
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(async () => {
-    console.log('[VBA KYC][View] GetPixKey continue pressed');
-    const accepted = await acceptDisclaimers();
-    console.log('[VBA KYC][View] GetPixKey acceptance result', { accepted });
-    if (accepted) {
-      console.log('[VBA KYC][View] Navigating to VerifyIdentity');
+    if (await acceptDisclaimers()) {
       navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
     }
   }, [acceptDisclaimers, navigation]);
