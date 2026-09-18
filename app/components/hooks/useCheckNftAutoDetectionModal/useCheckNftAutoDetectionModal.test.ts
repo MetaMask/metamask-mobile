@@ -7,7 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { isMainNet } from '../../../util/networks';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectIsInBasicFunctionalityConsolidationRollout } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 // Mock the necessary modules
 jest.mock('react-redux', () => ({
@@ -34,7 +34,7 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock(
   '../../../selectors/featureFlagController/basicFunctionalityConsolidation',
   () => ({
-    selectMobileUxBftcConsolidationFlagEnabled: jest.fn(),
+    selectIsInBasicFunctionalityConsolidationRollout: jest.fn(),
   }),
 );
 
@@ -51,7 +51,7 @@ describe('useCheckNftAutoDetectionModal', () => {
           return false;
         case selectProviderConfig:
           return { chainId: '1' };
-        case selectMobileUxBftcConsolidationFlagEnabled:
+        case selectIsInBasicFunctionalityConsolidationRollout:
           return isConsolidationRolloutEnabled;
         default:
           return false;

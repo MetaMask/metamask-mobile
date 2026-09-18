@@ -675,6 +675,7 @@ const BAANX_CAPABILITIES = {
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
   supportsTransactionHistory: true,
+  supportsContactDetails: false,
   supportsMoneyAccountLinking: true,
 };
 
@@ -1997,6 +1998,60 @@ describe('CardHome Component', () => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         'mailto:support@metamask.io',
       );
+    });
+  });
+
+  describe('digital wallet instructions', () => {
+    beforeEach(() => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'immersve',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    it('hides the instructions while push eligibility is loading', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: true,
+        canAddToWallet: false,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the instructions when push provisioning is available', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
     });
   });
 

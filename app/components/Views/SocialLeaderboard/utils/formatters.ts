@@ -252,3 +252,39 @@ export function formatFeedTimestamp(
 
   return `${Math.floor(diff / HOUR)}h`;
 }
+
+/**
+ * Spelled-out post age for Social V1 feed cards (e.g. `40 min ago`).
+ *
+ * The V1 post header gives the timestamp its own right-aligned column, so
+ * unlike the compact V0 row ({@link formatFeedTimestamp}) there is room for the
+ * unit and the "ago" suffix. Ages of a day or more stay relative here rather
+ * than switching to a clock time, because a post's position in the feed is
+ * already chronological and "3 d ago" reads faster than a bare date.
+ */
+export function formatFeedPostAge(
+  timestamp: number,
+  now: number = Date.now(),
+): string {
+  const diff = now - tradeTimestampToMs(timestamp);
+
+  if (diff < MINUTE) {
+    return strings('social_leaderboard.feed.just_now');
+  }
+
+  if (diff < HOUR) {
+    return strings('social_leaderboard.feed.age.minutes', {
+      count: Math.floor(diff / MINUTE),
+    });
+  }
+
+  if (diff < DAY) {
+    return strings('social_leaderboard.feed.age.hours', {
+      count: Math.floor(diff / HOUR),
+    });
+  }
+
+  return strings('social_leaderboard.feed.age.days', {
+    count: Math.floor(diff / DAY),
+  });
+}

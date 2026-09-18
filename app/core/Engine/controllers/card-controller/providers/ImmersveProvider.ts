@@ -239,6 +239,11 @@ interface ImmersveFundingSourcesResponse {
   items?: ImmersveFundingSourceListItem[];
 }
 
+interface ImmersveContactDetailsResponse {
+  email?: { emailAddress?: string };
+  phone?: { phoneNumber?: string };
+}
+
 type ImmersveCardApiStatus = 'active' | 'cancelled' | 'created' | 'shipped';
 
 interface ImmersveCardListItem {
@@ -382,6 +387,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
     supportsTransactionHistory: true,
+    supportsContactDetails: true,
     supportsMoneyAccountLinking: false,
   };
 
@@ -676,6 +682,29 @@ export class ImmersveProvider implements ICardProvider {
       }));
     } catch (error) {
       reportAndMap(error, 'getFundingSources');
+    }
+  }
+
+  async getContactDetails(tokens: CardAuthTokens): Promise<CardContactDetails> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'getContactDetails: missing cardholder account id',
+      );
+    }
+
+    try {
+      const response = await this.service.get<ImmersveContactDetailsResponse>(
+        `/api/accounts/${accountId}/contact-details`,
+        tokens,
+      );
+      return {
+        email: response.email?.emailAddress,
+        phone: response.phone?.phoneNumber,
+      };
+    } catch (error) {
+      reportAndMap(error, 'getContactDetails');
     }
   }
 

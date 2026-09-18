@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -32,18 +32,16 @@ import { createViewPinBottomSheetNavigationDetails } from '../../../components/V
 import { buildShippingAddress } from '../../../util/buildUserAddress';
 import useAuthentication from '../../../../../../core/Authentication/hooks/useAuthentication';
 import useCardFreeze from '../../../hooks/useCardFreeze';
-import useCardDetailsToken from '../../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../../hooks/useCardPinToken';
+import { useRevealCardDetails } from '../../../hooks/useRevealCardDetails';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import type {
   CardHomeData,
   CardProviderCapabilities,
-  CardSensitiveDetails,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingTokenWithBalance } from '../../../types';
-import ClipboardManager from '../../../../../../core/ClipboardManager';
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
@@ -74,13 +72,20 @@ export function useCardHomeActions({
   );
   const { freeze, unfreeze } = useCardFreeze(data?.card?.id);
   const {
-    fetchCardDetailsToken,
-    isLoading: isCardDetailsLoading,
-    isImageLoading: isCardDetailsImageLoading,
-    onImageLoad: onCardDetailsImageLoad,
-    imageUrl: cardDetailsImageUrl,
-    clearImageUrl: clearCardDetailsImageUrl,
-  } = useCardDetailsToken();
+    isCardDetailsLoading,
+    isCardDetailsImageLoading,
+    onCardDetailsImageLoad,
+    cardDetailsImageUrl,
+    onCardDetailsImageError,
+    cardSensitiveDetails,
+    isSensitiveDetailsLoading,
+    clearCardSensitiveDetails,
+    copyCardDetail,
+    viewCardDetailsAction,
+  } = useRevealCardDetails({
+    cardType: data?.card?.type,
+    capabilities,
+  });
   const {
     generatePinToken,
     isLoading: isPinLoading,
@@ -181,175 +186,6 @@ export function useCardHomeActions({
     activeProviderId,
     toastRef,
     showFreezeSuccessToast,
-  ]);
-
-  // --- Card details ---
-
-  const [cardSensitiveDetails, setCardSensitiveDetails] =
-    useState<CardSensitiveDetails | null>(null);
-  const [isSensitiveDetailsLoading, setIsSensitiveDetailsLoading] =
-    useState(false);
-
-  const clearCardSensitiveDetails = useCallback(() => {
-    setCardSensitiveDetails(null);
-  }, []);
-
-  useEffect(() => () => setCardSensitiveDetails(null), []);
-
-  const copyCardDetail = useCallback(
-    (value: string) => {
-      ClipboardManager.setString(value);
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('card.card_home.card_details.copied') },
-        ],
-        iconName: IconName.Copy,
-        iconColor: theme.colors.icon.default,
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef, theme],
-  );
-
-  const showCardDetailsErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        { label: strings('card.card_home.view_card_details_error') },
-      ],
-      hasNoTimeout: false,
-      iconName: IconName.Warning,
-    });
-  }, [toastRef]);
-
-  const onCardDetailsImageError = useCallback(() => {
-    clearCardDetailsImageUrl();
-    showCardDetailsErrorToast();
-  }, [clearCardDetailsImageUrl, showCardDetailsErrorToast]);
-
-  const fetchAndShowCardDetails = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(activeProviderId, {
-            action: CardActions.VIEW_CARD_DETAILS_BUTTON,
-            card_type: data?.card?.type,
-          }),
-        )
-        .build(),
-    );
-    try {
-      await fetchCardDetailsToken(data?.card?.type);
-    } catch {
-      showCardDetailsErrorToast();
-    }
-  }, [
-    fetchCardDetailsToken,
-    showCardDetailsErrorToast,
-    data?.card?.type,
-    trackEvent,
-    createEventBuilder,
-    activeProviderId,
-  ]);
-
-  const fetchAndShowSensitiveDetails = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(activeProviderId, {
-            action: CardActions.VIEW_CARD_DETAILS_BUTTON,
-            card_type: data?.card?.type,
-          }),
-        )
-        .build(),
-    );
-    setIsSensitiveDetailsLoading(true);
-    try {
-      const details =
-        await Engine.context.CardController.getCardSensitiveDetails();
-      setCardSensitiveDetails(details);
-    } catch {
-      showCardDetailsErrorToast();
-    } finally {
-      setIsSensitiveDetailsLoading(false);
-    }
-  }, [
-    showCardDetailsErrorToast,
-    data?.card?.type,
-    trackEvent,
-    createEventBuilder,
-    activeProviderId,
-  ]);
-
-  const viewCardDetailsAction = useCallback(async () => {
-    if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
-      return;
-    }
-
-    if (capabilities?.supportsSensitiveDetailsView) {
-      if (isSensitiveDetailsLoading) return;
-      if (cardSensitiveDetails) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-            .addProperties(
-              withCardProvider(activeProviderId, {
-                action: CardActions.HIDE_CARD_DETAILS_BUTTON,
-              }),
-            )
-            .build(),
-        );
-        clearCardSensitiveDetails();
-        return;
-      }
-      await withBiometricAuth({
-        reauthenticate,
-        navigation,
-        toastRef,
-        onSuccess: () => fetchAndShowSensitiveDetails(),
-      });
-      return;
-    }
-
-    if (isCardDetailsLoading || isCardDetailsImageLoading) return;
-    if (cardDetailsImageUrl) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties(
-            withCardProvider(activeProviderId, {
-              action: CardActions.HIDE_CARD_DETAILS_BUTTON,
-            }),
-          )
-          .build(),
-      );
-      clearCardDetailsImageUrl();
-      return;
-    }
-    await withBiometricAuth({
-      reauthenticate,
-      navigation,
-      toastRef,
-      onSuccess: () => fetchAndShowCardDetails(),
-    });
-  }, [
-    isAuthenticated,
-    capabilities?.supportsSensitiveDetailsView,
-    isSensitiveDetailsLoading,
-    cardSensitiveDetails,
-    clearCardSensitiveDetails,
-    fetchAndShowSensitiveDetails,
-    isCardDetailsLoading,
-    isCardDetailsImageLoading,
-    cardDetailsImageUrl,
-    clearCardDetailsImageUrl,
-    reauthenticate,
-    fetchAndShowCardDetails,
-    navigation,
-    toastRef,
-    trackEvent,
-    createEventBuilder,
-    activeProviderId,
   ]);
 
   // --- PIN ---
@@ -587,6 +423,38 @@ export function useCardHomeActions({
     activeProviderId,
   ]);
 
+  const contactDetailsAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CONTACT_DETAILS_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.CONTACT_DETAILS);
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+        postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
+      });
+    }
+  }, [
+    activeProviderId,
+    createEventBuilder,
+    isAuthenticated,
+    navigation,
+    trackEvent,
+  ]);
+
+  const digitalWalletInstructionsAction = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+    });
+  }, [navigation]);
+
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
@@ -759,6 +627,8 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
+    contactDetailsAction,
+    digitalWalletInstructionsAction,
     unlinkMoneyAccountAction,
     revokeAllowanceAction,
     logoutAction,
