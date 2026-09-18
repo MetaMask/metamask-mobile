@@ -20,6 +20,7 @@ import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
+import { openConnectedAccountsAfterConnect } from './helpers/open-connected-accounts.helpers.js';
 
 async function setupAndNavigateToTestDapp(): Promise<void> {
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
@@ -78,7 +79,7 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // Only the already-permitted EVM account should remain connected
-            await BrowserView.openConnectedAccountsModal();
+            await openConnectedAccountsAfterConnect();
             await Assertions.expectTextDisplayed('Account 2');
           },
         );
@@ -105,7 +106,7 @@ appiumTest.describe(
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
-            await BrowserView.openConnectedAccountsModal();
+            await openConnectedAccountsAfterConnect();
             await Assertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
@@ -153,7 +154,7 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // EVM account should be connected
-            await BrowserView.openConnectedAccountsModal();
+            await openConnectedAccountsAfterConnect();
             await Assertions.expectTextDisplayed('Account 1');
           },
         );
