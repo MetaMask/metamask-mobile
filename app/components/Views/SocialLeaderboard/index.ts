@@ -2,6 +2,7 @@ export { default as TopTradersView } from './TopTradersView';
 export { default as SocialV0View } from './SocialV0View';
 export { default as SocialV1View } from './SocialV1View';
 export { default as MyProfileView } from './MyProfileView';
+export { default as FollowConnectionsView } from './FollowConnectionsView';
 export {
   default as ManageProfileView,
   ManageProfileTextEditorView,

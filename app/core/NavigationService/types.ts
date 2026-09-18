@@ -1001,6 +1001,7 @@ export type RootStackParamList = {
       }
     | undefined;
   MyProfileView: undefined;
+  FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {
     field: 'displayName' | 'handle' | 'bio' | 'socials';

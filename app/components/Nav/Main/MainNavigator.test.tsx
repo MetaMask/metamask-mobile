@@ -1322,6 +1322,15 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const followConnectionsScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
+    );
+
+    expect(followConnectionsScreen).toBeDefined();
+    expect(followConnectionsScreen?.component.name).toBe(
+      'FollowConnectionsView',
+    );
+
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
     );
@@ -1370,6 +1379,7 @@ describe('MainNavigator', () => {
 
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
     expect(screenNames).not.toContain(
