@@ -2,11 +2,9 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import SuccessErrorSheet from '.';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { SuccessErrorSheetSelectorsIDs } from './SuccessErrorSheet.testIds';
 
 const mockGoBack = jest.fn();
 
@@ -17,15 +15,41 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
-  () => ({
-    __esModule: true,
-    default: jest.fn(({ children }) => (
-      <div data-testid="mock-bottom-sheet">{children}</div>
-    )),
-  }),
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View: RNView } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+          onClose,
+        }: {
+          children?: React.ReactNode;
+          testID?: string;
+          onClose?: () => void;
+        },
+        ref: React.ForwardedRef<unknown>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+          onCloseBottomSheet: (callback?: () => void) => {
+            onClose?.();
+            callback?.();
+          },
+        }));
+
+        return <RNView testID={testID}>{children}</RNView>;
+      },
+    ),
+  };
+});
 
 describe('SuccessErrorSheet', () => {
   const mockRoute = {
@@ -49,7 +73,7 @@ describe('SuccessErrorSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with all props', () => {
+  it('renders title, description, and footer buttons', () => {
     const { getByText, getByRole } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,
     );
@@ -67,14 +91,12 @@ describe('SuccessErrorSheet', () => {
     expect(mockRoute.params.onSecondaryButtonPress).toHaveBeenCalled();
   });
 
-  it('renders correctly with error type', () => {
+  it('renders custom title, description, and button for error type', () => {
     const mockErrorRoute = {
       params: {
         title: <Text>Test Title</Text>,
         description: <Text>Test Description</Text>,
         type: 'error' as const,
-        icon: IconName.CircleX,
-        iconColor: IconColor.Warning,
         onPrimaryButtonPress: jest.fn(),
         onSecondaryButtonPress: jest.fn(),
         onClose: jest.fn(),
@@ -90,5 +112,15 @@ describe('SuccessErrorSheet', () => {
     expect(getByText('Test Title')).toBeOnTheScreen();
     expect(getByText('Test Description')).toBeOnTheScreen();
     expect(getByText('Custom Button')).toBeOnTheScreen();
+  });
+
+  it('invokes onClose when the header close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={mockRoute} />,
+    );
+
+    fireEvent.press(getByTestId(SuccessErrorSheetSelectorsIDs.CLOSE_BUTTON));
+
+    expect(mockRoute.params.onClose).toHaveBeenCalled();
   });
 });
