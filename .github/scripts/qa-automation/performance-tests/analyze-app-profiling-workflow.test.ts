@@ -13,6 +13,8 @@ type WorkflowStep = {
   run?: string;
   if?: string;
   'continue-on-error'?: boolean;
+  uses?: string;
+  with?: Record<string, string | boolean | number>;
 };
 
 type Workflow = {
@@ -27,6 +29,8 @@ type Workflow = {
     string,
     {
       if?: string;
+      needs?: string | string[];
+      strategy?: { matrix?: string; 'fail-fast'?: boolean };
       steps: WorkflowStep[];
     }
   > & {
@@ -118,15 +122,56 @@ describe('Analyze App Profiling triggers', () => {
 
   it('posts Slack on a chained run and on an opted-in dispatch', () => {
     const workflow = loadWorkflow();
-    const slackStep = workflow.jobs.analyze.steps.find(
+    const notify = workflow.jobs.notify;
+    const slackStep = notify.steps.find(
       (step) => step.name === 'Post Slack summary',
     );
 
-    expect(slackStep?.if).toContain('inputs.post_to_slack');
-    expect(slackStep?.if).toContain(
-      "github.event_name != 'workflow_dispatch'",
-    );
+    expect(notify.if).toContain('inputs.post_to_slack');
+    expect(notify.if).toContain("github.event_name != 'workflow_dispatch'");
+    expect(notify.needs).toStrictEqual([
+      'analyze',
+      'upload-scenario-profiles',
+    ]);
     expect(slackStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    expect(slackStep?.env?.GITHUB_RUN_ID).toBe('${{ github.run_id }}');
+  });
+
+  it('publishes one artifact per scenario before posting Slack', () => {
+    const workflow = loadWorkflow();
+    const analyze = workflow.jobs.analyze;
+    const upload = workflow.jobs['upload-scenario-profiles'];
+
+    expect(analyze.steps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Prepare scenario artifact matrix',
+        }),
+        expect.objectContaining({
+          name: 'Cache scenario profile bundles',
+          uses: 'actions/cache/save@v6',
+        }),
+      ]),
+    );
+    expect(upload.strategy?.matrix).toBe(
+      '${{ fromJSON(needs.analyze.outputs.scenario-matrix) }}',
+    );
+    expect(upload.steps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Restore scenario profile bundles',
+          uses: 'actions/cache/restore@v6',
+        }),
+        expect.objectContaining({
+          name: 'Upload scenario profile artifact',
+          uses: 'actions/upload-artifact@v7',
+          with: expect.objectContaining({
+            name: '${{ matrix.artifactName }}',
+            path: '${{ matrix.path }}',
+          }),
+        }),
+      ]),
+    );
   });
 
   it('reports an unsuccessful performance run instead of going quiet', () => {

@@ -23,6 +23,7 @@ import {
   buildMarkdown,
   buildSlack,
   buildConclusions,
+  writeScenarioArtifacts,
   median,
   scenarioFrameTotals,
   aggregateWindow,
@@ -604,6 +605,90 @@ test('Slack omits the sourcemap caveat once every profile is symbolicated', () =
     aiAnalysis: null,
   };
   assert.doesNotMatch(buildSlack(report), /no matching sourcemap/);
+});
+
+test('Slack keeps the full Notes block and links the analysis artifact', () => {
+  const notes = `${'fast-equals dominates Predict Deposit. '.repeat(40)}metroRequire is an outlier.`;
+  const report = {
+    meta: {
+      runId: '35217706350',
+      profileCount: 1,
+      symbolicatedProfileCount: 1,
+      ai: true,
+      analysisArtifactsUrl:
+        'https://github.com/MetaMask/metamask-mobile/actions/runs/88#artifacts',
+    },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile', {
+        symbolicated: true,
+      }),
+    ]),
+    aiAnalysis: notes,
+  };
+  const slack = buildSlack(report);
+  const markdown = buildMarkdown(report);
+
+  assert.match(slack, /\*Notes\*/);
+  assert.equal(slack.includes(notes), true);
+  assert.match(slack, /\*Downloads\*/);
+  assert.match(slack, /app-profiling-analysis/);
+  assert.match(markdown, /## Downloads/);
+  assert.match(markdown, /per-scenario JSON/);
+});
+
+test('writeScenarioArtifacts packages every segment and retry by scenario', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scenario-artifacts-'));
+  const raw = path.join(root, 'profiles');
+  fs.mkdirSync(raw);
+  const firstPath = path.join(
+    raw,
+    'browserstack-android-Perps.cpuprofile',
+  );
+  const retryPath = path.join(
+    raw,
+    'browserstack-android-Perps.retry-1.cpuprofile',
+  );
+  fs.writeFileSync(firstPath, '{"first":true}');
+  fs.writeFileSync(retryPath, '{"retry":true}');
+  const profiles = [
+    {
+      ...profile(path.basename(firstPath)),
+      sourcePath: firstPath,
+      analysisPath: firstPath,
+    },
+    {
+      ...profile(path.basename(retryPath)),
+      sourcePath: retryPath,
+      analysisPath: retryPath,
+    },
+  ];
+  const scenarios = groupProfiles(profiles);
+
+  const artifacts = writeScenarioArtifacts(
+    root,
+    profiles,
+    scenarios,
+    '35217706350',
+  );
+
+  assert.equal(artifacts.length, 1);
+  assert.match(artifacts[0].artifactName, /^hermes-profile-01-Perps$/);
+  assert.deepEqual(
+    fs
+      .readdirSync(path.join(artifacts[0].path, 'raw'))
+      .sort(),
+    [path.basename(firstPath), path.basename(retryPath)].sort(),
+  );
+  assert.match(
+    fs.readFileSync(path.join(artifacts[0].path, 'README.md'), 'utf8'),
+    /Performance run: 35217706350/,
+  );
+  assert.deepEqual(
+    JSON.parse(
+      fs.readFileSync(path.join(root, 'scenario-artifacts.json'), 'utf8'),
+    ),
+    { include: artifacts },
+  );
 });
 
 test('a worst first attempt is never labelled retry 0', () => {

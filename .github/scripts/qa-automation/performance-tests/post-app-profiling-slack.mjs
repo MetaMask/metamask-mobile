@@ -21,6 +21,12 @@
  */
 
 import fs from 'fs';
+import {
+  listRunArtifacts,
+  linkScenarioNames,
+  readManifest,
+  scenarioDownloadMap,
+} from './link-scenario-artifacts.mjs';
 
 const SLACK_API = 'https://slack.com/api';
 /** Slack rejects text over 40k; leave room for the footer. */
@@ -75,43 +81,136 @@ async function openDirectMessage(target, token, options = {}) {
 
 function buildText(markdown, runUrl, runLabel = 'GitHub run') {
   let text = String(markdown || '').trim();
-  if (text.length > MAX_TEXT_LENGTH) {
-    text = `${text.slice(0, MAX_TEXT_LENGTH)}\n_Truncated for Slack._`;
-  }
   if (runUrl) {
     text = `${text}\n<${runUrl}|${runLabel || 'GitHub run'}>`;
   }
   return text;
 }
 
+/**
+ * Slack rejects a single chat.postMessage over 40k characters. Split on
+ * blank lines instead of cutting mid-sentence. A paragraph longer than the
+ * budget is split on newlines, then hard-sliced only as a last resort so
+ * nothing is dropped.
+ */
+function splitForSlack(markdown, maxLength = MAX_TEXT_LENGTH) {
+  const text = String(markdown || '').trim();
+  if (text.length === 0) {
+    return [''];
+  }
+  if (text.length <= maxLength) {
+    return [text];
+  }
+
+  const parts = [];
+  let current = '';
+  const append = (chunk) => {
+    const next = current ? `${current}\n\n${chunk}` : chunk;
+    if (next.length <= maxLength) {
+      current = next;
+      return;
+    }
+    if (current) {
+      parts.push(current);
+    }
+    if (chunk.length <= maxLength) {
+      current = chunk;
+      return;
+    }
+    for (let offset = 0; offset < chunk.length; offset += maxLength) {
+      const slice = chunk.slice(offset, offset + maxLength);
+      if (offset + maxLength >= chunk.length) {
+        current = slice;
+      } else {
+        parts.push(slice);
+      }
+    }
+  };
+
+  for (const paragraph of text.split(/\n{2,}/)) {
+    if (paragraph.length <= maxLength) {
+      append(paragraph);
+      continue;
+    }
+    for (const line of paragraph.split('\n')) {
+      append(line);
+    }
+  }
+  if (current) {
+    parts.push(current);
+  }
+  return parts;
+}
+
+function addScenarioArtifactLinks(markdown, artifacts, { repo, runId, manifest }) {
+  const mappings = scenarioDownloadMap(artifacts, manifest, repo, runId);
+  if (mappings.length === 0) {
+    throw new Error('No per-scenario Hermes profile artifacts were published');
+  }
+  return linkScenarioNames(markdown, mappings);
+}
+
 async function post(channel, text, token, options) {
-  const body = await slackApi(
-    'chat.postMessage',
-    token,
-    {
-      channel,
-      text,
-      unfurl_links: false,
-      unfurl_media: false,
-    },
-    options,
-  );
+  const payload = {
+    channel,
+    text,
+    unfurl_links: false,
+    unfurl_media: false,
+  };
+  if (options?.threadTs) {
+    payload.thread_ts = options.threadTs;
+  }
+  const body = await slackApi('chat.postMessage', token, payload, options);
   return { channel, ts: body.ts };
+}
+
+async function postAllParts(
+  channel,
+  parts,
+  token,
+  options,
+  runUrl,
+  runLabel,
+) {
+  let parentTs = null;
+  let last = null;
+  for (let index = 0; index < parts.length; index += 1) {
+    const isLast = index === parts.length - 1;
+    const text = buildText(parts[index], isLast ? runUrl : '', runLabel);
+    last = await post(channel, text, token, {
+      ...options,
+      threadTs: parentTs || undefined,
+    });
+    if (!parentTs) {
+      parentTs = last.ts;
+    }
+  }
+  return last;
 }
 
 /**
  * Posts the summary, addressing a user id directly first because that only
  * needs `chat:write`. Opening the DM explicitly needs the extra `im:write`
  * scope, so it is a fallback rather than the default path.
+ *
+ * Messages that exceed Slack's 40k limit are posted as a thread, not cut.
  */
 async function postSummary(
   { markdown, target, token, runUrl, runLabel },
   options = {},
 ) {
-  const text = buildText(markdown, runUrl, runLabel);
+  const footerReserve = runUrl ? 400 : 0;
+  const parts = splitForSlack(markdown, MAX_TEXT_LENGTH - footerReserve);
 
   try {
-    return await post(target, text, token, options);
+    return await postAllParts(
+      target,
+      parts,
+      token,
+      options,
+      runUrl,
+      runLabel,
+    );
   } catch (error) {
     if (!isUserId(target)) {
       throw error;
@@ -122,7 +221,7 @@ async function postSummary(
   }
 
   const channel = await openDirectMessage(target, token, options);
-  return post(channel, text, token, options);
+  return postAllParts(channel, parts, token, options, runUrl, runLabel);
 }
 
 async function main() {
@@ -144,8 +243,25 @@ async function main() {
     return;
   }
 
+  let markdown = fs.readFileSync(markdownPath, 'utf8');
+  const githubToken = process.env.GITHUB_TOKEN;
+  const githubRepository = process.env.GITHUB_REPOSITORY;
+  const githubRunId = process.env.GITHUB_RUN_ID;
+  if (githubToken && githubRepository && githubRunId) {
+    const artifacts = await listRunArtifacts(
+      githubRepository,
+      githubRunId,
+      githubToken,
+    );
+    markdown = addScenarioArtifactLinks(markdown, artifacts, {
+      repo: githubRepository,
+      runId: githubRunId,
+      manifest: readManifest(markdownPath),
+    });
+  }
+
   const result = await postSummary({
-    markdown: fs.readFileSync(markdownPath, 'utf8'),
+    markdown,
     target,
     token,
     runUrl: process.env.GITHUB_RUN_URL,
@@ -160,4 +276,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { isUserId, openDirectMessage, buildText, postSummary };
+export {
+  isUserId,
+  openDirectMessage,
+  buildText,
+  splitForSlack,
+  addScenarioArtifactLinks,
+  postSummary,
+};
