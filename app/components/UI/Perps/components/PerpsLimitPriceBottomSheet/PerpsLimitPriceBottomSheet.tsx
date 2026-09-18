@@ -28,7 +28,6 @@ import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
-import { BigNumber } from 'bignumber.js';
 
 /** Separate bid and ask buttons here, unlike the close sheet's single one. */
 const LIMIT_PRESET_TEST_IDS = {

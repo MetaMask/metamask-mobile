@@ -36,13 +36,14 @@ const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 export const getValidPerpsPrice = (
   price: string | number | null | undefined,
 ): number | null => {
-  const parsed = typeof price === 'number' ? price : parseFloat(price ?? '');
+  const parsed =
+    typeof price === 'number' ? price : Number.parseFloat(price ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.
- * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
+ * Use this instead of inline `Number.parseFloat(order.triggerPrice ?? '')` + validity checks.
  */
 export const getValidTriggerPrice = (order: Order): number | null =>
   getValidPerpsPrice(order.triggerPrice);
@@ -63,7 +64,7 @@ export const resolveOracleReferencePrice = (
   markPrice: string | undefined,
   currentPrice: number,
 ): number => {
-  const parsedMarkPrice = markPrice ? parseFloat(markPrice) : NaN;
+  const parsedMarkPrice = markPrice ? Number.parseFloat(markPrice) : Number.NaN;
   return Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
     ? parsedMarkPrice
     : currentPrice;
@@ -80,7 +81,7 @@ export const calculateLimitPriceForPercentage = (
   percentage: number,
 ): string => {
   const parsedLimitPrice = limitPrice
-    ? parseFloat(limitPrice.replace(/[$,]/g, ''))
+    ? Number.parseFloat(limitPrice.replace(/[$,]/g, ''))
     : 0;
   const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
 
@@ -513,13 +514,17 @@ export const isLimitOrderEditable = (order: Order): boolean => {
     return false;
   }
 
-  const filledSize = parseFloat(order.filledSize ?? '0');
+  const filledSize = Number.parseFloat(order.filledSize ?? '0');
   if (Number.isFinite(filledSize) && filledSize > 0) {
     return false;
   }
 
-  const originalSize = parseFloat(order.originalSize ?? order.size ?? '0');
-  const remainingSize = parseFloat(order.remainingSize ?? order.size ?? '0');
+  const originalSize = Number.parseFloat(
+    order.originalSize ?? order.size ?? '0',
+  );
+  const remainingSize = Number.parseFloat(
+    order.remainingSize ?? order.size ?? '0',
+  );
   if (
     Number.isFinite(originalSize) &&
     Number.isFinite(remainingSize) &&
@@ -670,7 +675,7 @@ export const getOrderDirection = (
   }
 
   // Existing position → infer direction based on position size
-  if (positionSize && parseFloat(positionSize) > 0) {
+  if (positionSize && Number.parseFloat(positionSize) > 0) {
     return 'long';
   }
 
@@ -681,10 +686,10 @@ export const willFlipPosition = (
   currentPosition: Position,
   orderParams: OrderParams,
 ): boolean => {
-  const currentPositionSize = parseFloat(currentPosition.size);
+  const currentPositionSize = Number.parseFloat(currentPosition.size);
   const positionDirection = currentPositionSize > 0 ? 'long' : 'short';
   const orderDirection = orderParams.isBuy ? 'long' : 'short';
-  const orderSize = parseFloat(orderParams.size);
+  const orderSize = Number.parseFloat(orderParams.size);
 
   if (orderParams.reduceOnly === true) {
     return false;

@@ -99,7 +99,7 @@ export function usePerpsLimitPriceInput({
   });
   const currentPriceData = priceData[asset];
   const currentPrice = currentPriceData?.price
-    ? parseFloat(currentPriceData.price)
+    ? Number.parseFloat(currentPriceData.price)
     : passedCurrentPrice;
 
   const referencePrice = resolveOracleReferencePrice(
@@ -151,7 +151,7 @@ export function usePerpsLimitPriceInput({
 
     const topOfBookPrice = isLong ? topOfBook?.bestBid : topOfBook?.bestAsk;
     const parsedTopOfBook = topOfBookPrice
-      ? parseFloat(topOfBookPrice)
+      ? Number.parseFloat(topOfBookPrice)
       : currentPrice;
 
     const applyPercentage = (percentage: number) => {
@@ -164,7 +164,7 @@ export function usePerpsLimitPriceInput({
         return;
       }
       applyLimitPrice(
-        parseFloat(calculated),
+        Number.parseFloat(calculated),
         PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
       );
     };
@@ -224,7 +224,7 @@ export function usePerpsLimitPriceInput({
       return false;
     }
     return isPriceOutsideDeviationBand(
-      parseFloat(limitPrice.replace(/[$,]/g, '')),
+      Number.parseFloat(limitPrice.replace(/[$,]/g, '')),
       referencePrice,
       LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
     );

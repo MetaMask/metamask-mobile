@@ -225,8 +225,8 @@ export function usePerpsClosePositionForm(
     throttleMs: 1000,
   });
   const currentPrice = priceData[position.symbol]?.price
-    ? parseFloat(priceData[position.symbol].price)
-    : parseFloat(position.entryPrice);
+    ? Number.parseFloat(priceData[position.symbol].price)
+    : Number.parseFloat(position.entryPrice);
 
   const referencePrice = resolveOracleReferencePrice(
     priceData[position.symbol]?.markPrice,
@@ -278,15 +278,15 @@ export function usePerpsClosePositionForm(
   }, [isPositionGone, isScreenFocused, showToast, PerpsToastOptions]);
 
   // Determine position direction using live position data
-  const isLong = parseFloat(livePosition.size) > 0;
-  const absSize = Math.abs(parseFloat(livePosition.size));
+  const isLong = Number.parseFloat(livePosition.size) > 0;
+  const absSize = Math.abs(Number.parseFloat(livePosition.size));
 
   // Calculate effective price for calculations
   // For limit orders, use limit price when available; otherwise use current market price
   const effectivePrice = useMemo(() => {
     if (effectiveOrderType === 'limit' && limitPrice) {
-      const parsed = parseFloat(limitPrice);
-      if (!isNaN(parsed) && parsed > 0) {
+      const parsed = Number.parseFloat(limitPrice);
+      if (!Number.isNaN(parsed) && parsed > 0) {
         return parsed;
       }
     }
@@ -425,10 +425,10 @@ export function usePerpsClosePositionForm(
 
   // Use live position data which includes real-time funding fees
   // HyperLiquid's marginUsed already includes accumulated PnL
-  const marginUsed = parseFloat(livePosition.marginUsed);
+  const marginUsed = Number.parseFloat(livePosition.marginUsed);
 
   // Use unrealizedPnl from live position (includes funding fees)
-  const unrealizedPnl = parseFloat(livePosition.unrealizedPnl);
+  const unrealizedPnl = Number.parseFloat(livePosition.unrealizedPnl);
 
   // Keep pnl reference for backwards compatibility with event tracking
   const pnl = unrealizedPnl;
@@ -442,7 +442,7 @@ export function usePerpsClosePositionForm(
   // P&L at the effective price. For limit orders this recomputes when the
   // effective (limit or mark) price changes; for market orders it uses the
   // live unrealized PnL.
-  const entryPrice = parseFloat(position.entryPrice);
+  const entryPrice = Number.parseFloat(position.entryPrice);
   const effectivePnL = useMemo(() => {
     // For long positions: (effectivePrice - entryPrice) * absSize
     // For short positions: (entryPrice - effectivePrice) * absSize
@@ -774,7 +774,7 @@ export function usePerpsClosePositionForm(
 
       // USD decimal input logic - preserve raw string for display
       // Use adjustedValue instead of original value
-      const numericValue = parseFloat(adjustedValue) || 0;
+      const numericValue = Number.parseFloat(adjustedValue) || 0;
       const clampedValue = validateCloseAmountLimits({
         amount: numericValue,
         maxAmount: positionValue,
@@ -847,7 +847,7 @@ export function usePerpsClosePositionForm(
       {
         amount: '',
       },
-    ).replace(/\s+$/, '');
+    ).trimEnd();
     const limitPriceTooFarError = strings(
       'perps.order.limit_price_modal.limit_price_too_far',
     );
@@ -867,7 +867,7 @@ export function usePerpsClosePositionForm(
     isClosing ||
     isPositionGone ||
     (effectiveOrderType === 'limit' &&
-      (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+      (!limitPrice || Number.parseFloat(limitPrice) <= 0)) ||
     (effectiveOrderType === 'market' && closePercentage === 0) ||
     !validationResult.isValid;
 

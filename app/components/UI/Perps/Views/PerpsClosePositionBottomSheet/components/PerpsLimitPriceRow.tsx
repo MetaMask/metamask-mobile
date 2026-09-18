@@ -43,6 +43,13 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
   const tw = useTailwind();
   const cursorOpacity = useBlinkingCursor(isEditing);
 
+  let priceColor: TextColor = TextColor.TextMuted;
+  if (error) {
+    priceColor = TextColor.ErrorDefault;
+  } else if (hasValue) {
+    priceColor = TextColor.TextDefault;
+  }
+
   const cursor = isEditing ? (
     <Animated.View
       testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR}
@@ -80,13 +87,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             {!hasValue ? cursor : null}
             <Text
               variant={TextVariant.BodyMd}
-              color={
-                error
-                  ? TextColor.ErrorDefault
-                  : hasValue
-                    ? TextColor.TextDefault
-                    : TextColor.TextMuted
-              }
+              color={priceColor}
               testID={
                 PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
               }

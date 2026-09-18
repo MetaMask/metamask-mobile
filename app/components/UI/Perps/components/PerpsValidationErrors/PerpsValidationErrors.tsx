@@ -30,9 +30,9 @@ const PerpsValidationErrors: React.FC<PerpsValidationErrorsProps> = ({
   testID,
 }) => (
   <Box twClassName={twClassName} testID={testID}>
-    {errors.map((error, index) => (
+    {errors.map((error) => (
       <HelpText
-        key={`error-${index}`}
+        key={error}
         severity={HelpTextSeverity.Danger}
         twClassName="w-full justify-center text-center"
       >
