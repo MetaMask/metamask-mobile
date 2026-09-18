@@ -59,6 +59,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
    */
   const updateQuoteParams = useCallback(
     async (options: UpdateQuoteParamsOptions = {}) => {
+      console.log('====updateQuoteParams', options);
       if (!genericQuoteRequest) {
         return;
       }
