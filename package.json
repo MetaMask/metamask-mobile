@@ -254,7 +254,7 @@
     "@metamask/transaction-controller": "70.1.0",
     "@metamask/keyring-controller": "^27.1.1",
     "expo-web-browser@npm:~55.0.16": "55.0.16",
-    "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
+    "@expo/cli@npm:55.0.32": "patch:@expo/cli@patch%3A@expo/cli@npm%253A55.0.32%23~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch%3A%3Aversion=55.0.32&hash=9bda5d#~/.yarn/patches/@expo-cli-patch-182f291f33.patch",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
     "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
