@@ -225,6 +225,7 @@ describe('useEIP7702UpgradeFee', () => {
         status: 'ready',
         displayFee: '$0.50',
         preciseNativeFeeInHex: '0xe531527bc000',
+        retry: expect.any(Function),
       });
     });
   });
@@ -238,6 +239,7 @@ describe('useEIP7702UpgradeFee', () => {
         status: 'ready',
         displayFee: '$0.70',
         preciseNativeFeeInHex: '0x1402462f60000',
+        retry: expect.any(Function),
       });
     });
   });
@@ -259,6 +261,7 @@ describe('useEIP7702UpgradeFee', () => {
         status: 'ready',
         displayFee: '$0.42',
         preciseNativeFeeInHex: '0xbefe6f672000',
+        retry: expect.any(Function),
       });
     });
   });
@@ -272,6 +275,7 @@ describe('useEIP7702UpgradeFee', () => {
         status: 'ready',
         displayFee: '0.0003',
         preciseNativeFeeInHex: '0xe531527bc000',
+        retry: expect.any(Function),
       });
     });
   });
@@ -281,7 +285,10 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'not-required' });
+      expect(result.current).toEqual({
+        status: 'not-required',
+        retry: expect.any(Function),
+      });
     });
     expect(mockEstimateGas).not.toHaveBeenCalled();
     expect(mockEstimateGasFee).not.toHaveBeenCalled();
@@ -292,7 +299,10 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'error' });
+      expect(result.current).toEqual({
+        status: 'error',
+        retry: expect.any(Function),
+      });
     });
   });
 
@@ -303,9 +313,105 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'error' });
+      expect(result.current).toEqual({
+        status: 'error',
+        retry: expect.any(Function),
+      });
     });
     expect(mockEstimateGas).not.toHaveBeenCalled();
+  });
+
+  it('re-estimates the fee when retried after a failure', async () => {
+    mockEstimateGas.mockRejectedValueOnce(new Error('Estimation failed'));
+    const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    act(() => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        status: 'ready',
+        displayFee: '$0.50',
+        preciseNativeFeeInHex: '0xe531527bc000',
+        retry: expect.any(Function),
+      });
+    });
+    expect(mockEstimateGas).toHaveBeenCalledTimes(2);
+  });
+
+  // Retry is not gated on the error status, so a caller can also refresh a
+  // stale estimate that resolved successfully.
+  it('re-estimates the fee when retried after a successful estimate', async () => {
+    const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+    });
+
+    act(() => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(mockEstimateGas).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('reports the retry as loading while it is in flight', async () => {
+    mockGetUpgradeStatus.mockRejectedValueOnce(new Error('Estimation failed'));
+    let resolveRetriedStatus:
+      | ((
+          value: Awaited<ReturnType<typeof getEIP7702AccountUpgradeStatus>>,
+        ) => void)
+      | undefined;
+    mockGetUpgradeStatus.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRetriedStatus = resolve;
+      }),
+    );
+    const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    act(() => {
+      result.current.retry();
+    });
+
+    expect(result.current).toEqual({
+      status: 'loading',
+      retry: expect.any(Function),
+    });
+
+    resolveRetriedStatus?.({ isUpgradeRequired: false });
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        status: 'not-required',
+        retry: expect.any(Function),
+      });
+    });
+  });
+
+  it('keeps the same retry reference across re-renders', async () => {
+    const { result, rerender } = renderHookWithProvider(
+      () => useEIP7702UpgradeFee(),
+      {},
+    );
+    const initialRetry = result.current.retry;
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('ready');
+    });
+    rerender({});
+
+    expect(result.current.retry).toBe(initialRetry);
   });
 
   it('stops estimation when the hook unmounts', async () => {

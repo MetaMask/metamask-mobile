@@ -1409,6 +1409,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "following",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -9085,7 +9093,9 @@
       "empty": {
         "open_orders": "Open orders appear here",
         "history": "Order history appears here"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9117,14 +9127,16 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "Create Order",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "You get",
@@ -9192,6 +9204,7 @@
       "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "completed": "Completed",
+      "cancelled": "Cancelled",
       "you_sent": "You sent",
       "you_receive": "You receive",
       "filled_progress": "{{percent}}%",
@@ -9205,6 +9218,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
       "not_enough_gas": "Not enough gas",
       "out_of_price_range": "Out of price range",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "Failed",
       "filled": "Filled",
       "order_not_found": "Order not found",
