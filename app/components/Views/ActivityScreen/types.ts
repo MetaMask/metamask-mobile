@@ -10,6 +10,7 @@ export type { ActivityKind };
 export enum ActivityTypeFilter {
   All = 'all',
   Transactions = 'transactions',
+  Swaps = 'swaps',
   BuySell = 'buySell',
   Perps = 'perps',
   Predictions = 'predictions',
@@ -112,6 +113,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'lendingWithdrawal',
     'claimMusdBonus',
   ]),
+  [ActivityTypeFilter.Swaps]: new Set<ActivityKind>(['swap', 'swapIncomplete']),
   [ActivityTypeFilter.BuySell]: new Set<ActivityKind>(['buy', 'sell']),
   // Derived from the Perps sub-buckets — see PERPS_ACTIVITY_FILTER_KINDS.
   [ActivityTypeFilter.Perps]: PERPS_ACTIVITY_KINDS,
@@ -130,6 +132,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
 export const ACTIVITY_TYPE_FILTER_ORDER: ActivityTypeFilter[] = [
   // ActivityTypeFilter.All,
   ActivityTypeFilter.Transactions,
+  ActivityTypeFilter.Swaps,
   ActivityTypeFilter.BuySell,
   ActivityTypeFilter.Perps,
   ActivityTypeFilter.Predictions,
