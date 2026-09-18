@@ -52,7 +52,6 @@ import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibil
 import {
   type LayoutChangeEvent,
   Modal,
-  PixelRatio,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -652,8 +651,7 @@ const MoneyOnboardingView = () => {
               stateMachineName={RIVE_STATE_MACHINE_NAME}
               dataBind={instance}
               autoPlay
-              fit={Fit.Layout}
-              layoutScaleFactor={PixelRatio.get()}
+              fit={Fit.Cover}
               onError={handleError}
               onLayout={onRiveLayout}
               style={[
