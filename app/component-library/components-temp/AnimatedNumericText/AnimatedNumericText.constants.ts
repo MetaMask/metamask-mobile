@@ -6,21 +6,22 @@ import {
   ReduceMotion,
 } from 'react-native-reanimated';
 
-const DURATION = 270;
+const FONT_SIZE_DURATION = 150;
+const LAYOUT_DURATION = 100;
 /**
  * Entry and exit are quicker than the reflow so an appended character reads as
  * an immediate response to the keypress rather than something fading in.
  */
-const ENTER_DURATION = 150;
-const EXIT_DURATION = 130;
+const ENTER_DURATION = 100;
+const EXIT_DURATION = 100;
 const EASING = Easing.out(Easing.cubic);
 
-/** Duration for keypad layout / font-size transitions. */
-export const NUMERIC_ANIMATION_DURATION = DURATION;
+/** Duration for animated font-size changes. */
+export const NUMERIC_ANIMATION_DURATION = FONT_SIZE_DURATION;
 
 /**
- * Duration for Laminar digit reels. Matches Number Flow's default spin/transform
- * timing (~900ms) with room for snappy's slight spring overshoot.
+ * Duration for Laminar digit reels. Keep bulk replacements short enough to feel
+ * responsive when triggered by Max or percentage shortcuts.
  */
 export const NUMERIC_ROLL_DURATION = 900;
 
@@ -32,7 +33,9 @@ export const NUMERIC_ROLL_DURATION = 900;
  * ticker) are re-laid out by the same width change and need the same curve to
  * move as one piece.
  */
-export const NUMERIC_LAYOUT_TRANSITION = LinearTransition.duration(DURATION)
+export const NUMERIC_LAYOUT_TRANSITION = LinearTransition.duration(
+  LAYOUT_DURATION,
+)
   .easing(EASING)
   .reduceMotion(ReduceMotion.System);
 
