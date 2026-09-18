@@ -38,6 +38,10 @@ import {
 } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;
   onToggle: (key: string, newValue: unknown) => void;
@@ -501,20 +505,37 @@ const FeatureFlagOverride: React.FC = () => {
     );
   }, [clearAllOverrides]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: 'Feature Flag Override',
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       testID="feature-flag-override-screen"
-      edges={['top', 'left', 'right']}
+      edges={
+        isNativeHeaderEnabled ? ['left', 'right'] : ['top', 'left', 'right']
+      }
     >
-      <HeaderStandard
-        title="Feature Flag Override"
-        onBack={handleGoBack}
-        includesTopInset={false}
-        testID="feature-flag-override-header"
-        backButtonProps={{ testID: 'feature-flag-override-header-back' }}
-      />
-      <Box twClassName="flex-1 bg-background-default">
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title="Feature Flag Override"
+          onBack={handleGoBack}
+          includesTopInset={false}
+          testID="feature-flag-override-header"
+          backButtonProps={{ testID: 'feature-flag-override-header-back' }}
+        />
+      )}
+      {/*
+        The filter bar sits above the list's `ScrollView`, so the nav-bar inset
+        goes on this container rather than on the scroller — otherwise the
+        filters, not the list, would start underneath the glass.
+      */}
+      <Box
+        twClassName="flex-1 bg-background-default"
+        style={{ paddingTop: nativeHeaderInset }}
+      >
         <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
           <Box
             flexDirection={BoxFlexDirection.Row}

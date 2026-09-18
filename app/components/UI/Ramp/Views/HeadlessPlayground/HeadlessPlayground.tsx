@@ -43,6 +43,7 @@ import type { Quote } from '../../types';
 import { RAMP_SURFACE } from '../../types/depositAnalytics';
 
 import styleSheet from './HeadlessPlayground.styles';
+import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 
 export const HEADLESS_PLAYGROUND_HEADER_TEST_ID = 'headless-playground-header';
 export const HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID =
@@ -651,14 +652,20 @@ function HeadlessPlayground() {
     return strings('app_settings.fiat_on_ramp.headless_playground.quotes_idle');
   }, [headlessQuotesStatus, headlessQuotesError, headlessQuotesResult]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.fiat_on_ramp.headless_playground.title'),
+  });
+
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderStandard
-        testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
-        title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID }}
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
+          title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID }}
+        />
+      )}
       <ScreenLayout scrollable>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
@@ -675,6 +682,9 @@ function HeadlessPlayground() {
                   >
                     <View style={styles.box}>
                       <ScrollView
+                        contentInsetAdjustmentBehavior={
+                          isNativeHeaderEnabled ? 'automatic' : undefined
+                        }
                         contentContainerStyle={styles.boxScroll}
                         nestedScrollEnabled
                       >

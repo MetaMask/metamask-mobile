@@ -68,6 +68,8 @@ import type {
   NetworkFormState,
   UrlSheetPersistOptions,
 } from './NetworkDetailsView.types';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 type NetworkDetailsRouteParams = RouteProp<
   { AddNetworkForm: NetworkDetailsViewParams },
@@ -258,58 +260,95 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
+  const canDelete =
+    !formHook.form.addMode && canDeleteNetwork(formHook.form.chainId ?? '');
+
+  const headerRightItems = useCallback(
+    (): NativeStackHeaderItem[] =>
+      canDelete
+        ? [
+            {
+              type: 'button' as const,
+              identifier: 'network-details-delete',
+              label: '',
+              icon: { type: 'sfSymbol' as const, name: 'trash' },
+              variant: 'plain' as const,
+              accessibilityLabel: strings('app_settings.delete'),
+              onPress: handleDelete,
+            },
+          ]
+        : [],
+    [canDelete, handleDelete],
+  );
+
+  /*
+   * The JS header titles this screen with the network's avatar alongside its
+   * name. A `UIBarButtonItem`/native title takes text only, so the avatar is
+   * dropped here and the name carries the screen on its own — the same
+   * trade-off already noted for Home's account picker.
+   */
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: headerTitle,
+    rightItems: headerRightItems,
+  });
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['top', 'bottom']}
+      edges={isNativeHeaderEnabled ? ['bottom'] : ['top', 'bottom']}
       testID={NetworkDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        endAccessory={
-          !formHook.form.addMode &&
-          canDeleteNetwork(formHook.form.chainId ?? '') ? (
-            <Pressable
-              onPress={handleDelete}
-              testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
-              style={({ pressed }) =>
-                tw.style(
-                  'w-9 h-9 mr-2 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-            >
-              <Icon
-                name={IconName.Trash}
-                size={IconSize.Md}
-                color={IconColor.Default}
-              />
-            </Pressable>
-          ) : undefined
-        }
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          onBack={handleBack}
+          endAccessory={
+            !formHook.form.addMode &&
+            canDeleteNetwork(formHook.form.chainId ?? '') ? (
+              <Pressable
+                onPress={handleDelete}
+                testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-9 h-9 mr-2 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
+                }
+              >
+                <Icon
+                  name={IconName.Trash}
+                  size={IconSize.Md}
+                  color={IconColor.Default}
+                />
+              </Pressable>
+            ) : undefined
+          }
         >
-          {!formHook.form.addMode && (
-            <AvatarNetwork
-              size={AvatarSize.Xs}
-              name={formHook.form.nickname}
-              imageSource={networkImageSource}
-            />
-          )}
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            {headerTitle}
-          </Text>
-        </Box>
-      </HeaderStandard>
+            {!formHook.form.addMode && (
+              <AvatarNetwork
+                size={AvatarSize.Xs}
+                name={formHook.form.nickname}
+                imageSource={networkImageSource}
+              />
+            )}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={1}
+            >
+              {headerTitle}
+            </Text>
+          </Box>
+        </HeaderStandard>
+      )}
       <KeyboardAwareScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

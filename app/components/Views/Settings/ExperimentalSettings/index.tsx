@@ -33,6 +33,7 @@ import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 /**
  * Main view for app Experimental Settings
@@ -183,18 +184,29 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       </Button>
     </View>
   );
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.experimental_title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.experimental_title')}
-        onBack={handleBack}
-        backButtonProps={{
-          testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
-        }}
-        testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
-        includesTopInset
-      />
-      <ScrollView style={styles.content}>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.experimental_title')}
+          onBack={handleBack}
+          backButtonProps={{
+            testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
+          }}
+          testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
+          includesTopInset
+        />
+      )}
+      <ScrollView
+        style={styles.content}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+      >
         {renderWalletConnectSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
         {isTestEnvironment && renderPerformanceSettings()}

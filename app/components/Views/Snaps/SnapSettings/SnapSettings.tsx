@@ -44,6 +44,7 @@ import Logger from '../../../../util/Logger';
 import { areAddressesEqual } from '../../../../util/address';
 import { RouteMessengerInstance } from './messenger';
 import { useMessenger } from '../../../../hooks/useMessenger';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 interface SnapSettingsProps {
   snap: Snap;
 }
@@ -150,6 +151,10 @@ const SnapSettings = () => {
     isKeyringSnap &&
     keyringAccounts.length > 0;
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: snap.manifest.proposedName,
+  });
+
   return (
     <>
       <SafeAreaView
@@ -159,17 +164,22 @@ const SnapSettings = () => {
           { backgroundColor: colors.background.default },
         ]}
       >
-        <HeaderStandard
-          title={snap.manifest.proposedName}
-          titleProps={SNAPS_HEADER_TITLE_PROPS}
-          onBack={handleBack}
-          includesTopInset
-          testID={SNAP_SETTINGS_HEADER}
-          backButtonProps={{
-            testID: SNAP_SETTINGS_BACK_BUTTON,
-          }}
-        />
+        {!isNativeHeaderEnabled && (
+          <HeaderStandard
+            title={snap.manifest.proposedName}
+            titleProps={SNAPS_HEADER_TITLE_PROPS}
+            onBack={handleBack}
+            includesTopInset
+            testID={SNAP_SETTINGS_HEADER}
+            backButtonProps={{
+              testID: SNAP_SETTINGS_BACK_BUTTON,
+            }}
+          />
+        )}
         <ScrollView
+          contentInsetAdjustmentBehavior={
+            isNativeHeaderEnabled ? 'automatic' : undefined
+          }
           testID={SNAP_SETTINGS_SCROLLVIEW}
           contentContainerStyle={styles.scrollContent}
         >

@@ -59,6 +59,10 @@ import {
   RevealPrivateCredentialRouteProp,
   RevealSrpStage,
 } from './types';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
@@ -390,20 +394,32 @@ const RevealPrivateCredential = ({
     return renderActionView();
   };
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('reveal_credential.seed_phrase_title'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <Box
       twClassName="flex-1 h-full bg-default"
       style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderStandard
-        title={strings('reveal_credential.seed_phrase_title')}
-        onBack={headerNavigationBack}
-        backButtonProps={{
-          testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
-        }}
-        includesTopInset
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('reveal_credential.seed_phrase_title')}
+          onBack={headerNavigationBack}
+          backButtonProps={{
+            testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
+          }}
+          includesTopInset
+        />
+      )}
+      {/*
+        The content here is not a single `ScrollView` this can hand the nav-bar
+        inset to, so it is padded clear of the floating bar instead.
+      */}
+      <Box style={{ paddingTop: nativeHeaderInset }} />
       {renderContent()}
       <ScreenshotDeterrent
         enabled

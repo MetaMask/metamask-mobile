@@ -1,20 +1,25 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useCallback, useMemo } from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import LinearGradient from 'react-native-linear-gradient';
 import {
-  BottomSheet,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
   ButtonIcon,
+  ButtonSize,
+  ButtonVariant,
   HeaderBase,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -23,386 +28,273 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  ORANGE_GRADIENT_COLORS,
+  ORANGE_GRADIENT_END,
+  ORANGE_GRADIENT_START,
+} from '../../../shared/pro/brand.constants';
 import { MembershipTestIds } from './Membership.testIds';
 import {
-  MOCK_MEMBERSHIP_STATS,
   MOCK_PAYMENT_DETAILS,
+  buildMembershipRows,
+  type MembershipAction,
+  type MembershipRow,
 } from './Membership.constants';
+import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-const SectionDivider = () => (
-  <Box twClassName="border-b border-border-muted my-6" />
-);
-
-interface InfoRowProps {
-  label: string;
-  value: string;
-  hasInfo?: boolean;
-  onPress?: () => void;
-  testID?: string;
+interface MembershipListRowProps {
+  row: MembershipRow;
+  onAction: (action: MembershipAction) => void;
 }
 
-const InfoRow = ({
-  label,
-  value,
-  hasInfo = false,
-  onPress,
-  testID,
-}: InfoRowProps) => {
-  const inner = (
-    <>
+/**
+ * One row of the billing list.
+ *
+ * icon | label | value | chevron — the same grammar as the hub's benefit rows,
+ * so the two screens read as parts of one product rather than two layouts. A
+ * row can carry both a value and a chevron, which is what lets the payment
+ * method state what it is and offer to change it in the same place.
+ *
+ * The icon platter is hand-rolled rather than `AvatarIcon` on purpose:
+ * `AvatarIcon`'s severity backgrounds are opaque tokens, and these sit on the
+ * brand gradient, which has to read through. `bg-muted` is translucent, and it
+ * matches the Secondary buttons below.
+ */
+const MembershipListRow = ({ row, onAction }: MembershipListRowProps) => {
+  const {
+    id,
+    iconName,
+    labelKey,
+    labelParams,
+    badge,
+    value,
+    sublabelKey,
+    sublabelParams,
+    action,
+  } = row;
+
+  const handlePress = useCallback(() => {
+    if (action) {
+      onAction(action);
+    }
+  }, [action, onAction]);
+
+  const content = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="gap-x-3 py-3"
+      testID={MembershipTestIds.ROW(id)}
+    >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-x-1"
+        twClassName="flex-1 gap-x-3"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName={
-            hasInfo ? 'border-b-2 border-dotted border-border-default' : ''
-          }
-        >
-          {label}
-        </Text>
-      </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextDefault}
-      >
-        {value}
-      </Text>
-    </>
-  );
+        <Box twClassName="w-10 h-10 rounded-full bg-muted items-center justify-center shrink-0">
+          <Icon
+            name={iconName}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
 
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        testID={testID}
-        accessibilityRole="button"
-      >
+        <Box twClassName="flex-1 gap-y-0.5">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
+            {strings(labelKey, labelParams)}
+          </Text>
+
+          {sublabelKey ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              testID={MembershipTestIds.SUBLABEL(id)}
+            >
+              {strings(sublabelKey, sublabelParams)}
+            </Text>
+          ) : null}
+        </Box>
+      </Box>
+
+      {/*
+        The trailing column stacks: the value, then the badge beneath it. The
+        badge qualifies the price, so it belongs under the price rather than
+        beside the label, where it competed with it.
+      */}
+      <Box alignItems={BoxAlignItems.End} twClassName="gap-y-1 shrink-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-x-1"
         >
-          {inner}
+          {value ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              testID={MembershipTestIds.VALUE(id)}
+            >
+              {value}
+            </Text>
+          ) : null}
+          {action ? (
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          ) : null}
         </Box>
-      </TouchableOpacity>
-    );
+        {badge ? (
+          <Tag
+            severity={TagSeverity.Success}
+            testID={MembershipTestIds.BADGE(id)}
+          >
+            {badge}
+          </Tag>
+        ) : null}
+      </Box>
+    </Box>
+  );
+
+  if (!action) {
+    return content;
   }
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      testID={testID}
-    >
-      {inner}
-    </Box>
+    <TouchableOpacity onPress={handlePress} accessibilityRole="button">
+      {content}
+    </TouchableOpacity>
   );
 };
 
-interface ManageRowProps {
-  label: string;
-  onPress: () => void;
-  testID?: string;
-}
-
-const ManageRow = ({ label, onPress, testID }: ManageRowProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    testID={testID}
-    accessibilityRole="button"
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-    >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </TouchableOpacity>
-);
-
-// ─── Stat info bottom sheet ───────────────────────────────────────────────────
-
-interface StatInfoSheetProps {
-  title: string;
-  description: string;
-  onClose: () => void;
-}
-
-const StatInfoSheet = ({ title, description, onClose }: StatInfoSheetProps) => (
-  <BottomSheet onClose={onClose} testID={MembershipTestIds.STAT_INFO_SHEET}>
-    <Box twClassName="p-4 gap-y-4">
-      <Text
-        variant={TextVariant.HeadingMd}
-        color={TextColor.TextDefault}
-        testID={MembershipTestIds.STAT_INFO_SHEET_TITLE}
-        twClassName="text-center"
-      >
-        {title}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        testID={MembershipTestIds.STAT_INFO_SHEET_DESCRIPTION}
-      >
-        {description}
-      </Text>
-    </Box>
-  </BottomSheet>
-);
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
-
-type ActiveStatSheet = 'earned' | 'saved' | null;
-
-const STAT_SHEET_CONTENT: Record<
-  Exclude<ActiveStatSheet, null>,
-  { titleKey: string; descriptionKey: string }
-> = {
-  earned: {
-    titleKey: 'pro_hub.membership.earned_info.title',
-    descriptionKey: 'pro_hub.membership.earned_info.description',
-  },
-  saved: {
-    titleKey: 'pro_hub.membership.saved_info.title',
-    descriptionKey: 'pro_hub.membership.saved_info.description',
-  },
-};
-
+/**
+ * Billing and admin for an Orange membership.
+ *
+ * "Earned this month" and "Saved this month" were removed. Both figures are now
+ * stated by the hub row that produces them — Boosted APY and Card cashback —
+ * so here they were duplicates, and each needed an info sheet to explain a
+ * number the member had not asked for. Removing them also retired
+ * `StatInfoSheet` and its four locale keys.
+ */
 const Membership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { top } = useSafeAreaInsets();
-  const [activeSheet, setActiveSheet] = useState<ActiveStatSheet>(null);
+
+  const rows = useMemo(() => buildMembershipRows(MOCK_PAYMENT_DETAILS), []);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleCloseSheet = useCallback(() => {
-    setActiveSheet(null);
-  }, []);
-
-  const handleEarnedPress = useCallback(() => {
-    setActiveSheet('earned');
-  }, []);
-
-  const handleSavedPress = useCallback(() => {
-    setActiveSheet('saved');
-  }, []);
-
   const handleContactSupport = useCallback(() => {
-    // TODO: navigate to support
+    // TODO: no support destination exists anywhere in the app yet.
   }, []);
 
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);
 
+  const handleAction = useCallback((_action: MembershipAction) => {
+    /*
+     * `payment_method` and `invoices` have no destination yet — invoices is in
+     * flight upstream. Both rows are here because this is where they belong;
+     * wire them when there is somewhere to go.
+     */
+  }, []);
+
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('pro_hub.membership.title'),
+  });
+
   return (
-    <View
-      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
-      testID={MembershipTestIds.CONTAINER}
+    /* Gradient at the container, matching the hub and the upsell. */
+    <LinearGradient
+      colors={ORANGE_GRADIENT_COLORS}
+      start={ORANGE_GRADIENT_START}
+      end={ORANGE_GRADIENT_END}
+      style={tw.style('flex-1')}
     >
-      <HeaderBase
-        twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={MembershipTestIds.BACK_BUTTON}
-          />
-        }
-      />
-
-      <ScrollView
-        contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
-        showsVerticalScrollIndicator={false}
+      <SafeAreaView
+        style={tw.style('flex-1')}
+        edges={isNativeHeaderEnabled ? ['bottom'] : ['top', 'bottom']}
+        testID={MembershipTestIds.CONTAINER}
       >
-        {/* Title */}
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="mb-6"
-          testID={MembershipTestIds.TITLE}
-        >
-          {strings('pro_hub.membership.title')}
-        </Text>
-
-        {/* ── Stats ─────────────────────────────────────────────────────── */}
-        <Box twClassName="gap-y-6" testID={MembershipTestIds.STATS_SECTION}>
-          <InfoRow
-            label={strings('pro_hub.membership.plan')}
-            value={MOCK_MEMBERSHIP_STATS.plan}
-            testID={MembershipTestIds.PLAN_ROW}
-          />
-          <InfoRow
-            label={strings('pro_hub.membership.earned_this_month')}
-            value={MOCK_MEMBERSHIP_STATS.earnedThisMonth}
-            hasInfo
-            onPress={handleEarnedPress}
-            testID={MembershipTestIds.EARNED_ROW}
-          />
-          <InfoRow
-            label={strings('pro_hub.membership.saved_this_month')}
-            value={MOCK_MEMBERSHIP_STATS.savedThisMonth}
-            hasInfo
-            onPress={handleSavedPress}
-            testID={MembershipTestIds.SAVED_ROW}
-          />
-        </Box>
-
-        <SectionDivider />
-
-        {/* ── Payment details ───────────────────────────────────────────── */}
-        <Box testID={MembershipTestIds.PAYMENT_SECTION}>
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-            twClassName="mb-4"
+        {/*
+          The title sits in the toolbar rather than as a display heading in the
+          content. There are three rows on this screen — a 32pt headline over
+          them claimed more importance than a billing list deserves.
+        */}
+        {!isNativeHeaderEnabled && (
+          <HeaderBase
+            twClassName="px-4"
+            startAccessory={
+              <ButtonIcon
+                iconName={IconName.ArrowLeft}
+                onPress={handleBack}
+                accessibilityLabel={strings('navigation.back')}
+                testID={MembershipTestIds.BACK_BUTTON}
+              />
+            }
+            testID={MembershipTestIds.TITLE}
           >
-            {strings('pro_hub.membership.payment_details')}
-          </Text>
+            {strings('pro_hub.membership.title')}
+          </HeaderBase>
+        )}
 
-          <Box twClassName="gap-y-4">
-            {/* Total row — strikethrough original + discounted price */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              testID={MembershipTestIds.TOTAL_ROW}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('pro_hub.membership.total')}
-              </Text>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-x-1 flex-wrap"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  twClassName="line-through"
-                >
-                  {MOCK_PAYMENT_DETAILS.totalOriginal}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
-                  color={TextColor.TextDefault}
-                >
-                  {MOCK_PAYMENT_DETAILS.totalDiscounted}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {`(${MOCK_PAYMENT_DETAILS.savingsNote})`}
-                </Text>
-              </Box>
-            </Box>
-
-            {/* Paying with */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              testID={MembershipTestIds.PAYING_WITH_ROW}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('pro_hub.membership.paying_with')}
-              </Text>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-x-2"
-              >
-                <Box twClassName="w-8 h-8 bg-background-section rounded-lg flex items-center justify-center">
-                  <Icon
-                    name={IconName.Wallet}
-                    size={IconSize.Sm}
-                    color={IconColor.IconDefault}
-                  />
-                </Box>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
-                  color={TextColor.TextDefault}
-                >
-                  {MOCK_PAYMENT_DETAILS.payingWith}
-                </Text>
-              </Box>
-            </Box>
-
-            {/* Renews on */}
-            <InfoRow
-              label={strings('pro_hub.membership.renews_on')}
-              value={MOCK_PAYMENT_DETAILS.renewsOn}
-              testID={MembershipTestIds.RENEWS_ON_ROW}
-            />
+        <ScrollView
+          contentInsetAdjustmentBehavior={
+            isNativeHeaderEnabled ? 'automatic' : undefined
+          }
+          contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
+          showsVerticalScrollIndicator={false}
+        >
+          <Box testID={MembershipTestIds.LIST}>
+            {rows.map((row) => (
+              <MembershipListRow
+                key={row.id}
+                row={row}
+                onAction={handleAction}
+              />
+            ))}
           </Box>
-        </Box>
+        </ScrollView>
 
-        <SectionDivider />
-
-        {/* ── Manage ───────────────────────────────────────────────────────── */}
-        <Box
-          testID={MembershipTestIds.MANAGE_SECTION}
-          twClassName="flex flex-col gap-y-6"
-        >
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {strings('pro_hub.membership.manage')}
-          </Text>
-          <ManageRow
-            label={strings('pro_hub.membership.contact_support')}
+        {/*
+          Support and cancellation are actions, not list items, so they are
+          buttons — and pinned, so cancelling is always reachable without
+          scrolling a list looking for it. Danger on the cancel keeps them
+          visually distinct from each other without needing a divider.
+        */}
+        <Box twClassName="px-4 pb-2 gap-y-3">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
             onPress={handleContactSupport}
-            testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
-          />
-          <ManageRow
-            label={strings('pro_hub.membership.cancel_membership')}
+            isFullWidth
+            testID={MembershipTestIds.CONTACT_SUPPORT_BUTTON}
+          >
+            {strings('pro_hub.membership.contact_support')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isDanger
             onPress={handleCancelMembership}
-            testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
-          />
+            isFullWidth
+            testID={MembershipTestIds.CANCEL_MEMBERSHIP_BUTTON}
+          >
+            {strings('pro_hub.membership.cancel_membership')}
+          </Button>
         </Box>
-      </ScrollView>
-
-      {activeSheet && (
-        <StatInfoSheet
-          title={strings(STAT_SHEET_CONTENT[activeSheet].titleKey)}
-          description={strings(STAT_SHEET_CONTENT[activeSheet].descriptionKey)}
-          onClose={handleCloseSheet}
-        />
-      )}
-    </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 

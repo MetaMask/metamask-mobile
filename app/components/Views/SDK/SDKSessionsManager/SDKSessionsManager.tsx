@@ -25,6 +25,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../SDK.testIds';
 import SDKSessionItem from './SDKSessionItem';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 const createStyles = (
   colors: ThemeColors,
@@ -98,10 +99,19 @@ const SDKSessionsManager = () => {
     });
   }, [navigation]);
 
+  // Ahead of `renderSDKSessions`, which reads it for the scroll inset.
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.manage_sdk_connections_title'),
+  });
+
   const renderSDKSessions = useCallback(
     () => (
       <>
-        <ScrollView>
+        <ScrollView
+          contentInsetAdjustmentBehavior={
+            isNativeHeaderEnabled ? 'automatic' : undefined
+          }
+        >
           {connectionsList.map((sdkSession, _index) => (
             <SDKSessionItem
               key={sdkSession.id}
@@ -123,7 +133,13 @@ const SDKSessionsManager = () => {
         </View>
       </>
     ),
-    [connectionsList, trigger, styles, toggleClearMMSDKConnectionModal],
+    [
+      connectionsList,
+      trigger,
+      styles,
+      toggleClearMMSDKConnectionModal,
+      isNativeHeaderEnabled,
+    ],
   );
 
   const renderEmptyResult = () => (
@@ -143,16 +159,18 @@ const SDKSessionsManager = () => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      <HeaderStandard
-        title={strings('app_settings.manage_sdk_connections_title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
-        onBack={handleBack}
-        includesTopInset
-        testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}
-        backButtonProps={{
-          testID: SDKSelectorsIDs.SESSION_MANAGER_BACK_BUTTON,
-        }}
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.manage_sdk_connections_title')}
+          titleProps={{ color: TextColor.PrimaryDefault }}
+          onBack={handleBack}
+          includesTopInset
+          testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}
+          backButtonProps={{
+            testID: SDKSelectorsIDs.SESSION_MANAGER_BACK_BUTTON,
+          }}
+        />
+      )}
       <View style={styles.content}>
         {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
       </View>

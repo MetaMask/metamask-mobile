@@ -82,6 +82,7 @@ import {
 } from '../../../constants/urls';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { hasTestOverrides } from '../../../util/test/utils';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -834,18 +835,24 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       </>
     );
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('password_reset.change_password'),
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
-        testID="header"
-        title={strings('password_reset.change_password')}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ isDisabled: loading }}
-        includesTopInset
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          testID="header"
+          title={strings('password_reset.change_password')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ isDisabled: loading }}
+          includesTopInset
+        />
+      )}
       <Box twClassName="flex-1" testID={'account-backup-step-4-screen'}>
         {view === ViewState.ResetForm
           ? renderResetPassword()

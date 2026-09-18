@@ -44,6 +44,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { createStyles } from './AdvancedSettings.styles';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 interface SettingsState {
   showHexData: boolean;
@@ -160,17 +161,26 @@ const AdvancedSettings = ({
     Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.advanced_title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-      <HeaderStandard
-        title={strings('app_settings.advanced_title')}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: AdvancedViewSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.advanced_title')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: AdvancedViewSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
       <KeyboardAwareScrollView
         style={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
         ref={scrollView}
       >

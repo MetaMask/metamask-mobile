@@ -27,6 +27,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import foxImage from '../../../../images/branding/fox.png';
 import { createStyles } from './AppInformation.styles';
 import { EnvironmentInfo } from './EnvironmentInfo';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 interface Props {
   navigation: AppNavigationProp;
@@ -133,19 +134,30 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
 
   const aboutTitle = strings('app_settings.info_title');
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: aboutTitle,
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={styles.wrapper}
       testID={AboutMetaMaskSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        includesTopInset
-        title={aboutTitle}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
-      />
-      <ScrollView contentContainerStyle={styles.wrapperContent}>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          includesTopInset
+          title={aboutTitle}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
+        />
+      )}
+      <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+        contentContainerStyle={styles.wrapperContent}
+      >
         <View style={styles.logoWrapper}>
           <TouchableOpacity
             delayLongPress={10 * 1000} // 10 seconds

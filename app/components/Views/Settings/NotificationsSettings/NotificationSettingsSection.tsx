@@ -16,6 +16,7 @@ import { type NotificationPreferenceSection } from './hooks/useNotificationStora
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
@@ -48,14 +49,24 @@ const NotificationSettingsSection = ({
     }
   }, [isMetamaskNotificationsEnabled, navigation]);
 
+  // Ahead of the early return below: hooks cannot run conditionally.
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.notifications_title'),
+  });
+
   if (!isMetamaskNotificationsEnabled) return null;
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard
-        title={strings('app_settings.notifications_title')}
-        onBack={() => navigation.goBack()}
-      />
+    <SafeAreaView
+      edges={isNativeHeaderEnabled ? [] : ['top']}
+      style={styles.safeArea}
+    >
+      {!isNativeHeaderEnabled && (
+        <HeaderCompactStandard
+          title={strings('app_settings.notifications_title')}
+          onBack={() => navigation.goBack()}
+        />
+      )}
       <NotificationSettingsSectionContent
         type={type}
         title={title}

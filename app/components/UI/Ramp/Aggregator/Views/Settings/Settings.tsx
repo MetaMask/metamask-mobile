@@ -27,6 +27,7 @@ import ListItem from '../../../../../../component-library/components/List/ListIt
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
 
 import styles from './Settings.styles';
+import { useNativeHeader } from '../../../../../hooks/useNativeHeader';
 
 export const RAMP_SETTINGS_HEADER_TEST_ID = 'ramp-settings-header';
 export const RAMP_SETTINGS_BACK_BUTTON_TEST_ID = 'ramp-settings-back-button';
@@ -52,19 +53,33 @@ function Settings() {
     navigation.navigate(Routes.RAMP.HEADLESS_PLAYGROUND);
   }, [navigation]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.fiat_on_ramp.title'),
+  });
+
   return (
-    <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderStandard
-        testID={RAMP_SETTINGS_HEADER_TEST_ID}
-        title={strings('app_settings.fiat_on_ramp.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: RAMP_SETTINGS_BACK_BUTTON_TEST_ID }}
-      />
+    <SafeAreaView
+      edges={isNativeHeaderEnabled ? [] : ['top']}
+      style={style.container}
+    >
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          testID={RAMP_SETTINGS_HEADER_TEST_ID}
+          title={strings('app_settings.fiat_on_ramp.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: RAMP_SETTINGS_BACK_BUTTON_TEST_ID }}
+        />
+      )}
       <KeyboardAvoidingView
         style={style.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScreenLayout scrollable>
+        <ScreenLayout
+          scrollable
+          contentInsetAdjustmentBehavior={
+            isNativeHeaderEnabled ? 'automatic' : undefined
+          }
+        >
           <ScreenLayout.Body>
             <ScreenLayout.Content>
               <Row first>

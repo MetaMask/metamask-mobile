@@ -57,6 +57,7 @@ import {
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
 import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -429,12 +430,22 @@ const ManualBackupStep1 = () => {
     </Box>
   );
 
+  /*
+   * This screen is also reached outside the settings flow (onboarding), where
+   * it deliberately shows no chrome at all — so the native bar follows the same
+   * `showHeader` gate the JS one does.
+   */
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: '',
+    enabled: showHeader,
+  });
+
   return (
     <SafeAreaView
       edges={showHeader ? { bottom: 'additive' } : ['top', 'bottom']}
       style={tw.style('bg-default flex-1')}
     >
-      {showHeader ? (
+      {showHeader && !isNativeHeaderEnabled ? (
         <HeaderStandard
           includesTopInset
           onBack={() => navigation.goBack()}

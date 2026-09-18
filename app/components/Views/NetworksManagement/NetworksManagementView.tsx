@@ -34,6 +34,7 @@ import { SECTION_KEYS } from './NetworksManagementView.constants';
 import { NetworkManagementItem } from './NetworksManagementView.types';
 
 import AdditionalNetworkItem from './components/AdditionalNetworkItem';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 const NetworksManagementView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -114,31 +115,78 @@ const NetworksManagementView = () => {
     [handleEditNetwork],
   );
 
+  const headerSearchBar = useMemo(
+    () => ({
+      placeholder: strings('app_settings.networks_search_placeholder'),
+      onChangeText: (event: { nativeEvent: { text: string } }) =>
+        setSearchQuery(event.nativeEvent.text),
+      onCancelButtonPress: () => setSearchQuery(''),
+      autoCapitalize: 'none' as const,
+      hideWhenScrolling: false,
+      /*
+       * A search action in the trailing group that expands into the field when
+       * tapped, rather than a field occupying a line of its own.
+       * `integratedButton` keeps it collapsed to a button even when there is
+       * room for a full field, so the bar reads as actions rather than as a
+       * form.
+       */
+      placement: 'integratedButton' as const,
+      /*
+       * Required alongside any `integrated*` placement. Left at its default of
+       * `true`, UIKit may host the search bar in the bottom toolbar on iPhone
+       * instead of the navigation bar — which is what had it floating at the
+       * bottom over the content.
+       */
+      allowToolbarIntegration: false,
+    }),
+    [],
+  );
+
+  /*
+   * Search lives in the bar as a `UISearchController` rather than as the first
+   * row of the content. As a JS field above the scroller it sat *under* the
+   * transparent bar — the nav-bar inset applies to the scroller, not to
+   * siblings above it — which is what put it over the title.
+   *
+   * No title: the search field takes the bar's second line, and "Networks" is
+   * already what the row said on the screen you came from.
+   */
+  const isNativeHeaderEnabled = useNativeHeader({
+    searchBar: headerSearchBar,
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-background-default')}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        title={strings('app_settings.networks_title')}
-        onBack={handleBack}
-        includesTopInset
-      />
-
-      <Box twClassName="px-4 py-2">
-        <TextFieldSearch
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onPressClearButton={() => setSearchQuery('')}
-          placeholder={strings('app_settings.networks_search_placeholder')}
-          testID={NetworksManagementViewSelectorsIDs.SEARCH_INPUT}
-          autoCorrect={false}
-          autoCapitalize="none"
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.networks_title')}
+          onBack={handleBack}
+          includesTopInset
         />
-      </Box>
+      )}
+
+      {!isNativeHeaderEnabled && (
+        <Box twClassName="px-4 py-2">
+          <TextFieldSearch
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onPressClearButton={() => setSearchQuery('')}
+            placeholder={strings('app_settings.networks_search_placeholder')}
+            testID={NetworksManagementViewSelectorsIDs.SEARCH_INPUT}
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+        </Box>
+      )}
 
       <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         style={tw.style('flex-1')}
         testID={NetworksManagementViewSelectorsIDs.SECTION_LIST}
       >

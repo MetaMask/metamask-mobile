@@ -35,6 +35,11 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
@@ -122,28 +127,77 @@ const NotificationsView = ({
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   }, [navigation]);
 
+  /*
+   * The cog moves into the bar's trailing group; the close action is the
+   * system back button this screen was pushed with.
+   */
+  const headerRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button' as const,
+        identifier: 'notifications-settings',
+        label: '',
+        icon: { type: 'sfSymbol' as const, name: 'gearshape' },
+        variant: 'plain' as const,
+        accessibilityLabel: strings('app_settings.title'),
+        onPress: handleOpenSettings,
+      },
+    ],
+    [handleOpenSettings],
+  );
+
+  /*
+   * This is the initial route of the notifications stack, so native-stack
+   * draws no back button for it — `headerBackVisible` has "no effect on the
+   * first screen in the stack". The chevron has to be supplied here, and it
+   * runs `handleClose`, which falls back to Home when there is nothing to pop.
+   */
+  const headerLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button' as const,
+        identifier: 'notifications-back',
+        label: '',
+        icon: { type: 'sfSymbol' as const, name: 'chevron.backward' },
+        variant: 'plain' as const,
+        accessibilityLabel: strings('navigation.back'),
+        onPress: handleClose,
+      },
+    ],
+    [handleClose],
+  );
+
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.notifications_title'),
+    leftItems: headerLeftItems,
+    rightItems: headerRightItems,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <SafeAreaView
-      edges={['top']}
+      edges={isNativeHeaderEnabled ? [] : ['top']}
       style={[styles.wrapper, { backgroundColor: colors.background.default }]}
     >
-      <HeaderCompactStandard
-        title={strings('app_settings.notifications_title')}
-        titleProps={{ testID: NotificationMenuViewSelectorsIDs.TITLE }}
-        onBack={handleClose}
-        backButtonProps={{
-          testID: NotificationMenuViewSelectorsIDs.CLOSE_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Setting,
-            onPress: handleOpenSettings,
-            testID: NotificationMenuViewSelectorsIDs.COG_WHEEL,
-          },
-        ]}
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderCompactStandard
+          title={strings('app_settings.notifications_title')}
+          titleProps={{ testID: NotificationMenuViewSelectorsIDs.TITLE }}
+          onBack={handleClose}
+          backButtonProps={{
+            testID: NotificationMenuViewSelectorsIDs.CLOSE_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Setting,
+              onPress: handleOpenSettings,
+              testID: NotificationMenuViewSelectorsIDs.COG_WHEEL,
+            },
+          ]}
+        />
+      )}
       <View
-        style={styles.wrapper}
+        style={[styles.wrapper, { paddingTop: nativeHeaderInset }]}
         testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
       >
         {isNotificationEnabled ? (

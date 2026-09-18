@@ -25,6 +25,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { MOCK_EARNED_DATA } from './Earned.constants';
 import { EarnedTestIds } from './Earned.testIds';
 import { useDigitTicker } from '../../hooks';
+import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 
 interface BreakdownRowProps {
   title: string;
@@ -81,25 +82,34 @@ const Earned = () => {
     /* TODO: Implement add money */
   }, []);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: '',
+  });
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['top', 'bottom']}
+      edges={isNativeHeaderEnabled ? ['bottom'] : ['top', 'bottom']}
       testID={EarnedTestIds.CONTAINER}
     >
-      <HeaderBase
-        twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={EarnedTestIds.BACK_BUTTON}
-          />
-        }
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderBase
+          twClassName="px-4"
+          startAccessory={
+            <ButtonIcon
+              iconName={IconName.ArrowLeft}
+              onPress={handleBack}
+              accessibilityLabel={strings('navigation.back')}
+              testID={EarnedTestIds.BACK_BUTTON}
+            />
+          }
+        />
+      )}
 
       <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >

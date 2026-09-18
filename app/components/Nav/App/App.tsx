@@ -196,6 +196,7 @@ import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
+import { useNativeHeaderScreenOptions } from '../../hooks/useNativeHeader';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1141,6 +1142,20 @@ const ModalSwitchAccountType = () => (
 
 const AppFlow = () => {
   const { colors } = useTheme();
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+
+  /*
+   * Orange. The glass chrome goes in each screen's static options rather than
+   * being applied from inside the screen — see `useNativeHeaderScreenOptions`
+   * for why that matters to the push animation. The screens themselves supply
+   * only their titles, via `useNativeHeader`.
+   */
+  const proHubScreenOptions = {
+    ...nativeHeaderScreenOptions,
+    gestureEnabled: true,
+    presentation: 'card' as const,
+    animation: 'default' as const,
+  };
 
   return (
     <NativeStack.Navigator
@@ -1441,42 +1456,22 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.PRO_HUB.ROOT}
         component={ProHub}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
+        options={proHubScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.PRO_HUB.MEMBERSHIP}
         component={Membership}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
+        options={proHubScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.PRO_HUB.EARNED}
         component={Earned}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
+        options={proHubScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.PRO_HUB.CANCEL_MEMBERSHIP}
         component={CancelMembership}
-        options={{
-          headerShown: false,
-          gestureEnabled: true,
-          presentation: 'card',
-          animation: 'default',
-        }}
+        options={proHubScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}

@@ -3,6 +3,7 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
@@ -32,9 +33,11 @@ import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { useQRScanner } from '../../hooks/useQRScanner';
+import { useOrangeMembership } from '../shared/pro/useOrangeMembership';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useAccountName } from '../../hooks/useAccountName';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
@@ -103,11 +106,19 @@ const AccountsMenu = () => {
       )
     : undefined;
 
+  const { isMember: isOrangeMember, nextPayment } = useOrangeMembership();
+
+  /*
+   * Members go to the hub, everyone else to the upsell. Without this a member
+   * tapping their own membership row was sold the thing they already have, and
+   * the hub was only ever reachable in the moment straight after buying.
+   */
   const onPressMetamaskOrange = useCallback(() => {
-    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
-      source: 'accounts_menu',
-    });
-  }, [navigation]);
+    navigation.navigate(
+      isOrangeMember ? Routes.PRO_HUB.ROOT : Routes.PRO_SUBSCRIPTION.ROOT,
+      { source: 'accounts_menu' },
+    );
+  }, [isOrangeMember, navigation]);
 
   const onPressAccountSwitcher = useCallback(() => {
     navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
@@ -136,6 +147,58 @@ const AccountsMenu = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  /*
+   * The scanner is the only trailing action, so UIKit already gives it its own
+   * glass capsule — a lone item is its own group.
+   */
+  const headerRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button' as const,
+        identifier: 'accounts-menu-scan',
+        // Icon-only: the glyph carries it, `accessibilityLabel` names it.
+        label: '',
+        icon: { type: 'sfSymbol' as const, name: 'qrcode.viewfinder' },
+        variant: 'plain' as const,
+        accessibilityLabel: strings('accounts_menu.scan'),
+        onPress: openQRScanner,
+      },
+    ],
+    [openQRScanner],
+  );
+
+  /*
+   * This is SettingsFlow's initial route, so native-stack draws no back button
+   * for it and the chevron has to be supplied here. Every screen pushed above
+   * this one gets the system button instead — and since the bar is configured
+   * to show the chevron alone, the two are indistinguishable.
+   *
+   * Drawing it on this stack rather than on the parent is what keeps the
+   * transition continuous: one `UINavigationBar` across the whole flow, so the
+   * chevron and title animate between screens instead of the bar being torn
+   * down on push and sliding back in from the top on pop.
+   */
+  const headerLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button' as const,
+        identifier: 'accounts-menu-back',
+        // Matches the system back button, which is chevron-only here.
+        label: '',
+        icon: { type: 'sfSymbol' as const, name: 'chevron.backward' },
+        variant: 'plain' as const,
+        accessibilityLabel: strings('navigation.back'),
+        onPress: handleBack,
+      },
+    ],
+    [handleBack],
+  );
+
+  const isNativeHeaderEnabled = useNativeHeader({
+    leftItems: headerLeftItems,
+    rightItems: headerRightItems,
+  });
 
   const onPressSettings = useCallback(() => {
     trackEvent(createEventBuilder(EVENT_NAME.SETTINGS_VIEWED).build());
@@ -288,19 +351,40 @@ const AccountsMenu = () => {
     return unreadNotificationCount.toString();
   }, [unreadNotificationCount]);
 
-  // Trailing "Upgrade" tag, laid out like the notifications count badge so
-  // both rows align. `Tag` is the design system's badge component.
-  const renderMetamaskOrangeEndAccessory = useMemo(
-    () => (
+  /*
+   * The "Upgrade" tag is a call to action, so it goes once there is nothing to
+   * upgrade to — leaving it would be selling the member something they hold.
+   * A member sees the chevron alone, and the row earns its keep through the
+   * sublabel below instead.
+   */
+  const renderMetamaskOrangeEndAccessory = useMemo(() => {
+    if (isOrangeMember) {
+      return arrowRightIcon;
+    }
+    return (
       <Box style={tw.style('flex-row items-center gap-2')}>
         <Tag severity={TagSeverity.Info}>
           {strings('accounts_menu.metamask_orange_badge')}
         </Tag>
         {arrowRightIcon}
       </Box>
-    ),
-    [tw, arrowRightIcon],
-  );
+    );
+  }, [isOrangeMember, tw, arrowRightIcon]);
+
+  /*
+   * The next charge, which is the one thing a member is likely to want from an
+   * account menu — it is the fact that is otherwise two screens deep, under
+   * Manage plan.
+   */
+  const metamaskOrangeDescription = useMemo(() => {
+    if (!isOrangeMember || !nextPayment) {
+      return undefined;
+    }
+    return strings('accounts_menu.metamask_orange_next_payment', {
+      amount: nextPayment.amount,
+      date: nextPayment.date,
+    });
+  }, [isOrangeMember, nextPayment]);
 
   const renderNotificationsEndAccessory = useMemo(() => {
     if (isNotificationsEnabled && unreadNotificationCount > 0) {
@@ -341,28 +425,44 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
-        endAccessory={
-          /*
-            IA EXPERIMENT: QR scan moved out of the Quick Actions block and up
-            into this view's own toolbar, so it is chrome rather than a row.
-          */
-          <ButtonIcon
-            iconName={IconName.QrCode}
-            size={ButtonIconSize.Md}
-            onPress={openQRScanner}
-            accessibilityLabel={strings('accounts_menu.scan')}
-            testID={AccountsMenuSelectorsIDs.SCAN_BUTTON}
-          />
-        }
-        includesTopInset
-      />
+      {/*
+        With the native header on, the back button and the scanner are real
+        `UIBarButtonItem`s in the parent's bar (see the `useFocusEffect`
+        above), so the JS toolbar would be a second, duplicate one.
+      */}
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          onBack={handleBack}
+          backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
+          endAccessory={
+            /*
+              IA EXPERIMENT: QR scan moved out of the Quick Actions block and up
+              into this view's own toolbar, so it is chrome rather than a row.
+            */
+            <ButtonIcon
+              iconName={IconName.QrCode}
+              size={ButtonIconSize.Md}
+              onPress={openQRScanner}
+              accessibilityLabel={strings('accounts_menu.scan')}
+              testID={AccountsMenuSelectorsIDs.SCAN_BUTTON}
+            />
+          }
+          includesTopInset
+        />
+      )}
       <ScrollView
         style={tw.style('flex-1', {
           backgroundColor: colors.background.default,
         })}
+        /*
+         * The transparent bar floats over this ScrollView, so let UIKit apply
+         * the nav-bar inset: content starts below the glass but still passes
+         * under it on scroll, which is the point. Left alone when the JS
+         * header is in use, since that one takes real layout space.
+         */
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
         {/*
@@ -425,10 +525,22 @@ const AccountsMenu = () => {
           Notifications was also moved below MetaMask Card.
         */}
         <ActionListItem
+          /*
+            `self-center` because ActionListItem hardcodes `alignItems: Start`
+            on its leading group, so the icon top-aligns as soon as a
+            description makes the text column two lines tall. There is no prop
+            to override it — `twClassName` goes to the Pressable — and the
+            component centres its *trailing* accessory, so leading and trailing
+            disagree. Worth fixing in the design system; this is the local
+            workaround until then.
+          */
           startAccessory={
-            <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+            <Box twClassName="self-center">
+              <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+            </Box>
           }
           label={strings('accounts_menu.metamask_orange')}
+          description={metamaskOrangeDescription}
           endAccessory={renderMetamaskOrangeEndAccessory}
           onPress={onPressMetamaskOrange}
           testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}

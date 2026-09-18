@@ -12,6 +12,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
@@ -115,17 +116,27 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
-        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
-        includesTopInset
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
+          testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
+          includesTopInset
+        />
+      )}
       <ScrollView
         style={styles.wrapper}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
         <SettingsDrawer

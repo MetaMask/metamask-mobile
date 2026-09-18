@@ -45,6 +45,7 @@ import {
 import { TraceName, endTrace } from '../../../util/trace';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -425,18 +426,24 @@ const ManualBackupStep2 = ({
     }
   };
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: '',
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
-        includesTopInset
-        onBack={() => navigation.goBack()}
-        backButtonProps={{
-          testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
-        }}
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+          backButtonProps={{
+            testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+          }}
+        />
+      )}
       <Box twClassName="flex-1 px-4">
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}

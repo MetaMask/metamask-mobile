@@ -33,6 +33,7 @@ import {
 } from './AesCrypto.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 const AesCryptoTestForm = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -138,20 +139,29 @@ const AesCryptoTestForm = () => {
     [encryptor, keyEncryptedData],
   );
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.aes_crypto_test_form_title'),
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={styles.container}
       testID={aesCryptoFormSafeArea}
     >
-      <HeaderStandard
-        title={strings('app_settings.aes_crypto_test_form_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-        testID={aesCryptoFormHeader}
-        backButtonProps={{ testID: aesCryptoFormHeaderBackButton }}
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.aes_crypto_test_form_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+          testID={aesCryptoFormHeader}
+          backButtonProps={{ testID: aesCryptoFormHeaderBackButton }}
+        />
+      )}
       <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         contentContainerStyle={styles.scrollContainer}
         testID={aesCryptoFormScrollIdentifier}
       >

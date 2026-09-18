@@ -35,6 +35,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 interface NotificationRowProps {
   title: string;
@@ -106,6 +107,15 @@ const NotificationsSettings = ({ navigation }: Props) => {
 
   const { preferences } = useNotificationStoragePreferences();
 
+  /*
+   * Titled in the bar like every other settings screen. The large in-content
+   * heading below is dropped while this is on, rather than printing the screen
+   * name twice.
+   */
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.notifications_title'),
+  });
+
   const navigateToSection = (
     type: NotificationPreferenceSection,
     title: string,
@@ -119,12 +129,24 @@ const NotificationsSettings = ({ navigation }: Props) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard onBack={navigation.goBack} />
-      <ScrollView style={styles.container}>
-        <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-          {strings('app_settings.notifications_title')}
-        </Text>
+    <SafeAreaView
+      edges={isNativeHeaderEnabled ? [] : ['top']}
+      style={styles.safeArea}
+    >
+      {!isNativeHeaderEnabled && (
+        <HeaderCompactStandard onBack={navigation.goBack} />
+      )}
+      <ScrollView
+        style={styles.container}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+      >
+        {!isNativeHeaderEnabled && (
+          <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
+            {strings('app_settings.notifications_title')}
+          </Text>
+        )}
         <MainNotificationToggle />
 
         {isMetamaskNotificationsEnabled && (

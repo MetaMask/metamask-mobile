@@ -36,6 +36,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { capitalize } from 'lodash';
 import { colors as commonColors } from '../../../styles/common';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -304,19 +305,29 @@ const WalletRecovery = () => {
     }
   }, [userEmail]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.manage_recovery_method'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
-      <HeaderStandard
-        title={strings('app_settings.manage_recovery_method')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
-        onBack={handleBack}
-        includesTopInset
-        testID="wallet-recovery-header"
-        backButtonProps={{
-          testID: 'wallet-recovery-back-button',
-        }}
-      />
-      <ScrollView>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.manage_recovery_method')}
+          titleProps={{ color: TextColor.PrimaryDefault }}
+          onBack={handleBack}
+          includesTopInset
+          testID="wallet-recovery-header"
+          backButtonProps={{
+            testID: 'wallet-recovery-back-button',
+          }}
+        />
+      )}
+      <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+      >
         <View style={styles.root}>
           {authConnection && (
             <View style={styles.socialContainer}>

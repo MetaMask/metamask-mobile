@@ -41,6 +41,7 @@ import { Country, State } from '@metamask/ramps-controller';
 import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
 import { useRampsCountries } from '../../../hooks/useRampsCountries';
 import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
+import { useNativeHeader } from '../../../../../hooks/useNativeHeader';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -626,17 +627,23 @@ function RegionSelector() {
     }
   }, [activeView, handleRegionBackButton, handleGoBack]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: headerTitle,
+  });
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <HeaderStandard
-        title={headerTitle}
-        onBack={handleHeaderBack}
-        backButtonProps={{ testID: headerBackTestId }}
-        includesTopInset
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: headerBackTestId }}
+          includesTopInset
+        />
+      )}
       <View style={styles.searchContainer}>
         {activeView === RegionViewType.COUNTRY && (
           <Text
@@ -665,6 +672,9 @@ function RegionSelector() {
         />
       </View>
       <FlatList
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         ref={listRef}
         style={styles.list}
         data={dataSearchResults}

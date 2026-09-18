@@ -25,6 +25,10 @@ import { selectAddressBook } from '../../../../selectors/addressBookController';
 import type { RootState } from '../../../../reducers';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import type { Colors } from '../../../../util/theme/models';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../hooks/useNativeHeader';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -132,21 +136,33 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
     });
   };
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.contacts_title'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <SafeAreaView
       style={styles.wrapper}
       testID={ContactsViewSelectorIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
-      <HeaderStandard
-        title={strings('app_settings.contacts_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-        testID={ContactsViewSelectorIDs.HEADER}
-        backButtonProps={{
-          testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
-        }}
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.contacts_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+          testID={ContactsViewSelectorIDs.HEADER}
+          backButtonProps={{
+            testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
+          }}
+        />
+      )}
+      {/*
+        `AddressList` owns its own list scroller, so there is no `ScrollView`
+        here to hand the nav-bar inset to — pad above it instead.
+      */}
+      <View style={{ paddingTop: nativeHeaderInset }} />
       <AddressList
         chainId={chainId}
         onlyRenderAddressBook

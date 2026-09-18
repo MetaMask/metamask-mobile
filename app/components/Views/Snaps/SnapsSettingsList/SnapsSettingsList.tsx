@@ -20,6 +20,7 @@ import {
   SNAPS_SETTINGS_LIST_BACK_BUTTON,
   SNAPS_SETTINGS_LIST_HEADER,
 } from './SnapsSettingsList.constants';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 export const createSnapsSettingsListNavDetails = createNavigationDetails(
   Routes.SNAPS.SNAPS_SETTINGS_LIST,
@@ -34,19 +35,29 @@ const SnapsSettingsList = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.snaps.title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
-      <HeaderStandard
-        title={strings('app_settings.snaps.title')}
-        titleProps={SNAPS_HEADER_TITLE_PROPS}
-        onBack={handleBack}
-        includesTopInset
-        testID={SNAPS_SETTINGS_LIST_HEADER}
-        backButtonProps={{
-          testID: SNAPS_SETTINGS_LIST_BACK_BUTTON,
-        }}
-      />
-      <ScrollView>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.snaps.title')}
+          titleProps={SNAPS_HEADER_TITLE_PROPS}
+          onBack={handleBack}
+          includesTopInset
+          testID={SNAPS_SETTINGS_LIST_HEADER}
+          backButtonProps={{
+            testID: SNAPS_SETTINGS_LIST_BACK_BUTTON,
+          }}
+        />
+      )}
+      <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+      >
         {(Object.values(snaps) as Snap[]).map((snap: Snap) => (
           <SnapElement {...snap} key={snap.id} />
         ))}

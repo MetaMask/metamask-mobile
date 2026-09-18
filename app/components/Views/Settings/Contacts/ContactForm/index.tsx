@@ -65,6 +65,7 @@ import {
   useContactValidation,
   type ValidationResult,
 } from './useContactValidation';
+import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 
 const ADD = 'add';
 const EDIT = 'edit';
@@ -449,22 +450,33 @@ const ContactForm = ({
   );
   const headerEndAccessory = renderHeaderEndAccessory();
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: headerTitle,
+  });
+
   return (
     <SafeAreaView
       style={styles.wrapper}
       testID={AddContactViewSelectorsIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
-      <HeaderStandard
-        includesTopInset
-        title={headerTitle}
-        onBack={() => navigation.pop()}
-        backButtonProps={{
-          testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
-        }}
-        endAccessory={headerEndAccessory ?? undefined}
-      />
-      <KeyboardAwareScrollView style={styles.informationWrapper}>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          includesTopInset
+          title={headerTitle}
+          onBack={() => navigation.pop()}
+          backButtonProps={{
+            testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
+          }}
+          endAccessory={headerEndAccessory ?? undefined}
+        />
+      )}
+      <KeyboardAwareScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+        style={styles.informationWrapper}
+      >
         <View style={styles.scrollWrapper}>
           <ContactFormFields
             address={address}

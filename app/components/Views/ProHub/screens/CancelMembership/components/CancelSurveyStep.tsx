@@ -75,6 +75,12 @@ export interface CancelSurveyStepProps {
   selectedReasonId: string | null;
   onReasonSelect: (id: string) => void;
   onBack: () => void;
+  /**
+   * Set when the screen has handed its chrome to the native bar, so this drops
+   * its own header rather than drawing a second one. The screen owns the bar;
+   * this is presentational.
+   */
+  isNativeHeaderEnabled?: boolean;
   onKeepMembership: () => void;
   onCancelConfirm: () => void;
 }
@@ -83,6 +89,7 @@ const CancelSurveyStep = ({
   selectedReasonId,
   onReasonSelect,
   onBack,
+  isNativeHeaderEnabled,
   onKeepMembership,
   onCancelConfirm,
 }: CancelSurveyStepProps) => {
@@ -90,22 +97,27 @@ const CancelSurveyStep = ({
 
   return (
     <>
-      <HeaderBase
-        twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={onBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={CancelMembershipTestIds.BACK_BUTTON}
-          />
-        }
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderBase
+          twClassName="px-4"
+          startAccessory={
+            <ButtonIcon
+              iconName={IconName.ArrowLeft}
+              onPress={onBack}
+              accessibilityLabel={strings('navigation.back')}
+              testID={CancelMembershipTestIds.BACK_BUTTON}
+            />
+          }
+        />
+      )}
 
       <ScrollView
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
       >
         {/* Title + subtitle */}
         <Text

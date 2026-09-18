@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  ScrollViewProps,
   ViewStyle,
   TextStyle,
   ViewProps,
@@ -43,6 +44,12 @@ const createStyles = (colors: Colors) =>
 interface ScreenLayoutProps extends ViewProps {
   scrollable?: boolean;
   style?: ViewStyle;
+  /**
+   * Forwarded to the underlying `ScrollView` when `scrollable`. Needed so a
+   * screen under a transparent native header can let UIKit apply the nav-bar
+   * inset, rather than its content starting underneath the bar.
+   */
+  contentInsetAdjustmentBehavior?: ScrollViewProps['contentInsetAdjustmentBehavior'];
 }
 
 interface HeaderProps extends ViewProps {

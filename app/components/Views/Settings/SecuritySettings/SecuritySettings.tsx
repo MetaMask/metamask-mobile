@@ -73,6 +73,7 @@ import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetecti
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
@@ -355,17 +356,26 @@ const Settings: React.FC = () => {
   const modalLoading = disableNotificationsLoading;
   const modalError = disableNotificationsError;
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.security_title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        testID="header"
-        title={strings('app_settings.security_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          testID="header"
+          title={strings('app_settings.security_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+        />
+      )}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
         testID={SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL}
         ref={scrollViewRef}
       >

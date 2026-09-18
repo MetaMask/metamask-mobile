@@ -14,6 +14,7 @@ import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeat
 import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testIds';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 const BackupAndSyncSettings = () => {
   const tw = useTailwind();
@@ -25,22 +26,33 @@ const BackupAndSyncSettings = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('backupAndSync.title'),
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
       testID={BackupAndSyncSettingsSelectorsIDs.SAFE_AREA}
     >
-      <HeaderStandard
-        title={strings('backupAndSync.title')}
-        onBack={handleBack}
-        includesTopInset
-        testID={BackupAndSyncSettingsSelectorsIDs.HEADER}
-        backButtonProps={{
-          testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
-        }}
-      />
-      <ScrollView style={styles.wrapper}>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('backupAndSync.title')}
+          onBack={handleBack}
+          includesTopInset
+          testID={BackupAndSyncSettingsSelectorsIDs.HEADER}
+          backButtonProps={{
+            testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
+          }}
+        />
+      )}
+      <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+        style={styles.wrapper}
+      >
         <BackupAndSyncToggle />
         <BackupAndSyncFeaturesToggles />
       </ScrollView>

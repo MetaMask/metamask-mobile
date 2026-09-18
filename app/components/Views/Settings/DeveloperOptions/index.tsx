@@ -34,6 +34,7 @@ import NotificationsDeveloperOptionsSection from '../../../UI/Notification/Devel
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -60,28 +61,40 @@ const DeveloperOptions = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.developer_options.title'),
+    enabled: !isFullScreenModal,
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.developer_options.title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
-        onBack={isFullScreenModal ? undefined : handleBack}
-        onClose={isFullScreenModal ? handleClose : undefined}
-        includesTopInset
-        testID="developer-options-header"
-        {...(isFullScreenModal
-          ? {
-              closeButtonProps: {
-                testID: 'developer-options-close-button',
-              },
-            }
-          : {
-              backButtonProps: {
-                testID: 'developer-options-back-button',
-              },
-            })}
-      />
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.developer_options.title')}
+          titleProps={{ color: TextColor.PrimaryDefault }}
+          onBack={isFullScreenModal ? undefined : handleBack}
+          onClose={isFullScreenModal ? handleClose : undefined}
+          includesTopInset
+          testID="developer-options-header"
+          {...(isFullScreenModal
+            ? {
+                closeButtonProps: {
+                  testID: 'developer-options-close-button',
+                },
+              }
+            : {
+                backButtonProps: {
+                  testID: 'developer-options-back-button',
+                },
+              })}
+        />
+      )}
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+      >
         <SentryTest />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

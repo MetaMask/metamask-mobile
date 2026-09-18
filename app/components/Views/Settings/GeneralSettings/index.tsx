@@ -44,6 +44,7 @@ import { createStyles } from './GeneralSettings.styles';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { AvatarTypeSelector } from './AvatarTypeSelector';
 import { GeneralSettingsSelectorsIDs } from './GeneralSettings.testIds';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
   'general-settings-currency-selector';
@@ -221,15 +222,26 @@ const Settings = ({
     updateUserTraitsWithCurrencyType(selectedPrimaryCurrency);
   };
 
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: strings('app_settings.general_title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.general_title')}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
-      <ScrollView style={styles.content}>
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          title={strings('app_settings.general_title')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
+      <ScrollView
+        style={styles.content}
+        contentInsetAdjustmentBehavior={
+          isNativeHeaderEnabled ? 'automatic' : undefined
+        }
+      >
         <View style={styles.inner}>
           <View style={[styles.setting, styles.firstSetting]}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>

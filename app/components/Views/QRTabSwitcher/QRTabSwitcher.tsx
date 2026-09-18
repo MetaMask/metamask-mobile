@@ -12,6 +12,7 @@ import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
+import { strings } from '../../../../locales/i18n';
 import {
   HeaderBase,
   ButtonIcon,
@@ -33,6 +34,8 @@ import {
 } from '../../../selectors/qrSyncController';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 const DEVICE_LINKED_WAIT_PHASES: ReadonlySet<QrSyncPhase> = new Set([
   QrSyncPhases.AWAITING_SYNC_READY,
@@ -206,7 +209,9 @@ const QRTabSwitcher = () => {
     endTrace({ name: TraceName.QRTabSwitcher });
   }, []);
 
-  const goBack = () => {
+  // Memoised because the bar items close over it; an unstable `goBack` would
+  // reconfigure the native header on every render.
+  const goBack = useCallback(() => {
     if (isAddDeviceOrigin && isSessionActive) {
       Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
         () => undefined,
@@ -226,7 +231,42 @@ const QRTabSwitcher = () => {
         console.warn('An unknown error occurred');
       }
     }
-  };
+  }, [isAddDeviceOrigin, isSessionActive, messenger, navigation, onScanError]);
+
+  /*
+   * Presented as a modal, so there is no back button to inherit — the close
+   * action is an explicit bar item. As a `UIBarButtonItem` it gets the iOS 26
+   * glass capsule over the camera, which the floating `ButtonIcon` did not.
+   *
+   * Above the early return below: hooks cannot run conditionally.
+   */
+  const headerRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button' as const,
+        identifier: 'qr-scanner-close',
+        label: '',
+        icon: { type: 'sfSymbol' as const, name: 'xmark' },
+        variant: 'plain' as const,
+        accessibilityLabel: strings('navigation.close'),
+        onPress: goBack,
+      },
+    ],
+    [goBack],
+  );
+
+  /*
+   * One dismiss affordance, and it is this one. The scanner is reached both as
+   * a modal and as a push, so the pushed entry points would otherwise draw a
+   * system back button alongside the close — and the two are not equivalent:
+   * `goBack` here also resets the QR-sync session and reports `USER_CANCELLED`
+   * to the caller, which a plain pop would silently skip.
+   */
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: '',
+    rightItems: headerRightItems,
+    hideBackButton: true,
+  });
 
   if (showDeviceAddedLoader) {
     return <DeviceAdded />;
@@ -246,16 +286,18 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      <HeaderBase
-        style={[styles.overlay, styles.header]}
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={goBack}
-          />
-        }
-      />
+      {!isNativeHeaderEnabled && (
+        <HeaderBase
+          style={[styles.overlay, styles.header]}
+          endAccessory={
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Md}
+              onPress={goBack}
+            />
+          }
+        />
+      )}
 
       {/* QR scanner interface - camera view only */}
     </View>

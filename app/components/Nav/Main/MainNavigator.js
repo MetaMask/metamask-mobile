@@ -140,6 +140,7 @@ import SocialTab from '../../Views/SocialTab';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { selectNativeTabBarEnabled } from '../../../reducers/experimentalSettings/selectors';
+import { useNativeHeaderScreenOptions } from '../../hooks/useNativeHeader';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -451,37 +452,27 @@ const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const SnapsSettingsStack = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
-    >
-      <NativeStack.Screen
-        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-        component={SnapsSettingsList}
-      />
-      <NativeStack.Screen
-        name={Routes.SNAPS.SNAP_SETTINGS}
-        component={SnapSettingsWithMessenger}
-      />
-    </NativeStack.Navigator>
-  );
-};
+// The Snaps screens are registered directly on SettingsFlow — see the note there.
 ///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const { colors } = useTheme();
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+
+  /*
+   * The glass chrome belongs on the navigator, not on each screen at mount —
+   * see `useNativeHeaderScreenOptions` for why. Screens set only their own
+   * title and bar items, via `useNativeHeader`.
+   */
+  const screenOptions = {
+    ...nativeHeaderScreenOptions,
+    contentStyle: { backgroundColor: colors.background.default },
+  };
+
   return (
     <NativeStack.Navigator
       initialRouteName={Routes.ACCOUNTS_MENU_VIEW}
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
+      screenOptions={screenOptions}
     >
       <NativeStack.Screen
         name={Routes.ACCOUNTS_MENU_VIEW}
@@ -555,12 +546,16 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
+        // Keeps its JS header: class component — cannot call the hook.
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen name="ResetPassword" component={ResetPassword} />
       <NativeStack.Screen name="WalletRecovery" component={WalletRecovery} />
       <NativeStack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
+        // Keeps its JS header: its title is the MetaMask wordmark image; a native bar title is text only.
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
@@ -573,10 +568,14 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
+        // Keeps its JS header: class component — cannot call the hook.
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="EnterPasswordSimple"
         component={EnterPasswordSimple}
+        // Keeps its JS header: class component — cannot call the hook.
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
@@ -597,10 +596,23 @@ const SettingsFlow = () => {
       {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
+      {/*
+        Flattened out of a nested stack into this one. Nested, its screens sat
+        under *this* navigator's bar, which had no title of their own to show
+        and so fell back to printing the route name ("SnapsSettingList") above
+        each view's own JS header. As siblings they carry their own titles and
+        share the one bar with the rest of the flow.
+      */}
       {CAN_INSTALL_THIRD_PARTY_SNAPS && (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-          component={SnapsSettingsStack}
+          component={SnapsSettingsList}
+        />
+      )}
+      {CAN_INSTALL_THIRD_PARTY_SNAPS && (
+        <NativeStack.Screen
+          name={Routes.SNAPS.SNAP_SETTINGS}
+          component={SnapSettingsWithMessenger}
         />
       )}
       {
@@ -980,27 +992,37 @@ const OfflineModeView = (props) => (
 );
 
 /* eslint-disable react/prop-types */
-const NotificationsModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name={Routes.NOTIFICATIONS.VIEW}
-      component={NotificationsView}
-    />
-    <NativeStack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-    />
-    <NativeStack.Screen
-      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-      component={NotificationSettingsSection}
-    />
-    <NativeStack.Screen
-      name={Routes.NOTIFICATIONS.DETAILS}
-      component={NotificationsDetails}
-    />
-    <NativeStack.Screen name="ContactForm" component={ContactForm} />
-  </NativeStack.Navigator>
-);
+const NotificationsModeView = (props) => {
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+
+  return (
+    <NativeStack.Navigator screenOptions={nativeHeaderScreenOptions}>
+      <NativeStack.Screen
+        name={Routes.NOTIFICATIONS.VIEW}
+        component={NotificationsView}
+      />
+      <NativeStack.Screen
+        name={Routes.SETTINGS.NOTIFICATIONS}
+        component={NotificationsSettings}
+      />
+      <NativeStack.Screen
+        name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+        component={NotificationSettingsSection}
+      />
+      <NativeStack.Screen
+        name={Routes.NOTIFICATIONS.DETAILS}
+        component={NotificationsDetails}
+        /*
+         * Keeps its JS header: it composes its own bar out of `HeaderLeft` and
+         * `HeaderTitle` rather than a shared header component, so what it should
+         * become as bar items is a design decision, not a mechanical port.
+         */
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen name="ContactForm" component={ContactForm} />
+    </NativeStack.Navigator>
+  );
+};
 
 const SetPasswordFlow = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>

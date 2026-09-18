@@ -23,6 +23,10 @@ import { regex } from '../../../../../../util/regex';
 
 // Internal dependencies
 import styles from './Settings.styles';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../../hooks/useNativeHeader';
 
 export const ACTIVATION_KEY_FORM_HEADER_TEST_ID = 'activation-key-form-header';
 export const ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID =
@@ -72,15 +76,24 @@ function ActivationKeyForm() {
     ? strings('app_settings.fiat_on_ramp.edit_activation_key')
     : strings('app_settings.fiat_on_ramp.add_activation_key');
 
+  const isNativeHeaderEnabled = useNativeHeader({ title });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
-    <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderStandard
-        testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
-        title={title}
-        onBack={handleBack}
-        backButtonProps={{ testID: ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID }}
-      />
-      <ScreenLayout>
+    <SafeAreaView
+      edges={isNativeHeaderEnabled ? [] : ['top']}
+      style={style.container}
+    >
+      {!isNativeHeaderEnabled && (
+        <HeaderStandard
+          testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
+          title={title}
+          onBack={handleBack}
+          backButtonProps={{ testID: ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID }}
+        />
+      )}
+      {/* Not scrollable, so the content is padded clear of the floating bar. */}
+      <ScreenLayout style={{ paddingTop: nativeHeaderInset }}>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <Row>

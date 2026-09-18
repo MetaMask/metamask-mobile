@@ -24,6 +24,8 @@ import {
   IconName,
   SectionDivider,
   Text,
+  toast,
+  ToastSeverity,
   TextColor,
   TextVariant,
   FontWeight,
@@ -38,6 +40,7 @@ import {
   PRO_HUB_INTRO,
   proHubContentDelayMs,
 } from './ProHub.constants';
+import { useOrangeMembership } from '../shared/pro/useOrangeMembership';
 import FadeInUp from './components/FadeInUp';
 import Loader from '../../../component-library/components-temp/Loader';
 import type { EntitlementAction } from '../shared/pro/entitlements.constants';
@@ -47,6 +50,7 @@ import {
   ORANGE_GRADIENT_START,
 } from '../shared/pro/brand.constants';
 import Entitlements from './components/Entitlements';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const OrangeIconAnimation = require('../../../animations/rewards_icon_animations.riv');
@@ -81,10 +85,12 @@ const styles = StyleSheet.create({
 const MembershipIdentity = ({
   testID,
   riveFile,
+  memberSince,
 }: {
   testID: string;
   /** `undefined` while loading, `null` if the file failed to load. */
   riveFile: RiveFile | null | undefined;
+  memberSince: string;
 }) => {
   const { riveViewRef, setHybridRef: setRiveHybridRef } = useRive();
 
@@ -139,7 +145,7 @@ const MembershipIdentity = ({
           </Text>
 
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('pro_hub.member_since', { date: MOCK_MEMBER_SINCE })}
+            {strings('pro_hub.member_since', { date: memberSince })}
           </Text>
         </Box>
       </FadeInUp>
@@ -150,6 +156,9 @@ const MembershipIdentity = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+
+  /* Falls back to the mock date when reached without a recorded join. */
+  const { memberSince } = useOrangeMembership();
 
   /*
    * Both assets are loaded here, at the screen, rather than inside the identity
@@ -203,12 +212,31 @@ const ProHub = () => {
     (action: EntitlementAction) => {
       if (action === 'card') {
         navigation.navigate(Routes.CARD.ROOT);
+        return;
       }
-      // `support` and `app_icon` have no destination yet, so no entitlement
-      // declares them as actions — see entitlements.constants.ts.
+      /*
+       * Applying an alternate app icon needs native work, so this confirms
+       * the intent rather than claiming the icon changed. `<Toaster />` is
+       * already mounted app-wide in App.tsx inside a FullWindowOverlay, so
+       * the imperative `toast()` needs no host of its own here.
+       */
+      if (action === 'app_icon') {
+        toast({
+          severity: ToastSeverity.Success,
+          title: strings('pro_hub.entitlements.app_icon.toast_title'),
+          description: strings(
+            'pro_hub.entitlements.app_icon.toast_description',
+          ),
+        });
+      }
+      // `support` still has no destination, so nothing declares it an action.
     },
     [navigation],
   );
+
+  const isNativeHeaderEnabled = useNativeHeader({
+    title: '',
+  });
 
   return (
     /*
@@ -224,21 +252,23 @@ const ProHub = () => {
     >
       <SafeAreaView
         style={tw.style('flex-1')}
-        edges={['top', 'bottom']}
+        edges={isNativeHeaderEnabled ? ['bottom'] : ['top', 'bottom']}
         testID={ProHubTestIds.CONTAINER}
       >
-        <HeaderBase
-          testID={ProHubTestIds.HEADER_ROOT}
-          twClassName="px-4"
-          startAccessory={
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              onPress={handleBack}
-              accessibilityLabel={strings('navigation.back')}
-              testID={ProHubTestIds.BACK_BUTTON}
-            />
-          }
-        />
+        {!isNativeHeaderEnabled && (
+          <HeaderBase
+            testID={ProHubTestIds.HEADER_ROOT}
+            twClassName="px-4"
+            startAccessory={
+              <ButtonIcon
+                iconName={IconName.ArrowLeft}
+                onPress={handleBack}
+                accessibilityLabel={strings('navigation.back')}
+                testID={ProHubTestIds.BACK_BUTTON}
+              />
+            }
+          />
+        )}
 
         {!isReady ? (
           <Box twClassName="flex-1 items-center justify-center">
@@ -246,6 +276,9 @@ const ProHub = () => {
           </Box>
         ) : (
           <ScrollView
+            contentInsetAdjustmentBehavior={
+              isNativeHeaderEnabled ? 'automatic' : undefined
+            }
             contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
             showsVerticalScrollIndicator={false}
           >
@@ -253,6 +286,7 @@ const ProHub = () => {
               <MembershipIdentity
                 testID={ProHubTestIds.MEMBERSHIP_BANNER}
                 riveFile={riveFile}
+                memberSince={memberSince ?? MOCK_MEMBER_SINCE}
               />
             </Box>
 
@@ -282,7 +316,7 @@ const ProHub = () => {
                 fontWeight={FontWeight.Bold}
                 color={TextColor.TextDefault}
               >
-                {strings('pro_hub.membership.title')}
+                {strings('pro_hub.membership_section_title')}
               </Text>
               <Text
                 variant={TextVariant.BodyMd}
