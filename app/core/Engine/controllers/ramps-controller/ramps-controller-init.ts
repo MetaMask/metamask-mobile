@@ -7,6 +7,9 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import { selectSelectedVbaWalletAddress } from '../../../../selectors/rampsController';
+import Logger from '../../../../util/Logger';
+import type { RootState } from '../../../../reducers';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -15,6 +18,28 @@ import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 function isRampsDebugDashboardEnabled(): boolean {
   return process.env.RAMPS_DEBUG_DASHBOARD === 'true';
 }
+
+const hydrateVbaOnboardingIfPossible = async (
+  controller: RampsController,
+  getState: () => RootState,
+): Promise<void> => {
+  const walletAddress = selectSelectedVbaWalletAddress(getState());
+  if (!walletAddress) {
+    return;
+  }
+
+  try {
+    await controller.hydrateVbaOnboarding({ walletAddress });
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'ramps_controller_init',
+        data: { phase: 'hydrateVbaOnboarding' },
+      },
+    });
+  }
+};
 
 /**
  * Initialize the ramps controller.
@@ -29,7 +54,7 @@ export const rampsControllerInit: MessengerClientInitFunction<
   RampsController,
   RampsControllerMessenger,
   RampsControllerInitMessenger
-> = ({ controllerMessenger, persistedState, initMessenger }) => {
+> = ({ controllerMessenger, persistedState, initMessenger, getState }) => {
   const rampsControllerState =
     persistedState.RampsController ?? getDefaultRampsControllerState();
 
@@ -65,8 +90,19 @@ export const rampsControllerInit: MessengerClientInitFunction<
     registerOrderSubscriptions();
     controller
       .init()
-      .then(() => {
+      .then(async () => {
         controller.startOrderPolling();
+        await hydrateVbaOnboardingIfPossible(controller, getState);
+        const { isUnlocked } = initMessenger.call('KeyringController:getState');
+        if (!isUnlocked) {
+          const onUnlock = () => {
+            initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
+            hydrateVbaOnboardingIfPossible(controller, getState).catch(
+              () => undefined,
+            );
+          };
+          initMessenger.subscribe('KeyringController:unlock', onUnlock);
+        }
       })
       .catch(() => {
         // Initialization failed - error state will be available via selectors

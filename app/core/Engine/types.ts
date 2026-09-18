@@ -1023,6 +1023,7 @@ export type MessengerClients = {
   ProfileMetricsService: ProfileMetricsService;
   ProofOfOwnershipService: ProofOfOwnershipService;
   RampsService: RampsService;
+  NeoBankService: NeoBankService;
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
@@ -1032,7 +1033,6 @@ export type MessengerClients = {
   KycService: KycService;
   KycController: KycController;
   TransakService: TransakService;
-  NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };

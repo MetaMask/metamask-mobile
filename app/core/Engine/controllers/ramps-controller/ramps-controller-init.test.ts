@@ -11,6 +11,7 @@ import {
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
+import { selectSelectedVbaWalletAddress } from '../../../../selectors/rampsController';
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -38,6 +39,8 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
 };
 
 const mockInit = jest.fn().mockResolvedValue(undefined);
+const mockHydrateVbaOnboarding = jest.fn().mockResolvedValue(undefined);
+const mockStartOrderPolling = jest.fn();
 
 jest.mock('@metamask/ramps-controller', () => {
   const actual = jest.requireActual('@metamask/ramps-controller');
@@ -46,6 +49,8 @@ jest.mock('@metamask/ramps-controller', () => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
     instance.constructor = MockRampsControllerSpy;
     instance.init = mockInit;
+    instance.hydrateVbaOnboarding = mockHydrateVbaOnboarding;
+    instance.startOrderPolling = mockStartOrderPolling;
     return instance;
   });
 
@@ -65,6 +70,18 @@ jest.mock('react-native-device-info', () => ({
   getVersion: () => '99.0.0',
 }));
 
+jest.mock('../../../../selectors/rampsController', () => ({
+  selectSelectedVbaWalletAddress: jest.fn(() => '0xabc'),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
+
 jest.mock('../../../../components/UI/Ramp/debug/RampsDebugBridge', () => ({
   __esModule: true,
   initRampsDebugBridge: jest.fn(),
@@ -80,6 +97,8 @@ const getInitRampsDebugBridgeMock = (): jest.Mock =>
 const createMockInitMessenger = (): RampsControllerInitMessenger =>
   ({
     subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+    call: jest.fn().mockReturnValue({ isUnlocked: true }),
   }) as unknown as RampsControllerInitMessenger;
 
 describe('ramps controller init', () => {
@@ -94,6 +113,8 @@ describe('ramps controller init', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInit.mockResolvedValue(undefined);
+    mockHydrateVbaOnboarding.mockResolvedValue(undefined);
+    jest.mocked(selectSelectedVbaWalletAddress).mockReturnValue('0xabc');
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -203,6 +224,52 @@ describe('ramps controller init', () => {
     });
   });
 
+  it('hydrates VBA onboarding after init when a wallet address is available', async () => {
+    rampsControllerInit(initRequestMock);
+
+    await waitFor(() => {
+      expect(mockHydrateVbaOnboarding).toHaveBeenCalledWith({
+        walletAddress: '0xabc',
+      });
+    });
+  });
+
+  it('skips VBA hydration when no wallet address is available', async () => {
+    jest.mocked(selectSelectedVbaWalletAddress).mockReturnValue(null);
+
+    rampsControllerInit(initRequestMock);
+
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
+    });
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('retries VBA hydration on keyring unlock when the wallet starts locked', async () => {
+    const subscribeMock = jest.fn();
+    initRequestMock.initMessenger = {
+      subscribe: subscribeMock,
+      unsubscribe: jest.fn(),
+      call: jest.fn().mockReturnValue({ isUnlocked: false }),
+    } as unknown as RampsControllerInitMessenger;
+
+    rampsControllerInit(initRequestMock);
+
+    await waitFor(() => {
+      expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    const unlockHandler = subscribeMock.mock.calls.find(
+      ([event]) => event === 'KeyringController:unlock',
+    )?.[1] as (() => void) | undefined;
+    expect(unlockHandler).toBeDefined();
+    unlockHandler?.();
+
+    await waitFor(() => {
+      expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('handles init failure gracefully', async () => {
     mockInit.mockRejectedValue(new Error('Network error'));
 
@@ -232,11 +299,10 @@ describe('ramps controller init', () => {
 
     expect(subscribeMock).toHaveBeenCalled();
     const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
-    expect(
-      subscribedEvents.every(
-        (event) => event === 'RampsController:orderStatusChanged',
-      ),
-    ).toBe(true);
+    expect(subscribedEvents).toEqual([
+      'RampsController:orderStatusChanged',
+      'RampsController:orderStatusChanged',
+    ]);
   });
 
   describe('when __DEV__ is true', () => {

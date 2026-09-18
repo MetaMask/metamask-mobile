@@ -177,6 +177,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
+    expect(engine.context).toHaveProperty('NeoBankService');
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('SubscriptionController');
     expect(engine.context).toHaveProperty('SubscriptionService');

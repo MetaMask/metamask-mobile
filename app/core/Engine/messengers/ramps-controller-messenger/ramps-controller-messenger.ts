@@ -10,6 +10,10 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
@@ -61,7 +65,7 @@ export type RampsControllerInitMessenger = ReturnType<
 
 /**
  * Get the init messenger for the RampsController. Scoped to actions
- * needed during initialization (reading feature flags).
+ * needed during initialization (reading feature flags and hydrating VBA).
  *
  * @param rootMessenger - The root messenger.
  * @returns The RampsControllerInitMessenger.
@@ -69,9 +73,10 @@ export type RampsControllerInitMessenger = ReturnType<
 export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'RampsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
+    RemoteFeatureFlagControllerGetStateAction | KeyringControllerGetStateAction,
     | RampsControllerOrderStatusChangedEvent
-    | RemoteFeatureFlagControllerStateChangeEvent,
+    | RemoteFeatureFlagControllerStateChangeEvent
+    | KeyringControllerUnlockEvent,
     RootMessenger
   >({
     namespace: 'RampsControllerInit',
@@ -79,10 +84,14 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   });
 
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'KeyringController:getState',
+    ],
     events: [
       'RampsController:orderStatusChanged',
       'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
+      'KeyringController:unlock',
     ],
     messenger,
   });
