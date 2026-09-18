@@ -6,6 +6,8 @@ import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 /**
  * Loading skeleton for MarketInsightsEntryCard.
  * Mirrors the card's layout: title row, two body lines, footer line.
+ * Outer bottom spacing is owned by the parent so token details and Perps
+ * can inset the card independently.
  */
 const MarketInsightsEntryCardSkeleton: React.FC = () => {
   const tw = useTailwind();
