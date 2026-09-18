@@ -114,6 +114,8 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
+    // Owns token-details placement. No marginBottom — Balance already
+    // provides paddingTop, and extra card margin was stacking under it.
     marketInsightsWrapper: {
       paddingTop: 16,
     } as ViewStyle,
@@ -648,7 +650,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   testID="market-insights-entry-card"
                 />
               ) : (
-                <MarketInsightsEntryCardSkeleton source="token_details" />
+                <MarketInsightsEntryCardSkeleton />
               )}
             </View>
           ) : null}
