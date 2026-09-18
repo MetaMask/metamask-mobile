@@ -10,6 +10,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -105,7 +106,13 @@ import {
 } from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
-import { toJsTabOptions } from './HomeTabs/homeTabs.mappers';
+import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
+import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
+import {
+  TAB_BAR_VISIBLE_STYLE,
+  toJsTabOptions,
+  toNativeTabOptions,
+} from './HomeTabs/homeTabs.mappers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -218,6 +225,7 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
+const NativeTab = createNativeBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
@@ -611,6 +619,7 @@ const HOME_TAB_COMPONENTS = {
 };
 
 const HomeTabs = () => {
+  const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
@@ -622,6 +631,7 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
   const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const isNativeTabBar = useIsNativeTabBar();
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
@@ -636,11 +646,15 @@ const HomeTabs = () => {
     trackMoneyTabPressRef.current?.();
   }, []);
 
-  const { tabs, trackBottomNavPress } = useHomeTabDefinitions({
-    isMoneyAccountVisible,
-    showSocialTab,
-    trackMoneyTabPress,
-  });
+  const { tabs, trackBottomNavPress, getNativeTabListeners } =
+    useHomeTabDefinitions({
+      isMoneyAccountVisible,
+      showSocialTab,
+      trackMoneyTabPress,
+    });
+  const systemSlotTab = useNativeSystemSlotTab(
+    headerNavBarVariant.trailingNavBarAction,
+  );
 
   // Control only: a modal trigger the bar handles itself.
   const tradeOptions = {
@@ -717,6 +731,20 @@ const HomeTabs = () => {
     />
   );
 
+  const renderNativeTabScreen = (tab) => (
+    <NativeTab.Screen
+      key={tab.name}
+      name={tab.name}
+      options={
+        tab.hidesTabBarFor
+          ? ({ route }) => toNativeTabOptions(tab, route)
+          : toNativeTabOptions(tab)
+      }
+      listeners={getNativeTabListeners(tab)}
+      component={HOME_TAB_COMPONENTS[tab.key]}
+    />
+  );
+
   /*
    * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
    * mounted here (above Tab.Navigator) so their BottomSheets render inside
@@ -730,6 +758,39 @@ const HomeTabs = () => {
    * the innermost (most recently mounted) provider active for state-based
    * Retry toasts so we don't double-fire when both are mounted.
    */
+  if (isNativeTabBar) {
+    // The navigator insets scroll views itself, so the floating inset is 0.
+    return (
+      <PredictPreviewSheetProvider>
+        <TrendingQuickBuySheetProvider>
+          {isMoneyAccountEnabled ? (
+            <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+          ) : null}
+          <FloatingTabBarInsetContext.Provider value={0}>
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                tabBarMinimizeBehavior: 'onScrollDown',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+              }}
+            >
+              {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+          </FloatingTabBarInsetContext.Provider>
+        </TrendingQuickBuySheetProvider>
+      </PredictPreviewSheetProvider>
+    );
+  }
+
   return (
     <PredictPreviewSheetProvider>
       <TrendingQuickBuySheetProvider>
