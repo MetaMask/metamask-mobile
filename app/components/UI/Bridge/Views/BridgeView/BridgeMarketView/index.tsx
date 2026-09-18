@@ -469,6 +469,7 @@ const BridgeMarketViewContent = () => {
     const wasClosed = wasStockMarketClosedRef.current;
     wasStockMarketClosedRef.current = isStockMarketClosed;
     if (wasClosed && !isStockMarketClosed && hasValidBridgeInputs) {
+      // Refresh call?
       updateQuoteParams();
     }
   }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);

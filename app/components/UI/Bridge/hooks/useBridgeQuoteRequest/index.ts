@@ -28,6 +28,7 @@ import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
+import { useSwapQuotes } from '../useSwapQuotes';
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
@@ -38,6 +39,7 @@ interface UpdateQuoteParamsOptions {
   traceId?: string;
 }
 
+// TODO check if things that I added context hooks to are wrapped
 /**
  * Hook for handling bridge quote request updates
  * @deprecated Use useSwapQuotes for new features. Avoid adding new functionality to this hook.
@@ -179,6 +181,8 @@ export const useBridgeQuoteRequest = (
     ],
   );
 
+  const maybeSwapQuotes = useSwapQuotes();
+
   // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
     let traceId: string | undefined;
@@ -191,6 +195,13 @@ export const useBridgeQuoteRequest = (
     const debouncedWithTrace = ((
       requestOptions: UpdateQuoteParamsOptions = {},
     ) => {
+      // useSwapQuotes hook updates the bridge-controller if enabled
+      if (maybeSwapQuotes) {
+        return requestOptions.isRefresh
+          ? maybeSwapQuotes.refreshQuotes
+          : undefined;
+      }
+
       if (
         !sourceToken ||
         !destToken ||
@@ -244,6 +255,7 @@ export const useBridgeQuoteRequest = (
     sourceToken,
     updateQuoteParams,
     walletAddress,
+    maybeSwapQuotes,
   ]);
 
   useEffect(

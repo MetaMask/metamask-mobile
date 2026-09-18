@@ -83,7 +83,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         throw error;
       }
     },
-    [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
+    [
+      metricsContext,
+      quoteRequestIndex,
+      quoteRequestCount,
+      genericQuoteRequest,
+      featureId,
+    ],
   );
 
   const {

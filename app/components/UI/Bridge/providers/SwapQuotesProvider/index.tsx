@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useMemo } from 'react';
+import React, { createContext, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber as EthersBigNumber } from 'ethers';
 
@@ -33,15 +33,11 @@ export const SwapQuotesContext = createContext<SwapQuotesContextValue | null>(
 
 interface UseSwapQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
-}
-
-interface UseQuoteDataParams extends UseSwapQuotesParams {
-  /**
+  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'] /**
    * Whether this is the quote source for the rendered tab. The other quote
    * provider stays mounted to keep the tree stable, this flag skips
    * expensive computations.
-   */
+   */;
   isActive?: boolean;
 }
 
@@ -54,7 +50,7 @@ interface UseQuoteRequestParams
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
  */
 const useQuoteRequest = (params: UseQuoteRequestParams) => {
-  const { quoteParams, latestSourceAtomicBalance } = params;
+  const { quoteParams, latestSourceAtomicBalance, isActive } = params;
   const {
     srcAmount,
     srcToken,
@@ -130,12 +126,21 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     debouncedUpdateQuoteParams({ isRefresh: true });
   }, [debouncedUpdateQuoteParams]);
 
+  // Pass quoteParams to the bridge-controller
+  useEffect(() => {
+    if (!isActive) return;
+    debouncedUpdateQuoteParams();
+
+    return () => {
+      debouncedUpdateQuoteParams.cancel();
+    };
+  }, [debouncedUpdateQuoteParams, isActive]);
+
   return useMemo(
     () => ({
       refreshQuotes,
-      debouncedUpdateQuoteParams,
     }),
-    [refreshQuotes, debouncedUpdateQuoteParams],
+    [refreshQuotes],
   );
 };
 
@@ -143,7 +148,7 @@ const useQuoteData = ({
   latestSourceAtomicBalance,
   quoteParams,
   isActive,
-}: UseQuoteDataParams) => {
+}: UseSwapQuotesParams) => {
   const { quoteFetchError, quotesLoadingStatus } = useSelector(
     selectBridgeControllerState,
   );
@@ -244,7 +249,7 @@ export const SwapQuotesProvider = ({
     debounceWait: DEBOUNCE_WAIT,
   };
 
-  const requestData = useQuoteRequest(resolvedParams);
+  const requestData = useQuoteRequest({ ...resolvedParams, isActive });
   const quoteData = useQuoteData({
     ...resolvedParams,
     isActive,
