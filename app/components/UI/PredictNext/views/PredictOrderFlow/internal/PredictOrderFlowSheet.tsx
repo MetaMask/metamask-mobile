@@ -145,6 +145,10 @@ export const PredictOrderFlowSheet = ({
 
   useEffect(() => {
     requestIdRef.current += 1;
+    if (phase !== 'input') {
+      setIsQuoting(false);
+      return;
+    }
     if (!isQuotable) {
       setIsQuoting(false);
       setPreview(null);
@@ -183,7 +187,7 @@ export const PredictOrderFlowSheet = ({
     }, QUOTE_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
-  }, [amount, intent, isQuotable, quoteNonce, service]);
+  }, [amount, intent, isQuotable, phase, quoteNonce, service]);
 
   useEffect(() => {
     if (!preview) {
@@ -210,6 +214,7 @@ export const PredictOrderFlowSheet = ({
     if (!preview || !canApprove) {
       return;
     }
+    setIsKeypadOpen(false);
     setPhase('submitting');
     try {
       await service.submitOrder(intent.venueId, preview.previewId);
@@ -219,7 +224,14 @@ export const PredictOrderFlowSheet = ({
     }
   }, [canApprove, intent.venueId, preview, service]);
 
-  const handleKeypadOpen = useCallback(() => setIsKeypadOpen(true), []);
+  const isAmountEditable = phase === 'input';
+
+  const handleKeypadOpen = useCallback(() => {
+    if (!isAmountEditable) {
+      return;
+    }
+    setIsKeypadOpen(true);
+  }, [isAmountEditable]);
   const handleBreakdownPress = useCallback(
     () => setIsBreakdownVisible(true),
     [],
@@ -230,28 +242,36 @@ export const PredictOrderFlowSheet = ({
   );
   const handleKeyPress = useCallback(
     (key: string) => {
+      if (!isAmountEditable) {
+        return;
+      }
       setAmount((current) => {
         const next = sanitizeAmount(`${current}${key}`);
         const digitCount = next.match(/\d/gu)?.length ?? 0;
         return digitCount > 9 ? current : next;
       });
     },
-    [sanitizeAmount],
+    [isAmountEditable, sanitizeAmount],
   );
-  const handleDelete = useCallback(
-    () => setAmount((current) => sanitizeAmount(current.slice(0, -1))),
-    [sanitizeAmount],
-  );
+  const handleDelete = useCallback(() => {
+    if (!isAmountEditable) {
+      return;
+    }
+    setAmount((current) => sanitizeAmount(current.slice(0, -1)));
+  }, [isAmountEditable, sanitizeAmount]);
   /** Adds a quick-amount chip's increment, in exact cents. */
   const handleAddAmount = useCallback(
     (increment: number) => {
+      if (!isAmountEditable) {
+        return;
+      }
       setAmount((current) => {
         const cents =
           Math.round(Number(current || '0') * 100) + increment * 100;
         return sanitizeAmount((cents / 100).toFixed(2).replace(/\.00$/u, ''));
       });
     },
-    [sanitizeAmount],
+    [isAmountEditable, sanitizeAmount],
   );
 
   useEffect(() => {
@@ -456,6 +476,7 @@ export const PredictOrderFlowSheet = ({
                     <OrderAmountInput
                       amount={amount}
                       isActive={isKeypadOpen}
+                      isDisabled={!isAmountEditable}
                       onAmountPress={handleKeypadOpen}
                     />
                     {isQuoting ? (
@@ -473,7 +494,10 @@ export const PredictOrderFlowSheet = ({
                       </Text>
                     )}
                   </Box>
-                  <OrderQuickAmounts onAddAmount={handleAddAmount} />
+                  <OrderQuickAmounts
+                    onAddAmount={handleAddAmount}
+                    isDisabled={!isAmountEditable}
+                  />
                   <Box twClassName="py-3">
                     <OrderSummaryRows
                       balance={balanceLabel}

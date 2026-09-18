@@ -17,6 +17,8 @@ interface OrderAmountInputProps {
   isActive: boolean;
   /** Opens the in-sheet keypad. */
   onAmountPress: () => void;
+  /** Blocks keypad open while a quote is being submitted. */
+  isDisabled?: boolean;
 }
 
 /** Legacy PredictAmountDisplay sizing: shrink as the figure grows. */
@@ -38,6 +40,7 @@ export const OrderAmountInput = ({
   amount,
   isActive,
   onAmountPress,
+  isDisabled = false,
 }: OrderAmountInputProps) => {
   const tw = useTailwind();
 
@@ -46,7 +49,8 @@ export const OrderAmountInput = ({
 
   return (
     <Pressable
-      onPress={onAmountPress}
+      onPress={isDisabled ? undefined : onAmountPress}
+      disabled={isDisabled}
       testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
       accessibilityRole="button"
       accessibilityLabel={strings('predict_next.order_preview.amount')}

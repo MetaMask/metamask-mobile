@@ -36,7 +36,9 @@ import {
 // composed here (in the test), against the stubbed globalThis.fetch below.
 // Composition happens per-test (not at module scope) because the read client
 // binds the fetch implementation at construction time.
-const composeOrderPreviewService = (): PredictOrderPreviewService => {
+const composeOrderPreviewService = (
+  options: { submitDelayMs?: number } = {},
+): PredictOrderPreviewService => {
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -56,7 +58,7 @@ const composeOrderPreviewService = (): PredictOrderPreviewService => {
     messenger,
     trading: adapter.trading,
     venueId: adapter.venueId,
-    submitDelayMs: 0,
+    submitDelayMs: options.submitDelayMs ?? 0,
   });
 };
 
@@ -518,6 +520,38 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
     ).toBeOnTheScreen();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.SUCCESS),
+      ).toBeOnTheScreen(),
+    );
+  });
+
+  it('does not change the quoted amount when a quick-amount chip is pressed during submit', async () => {
+    (Engine.context as Record<string, unknown>).PredictOrderPreviewService =
+      composeOrderPreviewService({ submitDelayMs: 80 });
+    stubFetch(() => ({ body: makePreview() }));
+
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+    );
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('10')),
+    );
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+    ).toHaveTextContent('$20');
+    expect(previewCalls()).toHaveLength(1);
 
     await waitFor(() =>
       expect(
