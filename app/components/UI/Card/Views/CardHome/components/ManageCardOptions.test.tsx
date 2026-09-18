@@ -36,6 +36,7 @@ const buildCapabilities = (
     supportsCashback: false,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsContactDetails: false,
     ...overrides,
   }) as CardProviderCapabilities;
 
@@ -57,7 +58,21 @@ interface RenderOverrides {
 
 const renderComponent = (
   capabilities: CardProviderCapabilities,
-  overrides: RenderOverrides = {},
+  overrides: {
+    card?: CardDetails;
+    isFrozen?: boolean;
+    hasSetupActions?: boolean;
+    hasSetupAlerts?: boolean;
+    cardDetailsVisible?: boolean;
+    showUnlinkMoneyAccount?: boolean;
+    showRevokeAllowance?: boolean;
+    onRevokeAllowance?: () => void;
+    fundingAccountName?: string;
+    onTransactionHistory?: () => void;
+    showTransactionHistoryDuringSetup?: boolean;
+    hasPriorityTokenBalance?: boolean;
+    hasAlertOnlyState?: boolean;
+  } = {},
 ) =>
   render(
     <ManageCardOptions
@@ -80,6 +95,7 @@ const renderComponent = (
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
+      onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
       showUnlinkMoneyAccount={overrides.showUnlinkMoneyAccount ?? false}
@@ -99,6 +115,47 @@ const renderComponent = (
       }
     />,
   );
+
+describe('ManageCardOptions contact details gating', () => {
+  it('shows contact details when supported and the card is fully set up', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsContactDetails: true,
+      }),
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides contact details when the provider does not support them', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM)).toBeNull();
+  });
+
+  it.each([
+    { hasSetupActions: true, hasSetupAlerts: false },
+    { hasSetupActions: false, hasSetupAlerts: true },
+  ])('hides contact details while card setup is incomplete', (setupState) => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsContactDetails: true,
+      }),
+      {
+        hasSetupActions: setupState.hasSetupActions,
+        hasSetupAlerts: setupState.hasSetupAlerts,
+      },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM)).toBeNull();
+  });
+});
 
 describe('ManageCardOptions funding-limit gating', () => {
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {
@@ -211,6 +268,7 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
         onManageSpendingLimit={jest.fn()}
         showDigitalWalletInstructions
         onDigitalWalletInstructions={jest.fn()}
+        onContactDetails={jest.fn()}
         showUnlinkMoneyAccount={false}
         onUnlinkMoneyAccount={jest.fn()}
         onOrderMetalCard={jest.fn()}

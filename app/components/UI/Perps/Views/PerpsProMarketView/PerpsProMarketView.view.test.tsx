@@ -48,6 +48,7 @@ import {
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
+  getPerpsProActivityViewSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
   getPerpsProTwapFillValueSelector,
@@ -206,7 +207,9 @@ const openChaseManagementTab = async () => {
       PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
     ),
   );
-  await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER);
+  await screen.findByTestId(
+    PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
+  );
   await settleIssuedChaseReads();
 };
 
@@ -221,7 +224,7 @@ const openTwapManagementTab = async () => {
     screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP),
   );
   await screen.findByTestId(
-    PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_ACTIVE,
+    PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
   );
   await settleIssuedTwapReads();
 };
@@ -812,10 +815,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(getPerpsProTwapSideFilterOptionSelector('all')),
       );
 
-      // Act
+      // Act: the activity filter reaches Fill history in one step.
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
       fireEvent.press(
         screen.getByTestId(
-          PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_FILL_HISTORY,
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('fill_history')}`,
         ),
       );
       const fillValueTestID = (baseTestID: string) =>
@@ -1163,7 +1169,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.queryByTestId(rowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const canceledStatusSelector = getPerpsProChaseStatusSelector(
         'canceled',
@@ -1235,7 +1246,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
       await waitFor(() => expect(cancelOrder).toHaveBeenCalledTimes(1));
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1435,7 +1451,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(isChaseOrderHandleVisible('other-chase')).toBe(false);
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       await waitFor(() =>
         expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false),
@@ -1688,7 +1709,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await openChaseManagementTab();
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1732,7 +1758,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE),
       ).toHaveTextContent(strings('perps.order.chase.empty'));
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1786,7 +1817,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         await openChaseManagementTab();
         fireEvent.press(
           screen.getByTestId(
-            PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER,
+            PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
+          ),
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
           ),
         );
 
@@ -1835,17 +1871,19 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await openChaseManagementTab();
       expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(getPerpsProActivityViewSelector('active')),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE),
       ).toHaveTextContent(strings('perps.order.chase.empty'));
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       expect(
         await screen.findByText(strings('perps.order.chase.status.canceled')),
@@ -1958,7 +1996,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await waitFor(() => expect(getChaseOrders).toHaveBeenCalledTimes(3));
       await openChaseManagementTab();
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const rowSelector = getPerpsProChaseRowSelector(
         'ETH',
@@ -2033,7 +2076,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.queryByTestId(activeRowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const filledStatusSelector = getPerpsProChaseStatusSelector(
         'filled',

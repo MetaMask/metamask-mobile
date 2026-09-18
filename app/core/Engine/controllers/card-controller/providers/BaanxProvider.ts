@@ -390,6 +390,7 @@ export class BaanxProvider implements ICardProvider {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsTransactionHistory: true,
+    supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
   };
   private readonly service: BaanxService;
