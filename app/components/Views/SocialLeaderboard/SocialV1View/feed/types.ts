@@ -141,3 +141,22 @@ export interface UseSocialV1HotTokensResult {
   isLoading: boolean;
   error: string | null;
 }
+
+/** One chip in the feed's hot-tokens carousel. */
+export interface SocialV1HotToken {
+  /** Stable key, also used as the chip's test ID suffix. */
+  id: string;
+  /**
+   * Perps market symbol (e.g. `BTC`, `NVDA`, or a HIP-3 `dex:SYMBOL`). Drives
+   * icon resolution, which falls back to a monogram when no icon is published.
+   */
+  symbol: string;
+  /** Editorial label -- the topic's name, not the ticker (e.g. `Bitcoin perps`). */
+  label: string;
+}
+
+export interface UseSocialV1HotTokensResult {
+  tokens: SocialV1HotToken[];
+  isLoading: boolean;
+  error: string | null;
+}
