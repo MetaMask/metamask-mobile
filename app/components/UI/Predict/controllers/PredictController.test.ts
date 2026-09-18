@@ -4666,6 +4666,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4712,6 +4713,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4741,6 +4743,7 @@ describe('PredictController', () => {
             marketId: 'test-market-1',
             outcomeId: 'test-outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
           {
             marketId: 'test-market-2',
@@ -4793,6 +4796,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4817,6 +4821,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -4848,6 +4853,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -4895,6 +4901,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         const errorMessage = 'Claim preparation failed';
@@ -4913,6 +4920,189 @@ describe('PredictController', () => {
       });
     });
 
+    it('refreshes claimable positions before failing when state is empty', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-refresh';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        expect(controller.state.claimablePositions).toEqual({});
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith(
+          expect.objectContaining({ claimable: true }),
+        );
+        expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions: [expect.objectContaining(wonPosition)],
+          }),
+        );
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
+    it('throws when refreshed positions contain no won or redeemable position', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.LOST,
+          },
+        ]);
+        await controller.getPositions({ claimable: true });
+        mockPolymarketProvider.prepareClaim = jest.fn();
+
+        // Act & Assert
+        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+          'No claimable positions found',
+        );
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledTimes(2);
+        expect(mockPolymarketProvider.prepareClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not overwrite claimable positions while a claim is pending', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-frozen';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+        await controller.claimWithConfirmation({});
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[signerAddress]).toBe(mockBatchId);
+
+        // Act: a concurrent refetch returns an empty page mid-confirmation.
+        mockPolymarketProvider.getPositions.mockResolvedValue([]);
+        await controller.getPositions({ address: signerAddress });
+        await controller.getPositions({
+          address: signerAddress.toUpperCase(),
+          claimable: true,
+        });
+
+        // Assert
+        expect(controller.state.claimablePositions[signerAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[signerAddress.toUpperCase()],
+        ).toBeUndefined();
+      });
+    });
+
+    it('collapses address casings into a single claimable positions entry', async () => {
+      // Arrange: a confirmed-claim refetch keys by lowercased txParams.from,
+      // later fetches key by the checksummed signer address.
+      await withController(async ({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const lowercaseAddress = signerAddress.toLowerCase();
+        const checksumAddress = signerAddress.toUpperCase().replace('0X', '0x');
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({
+          address: lowercaseAddress,
+          claimable: true,
+        });
+
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+
+        // Act
+        await controller.getPositions({
+          address: checksumAddress,
+          claimable: true,
+        });
+
+        // Assert: one key, holding the latest positions.
+        expect(Object.keys(controller.state.claimablePositions)).toEqual([
+          lowercaseAddress,
+        ]);
+        expect(controller.state.claimablePositions[lowercaseAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+      });
+    });
+
+    it('claims positions stored under a different casing of the signer address', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-casing';
+      await withController(async ({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        // Stored under an upper-cased key, as if written by a caller that
+        // passed a differently-cased address.
+        await controller.getPositions({
+          address: signerAddress.toUpperCase().replace('0X', '0x'),
+          claimable: true,
+        });
+        mockPolymarketProvider.getPositions.mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert: no refetch was needed, the existing entry was found.
+        expect(mockPolymarketProvider.getPositions).not.toHaveBeenCalled();
+        expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions: [expect.objectContaining(wonPosition)],
+          }),
+        );
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
     it('throws error when network client not found', async () => {
       // Arrange
       await withController(
@@ -4922,6 +5112,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
 
@@ -4952,6 +5143,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -4982,6 +5174,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -5004,6 +5197,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5025,6 +5219,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -5060,6 +5255,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -5098,6 +5294,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5138,6 +5335,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5192,6 +5390,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5215,6 +5414,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5252,6 +5452,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5279,6 +5480,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockRejectedValue(
@@ -5313,6 +5515,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
