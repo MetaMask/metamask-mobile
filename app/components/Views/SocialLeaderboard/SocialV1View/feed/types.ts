@@ -31,7 +31,7 @@ interface SocialV1FeedItemBase {
   /** Post time in seconds or milliseconds -- see `tradeTimestampToMs`. */
   timestamp: number;
   asset: SocialV1FeedAsset;
-  /** Author comment. Presence selects the detailed (big) card. */
+  /** Author comment. */
   comment?: string;
   valueLabel: string;
   pnlLabel: string;
@@ -57,13 +57,28 @@ export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
   statusLabel?: string;
 }
 
-export interface SocialV1SpotCompactFeedItem extends SocialV1FeedItemBase {
-  variant: 'spotCompact';
+export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotOpen';
   side: SocialV1SpotSide;
-  marketCapLabel?: string;
-  volumeLabel?: string;
+  markPriceLabel?: string;
+  entryPriceLabel?: string;
+  /** Time held so far, first fill to now. */
+  holdTimeLabel?: string;
 }
 
+export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotClosed';
+  side: SocialV1SpotSide;
+  entryPriceLabel?: string;
+  exitPriceLabel?: string;
+  holdTimeLabel?: string;
+  statusLabel?: string;
+}
+
+/**
+ * Composer-shared spot position. Reuses the open card layout; Copy trade is
+ * gated by `showCopyTrade` so a closed share still has no CTA.
+ */
 export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   variant: 'spotShare';
   side: SocialV1SpotSide;
@@ -73,10 +88,18 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   showCopyTrade?: boolean;
 }
 
+/**
+ * Two layouts -- open and closed -- crossed with the asset class. Open cards
+ * lead with current value and offer Copy trade; closed cards lead with realized
+ * P&L and offer nothing, because there is no longer a position to copy. The
+ * asset class only decides which stat rows sit between. `spotShare` is the
+ * composer insert of a spot position.
+ */
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
   | SocialV1PerpsClosedFeedItem
-  | SocialV1SpotCompactFeedItem
+  | SocialV1SpotOpenFeedItem
+  | SocialV1SpotClosedFeedItem
   | SocialV1SpotShareFeedItem;
 
 export interface SocialV1FeedPost {
