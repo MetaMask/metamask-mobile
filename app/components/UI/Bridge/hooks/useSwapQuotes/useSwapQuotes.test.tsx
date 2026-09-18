@@ -190,6 +190,7 @@ const Wrapper = ({
             displayBalance: '',
           }
         : undefined,
+    setQuoteParams: jest.fn(),
   });
 
   return (
