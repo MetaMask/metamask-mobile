@@ -33,10 +33,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(() => undefined),
-}));
-
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   BridgeQuoteDataProvider: ({ children }: { children: React.ReactNode }) =>
     children,

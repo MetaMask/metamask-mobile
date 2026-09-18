@@ -5,7 +5,6 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
@@ -15,14 +14,10 @@ import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
+    goBack: jest.fn(),
   }),
 }));
 
@@ -126,19 +121,6 @@ describe('LimitOrderConfirmationModalScreen', () => {
     );
 
     expect(getByText('2%')).toBeOnTheScreen();
-  });
-
-  it('navigates to the limit order default cost tolerance modal when edit is pressed', () => {
-    const { getByTestId } = renderScreen(createBridgeTestState({}));
-
-    fireEvent.press(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_EDIT),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen:
-        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
-    });
   });
 
   // The limit order screen writes the live comparison to

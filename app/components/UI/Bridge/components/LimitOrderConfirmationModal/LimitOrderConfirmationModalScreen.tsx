@@ -36,13 +36,6 @@ export const LimitOrderConfirmationModalScreen = () => {
     }
   }, [delegationFee]);
 
-  const handleEditCostTolerancePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen:
-        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
-    });
-  }, [navigation]);
-
   const handleConfirm = useCallback(() => {
     if (delegationFee.status === 'error') {
       delegationFee.retry();
@@ -68,7 +61,6 @@ export const LimitOrderConfirmationModalScreen = () => {
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
         isLoading: delegationFee.status === 'loading',
       }}
-      onEditCostTolerancePress={handleEditCostTolerancePress}
     />
   );
 };

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -185,7 +185,7 @@ export function useInsufficientPayTokenBalanceAlert({
       !isMMPayTransaction ||
       (!isPendingAlert && isLoading)
     ) {
-      return [];
+      return NO_ALERTS;
     }
 
     if (isInsufficientForInput) {
@@ -229,7 +229,7 @@ export function useInsufficientPayTokenBalanceAlert({
       ];
     }
 
-    return [];
+    return NO_ALERTS;
   }, [
     isLoading,
     isPendingAlert,
