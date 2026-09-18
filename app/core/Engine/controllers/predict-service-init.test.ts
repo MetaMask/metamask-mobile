@@ -21,9 +21,13 @@ import type {
 import {
   KALSHI_VENUE_ID,
   type PredictEntityId,
+  type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getPredictLiveDataServiceMessenger } from '../messengers/predict-live-data-service-messenger';
+import {
+  getPredictLiveDataServiceMessenger,
+  type PredictLiveDataServiceInitMessenger,
+} from '../messengers/predict-live-data-service-messenger';
 import type {
   MessengerClientInitRequest,
   RootExtendedMessenger,
@@ -52,6 +56,9 @@ describe('Predict service initialization', () => {
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
+      initMessenger: {
+        call: jest.fn().mockResolvedValue('test-bearer-token'),
+      } as never,
     };
     const { controller } = predictMarketDataServiceInit(request);
 
@@ -108,15 +115,21 @@ describe('Predict service initialization', () => {
     const request = {
       ...buildMessengerClientInitRequestMock(rootMessenger),
       controllerMessenger: messenger,
-      initMessenger: undefined,
-    } as unknown as MessengerClientInitRequest<PredictLiveDataServiceMessenger>;
+      initMessenger: {
+        call: jest.fn().mockResolvedValue('test-bearer-token'),
+      },
+    } as unknown as MessengerClientInitRequest<
+      PredictLiveDataServiceMessenger,
+      PredictLiveDataServiceInitMessenger
+    >;
     const listener = jest.fn();
     messenger.subscribe('PredictLiveDataService:gameLiveUpdated', listener);
     const update = {
       venueId: KALSHI_VENUE_ID,
       eventId: 'event-1' as PredictEntityId,
       type: 'football_game',
-      details: { status: 'live' },
+      status: 'in_progress' as const,
+      observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
     };
 
     const { controller } = predictLiveDataServiceInit(request);
@@ -125,7 +138,10 @@ describe('Predict service initialization', () => {
     ]);
     controller.onGameUpdate(update);
 
-    expect(listener).toHaveBeenCalledWith(update);
+    expect(listener).toHaveBeenCalledWith({
+      ...update,
+      observedAtByField: { status: update.observedAt },
+    });
     controller.destroy();
   });
 });

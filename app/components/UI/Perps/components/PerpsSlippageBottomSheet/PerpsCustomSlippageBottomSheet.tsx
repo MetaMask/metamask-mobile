@@ -14,7 +14,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, View } from 'react-native';
+import { Animated, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
@@ -32,6 +32,8 @@ interface PerpsCustomSlippageBottomSheetProps {
   isVisible: boolean;
   currentValueBps: number;
   onClose: () => void;
+  onBack?: () => void;
+  presentation?: 'bottomSheet' | 'screen';
   onSave: (valueBps: number) => void;
 }
 
@@ -52,7 +54,14 @@ function clampToRange(pct: number): number {
 
 const PerpsCustomSlippageBottomSheet: React.FC<
   PerpsCustomSlippageBottomSheetProps
-> = ({ isVisible, currentValueBps, onClose, onSave }) => {
+> = ({
+  isVisible,
+  currentValueBps,
+  onClose,
+  onBack,
+  presentation = 'bottomSheet',
+  onSave,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -122,12 +131,13 @@ const PerpsCustomSlippageBottomSheet: React.FC<
     const finalPct = snapToStep(clampToRange(parsedDraft));
     onSave(percentToBps(finalPct));
   }, [draftIsInRange, parsedDraft, onSave]);
+  const handleCancel = presentation === 'screen' && onBack ? onBack : onClose;
 
   const cancelButtonProps = {
     children: strings('perps.slippage.cancel'),
     testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CANCEL,
     size: ButtonSize.Lg,
-    onPress: onClose,
+    onPress: handleCancel,
   };
 
   const setButtonProps = {
@@ -140,9 +150,69 @@ const PerpsCustomSlippageBottomSheet: React.FC<
 
   if (!isVisible) return null;
 
-  return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+  const body = (
+    <View style={styles.container}>
+      <View
+        style={styles.displayRow}
+        testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DISPLAY}
+      >
+        <ButtonIcon
+          iconName={IconName.Minus}
+          size={ButtonIconSize.Md}
+          variant={ButtonIconVariant.Filled}
+          onPress={handleDecrement}
+          isDisabled={draftIsFiniteNumber && parsedDraft <= MIN_PCT + 1e-9}
+          testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DECREMENT}
+          accessibilityLabel={strings('perps.slippage.decrement_label')}
+        />
+        <View style={styles.displayCenter}>
+          <Text style={styles.displayValue}>{draftValue || '0'}</Text>
+          <Animated.View style={[styles.cursor, { opacity: cursorOpacity }]} />
+          <Text style={styles.displaySuffix}>%</Text>
+        </View>
+        <ButtonIcon
+          iconName={IconName.Add}
+          size={ButtonIconSize.Md}
+          variant={ButtonIconVariant.Filled}
+          onPress={handleIncrement}
+          isDisabled={draftIsFiniteNumber && parsedDraft >= MAX_PCT - 1e-9}
+          testID={PerpsCustomSlippageBottomSheetSelectorsIDs.INCREMENT}
+          accessibilityLabel={strings('perps.slippage.increment_label')}
+        />
+      </View>
+
+      {showError && (
+        <Text
+          testID={PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR}
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          style={styles.errorText}
+        >
+          {strings('perps.slippage.out_of_range', {
+            min: `${MIN_PCT}`,
+            max: `${MAX_PCT}`,
+          })}
+        </Text>
+      )}
+
+      <View
+        style={styles.keypadContainer}
+        testID={PerpsCustomSlippageBottomSheetSelectorsIDs.KEYPAD}
+      >
+        <Keypad
+          value={draftValue}
+          onChange={handleKeypadChange}
+          currency="USD_PERPS"
+          decimals={1}
+        />
+      </View>
+    </View>
+  );
+
+  const content = (
+    <>
       <BottomSheetHeader
+        onBack={presentation === 'screen' ? onBack : undefined}
         onClose={onClose}
         closeButtonProps={{
           testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CLOSE,
@@ -151,70 +221,32 @@ const PerpsCustomSlippageBottomSheet: React.FC<
         {strings('perps.slippage.use_custom_title')}
       </BottomSheetHeader>
 
-      <View style={styles.container}>
-        <View
-          style={styles.displayRow}
-          testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DISPLAY}
+      {presentation === 'screen' ? (
+        <ScrollView
+          style={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
         >
-          <ButtonIcon
-            iconName={IconName.Minus}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            onPress={handleDecrement}
-            isDisabled={draftIsFiniteNumber && parsedDraft <= MIN_PCT + 1e-9}
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DECREMENT}
-            accessibilityLabel={strings('perps.slippage.decrement_label')}
-          />
-          <View style={styles.displayCenter}>
-            <Text style={styles.displayValue}>{draftValue || '0'}</Text>
-            <Animated.View
-              style={[styles.cursor, { opacity: cursorOpacity }]}
-            />
-            <Text style={styles.displaySuffix}>%</Text>
-          </View>
-          <ButtonIcon
-            iconName={IconName.Add}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            onPress={handleIncrement}
-            isDisabled={draftIsFiniteNumber && parsedDraft >= MAX_PCT - 1e-9}
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.INCREMENT}
-            accessibilityLabel={strings('perps.slippage.increment_label')}
-          />
-        </View>
-
-        {showError && (
-          <Text
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR}
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={styles.errorText}
-          >
-            {strings('perps.slippage.out_of_range', {
-              min: `${MIN_PCT}`,
-              max: `${MAX_PCT}`,
-            })}
-          </Text>
-        )}
-
-        <View
-          style={styles.keypadContainer}
-          testID={PerpsCustomSlippageBottomSheetSelectorsIDs.KEYPAD}
-        >
-          <Keypad
-            value={draftValue}
-            onChange={handleKeypadChange}
-            currency="USD_PERPS"
-            decimals={1}
-          />
-        </View>
-      </View>
+          {body}
+        </ScrollView>
+      ) : (
+        body
+      )}
 
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={cancelButtonProps}
         primaryButtonProps={setButtonProps}
       />
+    </>
+  );
+
+  if (presentation === 'screen') {
+    return <View style={styles.screen}>{content}</View>;
+  }
+
+  return (
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+      {content}
     </BottomSheet>
   );
 };

@@ -6,9 +6,10 @@ import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import { type AppiumElement, getDriver } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class NetworkListModal {
   get networkScroll(): Promise<AppiumElement> {
@@ -123,15 +124,29 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
-    // Android: a title swipe scrolls the list instead of closing ReusableModal,
-    // and the open sheet hides the wallet chrome Android readiness looks for.
-    // System back closes it — verify before callers wait for wallet home.
+    // Android system back is a no-op on the redesigned network sheet.
+    // Gestures.swipe() on the title scrolls list content instead of dismissing
+    // ReusableModal — use screen-level swipe and retry until the sheet is gone
+    // (a single swipeScreen can miss the dismiss threshold under load).
     if (PlatformDetector.isAndroid()) {
-      await getDriver().back();
-      await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
-        timeout: 15000,
-        description: 'Network selector dismissed',
-      });
+      await Utilities.executeWithRetry(
+        async () => {
+          await Gestures.swipeScreen({
+            scrollParams: { direction: 'down' },
+            percent: 0.85,
+            duration: 400,
+          });
+          await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+            timeout: 5_000,
+            description: 'Network selector dismissed',
+          });
+        },
+        {
+          timeout: 25_000,
+          interval: 1_000,
+          description: 'Dismiss Android network selector sheet',
+        },
+      );
       return;
     }
 

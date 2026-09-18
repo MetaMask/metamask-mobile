@@ -9,6 +9,7 @@
 function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
+    githubRefName = '',
     prBaseRef = '',
     isFork,
     shouldSkipE2E,
@@ -31,6 +32,8 @@ function computeE2EPlatformFlags(input) {
 
   const isStableTarget =
     githubEventName === 'pull_request' && prBaseRef === 'stable';
+  const isMainBranchPush =
+    githubEventName === 'push' && githubRefName === 'main';
 
   // PRs do not build iOS from path filters alone. Labels opt back in — see
   // applyE2ELabelOverrides.
@@ -40,8 +43,7 @@ function computeE2EPlatformFlags(input) {
   if (isStableTarget) {
     message = 'Skipping E2E (stable branch synchronization PR)';
   } else if (githubEventName === 'schedule') {
-    message = 'E2E for both platforms (scheduled)';
-    android = true;
+    message = 'E2E for iOS only (scheduled)';
     ios = true;
   } else if (githubEventName === 'merge_group') {
     message = 'Skipping E2E (merge queue)';
@@ -85,9 +87,14 @@ function computeE2EPlatformFlags(input) {
     changed = changedSpecFiles;
   }
 
+  if (isMainBranchPush && ios) {
+    ios = false;
+    message = `${message} — iOS not selected for pushes to main`;
+  }
+
   if (isIOSOptInRequiredForPullRequest && ios) {
     ios = false;
-    message = `${message} — iOS not requested for this PR (add run-appium-ios-tests or skip-smart-e2e-selection)`;
+    message = `${message} — iOS not requested for this PR (add run-appium-ios-tests)`;
   }
 
   const e2eNeeded = android || ios;
@@ -142,33 +149,24 @@ function applyE2ELabelOverrides(flags, input) {
   const smokeInfraRequest =
     isMainTargetPullRequest && e2eSmokeInfraCount > 0;
 
-  // `run-appium-ios-tests` requests iOS. `skip-smart-e2e-selection` widens an
-  // eligible PR to both platforms while selecting the full ALL tag set. Shared
-  // smoke infrastructure requests both platforms on main PRs.
-  let reason = null;
-  if (runAppiumIosLabel) {
-    reason = 'run-appium-ios-tests label';
-  } else if (skipSmartSelection) {
-    reason = 'skip-smart-e2e-selection label';
-  } else if (smokeInfraRequest) {
-    reason = 'e2e smoke infrastructure changes';
-  }
+  // `skip-smart-e2e-selection` requests Android with the full ALL tag set but
+  // does not request iOS. `run-appium-ios-tests` requests iOS. Shared smoke
+  // infrastructure requests both platforms on main PRs.
+  const androidRequested = skipSmartSelection || smokeInfraRequest;
+  const iosRequested = runAppiumIosLabel || smokeInfraRequest;
 
-  const widenToBothPlatforms = skipSmartSelection || smokeInfraRequest;
-  const overrideAlreadySatisfied =
-    flags.ios && (!widenToBothPlatforms || flags.android);
-
-  if (
-    !isEligiblePullRequest ||
-    !reason ||
-    overrideAlreadySatisfied
-  ) {
+  if (!isEligiblePullRequest || (!androidRequested && !iosRequested)) {
     return flags;
   }
 
-  const ios = true;
-  const android = widenToBothPlatforms || flags.android;
+  const android = androidRequested || flags.android;
+  const ios = iosRequested || flags.ios;
   const e2eNeeded = android || ios;
+  const reasons = [
+    runAppiumIosLabel && 'run-appium-ios-tests label',
+    skipSmartSelection && 'skip-smart-e2e-selection label',
+    smokeInfraRequest && 'e2e smoke infrastructure changes',
+  ].filter(Boolean);
 
   return {
     ...flags,
@@ -178,7 +176,7 @@ function applyE2ELabelOverrides(flags, input) {
     useMainBuildsForTestOnlyPrs: e2eNeeded && testOnlyChanges,
     // A platform override can restore E2E after request-only PR suppression.
     runSmartE2ESelection: true,
-    message: `${flags.message} + platform override (${reason})`,
+    message: `${flags.message} + platform override (${reasons.join(', ')})`,
   };
 }
 
