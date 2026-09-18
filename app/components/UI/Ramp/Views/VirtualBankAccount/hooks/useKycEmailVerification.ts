@@ -21,7 +21,9 @@ interface UseKycEmailVerificationResult {
 /** Starts or resumes the KYC session, then continues to Get Pix Key. */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(
+    () => Engine.context.KycController?.state.email?.trim() ?? '',
+  );
   const [isVerifying, setIsVerifying] = useState(false);
 
   const trimmedEmail = email.trim();

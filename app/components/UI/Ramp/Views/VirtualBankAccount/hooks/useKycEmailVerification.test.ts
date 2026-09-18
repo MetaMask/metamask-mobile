@@ -14,9 +14,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockKycControllerState = {
+  email: null as string | null,
+};
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
+      get state() {
+        return mockKycControllerState;
+      },
       startSession: jest.fn(),
       reset: jest.fn(),
     },
@@ -47,6 +54,7 @@ const enterEmailAndStart = async (
 describe('useKycEmailVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockKycControllerState.email = null;
     mockKycController.startSession.mockResolvedValue({
       id: 'session-1',
       finalStatus: 'new',
@@ -67,6 +75,15 @@ describe('useKycEmailVerification', () => {
       result.current.setEmail('user@example.com');
     });
 
+    expect(result.current.isContinueDisabled).toBe(false);
+  });
+
+  it('prefills the email input from KycController state', () => {
+    mockKycControllerState.email = '  stored@example.com  ';
+
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    expect(result.current.email).toBe('stored@example.com');
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
