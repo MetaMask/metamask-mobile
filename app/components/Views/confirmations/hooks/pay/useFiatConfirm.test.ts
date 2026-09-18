@@ -166,7 +166,7 @@ describe('useFiatConfirm', () => {
         {
           quote: mockQuote,
           assetId: 'eip155:1/erc20:0xabc',
-          amount: 52,
+          amount: 55,
           paymentMethodId: 'pm-123',
           currency: 'USD',
           walletAddress: undefined,
@@ -402,7 +402,7 @@ describe('useFiatConfirm', () => {
       );
     });
 
-    it('subtracts providerFiat fee from total for buy amount', () => {
+    it('requests the full total as the buy amount', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue({
         total: { fiat: '100.00', usd: '100.00' },
         fees: {
@@ -431,7 +431,7 @@ describe('useFiatConfirm', () => {
       });
 
       expect(startHeadlessBuyMock).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 85 }),
+        expect.objectContaining({ amount: 100 }),
         expect.any(Object),
       );
     });
