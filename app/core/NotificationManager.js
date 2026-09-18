@@ -290,13 +290,25 @@ class NotificationManager {
         // Force-refresh balances and detected tokens for the affected chain
         // right after a transaction was confirmed. AssetsController is the
         // sole source of truth for asset balances and detection.
-        const senderAccount = AccountsController.getAccountByAddress(
-          transactionMeta.txParams.from,
-        );
-        if (senderAccount) {
+        //
+        // Refresh both the sender and (if the tx recipient is also one of the
+        // user's own wallet accounts, e.g. a send between own accounts) the
+        // recipient, so neither is left showing a stale balance until the
+        // next poll.
+        const { from, to } = transactionMeta.txParams;
+        const accountsToRefresh = [from, to]
+          .filter(Boolean)
+          .map((address) => AccountsController.getAccountByAddress(address))
+          .filter(Boolean);
+        const uniqueAccountsToRefresh = [
+          ...new Map(
+            accountsToRefresh.map((account) => [account.id, account]),
+          ).values(),
+        ];
+        if (uniqueAccountsToRefresh.length > 0) {
           try {
             const caipChainId = toEvmCaipChainId(transactionMeta.chainId);
-            AssetsController.getAssets([senderAccount], {
+            AssetsController.getAssets(uniqueAccountsToRefresh, {
               forceUpdate: true,
               chainIds: [caipChainId],
             }).catch((error) => {

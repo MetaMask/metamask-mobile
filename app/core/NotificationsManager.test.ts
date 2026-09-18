@@ -432,7 +432,7 @@ describe('NotificationManager', () => {
     it('shows a confirm notification for a transaction with nonce', async () => {
       const transactionMeta = {
         id: '0x123',
-        txParams: { nonce: '0x1' },
+        txParams: { nonce: '0x1', from: '0xSender' },
         chainId: '0x1',
         time: 123,
         status: 'confirmed' as TransactionMeta['status'],
@@ -475,6 +475,65 @@ describe('NotificationManager', () => {
       // transaction's raw hex chainId.
       expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
         [{ id: 'account-id' }],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
+    it('refreshes both the sender and recipient when the recipient is also a wallet account', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const recipientAccount = { id: 'recipient-account-id' };
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          if (address === '0xRecipient') {
+            return recipientAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+          from: '0xSender',
+          to: '0xRecipient',
+        },
+        chainId: '0x1',
+        time: 123,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x123',
+        assetType: 'ETH',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      // A send to another of the user's own accounts must refresh the
+      // recipient's balance too, not just the sender's.
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount, recipientAccount],
         expect.objectContaining({
           chainIds: ['eip155:1'],
         }),
