@@ -1028,7 +1028,9 @@ export class Engine {
     // KeyringController fires during a single unlock into one backup
     // attempt. Reset on lock so the *next* unlock still performs a fresh
     // keychain check (needed to self-heal an Android Keystore-invalidated
-    // backup — see Engine.test.ts for the regression tests).
+    // backup), and reset on a failed attempt so a later stateChange for the
+    // same vault can retry instead of waiting for the next lock/unlock
+    // — see Engine.test.ts for the regression tests.
     let lastVault: string | undefined;
 
     this.controllerMessenger.subscribe('KeyringController:lock', () => {
@@ -1051,7 +1053,8 @@ export class Engine {
           return;
         }
 
-        lastVault = state.vault;
+        const vaultBeingBackedUp = state.vault;
+        lastVault = vaultBeingBackedUp;
         backupVault(state)
           .then((result) => {
             if (!result.success) {
@@ -1066,6 +1069,14 @@ export class Engine {
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
+            // Don't let a failed attempt block retries until the next
+            // lock/unlock — allow the next stateChange for this vault to
+            // try again. Guarded so we don't clobber a newer attempt that
+            // may have already claimed lastVault while this one was
+            // in flight.
+            if (lastVault === vaultBeingBackedUp) {
+              lastVault = undefined;
+            }
           });
       },
     );

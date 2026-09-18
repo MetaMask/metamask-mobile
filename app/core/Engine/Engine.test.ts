@@ -448,6 +448,39 @@ describe('Engine', () => {
     expect(backupVault).toHaveBeenCalledTimes(1);
   });
 
+  it('retries a failed backup on the next stateChange for the same vault, without waiting for a lock', async () => {
+    (backupVault as jest.Mock)
+      .mockResolvedValueOnce({
+        success: false,
+        error: 'Vault backup failed',
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        vault: 'vault-a',
+      });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-a');
+    // Let the failed attempt's .then/.catch settle before the retry.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // No lock happened, but the same vault arrives again — since the prior
+    // attempt failed, this must be treated as a fresh attempt, not skipped
+    // as a burst duplicate.
+    publishStateChange('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(2);
+  });
+
   it('calling Engine.destroy deletes the old instance', async () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, {});
     await engine.destroyEngineInstance();
