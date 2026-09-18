@@ -8,6 +8,15 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import {
+  FeatureId,
+  RequestStatus,
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+  getNativeAssetForChainId,
+} from '@metamask/bridge-controller';
+import Engine from '../../../app/core/Engine';
+import { updateBgState } from '../../../app/core/redux/slices/engine';
 import { disableNetConnect, teardownNock } from './nockHelpers';
 import { USDC_DEST } from '../../../app/components/UI/Bridge/_mocks_/bridgeViewTestConstants';
 
@@ -57,6 +66,192 @@ export function setupQuickBuyApiMock(): void {
 export function clearQuickBuyApiMocks(): void {
   teardownNock();
 }
+
+/**
+ * SwapQuotesProvider talks to Redux via updateBridgeQuoteRequestParams.
+ * CV Engine mocks that as a no-op, so push fetchQuotes results into
+ * Engine.state + UPDATE_BG_STATE the way production polling would.
+ */
+const priceImpactAmountFromRaw = (raw: {
+  quote?: { priceData?: { priceImpact?: unknown } };
+}): string | undefined => {
+  const rawImpact = raw.quote?.priceData?.priceImpact;
+  if (typeof rawImpact === 'string') {
+    return rawImpact;
+  }
+  if (
+    rawImpact &&
+    typeof rawImpact === 'object' &&
+    'amount' in rawImpact &&
+    rawImpact.amount != null
+  ) {
+    return String(rawImpact.amount);
+  }
+  return undefined;
+};
+
+/** Same v2 quote shape as withBridgeRecommendedQuoteEvmSimple, request-matched. */
+const toQuickBuyReduxQuote = (
+  params: { srcTokenAmount?: string; destTokenAddress?: string },
+  raw: {
+    quote?: {
+      destAsset?: { address?: string; decimals?: number; symbol?: string };
+      destTokenAmount?: string;
+      minDestTokenAmount?: string;
+      priceData?: { priceImpact?: unknown };
+    };
+  },
+) => {
+  const srcTokenAddress = '0x0000000000000000000000000000000000000000';
+  const destTokenAddress =
+    params.destTokenAddress ??
+    raw.quote?.destAsset?.address ??
+    USDC_DEST.address;
+  const destDecimals = raw.quote?.destAsset?.decimals ?? USDC_DEST.decimals;
+  const destSymbol = raw.quote?.destAsset?.symbol ?? USDC_DEST.symbol;
+  const priceImpactAmount = priceImpactAmountFromRaw(raw);
+
+  return {
+    namespace: 'eip155',
+    chainId: formatChainIdToCaip(1),
+    quote: {
+      aggregator: 'quick-buy-quote-1',
+      protocols: ['quick-buy-quote-1'],
+      steps: [],
+      requestId: 'quick-buy-quote-1',
+      src: {
+        asset: {
+          address: srcTokenAddress,
+          decimals: 18,
+          symbol: 'ETH',
+          assetId: formatAddressToAssetId(srcTokenAddress, 1),
+          name: 'Ether',
+        },
+        amount: String(params.srcTokenAmount ?? '0'),
+      },
+      dest: {
+        asset: {
+          address: destTokenAddress,
+          decimals: destDecimals,
+          symbol: destSymbol,
+          name: destSymbol,
+          assetId: formatAddressToAssetId(destTokenAddress, 1),
+        },
+        amount: raw.quote?.destTokenAmount ?? '10000000',
+        minAmount: raw.quote?.minDestTokenAmount ?? '9900000',
+      },
+      feeData: {
+        metabridge: [
+          {
+            amount: '0',
+            asset: {
+              address: srcTokenAddress,
+              chainId: 1,
+              decimals: 18,
+              symbol: 'ETH',
+              name: 'Ether',
+              assetId: formatAddressToAssetId(srcTokenAddress, 1),
+            },
+          },
+        ],
+        network: [
+          {
+            amount: QUICK_BUY_QUOTE_TX_FEE_AMOUNT,
+            normalizedAmount: '0.001',
+            valueInCurrency: '2',
+            asset: getNativeAssetForChainId(1),
+          },
+        ],
+      },
+      gasIncluded: false,
+      ...(priceImpactAmount
+        ? { priceData: { priceImpact: { amount: priceImpactAmount } } }
+        : {}),
+    },
+    estimatedProcessingTimeInSeconds: 30,
+    trade: {
+      chainId: 1,
+      to: destTokenAddress,
+      from: '0x0000000000000000000000000000000000000001',
+      data: '0x0',
+      value: '0x0',
+      gasLimit: 100,
+    },
+  };
+};
+
+export const wireQuickBuySwapQuotePolling = (store: {
+  dispatch: (action: unknown) => void;
+  getState: () => {
+    engine: { backgroundState: Record<string, unknown> };
+  };
+}) => {
+  (
+    Engine.context.BridgeController.updateBridgeQuoteRequestParams as jest.Mock
+  ).mockImplementation(
+    async (params: { srcTokenAmount?: string; destTokenAddress?: string }) => {
+      const engineWithState = Engine as unknown as {
+        state?: Record<string, unknown>;
+      };
+
+      const apply = (patch: Record<string, unknown>) => {
+        const existing =
+          (store.getState().engine.backgroundState.BridgeController as
+            | Record<string, unknown>
+            | undefined) ?? {};
+        engineWithState.state = {
+          ...(engineWithState.state ?? {}),
+          BridgeController: {
+            ...existing,
+            ...patch,
+          },
+        };
+        store.dispatch(updateBgState({ key: 'BridgeController' }));
+      };
+
+      try {
+        const fetched = (await (
+          Engine.context.BridgeController.fetchQuotes as jest.Mock
+        )(params, FeatureId.QUICK_BUY_EXPLORE)) as {
+          quote?: {
+            destAsset?: {
+              address?: string;
+              decimals?: number;
+              symbol?: string;
+            };
+            destTokenAmount?: string;
+            minDestTokenAmount?: string;
+            priceData?: { priceImpact?: unknown };
+          };
+        }[];
+        const quotes = (fetched ?? []).map((raw) =>
+          toQuickBuyReduxQuote(params, raw),
+        );
+
+        apply({
+          quoteRequest: [params],
+          quotes,
+          recommendedQuote: quotes[0] ?? null,
+          quotesLastFetched: Date.now(),
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quoteFetchError: null,
+          quoteStreamComplete: { hasQuotes: quotes.length > 0 },
+          quotesRefreshCount: 1,
+          isInPolling: false,
+        });
+      } catch (error) {
+        apply({
+          quotes: [],
+          recommendedQuote: null,
+          quoteFetchError:
+            error instanceof Error ? error.message : String(error),
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quoteStreamComplete: { hasQuotes: false },
+        });
+      }
+    },
+  );
+};
 
 /**
  * Pre-v2 quote shape returned by BridgeController.fetchQuotes. Echo
@@ -129,7 +324,7 @@ export function createQuickBuyFetchedQuote(
       ...(extras?.priceImpactAmount
         ? {
             priceData: {
-              priceImpact: extras.priceImpactAmount,
+              priceImpact: { amount: extras.priceImpactAmount },
             },
           }
         : {}),

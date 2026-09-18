@@ -56,6 +56,8 @@ import {
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -210,6 +212,10 @@ const selectQuoteMetadataDeps = createSelector(
   }),
 );
 
+// TODO skip useEffects if swapQuotes
+/**
+ * @deprecated Use useSwapQuotes instead
+ */
 export function useQuickBuyQuotes({
   sourceToken,
   destToken,
@@ -293,6 +299,7 @@ export function useQuickBuyQuotes({
   // for. Null until the first fetch settles (or after quotes are reset).
   const settledRequestParamsKeyRef = useRef<string | null>(null);
 
+  // TODO skip expensive operations
   const resetQuotesIdle = useCallback(() => {
     setRawQuotes([]);
     setIsQuoteLoading(false);
@@ -305,30 +312,55 @@ export function useQuickBuyQuotes({
     settledRequestParamsKeyRef.current = null;
   }, []);
 
-  const fetchQuotes = useCallback(async () => {
-    abortControllerRef.current?.abort();
-
-    if (
-      !sourceToken ||
-      !destToken ||
-      !walletAddress ||
-      !sourceTokenAmount ||
-      sourceToken.decimals === undefined
-    ) {
-      resetQuotesIdle();
-      return;
-    }
-
-    const params = buildQuoteRequest({
+  const maybeSwapQuotes = useSwapQuotes();
+  const { setQuoteParams } = useBridgeSession();
+  const quoteParams = useMemo(
+    () => ({
       sourceToken,
       destToken,
       sourceTokenAmount,
       slippage,
       walletAddress,
-      destAddress: destAddress ?? undefined,
+      destAddress: destAddress,
       gasIncluded,
       gasIncluded7702,
-    });
+    }),
+    [
+      sourceToken,
+      destToken,
+      sourceTokenAmount,
+      slippage,
+      walletAddress,
+      destAddress,
+      gasIncluded,
+      gasIncluded7702,
+    ],
+  );
+
+  // If migrated, set swap quoteParams to trigger quote polling
+  useEffect(() => {
+    if (maybeSwapQuotes) {
+      console.log('====useEffect setQuoteParams', quoteParams);
+      // TODO include analytics/trace params
+      setQuoteParams(quoteParams);
+    }
+  }, [maybeSwapQuotes, quoteParams, setQuoteParams]);
+
+  const fetchQuotes = useCallback(async () => {
+    abortControllerRef.current?.abort();
+
+    if (
+      !quoteParams.sourceToken ||
+      !quoteParams.destToken ||
+      !quoteParams.walletAddress ||
+      !quoteParams.sourceTokenAmount ||
+      quoteParams.sourceToken.decimals === undefined
+    ) {
+      resetQuotesIdle();
+      return;
+    }
+
+    const params = buildQuoteRequest(quoteParams);
 
     if (!params) {
       resetQuotesIdle();
@@ -365,7 +397,8 @@ export function useQuickBuyQuotes({
             [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
             [QuickBuyEventProperties.AMOUNT_USD]:
               analyticsContext.amountUsd ?? 0,
-            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
+            [QuickBuyEventProperties.PAY_WITH_TOKEN]:
+              quoteParams.sourceToken.symbol,
           }
         : null;
 
@@ -490,19 +523,12 @@ export function useQuickBuyQuotes({
       fireReceived(0);
     }
   }, [
-    sourceToken,
-    destToken,
-    sourceTokenAmount,
-    slippage,
-    walletAddress,
-    destAddress,
-    gasIncluded,
-    gasIncluded7702,
     shouldStream,
     resetQuotesIdle,
     analyticsContext,
     track,
     requestParamsKey,
+    quoteParams,
   ]);
 
   const debouncedFetchQuotes = useMemo(
