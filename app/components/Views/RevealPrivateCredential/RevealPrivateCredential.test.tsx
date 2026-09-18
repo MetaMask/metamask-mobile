@@ -432,6 +432,18 @@ describe('RevealPrivateCredential', () => {
       expect(getByText('Get started')).toBeOnTheScreen();
     });
 
+    it('centers the introduction description so wrapped translations stay aligned', () => {
+      const { getByText } = renderWithProviders(
+        <RevealPrivateCredential cancel={() => null} />,
+      );
+
+      expect(
+        getByText(
+          'To reveal your Secret Recovery Phrase, you need to correctly answer two questions',
+        ),
+      ).toHaveStyle({ textAlign: 'center' });
+    });
+
     it('renders password entry after completing security quiz', async () => {
       // Mock biometrics to fail so password entry is shown
       mockReauthenticate.mockRejectedValue(

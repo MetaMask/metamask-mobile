@@ -301,6 +301,14 @@ export interface RewardsState {
   campaignsLoading: boolean;
   campaignsError: boolean;
   campaignsHasLoaded: boolean;
+  /**
+   * True while a campaigns fetch is in flight, including a refresh over an
+   * already-populated list. Distinct from `campaignsLoading`, which is
+   * suppressed once campaigns exist so the list UI does not flash a skeleton on
+   * every refocus. Callers that must not act on a stale list — deeplink
+   * resolution in particular — need this signal instead.
+   */
+  campaignsFetching: boolean;
 
   // Campaign participant status (keyed by `${subscriptionId}:${campaignId}`)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
@@ -472,6 +480,7 @@ export const initialState: RewardsState = {
   campaignsLoading: false,
   campaignsError: false,
   campaignsHasLoaded: false,
+  campaignsFetching: false,
 
   // Campaign participant statuses initial state
   campaignParticipantStatuses: {},
@@ -1015,6 +1024,9 @@ const rewardsSlice = createSlice({
       if (action.payload) {
         state.campaignsHasLoaded = true;
       }
+    },
+    setCampaignsFetching: (state, action: PayloadAction<boolean>) => {
+      state.campaignsFetching = action.payload;
     },
 
     setCampaignParticipantStatus: (
@@ -2011,6 +2023,7 @@ export const {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignsFetching,
   setCampaignParticipantStatus,
   setPendingMasSeriesOptIn,
   clearPendingMasSeriesOptIn,

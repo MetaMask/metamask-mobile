@@ -30,17 +30,30 @@ jest.mock('./PerpsCustomSlippageBottomSheet', () => {
       isVisible,
       currentValueBps,
       onClose,
+      onBack,
+      presentation,
       onSave,
     }: {
       isVisible: boolean;
       currentValueBps: number;
       onClose: () => void;
+      onBack?: () => void;
+      presentation?: 'bottomSheet' | 'screen';
       onSave: (bps: number) => void;
     }) =>
       isVisible ? (
-        <View testID="mock-custom-slippage-sheet">
+        <View
+          testID={
+            presentation === 'screen'
+              ? 'mock-custom-slippage-screen'
+              : 'mock-custom-slippage-sheet'
+          }
+        >
           <Text>{`current:${currentValueBps}`}</Text>
-          <TouchableOpacity testID="mock-custom-cancel" onPress={onClose} />
+          <TouchableOpacity
+            testID="mock-custom-cancel"
+            onPress={onBack ?? onClose}
+          />
           <TouchableOpacity
             testID="mock-custom-save-450"
             onPress={() => onSave(450)}
@@ -119,6 +132,23 @@ describe('PerpsSlippageBottomSheet', () => {
     );
 
     expect(screen.getByTestId('mock-custom-slippage-sheet')).toBeOnTheScreen();
+  });
+
+  it('keeps custom slippage in the current sheet for screen presentation', () => {
+    render(
+      <PerpsSlippageBottomSheet
+        {...defaultProps}
+        presentation="screen"
+        onBack={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    );
+
+    expect(screen.getByTestId('mock-custom-slippage-screen')).toBeOnTheScreen();
+    expect(screen.queryByTestId('mock-custom-slippage-sheet')).toBeNull();
   });
 
   it('shows custom percentage on the edit chip when current value is custom', () => {

@@ -61,6 +61,7 @@ const mockTraders = [
     pnlValue: 963000,
     winRatePercent: 92,
     pnlPerChain: { base: 963000 },
+    followerCount: 1200,
     isFollowing: false,
   },
 ];

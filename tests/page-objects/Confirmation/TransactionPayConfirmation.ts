@@ -22,7 +22,6 @@ import {
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
 const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
-const MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID = 'money-account-withdraw-balance';
 // Money-funded deposit confirmations set their navbar title (and the navbar
 // back button testID, `<title>-navbar-back-button`) from the destination.
 const PERPS_SEND_TITLE = enContent.perps.send_to_perps;
@@ -116,10 +115,6 @@ class TransactionPayConfirmation {
 
   get availableBalance(): Promise<AppiumElement> {
     return Matchers.getElementByText('Available balance');
-  }
-
-  get withdrawBalance(): Promise<AppiumElement> {
-    return Matchers.getElementByID(MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID);
   }
 
   get transactionFee(): Promise<AppiumElement> {
@@ -351,11 +346,27 @@ class TransactionPayConfirmation {
   }
 
   async clearAmount(): Promise<void> {
-    await Gestures.longPress(this.keypadDeleteButton, {
-      duration: 600,
-      elemDescription: 'Keypad delete button (long-press clears amount)',
-      timeout: 15000,
-    });
+    // Long-press can miss on Android after a percentage tap. Re-issue the
+    // gesture until custom-amount-input is '0' (Keys.Initial). Short
+    // per-attempt assertion timeout; executeWithRetry owns the budget.
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.longPress(this.keypadDeleteButton, {
+          duration: 600,
+          elemDescription: 'Keypad delete button (long-press clears amount)',
+          timeout: 15000,
+        });
+        await Assertions.expectElementToHaveText(this.keyboardContainer, '0', {
+          description: 'Amount should be 0 after keypad long-press clear',
+          timeout: 2000,
+        });
+      },
+      {
+        timeout: 15000,
+        interval: 400,
+        description: 'Clear custom amount until 0',
+      },
+    );
   }
 
   async tapKeyboardAmount(amount: string): Promise<void> {
@@ -467,13 +478,6 @@ class TransactionPayConfirmation {
     });
   }
 
-  async verifyWithdrawBalanceVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.withdrawBalance, {
-      description: 'Money account withdraw balance should be visible',
-      timeout: 15000,
-    });
-  }
-
   get perpsAccountPickerRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsAccountPickerSelectorsIDs.ROW);
   }
@@ -520,6 +524,14 @@ class TransactionPayConfirmation {
       this.receive,
       amount,
       "You'll receive amount should be correct",
+    );
+  }
+
+  async verifyPayWithSymbol(symbol: string): Promise<void> {
+    await this.expectText(
+      this.payWithSymbol,
+      symbol,
+      `Pay with row should show selected symbol ${symbol}`,
     );
   }
 }

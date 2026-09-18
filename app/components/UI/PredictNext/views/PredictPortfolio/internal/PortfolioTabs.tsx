@@ -23,9 +23,9 @@ const tabs = [
     testID: PredictPortfolioScreenTestIds.POSITIONS_TAB,
   },
   {
-    key: 'history',
-    label: 'predict_next.portfolio.history',
-    testID: PredictPortfolioScreenTestIds.HISTORY_TAB,
+    key: 'activity',
+    label: 'predict_next.portfolio.activity',
+    testID: PredictPortfolioScreenTestIds.ACTIVITY_TAB,
   },
 ] as const;
 
