@@ -1150,6 +1150,17 @@
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+    },
+    "onboarding": {
+      "loading_title": "Checking your Money account",
+      "loading_description": "This should only take a moment.",
+      "processing_title": "Your Money account is being prepared",
+      "processing_description": "You can leave this screen and check again later.",
+      "verify_email_title": "Verify your email",
+      "verify_email_description": "Finish email verification to continue setting up your Money account.",
+      "error_title": "We couldn't check your Money account",
+      "error_description": "Try again to continue where you left off.",
+      "retry": "Try again"
     }
   },
   "social_leaderboard": {
