@@ -35,6 +35,19 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../../../locales/i18n', () => {
+  const actual = jest.requireActual('../../../../../../locales/i18n') as {
+    strings: (name: string, params?: Record<string, unknown>) => string;
+  };
+
+  return {
+    ...actual,
+    strings: jest.fn((name: string, params = {}) =>
+      actual.strings(name, params),
+    ),
+  };
+});
+
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 const mockInitiateDeposit = jest.fn();
@@ -459,6 +472,41 @@ describe('MoneyBalanceCard', () => {
       expect(
         getByTestId(MoneyBalanceCardTestIds.CURRENCY_SUFFIX),
       ).toHaveTextContent(/• mUSD/);
+    });
+
+    it('keeps the currency suffix, info control, and add CTA on screen for a long translated label', () => {
+      const actualStrings = jest.requireActual('../../../../../../locales/i18n')
+        .strings as typeof strings;
+      const mockedStrings = strings as jest.MockedFunction<typeof strings>;
+
+      mockedStrings.mockImplementation((name, params) => {
+        if (name === 'money.balance_card.label') {
+          return 'Υπόλοιπο χρημάτων';
+        }
+        if (name === 'money.balance_card.add') {
+          return 'Προσθήκη';
+        }
+        return actualStrings(name, params);
+      });
+
+      try {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(getByTestId(MoneyBalanceCardTestIds.LABEL)).toHaveTextContent(
+          'Υπόλοιπο χρημάτων',
+        );
+        expect(
+          getByTestId(MoneyBalanceCardTestIds.CURRENCY_SUFFIX),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyBalanceCardTestIds.INFO_BUTTON),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
+        ).toHaveTextContent('Προσθήκη');
+      } finally {
+        mockedStrings.mockImplementation(actualStrings);
+      }
     });
 
     it('does not render the mUSD currency suffix inside the APY tag', () => {
