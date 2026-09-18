@@ -753,9 +753,9 @@ describe('MainNavigator', () => {
 
       expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
       expect(groupedScreenNames(group)).toEqual([
+        Routes.RAMP.VBA_KYC_EMAIL,
         Routes.RAMP.GET_PIX_KEY,
         Routes.RAMP.VBA_VERIFY_IDENTITY,
-        Routes.RAMP.VBA_KYC_EMAIL,
       ]);
       expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);
     });
