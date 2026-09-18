@@ -16,6 +16,7 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -43,11 +44,11 @@ import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
 import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import { truncateNumber } from '../../utils';
+import { formatEarnRatePercentage } from '../../utils';
 import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
 import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
 import useEarnOpportunityNavigation, {
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -142,6 +143,7 @@ const renderAssetSecondaryText = ({
   return (
     <SensitiveText
       variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
     >
@@ -356,10 +358,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     const handleAssetCardPress = useCallback(
       (asset: EarnAsset, position: number) => {
+        const assetsInList = assetSlots.filter(
+          (slot) => slot.kind === 'asset',
+        ).length;
+
         trackEarnSurfaceClicked({
           component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
-          ...getEarnModuleAssetProperties(asset, position, assetSlots.length),
-          redirect_target: getEarnOpportunityRedirectTarget(
+          ...getEarnModuleAssetProperties(asset, position, assetsInList),
+          redirect_target: getEarnAssetSelectionRedirectTarget(
             asset,
             isOnboardingRedirectNeeded,
           ),
@@ -374,12 +380,12 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               screen_name: earnScreenName,
             },
             position,
-            assetSlots.length,
+            assetsInList,
           ),
         );
       },
       [
-        assetSlots.length,
+        assetSlots,
         earnEntryPoint,
         earnScreenName,
         isOnboardingRedirectNeeded,
@@ -405,6 +411,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       return (
         <SensitiveText
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >
@@ -564,7 +571,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     strings('earn_module.rate_unavailable')
                   ) : (
                     strings('earn_module.rate_apy', {
-                      percentage: truncateNumber(moneyApyPercent),
+                      percentage: formatEarnRatePercentage(moneyApyPercent),
                     })
                   )
                 }

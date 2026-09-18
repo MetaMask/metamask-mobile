@@ -34,7 +34,7 @@ const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockStore = (): Store => {
   const rootReducer = (state = initialState) => state;
-  return createStore(rootReducer, initialState);
+  return createStore(rootReducer as never);
 };
 
 // Helper to wrap hook with provider

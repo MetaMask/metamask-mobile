@@ -1,71 +1,26 @@
-import type {
-  FeedSubnavId,
-  LeaderboardSubnavId,
-  LiveTradesSubnavId,
-  SocialShellTabConfig,
-} from './types';
+import type { SocialShellTab, SocialShellTabConfig } from './types';
 
-const FEED_CONFIG: SocialShellTabConfig<FeedSubnavId> = {
-  labelKey: 'social_leaderboard.feed.tabs.feed',
-  subnav: [
-    {
-      id: 'trending',
-      labelKey: 'social_leaderboard.shell.subnav.trending',
-    },
-    {
-      id: 'following',
-      labelKey: 'social_leaderboard.feed.following',
-    },
-  ],
-  defaultSubnav: 'trending',
+export const SOCIAL_SHELL_TAB_CONFIG: Record<
+  SocialShellTab,
+  SocialShellTabConfig
+> = {
+  trending: {
+    labelKey: 'social_leaderboard.feed.tabs.trending',
+  },
+  following: {
+    labelKey: 'social_leaderboard.feed.tabs.following',
+  },
+  leaderboard: {
+    labelKey: 'social_leaderboard.feed.tabs.leaderboard',
+  },
+  liveTrades: {
+    labelKey: 'social_leaderboard.feed.tabs.live_trades',
+  },
 };
-
-const LIVE_TRADES_CONFIG: SocialShellTabConfig<LiveTradesSubnavId> = {
-  labelKey: 'social_leaderboard.feed.tabs.live_trades',
-  subnav: [
-    {
-      id: 'memecoins',
-      labelKey: 'social_leaderboard.shell.subnav.memecoins',
-    },
-    {
-      id: 'perps',
-      labelKey: 'social_leaderboard.shell.subnav.perps',
-    },
-    {
-      id: 'stocks',
-      labelKey: 'social_leaderboard.shell.subnav.stocks',
-    },
-  ],
-  defaultSubnav: 'memecoins',
-};
-
-const LEADERBOARD_CONFIG: SocialShellTabConfig<LeaderboardSubnavId> = {
-  labelKey: 'social_leaderboard.feed.tabs.leaderboard',
-  subnav: [
-    {
-      id: 'topTraders',
-      labelKey: 'social_leaderboard.shell.subnav.top_traders',
-    },
-    {
-      id: 'topPerps',
-      labelKey: 'social_leaderboard.shell.subnav.top_perps',
-    },
-    {
-      id: 'kols',
-      labelKey: 'social_leaderboard.shell.subnav.kols',
-    },
-  ],
-  defaultSubnav: 'topTraders',
-};
-
-export const SOCIAL_SHELL_TAB_CONFIG = {
-  feed: FEED_CONFIG,
-  liveTrades: LIVE_TRADES_CONFIG,
-  leaderboard: LEADERBOARD_CONFIG,
-} as const;
 
 export const SOCIAL_V1_TAB_ORDER = [
-  'feed',
-  'liveTrades',
+  'trending',
+  'following',
   'leaderboard',
+  'liveTrades',
 ] as const;

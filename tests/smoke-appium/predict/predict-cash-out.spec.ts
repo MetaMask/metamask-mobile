@@ -3,7 +3,8 @@ import { SmokePredictions } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage.js';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
+import PredictHome from '../../page-objects/Predict/PredictHome.js';
+import PredictPositions from '../../page-objects/Predict/PredictPositions.js';
 import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import {
@@ -101,10 +102,16 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           );
           await Assertions.expectElementToBeVisible(
             PredictCashOutPage.container,
+            {
+              description: 'Predict cash out page should be visible',
+            },
           );
 
           await Assertions.expectElementToBeVisible(
             PredictCashOutPage.cashOutButton,
+            {
+              description: 'Predict cash out button should be visible',
+            },
           );
 
           await PredictCashOutPage.tapCashOutButton();
@@ -124,12 +131,21 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           // is not yet in the hierarchy after market-details pop.
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.scrollAndTapPredictionsSection();
-          await WalletView.tapOnAvailableBalance();
-          await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-            description: 'Predictions balance should be updated to $57.44',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible after cash out',
+          });
+          await PredictHome.tapPositions();
+          await PredictPositions.waitForScreenToDisplay();
+          await PredictPositions.expectAvailableBalance(
+            positionDetails.newBalance,
+          );
+          await PredictPositions.tapBackButton();
+          await PredictHome.waitForScreenToDisplay({
+            description:
+              'Predict home should be visible after verifying balance',
           });
 
-          await PredictMarketList.tapBackButton();
+          await PredictHome.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await TabBarComponent.tapActivity();
         },

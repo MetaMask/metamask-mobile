@@ -188,17 +188,45 @@ describe('usePerpsWithdrawToastRegistrations', () => {
                   isPostQuote: true,
                   targetFiat: '0.25',
                   chainId: '0xa4b1',
-                  tokenAddress: '0xtoken',
+                  tokenAddress: '0x00000000000000000000000000000000000000bb',
                 },
               },
             ],
           },
-          TokensController: {
-            allTokens: {
-              '0xa4b1': {
-                '0x0': [{ address: '0xtoken', symbol: 'BNB' }],
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'acc-1': {
+                  id: 'acc-1',
+                  address: '0x1111111111111111111111111111111111111111',
+                  type: 'eip155:eoa' as const,
+                  metadata: {
+                    name: 'Account 1',
+                    keyring: { type: 'HD Key Tree' },
+                  },
+                },
+              },
+              selectedAccount: 'acc-1',
+            },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:42161/erc20:0x00000000000000000000000000000000000000bb': {
+                type: 'erc20' as const,
+                symbol: 'BNB',
+                name: 'BNB',
+                decimals: 18,
               },
             },
+            assetsBalance: {
+              'acc-1': {
+                'eip155:42161/erc20:0x00000000000000000000000000000000000000bb':
+                  { amount: '1' },
+              },
+            },
+            customAssets: {},
+            assetPreferences: {},
           },
           NetworkController: { networkConfigurationsByChainId: {} },
         },

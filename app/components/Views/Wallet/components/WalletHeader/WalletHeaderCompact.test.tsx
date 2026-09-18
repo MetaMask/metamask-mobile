@@ -6,9 +6,10 @@ import WalletHeaderCompact, {
   type WalletHeaderCompactProps,
 } from './WalletHeaderCompact';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
+import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 
-jest.mock('../../../../hooks/useHasUnreadNotifications', () => ({
-  useHasUnreadNotifications: jest.fn(() => false),
+jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
+  useAccountsMenuAttention: jest.fn(() => false),
 }));
 
 const defaultProps: WalletHeaderCompactProps = {
@@ -24,7 +25,10 @@ const defaultProps: WalletHeaderCompactProps = {
 };
 
 describe('WalletHeaderCompact', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
+  });
 
   it('renders the rewards button without a search button by default', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
@@ -64,5 +68,39 @@ describe('WalletHeaderCompact', () => {
     );
 
     expect(defaultProps.handleAccountHubPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls handleAccountHubPress when the avatar is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact {...defaultProps} />,
+    );
+
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    );
+
+    expect(defaultProps.handleAccountHubPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the avatar badge when there is Accounts menu attention', () => {
+    jest.mocked(useAccountsMenuAttention).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact {...defaultProps} />,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the avatar badge when there is no Accounts menu attention', () => {
+    const { queryByTestId } = renderWithProvider(
+      <WalletHeaderCompact {...defaultProps} />,
+    );
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON_BADGE),
+    ).toBeNull();
   });
 });

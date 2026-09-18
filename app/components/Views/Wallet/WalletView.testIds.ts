@@ -7,6 +7,8 @@ export const WalletViewSelectorsIDs = {
   WALLET_SCAN_BUTTON: 'wallet-scan-button',
   WALLET_NOTIFICATIONS_BUTTON: 'wallet-notifications-button',
   WALLET_HAMBURGER_MENU_BUTTON: 'navbar-hamburger-menu-button',
+  WALLET_HAMBURGER_MENU_BADGE: 'navbar-hamburger-menu-badge',
+  WALLET_ACCOUNT_HUB_BUTTON_BADGE: 'wallet-account-hub-button-badge',
   WALLET_TOKEN_DETECTION_LINK_BUTTON: 'wallet-token-detection-link-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   CARD_BUTTON: 'card-button',

@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
+import { Icon } from '@metamask/design-system-react-native';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import { DEFAULT_PRO_POSITION_SIDE_FILTER } from '../utils/proPositionSideFilter';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
@@ -73,6 +79,24 @@ describe('PerpsProPositionsSideFilterSheet', () => {
     expect(
       screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID),
     ).toBeOnTheScreen();
+  });
+
+  it('highlights the selected side without a checkmark', () => {
+    render(
+      <PerpsProPositionsSideFilterSheet
+        isVisible
+        sideFilter={DEFAULT_PRO_POSITION_SIDE_FILTER}
+        onClose={mockOnClose}
+        onApply={mockOnApply}
+        testID="positions-side-filter-sheet"
+      />,
+    );
+
+    const selectedOption = screen.getByTestId(
+      'positions-side-filter-sheet-option-all',
+    );
+
+    expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
   });
 
   it('applies the selected side filter immediately on selection', () => {

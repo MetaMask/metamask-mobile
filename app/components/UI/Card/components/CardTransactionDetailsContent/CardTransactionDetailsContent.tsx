@@ -39,6 +39,7 @@ export interface CardTransactionDetailsContentProps {
   locationLabel?: string;
   declineReason?: string;
   transactionId?: string;
+  networkFeeLabel?: string;
   heroToken: CardTransactionHeroToken;
   heroIconTestID?: string;
   onBack: () => void;
@@ -60,6 +61,7 @@ const CardTransactionDetailsContent = ({
   locationLabel,
   declineReason,
   transactionId,
+  networkFeeLabel,
   heroToken,
   heroIconTestID = 'card-transaction-details-asset-icon',
   onBack,
@@ -159,6 +161,14 @@ const CardTransactionDetailsContent = ({
                     testID="card-transaction-details-copy-id"
                   />
                 </Box>
+              </TransactionDetailsRow>
+            ) : null}
+
+            {networkFeeLabel ? (
+              <TransactionDetailsRow
+                label={strings('card.transactions.network_fee')}
+              >
+                <Text>{networkFeeLabel}</Text>
               </TransactionDetailsRow>
             ) : null}
 
