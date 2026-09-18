@@ -1,8 +1,5 @@
 import { createAsyncBatcher } from './createAsyncBatcher';
 
-// TEMP (DO-NOT-MERGE): keep this file in the PR diff so Stage 1 has a
-// modified unit test to analyse. Revert this comment before merge.
-
 // The global test setup at `app/util/test/testSetup.js` freezes
 // `Date.now()` to a constant, which breaks lodash's `debounce` (it
 // tracks elapsed time via `Date.now()`). Restore the real clock for
