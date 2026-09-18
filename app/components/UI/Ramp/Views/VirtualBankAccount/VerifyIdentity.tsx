@@ -29,7 +29,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   METAMASK_PRIVACY_POLICY_URL,
@@ -39,6 +38,7 @@ import {
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import { useKycStartSession } from './hooks/useKycStartSession';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -129,6 +129,7 @@ const VbaVerifyIdentity = () => {
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } =
     useKycSessionDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const { isStarting, startSession } = useKycStartSession();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
   const chevronRotation = useSharedValue(0);
@@ -143,8 +144,8 @@ const VbaVerifyIdentity = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
-  }, [navigation]);
+    startSession();
+  }, [startSession]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -344,7 +345,8 @@ const VbaVerifyIdentity = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={!canContinue}
+          isLoading={isStarting}
+          isDisabled={!canContinue || isStarting}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
