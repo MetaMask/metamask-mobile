@@ -787,16 +787,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock useABTest hook (controllable per-test)
-const mockUseABTest = jest.fn(() => ({
-  variantName: 'control',
-  variant: { long: 'white', short: 'white' },
-  isActive: false,
-}));
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => mockUseABTest(),
-}));
-
 // Mock useTooltipModal hook
 jest.mock('../../../../hooks/useTooltipModal', () => ({
   __esModule: true,
@@ -1350,11 +1340,6 @@ function applyDefaultHookMocks() {
     payToken: undefined,
     setPayToken: jest.fn(),
     isNative: undefined,
-  });
-  mockUseABTest.mockReturnValue({
-    variantName: 'control',
-    variant: { long: 'white', short: 'white' },
-    isActive: false,
   });
   mockCreateEventBuilder.mockImplementation(() => ({
     addProperties: jest.fn().mockReturnThis(),
@@ -4672,13 +4657,8 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
     });
 
-    it('disables control (white) button variant when TP/SL is invalid', async () => {
-      // Arrange: control (default/white) A/B test variant + invalid TP
-      mockUseABTest.mockReturnValue({
-        variantName: 'control',
-        variant: { long: 'white', short: 'white' },
-        isActive: true,
-      });
+    it('disables the trade button when TP/SL is invalid', async () => {
+      // Arrange
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
       );
@@ -4697,16 +4677,15 @@ describe('PerpsOrderView', () => {
       // Act
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      // Assert: warning visible (proves hasInvalidTPSL is true in control/white path)
+      // Assert
       await waitFor(() => {
-        expect(screen.getByText(/Take profit must be above/)).toBeDefined();
+        expect(screen.getByText(/Take profit must be above/)).toBeOnTheScreen();
       });
 
-      // Assert: control (white) button rendered and receives isDisabled prop
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
+      expect(placeOrderButton).toBeOnTheScreen();
     });
 
     describe('limit order TP/SL validates against entry price, not market price', () => {

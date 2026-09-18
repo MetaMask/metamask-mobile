@@ -7,8 +7,6 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -32,6 +30,7 @@ import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
+import PerpsDirectionButton from '../PerpsDirectionButton';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
@@ -884,12 +883,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ))}
               </Box>
             ) : null}
-            <ButtonSemantic
-              severity={
-                direction === 'long'
-                  ? ButtonSemanticSeverity.Success
-                  : ButtonSemanticSeverity.Danger
-              }
+            <PerpsDirectionButton
+              direction={direction}
               size={ButtonBaseSize.Lg}
               isFullWidth
               isDisabled={isSubmitDisabled}
@@ -898,7 +893,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {submitLabel ?? directionLabel}
-            </ButtonSemantic>
+            </PerpsDirectionButton>
             {isFeeLoading ? (
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
