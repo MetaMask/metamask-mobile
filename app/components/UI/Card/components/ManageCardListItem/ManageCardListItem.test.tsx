@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import ManageCardListItem from './ManageCardListItem';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 
 function renderWithProvider(component: React.ComponentType) {

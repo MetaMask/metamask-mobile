@@ -4,6 +4,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -41,6 +42,7 @@ const EarnSectionAssetCard = ({
     <Box>
       <Text
         variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
         numberOfLines={1}
       >
@@ -48,6 +50,7 @@ const EarnSectionAssetCard = ({
       </Text>
       <Text
         variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
         numberOfLines={1}
       >
@@ -61,6 +64,7 @@ const EarnSectionAssetCard = ({
       >
         <Text
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           color={TextColor.SuccessDefault}
           numberOfLines={1}
         >

@@ -1,29 +1,57 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
-  selectBridgeBalanceRefreshKey,
+  incrementBridgeBalanceRefreshKey,
+  resetBridgeTokenInputs,
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
+import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
+import {
+  showRecurringAutoUpgradeError,
+  showRecurringOrderCreatedToast,
+  submitRecurringOrder,
+} from './RecurringConfirmOrderSheet.utils';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
+  const autoUpgradeEIP7702Account = useAutoUpgradeEIP7702Account();
+  const delegationFee = useEIP7702UpgradeFee();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
+
+  const handleConfirm = useCallback(async () => {
+    if (isSubmittingRef.current) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
+      await autoUpgradeEIP7702Account();
+      await submitRecurringOrder();
+      showRecurringOrderCreatedToast();
+      dispatch(resetBridgeTokenInputs());
+      Engine.context.BridgeController?.resetState?.();
+      dispatch(incrementBridgeBalanceRefreshKey());
+      navigation.goBack();
+    } catch (error) {
+      showRecurringAutoUpgradeError(error);
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+    }
+  }, [autoUpgradeEIP7702Account, dispatch, navigation]);
 
   const handleEditSlippagePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -35,15 +63,20 @@ export const RecurringConfirmOrderSheetScreen = () => {
     });
   }, [destToken?.chainId, navigation, sourceToken?.chainId]);
 
+  const handleDelegationFeeInfoPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
+
   return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <RecurringConfirmOrderSheet
-        latestSourceBalance={latestSourceBalance}
-        onEditSlippagePress={handleEditSlippagePress}
-        goBack={navigation.goBack}
-      />
-    </BridgeQuoteDataProvider>
+    <RecurringConfirmOrderSheet
+      delegationFee={delegationFee}
+      isSubmitting={isSubmitting}
+      onConfirm={handleConfirm}
+      onEditSlippagePress={handleEditSlippagePress}
+      onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
+      goBack={navigation.goBack}
+    />
   );
 };

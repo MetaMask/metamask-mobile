@@ -9,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { formatEarnRatePercentage } from '../../utils';
 import { EARN_HEADER_SUBTITLE_TEST_IDS } from './EarnHeaderSubtitle.testIds';
 
 interface EarnHeaderSubtitleProps {
@@ -44,10 +45,11 @@ const EarnHeaderSubtitle: React.FC<EarnHeaderSubtitleProps> = ({
   }
 
   const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
-  const apr =
+  const aprValue =
     parsedOverride > 0
-      ? aprOverride
-      : `${parseFloat(earnToken.experience?.apr ?? '0').toFixed(1)}%`;
+      ? parsedOverride
+      : parseFloat(earnToken.experience?.apr ?? '0');
+  const apr = `${formatEarnRatePercentage(aprValue)}%`;
 
   return (
     <Box
