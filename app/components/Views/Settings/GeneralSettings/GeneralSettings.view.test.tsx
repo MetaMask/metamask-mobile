@@ -12,8 +12,12 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import Engine from '../../../../core/Engine';
-import { GENERAL_SETTINGS_CURRENCY_SELECTOR } from '.';
+import {
+  GENERAL_SETTINGS_CURRENCY_SELECTOR,
+  GENERAL_SETTINGS_THEME_SELECTOR,
+} from '.';
 import { GeneralSettingsSelectorsIDs } from './GeneralSettings.testIds';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 describeForPlatforms('General Settings component view', () => {
   beforeEach(() => {
@@ -59,6 +63,17 @@ describeForPlatforms('General Settings component view', () => {
 
     expect(setCurrentCurrencySpy).toHaveBeenCalledWith('eur');
     expect(setSelectedCurrencySpy).toHaveBeenCalledWith('eur');
+  });
+
+  it('updates the app theme preference', async () => {
+    const { getByTestId, getByText, store } = renderGeneralSettings();
+
+    fireEvent.press(getByTestId(GENERAL_SETTINGS_THEME_SELECTOR));
+    fireEvent.press(getByText(strings('app_settings.theme_dark')));
+
+    await waitFor(() => {
+      expect(store.getState().user.appTheme).toBe(AppThemeKey.dark);
+    });
   });
 
   itEach([
