@@ -1,0 +1,419 @@
+import { createSelector, weakMapMemoize } from 'reselect';
+import { BigNumber } from 'bignumber.js';
+import type { AccountGroupId } from '@metamask/account-api';
+import {
+  parseCaipAssetType,
+  type CaipAssetType,
+  type Hex,
+} from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  type AssetBalance,
+  type AssetMetadata,
+  type AssetPrice,
+} from '@metamask/assets-controller';
+
+import {
+  getAssetsBalance,
+  getAssetsInfo,
+  getAssetsPrice,
+  getAssetPreferences,
+  getSelectedCurrency,
+} from '../../../../selectors/assets/assets-controller';
+import {
+  selectAccountGroupWithInternalAccounts,
+  selectSelectedAccountGroupInternalAccounts,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectShowFiatInTestnets } from '../../../../selectors/settings';
+import type { RootState } from '../../../../reducers';
+import { isTestNet } from '../../../../util/networks';
+import { isExcludedAsset } from '../../../../enablement/assets/networks-customization';
+import { getNetworkBadgeSource } from '../utils/network';
+import { type AssetType, TokenStandard } from '../types/token';
+
+/**
+ * Assets pipeline built strictly on `AssetsController` state (`assetsInfo`,
+ * `assetsBalance`, `assetsPrice`, `assetPreferences`).
+ *
+ * Joining, decoration and sorting run inside reselect selectors that memoise
+ * per store state, so every consumer shares a single computation regardless of
+ * how many components subscribe.
+ *
+ * No legacy controllers (TokensController, TokenBalancesController,
+ * TokenRatesController, MultichainAssets*) are read here.
+ */
+
+interface AccountRef {
+  id: string;
+  type: string;
+}
+
+const EMPTY_ACCOUNTS: AccountRef[] = [];
+
+export type ConfirmationAsset = AssetType & {
+  /**
+   * Whether the asset was eligible for an EVM fiat rate lookup. Computed once
+   * during decoration and carried on the asset so neither the rate-consumption
+   * walk nor `deriveAssetFiat` has to re-derive it.
+   */
+  isEvmRateEligible: boolean;
+  key: string;
+  sortKey: number;
+};
+
+type AssetsBalanceState = ReturnType<typeof getAssetsBalance>;
+type AssetsInfoState = ReturnType<typeof getAssetsInfo>;
+type AssetsPriceState = ReturnType<typeof getAssetsPrice>;
+type AssetPreferencesState = ReturnType<typeof getAssetPreferences>;
+
+/**
+ * A held asset with every piece of controller state it needs joined onto it:
+ * balance, metadata, price, and the owning account.
+ */
+interface BaseAsset {
+  accountId: string;
+  accountType: string;
+  address: string | undefined;
+  assetId: CaipAssetType;
+  balance: AssetBalance;
+  chainId: string;
+  isEvm: boolean;
+  isNative: boolean;
+  metadata: AssetMetadata;
+  /**
+   * Undefined when no market data is known for the asset. Unlike `balance` --
+   * guaranteed present because these entries are built by iterating
+   * `assetsBalance` -- price is a lookup into a separate slice that can miss.
+   * A held asset with no price is still a real holding, so it stays in the
+   * list with no fiat value rather than being dropped.
+   */
+  price: AssetPrice | undefined;
+}
+
+/**
+ * Accounts of an explicit group, falling back to the selected group when no
+ * override is active, reduced to the fields decoration needs.
+ *
+ * `type` must be carried through: `useSendTokens` filters the list with
+ * `token.accountType?.includes(namespace)`, so an asset without `accountType`
+ * is silently dropped from every send flow.
+ *
+ * `weakMapMemoize` keeps a cache entry per group ID so alternating between an
+ * override and the selected group cannot thrash a single-slot cache.
+ */
+const selectAccountsByAccountGroupId = createSelector(
+  [
+    selectAccountGroupWithInternalAccounts,
+    selectSelectedAccountGroupInternalAccounts,
+    (_state: RootState, accountGroupId: AccountGroupId | undefined) =>
+      accountGroupId,
+  ],
+  (groups, selectedAccounts, accountGroupId): AccountRef[] => {
+    const accounts = accountGroupId
+      ? groups.find((item) => item.id === accountGroupId)?.accounts
+      : selectedAccounts;
+
+    if (!accounts) {
+      return EMPTY_ACCOUNTS;
+    }
+
+    return accounts.map((account) => ({
+      id: account.id,
+      type: account.type,
+    }));
+  },
+  { memoize: weakMapMemoize },
+);
+
+/**
+ * Joins the group's accounts against every asset slice of controller state,
+ * flattened into one entry per held asset and tagged with the owning account
+ * so `accountId` survives decoration.
+ *
+ * This is the single point at which raw controller state is read; the
+ * confirmation selector downstream only adds its own display fields, so
+ * nothing else needs to know how the controller shapes its slices.
+ *
+ * Every reason to drop a holding is applied here rather than during
+ * decoration, so `decorateAsset` never does work it has to throw away:
+ * assets the user hid (`assetPreferences` is keyed by asset ID alone, so
+ * hiding applies across every account), assets with a balance but no metadata
+ * or an unparseable ID, which cannot be rendered, and the chain-specific
+ * ERC-20s that duplicate a native gas token.
+ *
+ * Iterating `assetsBalance[accountId]` matches the controller's own notion of
+ * which assets an account holds -- `getAccountAssetsByScope` walks exactly
+ * these keys. The map is the tracked-asset index rather than a non-zero-only
+ * list, so zero-amount holdings are present here and reach consumers that ask
+ * for them via `includeNoBalance`.
+ */
+const selectAssetsByAccountGroupId = createSelector(
+  [
+    selectAccountsByAccountGroupId,
+    getAssetsBalance,
+    getAssetsInfo,
+    getAssetPreferences,
+    getAssetsPrice,
+  ],
+  (
+    accounts: AccountRef[],
+    assetsBalance: AssetsBalanceState,
+    assetsInfo: AssetsInfoState,
+    assetPreferences: AssetPreferencesState,
+    assetsPrice: AssetsPriceState,
+  ): BaseAsset[] => {
+    const entries: BaseAsset[] = [];
+
+    for (const account of accounts) {
+      const balances = assetsBalance[account.id];
+
+      if (!balances) {
+        continue;
+      }
+
+      for (const [assetId, balance] of Object.entries(balances)) {
+        const typedAssetId = assetId as CaipAssetType;
+
+        if (assetPreferences[typedAssetId]?.hidden) {
+          continue;
+        }
+
+        const metadata = assetsInfo[typedAssetId];
+
+        if (!metadata) {
+          continue;
+        }
+
+        const parsed = parseCaipAsset(typedAssetId);
+
+        if (!parsed) {
+          continue;
+        }
+
+        const { address, chainId, isEvm, isNative } = parsed;
+
+        // Some chains expose an ERC-20 that duplicates the native gas token
+        // (Arc USDC, Stable USDT0). Including both double-counts the balance.
+        if (
+          !isNative &&
+          chainId &&
+          address &&
+          isExcludedAsset(chainId, address)
+        ) {
+          continue;
+        }
+
+        entries.push({
+          accountId: account.id,
+          accountType: account.type,
+          address,
+          assetId: typedAssetId,
+          balance,
+          chainId,
+          isEvm,
+          isNative,
+          metadata,
+          price: assetsPrice[typedAssetId],
+        });
+      }
+    }
+
+    return entries;
+  },
+  { memoize: weakMapMemoize },
+);
+
+/**
+ * Adds the confirmation-specific display fields to each joined asset and
+ * sorts by fiat balance.
+ *
+ * Computed once per store state and shared by every consumer via reselect
+ * memoisation.
+ */
+export const selectConfirmationAssetsByAccountGroupId = createSelector(
+  [selectAssetsByAccountGroupId, getSelectedCurrency, selectShowFiatInTestnets],
+  (
+    entries: BaseAsset[],
+    selectedCurrency: string,
+    showFiatOnTestnets: boolean,
+  ): ConfirmationAsset[] => {
+    const assets = entries.map((entry) =>
+      decorateAsset({ ...entry, selectedCurrency, showFiatOnTestnets }),
+    );
+
+    assets.sort((a, b) => b.sortKey - a.sortKey);
+
+    return assets;
+  },
+  { memoize: weakMapMemoize },
+);
+
+/** Assets for a group that hold a non-zero balance. */
+export const selectConfirmationAssetsWithBalanceByAccountGroupId =
+  createSelector(
+    [selectConfirmationAssetsByAccountGroupId],
+    (assets: ConfirmationAsset[]): ConfirmationAsset[] => {
+      const withBalance = assets.filter(hasBalance);
+
+      return withBalance.length === assets.length ? assets : withBalance;
+    },
+    { memoize: weakMapMemoize },
+  );
+
+function hasBalance(asset: ConfirmationAsset): boolean {
+  return (
+    (asset.fiat?.balance !== undefined && asset.fiat.balance > 0) ||
+    (Boolean(asset.rawBalance) && asset.rawBalance !== '0x0')
+  );
+}
+
+function decorateAsset({
+  accountId,
+  accountType,
+  address,
+  assetId,
+  balance,
+  chainId,
+  isEvm,
+  isNative,
+  metadata,
+  price,
+  selectedCurrency,
+  showFiatOnTestnets,
+}: BaseAsset & {
+  selectedCurrency: string;
+  showFiatOnTestnets: boolean;
+}): ConfirmationAsset {
+  // Matches the controller's `Asset` contract: EVM assets expose the hex token
+  // address as `assetId`, non-EVM assets expose the CAIP-19 ID. Consumers rely
+  // on both forms -- `useCurrencyConversions` reads it as an address, while
+  // `useSendActions` casts it to `CaipAssetType`.
+  const publicAssetId = isEvm ? address : assetId;
+
+  // Mirrors `isEvmRateEligible`: EVM-scoped with a usable address.
+  const isEvmRateEligible = isEvm && Boolean(address);
+
+  const isFiatHidden =
+    !showFiatOnTestnets && Boolean(chainId) && isTestNet(chainId as Hex);
+
+  const decimals = 'decimals' in metadata ? metadata.decimals : 0;
+
+  // `assetsBalance` amounts are already human-readable decimal strings (e.g.
+  // "0.0001" for an 18-decimal token), NOT raw base units. They must not be
+  // divided by `10 ** decimals`.
+  const amount = typeof balance?.amount === 'string' ? balance.amount : '0';
+  const humanBalance = Number(amount);
+
+  const fiatBalance =
+    !isFiatHidden && price?.price !== undefined && Number.isFinite(humanBalance)
+      ? humanBalance * price.price
+      : undefined;
+
+  return {
+    accountId,
+    // Required by `useSendTokens`, which filters on
+    // `accountType.includes(<chain namespace>)`.
+    accountType,
+    address,
+    aggregators:
+      'aggregators' in metadata
+        ? (metadata.aggregators as string[])
+        : undefined,
+    assetId: publicAssetId,
+    balance: amount,
+    chainId,
+    decimals,
+    fiat:
+      fiatBalance === undefined
+        ? undefined
+        : {
+            balance: fiatBalance,
+            conversionRate: price?.price,
+            currency: selectedCurrency,
+          },
+    image: metadata.image ?? '',
+    isETH: isNative && isEvm,
+    isEvmRateEligible,
+    isNative,
+    key: `${chainId.toLowerCase()}:${(address ?? '').toLowerCase()}`,
+    logo: metadata.image ?? undefined,
+    name: metadata.name ?? '',
+    networkBadgeSource: getNetworkBadgeSource(chainId as Hex),
+    rawBalance: toRawBalance(amount, decimals),
+    sortKey: isFiatHidden ? 0 : (fiatBalance ?? 0),
+    standard: TokenStandard.ERC20,
+    symbol: metadata.symbol ?? '',
+  } as ConfirmationAsset;
+}
+
+/**
+ * Splits a CAIP-19 asset ID into the fields the confirmation asset shape
+ * needs. Returns `undefined` for IDs that cannot be parsed rather than
+ * throwing, so one malformed entry cannot break the whole list.
+ */
+function parseCaipAsset(assetId: CaipAssetType):
+  | {
+      address: string | undefined;
+      chainId: string;
+      isEvm: boolean;
+      isNative: boolean;
+    }
+  | undefined {
+  try {
+    const {
+      chainId: caipChainId,
+      assetNamespace,
+      assetReference,
+    } = parseCaipAssetType(assetId);
+
+    const [namespace, reference] = caipChainId.split(':');
+    const isEvm = namespace === 'eip155';
+    const isNative = assetNamespace === 'slip44' || assetNamespace === 'native';
+
+    // EVM consumers compare against hex chain IDs; non-EVM keep CAIP form.
+    const chainId = isEvm ? toHex(reference) : caipChainId;
+
+    // Native EVM assets must carry the native token address, not an empty
+    // string: consumers match the pay token by address
+    // (`usePayTokenAccountBalance`) and derive `isNative` from
+    // `address === getNativeTokenAddress(chainId)` (`useTransactionPayToken`).
+    let address: string | undefined;
+
+    if (isEvm) {
+      address = isNative
+        ? getNativeTokenAddress(chainId as Hex)
+        : assetReference;
+    }
+
+    return {
+      address,
+      chainId,
+      isEvm,
+      isNative,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Converts the human-readable decimal amount back into raw base units.
+ *
+ * Consumers such as `usePayTokenAccountBalance` run `new BigNumber(rawBalance)`
+ * and expect an exact integer, so this uses BigNumber rather than float maths
+ * to avoid precision loss on 18-decimal tokens.
+ */
+function toRawBalance(amount: string, decimals: number): Hex | undefined {
+  try {
+    const raw = new BigNumber(amount).shiftedBy(decimals);
+
+    if (!raw.isFinite()) {
+      return undefined;
+    }
+
+    return `0x${raw.integerValue(BigNumber.ROUND_DOWN).toString(16)}` as Hex;
+  } catch {
+    return undefined;
+  }
+}
