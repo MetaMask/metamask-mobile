@@ -13,6 +13,8 @@
     },
     "confidence": {
       "type": "number",
+      "minimum": 0,
+      "maximum": 100,
       "description": "Confidence in the tag selection (0-100)"
     },
     "reasoning": {

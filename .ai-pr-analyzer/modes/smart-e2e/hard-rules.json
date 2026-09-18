@@ -35,7 +35,7 @@
     "description": "@metamask controller package version updated in package.json",
     "trigger": {
       "file": "package.json",
-      "diffPattern": "@metamask/.*-controller"
+      "diffPattern": "@metamask/.*controller"
     },
     "result": {
       "confidence": 100,
