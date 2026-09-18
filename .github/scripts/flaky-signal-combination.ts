@@ -1,11 +1,9 @@
 /**
- * Per-file combination of the workflow's two independent signals.
+ * Per-file combination of the workflow's two independent signals, and the
+ * sticky-comment table that presents them.
  *
  * Stage 1 reports same-SHA unit-test fail-then-pass; Stage 2 reports J1-J10
- * patterns still present in the file. Neither suppresses the other, and the
- * pair says more than either alone: history without a pattern suggests the
- * flake was already fixed (or was environmental), both together mean it is
- * unfixed, and a pattern without history points at this PR.
+ * patterns still present in the file. Neither suppresses the other.
  */
 
 export type SignalCombination =
@@ -29,15 +27,33 @@ export type FileSignalCombination = {
   combination: SignalCombination;
 };
 
-const COMBINATION_LABELS: Record<SignalCombination, string> = {
-  history_and_pattern:
-    'Failed then passed on an identical commit **and** still contains a flaky pattern — unfixed. Start with the suggested fix below.',
-  history_only:
-    'Failed then passed on an identical commit, but no flaky pattern was found in the current file — check whether the cause was already fixed, or is environmental (runner load, shard timing).',
-  history_unreviewed:
-    'Failed then passed on an identical commit. Pattern analysis did not review this version of the file, so there is no verdict on the cause — audit it manually.',
-  pattern_only:
-    'Flaky pattern found in this PR, with no same-SHA fail-then-pass in the sampled window — most likely introduced here.',
+export const TRAFFIC_LIGHT = {
+  red: ':red_circle:',
+  yellow: ':yellow_circle:',
+  green: ':green_circle:',
+} as const;
+
+export type PastFlakynessCellInput = {
+  hasHistoryHit: boolean;
+  hasPatternFinding: boolean;
+  count: number;
+  exampleRunUrl: string;
+};
+
+export type FlakyTableFinding = {
+  patternId: string;
+  patternName: string;
+  severity: string;
+  blobUrl: string;
+};
+
+export type FlakyTableFile = {
+  path: string;
+  hasHistoryHit: boolean;
+  patternsReviewed: boolean;
+  sameShaFailThenPass: number;
+  exampleRunUrl: string;
+  findings: FlakyTableFinding[];
 };
 
 export function combineFileSignals(
@@ -66,24 +82,110 @@ export function combineSignalsByFile(
   return combined;
 }
 
-export function signalCombinationLabel(combination: SignalCombination): string {
-  return COMBINATION_LABELS[combination];
+export function renderPastFlakynessCell(input: PastFlakynessCellInput): string {
+  if (!input.hasHistoryHit) {
+    return 'new';
+  }
+  const light = input.hasPatternFinding
+    ? TRAFFIC_LIGHT.red
+    : TRAFFIC_LIGHT.yellow;
+  const runLink =
+    input.exampleRunUrl.length > 0 ? ` ([run](${input.exampleRunUrl}))` : '';
+  return `${light} ${input.count}${runLink}`;
 }
 
-/**
- * Renders the per-file verdict that opens the sticky comment, so a reviewer
- * reads which of the three situations applies before the table and the
- * pattern details below it.
- */
-export function renderSignalsSection(files: FileSignals[]): string {
-  const combined = combineSignalsByFile(files);
-  if (combined.length === 0) return '';
+export function patternSeverityLight(severity: string): string {
+  if (severity === 'high' || severity === 'critical') {
+    return TRAFFIC_LIGHT.red;
+  }
+  return TRAFFIC_LIGHT.yellow;
+}
 
-  const lines = combined
-    .map(
-      ({ path, combination }) =>
-        `- \`${path}\` — ${signalCombinationLabel(combination)}`,
-    )
-    .join('\n');
-  return `### Signals\n\n${lines}\n`;
+export function renderFlakyPatternsCell(finding: FlakyTableFinding): string {
+  const light = patternSeverityLight(finding.severity);
+  const label = `${finding.patternId} — ${finding.patternName}`;
+  const linked =
+    finding.blobUrl.length > 0 ? `[${label}](${finding.blobUrl})` : label;
+  return `${light} ${linked}`;
+}
+
+function tableRow(
+  path: string,
+  pastFlakyness: string,
+  pattern: string,
+): string {
+  return `| \`${path}\` | ${pastFlakyness} | ${pattern} |`;
+}
+
+function rowsForFile(file: FlakyTableFile): string[] {
+  const hasSignal = file.hasHistoryHit || file.findings.length > 0;
+  if (!hasSignal) {
+    return [];
+  }
+  const pastFlakyness = renderPastFlakynessCell({
+    hasHistoryHit: file.hasHistoryHit,
+    hasPatternFinding: file.findings.length > 0,
+    count: file.sameShaFailThenPass,
+    exampleRunUrl: file.exampleRunUrl,
+  });
+  if (file.findings.length === 0) {
+    const pattern = file.patternsReviewed ? 'none' : 'not reviewed';
+    return [tableRow(file.path, pastFlakyness, pattern)];
+  }
+  return file.findings.map((finding) =>
+    tableRow(file.path, pastFlakyness, renderFlakyPatternsCell(finding)),
+  );
+}
+
+export function renderFlakyFindingsTable(files: FlakyTableFile[]): string {
+  const rows = files.flatMap(rowsForFile);
+  if (rows.length === 0) {
+    return '';
+  }
+  return `| File | Past flakyness | Flaky patterns |\n| --- | --- | --- |\n${rows.join('\n')}`;
+}
+
+export function assembleFlakyCommentMarkdown({
+  marker,
+  table,
+  diffs,
+  coverageLine,
+  skillLink,
+  stateBlock,
+}: {
+  marker: string;
+  table: string;
+  diffs: string;
+  coverageLine: string;
+  skillLink: string;
+  stateBlock: string;
+}): string {
+  const coverage = coverageLine.trim();
+  const parts = [marker, '## Flaky unit test detection', '', table];
+  if (diffs.length > 0) {
+    parts.push('', diffs);
+  }
+  if (coverage.length > 0) {
+    parts.push('', coverage);
+  }
+  parts.push(
+    '',
+    `See the [flaky-test-detection skill](${skillLink}).`,
+    stateBlock,
+  );
+  return `${parts.join('\n')}\n`;
+}
+
+export function assembleAllClearMarkdown({
+  marker,
+  stateBlock,
+}: {
+  marker: string;
+  stateBlock: string;
+}): string {
+  return `${marker}
+## Flaky unit test detection
+
+${TRAFFIC_LIGHT.green} All clear
+${stateBlock}`;
 }

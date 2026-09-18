@@ -4,12 +4,14 @@ import {
   candidateShaGroupsNewestFirst,
   chunkArray,
   confirmedFailThenPassJobs,
+  filesToAnalyzeWithHistoryHits,
   groupRunsByHeadSha,
   historyCoverageComplete,
   hitsFromConfirmedLogs,
   intersectWithModifiedFiles,
   isCandidateShaGroup,
   jobIdFromDetailsUrl,
+  jobLogUrl,
   listedWorkflowRunFromApi,
   parseJestFailPaths,
   parseShaBatchResponse,
@@ -378,7 +380,7 @@ describe('hitsFromConfirmedLogs', () => {
         failPaths,
         [modifiedFile],
       ),
-    ).toEqual([{ path: modifiedFile, failRunId: 10 }]);
+    ).toEqual([{ path: modifiedFile, failRunId: 10, jobId: 111 }]);
   });
 
   it('does not flag a FAIL path that is not in the modified file set', () => {
@@ -468,13 +470,13 @@ describe('different SHA fail then pass', () => {
       ]),
     );
 
-    expect(shaA).toEqual([{ path: modifiedFile, failRunId: 1 }]);
+    expect(shaA).toEqual([{ path: modifiedFile, failRunId: 1, jobId: 1 }]);
     expect(shaBJobs).toEqual([]);
     expect(
-      aggregateHitsByFile(shaA, (id) => `https://example/${id}`).get(
-        modifiedFile,
-      )?.count,
-    ).toBe(1);
+      aggregateHitsByFile(shaA, (runId, jobId) =>
+        jobLogUrl('https://github.com', 'org/repo', runId, jobId),
+      ).get(modifiedFile)?.exampleRunUrl,
+    ).toBe('https://github.com/org/repo/actions/runs/1/job/1');
   });
 });
 
@@ -509,5 +511,65 @@ describe('renderIncompleteCoverageLine', () => {
         candidateShaCount: 230,
       }),
     ).toContain('inspected 200 of 230 candidate SHA(s)');
+  });
+});
+
+describe('jobLogUrl', () => {
+  it('points at the GitHub job log page, not the workflow-run summary', () => {
+    const url = jobLogUrl(
+      'https://github.com',
+      'MetaMask/metamask-mobile',
+      10,
+      99,
+    );
+
+    expect(url).toBe(
+      'https://github.com/MetaMask/metamask-mobile/actions/runs/10/job/99',
+    );
+    expect(url).not.toMatch(/\/actions\/runs\/10$/);
+  });
+});
+
+describe('filesToAnalyzeWithHistoryHits', () => {
+  it('keeps needsAnalysis order and appends flaky paths that were skipped as unchanged', () => {
+    const needsAnalysis = ['app/new.test.ts', 'app/also-new.test.ts'];
+    const historyFiles = [
+      { path: 'app/new.test.ts', flaky: true },
+      { path: 'app/unchanged-flaky.test.ts', flaky: true },
+      { path: 'app/quiet.test.ts', flaky: false },
+    ];
+
+    expect(filesToAnalyzeWithHistoryHits(needsAnalysis, historyFiles)).toEqual([
+      'app/new.test.ts',
+      'app/also-new.test.ts',
+      'app/unchanged-flaky.test.ts',
+    ]);
+  });
+
+  it('does not duplicate a flaky file already in needsAnalysis', () => {
+    expect(
+      filesToAnalyzeWithHistoryHits(
+        ['app/new.test.ts'],
+        [{ path: 'app/new.test.ts', flaky: true }],
+      ),
+    ).toEqual(['app/new.test.ts']);
+  });
+});
+
+describe('aggregateHitsByFile', () => {
+  it('stores the first confirmed job log URL for a file', () => {
+    const byFile = aggregateHitsByFile(
+      [
+        { path: modifiedFile, failRunId: 10, jobId: 99 },
+        { path: modifiedFile, failRunId: 11, jobId: 88 },
+      ],
+      (runId, jobId) =>
+        jobLogUrl('https://github.com', 'org/repo', runId, jobId),
+    );
+
+    expect(byFile.get(modifiedFile)).toEqual({
+      count: 2,
+      exampleRunUrl: 'https://github.com/org/repo/actions/runs/10/job/99',
+    });
   });
 });

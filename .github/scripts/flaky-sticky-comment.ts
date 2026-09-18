@@ -7,10 +7,9 @@
  * invoked via the analyzer CLI (not the composite action) so it never posts
  * its own comment.
  *
- * The two signals are additive, never exclusive: the comment opens with a
- * per-file "Signals" verdict (see flaky-signal-combination.ts) so a reviewer
- * can tell an unfixed flake (history + pattern) from one that may already be
- * fixed (history alone) or one this PR introduced (pattern alone).
+ * The two signals are additive, never exclusive: one table lists File,
+ * Past flakyness, and Flaky patterns so a reviewer can scan unfixed flakes
+ * (history + pattern), history-only, and patterns this PR introduced.
  *
  * 4-state logic (per MCWP-474 AC):
  *   findings + no sticky  → create
@@ -40,10 +39,14 @@ import {
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
 import {
   renderIncompleteCoverageLine,
-  renderSameShaHistoryTable,
   shouldPostAllClear,
 } from './flaky-same-sha-history';
-import { renderSignalsSection } from './flaky-signal-combination';
+import {
+  assembleAllClearMarkdown,
+  assembleFlakyCommentMarkdown,
+  renderFlakyFindingsTable,
+  type FlakyTableFile,
+} from './flaky-signal-combination';
 
 // Stable HTML comment on the first line — used to identify and update this
 // script's own comment across runs. Any change breaks stickiness (a new
@@ -111,7 +114,7 @@ interface PerFileState {
   findings: Finding[];
   // Whether Stage 2 reviewed the file at analyzedSha. Absent in comments
   // written before this field existed, which reads as "not reviewed" until
-  // the file is analyzed again — the safe direction for the Signals verdict.
+  // the file is analyzed again — the safe direction for the Flaky patterns cell.
   patternsReviewed?: boolean;
 }
 
@@ -224,32 +227,6 @@ function buildStateBlock(state: CommentState): string {
   return `${STATE_MARKER}${encoded} -->`;
 }
 
-// Builds the table (or an empty-state fallback line) for the "Run history
-// flaky detection" section. tableFiles is the union of historically-flaky
-// files and files carrying an AI finding — see buildCommentBody — so an
-// empty list here only happens if that union itself is empty, which is a
-// rare safety fallback rather than the common case.
-function buildHistoryTable(tableFiles: HistoryFile[]): string {
-  return renderSameShaHistoryTable(
-    tableFiles.map((file) => ({
-      path: file.path,
-      flaky: file.flaky,
-      sameShaFailThenPass: file.sameShaFailThenPass ?? 0,
-      exampleRunUrl: file.exampleRunUrl ?? file.runHistoryUrl ?? '',
-    })),
-  );
-}
-
-// Every line of a fenced code block nested inside a list item must carry the
-// same 4-space indent, or Markdown treats it as outside the list and the
-// fence collapses.
-function indentBlock(text: string): string {
-  return text
-    .split('\n')
-    .map((line) => `    ${line}`)
-    .join('\n');
-}
-
 // Renders the fix as a ```diff fence (snippet lines as `-`, suggestedFix
 // lines as `+`) so reviewers see a before/after instead of only the new
 // code. This is a whole-block replace rather than a computed line diff:
@@ -258,61 +235,102 @@ function indentBlock(text: string): string {
 // Falls back to a plain `ts` block when no snippet was captured.
 function buildFixBlock(f: Finding): string {
   if (!f.snippet) {
-    return `    \`\`\`ts\n${indentBlock(f.suggestedFix)}\n    \`\`\``;
+    return `\`\`\`ts\n${f.suggestedFix}\n\`\`\``;
   }
   const removed = f.snippet.split('\n').map((line) => `-${line}`);
   const added = f.suggestedFix.split('\n').map((line) => `+${line}`);
   const diff = [...removed, ...added].join('\n');
-  return `    \`\`\`diff\n${indentBlock(diff)}\n    \`\`\``;
+  return `\`\`\`diff\n${diff}\n\`\`\``;
 }
 
-// file#L<line> anchor pointing at the analyzed SHA so the link stays valid
-// even after later pushes move the head.
+function blobUrl(
+  file: string,
+  line: number | undefined,
+  headSha: string,
+): string {
+  if (!headSha) {
+    return '';
+  }
+  const anchor = line ? `#L${line}` : '';
+  return `${env.serverUrl}/${env.repo}/blob/${headSha}/${file}${anchor}`;
+}
+
+function locationLabel(file: string, line: number | undefined): string {
+  return line ? `${file}:${line}` : file;
+}
+
 function buildLocationLink(
   file: string,
   line: number | undefined,
   headSha: string,
 ): string {
-  const label = line ? `${file}:${line}` : file;
-  if (!headSha) return `\`${label}\``;
-  const anchor = line ? `#L${line}` : '';
-  const url = `${env.serverUrl}/${env.repo}/blob/${headSha}/${file}${anchor}`;
+  const label = locationLabel(file, line);
+  const url = blobUrl(file, line, headSha);
+  if (url.length === 0) {
+    return `\`${label}\``;
+  }
   return `[\`${label}\`](${url})`;
 }
 
-function buildFindingsSection(findings: Finding[], headSha: string): string {
-  if (findings.length === 0) return '';
+function buildSuggestedFixesSection(
+  findings: Finding[],
+  headSha: string,
+): string {
+  if (findings.length === 0) {
+    return '';
+  }
+  return findings
+    .map(
+      (finding) =>
+        `${buildLocationLink(finding.file, finding.line, headSha)}\n\n${buildFixBlock(finding)}`,
+    )
+    .join('\n\n');
+}
+
+function findingsByFile(findings: Finding[]): Map<string, Finding[]> {
   const byFile = new Map<string, Finding[]>();
   for (const finding of findings) {
-    if (!byFile.has(finding.file)) byFile.set(finding.file, []);
-    byFile.get(finding.file)?.push(finding);
+    const list = byFile.get(finding.file) ?? [];
+    list.push(finding);
+    byFile.set(finding.file, list);
   }
+  return byFile;
+}
 
-  let out = '### AI-detected flaky patterns\n\n';
-  for (const [file, fileFindings] of byFile) {
-    out += `#### \`${file}\`\n\n`;
-    for (const f of fileFindings) {
-      // historicalHintUsed marks a file that same-SHA history also flagged —
-      // the two signals are independent, so this is corroboration, not the
-      // reason the pattern was reported.
-      const hint = f.historicalHintUsed
-        ? ' _(also seen in same-SHA history)_'
-        : '';
-      out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}\n`;
-      out += `  - ${f.explanation}\n`;
-      const location = buildLocationLink(f.file, f.line, headSha);
-      out += `  - Suggested fix in ${location}:\n${buildFixBlock(f)}\n`;
-    }
-    out += '\n';
-  }
-  return out;
+function buildTableFiles({
+  historyFiles,
+  findings,
+  patternsReviewedFiles,
+  headSha,
+}: {
+  historyFiles: HistoryFile[];
+  findings: Finding[];
+  patternsReviewedFiles: Set<string>;
+  headSha: string;
+}): FlakyTableFile[] {
+  const findingFiles = new Set(findings.map((finding) => finding.file));
+  const byFile = findingsByFile(findings);
+  return historyFiles
+    .filter((file) => file.flaky || findingFiles.has(file.path))
+    .map((file) => ({
+      path: file.path,
+      hasHistoryHit: file.flaky,
+      patternsReviewed: patternsReviewedFiles.has(file.path),
+      sameShaFailThenPass: file.sameShaFailThenPass ?? 0,
+      exampleRunUrl: file.exampleRunUrl ?? '',
+      findings: (byFile.get(file.path) ?? []).map((finding) => ({
+        patternId: finding.patternId,
+        patternName: finding.patternName,
+        severity: finding.severity,
+        blobUrl: blobUrl(finding.file, finding.line, headSha),
+      })),
+    }));
 }
 
 function buildCommentBody({
   historyFiles,
   findings,
   patternsReviewedFiles,
-  runHistoryUrl,
   stateBlock,
   headSha,
   coverageLine,
@@ -320,53 +338,32 @@ function buildCommentBody({
   historyFiles: HistoryFile[];
   findings: Finding[];
   patternsReviewedFiles: Set<string>;
-  runHistoryUrl: string;
   stateBlock: string;
   headSha: string;
   coverageLine: string;
 }): string {
-  const findingFiles = new Set(findings.map((f) => f.file));
-  const tableFiles = historyFiles.filter(
-    (f) => f.flaky || findingFiles.has(f.path),
-  );
-  const signalsSection = renderSignalsSection(
-    tableFiles.map((file) => ({
-      path: file.path,
-      hasHistoryHit: file.flaky,
-      hasPatternFinding: findingFiles.has(file.path),
-      patternsReviewed: patternsReviewedFiles.has(file.path),
-    })),
-  );
-  const historyTable = buildHistoryTable(tableFiles);
-  const findingsSection = buildFindingsSection(findings, headSha);
-
-  return `${MARKER}
-## 🧪 Flaky unit test detection
-
-${signalsSection}
-Neither signal is proof on its own — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
-
-### Run history flaky detection
-
-[View recent run history](${runHistoryUrl})
-
-${historyTable}
-${coverageLine}
-${findingsSection}
-_This check is informational only and does not block merging._
-${stateBlock}`;
+  return assembleFlakyCommentMarkdown({
+    marker: MARKER,
+    table: renderFlakyFindingsTable(
+      buildTableFiles({
+        historyFiles,
+        findings,
+        patternsReviewedFiles,
+        headSha,
+      }),
+    ),
+    diffs: buildSuggestedFixesSection(findings, headSha),
+    coverageLine,
+    skillLink: SKILL_LINK,
+    stateBlock,
+  });
 }
 
-function buildAllClearBody(runHistoryUrl: string, stateBlock: string): string {
-  return `${MARKER}
-## 🧪 Flaky unit test detection
-
-✅ All previously detected unit test flakiness issues in this PR have been fixed.
-
-[View recent run history](${runHistoryUrl})
-
-_This check is informational only and does not block merging._
-${stateBlock}`;
+function buildAllClearBody(stateBlock: string): string {
+  return assembleAllClearMarkdown({
+    marker: MARKER,
+    stateBlock,
+  });
 }
 
 async function findExistingStickyComment(
@@ -595,15 +592,10 @@ async function main(): Promise<void> {
         candidateShaCount: history.candidateShaCount ?? 0,
       })}\n`;
 
-  const runHistoryUrl =
-    historyFiles.find((file) => file.flaky)?.runHistoryUrl ??
-    historyFiles[0]?.runHistoryUrl ??
-    `${env.serverUrl}/${env.repo}/actions/workflows/ci.yml`;
   const commentBody = buildCommentBody({
     historyFiles,
     findings: mergedFindings,
     patternsReviewedFiles,
-    runHistoryUrl,
     stateBlock,
     headSha,
     coverageLine,
@@ -691,7 +683,7 @@ async function main(): Promise<void> {
       owner,
       repo,
       comment_id: existingComment!.id,
-      body: buildAllClearBody(runHistoryUrl, stateBlock),
+      body: buildAllClearBody(stateBlock),
     });
     console.log(
       '🎉 Updated sticky comment — all previously flagged issues are fixed',

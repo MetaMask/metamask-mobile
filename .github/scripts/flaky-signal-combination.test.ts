@@ -1,12 +1,42 @@
 import {
+  assembleAllClearMarkdown,
+  assembleFlakyCommentMarkdown,
   combineFileSignals,
   combineSignalsByFile,
-  renderSignalsSection,
-  signalCombinationLabel,
+  patternSeverityLight,
+  renderFlakyFindingsTable,
+  renderFlakyPatternsCell,
+  renderPastFlakynessCell,
+  TRAFFIC_LIGHT,
+  type FlakyTableFile,
 } from './flaky-signal-combination';
 
 const flakyFile = 'app/components/UI/Assets/watchlist/utils/batcher.test.ts';
 const newPatternFile = 'app/util/other.test.ts';
+const jobLogUrl = 'https://github.com/org/repo/actions/runs/10/job/99';
+const blobUrl = 'https://github.com/org/repo/blob/abc/app/file.test.ts#L42';
+
+const historyAndPatternFile = (): FlakyTableFile => ({
+  path: flakyFile,
+  hasHistoryHit: true,
+  patternsReviewed: true,
+  sameShaFailThenPass: 2,
+  exampleRunUrl: jobLogUrl,
+  findings: [
+    {
+      patternId: 'J6',
+      patternName: 'real timers',
+      severity: 'high',
+      blobUrl,
+    },
+    {
+      patternId: 'J3',
+      patternName: 'mock leak',
+      severity: 'medium',
+      blobUrl: 'https://github.com/org/repo/blob/abc/app/file.test.ts#L10',
+    },
+  ],
+});
 
 describe('combineFileSignals', () => {
   it('reports history_and_pattern when both signals fired', () => {
@@ -95,77 +125,204 @@ describe('combineSignalsByFile', () => {
   });
 });
 
-describe('signalCombinationLabel', () => {
-  it('calls out an unfixed flake when both signals fired', () => {
-    expect(signalCombinationLabel('history_and_pattern')).toContain('unfixed');
+describe('renderPastFlakynessCell', () => {
+  it('marks a file with no same-SHA hit as new', () => {
+    expect(
+      renderPastFlakynessCell({
+        hasHistoryHit: false,
+        hasPatternFinding: true,
+        count: 0,
+        exampleRunUrl: '',
+      }),
+    ).toBe('new');
   });
 
-  it('suggests checking for an existing fix when only history fired', () => {
-    expect(signalCombinationLabel('history_only')).toContain('already fixed');
+  it('uses a red light and job-log run link when history and a pattern both fired', () => {
+    expect(
+      renderPastFlakynessCell({
+        hasHistoryHit: true,
+        hasPatternFinding: true,
+        count: 2,
+        exampleRunUrl: jobLogUrl,
+      }),
+    ).toBe(`${TRAFFIC_LIGHT.red} 2 ([run](${jobLogUrl}))`);
   });
 
-  it('points at this PR when only a pattern fired', () => {
-    expect(signalCombinationLabel('pattern_only')).toContain('introduced here');
-  });
-
-  it('claims no verdict when pattern analysis did not review the file', () => {
-    expect(signalCombinationLabel('history_unreviewed')).toContain(
-      'did not review this version of the file',
-    );
+  it('uses a yellow light when only history fired', () => {
+    expect(
+      renderPastFlakynessCell({
+        hasHistoryHit: true,
+        hasPatternFinding: false,
+        count: 1,
+        exampleRunUrl: jobLogUrl,
+      }),
+    ).toBe(`${TRAFFIC_LIGHT.yellow} 1 ([run](${jobLogUrl}))`);
   });
 });
 
-describe('renderSignalsSection', () => {
-  it('renders one labelled line per file with a signal', () => {
-    const markdown = renderSignalsSection([
+describe('patternSeverityLight', () => {
+  it('maps high and critical to red', () => {
+    expect(patternSeverityLight('high')).toBe(TRAFFIC_LIGHT.red);
+    expect(patternSeverityLight('critical')).toBe(TRAFFIC_LIGHT.red);
+  });
+
+  it('maps medium to yellow', () => {
+    expect(patternSeverityLight('medium')).toBe(TRAFFIC_LIGHT.yellow);
+  });
+});
+
+describe('renderFlakyPatternsCell', () => {
+  it('links the pattern id and name at the blob line', () => {
+    expect(
+      renderFlakyPatternsCell({
+        patternId: 'J6',
+        patternName: 'real timers',
+        severity: 'high',
+        blobUrl,
+      }),
+    ).toBe(`${TRAFFIC_LIGHT.red} [J6 — real timers](${blobUrl})`);
+  });
+});
+
+describe('renderFlakyFindingsTable', () => {
+  it('repeats File and Past flakyness on every pattern row', () => {
+    const markdown = renderFlakyFindingsTable([historyAndPatternFile()]);
+
+    expect(markdown).toContain('| File | Past flakyness | Flaky patterns |');
+    expect(markdown).toContain(
+      `| \`${flakyFile}\` | ${TRAFFIC_LIGHT.red} 2 ([run](${jobLogUrl})) | ${TRAFFIC_LIGHT.red} [J6 — real timers](${blobUrl}) |`,
+    );
+    expect(markdown).toContain(
+      `| \`${flakyFile}\` | ${TRAFFIC_LIGHT.red} 2 ([run](${jobLogUrl})) | ${TRAFFIC_LIGHT.yellow} [J3 — mock leak](https://github.com/org/repo/blob/abc/app/file.test.ts#L10) |`,
+    );
+  });
+
+  it('writes none in Flaky patterns when history fired and Stage 2 found nothing', () => {
+    const markdown = renderFlakyFindingsTable([
       {
         path: flakyFile,
         hasHistoryHit: true,
-        hasPatternFinding: false,
         patternsReviewed: true,
+        sameShaFailThenPass: 1,
+        exampleRunUrl: jobLogUrl,
+        findings: [],
       },
+    ]);
+
+    expect(markdown).toContain(
+      `| \`${flakyFile}\` | ${TRAFFIC_LIGHT.yellow} 1 ([run](${jobLogUrl})) | none |`,
+    );
+  });
+
+  it('writes not reviewed when history fired and Stage 2 never scanned the file', () => {
+    const markdown = renderFlakyFindingsTable([
+      {
+        path: flakyFile,
+        hasHistoryHit: true,
+        patternsReviewed: false,
+        sameShaFailThenPass: 2,
+        exampleRunUrl: jobLogUrl,
+        findings: [],
+      },
+    ]);
+
+    expect(markdown).toContain(
+      `| \`${flakyFile}\` | ${TRAFFIC_LIGHT.yellow} 2 ([run](${jobLogUrl})) | not reviewed |`,
+    );
+  });
+
+  it('writes new in Past flakyness on every pattern-only row', () => {
+    const markdown = renderFlakyFindingsTable([
       {
         path: newPatternFile,
         hasHistoryHit: false,
-        hasPatternFinding: true,
         patternsReviewed: true,
+        sameShaFailThenPass: 0,
+        exampleRunUrl: '',
+        findings: [
+          {
+            patternId: 'J6',
+            patternName: 'real timers',
+            severity: 'medium',
+            blobUrl,
+          },
+        ],
       },
     ]);
 
-    expect(markdown).toContain('### Signals');
     expect(markdown).toContain(
-      `- \`${flakyFile}\` — ${signalCombinationLabel('history_only')}`,
-    );
-    expect(markdown).toContain(
-      `- \`${newPatternFile}\` — ${signalCombinationLabel('pattern_only')}`,
+      `| \`${newPatternFile}\` | new | ${TRAFFIC_LIGHT.yellow} [J6 — real timers](${blobUrl}) |`,
     );
   });
 
-  it('flags an unreviewed historically flaky file instead of claiming it is clean', () => {
-    const markdown = renderSignalsSection([
+  it('points [run] at the job log path', () => {
+    const markdown = renderFlakyFindingsTable([
       {
         path: flakyFile,
         hasHistoryHit: true,
-        hasPatternFinding: false,
-        patternsReviewed: false,
+        patternsReviewed: true,
+        sameShaFailThenPass: 1,
+        exampleRunUrl: jobLogUrl,
+        findings: [],
       },
     ]);
 
-    expect(markdown).toContain(
-      `- \`${flakyFile}\` — ${signalCombinationLabel('history_unreviewed')}`,
+    expect(markdown).toContain(`/actions/runs/10/job/99`);
+    expect(markdown).not.toContain(
+      '](https://github.com/org/repo/actions/runs/10)',
     );
   });
 
-  it('renders nothing when no file carries a signal', () => {
+  it('omits files with neither signal', () => {
     expect(
-      renderSignalsSection([
+      renderFlakyFindingsTable([
         {
-          path: flakyFile,
+          path: 'app/util/quiet.test.ts',
           hasHistoryHit: false,
-          hasPatternFinding: false,
           patternsReviewed: true,
+          sameShaFailThenPass: 0,
+          exampleRunUrl: '',
+          findings: [],
         },
       ]),
     ).toBe('');
+  });
+});
+
+describe('assembleFlakyCommentMarkdown', () => {
+  it('is title, table, diffs, incomplete-coverage, then skill link', () => {
+    const body = assembleFlakyCommentMarkdown({
+      marker: '<!-- metamask-flaky-test-detection -->',
+      table: '| File | Past flakyness | Flaky patterns |',
+      diffs: '`file.test.ts:1`\n\n```diff\n-a\n+b\n```',
+      coverageLine:
+        '_History coverage incomplete: inspected 1 of 2 candidate SHA(s)._',
+      skillLink: 'https://example/skill',
+      stateBlock: '<!-- metamask-flaky-test-detection-metadata=abc -->',
+    });
+
+    expect(body.startsWith('<!-- metamask-flaky-test-detection -->')).toBe(
+      true,
+    );
+    expect(body).toContain('## Flaky unit test detection');
+    expect(body).toContain('| File | Past flakyness | Flaky patterns |');
+    expect(body).toContain('```diff');
+    expect(body).toContain('inspected 1 of 2 candidate SHA(s)');
+    expect(body).toContain(
+      'See the [flaky-test-detection skill](https://example/skill).',
+    );
+    expect(body).not.toContain('Neither signal is proof');
+    expect(body).not.toContain('### Signals');
+  });
+});
+
+describe('assembleAllClearMarkdown', () => {
+  it('uses a green circle All clear line', () => {
+    expect(
+      assembleAllClearMarkdown({
+        marker: '<!-- marker -->',
+        stateBlock: '<!-- state -->',
+      }),
+    ).toContain(`${TRAFFIC_LIGHT.green} All clear`);
   });
 });

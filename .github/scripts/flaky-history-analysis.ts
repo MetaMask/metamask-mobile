@@ -47,9 +47,11 @@ import {
   chunkArray,
   collectListedRunsFromPages,
   confirmedFailThenPassJobs,
+  filesToAnalyzeWithHistoryHits,
   groupRunsByHeadSha,
   historyCoverageComplete,
   hitsFromConfirmedLogs,
+  jobLogUrl,
   parseJestFailPaths,
   parseShaBatchResponse,
   unansweredModifiedFiles,
@@ -134,8 +136,8 @@ function workflowRunsUrl(): string {
   return `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}`;
 }
 
-function runUrl(runId: number): string {
-  return `${env.serverUrl}/${env.repo}/actions/runs/${runId}`;
+function exampleJobLogUrl(runId: number, jobId: number): string {
+  return jobLogUrl(env.serverUrl, env.repo, runId, jobId);
 }
 
 function emptyHistoryFile(path: string): HistoryFile {
@@ -545,7 +547,11 @@ async function buildHistory(
     GRAPHQL_BATCH_SIZE,
   );
 
-  const allHits: { path: string; failRunId: number }[] = [];
+  const allHits: {
+    path: string;
+    failRunId: number;
+    jobId: number;
+  }[] = [];
   let unreadFailedRuns = 0;
   let logFetches = 0;
   let graphqlQueries = 0;
@@ -623,7 +629,7 @@ async function buildHistory(
     walkedAllCandidates,
   });
 
-  const byFile = aggregateHitsByFile(allHits, runUrl);
+  const byFile = aggregateHitsByFile(allHits, exampleJobLogUrl);
   const files = modifiedFiles.map((path) => {
     const hit = byFile.get(path);
     if (!hit) {
@@ -796,7 +802,8 @@ async function main(): Promise<void> {
       `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'})`,
   );
 
-  const result = writeHistoryFile(files, needsAnalysis, env.headSha, {
+  const filesToAnalyze = filesToAnalyzeWithHistoryHits(needsAnalysis, files);
+  const result = writeHistoryFile(files, filesToAnalyze, env.headSha, {
     sampledRunCount: runs.length,
     candidateShaCount,
     candidatesInspected,
@@ -809,7 +816,7 @@ async function main(): Promise<void> {
   setStage1Outputs({
     hasTestFiles: true,
     shouldAnalyze: true,
-    filesToAnalyze: needsAnalysis,
+    filesToAnalyze,
     skipReason: '',
     modifiedFileCount: modifiedFiles.length,
     historicallyFlakyCount: flakyCount,

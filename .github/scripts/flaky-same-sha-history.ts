@@ -88,6 +88,38 @@ export type SameShaFileHit = {
   exampleRunUrl: string;
 };
 
+export type SameShaLogHit = {
+  path: string;
+  failRunId: number;
+  jobId: number;
+};
+
+/** GitHub job log page — `/actions/runs/{runId}/job/{jobId}`, not the workflow-run summary. */
+export function jobLogUrl(
+  serverUrl: string,
+  repo: string,
+  runId: number,
+  jobId: number,
+): string {
+  return `${serverUrl}/${repo}/actions/runs/${runId}/job/${jobId}`;
+}
+
+/**
+ * Stage 2 `--changed-files` must include historically flaky paths even when
+ * their bytes have not changed since `analyzedSha`. Otherwise skip-if-unchanged
+ * starves pattern analysis and Stage 3 reports history_unreviewed.
+ */
+export function filesToAnalyzeWithHistoryHits(
+  needsAnalysis: string[],
+  historyFiles: { path: string; flaky: boolean }[],
+): string[] {
+  const seen = new Set(needsAnalysis);
+  const extra = historyFiles
+    .filter((file) => file.flaky && !seen.has(file.path))
+    .map((file) => file.path);
+  return [...needsAnalysis, ...extra];
+}
+
 export type FailedUnitCheckRun = {
   name: string;
   jobId: number;
@@ -391,12 +423,12 @@ export function hitsFromConfirmedLogs(
   jobs: ConfirmedFailThenPassJob[],
   failPathsByJobId: Map<number, string[]>,
   modifiedFiles: string[],
-): { path: string; failRunId: number }[] {
-  const hits: { path: string; failRunId: number }[] = [];
+): SameShaLogHit[] {
+  const hits: SameShaLogHit[] = [];
   for (const job of jobs) {
     const failPaths = failPathsByJobId.get(job.jobId) ?? [];
     for (const path of intersectWithModifiedFiles(failPaths, modifiedFiles)) {
-      hits.push({ path, failRunId: job.runId });
+      hits.push({ path, failRunId: job.runId, jobId: job.jobId });
     }
   }
   return hits;
@@ -428,8 +460,8 @@ export function shouldPostAllClear(
 }
 
 export function aggregateHitsByFile(
-  hits: { path: string; failRunId: number }[],
-  runUrl: (runId: number) => string,
+  hits: SameShaLogHit[],
+  toJobLogUrl: (runId: number, jobId: number) => string,
 ): Map<string, SameShaFileHit> {
   const byFile = new Map<string, SameShaFileHit>();
   for (const hit of hits) {
@@ -437,7 +469,7 @@ export function aggregateHitsByFile(
     if (!existing) {
       byFile.set(hit.path, {
         count: 1,
-        exampleRunUrl: runUrl(hit.failRunId),
+        exampleRunUrl: toJobLogUrl(hit.failRunId, hit.jobId),
       });
       continue;
     }
