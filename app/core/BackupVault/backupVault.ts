@@ -19,6 +19,13 @@ const options: SetOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
+// All keychain writes/resets funnel through this so a backup and a reset
+// (wallet reset, sign-out, etc.) can never interleave their keychain calls.
+// Without it, a backup already in flight when a reset starts could finish
+// writing *after* the reset clears it, silently resurrecting a vault the
+// reset was meant to erase.
+let backupQueue: Promise<void> = Promise.resolve();
+
 interface KeyringBackupResponse {
   success: boolean;
   vault?: string;
@@ -42,11 +49,23 @@ const _resetTemporaryVaultBackup = async (): Promise<void> => {
 };
 
 /**
- * Clears all vault backups from react-native-keychain
+ * Clears all vault backups from react-native-keychain.
+ *
+ * Runs through the same {@link backupQueue} as {@link backupVault} so it
+ * always executes after any backup already queued ahead of it, otherwise a
+ * stale queued write could land after the reset and resurrect a vault this
+ * call was meant to erase.
  */
 export async function clearAllVaultBackups() {
-  await _resetVaultBackup();
-  await _resetTemporaryVaultBackup();
+  const reset = backupQueue.then(async () => {
+    await _resetVaultBackup();
+    await _resetTemporaryVaultBackup();
+  });
+  // Keep the queue alive for future backups even if this reset throws.
+  backupQueue = reset.catch((error) => {
+    Logger.error(error as Error, 'clearAllVaultBackups failed');
+  });
+  await reset;
 }
 
 /**
@@ -59,6 +78,17 @@ export async function clearAllVaultBackups() {
   }
  */
 export async function backupVault(
+  keyringState: KeyringControllerState,
+): Promise<KeyringBackupResponse> {
+  const backup = backupQueue.then(() => _backupVault(keyringState));
+  backupQueue = backup.then(
+    () => undefined,
+    () => undefined,
+  );
+  return backup;
+}
+
+async function _backupVault(
   keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
   const keyringVault = keyringState.vault as string;

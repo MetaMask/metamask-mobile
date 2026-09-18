@@ -16,6 +16,8 @@ import {
   type Result,
   STORAGE_TYPE,
 } from 'react-native-keychain';
+import Logger from '../../util/Logger';
+import { waitFor } from '@testing-library/react-native';
 
 let mockKeychainState: Record<string, { username: string; password: string }> =
   {};
@@ -70,6 +72,10 @@ describe('backupVault file', () => {
     mockKeychainState = {};
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('clearAllVaultBackups', () => {
     it('should clear all vault backups', async () => {
       await setInternetCredentials(
@@ -112,6 +118,67 @@ describe('backupVault file', () => {
 
       expect(primaryVaultCredentialsAfterReset).toBeUndefined();
       expect(temporaryVaultCredentialsAfterReset).toBeUndefined();
+    });
+
+    it('always wins over a backup that was already in flight when it was called', async () => {
+      // A backup is in flight (e.g. from an unlock) but hasn't written yet.
+      let releaseInFlightWrite: () => void = () => undefined;
+      const writeStarted = new Promise<void>((resolveStarted) => {
+        (setInternetCredentials as jest.Mock).mockImplementationOnce(
+          (server: string, username: string, password: string) => {
+            resolveStarted();
+            return new Promise((resolve) => {
+              releaseInFlightWrite = () => {
+                mockKeychainState[server] = { username, password };
+                resolve({ service: 'service', storage: mockStorageType });
+              };
+            });
+          },
+        );
+      });
+      const keyringState: KeyringControllerState = {
+        vault: 'old-vault-being-reset-away',
+        keyrings: [],
+        isUnlocked: false,
+      };
+      backupVault(keyringState);
+
+      // A wallet reset is requested while that backup is still in flight.
+      const clearPromise = clearAllVaultBackups();
+
+      // Only once the in-flight backup has actually started writing do we
+      // release it, then let the reset run.
+      await writeStarted;
+      releaseInFlightWrite();
+      await clearPromise;
+
+      // The reset must be the last word: no vault left behind.
+      expect(await getInternetCredentials(VAULT_BACKUP_KEY)).toBeUndefined();
+    });
+
+    it('logs and keeps the queue usable when the reset itself fails', async () => {
+      const resetError = new Error('resetInternetCredentials failed');
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      (resetInternetCredentials as jest.Mock).mockImplementationOnce(() => {
+        throw resetError;
+      });
+
+      await expect(clearAllVaultBackups()).rejects.toThrow(resetError);
+
+      await waitFor(() => {
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          resetError,
+          'clearAllVaultBackups failed',
+        );
+      });
+
+      // A later backup must still be able to run through the queue.
+      const vault = 'vault-after-failed-reset';
+      await backupVault({ vault, keyrings: [], isUnlocked: false });
+
+      expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
     });
   });
 
