@@ -5,7 +5,7 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -55,7 +55,7 @@ export const useInsufficientBalanceAlert = ({
       isUsingPay ||
       isFiatPaymentSelected
     ) {
-      return [];
+      return NO_ALERTS;
     }
 
     const { selectedGasFeeToken, gasFeeTokens, excludeNativeTokenForFee } =
@@ -108,7 +108,7 @@ export const useInsufficientBalanceAlert = ({
       !isSponsoredTransaction;
 
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

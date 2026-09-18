@@ -902,6 +902,7 @@ const CardHome = () => {
             onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
+            onContactDetails={actions.contactDetailsAction}
             showDigitalWalletInstructions={showDigitalWalletInstructions}
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
