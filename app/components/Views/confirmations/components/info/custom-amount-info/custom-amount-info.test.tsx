@@ -56,6 +56,8 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
+import { ConfirmationLaunchSource } from '../../confirm/confirm-component';
+import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -135,7 +137,7 @@ jest.mock('../../PayAccountSelector', () => {
   };
 });
 jest.mock('../../../../../UI/Money/components/BalanceProjection', () => ({
-  BalanceProjection: () => null,
+  BalanceProjection: jest.fn(() => null),
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
@@ -466,6 +468,46 @@ describe('CustomAmountInfo', () => {
     const { getByText } = render();
 
     expect(getByText('123.45')).toBeOnTheScreen();
+  });
+
+  it('shows membership payment coverage instead of the Money balance projection', () => {
+    useRouteMock.mockReturnValue({
+      key: 'membership',
+      name: 'ConfirmationRequestModal',
+      params: { launchedFrom: ConfirmationLaunchSource.MembershipTopUp },
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { getByText } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(
+      getByText(
+        'We’ll add $123.45 to your Money account to cover this payment.',
+      ),
+    ).toBeOnTheScreen();
+    expect(BalanceProjection).not.toHaveBeenCalled();
+  });
+
+  it('keeps the balance projection for regular Money deposits', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { queryByTestId } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(queryByTestId('membership-info-banner')).toBeNull();
+    expect(BalanceProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ amountFiat: '123.45', projectedYears: 1 }),
+      undefined,
+    );
   });
 
   it('renders payment token', () => {
