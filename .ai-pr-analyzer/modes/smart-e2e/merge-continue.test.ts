@@ -43,8 +43,8 @@ describe('smart-e2e mergeContinueResult', () => {
 });
 
 describe('smart-e2e allowContinue', () => {
-  it('vetoes continue when selected_tags is ALL', () => {
-    assert.equal(allowContinue({ selected_tags: ['ALL'] }), false);
+  it('continues when selected_tags is ALL so AI can pick performance tags', () => {
+    assert.equal(allowContinue({ selected_tags: ['ALL'] }), true);
   });
 
   it('allows continue for a filtered tag list', () => {

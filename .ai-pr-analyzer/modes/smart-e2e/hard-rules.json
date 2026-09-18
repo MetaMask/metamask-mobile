@@ -1,7 +1,7 @@
 [
   {
     "name": "e2e-relevant-workflow-change",
-    "description": "E2E-relevant workflow or E2E CI script changed; skip AI and run all E2E tags",
+    "description": "E2E-relevant workflow or E2E CI script changed; run all E2E tags. AI may still select performance tags.",
     "trigger": {
       "type": "pathMatch",
       "files": [
@@ -13,13 +13,16 @@
         ".github/workflows/build.yml",
         ".github/scripts/qa-automation/stats/e2e-freeze-timings.mjs"
       ],
-      "prefixes": [".github/scripts/qa-automation/e2e-ci-orchestration/"],
+      "prefixes": [
+        ".github/scripts/qa-automation/e2e-ci-orchestration/",
+        ".github/actions/setup-e2e-env/",
+        ".github/actions/smart-e2e-selection/"
+      ],
       "regexes": [
         "^\\.github/workflows/run-e2e-.*\\.yml$",
         "^\\.github/workflows/run-appium-.*\\.yml$",
         "^\\.github/scripts/qa-automation/reporting/.*\\.mjs$",
-        "^\\.github/scripts/qa-automation/e2e-sharding/.*\\.mjs$",
-        "^\\.github/actions/smart-e2e-selection/.*\\.mjs$"
+        "^\\.github/scripts/qa-automation/e2e-sharding/.*\\.mjs$"
       ]
     },
     "result": {
@@ -28,7 +31,8 @@
         "selected_tags": [],
         "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
       }
-    }
+    },
+    "continue": true
   },
   {
     "name": "controller-version-update",
@@ -43,7 +47,8 @@
         "selected_tags": [],
         "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
       }
-    }
+    },
+    "continue": true
   },
   {
     "name": "en-locale-change",
@@ -58,7 +63,8 @@
         "selected_tags": [],
         "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
       }
-    }
+    },
+    "continue": true
   },
   {
     "name": "global-infrastructure-change",
@@ -74,7 +80,8 @@
         "selected_tags": [],
         "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
       }
-    }
+    },
+    "continue": true
   },
   {
     "name": "test-framework-infra-change",
@@ -100,7 +107,8 @@
         "selected_tags": [],
         "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
       }
-    }
+    },
+    "continue": true
   },
   {
     "name": "app-source-import-graph",

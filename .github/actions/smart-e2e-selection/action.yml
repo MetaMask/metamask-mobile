@@ -122,6 +122,7 @@ runs:
     - name: Run Smart E2E analysis
       id: run-analysis
       if: steps.check-skip-label.outputs.SKIP != 'true'
+      continue-on-error: true
       working-directory: ${{ github.workspace }}
       shell: bash
       env:
@@ -262,7 +263,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        MARKER="<!-- ai-pr-analysis -->"
+        MARKER="<!-- ai-pr-analysis:smart-e2e -->"
         BODY="${MARKER}"$'\n'"## Smart E2E Test Selection"$'\n\n'"⏭️ **Smart E2E selection skipped** - skip-smart-e2e-selection label found"$'\n\n'"All E2E tests pre-selected."
         EXISTING_ID=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
           --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" | head -n 1)

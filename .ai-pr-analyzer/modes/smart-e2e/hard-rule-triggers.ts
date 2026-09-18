@@ -106,12 +106,9 @@ export function mergeContinueResult(
 }
 
 /**
- * ALL is a full short-circuit guard — never continue to AI for that outcome.
+ * Always continue so AI can still pick performance tags. mergeContinueResult
+ * keeps E2E selected_tags as ALL when that was the hard-rule floor.
  */
-export function allowContinue(result: Record<string, unknown>): boolean {
-  const tags = result.selected_tags;
-  if (!Array.isArray(tags)) {
-    return true;
-  }
-  return !tags.includes('ALL');
+export function allowContinue(_result: Record<string, unknown>): boolean {
+  return true;
 }

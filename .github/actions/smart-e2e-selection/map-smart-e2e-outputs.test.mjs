@@ -4,6 +4,18 @@ import { describe, it } from 'node:test';
 import { mapSmartE2eOutputs } from './map-smart-e2e-outputs.mjs';
 
 describe('mapSmartE2eOutputs', () => {
+  it('maps mixed performance ALL plus a tag to an empty GitHub string', () => {
+    const out = mapSmartE2eOutputs({
+      selected_tags: ['ALL'],
+      confidence: 100,
+      performance_tests: {
+        selected_tags: ['ALL', '@PerformanceLogin'],
+        reasoning: 'mixed',
+      },
+    });
+    assert.equal(out.ai_performance_test_tags, '');
+  });
+
   it('maps performance ["ALL"] to an empty GitHub string', () => {
     const out = mapSmartE2eOutputs({
       selected_tags: ['ALL'],

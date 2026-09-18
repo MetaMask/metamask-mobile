@@ -34,7 +34,7 @@ export function mapSmartE2eOutputs(result) {
 }
 
 function mapPerformanceTags(tags) {
-  if (tags.length === 1 && tags[0] === 'ALL') {
+  if (tags.includes('ALL')) {
     return '';
   }
   return JSON.stringify(tags);

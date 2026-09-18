@@ -66,7 +66,7 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
       '.github/workflows/run-appium-e2e-workflow.yml',
     ]);
     const result = resultOf(evaluation);
-    assert.equal(evaluation!.continue, false);
+    assert.equal(evaluation!.continue, true);
     assert.deepEqual(result.selected_tags, ['ALL']);
     assert.equal(result.confidence, 100);
     assert.match(String(result.reasoning), /e2e-relevant-workflow-change/);
@@ -76,6 +76,8 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
     '.github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs',
     '.github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs',
     '.github/actions/smart-e2e-selection/e2e-smart-selection.mjs',
+    '.github/actions/smart-e2e-selection/action.yml',
+    '.github/actions/setup-e2e-env/action.yml',
     '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs',
     '.github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.mjs',
     '.github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.mjs',
