@@ -3,6 +3,7 @@ import {
   MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME,
   selectIsBasicFunctionalityConsistent,
   selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsExistingSocialWalletRestore,
   selectIsSocialLoginBasicFunctionalityLocked,
   selectMobileUxBftcConsolidationFlagEnabled,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
@@ -279,6 +280,38 @@ describe('basicFunctionalityConsolidation selectors', () => {
           true,
         ),
       ).toBe(false);
+    });
+  });
+
+  describe('selectIsExistingSocialWalletRestore', () => {
+    it.each([
+      AccountType.ImportedGoogle,
+      AccountType.ImportedApple,
+      AccountType.ImportedTelegram,
+    ])('detects a restored social wallet for %s', (accountType) => {
+      expect(selectIsExistingSocialWalletRestore.resultFunc(accountType)).toBe(
+        true,
+      );
+    });
+
+    it('excludes a newly created social wallet', () => {
+      expect(
+        selectIsExistingSocialWalletRestore.resultFunc(
+          AccountType.MetamaskGoogle,
+        ),
+      ).toBe(false);
+    });
+
+    it('excludes an imported SRP wallet, which onboarding enrols itself', () => {
+      expect(
+        selectIsExistingSocialWalletRestore.resultFunc(AccountType.Imported),
+      ).toBe(false);
+    });
+
+    it('returns false when no account type was recorded', () => {
+      expect(selectIsExistingSocialWalletRestore.resultFunc(undefined)).toBe(
+        false,
+      );
     });
   });
 
