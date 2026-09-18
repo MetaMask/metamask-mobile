@@ -79,8 +79,8 @@ jest.mock('../../../../../core/Engine', () => ({
         transactionMeta: { id: '123' },
       })),
     },
-    TokensController: {
-      addToken: jest.fn().mockResolvedValue([]),
+    AssetsController: {
+      addCustomAsset: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -452,6 +452,15 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         outputToken: mockLineaAUsdc,
       },
       getTokenSnapshot: jest.fn(),
+      tokenSnapshot: {
+        token: {
+          address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+        },
+        chainId: '0xe708',
+      },
     });
 
     const { getByTestId } = renderWithProvider(
@@ -515,7 +524,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
     });
 
-    expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('should handle error adding counter-token on confirmation', async () => {
@@ -526,6 +537,15 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         outputToken: mockLineaAUsdc,
       },
       getTokenSnapshot: jest.fn(),
+      tokenSnapshot: {
+        token: {
+          address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+        },
+        chainId: '0xe708',
+      },
     });
 
     const consoleErrorSpy = jest
@@ -564,9 +584,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       fireEvent.press(footerConfirmationButton);
     });
 
-    // Now make findNetworkClientIdByChainId throw for the callback invocation
+    // Now make addCustomAsset throw for the callback invocation
     (
-      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+      Engine.context.AssetsController.addCustomAsset as jest.Mock
     ).mockImplementationOnce(() => {
       throw new Error('Invalid chain ID');
     });
