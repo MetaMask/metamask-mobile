@@ -190,6 +190,7 @@ jobs:
           path: |
             /tmp/analyze-app-profiling/*.md
             /tmp/analyze-app-profiling/report.json
+            /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/
           if-no-files-found: ignore
           retention-days: 30

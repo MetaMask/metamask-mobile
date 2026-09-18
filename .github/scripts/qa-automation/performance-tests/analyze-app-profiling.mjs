@@ -1310,7 +1310,7 @@ function slackDownloadLines(meta = {}) {
   const lines = [];
   if (meta.analysisArtifactsUrl) {
     lines.push(
-      `• <${meta.analysisArtifactsUrl}|app-profiling-analysis> — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (30-day retention).`,
+      `• <${meta.analysisArtifactsUrl}|app-profiling-analysis> — report files. Scenario names above download that scenario's profiles.`,
     );
   }
   return lines;

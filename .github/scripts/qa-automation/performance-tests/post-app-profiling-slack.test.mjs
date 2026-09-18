@@ -5,7 +5,6 @@ import {
   openDirectMessage,
   buildText,
   splitForSlack,
-  scenarioArtifactLinks,
   addScenarioArtifactLinks,
   postSummary,
 } from './post-app-profiling-slack.mjs';
@@ -59,41 +58,69 @@ test('splitForSlack keeps every paragraph across multiple messages', () => {
   assert.equal(parts.join('\n\n'), `${first}\n\n${second}`);
 });
 
-test('scenarioArtifactLinks creates sorted links for active scenario artifacts', () => {
-  const links = scenarioArtifactLinks(
-    [
-      { id: 22, name: 'hermes-profile-02-Send', expired: false },
-      { id: 11, name: 'hermes-profile-01-Perps', expired: false },
-      { id: 33, name: 'app-profiling-analysis', expired: false },
-      { id: 44, name: 'hermes-profile-03-Expired', expired: true },
-    ],
-    'MetaMask/metamask-mobile',
-    '123',
-  );
-
-  assert.deepEqual(links, [
-    '• <https://github.com/MetaMask/metamask-mobile/actions/runs/123/artifacts/11|hermes-profile-01-Perps>',
-    '• <https://github.com/MetaMask/metamask-mobile/actions/runs/123/artifacts/22|hermes-profile-02-Send>',
-  ]);
-});
-
-test('addScenarioArtifactLinks adds links to the Downloads section', () => {
+test('addScenarioArtifactLinks turns each named outcome into its download', () => {
   const digest = addScenarioArtifactLinks(
-    '*Summary*\n\n*Downloads*\n• analysis report\n\n_Source:_ Hermes',
-    ['• <https://example.com/artifact|hermes-profile-01-Perps>'],
+    [
+      '*Conclusions*',
+      '• `mod` leads *Perps open position and close it* (59058.1 ms).',
+      '',
+      '*Outliers*',
+      '• *Predict Deposit - Complete Flow Performance* — JS 37874.6 ms',
+      '• *Perps open position and close it* — JS 59058.1 ms',
+      '',
+      '*Downloads*',
+      '• analysis report',
+    ].join('\n'),
+    [
+      { id: 11, name: 'hermes-profile-15-Perps_open_position_and_close_it', expired: false },
+      {
+        id: 22,
+        name: 'hermes-profile-17-Predict_Deposit_-_Complete_Flow_Performance',
+        expired: false,
+      },
+    ],
+    {
+      repo: 'MetaMask/metamask-mobile',
+      runId: '123',
+      manifest: {
+        include: [
+          {
+            artifactName: 'hermes-profile-15-Perps_open_position_and_close_it',
+            scenario: 'Perps open position and close it',
+          },
+          {
+            artifactName:
+              'hermes-profile-17-Predict_Deposit_-_Complete_Flow_Performance',
+            scenario: 'Predict Deposit - Complete Flow Performance',
+          },
+        ],
+      },
+    },
   );
 
-  assert.match(digest, /Per-scenario Hermes profiles/);
-  assert.match(digest, /hermes-profile-01-Perps/);
-  assert.ok(
-    digest.indexOf('hermes-profile-01-Perps') <
-      digest.indexOf('analysis report'),
+  assert.match(
+    digest,
+    /<https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/123\/artifacts\/11\|Perps open position and close it>/,
   );
+  assert.match(
+    digest,
+    /<https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/123\/artifacts\/22\|Predict Deposit - Complete Flow Performance>/,
+  );
+  assert.equal(
+    digest.split('Perps open position and close it').length - 1,
+    2,
+  );
+  assert.doesNotMatch(digest, /\*Perps open position and close it\*/);
 });
 
 test('addScenarioArtifactLinks requires at least one scenario artifact', () => {
   assert.throws(
-    () => addScenarioArtifactLinks('*Summary*', []),
+    () =>
+      addScenarioArtifactLinks('*Summary*', [], {
+        repo: 'MetaMask/metamask-mobile',
+        runId: '123',
+        manifest: { include: [] },
+      }),
     /No per-scenario Hermes profile artifacts/,
   );
 });

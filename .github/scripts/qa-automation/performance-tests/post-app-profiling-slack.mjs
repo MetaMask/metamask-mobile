@@ -21,6 +21,7 @@
  */
 
 import fs from 'fs';
+import path from 'path';
 
 const SLACK_API = 'https://slack.com/api';
 /** Slack rejects text over 40k; leave room for the footer. */
@@ -136,18 +137,42 @@ function splitForSlack(markdown, maxLength = MAX_TEXT_LENGTH) {
   return parts;
 }
 
-function scenarioArtifactLinks(artifacts, repo, runId) {
-  return artifacts
-    .filter(
-      (artifact) =>
-        !artifact.expired &&
-        String(artifact.name || '').startsWith('hermes-profile-'),
-    )
-    .sort((left, right) => left.name.localeCompare(right.name))
-    .map(
-      (artifact) =>
-        `• <https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}|${artifact.name}>`,
-    );
+function scenarioDownloadMap(artifacts, manifest, repo, runId) {
+  const byName = new Map(
+    artifacts
+      .filter((artifact) => !artifact.expired)
+      .map((artifact) => [artifact.name, artifact]),
+  );
+  return (manifest?.include || [])
+    .map((item) => {
+      const artifact = byName.get(item.artifactName);
+      if (!artifact || !item.scenario) {
+        return null;
+      }
+      return {
+        scenario: item.scenario,
+        url: `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`,
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => right.scenario.length - left.scenario.length);
+}
+
+function linkScenarioNames(markdown, mappings) {
+  let text = String(markdown || '');
+  for (const { scenario, url } of mappings) {
+    const linked = `<${url}|${scenario}>`;
+    text = text
+      .split(/(<https?:\/\/[^>|]+\|[^>]+>)/)
+      .map((part, index) => {
+        if (index % 2 === 1) {
+          return part;
+        }
+        return part.split(`*${scenario}*`).join(linked).split(scenario).join(linked);
+      })
+      .join('');
+  }
+  return text;
 }
 
 async function listRunArtifacts(repo, runId, token, { fetchFn = fetch } = {}) {
@@ -168,23 +193,12 @@ async function listRunArtifacts(repo, runId, token, { fetchFn = fetch } = {}) {
   return payload.artifacts || [];
 }
 
-function addScenarioArtifactLinks(markdown, links) {
-  if (links.length === 0) {
+function addScenarioArtifactLinks(markdown, artifacts, { repo, runId, manifest }) {
+  const mappings = scenarioDownloadMap(artifacts, manifest, repo, runId);
+  if (mappings.length === 0) {
     throw new Error('No per-scenario Hermes profile artifacts were published');
   }
-  const section = [
-    '• Per-scenario Hermes profiles (feed these to an agent, 14-day retention):',
-    ...links.map((link) => `  ${link}`),
-  ].join('\n');
-  if (markdown.includes('*Downloads*')) {
-    return markdown.replace('*Downloads*', `*Downloads*\n${section}`);
-  }
-  const source = '_Source:_';
-  const index = markdown.indexOf(source);
-  if (index === -1) {
-    return `${markdown.trim()}\n\n*Downloads*\n${section}`;
-  }
-  return `${markdown.slice(0, index)}*Downloads*\n${section}\n\n${markdown.slice(index)}`;
+  return linkScenarioNames(markdown, mappings);
 }
 
 async function post(channel, text, token, options) {
@@ -290,10 +304,16 @@ async function main() {
       githubRunId,
       githubToken,
     );
-    markdown = addScenarioArtifactLinks(
-      markdown,
-      scenarioArtifactLinks(artifacts, githubRepository, githubRunId),
+    const manifestPath = path.join(
+      path.dirname(markdownPath),
+      'scenario-artifacts.json',
     );
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    markdown = addScenarioArtifactLinks(markdown, artifacts, {
+      repo: githubRepository,
+      runId: githubRunId,
+      manifest,
+    });
   }
 
   const result = await postSummary({
@@ -317,7 +337,8 @@ export {
   openDirectMessage,
   buildText,
   splitForSlack,
-  scenarioArtifactLinks,
+  scenarioDownloadMap,
+  linkScenarioNames,
   addScenarioArtifactLinks,
   postSummary,
 };
