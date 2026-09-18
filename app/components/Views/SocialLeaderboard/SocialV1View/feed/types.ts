@@ -2,6 +2,7 @@ import type { PositionTokenAvatarData } from '../../components/PositionTokenAvat
 
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
+export type SocialV1FeedTab = 'trending' | 'following';
 
 export interface SocialV1FeedAsset {
   symbol: string;
@@ -63,13 +64,57 @@ export interface SocialV1SpotCompactFeedItem extends SocialV1FeedItemBase {
   volumeLabel?: string;
 }
 
+export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotShare';
+  side: SocialV1SpotSide;
+  markPriceLabel?: string;
+  entryPriceLabel?: string;
+  holdTimeLabel?: string;
+  showCopyTrade?: boolean;
+}
+
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
   | SocialV1PerpsClosedFeedItem
-  | SocialV1SpotCompactFeedItem;
+  | SocialV1SpotCompactFeedItem
+  | SocialV1SpotShareFeedItem;
+
+export interface SocialV1FeedPost {
+  id: string;
+  authorHandle: string;
+  authorImageUrl?: string | null;
+  winRateLabel?: string;
+  timestampMs: number;
+  likeCount: number;
+  commentCount: number;
+  gifUri?: string;
+  isPending?: boolean;
+  item: SocialV1FeedItem;
+}
 
 export interface UseSocialV1FeedResult {
-  items: SocialV1FeedItem[];
+  posts: SocialV1FeedPost[];
+  pendingPost: SocialV1FeedPost | null;
+  pendingStartedAtMs: number | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+/** One chip in the feed's hot-tokens carousel. */
+export interface SocialV1HotToken {
+  /** Stable key, also used as the chip's test ID suffix. */
+  id: string;
+  /**
+   * Perps market symbol (e.g. `BTC`, `NVDA`, or a HIP-3 `dex:SYMBOL`). Drives
+   * icon resolution, which falls back to a monogram when no icon is published.
+   */
+  symbol: string;
+  /** Editorial label -- the topic's name, not the ticker (e.g. `Bitcoin perps`). */
+  label: string;
+}
+
+export interface UseSocialV1HotTokensResult {
+  tokens: SocialV1HotToken[];
   isLoading: boolean;
   error: string | null;
 }
