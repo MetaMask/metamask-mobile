@@ -73,7 +73,6 @@ function buildProps(
       onPress: jest.fn(),
       label: 'Confirm order',
     },
-    onEditCostTolerancePress: jest.fn(),
     onClose: jest.fn(),
     ...overrides,
   };
