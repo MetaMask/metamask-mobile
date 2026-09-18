@@ -46,7 +46,11 @@ export const ContactNetworkSelector = ({
         isReadOnly
         startAccessory={networkAvatar}
         inputElement={
-          <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+          <Text
+            variant={TextVariant.BodyMd}
+            numberOfLines={1}
+            twClassName="flex-1"
+          >
             {networkName}
           </Text>
         }
