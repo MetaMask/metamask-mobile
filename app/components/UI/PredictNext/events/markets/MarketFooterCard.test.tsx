@@ -199,6 +199,26 @@ describe('MarketFooterCard', () => {
     });
   });
 
+  it('fails closed when the winner Market has no Yes Outcome', () => {
+    // A Team control trades the Yes side of the winner Market; a Market
+    // without a Yes Outcome offers no trade, matching findGameTradingQuote.
+    const taggedNo = createOutcome('away-no', 'no', '0.47', 'Away loses');
+    const noYesMarket: PredictMarket = {
+      ...awayMarket,
+      outcomes: [taggedNo, createOutcome('away-no-2', 'no')],
+    };
+    const { onOrder } = renderFooter({
+      awayQuote: createQuote(noYesMarket, taggedNo),
+    });
+
+    expect(screen.getByText('ARI')).toBeOnTheScreen();
+    expect(screen.queryByText('ARI · 47¢')).not.toBeOnTheScreen();
+    const button = screen.getByTestId(MarketFooterCardTestIds.button('away'));
+    expect(button).toBeDisabled();
+    fireEvent.press(button);
+    expect(onOrder).not.toHaveBeenCalled();
+  });
+
   it('disables a Team control whose Market is not active', () => {
     const { onOrder } = renderFooter({
       awayQuote: createQuote({ ...awayMarket, status: 'inactive' }, awayYes),

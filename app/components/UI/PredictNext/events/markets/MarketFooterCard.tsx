@@ -48,13 +48,16 @@ const FooterButton = ({
 }) => {
   // The quote's Outcome carries the Game Selection tag for the dual-line
   // chart and may be the No side; a Team control displays and trades the Yes
-  // side of the winner Market.
-  const tradingOutcome =
-    quote.market.outcomes.find((outcome) => outcome.side === 'yes') ??
-    quote.outcome;
-  const price = formatAskPrice(tradingOutcome.askPrice);
+  // side of the winner Market. A winner Market without a Yes Outcome fails
+  // closed like findGameTradingQuote: no price is shown and the control
+  // cannot order the tagged No side.
+  const yesOutcome = quote.market.outcomes.find(
+    (outcome) => outcome.side === 'yes',
+  );
+  const price = yesOutcome ? formatAskPrice(yesOutcome.askPrice) : undefined;
   const displayLabel = price ? `${label} · ${price}` : label;
-  const isTradeable = isOutcomeTradeable(quote.market, tradingOutcome);
+  const isTradeable =
+    yesOutcome !== undefined && isOutcomeTradeable(quote.market, yesOutcome);
 
   return (
     <Button
@@ -67,7 +70,11 @@ const FooterButton = ({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
       isDisabled={!isTradeable}
-      onPress={() => onOrder({ market: quote.market, outcome: tradingOutcome })}
+      onPress={() => {
+        if (yesOutcome) {
+          onOrder({ market: quote.market, outcome: yesOutcome });
+        }
+      }}
       style={[{ backgroundColor }]}
       twClassName="h-12 min-w-0 flex-1 rounded-xl px-2"
     >
