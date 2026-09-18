@@ -82,6 +82,7 @@ These are boundaries, not a requirement to create every possible directory or mo
 - [`docs/module-structure.md`](./docs/module-structure.md) — directory ownership, public module APIs, and internal boundaries.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
+- [`docs/live-data-subscriptions.md`](./docs/live-data-subscriptions.md) — viewport-driven live-data subscriptions, per-surface granularity, live-game gating, and cap degradation.
 - [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md) — Predict Jira conventions.
 
 ## Development rule

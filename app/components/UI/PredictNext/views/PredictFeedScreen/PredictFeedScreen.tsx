@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import {
   type RouteProp,
+  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -45,19 +46,24 @@ const FEED_PARAMS = { limit: FEED_PAGE_LIMIT };
 
 const getEventKey = (event: PredictEvent) => `${event.venueId}-${event.id}`;
 
-const getFeedWatchEventIds = (
+/**
+ * The Feed cards to hold live data for: the rows FlatList reports viewable.
+ * Until the list has reported anything (first layout, or right after a tab
+ * switch) the first page stands in, so the initial render is live too.
+ */
+const getFeedVisibleEventIds = (
   feedEvents: readonly PredictEvent[],
-  visibleEventIds: readonly PredictEntityId[],
+  viewableEventIds: readonly PredictEntityId[],
 ): PredictEntityId[] => {
   const fallbackIds = feedEvents
     .slice(0, FEED_PAGE_LIMIT)
     .map((event) => event.id);
-  if (visibleEventIds.length === 0) {
+  if (viewableEventIds.length === 0) {
     return fallbackIds;
   }
 
   const presentIds = new Set(feedEvents.map((event) => event.id));
-  const visibleInFeed = visibleEventIds.filter((eventId) =>
+  const visibleInFeed = viewableEventIds.filter((eventId) =>
     presentIds.has(eventId),
   );
   return visibleInFeed.length > 0 ? visibleInFeed : fallbackIds;
@@ -117,6 +123,7 @@ const PredictFeedContent = ({
   onOpenEvent,
 }: PredictFeedContentProps) => {
   const tw = useTailwind();
+  const isFocused = useIsFocused();
   const listRef = useRef<FlatList<PredictEvent>>(null);
   const listContentContainerStyle = useMemo(() => tw.style('px-3 pb-6'), [tw]);
   const defaultTab = getFeedScreenTab(definition, selectedTabId);
@@ -135,7 +142,7 @@ const PredictFeedContent = ({
     () => data?.pages.flatMap((page) => page.events) ?? [],
     [data],
   );
-  const [visibleEventIds, setVisibleEventIds] = useState<
+  const [viewableEventIds, setViewableEventIds] = useState<
     readonly PredictEntityId[]
   >([]);
   const feedEventIdsRef = useRef<ReadonlySet<PredictEntityId>>(new Set());
@@ -146,7 +153,7 @@ const PredictFeedContent = ({
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       const presentIds = feedEventIdsRef.current;
-      const nextVisibleEventIds = viewableItems.flatMap((token) => {
+      const nextViewableEventIds = viewableItems.flatMap((token) => {
         const event = token.item as PredictEvent | undefined;
         return event?.id && presentIds.has(event.id) ? [event.id] : [];
       });
@@ -155,18 +162,21 @@ const PredictFeedContent = ({
       // watches stay on them instead of falling back to the first page — or,
       // after a tab switch, so the first-page fallback is not replaced with
       // ids the new Feed does not contain.
-      if (nextVisibleEventIds.length === 0) {
+      if (nextViewableEventIds.length === 0) {
         return;
       }
 
-      setVisibleEventIds(nextVisibleEventIds);
+      setViewableEventIds(nextViewableEventIds);
     },
   ).current;
-  const watchEventIds = useMemo(
-    () => getFeedWatchEventIds(feedEvents, visibleEventIds),
-    [feedEvents, visibleEventIds],
+  const visibleEventIds = useMemo(
+    () => getFeedVisibleEventIds(feedEvents, viewableEventIds),
+    [feedEvents, viewableEventIds],
   );
-  const events = useEventsWithLiveData(venueId, feedEvents, watchEventIds);
+  const events = useEventsWithLiveData(venueId, feedEvents, {
+    visibleEventIds,
+    isVisible: isFocused,
+  });
   const hasInitialError = isError && events.length === 0;
 
   usePredictNextMeasurement({
@@ -198,7 +208,7 @@ const PredictFeedContent = ({
       }
 
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      setVisibleEventIds([]);
+      setViewableEventIds([]);
       setActiveTabId(tabId);
     },
     [activeTabId],

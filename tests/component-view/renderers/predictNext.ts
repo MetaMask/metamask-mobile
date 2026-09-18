@@ -73,7 +73,13 @@ export const renderPredictFeedScreen = (initialParams: PredictNextFeedParams) =>
   renderScreenWithRoutes(
     PredictFeedScreen as unknown as React.ComponentType,
     { name: PredictNextRoutes.FEED },
-    [{ name: PredictNextRoutes.HOME, Component: PredictHome }],
+    [
+      { name: PredictNextRoutes.HOME, Component: PredictHome },
+      {
+        name: PredictNextRoutes.EVENT,
+        Component: PredictEventScreen as unknown as React.ComponentType<object>,
+      },
+    ],
     { state: initialStatePredictNext().build() },
     { ...initialParams },
   );
