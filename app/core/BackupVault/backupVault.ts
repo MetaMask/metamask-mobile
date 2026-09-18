@@ -18,13 +18,6 @@ const options: SetOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
-/**
- * Serializes all keychain access for this module (backups and resets) so
- * overlapping calls can't race on keychain I/O, and so a reset always runs
- * after any backup that was already queued ahead of it.
- */
-let backupQueue: Promise<void> = Promise.resolve();
-
 interface KeyringBackupResponse {
   success: boolean;
   vault?: string;
@@ -50,23 +43,11 @@ const _resetTemporaryVaultBackup = async (): Promise<void> => {
 };
 
 /**
- * Clears all vault backups from react-native-keychain.
- *
- * Runs through the same {@link backupQueue} as {@link scheduleVaultBackup} so
- * it always executes after any backup already queued ahead of it — otherwise
- * a stale queued write could land after the reset and resurrect a vault this
- * call was meant to erase.
+ * Clears all vault backups from react-native-keychain
  */
 export async function clearAllVaultBackups() {
-  const reset = backupQueue.then(async () => {
-    await _resetVaultBackup();
-    await _resetTemporaryVaultBackup();
-  });
-  // Keep the queue alive for future backups even if this reset throws.
-  backupQueue = reset.catch((error) => {
-    Logger.error(error as Error, 'clearAllVaultBackups failed');
-  });
-  await reset;
+  await _resetVaultBackup();
+  await _resetTemporaryVaultBackup();
 }
 
 /**
@@ -162,17 +143,13 @@ export async function backupVault(
 }
 
 /**
- * Serialized entry point for KeyringController:stateChange.
- *
- * Performs no dedup or staleness checks of its own — every call is queued
- * and executed. Filtering out redundant or stale calls (e.g. an unchanged
- * vault, or a call that shouldn't run during a wallet reset) is entirely
- * the caller's responsibility (today: Engine.handleVaultBackup's lastVault
+ * Entry point for KeyringController:stateChange. Performs no dedup or
+ * staleness checks of its own, it's on the caller to filter out calls that
+ * shouldn't happen (today, that's Engine.handleVaultBackup's lastVault
  * guard and the disableAutomaticVaultBackup flag).
  */
 export function scheduleVaultBackup(vault: string): void {
-  backupQueue = backupQueue
-    .then(() => backupVault(vault))
+  backupVault(vault)
     .then((result) => {
       if (!result.success) {
         throw new Error(result.error ?? VAULT_BACKUP_FAILED);

@@ -110,67 +110,6 @@ describe('backupVault file', () => {
       expect(primaryVaultCredentialsAfterReset).toBeUndefined();
       expect(temporaryVaultCredentialsAfterReset).toBeUndefined();
     });
-
-    it('always wins over a backup that was already queued when it was called', async () => {
-      // A backup is queued (e.g. from an unlock) but hasn't written yet.
-      let releaseQueuedWrite: () => void = () => undefined;
-      const writeStarted = new Promise<void>((resolveStarted) => {
-        (setInternetCredentials as jest.Mock).mockImplementationOnce(
-          (server: string, username: string, password: string) => {
-            resolveStarted();
-            return new Promise((resolve) => {
-              releaseQueuedWrite = () => {
-                mockKeychainState[server] = { username, password };
-                resolve({ service: 'service', storage: mockStorageType });
-              };
-            });
-          },
-        );
-      });
-      scheduleVaultBackup('old-vault-being-reset-away');
-
-      // A wallet reset is requested while that backup is still in flight.
-      const clearPromise = clearAllVaultBackups();
-
-      // Only once the queued backup has actually started writing do we
-      // release it, then let the reset run.
-      await writeStarted;
-      releaseQueuedWrite();
-      await clearPromise;
-
-      // The reset must be the last word: no vault left behind.
-      expect(await getInternetCredentials(VAULT_BACKUP_KEY)).toBeUndefined();
-    });
-
-    it('logs and keeps the queue usable when the reset itself fails', async () => {
-      const resetError = new Error('resetInternetCredentials failed');
-      const loggerErrorSpy = jest
-        .spyOn(Logger, 'error')
-        .mockImplementation(() => undefined);
-      (resetInternetCredentials as jest.Mock).mockImplementationOnce(() => {
-        throw resetError;
-      });
-
-      await expect(clearAllVaultBackups()).rejects.toThrow(resetError);
-
-      // Wait for the internal .catch that keeps backupQueue alive for later work
-      await waitFor(() => {
-        expect(loggerErrorSpy).toHaveBeenCalledWith(
-          resetError,
-          'clearAllVaultBackups failed',
-        );
-      });
-
-      // A later backup must still be able to run through backupQueue itself
-      // (calling backupVault directly here wouldn't prove anything about the
-      // queue's health, since it never touches backupQueue).
-      const vault = 'vault-after-failed-reset';
-      scheduleVaultBackup(vault);
-
-      await waitFor(() => {
-        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
-      });
-    });
   });
 
   describe('backupVault', () => {
@@ -314,17 +253,13 @@ describe('backupVault file', () => {
   });
 
   describe('scheduleVaultBackup', () => {
-    it('serializes sequential calls through the backup queue', async () => {
-      const firstVault = 'first-vault';
-      const secondVault = 'second-vault';
+    it('backs up the vault it was given', async () => {
+      const vault = 'a-vault';
 
-      scheduleVaultBackup(firstVault);
-      scheduleVaultBackup(secondVault);
+      scheduleVaultBackup(vault);
 
-      // Both calls are queued and executed — the second wins the keychain
-      // entry, since it runs after the first in FIFO order.
       await waitFor(() => {
-        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(secondVault);
+        expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
       });
     });
 
