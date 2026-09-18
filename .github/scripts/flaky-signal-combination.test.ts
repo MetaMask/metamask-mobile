@@ -6,6 +6,7 @@ import {
   patternSeverityLight,
   renderFlakyFindingsTable,
   renderFlakyPatternsCell,
+  renderNoFindingsLine,
   renderPastFlakynessCell,
   renderUnreviewedPatternsCell,
   resolveUnreviewedReason,
@@ -400,5 +401,37 @@ describe('assembleAllClearMarkdown', () => {
         stateBlock: '<!-- state -->',
       }),
     ).toContain(`${TRAFFIC_LIGHT.green} All clear`);
+  });
+
+  it('keeps all-clear and appends the disclosure note when one is given', () => {
+    const body = assembleAllClearMarkdown({
+      marker: '<!-- marker -->',
+      stateBlock: '<!-- state -->',
+      note: '_1 fail-then-pass log(s) in the window are missing on GitHub._',
+    });
+
+    expect(body).toContain(`${TRAFFIC_LIGHT.green} All clear`);
+    expect(body).toContain(
+      '\n\n_1 fail-then-pass log(s) in the window are missing on GitHub._\n<!-- state -->',
+    );
+  });
+
+  it('adds no blank paragraph when the note is empty', () => {
+    expect(
+      assembleAllClearMarkdown({
+        marker: '<!-- marker -->',
+        stateBlock: '<!-- state -->',
+        note: '',
+      }),
+    ).toContain(`${TRAFFIC_LIGHT.green} All clear\n<!-- state -->`);
+  });
+});
+
+describe('renderNoFindingsLine', () => {
+  it('names the modified file count so an empty table never renders', () => {
+    expect(renderNoFindingsLine(8)).toBe(
+      'No same-SHA fail-then-pass history and no flaky pattern found for the 8 modified unit test files in the inspected range.',
+    );
+    expect(renderNoFindingsLine(1)).toContain('the modified unit test file in');
   });
 });

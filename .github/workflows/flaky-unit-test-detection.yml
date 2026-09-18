@@ -238,6 +238,7 @@ jobs:
           FLAKY_FILES_TO_ANALYZE_COUNT: ${{ steps.detect-history.outputs.files_to_analyze_count }}
           FLAKY_HISTORICALLY_FLAKY_COUNT: ${{ steps.detect-history.outputs.historically_flaky_count }}
           FLAKY_UNREAD_FAILED_RUNS: ${{ steps.detect-history.outputs.unread_failed_runs }}
+          FLAKY_MISSING_LOG_BLOBS: ${{ steps.detect-history.outputs.missing_log_blobs }}
           FLAKY_MISSING_PRIOR_SHA_COUNT: ${{ steps.detect-history.outputs.missing_prior_sha_count }}
           FLAKY_CANDIDATES_INSPECTED: ${{ steps.detect-history.outputs.candidates_inspected }}
           FLAKY_CANDIDATE_SHA_COUNT: ${{ steps.detect-history.outputs.candidate_sha_count }}

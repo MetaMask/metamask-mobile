@@ -12,7 +12,10 @@
  *   2. GraphQL batch — failed Unit tests check runs + latest successes
  *   3. Confirm the same job name later succeeded on that SHA
  *   4. Download logs only for those jobs; stop when every modified file has
- *      a hit. historyComplete is false when a cap ends the walk early.
+ *      a hit. historyComplete is false when a cap ends the walk early or a
+ *      log a re-run could still read was not read. Logs GitHub reports as
+ *      missing (404) are counted apart in missingLogBlobs and disclosed in
+ *      the comment; they never block all-clear because they never come back.
  *
  * Logging rule:
  *   - core.info — expected no-op (no modified tests, unchanged since last
@@ -122,6 +125,7 @@ interface HistoryResult {
   historyComplete: boolean;
   graphqlQueries: number;
   unreadFailedRuns: number;
+  missingLogBlobs: number;
   analyzedFiles: string[];
   headSha: string;
   files: HistoryFile[];
@@ -197,6 +201,7 @@ function setStage1Outputs({
   modifiedFileCount,
   historicallyFlakyCount,
   unreadFailedRuns,
+  missingLogBlobs,
   missingPriorShaCount,
   candidatesInspected,
   candidateShaCount,
@@ -209,6 +214,7 @@ function setStage1Outputs({
   modifiedFileCount: number;
   historicallyFlakyCount: number;
   unreadFailedRuns: number;
+  missingLogBlobs: number;
   missingPriorShaCount: number;
   candidatesInspected: number;
   candidateShaCount: number;
@@ -222,6 +228,7 @@ function setStage1Outputs({
   core.setOutput('files_to_analyze_count', String(filesToAnalyze.length));
   core.setOutput('historically_flaky_count', String(historicallyFlakyCount));
   core.setOutput('unread_failed_runs', String(unreadFailedRuns));
+  core.setOutput('missing_log_blobs', String(missingLogBlobs));
   core.setOutput('missing_prior_sha_count', String(missingPriorShaCount));
   core.setOutput('candidates_inspected', String(candidatesInspected));
   core.setOutput('candidate_sha_count', String(candidateShaCount));
@@ -247,6 +254,7 @@ function failStage1(
   core.setOutput('historically_flaky_count', '0');
   core.setOutput('modified_file_count', String(counts?.modifiedFileCount ?? 0));
   core.setOutput('unread_failed_runs', String(counts?.unreadFailedRuns ?? 0));
+  core.setOutput('missing_log_blobs', '0');
   core.setOutput(
     'missing_prior_sha_count',
     String(counts?.missingPriorShaCount ?? 0),
@@ -432,9 +440,14 @@ async function getCompletedRunsInLookback(
   }
 }
 
+// A 404 means GitHub no longer has the blob, so it is a permanent gap; every
+// other failure is something a re-run could still read.
+type LogFetchFailure = 'missing_blob' | 'unread';
+
 type FailedLogFetch = {
   filesByJobId: Map<number, string[]>;
   unreadCount: number;
+  missingBlobCount: number;
 };
 
 async function downloadFailedUnitLogs(
@@ -449,7 +462,8 @@ async function downloadFailedUnitLogs(
     async (
       job,
     ): Promise<
-      { jobId: number; ok: true; text: string } | { jobId: number; ok: false }
+      | { jobId: number; ok: true; text: string }
+      | { jobId: number; ok: false; failure: LogFetchFailure }
     > => {
       try {
         const res = await withRetryOnce(() =>
@@ -461,27 +475,36 @@ async function downloadFailedUnitLogs(
         );
         return { jobId: job.id, ok: true, text: String(res.data) };
       } catch (error) {
-        const reason = isMissingLogBlobError(error)
-          ? 'missing log blob'
-          : isRetriableGithubError(error)
-            ? 'GitHub API error after retry'
-            : (error as Error).message;
+        if (isMissingLogBlobError(error)) {
+          core.info(
+            `downloadJobLogsForWorkflowRun ${job.id} failed: missing log blob`,
+          );
+          return { jobId: job.id, ok: false, failure: 'missing_blob' };
+        }
+        const reason = isRetriableGithubError(error)
+          ? 'GitHub API error after retry'
+          : (error as Error).message;
         core.info(`downloadJobLogsForWorkflowRun ${job.id} failed: ${reason}`);
-        return { jobId: job.id, ok: false };
+        return { jobId: job.id, ok: false, failure: 'unread' };
       }
     },
   );
 
   const filesByJobId = new Map<number, string[]>();
   let unreadCount = 0;
+  let missingBlobCount = 0;
   for (const part of logParts) {
     if (!part.ok) {
-      unreadCount += 1;
+      if (part.failure === 'missing_blob') {
+        missingBlobCount += 1;
+      } else {
+        unreadCount += 1;
+      }
       continue;
     }
     filesByJobId.set(part.jobId, parseJestFailPaths(part.text));
   }
-  return { filesByJobId, unreadCount };
+  return { filesByJobId, unreadCount, missingBlobCount };
 }
 
 async function fetchShaBatch(
@@ -504,6 +527,7 @@ async function buildHistory(
 ): Promise<{
   files: HistoryFile[];
   unreadFailedRuns: number;
+  missingLogBlobs: number;
   candidateShaCount: number;
   candidatesInspected: number;
   historyComplete: boolean;
@@ -522,6 +546,7 @@ async function buildHistory(
     jobId: number;
   }[] = [];
   let unreadFailedRuns = 0;
+  let missingLogBlobs = 0;
   let logFetches = 0;
   let graphqlQueries = 0;
   let candidatesInspected = 0;
@@ -579,6 +604,7 @@ async function buildHistory(
         toFetch.map((job) => ({ id: job.jobId })),
       );
       unreadFailedRuns += logs.unreadCount;
+      missingLogBlobs += logs.missingBlobCount;
       allHits.push(
         ...hitsFromConfirmedLogs(toFetch, logs.filesByJobId, modifiedFiles),
       );
@@ -617,6 +643,7 @@ async function buildHistory(
   return {
     files,
     unreadFailedRuns,
+    missingLogBlobs,
     candidateShaCount: candidates.length,
     candidatesInspected,
     historyComplete,
@@ -635,6 +662,7 @@ function writeHistoryFile(
     historyComplete: boolean;
     graphqlQueries: number;
     unreadFailedRuns: number;
+    missingLogBlobs: number;
   },
 ): HistoryResult {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
@@ -649,6 +677,7 @@ function writeHistoryFile(
     historyComplete: meta.historyComplete,
     graphqlQueries: meta.graphqlQueries,
     unreadFailedRuns: meta.unreadFailedRuns,
+    missingLogBlobs: meta.missingLogBlobs,
     analyzedFiles,
     headSha,
     files,
@@ -686,6 +715,7 @@ async function main(): Promise<void> {
       historyComplete: true,
       graphqlQueries: 0,
       unreadFailedRuns: 0,
+      missingLogBlobs: 0,
     });
     writePriorStateFile(null);
     setStage1Outputs({
@@ -696,6 +726,7 @@ async function main(): Promise<void> {
       modifiedFileCount: 0,
       historicallyFlakyCount: 0,
       unreadFailedRuns: 0,
+      missingLogBlobs: 0,
       missingPriorShaCount: 0,
       candidatesInspected: 0,
       candidateShaCount: 0,
@@ -743,6 +774,7 @@ async function main(): Promise<void> {
       modifiedFileCount: modifiedFiles.length,
       historicallyFlakyCount: 0,
       unreadFailedRuns: 0,
+      missingLogBlobs: 0,
       missingPriorShaCount,
       candidatesInspected: 0,
       candidateShaCount: 0,
@@ -765,6 +797,7 @@ async function main(): Promise<void> {
   const {
     files,
     unreadFailedRuns,
+    missingLogBlobs,
     candidateShaCount,
     candidatesInspected,
     historyComplete,
@@ -772,7 +805,7 @@ async function main(): Promise<void> {
   } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
     `🔍 Sampled ${runs.length} completed ci.yml run(s) on any branch over the last ${LOOKBACK_DAYS}d ` +
-      `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'})`,
+      `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'}; ${unreadFailedRuns} unread, ${missingLogBlobs} missing log(s))`,
   );
 
   // Stage 2 only re-runs files that still need a review. Historically flaky
@@ -786,6 +819,7 @@ async function main(): Promise<void> {
     historyComplete,
     graphqlQueries,
     unreadFailedRuns,
+    missingLogBlobs,
   });
 
   const flakyCount = files.filter((f) => f.flaky).length;
@@ -797,6 +831,7 @@ async function main(): Promise<void> {
     modifiedFileCount: modifiedFiles.length,
     historicallyFlakyCount: flakyCount,
     unreadFailedRuns,
+    missingLogBlobs,
     missingPriorShaCount,
     candidatesInspected,
     candidateShaCount,

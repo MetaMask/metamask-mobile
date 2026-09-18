@@ -39,12 +39,14 @@ import {
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
 import {
   renderIncompleteCoverageLine,
+  renderMissingLogBlobsLine,
   shouldPostAllClear,
 } from './flaky-same-sha-history';
 import {
   assembleAllClearMarkdown,
   assembleFlakyCommentMarkdown,
   renderFlakyFindingsTable,
+  renderNoFindingsLine,
   resolveUnreviewedReason,
   type AnalyzerRunHint,
   type FlakyTableFile,
@@ -96,6 +98,7 @@ interface HistoryArtifact {
   candidatesInspected?: number;
   candidateShaCount?: number;
   unreadFailedRuns?: number;
+  missingLogBlobs?: number;
 }
 
 interface Finding {
@@ -379,20 +382,21 @@ function buildCommentBody({
   runs: AnalyzerRunHint[] | undefined;
   maxFiles: number | undefined;
 }): string {
+  const table = renderFlakyFindingsTable(
+    buildTableFiles({
+      historyFiles,
+      findings,
+      patternsReviewedFiles,
+      headSha,
+      runs,
+      maxFiles,
+      aiStepOutcome: env.aiStepOutcome,
+      logUrl: workflowRunUrl(),
+    }),
+  );
   return assembleFlakyCommentMarkdown({
     marker: MARKER,
-    table: renderFlakyFindingsTable(
-      buildTableFiles({
-        historyFiles,
-        findings,
-        patternsReviewedFiles,
-        headSha,
-        runs,
-        maxFiles,
-        aiStepOutcome: env.aiStepOutcome,
-        logUrl: workflowRunUrl(),
-      }),
-    ),
+    table: table.length > 0 ? table : renderNoFindingsLine(historyFiles.length),
     diffs: buildSuggestedFixesSection(findings, headSha),
     coverageLine,
     skillLink: SKILL_LINK,
@@ -400,10 +404,14 @@ function buildCommentBody({
   });
 }
 
-function buildAllClearBody(stateBlock: string): string {
+function buildAllClearBody(
+  stateBlock: string,
+  missingLogBlobs: number,
+): string {
   return assembleAllClearMarkdown({
     marker: MARKER,
     stateBlock,
+    note: renderMissingLogBlobsLine(missingLogBlobs),
   });
 }
 
@@ -626,13 +634,20 @@ async function main(): Promise<void> {
   const hasFindings =
     historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
   const historyComplete = history.historyComplete === true;
-  const coverageLine = historyComplete
-    ? ''
-    : `${renderIncompleteCoverageLine({
-        candidatesInspected: history.candidatesInspected ?? 0,
-        candidateShaCount: history.candidateShaCount ?? 0,
-        unreadFailedRuns: history.unreadFailedRuns ?? 0,
-      })}\n`;
+  const missingLogBlobs = history.missingLogBlobs ?? 0;
+  const coverageLine = [
+    historyComplete
+      ? ''
+      : renderIncompleteCoverageLine({
+          candidatesInspected: history.candidatesInspected ?? 0,
+          candidateShaCount: history.candidateShaCount ?? 0,
+          unreadFailedRuns: history.unreadFailedRuns ?? 0,
+          hasFindings,
+        }),
+    renderMissingLogBlobsLine(missingLogBlobs),
+  ]
+    .filter((line) => line.length > 0)
+    .join('\n\n');
 
   const commentBody = buildCommentBody({
     historyFiles,
@@ -728,7 +743,7 @@ async function main(): Promise<void> {
       owner,
       repo,
       comment_id: existingComment!.id,
-      body: buildAllClearBody(stateBlock),
+      body: buildAllClearBody(stateBlock, missingLogBlobs),
     });
     console.log(
       '🎉 Updated sticky comment — all previously flagged issues are fixed',

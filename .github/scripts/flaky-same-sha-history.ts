@@ -426,6 +426,12 @@ export function unansweredModifiedFiles(
   return modifiedFiles.filter((path) => !answered.has(path));
 }
 
+/**
+ * `unreadFailedRuns` counts fail-then-pass logs a re-run could still read
+ * (fetch budget cap, GitHub API error after retry). Logs GitHub reports as
+ * missing are excluded on purpose: they never come back, so treating them as
+ * a gap would block all-clear on every PR until the run leaves the window.
+ */
 export function historyCoverageComplete({
   everyFileHasHit,
   walkedAllCandidates,
@@ -495,14 +501,32 @@ export function renderIncompleteCoverageLine({
   candidatesInspected,
   candidateShaCount,
   unreadFailedRuns = 0,
+  hasFindings = true,
 }: {
   candidatesInspected: number;
   candidateShaCount: number;
   unreadFailedRuns?: number;
+  hasFindings?: boolean;
 }): string {
   const unread =
     unreadFailedRuns > 0
       ? ` ${unreadFailedRuns} confirmed fail-then-pass log(s) could not be read.`
       : '';
-  return `_History coverage incomplete: inspected ${candidatesInspected} of ${candidateShaCount} candidate SHA(s).${unread} Findings above are a lower bound; this is not an all-clear._`;
+  // "Findings above" only makes sense when the table rendered rows.
+  const verdict = hasFindings
+    ? 'Findings above are a lower bound; this is not an all-clear.'
+    : 'Nothing was found in the inspected range, but this is not an all-clear.';
+  return `_History coverage incomplete: inspected ${candidatesInspected} of ${candidateShaCount} candidate SHA(s).${unread} ${verdict}_`;
+}
+
+/**
+ * Disclosed rather than blocking: a missing blob is a permanent gap GitHub
+ * itself reports, so the reader should know the history has a hole without
+ * the comment refusing all-clear over it.
+ */
+export function renderMissingLogBlobsLine(missingLogBlobs: number): string {
+  if (missingLogBlobs <= 0) {
+    return '';
+  }
+  return `_${missingLogBlobs} fail-then-pass log(s) in the window are missing on GitHub and could not be attributed to a file._`;
 }

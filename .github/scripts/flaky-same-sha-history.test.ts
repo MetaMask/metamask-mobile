@@ -15,6 +15,7 @@ import {
   parseJestFailPaths,
   parseShaBatchResponse,
   renderIncompleteCoverageLine,
+  renderMissingLogBlobsLine,
   renderSameShaHistoryTable,
   shouldPostAllClear,
   unansweredModifiedFiles,
@@ -438,7 +439,7 @@ describe('historyCoverageComplete', () => {
     ).toBe(false);
   });
 
-  it('is incomplete when confirmed fail-then-pass logs could not be read', () => {
+  it('is incomplete when a re-run could still read a confirmed fail-then-pass log', () => {
     expect(
       historyCoverageComplete({
         everyFileHasHit: false,
@@ -540,6 +541,36 @@ describe('renderIncompleteCoverageLine', () => {
         unreadFailedRuns: 2,
       }),
     ).toContain('2 confirmed fail-then-pass log(s) could not be read');
+  });
+
+  it('points at the findings table only when it rendered rows', () => {
+    expect(
+      renderIncompleteCoverageLine({
+        candidatesInspected: 1,
+        candidateShaCount: 2,
+        hasFindings: true,
+      }),
+    ).toContain('Findings above are a lower bound');
+
+    const empty = renderIncompleteCoverageLine({
+      candidatesInspected: 1,
+      candidateShaCount: 2,
+      hasFindings: false,
+    });
+    expect(empty).not.toContain('Findings above');
+    expect(empty).toContain('this is not an all-clear');
+  });
+});
+
+describe('renderMissingLogBlobsLine', () => {
+  it('renders nothing when every log was readable', () => {
+    expect(renderMissingLogBlobsLine(0)).toBe('');
+  });
+
+  it('discloses how many logs GitHub no longer has', () => {
+    expect(renderMissingLogBlobsLine(1)).toBe(
+      '_1 fail-then-pass log(s) in the window are missing on GitHub and could not be attributed to a file._',
+    );
   });
 });
 

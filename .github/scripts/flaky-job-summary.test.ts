@@ -9,6 +9,7 @@ const baseInput = {
   filesToAnalyzeCount: '1',
   historicallyFlakyCount: '0',
   unreadFailedRuns: '0',
+  missingLogBlobs: '0',
   missingPriorShaCount: '0',
   candidatesInspected: '0',
   candidateShaCount: '0',
@@ -90,14 +91,16 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('**Analyzed.** Check the comment step below.');
   });
 
-  it('reports unread failed runs in the table', () => {
+  it('reports unread failed runs and missing log blobs in the table', () => {
     const markdown = renderFlakyJobSummary({
       ...baseInput,
       unreadFailedRuns: '1',
+      missingLogBlobs: '3',
       missingPriorShaCount: '2',
     });
 
     expect(markdown).toContain('| Unread failed CI runs | 1 |');
+    expect(markdown).toContain('| Missing log blobs | 3 |');
     expect(markdown).toContain('| Missing prior SHAs | 2 |');
     expect(markdown).toContain('| SHA | `f758dbb` |');
   });

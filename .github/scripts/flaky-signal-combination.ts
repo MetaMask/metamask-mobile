@@ -216,9 +216,7 @@ function rowsForFile(file: FlakyTableFile): string[] {
   if (file.findings.length === 0) {
     const pattern = file.patternsReviewed
       ? 'none'
-      : renderUnreviewedPatternsCell(
-          file.unreviewed ?? { reason: 'not_run' },
-        );
+      : renderUnreviewedPatternsCell(file.unreviewed ?? { reason: 'not_run' });
     return [tableRow(file.path, pastFlakyness, pattern)];
   }
   return file.findings.map((finding) =>
@@ -232,6 +230,19 @@ export function renderFlakyFindingsTable(files: FlakyTableFile[]): string {
     return '';
   }
   return `| File | Past flakyness | Flaky patterns |\n| --- | --- | --- |\n${rows.join('\n')}`;
+}
+
+/**
+ * Body for a comment that must stay up (history coverage incomplete) while
+ * neither signal fired, so the reader sees a sentence instead of an empty
+ * table followed by a footer that points at it.
+ */
+export function renderNoFindingsLine(modifiedFileCount: number): string {
+  const files =
+    modifiedFileCount === 1
+      ? 'the modified unit test file'
+      : `the ${modifiedFileCount} modified unit test files`;
+  return `No same-SHA fail-then-pass history and no flaky pattern found for ${files} in the inspected range.`;
 }
 
 export function assembleFlakyCommentMarkdown({
@@ -268,13 +279,16 @@ export function assembleFlakyCommentMarkdown({
 export function assembleAllClearMarkdown({
   marker,
   stateBlock,
+  note = '',
 }: {
   marker: string;
   stateBlock: string;
+  note?: string;
 }): string {
+  const disclosure = note.trim().length > 0 ? `\n\n${note.trim()}` : '';
   return `${marker}
 ## Flaky unit test detection
 
-${TRAFFIC_LIGHT.green} All clear
+${TRAFFIC_LIGHT.green} All clear${disclosure}
 ${stateBlock}`;
 }

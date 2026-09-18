@@ -84,7 +84,9 @@ export function computeNeedsAnalysis(
 
     let changedInDiff: Set<string>;
     try {
-      changedInDiff = new Set(context.diffNameOnly(analyzedSha, context.headSha));
+      changedInDiff = new Set(
+        context.diffNameOnly(analyzedSha, context.headSha),
+      );
     } catch {
       files.forEach((file) => changedFiles.add(file));
       continue;
