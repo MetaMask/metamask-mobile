@@ -14,12 +14,30 @@ export const COMPOSER_COUNTDOWN_FALLBACK_MS = 1200;
 
 type Listener = () => void;
 
+/**
+ * Immutable view of the store handed to React.
+ *
+ * React Compiler is enabled for the whole app bundle (and disabled under Jest,
+ * see `scripts/react-compiler.js`), so anything read during render must be a
+ * reactive input or the compiler is free to cache it forever. Reading this
+ * mutable module directly from a component would be a Rules of React violation
+ * and would serve a stale feed; consumers get this object through
+ * `useSyncExternalStore` instead, and its identity changes on every mutation.
+ */
+export interface SocialV1ComposedFeedSnapshot {
+  composedPosts: SocialV1FeedPost[];
+  pendingPost: SocialV1FeedPost | null;
+  pendingStartedAtMs: number | null;
+  revision: number;
+}
+
 interface StoreState {
   composedPosts: SocialV1FeedPost[];
   pendingPost: SocialV1FeedPost | null;
   pendingStartedAtMs: number | null;
   shouldFocusTrending: boolean;
   revision: number;
+  snapshot: SocialV1ComposedFeedSnapshot;
   postingTimer: ReturnType<typeof setTimeout> | null;
   countdownFallbackTimer: ReturnType<typeof setTimeout> | null;
   listeners: Set<Listener>;
@@ -39,6 +57,12 @@ const bootstrap = (): StoreState => ({
   pendingStartedAtMs: null,
   shouldFocusTrending: false,
   revision: 0,
+  snapshot: {
+    composedPosts: [],
+    pendingPost: null,
+    pendingStartedAtMs: null,
+    revision: 0,
+  },
   postingTimer: null,
   countdownFallbackTimer: null,
   listeners: new Set(),
@@ -61,6 +85,15 @@ const clearTimers = () => {
 
 const notify = () => {
   state.revision += 1;
+  // A fresh object per mutation: `useSyncExternalStore` compares snapshots by
+  // identity to decide whether to re-render, and it is what makes the feed a
+  // reactive input rather than a stale read.
+  state.snapshot = {
+    composedPosts: state.composedPosts,
+    pendingPost: state.pendingPost,
+    pendingStartedAtMs: state.pendingStartedAtMs,
+    revision: state.revision,
+  };
   state.listeners.forEach((listener) => listener());
 };
 
@@ -73,6 +106,9 @@ export const subscribeSocialV1ComposedFeed = (
   };
 };
 
+export const getSocialV1ComposedFeedSnapshot =
+  (): SocialV1ComposedFeedSnapshot => state.snapshot;
+
 export const getSocialV1ComposedPosts = (): SocialV1FeedPost[] =>
   state.composedPosts;
 
@@ -81,8 +117,6 @@ export const getSocialV1PendingPost = (): SocialV1FeedPost | null =>
 
 export const getSocialV1PendingStartedAtMs = (): number | null =>
   state.pendingStartedAtMs;
-
-export const getSocialV1ComposedFeedRevision = (): number => state.revision;
 
 /**
  * Force every mounted subscriber to re-read the store.

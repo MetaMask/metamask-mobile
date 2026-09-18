@@ -3,6 +3,7 @@ import {
   COMPOSER_POSTING_DELAY_MS,
   commitSocialV1PendingPost,
   consumeSocialV1FocusTrending,
+  getSocialV1ComposedFeedSnapshot,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
   getSocialV1PendingStartedAtMs,
@@ -134,5 +135,39 @@ describe('socialV1ComposedFeedStore', () => {
     refreshSocialV1ComposedFeed();
 
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  // React Compiler is off under Jest, so these assertions are the only guard
+  // against the feed reading mutable state that the compiler can cache: every
+  // mutation must hand React a brand-new snapshot object.
+  it('replaces the snapshot identity on every mutation', () => {
+    const initial = getSocialV1ComposedFeedSnapshot();
+
+    submitSocialV1ComposedPost(composedPost);
+    const afterSubmit = getSocialV1ComposedFeedSnapshot();
+
+    expect(afterSubmit).not.toBe(initial);
+    expect(afterSubmit.pendingPost?.item.comment).toBe('this is alpha');
+
+    startSocialV1PendingPostCountdown();
+    const afterCountdown = getSocialV1ComposedFeedSnapshot();
+
+    expect(afterCountdown).not.toBe(afterSubmit);
+    expect(afterCountdown.pendingStartedAtMs).not.toBeNull();
+
+    commitSocialV1PendingPost();
+    const afterCommit = getSocialV1ComposedFeedSnapshot();
+
+    expect(afterCommit).not.toBe(afterCountdown);
+    expect(afterCommit.pendingPost).toBeNull();
+    expect(afterCommit.composedPosts[0].id).toBe('composed-1');
+  });
+
+  it('keeps the snapshot stable between mutations', () => {
+    submitSocialV1ComposedPost(composedPost);
+
+    expect(getSocialV1ComposedFeedSnapshot()).toBe(
+      getSocialV1ComposedFeedSnapshot(),
+    );
   });
 });

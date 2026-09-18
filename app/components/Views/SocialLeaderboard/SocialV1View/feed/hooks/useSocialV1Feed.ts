@@ -1,10 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { wrapMockFeedPosts } from '../mocks/wrapMockFeedPosts';
 import {
-  getSocialV1ComposedFeedRevision,
-  getSocialV1ComposedPosts,
-  getSocialV1PendingPost,
-  getSocialV1PendingStartedAtMs,
+  getSocialV1ComposedFeedSnapshot,
   subscribeSocialV1ComposedFeed,
 } from '../store/socialV1ComposedFeedStore';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
@@ -16,12 +13,14 @@ import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
 ): UseSocialV1FeedResult => {
-  // Subscribed for the re-render only; the posts themselves are read straight
-  // from the store below so a bumped revision always yields fresh data.
-  useSyncExternalStore(
+  // Everything composer-related must come off this snapshot rather than a
+  // direct store read: React Compiler memoizes this hook's result, so a read
+  // that isn't a reactive input can be cached across mutations and strand the
+  // feed on an older revision (no posting banner, no new card).
+  const snapshot = useSyncExternalStore(
     subscribeSocialV1ComposedFeed,
-    getSocialV1ComposedFeedRevision,
-    getSocialV1ComposedFeedRevision,
+    getSocialV1ComposedFeedSnapshot,
+    getSocialV1ComposedFeedSnapshot,
   );
 
   const mockPosts = wrapMockFeedPosts();
@@ -37,9 +36,9 @@ export const useSocialV1Feed = (
   }
 
   return {
-    posts: [...getSocialV1ComposedPosts(), ...mockPosts],
-    pendingPost: getSocialV1PendingPost(),
-    pendingStartedAtMs: getSocialV1PendingStartedAtMs(),
+    posts: [...snapshot.composedPosts, ...mockPosts],
+    pendingPost: snapshot.pendingPost,
+    pendingStartedAtMs: snapshot.pendingStartedAtMs,
     isLoading: false,
     error: null,
   };

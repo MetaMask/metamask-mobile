@@ -60,7 +60,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
           >
             {post.authorHandle}
           </Text>
-          {post.winRateLabel ? <Tag>{post.winRateLabel}</Tag> : null}
+          {post.winRateLabel ? (
+            <Tag style={tw.style('mt-2')}>{post.winRateLabel}</Tag>
+          ) : null}
         </Box>
         <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
           {formatFeedTimestamp(post.timestampMs)}
