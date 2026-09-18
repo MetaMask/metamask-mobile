@@ -25,7 +25,9 @@ import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import {
+  selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldRepairSocialLoginBasicFunctionality,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -81,6 +83,12 @@ export function useBasicFunctionalityConsolidation(): void {
     selectBasicFunctionalityEnabled,
   );
   const completedOnboarding = useSelector(selectCompletedOnboardingSafely);
+  const isExistingSocialWalletRestore = useSelector(
+    selectIsExistingSocialWalletRestore,
+  );
+  const shouldRepairSocialLoginBasicFunctionality = useSelector(
+    selectShouldRepairSocialLoginBasicFunctionality,
+  );
   const shouldShowBottomSheet = useSelector(
     selectShouldShowBasicFunctionalityMigrationBottomSheet,
   );
@@ -94,18 +102,29 @@ export function useBasicFunctionalityConsolidation(): void {
   // existing wallet never reads false here; latching a false read marks this as
   // an onboarding session and keeps the newly created wallet off the
   // existing-wallet migration path, which would otherwise show it a notice.
+  //
+  // Social rehydration also reads false while restoring, but it hands back a
+  // wallet that already exists and is never enrolled by onboarding, so release
+  // the latch and migrate it in the same session instead of the next launch.
   const isOnboardingSession = useRef(false);
-  if (!completedOnboarding) {
+  if (isExistingSocialWalletRestore) {
+    isOnboardingSession.current = false;
+  } else if (!completedOnboarding) {
     isOnboardingSession.current = true;
   }
 
+  // The onboarding-session latch only guards wallets onboarding has not yet
+  // enrolled. A social repair targets an already-enrolled wallet, so it runs in
+  // the session that finds Basic Functionality off rather than the next launch.
+  const shouldRunConsolidation =
+    (isFlagEnabled && !isConsolidated && !isOnboardingSession.current) ||
+    shouldRepairSocialLoginBasicFunctionality;
+
   useEffect(() => {
     if (
-      !isFlagEnabled ||
-      isConsolidated ||
+      !shouldRunConsolidation ||
       !isUnlocked ||
       !completedOnboarding ||
-      isOnboardingSession.current ||
       isRunning.current
     ) {
       return;
@@ -122,13 +141,7 @@ export function useBasicFunctionalityConsolidation(): void {
       .finally(() => {
         isRunning.current = false;
       });
-  }, [
-    completedOnboarding,
-    dispatch,
-    isConsolidated,
-    isFlagEnabled,
-    isUnlocked,
-  ]);
+  }, [completedOnboarding, dispatch, isUnlocked, shouldRunConsolidation]);
 
   // Gating on `isUnlocked` keeps the notice off the lock screen. Clearing the
   // presented ref while locked lets it present once the wallet is unlocked.

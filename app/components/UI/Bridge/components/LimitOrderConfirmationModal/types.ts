@@ -67,10 +67,6 @@ export interface LimitOrderConfirmationModalProps
    */
   onConfirm: () => void;
   /**
-   * Fired when the user taps the edit icon on the cost tolerance row.
-   */
-  onEditCostTolerancePress: () => void;
-  /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */
   onClose?: () => void;

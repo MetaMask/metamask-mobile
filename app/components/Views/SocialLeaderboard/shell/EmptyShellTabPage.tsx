@@ -3,6 +3,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
@@ -95,22 +96,30 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         testID={scrollTestID}
       >
         {hasBeenActive ? (
-          <Box twClassName="px-4 pt-4 pb-8 gap-6">
-            {pendingPost ? (
-              <SocialFeedPostingBanner
-                authorHandle={pendingPost.authorHandle}
-                authorImageUrl={pendingPost.authorImageUrl}
-                startedAtMs={pendingStartedAtMs ?? Date.now()}
-              />
-            ) : null}
-            {posts.map((post) => (
-              <SocialFeedPostEntrance
-                key={post.id}
-                animate={!seenPostIds.has(post.id)}
-              >
-                <SocialFeedPostShell post={post} />
-              </SocialFeedPostEntrance>
-            ))}
+          // No top padding: `SocialV1View` already offsets the pager from the
+          // tabs bar by 16, and adding another 16 here is what made the space
+          // above the carousel twice the `gap-4` below it. The carousel bleeds
+          // to both screen edges, so the horizontal padding sits on the posts
+          // rather than on the page.
+          <Box twClassName="pb-8 gap-4">
+            <HotTokensCarousel />
+            <Box twClassName="px-4 gap-6">
+              {pendingPost ? (
+                <SocialFeedPostingBanner
+                  authorHandle={pendingPost.authorHandle}
+                  authorImageUrl={pendingPost.authorImageUrl}
+                  startedAtMs={pendingStartedAtMs ?? Date.now()}
+                />
+              ) : null}
+              {posts.map((post) => (
+                <SocialFeedPostEntrance
+                  key={post.id}
+                  animate={!seenPostIds.has(post.id)}
+                >
+                  <SocialFeedPostShell post={post} />
+                </SocialFeedPostEntrance>
+              ))}
+            </Box>
           </Box>
         ) : null}
       </Animated.ScrollView>

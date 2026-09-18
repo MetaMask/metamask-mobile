@@ -3,21 +3,25 @@ import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { SocialV1FeedItem } from '../types';
 import CopyTradeButton from './CopyTradeButton';
-import PositionCardComment from './PositionCardComment';
+import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
 import PositionCardShell from './PositionCardShell';
 import PositionCardStats, {
   type PositionCardStatRow,
 } from './PositionCardStats';
 import {
-  getSocialFeedPositionCardCommentTestId,
   getSocialFeedPositionCardCopyTradeTestId,
   getSocialFeedPositionCardStatTestId,
-  getSocialFeedPositionCardTestId,
 } from './SocialFeedPositionCard.testIds';
 
 export interface SocialFeedPositionCardProps {
   item: SocialV1FeedItem;
+  /**
+   * Wall-clock instant used to format the post age. Threaded to `FeedPost` so a
+   * refresh can recompute every post's label together.
+   */
+  now?: number;
+  /** When true, the caption is omitted (e.g. the parent already rendered it). */
   hideComment?: boolean;
 }
 
@@ -38,13 +42,8 @@ const compactSubHeader = (
   return parts.length > 0 ? parts.join(' \u00b7 ') : undefined;
 };
 
-const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
-  item,
-  hideComment = false,
-}) => {
-  const commentTestID = getSocialFeedPositionCardCommentTestId(item.id);
-  const comment = hideComment ? undefined : item.comment;
-
+/** The position card that forms the body of a post, per feed item variant. */
+const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
   if (item.variant === 'perpsOpen') {
     const stats: PositionCardStatRow[] = [
       {
@@ -68,28 +67,22 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
     ];
 
     return (
-      <Box
-        twClassName="gap-3"
-        testID={getSocialFeedPositionCardTestId(item.id)}
-      >
-        <PositionCardComment comment={comment} testID={commentTestID} />
-        <PositionCardShell>
-          <PositionCardHeader
-            layout="open"
-            avatar={item.asset.avatar}
-            symbol={item.asset.symbol}
-            direction={item.direction}
-            markPriceLabel={item.markPriceLabel}
-            valueLabel={item.valueLabel}
-            pnlLabel={item.pnlLabel}
-            isPnlPositive={item.isPnlPositive}
-          />
-          <PositionCardStats rows={stats} cardId={item.id} />
-          <CopyTradeButton
-            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
-          />
-        </PositionCardShell>
-      </Box>
+      <PositionCardShell>
+        <PositionCardHeader
+          layout="open"
+          avatar={item.asset.avatar}
+          symbol={item.asset.symbol}
+          direction={item.direction}
+          markPriceLabel={item.markPriceLabel}
+          valueLabel={item.valueLabel}
+          pnlLabel={item.pnlLabel}
+          isPnlPositive={item.isPnlPositive}
+        />
+        <PositionCardStats rows={stats} cardId={item.id} />
+        <CopyTradeButton
+          testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+        />
+      </PositionCardShell>
     );
   }
 
@@ -130,25 +123,19 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
     ];
 
     return (
-      <Box
-        twClassName="gap-3"
-        testID={getSocialFeedPositionCardTestId(item.id)}
-      >
-        <PositionCardComment comment={comment} testID={commentTestID} />
-        <PositionCardShell>
-          <PositionCardHeader
-            layout="closed"
-            avatar={item.asset.avatar}
-            symbol={item.asset.symbol}
-            direction={item.direction}
-            leverageLabel={item.leverageLabel}
-            valueLabel={item.valueLabel}
-            pnlLabel={item.pnlLabel}
-            isPnlPositive={item.isPnlPositive}
-          />
-          <PositionCardStats rows={stats} cardId={item.id} />
-        </PositionCardShell>
-      </Box>
+      <PositionCardShell>
+        <PositionCardHeader
+          layout="closed"
+          avatar={item.asset.avatar}
+          symbol={item.asset.symbol}
+          direction={item.direction}
+          leverageLabel={item.leverageLabel}
+          valueLabel={item.valueLabel}
+          pnlLabel={item.pnlLabel}
+          isPnlPositive={item.isPnlPositive}
+        />
+        <PositionCardStats rows={stats} cardId={item.id} />
+      </PositionCardShell>
     );
   }
 
@@ -169,53 +156,57 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
     ];
 
     return (
-      <Box
-        twClassName="gap-3"
-        testID={getSocialFeedPositionCardTestId(item.id)}
-      >
-        <PositionCardComment comment={comment} testID={commentTestID} />
-        <PositionCardShell>
-          <PositionCardHeader
-            layout="compact"
-            avatar={item.asset.avatar}
-            symbol={item.asset.symbol}
-            side={item.side}
-            subHeaderLabel={item.markPriceLabel}
-            valueLabel={item.valueLabel}
-            pnlLabel={item.pnlLabel}
-            isPnlPositive={item.isPnlPositive}
-          />
-          <PositionCardStats rows={stats} cardId={item.id} />
-          {item.showCopyTrade ? (
-            <CopyTradeButton
-              testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
-            />
-          ) : null}
-        </PositionCardShell>
-      </Box>
-    );
-  }
-
-  return (
-    <Box testID={getSocialFeedPositionCardTestId(item.id)}>
-      <PositionCardComment comment={comment} testID={commentTestID} />
       <PositionCardShell>
         <PositionCardHeader
           layout="compact"
           avatar={item.asset.avatar}
           symbol={item.asset.symbol}
           side={item.side}
-          subHeaderLabel={compactSubHeader(
-            item.marketCapLabel,
-            item.volumeLabel,
-          )}
+          subHeaderLabel={item.markPriceLabel}
           valueLabel={item.valueLabel}
           pnlLabel={item.pnlLabel}
           isPnlPositive={item.isPnlPositive}
         />
+        <PositionCardStats rows={stats} cardId={item.id} />
+        {item.showCopyTrade ? (
+          <CopyTradeButton
+            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+          />
+        ) : null}
       </PositionCardShell>
-    </Box>
+    );
+  }
+
+  return (
+    <PositionCardShell>
+      <PositionCardHeader
+        layout="compact"
+        avatar={item.asset.avatar}
+        symbol={item.asset.symbol}
+        side={item.side}
+        subHeaderLabel={compactSubHeader(item.marketCapLabel, item.volumeLabel)}
+        valueLabel={item.valueLabel}
+        pnlLabel={item.pnlLabel}
+        isPnlPositive={item.isPnlPositive}
+      />
+    </PositionCardShell>
   );
 };
+
+const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
+  item,
+  now,
+  hideComment = false,
+}) => (
+  <FeedPost
+    id={item.id}
+    author={item.author}
+    timestamp={item.timestamp}
+    comment={hideComment ? undefined : item.comment}
+    now={now}
+  >
+    <PositionCardBody item={item} />
+  </FeedPost>
+);
 
 export default SocialFeedPositionCard;

@@ -13,18 +13,82 @@ import {
   getSocialFeedPositionCardSectionDividerTestId,
   getSocialFeedPositionCardStatTestId,
   getSocialFeedPositionCardTestId,
+  getSocialFeedPostAgeTestId,
+  getSocialFeedPostAuthorTestId,
+  getSocialFeedPostAvatarTestId,
+  getSocialFeedPostWinRateTestId,
 } from './SocialFeedPositionCard.testIds';
+import { MINUTE } from '../../../../../../constants/time';
 
 jest.mock('../../../components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
 
+// The real avatar falls back to a Maskicon, which loads its SVG asynchronously
+// and reports un-acted state updates. Stand in for it while keeping the testID
+// so the header assertions still cover the avatar slot.
+jest.mock(
+  '../../../../Homepage/Sections/TopTraders/components/TraderAvatar',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+    };
+  },
+);
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
 describe('SocialFeedPositionCard', () => {
+  describe('post header', () => {
+    it('renders the author identity, win-rate badge and post age', () => {
+      const item = mockOpenPerpsFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.getByTestId(getSocialFeedPostAvatarTestId(item.id)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getSocialFeedPostAuthorTestId(item.id)),
+      ).toHaveTextContent('Doji');
+      expect(
+        screen.getByTestId(getSocialFeedPostWinRateTestId(item.id)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getSocialFeedPostAgeTestId(item.id)),
+      ).toBeOnTheScreen();
+    });
+
+    it('omits the win-rate badge when the author has no win rate', () => {
+      const item = mockCompactSpotFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.getByTestId(getSocialFeedPostAuthorTestId(item.id)),
+      ).toHaveTextContent('frogwater');
+      expect(
+        screen.queryByTestId(getSocialFeedPostWinRateTestId(item.id)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('formats the post age against the supplied instant', () => {
+      const now = new Date('2026-07-09T12:00:00Z').getTime();
+      const item = mockOpenPerpsFeedItem({ timestamp: now - 40 * MINUTE });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} now={now} />);
+
+      expect(
+        screen.getByTestId(getSocialFeedPostAgeTestId(item.id)),
+      ).toHaveTextContent('social_leaderboard.feed.age.minutes');
+    });
+  });
+
   it('renders open perps comment, stats, and copy trade', () => {
     const item = mockOpenPerpsFeedItem();
 
