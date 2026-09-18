@@ -24,7 +24,6 @@ const mockDispatch = jest.fn();
 const mockSetOptions = jest.fn();
 const mockAddListener = jest.fn();
 const mockCancelSubscription = jest.fn();
-const mockGetSubscriptions = jest.fn();
 const mockGetSubscriptionByProduct = jest.fn();
 const mockLoggerError = jest.fn();
 
@@ -48,7 +47,6 @@ jest.mock('../../../../../core/Engine', () => ({
       SubscriptionController: {
         cancelSubscription: (...args: unknown[]) =>
           mockCancelSubscription(...args),
-        getSubscriptions: (...args: unknown[]) => mockGetSubscriptions(...args),
         getSubscriptionByProduct: (...args: unknown[]) =>
           mockGetSubscriptionByProduct(...args),
       },
@@ -156,7 +154,6 @@ describe('CancelMembership', () => {
     mockAddListener.mockReturnValue(jest.fn());
     mockGetSubscriptionByProduct.mockReturnValue(PLUS_SUBSCRIPTION);
     mockCancelSubscription.mockResolvedValue(undefined);
-    mockGetSubscriptions.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -183,7 +180,7 @@ describe('CancelMembership', () => {
 
     expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
 
-    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
 
     expect(
       getByTestId(CancelMembershipTestIds.STAY_QUESTION),
@@ -208,7 +205,7 @@ describe('CancelMembership', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
 
     expect(
       queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
@@ -223,7 +220,7 @@ describe('CancelMembership', () => {
       getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
       'Too many emails',
     );
-    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
     fireEvent.press(getByTestId(getCancelReasonTestId('other')));
 
     expect(
@@ -247,7 +244,7 @@ describe('CancelMembership', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('cancels at period end, refreshes subscriptions, and shows the live end date', async () => {
+  it('cancels at period end without a reason when the survey is skipped', async () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
@@ -265,13 +262,62 @@ describe('CancelMembership', () => {
       subscriptionId: PLUS_SUBSCRIPTION.id,
       cancelAtPeriodEnd: true,
     });
-    expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationReason',
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
     expect(
       getByTestId(CancelMembershipTestIds.SUCCESS_DESCRIPTION),
     ).toHaveTextContent(new RegExp(FORMATTED_PERIOD_END));
     expect(queryByTestId(CancelMembershipTestIds.TITLE)).not.toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('includes the selected reason code and omits free-text feedback', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      'Lower the price',
+    );
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledWith({
+        subscriptionId: PLUS_SUBSCRIPTION.id,
+        cancelAtPeriodEnd: true,
+        cancellationReason: 'too_expensive',
+      }),
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
+  });
+
+  it('sends other as the reason code without typed other text', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      'Too many emails',
+    );
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledWith({
+        subscriptionId: PLUS_SUBSCRIPTION.id,
+        cancelAtPeriodEnd: true,
+        cancellationReason: 'other',
+      }),
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
   });
 
   it('passes immediate timing to the controller and success screen', async () => {
@@ -337,20 +383,6 @@ describe('CancelMembership', () => {
       ).toBeOnTheScreen(),
     );
     expect(mockCancelSubscription).not.toHaveBeenCalled();
-  });
-
-  it('shows success when the post-cancel subscription refresh fails', async () => {
-    mockGetSubscriptions.mockRejectedValue(new Error('Refresh failed'));
-    const { getByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-
-    await waitFor(() =>
-      expect(
-        getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
-      ).toBeOnTheScreen(),
-    );
-    expect(mockLoggerError).toHaveBeenCalled();
   });
 
   it('resets the stack to Pro Hub on top of the origin screen when done is pressed on the success step', async () => {

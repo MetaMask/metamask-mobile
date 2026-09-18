@@ -17,6 +17,7 @@ import {
   buildPostCancellationResetState,
   formatCancellationEndDate,
   getCancellationTiming,
+  toCancellationReason,
   type CancellationTiming,
 } from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
@@ -66,27 +67,13 @@ const CancelMembership = () => {
     setIsSubmitting(true);
 
     try {
+      const cancellationReason = toCancellationReason(selectedReasonId);
+
       await controller.cancelSubscription({
         subscriptionId: subscription.id,
         cancelAtPeriodEnd: timing === 'period_end',
+        ...(cancellationReason ? { cancellationReason } : {}),
       });
-
-      try {
-        await controller.getSubscriptions();
-      } catch (error) {
-        Logger.error(
-          ensureError(
-            error,
-            'CancelMembership.refreshSubscriptionsAfterCancellation',
-          ),
-          {
-            tags: {
-              feature: 'money_account_plus',
-              operation: 'refresh_after_cancellation',
-            },
-          },
-        );
-      }
 
       setCancelledSubscription({
         timing,
@@ -104,7 +91,7 @@ const CancelMembership = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [selectedReasonId]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);

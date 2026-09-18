@@ -1,29 +1,34 @@
+import {
+  CANCELLATION_REASONS,
+  type CancellationReasonCode,
+} from '@metamask/subscription-controller';
+
 export interface CancelReason {
-  id: string;
+  id: CancellationReasonCode;
   labelKey: string;
 }
 
-export const OTHER_REASON_ID = 'other';
+export const OTHER_REASON_ID = CANCELLATION_REASONS.OTHER;
 
 export const CANCEL_REASONS: CancelReason[] = [
   {
-    id: 'cost',
+    id: CANCELLATION_REASONS.TOO_EXPENSIVE,
     labelKey: 'pro_hub.cancel_membership.reason_cost',
   },
   {
-    id: 'not_using',
+    id: CANCELLATION_REASONS.NOT_USING_BENEFITS,
     labelKey: 'pro_hub.cancel_membership.reason_not_using',
   },
   {
-    id: 'benefit_misfit',
+    id: CANCELLATION_REASONS.BENEFITS_NOT_AS_EXPECTED,
     labelKey: 'pro_hub.cancel_membership.reason_benefit_misfit',
   },
   {
-    id: 'didnt_work',
+    id: CANCELLATION_REASONS.SOMETHING_DID_NOT_WORK,
     labelKey: 'pro_hub.cancel_membership.reason_didnt_work',
   },
   {
-    id: 'support',
+    id: CANCELLATION_REASONS.UNHAPPY_WITH_SUPPORT,
     labelKey: 'pro_hub.cancel_membership.reason_support',
   },
   {

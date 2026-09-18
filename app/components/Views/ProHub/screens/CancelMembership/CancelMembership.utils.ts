@@ -1,6 +1,8 @@
 import type { NavigationState, PartialState } from '@react-navigation/native';
 import {
+  CANCELLATION_REASONS,
   CANCEL_TYPES,
+  type CancellationReasonCode,
   type CancelType,
 } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -32,6 +34,28 @@ export const shuffleCancelReasons = (
 };
 
 export type CancellationTiming = 'immediate' | 'period_end';
+
+const CANCELLATION_REASON_CODES = new Set<string>(
+  Object.values(CANCELLATION_REASONS),
+);
+
+/**
+ * Maps a selected survey reason id to the Subscription API reason code.
+ *
+ * Undefined when the survey was skipped or the id is not a published code.
+ */
+export const toCancellationReason = (
+  selectedReasonId: string | null,
+): CancellationReasonCode | undefined => {
+  if (
+    selectedReasonId === null ||
+    !CANCELLATION_REASON_CODES.has(selectedReasonId)
+  ) {
+    return undefined;
+  }
+
+  return selectedReasonId as CancellationReasonCode;
+};
 
 /**
  * Maps the server-provided cancellation capability to the request timing.
