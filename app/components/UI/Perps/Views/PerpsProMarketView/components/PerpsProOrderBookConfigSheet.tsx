@@ -91,13 +91,7 @@ interface OptionFilterButtonProps {
   testID: string;
 }
 
-/**
- * `FilterButton` never sets `accessibilityState`, so it is passed here.
- *
- * The design specifies a 12px radius and a 14px label, which the installed
- * MMDS renders differently: `ButtonBase` became a full pill in 0.47.0, and
- * size `Md` maps the label to `BodyMd`. Both are pinned back here.
- */
+/** `FilterButton` never sets `accessibilityState`, so it is passed here. */
 const OptionFilterButton = ({
   label,
   isSelected,
@@ -110,8 +104,7 @@ const OptionFilterButton = ({
     size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
-    textProps={{ variant: TextVariant.BodySm }}
-    twClassName={`flex-1 rounded-xl ${isSelected ? '' : 'border border-muted'}`}
+    twClassName={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
     {label}

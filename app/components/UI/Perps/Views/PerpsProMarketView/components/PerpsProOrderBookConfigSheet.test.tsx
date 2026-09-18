@@ -186,7 +186,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
     );
   });
 
-  it('renders the FilterButton chips at the design size and radius', () => {
+  it('renders the FilterButton chips at the design size', () => {
     const { getByTestId } = renderSheet();
 
     const chipStyle = (id: string) =>
@@ -199,19 +199,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       'config-sheet-grouping-1',
     ]) {
       expect(chipStyle(id).height).toBe(40);
-      expect(chipStyle(id).borderRadius).toBe(12);
     }
-  });
-
-  it('renders chip labels at the design text size', () => {
-    const { getByText } = renderSheet();
-
-    const labelFontSize = (label: string) =>
-      StyleSheet.flatten(getByText(label).props.style).fontSize;
-
-    expect(labelFontSize('BTC')).toBe(14);
-    expect(labelFontSize('USD')).toBe(14);
-    expect(labelFontSize('Total')).toBe(14);
   });
 
   it('renders section titles in the default text colour', () => {
