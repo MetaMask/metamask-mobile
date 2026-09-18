@@ -361,12 +361,12 @@ describe('handleRequestByAdapter', () => {
         origin: 'channelId',
         originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: [],
-        scope: 'tron:0x2b6653dc',
+        scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         requestId: 1,
-        method: 'tron_signMessage',
-        params: [],
+        method: 'solana_signMessage',
+        params: {},
       }),
-    ).rejects.toThrow('No WalletConnect adapter registered for tron');
+    ).rejects.toThrow('No WalletConnect adapter registered for solana');
   });
 });
 
