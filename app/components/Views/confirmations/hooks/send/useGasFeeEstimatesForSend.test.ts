@@ -3,9 +3,9 @@ import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
-  useGasFeeEstimates: () => ({
+  useGasFeeEstimates: jest.fn(() => ({
     gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
-  }),
+  })),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -15,6 +15,9 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 const mockState = {
   state: evmSendStateMock,
 };
+const { useGasFeeEstimates: mockUseGasFeeEstimates } = jest.requireMock(
+  '../gas/useGasFeeEstimates',
+) as { useGasFeeEstimates: jest.Mock };
 
 describe('useGasFeeEstimatesForSend', () => {
   it('returns gas estimates', () => {
@@ -24,5 +27,11 @@ describe('useGasFeeEstimatesForSend', () => {
     );
 
     expect(result.current.gasFeeEstimates).toBeDefined();
+  });
+
+  it('does not start gas polling while disabled', () => {
+    renderHookWithProvider(() => useGasFeeEstimatesForSend(false), mockState);
+
+    expect(mockUseGasFeeEstimates).toHaveBeenCalledWith('');
   });
 });
