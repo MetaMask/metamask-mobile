@@ -164,6 +164,8 @@ const useQuoteData = ({
     needsNewQuote,
     validQuotes,
     willRefresh,
+    refreshRate,
+    quotesLastFetched,
   } = useValidQuotes({ latestSourceAtomicBalance, isActive, quoteParams });
 
   // Validate solana quotes
@@ -194,6 +196,8 @@ const useQuoteData = ({
       shouldShowPriceImpactWarning,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     }),
     [
       activeQuote,
@@ -211,6 +215,8 @@ const useQuoteData = ({
       shouldShowPriceImpactWarning,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     ],
   );
 };
