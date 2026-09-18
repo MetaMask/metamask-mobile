@@ -45,7 +45,7 @@ The client ref-counts per id and topic, opens the socket lazily on the first wat
 | Feed Screen  | Per card. `FlatList` `onViewableItemsChanged` (10% visibility threshold) names the visible cards; until the list reports anything the first page stands in. A report that names nothing (fling, bounce, delayed callback from a previous tab) is ignored so the last measured set stays watched.  |
 | Home         | Per section. Each `FeedPreviewSection` reports its frame and the `ScrollView` its height; a section is visible while any part of it overlaps `[scrollY, scrollY + viewportHeight]`. Every Event of a visible section is watched. Unmeasured sections and an unmeasured viewport count as visible. |
 
-Home uses section-level rather than card-level tracking deliberately: it shows a handful of two-card sections, so the saving from per-card measurement would be one or two Markets, and section frames come free from `onLayout`. The scroll offset crosses from the UI thread through `useAnimatedReaction` → `runOnJS`; the visible set only re-renders Home when it actually changes.
+Home uses section-level rather than card-level tracking deliberately: it shows a handful of two-card sections, so the saving from per-card measurement would be one or two Markets, and section frames come free from `onLayout`. The scroll offset crosses from the UI thread through `useAnimatedReaction` → `scheduleOnRN`; the visible set only re-renders Home when it actually changes.
 
 Feed and Home additionally gate on navigation focus (`useIsFocused`). A Feed under an Event Screen holds zero subscriptions and rewatches its visible cards when the Event Screen pops.
 

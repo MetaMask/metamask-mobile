@@ -1,10 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import {
-  runOnJS,
-  useAnimatedReaction,
-  type SharedValue,
-} from 'react-native-reanimated';
+import { useAnimatedReaction, type SharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 interface SectionLayout {
   y: number;
@@ -96,7 +93,7 @@ export const useVisibleSections = <TKey extends string>({
       if (offset === (previous ?? 0)) {
         return;
       }
-      runOnJS(onScrollOffset)(offset);
+      scheduleOnRN(onScrollOffset, offset);
     },
     [onScrollOffset],
   );

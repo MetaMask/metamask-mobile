@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { LayoutChangeEvent } from 'react-native';
 import { makeMutable } from 'react-native-reanimated';
 import { useVisibleSections } from './useVisibleSections';
@@ -33,13 +33,17 @@ const renderSections = () => {
       hook.result.current.onSectionLayout('nfl')(layoutEvent(nfl));
       hook.result.current.onSectionLayout('ncaa')(layoutEvent(ncaa));
     });
-  // Reanimated's Jest mock runs reactions and `runOnJS` through the
-  // microtask/frame queues, so let them drain before reading the result.
-  const scrollTo = (offset: number) =>
-    act(async () => {
+  const scrollTo = async (
+    offset: number,
+    expectedVisibleKeys: readonly SectionKey[],
+  ) => {
+    act(() => {
       scrollY.value = offset;
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
     });
+    await waitFor(() => {
+      expect(hook.result.current.visibleKeys).toEqual(expectedVisibleKeys);
+    });
+  };
   return { hook, layout, scrollTo };
 };
 
@@ -63,33 +67,29 @@ describe('useVisibleSections', () => {
   });
 
   it('follows the scroll offset, keeping sections that partially overlap', async () => {
-    const { hook, layout, scrollTo } = renderSections();
+    const { layout, scrollTo } = renderSections();
     layout({
       viewportHeight: 800,
       nfl: { y: 200, height: 300 },
       ncaa: { y: 900, height: 300 },
     });
 
-    await scrollTo(150);
-    expect(hook.result.current.visibleKeys).toEqual(['nfl', 'ncaa']);
-
-    await scrollTo(600);
-    expect(hook.result.current.visibleKeys).toEqual(['ncaa']);
-
-    await scrollTo(0);
-    expect(hook.result.current.visibleKeys).toEqual(['nfl']);
+    await scrollTo(150, ['nfl', 'ncaa']);
+    await scrollTo(600, ['ncaa']);
+    await scrollTo(0, ['nfl']);
   });
 
-  it('keeps the same array reference when the visible set does not change', async () => {
-    const { hook, layout, scrollTo } = renderSections();
-    layout({
+  it('keeps the same array reference when recomputing the same visible set', () => {
+    const { hook, layout } = renderSections();
+    const measuredLayout = {
       viewportHeight: 800,
       nfl: { y: 200, height: 300 },
       ncaa: { y: 900, height: 300 },
-    });
+    };
+    layout(measuredLayout);
     const before = hook.result.current.visibleKeys;
 
-    await scrollTo(10);
+    layout(measuredLayout);
 
     expect(hook.result.current.visibleKeys).toBe(before);
   });
