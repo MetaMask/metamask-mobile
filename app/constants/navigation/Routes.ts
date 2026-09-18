@@ -156,7 +156,6 @@ const Routes = {
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
   TRENDING_VIEW: 'TrendingView',
-  TRENDING_FEED: 'TrendingFeed',
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
@@ -375,6 +374,10 @@ const Routes = {
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
       SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL:
+        'SwapsLimitOrderDefaultCostToleranceModal',
+      SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
+        'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
@@ -573,6 +576,7 @@ const Routes = {
     TRANSACTION_HISTORY: 'CardTransactionHistory',
     TRANSACTION_DETAILS: 'CardTransactionDetails',
     REPORT_TRANSACTION: 'CardReportTransaction',
+    CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
@@ -608,7 +612,9 @@ const Routes = {
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
     },
   },
   SEND: {

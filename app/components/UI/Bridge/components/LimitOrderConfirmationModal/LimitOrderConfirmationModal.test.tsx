@@ -1,7 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
+import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -59,36 +60,77 @@ function buildProps(
     payingAmount: '0.1 ETH',
     triggerPrice: '$3,412.20',
     expiry: '7 days',
-    slippage: '2%',
+    costTolerance: '2%',
     networkFee: '$1.69',
     feeToken: mockSourceToken,
     onConfirm: jest.fn(),
-    onEditSlippagePress: jest.fn(),
     onClose: jest.fn(),
     ...overrides,
   };
 }
 
 describe('LimitOrderConfirmationModal', () => {
-  it('does not close when re-rendered with the same slippage', () => {
+  it('does not close when re-rendered with the same cost tolerance', () => {
     const onClose = jest.fn();
-    const props = buildProps({ slippage: '2%', onClose });
+    const props = buildProps({ costTolerance: '2%', onClose });
     const { rerender } = render(<LimitOrderConfirmationModal {...props} />);
 
-    rerender(<LimitOrderConfirmationModal {...props} slippage="2%" />);
+    rerender(<LimitOrderConfirmationModal {...props} costTolerance="2%" />);
 
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('closes the sheet when the slippage changes after mount', () => {
+  it('closes the sheet when the cost tolerance changes after mount', () => {
     const onClose = jest.fn();
-    const props = buildProps({ slippage: '2%', onClose });
+    const props = buildProps({ costTolerance: '2%', onClose });
     const { rerender } = render(<LimitOrderConfirmationModal {...props} />);
 
     expect(onClose).not.toHaveBeenCalled();
 
-    rerender(<LimitOrderConfirmationModal {...props} slippage="0.5%" />);
+    rerender(<LimitOrderConfirmationModal {...props} costTolerance="0.5%" />);
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the market comparison label when triggerComparison is provided', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          triggerComparison: {
+            label: '(-5% from market)',
+            isNegative: true,
+          },
+        })}
+      />,
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toHaveTextContent('(-5% from market)');
+  });
+
+  it('omits the market comparison label when triggerComparison is undefined', () => {
+    const { queryByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({ triggerComparison: undefined })}
+      />,
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+    ).toBeNull();
+  });
+
+  it('calls onConfirm when the confirm button is pressed', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps({ onConfirm })} />,
+    );
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.CONFIRM_BUTTON),
+    );
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });
