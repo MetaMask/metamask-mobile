@@ -11,6 +11,10 @@ comment:
       label: Selected Performance tags
     - path: confidence
       label: AI Confidence
+    - path: reasoning
+      label: E2E reasoning
+    - path: performance_tests.reasoning
+      label: Performance reasoning
 # Do not apply risk:* labels — that belongs to pr-risk-analysis.
 labels: false
 # Opt in to mms-* skills as product context. Do not treat them as a
