@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   const baseRowStyle = {
     display: 'flex',
-    marginBottom: 2,
+    marginBottom: 1,
     paddingTop: 16,
     paddingBottom: 16,
     paddingLeft: 16,
