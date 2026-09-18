@@ -170,25 +170,31 @@ export const wallet_watchAsset = async ({
   const interactingAccount =
     Engine.context.AccountsController.getAccountByAddress(interactingAddress);
 
-  if (interactingAccount) {
-    const caipChainId = toEvmCaipChainId(chainId);
-    const caipAssetType = toAssetId(address, caipChainId);
-
-    if (caipAssetType) {
-      await AssetsController.addCustomAsset(
-        interactingAccount.id,
-        caipAssetType,
-        {
-          address,
-          symbol: finalTokenSymbol,
-          decimals: Number(finalTokenDecimals),
-          name: finalTokenSymbol,
-          iconUrl: image,
-          chainId,
-        },
-      );
-    }
+  if (!interactingAccount) {
+    throw new Error(
+      `Could not find an account for address "${interactingAddress}"`,
+    );
   }
+
+  const caipChainId = toEvmCaipChainId(chainId);
+  const caipAssetType = toAssetId(address, caipChainId);
+
+  if (!caipAssetType) {
+    throw new Error(`Could not build an asset id for address "${address}"`);
+  }
+
+  // The approval sheet already told the user (and the dapp will infer from
+  // `res.result`) that the token was imported, so a failure here must
+  // surface as an error rather than silently leaving `res.result = true`
+  // while nothing was actually persisted.
+  await AssetsController.addCustomAsset(interactingAccount.id, caipAssetType, {
+    address,
+    symbol: finalTokenSymbol,
+    decimals: Number(finalTokenDecimals),
+    name: finalTokenSymbol,
+    iconUrl: image,
+    chainId,
+  });
 
   res.result = true;
 };

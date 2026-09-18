@@ -300,10 +300,7 @@ class NotificationManager {
               forceUpdate: true,
               chainIds: [caipChainId],
             }).catch((error) => {
-              Logger.error(
-                error,
-                'Failed to refresh assets after transaction',
-              );
+              Logger.error(error, 'Failed to refresh assets after transaction');
             });
           } catch (error) {
             // transactionMeta.chainId can be missing/malformed on legacy or
