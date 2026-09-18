@@ -5,6 +5,7 @@ import {
   parseArgs,
   listRunArtifacts,
   scenarioDownloadMap,
+  slackTeamMention,
   linkScenarioNames,
 } from './link-scenario-artifacts.mjs';
 
@@ -83,6 +84,29 @@ test('scenarioDownloadMap skips expired and non-scenario artifacts', () => {
     mappings[1].url,
     'https://github.com/MetaMask/metamask-mobile/actions/runs/123/artifacts/11',
   );
+  assert.equal(
+    mappings[1].teamMention,
+    '<!subteam^S094DMAQNCV|mm-perps-engineering-team>',
+  );
+});
+
+test('slackTeamMention maps scenario ownership from performance test tags', () => {
+  assert.equal(
+    slackTeamMention('Predict Deposit - Complete Flow Performance'),
+    '<!subteam^S095BEYMASG|team-predict>',
+  );
+  assert.equal(
+    slackTeamMention('Money Home after importing SRP with funded balance'),
+    '<!subteam^S052NJFKX6Y|mm-earn-team>',
+  );
+  assert.equal(
+    slackTeamMention('Seedless Onboarding: Apple Login New User'),
+    '<!subteam^S090QC71NQ2|metamask-onboarding-team>',
+  );
+  assert.equal(
+    slackTeamMention('Rewards tab time-to-content: onboarding or dashboard'),
+    '@performance-team',
+  );
 });
 
 test('linkScenarioNames renders GitHub markdown links for the run page', () => {
@@ -96,6 +120,7 @@ test('linkScenarioNames renders GitHub markdown links for the run page', () => {
     linked,
     /\[Predict Deposit - Complete Flow Performance\]\(https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/123\/artifacts\/22\)/,
   );
+  assert.doesNotMatch(linked, /subteam|team-predict/);
 });
 
 test('linkScenarioNames leaves an already linked scenario alone', () => {
@@ -110,6 +135,10 @@ test('linkScenarioNames leaves an already linked scenario alone', () => {
 
   assert.equal(once, twice);
   assert.equal(once.split('artifacts/11').length - 1, 1);
+  assert.match(
+    once,
+    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/,
+  );
 });
 
 test('listRunArtifacts surfaces a GitHub API failure', async () => {

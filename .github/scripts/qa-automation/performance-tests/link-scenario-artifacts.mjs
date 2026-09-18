@@ -24,6 +24,67 @@ import fs from 'fs';
 import path from 'path';
 
 const SCENARIO_ARTIFACT_PREFIX = 'hermes-profile-';
+// Mirrors the ownership tags on tests/performance/**/*.spec.ts. Slack group
+// ids are the same ones used by tests/scripts/weekly-app-profiling-report.mjs.
+const SCENARIO_TEAMS = [
+  {
+    pattern: /\bPerps\b/i,
+    handle: 'mm-perps-engineering-team',
+    id: 'S094DMAQNCV',
+  },
+  { pattern: /\bPredict\b/i, handle: 'team-predict', id: 'S095BEYMASG' },
+  {
+    pattern: /(?:Cross-chain swap|Swap flow)/i,
+    handle: 'swap-bridge-dev-team',
+    id: 'S04NGHK3U9Z',
+  },
+  {
+    pattern: /(?:Asset View|Aggregated Balance)/i,
+    handle: 'assets-dev-team',
+    id: 'S09C9U4K953',
+  },
+  { pattern: /\bMoney Home\b/i, handle: 'mm-earn-team', id: 'S052NJFKX6Y' },
+  {
+    pattern: /^Import SRP with/i,
+    handle: 'accounts-team',
+    id: 'S05NSFC03GF',
+  },
+  {
+    pattern:
+      /(?:Account creation after fresh install|Fresh SRP wallet creation|Onboarding Import SRP|Seedless Onboarding)/i,
+    handle: 'metamask-onboarding-team',
+    id: 'S090QC71NQ2',
+  },
+  {
+    pattern: /(?:Cold Start|Measure Warm Start)/i,
+    handle: 'metamask-mobile-platform',
+    id: 'S04EF225J1M',
+  },
+  // The Rewards scenario is currently tagged @performance-team, which has no
+  // Slack group id in tests/teams-config.js. Keep the owner visible without
+  // pretending this plain-text fallback will notify a Slack user group.
+  {
+    pattern: /Rewards tab time-to-content/i,
+    handle: 'performance-team',
+    id: null,
+  },
+];
+
+function scenarioTeam(scenario) {
+  return (
+    SCENARIO_TEAMS.find(({ pattern }) => pattern.test(scenario)) || {
+      handle: 'performance-team',
+      id: null,
+    }
+  );
+}
+
+function slackTeamMention(scenario) {
+  const team = scenarioTeam(scenario);
+  return team.id
+    ? `<!subteam^${team.id}|${team.handle}>`
+    : `@${team.handle}`;
+}
 
 function parseArgs(argv) {
   const positional = argv.filter((value) => !value.startsWith('--'));
@@ -78,14 +139,17 @@ function scenarioDownloadMap(artifacts, manifest, repo, runId) {
       return {
         scenario: item.scenario,
         url: `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`,
+        teamMention: slackTeamMention(item.scenario),
       };
     })
     .filter(Boolean)
     .sort((left, right) => right.scenario.length - left.scenario.length);
 }
 
-function formatLink(scenario, url, style) {
-  return style === 'markdown' ? `[${scenario}](${url})` : `<${url}|${scenario}>`;
+function formatLink(scenario, url, teamMention, style) {
+  return style === 'markdown'
+    ? `[${scenario}](${url})`
+    : `<${url}|${scenario}> ${teamMention}`;
 }
 
 // Existing links are kept intact so a second pass cannot nest one link inside
@@ -98,8 +162,8 @@ function escapeRegExp(value) {
 
 function linkScenarioNames(markdown, mappings, { style = 'slack' } = {}) {
   let text = String(markdown || '');
-  for (const { scenario, url } of mappings) {
-    const linked = formatLink(scenario, url, style);
+  for (const { scenario, url, teamMention } of mappings) {
+    const linked = formatLink(scenario, url, teamMention, style);
     const escaped = escapeRegExp(scenario);
     // Bold and plain spellings are matched in one pass, otherwise the second
     // replacement would run over the link the first one just inserted.
@@ -172,6 +236,8 @@ export {
   parseArgs,
   listRunArtifacts,
   scenarioDownloadMap,
+  scenarioTeam,
+  slackTeamMention,
   linkScenarioNames,
   readManifest,
 };

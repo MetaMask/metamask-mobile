@@ -111,6 +111,13 @@ test('addScenarioArtifactLinks turns each named outcome into its download', () =
     2,
   );
   assert.doesNotMatch(digest, /\*Perps open position and close it\*/);
+  assert.equal(
+    digest.split(
+      '<!subteam^S094DMAQNCV|mm-perps-engineering-team>',
+    ).length - 1,
+    2,
+  );
+  assert.match(digest, /<!subteam\^S095BEYMASG\|team-predict>/);
 });
 
 test('addScenarioArtifactLinks requires at least one scenario artifact', () => {
