@@ -201,13 +201,13 @@ const WatchlistSection = forwardRef<
             />
           </WatchlistAnimatedRow>
         ))}
-        {showSuggestedSection ? (
+        {showSuggestedSection && (
           <WatchlistSuggestedSection
             tokens={suggestedTokens}
             hasWatchlist={displayTokens.length > 0}
             onAddPress={handleAddPress}
           />
-        ) : null}
+        )}
       </>
     );
   };
