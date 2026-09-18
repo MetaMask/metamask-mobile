@@ -7,6 +7,7 @@ import {
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '@metamask/money-account-utils';
 import {
   selectCurrentTransaction,
+  selectBatchTransactionCounts,
   selectTransactions,
   selectHasUnapprovedTransactions,
   selectLastUsedPaymentMethod,
@@ -75,6 +76,22 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual([]);
+    });
+  });
+
+  describe('selectBatchTransactionCounts', () => {
+    it('returns the counts, or an empty object before the controller initializes', () => {
+      const buildState = (TransactionController?: object) =>
+        ({
+          engine: { backgroundState: { TransactionController } },
+        }) as unknown as RootState;
+
+      expect(
+        selectBatchTransactionCounts(
+          buildState({ batchTransactionCounts: { '0xbatch': 2 } }),
+        ),
+      ).toStrictEqual({ '0xbatch': 2 });
+      expect(selectBatchTransactionCounts(buildState())).toStrictEqual({});
     });
   });
 
