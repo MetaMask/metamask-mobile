@@ -5,12 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  SectionList,
-  StyleSheet,
-} from 'react-native';
+import { RefreshControl, SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,6 +16,8 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  IconSize,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -31,7 +28,6 @@ import type { CardTransaction } from '../../../../../core/Engine/controllers/car
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
@@ -83,7 +79,6 @@ const CardTransactionHistory = () => {
     useNavigation<NativeStackNavigationProp<CardScreensStackParamList>>();
   const insets = useSafeAreaInsets();
   const tw = useTailwind();
-  const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
   const headerHandlers = useCardHeaderHandlers('back');
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -148,7 +143,7 @@ const CardTransactionHistory = () => {
 
   const listFooter = isLoadingMore ? (
     <Box twClassName="items-center py-4">
-      <ActivityIndicator color={colors.icon.alternative} />
+      <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
     </Box>
   ) : error && items.length > 0 && isLoadMoreError ? (
     <Box twClassName="items-center gap-2 py-4">
@@ -195,7 +190,7 @@ const CardTransactionHistory = () => {
     if (showEmptyLoading) {
       return (
         <Box twClassName="flex-1 items-center justify-center py-12">
-          <ActivityIndicator color={colors.icon.alternative} />
+          <Spinner spinnerIconProps={{ size: IconSize.Xl }} />
         </Box>
       );
     }
