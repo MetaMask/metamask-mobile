@@ -1,7 +1,7 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { FeatureId, formatChainIdToCaip } from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
@@ -20,19 +20,18 @@ import { TokenSelectorType } from '../../types';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useLatestBalance } from '../useLatestBalance';
 import { useSourceAmountInput } from '../useSourceAmountInput';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
+import {
+  getDefaultTokenPairForChains,
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
+import { areAddressesEqual } from '../../../../../util/address';
+import { useBridgeSession } from '../useBridgeSession';
 
-interface UseLimitOrderSwapInputsOptions {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-export const useLimitOrderSwapInputs = ({
-  latestSourceBalance,
-}: UseLimitOrderSwapInputsOptions) => {
+export const useLimitOrderSwapInputs = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -58,7 +57,11 @@ export const useLimitOrderSwapInputs = ({
   // flow's allowed chains, so always re-anchor both to this flow's default
   // pair: Ethereum's ETH/mUSD when enabled, otherwise the default pair for the
   // first enabled chain.
+  const didResetTokensRef = useRef(false);
+
   useEffect(() => {
+    didResetTokensRef.current = false;
+
     if (!enabledChainIds) {
       return;
     }
@@ -72,7 +75,38 @@ export const useLimitOrderSwapInputs = ({
     if (defaultPair.destToken) {
       dispatch(setDestToken(defaultPair.destToken));
     }
+    didResetTokensRef.current = true;
   }, [enabledChainIds, dispatch]);
+
+  useEffect(() => {
+    if (didResetTokensRef.current) {
+      // Avoid overwriting the freshly reset dest token with one computed from stale data.
+      didResetTokensRef.current = false;
+      return;
+    }
+
+    if (!sourceToken?.chainId || !destToken?.chainId) {
+      return;
+    }
+    const sourceChainCaip = formatChainIdToCaip(sourceToken.chainId);
+    const destChainCaip = formatChainIdToCaip(destToken.chainId);
+    if (sourceChainCaip === destChainCaip) {
+      return;
+    }
+    // Limit orders don't support cross-chain trades, so a stale
+    // cross-chain dest must always be corrected, even if the user
+    // manually picked it earlier on the previous source chain.
+    const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+    const nativeToken = getNativeSourceToken(sourceToken.chainId);
+    const nextDestToken =
+      defaultDestToken &&
+      !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+        ? defaultDestToken
+        : nativeToken;
+    dispatch(setDestToken(nextDestToken));
+  }, [sourceToken, destToken, dispatch]);
+
+  const { latestSourceBalance } = useBridgeSession();
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -86,7 +120,6 @@ export const useLimitOrderSwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
-    featureId: FeatureId.LIMIT_ORDER,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -139,7 +172,6 @@ export const useLimitOrderSwapInputs = ({
       type: TokenSelectorType.Source,
       enabledChainIds,
       excludeRwaTokens: true,
-      featureId: FeatureId.LIMIT_ORDER,
     });
   }, [enabledChainIds, navigation]);
 
@@ -150,7 +182,6 @@ export const useLimitOrderSwapInputs = ({
         ? [formatChainIdToCaip(sourceToken.chainId)]
         : [],
       excludeRwaTokens: true,
-      featureId: FeatureId.LIMIT_ORDER,
     });
   }, [navigation, sourceToken?.chainId]);
 

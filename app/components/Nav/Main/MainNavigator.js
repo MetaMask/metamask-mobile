@@ -101,6 +101,10 @@ import {
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   HEADER_NAV_BAR_VARIANTS,
 } from '../../Views/Homepage/abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
@@ -169,6 +173,11 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  MyProfileView,
+  ManageProfileView,
+  ManageProfileTextEditorView,
+  ManageProfileTradingActivityView,
+  ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -212,6 +221,7 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -420,21 +430,6 @@ const BrowserFlow = (props) => {
         initialParams={props.route.params}
         options={{ presentation: 'modal' }}
       />
-    </NativeStack.Navigator>
-  );
-};
-
-const ExploreHome = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.TRENDING_FEED}
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
-        headerShown: false,
-      }}
-    >
-      <NativeStack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
     </NativeStack.Navigator>
   );
 };
@@ -839,7 +834,7 @@ const HomeTabs = () => {
                       rootScreenName,
                     ),
                 }}
-                component={ExploreHome}
+                component={ExploreFeed}
               />
               <Tab.Screen
                 name={Routes.BROWSER.HOME}
@@ -896,20 +891,6 @@ const HomeTabs = () => {
 const Webview = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
     <NativeStack.Screen name="SimpleWebview" component={SimpleWebview} />
-  </NativeStack.Navigator>
-);
-
-const OfflineModeView = (props) => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name="OfflineMode"
-      component={OfflineMode}
-      options={OfflineMode.navigationOptions}
-      initialParams={{
-        autoDismissOnReconnect:
-          props.route.params?.autoDismissOnReconnect === true,
-      }}
-    />
   </NativeStack.Navigator>
 );
 
@@ -999,6 +980,13 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_ASSIGNMENT_OPTIONS,
+  );
+  const isSocialV1Enabled =
+    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -1033,36 +1021,32 @@ const MainNavigator = () => {
         component={RewardsNavigator}
         options={{ headerShown: false }}
       />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-        component={RewardsInfoSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
-      />
+      <NativeStack.Group screenOptions={rewardsModalScreenOptions}>
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+          component={RewardsBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+          component={RewardsInfoSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+          component={RewardsClaimBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+          component={RewardOptInAccountGroupModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+          component={EndOfSeasonClaimBottomSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_SELECT_SHEET}
+          component={RewardsSelectSheet}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
@@ -1145,7 +1129,11 @@ const MainNavigator = () => {
         }}
       />
       <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
-      <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <NativeStack.Screen
+        name="OfflineModeView"
+        component={OfflineMode}
+        options={OfflineMode.navigationOptions}
+      />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
@@ -1427,12 +1415,39 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
-      {isSocialLeaderboardEnabled && (
-        <NativeStack.Screen
-          name={Routes.SOCIAL.V1}
-          component={SocialV1View}
-          options={{ headerShown: false, ...slideFromRightNativeOptions }}
-        />
+      {isSocialV1Enabled && (
+        <>
+          <NativeStack.Screen
+            name={Routes.SOCIAL.V1}
+            component={SocialV1View}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MY_PROFILE}
+            component={MyProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE}
+            component={ManageProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
+            component={ManageProfileTextEditorView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY}
+            component={ManageProfileTradingActivityView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
+            component={ManageProfileLinkedAccountView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+        </>
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen

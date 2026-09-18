@@ -119,8 +119,8 @@ The canonical result returned after a Venue accepts, rejects, or fills a submitt
 _Avoid_: Order Result, raw venue response
 
 **Fill**:
-Execution of some or all of an Order against another order. Activity should be derived from Fills rather than inferring execution from Order creation records.
-_Avoid_: Order when referring to execution
+Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.
+_Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
 
 **Cash Out**:
 Selling an existing Position before Market resolution.
@@ -133,6 +133,10 @@ _Avoid_: Redeem, collect
 **Settlement**:
 A payout or portfolio adjustment produced when a resolved Market is finalized by a Venue. A Settlement may be automatic, as with Kalshi, or may follow an explicit Claim, as with Polymarket.
 _Avoid_: Claim when no user action is required, payout without context
+
+**Activity**:
+The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
+_Avoid_: History as a domain term, Transactions, Trades
 
 ### Financial Terms
 
@@ -165,11 +169,11 @@ The highest currently available per-share price to sell an Outcome, expressed in
 _Avoid_: Price, sell price, Yes bid
 
 **Volume**:
-Total settlement currency traded on a Market or Event across all users.
-_Avoid_: Liquidity
+Total number of contracts (shares) traded on a Market or Event across all users. This is the backend's share volume, sourced from Kalshi `volume_fp`; REST and streamed quotes report the same unit. Settlement-currency value traded is Dollar Volume, a separate backend field not yet served to mobile.
+_Avoid_: Liquidity, Dollar Volume
 
 **24-Hour Volume**:
-Settlement currency traded on a Market or Event during the trailing 24-hour window at the backend observation time.
+Number of contracts traded on a Market or Event during the trailing 24-hour window at the backend observation time.
 _Avoid_: Daily Volume, total Volume
 
 **Liquidity**:
@@ -266,6 +270,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Deposit increases Venue Account Balance.
 - A Withdraw decreases Venue Account Balance.
 - A Settlement records winnings paid after a Market is finalized.
+- Activity contains Fills and Settlements; Order creation records never appear as Activity.
 - A Cash Out reduces or closes a Position; it is not a Withdraw.
 - A crypto up/down Market compares asset prices against a Reference Price.
 - A Live Update refreshes the current understanding of an existing domain object; it is not a separate Event or Order.

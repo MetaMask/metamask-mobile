@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -15,7 +16,6 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -25,7 +25,6 @@ import {
   MetaMetricsSwapsEventSource,
   QuoteStreamCompleteReason,
   TokenFeatureType,
-  FeatureId,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
@@ -47,6 +46,8 @@ import {
 import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import BridgeViewContent from '.';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -409,6 +410,12 @@ jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
     mockUseIsGasIncluded7702Supported(chainId),
 }));
 
+const BridgeView = () => (
+  <BridgeSessionProvider>
+    <BridgeViewContent />
+  </BridgeSessionProvider>
+);
+
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
@@ -550,7 +557,6 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
-      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
@@ -572,7 +578,6 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
-      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 

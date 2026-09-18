@@ -584,13 +584,17 @@ const defaultSelectModifyActionPosition: Position = {
   stopLossCount: 0,
 };
 
+export const ROUTE_ORDER_CONFIRMATION_TEST_ID = 'route-order-confirmation';
+
 const selectModifyActionExtraRoutes = [
   { name: Routes.PERPS.CLOSE_POSITION },
   { name: Routes.PERPS.ADJUST_MARGIN },
   { name: Routes.PERPS.TUTORIAL },
   {
     name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    Component: () => <Text testID="route-order-confirmation">Order</Text>,
+    Component: () => (
+      <Text testID={ROUTE_ORDER_CONFIRMATION_TEST_ID}>Order</Text>
+    ),
   },
 ];
 

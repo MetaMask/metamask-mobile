@@ -9,6 +9,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ExecutionService',
   'NftDetectionController',
   'RewardsDataService',
+  'RewardsMoneyDataService',
   'StorageService',
   'SubscriptionService',
   'ShieldApiService',
@@ -25,6 +26,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ProofOfOwnershipService',
   'RampsService',
   'TransakService',
+  'NeoBankService',
   'ComplianceService',
   'KycService',
   'QrSyncProvisioningService',
@@ -36,6 +38,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ChompApiService',
   'SentinelApiService',
   'PredictMarketDataService',
+  'PredictLiveDataService',
   'PredictPortfolioService',
 ] as const;
 
@@ -100,6 +103,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'MoneyAccountUpgradeController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
+  'RewardsMoneyController:stateChange',
   'DeFiPositionsController:stateChange',
   'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',

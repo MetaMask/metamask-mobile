@@ -69,14 +69,15 @@ import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterS
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
 
-// Details testIDs mirrored locally so this route suite does not import from the
-// sibling ActivityDetails route (ADR 0020).
+// Details and list testIDs mirrored locally so this route suite does not import
+// from the sibling ActivityDetails / ActivityList routes (ADR 0020).
 const ACTIVITY_DETAILS_SCREEN = 'activity-details-screen';
 const ACTIVITY_DETAILS_AMOUNT_HEADER = 'activity-details-amount-header';
 const ACTIVITY_DETAILS_STATUS_PILL = 'activity-details-status-pill';
 const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
+const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
 
 const monToBaseBridgeState = (
   transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
@@ -493,7 +494,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -505,6 +506,13 @@ describeForPlatforms('ActivityScreen — empty state', () => {
           .length,
       ).toBeGreaterThan(0);
     });
+
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
 
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
@@ -539,11 +547,16 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    await waitFor(() => {
-      expect(
-        queryByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-      ).toBeOnTheScreen();
-    });
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
     expect(await findByText(fundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(swapTokensLabel));

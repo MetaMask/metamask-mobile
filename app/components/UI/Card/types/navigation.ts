@@ -7,6 +7,7 @@ import type { PasswordBottomSheetParams } from '../components/PasswordBottomShee
 import type { DaimoPayModalParams } from '../components/DaimoPayModal/DaimoPayModal';
 import type { CreditBalanceTooltipParams } from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import type { MoneyUnlinkCardSheetRouteParams } from '../components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
+import type { ImmersveRevokeAllowanceSheetRouteParams } from '../components/ImmersveRevokeAllowanceSheet/ImmersveRevokeAllowanceSheet';
 import type { ChooseYourCardParams } from '../Views/ChooseYourCard/ChooseYourCard';
 import type { ReviewOrderParams } from '../Views/ReviewOrder/ReviewOrder';
 import type { OrderCompletedParams } from '../Views/OrderCompleted/OrderCompleted';
@@ -57,6 +58,7 @@ export type CardScreensStackParamList = {
     transactionId: string;
     transaction?: CardTransaction;
   };
+  CardContactDetails: undefined;
   CardSetPin: { cardId: string };
   CardConfirmPin: { cardId: string };
   CardAuthentication:
@@ -80,7 +82,9 @@ export type CardScreensStackParamList = {
   CardOnboardingKYCProcessing:
     | { countryKey?: string; kycUrl?: string }
     | undefined;
-  CardOnboardingFundingApproval: { countryKey?: string } | undefined;
+  CardOnboardingFundingApproval:
+    | { countryKey?: string; mode?: 'onboarding' | 'reapprove' }
+    | undefined;
 };
 
 /**
@@ -138,7 +142,9 @@ export type CardModalsNavigationParamList = {
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
+  CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
+  CardDigitalWalletInstructionsModal: undefined;
 };
 
 /**
