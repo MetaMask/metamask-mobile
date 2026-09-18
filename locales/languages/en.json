@@ -10224,7 +10224,27 @@
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
-        "change_asset_description": "Select a different token"
+        "change_asset_description": "Select a different token",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
+      }
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
       }
     },
     "revoke_allowance_sheet": {

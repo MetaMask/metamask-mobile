@@ -170,6 +170,11 @@ jest.mock(
   },
 );
 
+jest.mock('../components/DigitalWalletInstructionsSheet', () => {
+  const { View } = require('react-native');
+  return () => <View testID="digital-wallet-instructions-sheet" />;
+});
+
 jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
 }));
@@ -207,9 +212,24 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       FORGOT_PASSWORD: 'ForgotPassword',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
     },
   },
 }));
+
+jest.mock('../../../../core/LockManagerService', () => ({
+  __esModule: true,
+  default: {
+    stopListening: jest.fn(),
+    startListening: jest.fn(),
+  },
+}));
+
+const mockLockManagerService = jest.requireMock(
+  '../../../../core/LockManagerService',
+).default;
+const mockStopListening = mockLockManagerService.stopListening as jest.Mock;
+const mockStartListening = mockLockManagerService.startListening as jest.Mock;
 
 const createMockStore = (isAuthenticated = false, isCardholder = false) =>
   configureStore({
@@ -266,6 +286,14 @@ describe('CardRoutes', () => {
 
       expect(getByTestId('screen-CardUnlinkMoneyAccountSheet')).toBeTruthy();
     });
+
+    it('includes digital wallet instructions modal screen', () => {
+      const { getByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByTestId('screen-CardDigitalWalletInstructionsModal'),
+      ).toBeTruthy();
+    });
   });
 
   describe('Initial route selection', () => {
@@ -295,6 +323,29 @@ describe('CardRoutes', () => {
       const { getAllByText } = renderWithProviders(<CardRoutes />);
 
       expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Auto-lock Management', () => {
+    beforeEach(() => {
+      mockStopListening.mockClear();
+      mockStartListening.mockClear();
+    });
+
+    it('disables auto-lock when Card root mounts', () => {
+      renderWithProviders(<CardRoutes />);
+
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-enables auto-lock when Card root unmounts', () => {
+      const { unmount } = renderWithProviders(<CardRoutes />);
+
+      expect(mockStartListening).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockStartListening).toHaveBeenCalledTimes(1);
     });
   });
 });
