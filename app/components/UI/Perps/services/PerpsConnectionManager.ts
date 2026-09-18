@@ -2142,11 +2142,4 @@ class PerpsConnectionManagerClass {
 
 export const PerpsConnectionManager = PerpsConnectionManagerClass.getInstance();
 
-// TAT-3974 probe — temporary, removed before the fix commit.
-// Exposes the signing-cache reset so a repro run can force the perps signature
-// confirmations (the only perps screen where Footer actually mounts) to appear.
-(globalThis as unknown as Record<string, unknown>).__TAT3974__ = {
-  clearAllSigningCache: () => PerpsConnectionManager.clearAllSigningCache(),
-};
-
 export default PerpsConnectionManager;

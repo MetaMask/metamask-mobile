@@ -1,6 +1,5 @@
 import { useCallback, useState, useMemo, useEffect } from 'react';
 import { Alert, Severity } from '../Views/confirmations/types/alerts';
-import { tat3974Mark } from '../Views/confirmations/utils/tat3974-marker';
 
 /**
  * Custom hook to manage alert confirmation.
@@ -20,7 +19,6 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
 
   // Update confirmed state when new alerts with skipConfirmation appear
   useEffect(() => {
-    tat3974Mark('useAlertsConfirmed-effect');
     const newConfirmedAlerts = alerts.filter(
       (alert) =>
         alert.skipConfirmation === true && confirmed[alert.key] === undefined,

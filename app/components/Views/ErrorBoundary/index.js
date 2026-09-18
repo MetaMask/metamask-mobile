@@ -13,6 +13,7 @@ import {
 import PropTypes from 'prop-types';
 import { reloadAppAsync } from 'expo';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
+import { getReduxActionTrace } from '../../../store/reduxActionTrace';
 import {
   captureSentryFeedback,
   captureExceptionForced,
@@ -482,10 +483,23 @@ class ErrorBoundary extends Component {
     const sentryId = getLatestSentryId();
     this.setState({ sentryId });
     this.generateErrorReport(error, errorInfo?.componentStack);
+
+    // React attributes "Maximum update depth exceeded" to whichever fiber
+    // schedules the update that crosses the limit, which in the reported stacks
+    // is a react-redux subscriber rather than the code creating the pressure.
+    // Attaching the preceding dispatch activity gives that report something
+    // that identifies the source. Only action types are included.
+    const isUpdateDepthError = error?.message?.includes(
+      'Maximum update depth exceeded',
+    );
+
     Logger.error(error, {
       View: this.props.view,
       ErrorBoundary: true,
       ...errorInfo,
+      ...(isUpdateDepthError
+        ? { reduxActionTrace: getReduxActionTrace() }
+        : {}),
     });
   }
 

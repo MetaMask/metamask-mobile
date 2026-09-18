@@ -51,7 +51,6 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
-import { tat3974Mark } from '../../utils/tat3974-marker';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -67,21 +66,10 @@ export function Footer() {
   const transactionMetadata = useTransactionMetadataRequest();
   const { isFooterVisible } = useConfirmationContext();
 
-  const tat3974Hidden = hasTransactionType(
-    transactionMetadata,
-    HIDE_FOOTER_BY_DEFAULT_TYPES,
-  );
-  tat3974Mark(
-    `footer-gate type=${String(
-      transactionMetadata?.type,
-    )} isFooterVisible=${String(isFooterVisible)} hiddenByType=${String(
-      tat3974Hidden,
-    )}`,
-  );
-
   if (
     isFooterVisible === false ||
-    (isFooterVisible === undefined && tat3974Hidden)
+    (isFooterVisible === undefined &&
+      hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES))
   ) {
     return null;
   }
@@ -179,7 +167,6 @@ function FooterInternal() {
   ]);
 
   useEffect(() => {
-    tat3974Mark('footer-trackAlertMetrics-effect');
     trackAlertMetrics();
   }, [alerts, trackAlertMetrics]);
 

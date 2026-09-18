@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   IMetaMetricsEvent,
@@ -16,10 +16,6 @@ import {
 import { useConfirmationLocation } from './useConfirmationLocation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
-import { tat3974Mark } from '../../utils/tat3974-marker';
-
-// TAT-3974 probe: flip to true to cut the footer->redux dispatch edge.
-const TAT3974_NEUTRALIZE_DISPATCH = false;
 
 export function useConfirmationMetricEvents() {
   const { createEventBuilder, trackEvent } = useAnalytics();
@@ -28,47 +24,7 @@ export function useConfirmationMetricEvents() {
   const transactionMeta = useTransactionMetadataRequest();
   const signatureRequest = useSignatureRequest();
 
-  const tat3974Prev = useRef<Record<string, unknown>>({});
-  const tat3974Deps = {
-    createEventBuilder,
-    dispatch,
-    location,
-    trackEvent,
-    transactionMeta,
-    signatureRequest,
-  } as Record<string, unknown>;
-  const tat3974Changed = Object.keys(tat3974Deps).filter(
-    (k) => tat3974Prev.current[k] !== tat3974Deps[k],
-  );
-  if (
-    Object.keys(tat3974Prev.current).length > 0 &&
-    tat3974Changed.length > 0
-  ) {
-    tat3974Mark(`metric-events-dep-changed:${tat3974Changed.join('+')}`);
-    if (tat3974Changed.includes('transactionMeta')) {
-      const prevTx = (tat3974Prev.current.transactionMeta ?? {}) as Record<
-        string,
-        unknown
-      >;
-      const nextTx = (transactionMeta ?? {}) as unknown as Record<
-        string,
-        unknown
-      >;
-      const keys = Array.from(
-        new Set([...Object.keys(prevTx), ...Object.keys(nextTx)]),
-      );
-      const fields = keys.filter(
-        (k) => JSON.stringify(prevTx[k]) !== JSON.stringify(nextTx[k]),
-      );
-      tat3974Mark(
-        `txmeta-fields-changed:${fields.length ? fields.join(',') : 'IDENTITY_ONLY'}`,
-      );
-    }
-  }
-  tat3974Prev.current = tat3974Deps;
-
   const events = useMemo(() => {
-    tat3974Mark('useConfirmationMetricEvents-memo-recompute');
     const trackAdvancedDetailsToggledEvent = ({ isExpanded }: JsonMap) => {
       const event = generateEvent({
         createEventBuilder,
@@ -135,10 +91,6 @@ export function useConfirmationMetricEvents() {
 
     const setConfirmationMetric = (metricParams: ConfirmationMetrics) => {
       if (!transactionMeta && !signatureRequest) {
-        return;
-      }
-      tat3974Mark('setConfirmationMetric-dispatch');
-      if (TAT3974_NEUTRALIZE_DISPATCH) {
         return;
       }
       dispatch(
