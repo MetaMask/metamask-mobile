@@ -18,6 +18,7 @@ import { navigateToBrowserView } from '../../../flows/browser.flow.js';
 import BrowserView from '../../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
+import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
 import { openConnectedAccountsAfterConnect } from './helpers/open-connected-accounts.helpers.js';
@@ -28,6 +29,15 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await navigateToBrowserView();
   await dismissPushNotificationExistingUserSheet();
   await BrowserView.navigateToTestDApp();
+}
+
+/**
+ * The "Permissions updated" toast shown after connecting overlays the browser
+ * URL bar, so taps on the account button are swallowed until it dismisses.
+ */
+async function openConnectedAccountsSheet(): Promise<void> {
+  await ToastModal.waitForToastToDismiss();
+  await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
 }
 
 appiumTest.describe(
