@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 
 import { syncPriceAlertsWatchlistMirror } from '../../PriceAlerts/syncWatchlistMirror';
@@ -92,6 +96,59 @@ const applyOptimisticToHydrated = (
     .filter((token): token is WatchlistTokenMetadata => token !== undefined);
 };
 
+const orderByAssets = (
+  tokens: readonly WatchlistTokenMetadata[],
+  assetIds: readonly string[],
+): WatchlistTokenMetadata[] => {
+  const byId = new Map(
+    tokens.map((token) => [String(token.assetId).toLowerCase(), token]),
+  );
+  return assetIds
+    .map((id) => byId.get(id.toLowerCase()))
+    .filter((token): token is WatchlistTokenMetadata => token !== undefined);
+};
+
+type HydratedTokensAugmenter = (
+  base: readonly WatchlistTokenMetadata[],
+  nextAssets: readonly string[],
+) => WatchlistTokenMetadata[];
+
+/**
+ * Suggested Token Metadata for optimistic dydration
+ */
+const collectCachedSuggestedMetadata = (
+  queryClient: QueryClient,
+): ReadonlyMap<string, WatchlistTokenMetadata> => {
+  const byId = new Map<string, WatchlistTokenMetadata>();
+  for (const [, tokens] of queryClient.getQueriesData<WatchlistTokenMetadata[]>(
+    { queryKey: tokenWatchlistQueryKeys.suggestedAll },
+  )) {
+    for (const token of tokens ?? []) {
+      byId.set(String(token.assetId).toLowerCase(), token);
+    }
+  }
+  return byId;
+};
+
+const seedFromCachedSuggested =
+  (queryClient: QueryClient): HydratedTokensAugmenter =>
+  (base, nextAssets) => {
+    const seedById = collectCachedSuggestedMetadata(queryClient);
+    if (seedById.size === 0) {
+      return [];
+    }
+    const present = new Set(
+      base.map((token) => String(token.assetId).toLowerCase()),
+    );
+    return nextAssets
+      .filter((id) => !present.has(id.toLowerCase()))
+      .map((id) => {
+        const seed = seedById.get(id.toLowerCase());
+        return seed ? { ...seed, assetId: id } : undefined;
+      })
+      .filter((token): token is WatchlistTokenMetadata => token !== undefined);
+  };
+
 const applyOp = (acc: string[], op: WatchlistOp): string[] => {
   switch (op.kind) {
     case 'add':
@@ -131,19 +188,15 @@ interface InvalidateOnSettledOptions {
 
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
+  augmentHydratedTokens,
   toOp,
   invalidateOnSettled = { blob: true, hydrated: true },
   shouldInvalidateHydrated,
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
+  augmentHydratedTokens?: HydratedTokensAugmenter;
   toOp: (input: TInput) => WatchlistOp;
   invalidateOnSettled?: InvalidateOnSettledOptions;
-  /**
-   * Optional gate for hydrated invalidation. Used by add to skip refetch when
-   * the added IDs were already removed before the mutation settled (quick
-   * watch→unwatch), which would otherwise race a late getTokens result back
-   * into the list.
-   */
   shouldInvalidateHydrated?: (input: TInput) => boolean;
 }) => {
   const queryClient = useQueryClient();
@@ -178,7 +231,13 @@ const useWatchlistMutation = <TInput>({
       );
       queryClient.setQueryData<WatchlistTokenMetadata[]>(
         tokenWatchlistQueryKeys.hydrated,
-        (old) => applyOptimisticToHydrated(old, nextAssets) ?? old,
+        (old) => {
+          const base = applyOptimisticToHydrated(old, nextAssets);
+          if (!base) return old;
+          const extras = augmentHydratedTokens?.(base, nextAssets) ?? [];
+          if (extras.length === 0) return base;
+          return orderByAssets([...base, ...extras], nextAssets);
+        },
       );
 
       return { prevBlob, prevHydrated };
@@ -226,6 +285,7 @@ export const useTokenWatchlistAddItemMutation = () => {
   return useWatchlistMutation<WatchlistAddInput>({
     applyOptimistic: (current, input) =>
       mergeAssets(current, toStrings(asArray(input))),
+    augmentHydratedTokens: seedFromCachedSuggested(queryClient),
     toOp: (input) => ({ kind: 'add', ids: toStrings(asArray(input)) }),
     // Blob is already correct after onMutate; hydrated needs getTokens for metadata.
     invalidateOnSettled: { blob: false, hydrated: true },
