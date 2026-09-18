@@ -25,6 +25,10 @@ interface UseExpandableFormAnimationOptions {
  *
  * Returns pre-built animated styles for the expandable content wrapper and an
  * optional "toggle button" that crossfades out as the content grows in.
+ *
+ * Shared values are read/written through `get()`/`set()` rather than `.value`:
+ * React Compiler treats a hook's return value as immutable and bails out of
+ * optimizing the whole hook when `.value` is assigned to.
  */
 export function useExpandableFormAnimation(
   isExpanded: boolean,
@@ -38,18 +42,20 @@ export function useExpandableFormAnimation(
 
   const expand = useCallback(
     (target: number) => {
-      heightSv.value = withTiming(target, { duration, easing });
-      opacitySv.value = withTiming(1, { duration, easing });
+      heightSv.set(withTiming(target, { duration, easing }));
+      opacitySv.set(withTiming(1, { duration, easing }));
     },
     [heightSv, opacitySv, duration, easing],
   );
 
   const collapse = useCallback(() => {
-    heightSv.value = withTiming(0, { duration, easing });
-    opacitySv.value = withTiming(0, {
-      duration: duration * 0.5,
-      easing,
-    });
+    heightSv.set(withTiming(0, { duration, easing }));
+    opacitySv.set(
+      withTiming(0, {
+        duration: duration * 0.5,
+        easing,
+      }),
+    );
   }, [heightSv, opacitySv, duration, easing]);
 
   useEffect(() => {
@@ -75,20 +81,20 @@ export function useExpandableFormAnimation(
 
   const contentWrapperStyle = useAnimatedStyle(() => ({
     overflow: 'hidden' as const,
-    height: heightSv.value,
-    opacity: opacitySv.value,
+    height: heightSv.get(),
+    opacity: opacitySv.get(),
   }));
 
   const toggleButtonStyle = useAnimatedStyle(() => ({
     overflow: 'hidden' as const,
     opacity: interpolate(
-      opacitySv.value,
+      opacitySv.get(),
       [0, 0.4],
       [1, 0],
       Extrapolation.CLAMP,
     ),
     maxHeight: interpolate(
-      opacitySv.value,
+      opacitySv.get(),
       [0, 1],
       [COLLAPSED_BUTTON_HEIGHT, 0],
       Extrapolation.CLAMP,

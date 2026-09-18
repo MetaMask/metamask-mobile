@@ -8,6 +8,8 @@ import {
   trackExploreSearchOpened,
   trackExploreSectionSeeAll,
   useInstrumentedSearchEffect,
+  useScrollTracking,
+  type SearchFeedPill,
 } from './analytics';
 import type { SearchFeedSection } from './useExploreSearch';
 
@@ -189,6 +191,86 @@ describe('useInstrumentedSearchEffect', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('useScrollTracking', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fires once on the first drag with the query and extra properties', () => {
+    const { result } = renderHook(() =>
+      useScrollTracking('scrolled', 'eth', {
+        tab_name: 'tokens',
+        result_count: 7,
+      }),
+    );
+
+    act(() => {
+      result.current.onScrollBeginDrag();
+    });
+    act(() => {
+      result.current.onScrollBeginDrag();
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      interaction_type: 'scrolled',
+      search_query: 'eth',
+      tab_name: 'tokens',
+      result_count: 7,
+    });
+  });
+
+  it('fires again after resetScrollTracking', () => {
+    const { result } = renderHook(() => useScrollTracking('scrolled', 'eth'));
+
+    act(() => {
+      result.current.onScrollBeginDrag();
+    });
+    act(() => {
+      result.current.resetScrollTracking();
+    });
+    act(() => {
+      result.current.onScrollBeginDrag();
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('reports the latest query and extra properties after a re-render', () => {
+    const { result, rerender } = renderHook(
+      ({ query, tab }: { query: string; tab: SearchFeedPill }) =>
+        useScrollTracking('scrolled', query, { tab_name: tab }),
+      { initialProps: { query: 'eth', tab: 'tokens' as SearchFeedPill } },
+    );
+
+    act(() => {
+      rerender({ query: 'btc', tab: 'perps' });
+    });
+    act(() => {
+      result.current.onScrollBeginDrag();
+    });
+
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      search_query: 'btc',
+      tab_name: 'perps',
+    });
+  });
+
+  it('keeps onScrollBeginDrag stable across query changes', () => {
+    const { result, rerender } = renderHook(
+      ({ query }: { query: string }) => useScrollTracking('scrolled', query),
+      { initialProps: { query: 'eth' } },
+    );
+    const firstCallback = result.current.onScrollBeginDrag;
+
+    act(() => {
+      rerender({ query: 'btc' });
+    });
+
+    expect(result.current.onScrollBeginDrag).toBe(firstCallback);
   });
 });
 
