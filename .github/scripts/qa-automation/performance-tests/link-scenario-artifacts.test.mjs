@@ -130,7 +130,10 @@ test('linkScenarioNames leaves an already linked scenario alone', () => {
     'MetaMask/metamask-mobile',
     '123',
   );
-  const once = linkScenarioNames('• *Perps open position and close it*', mappings);
+  const once = linkScenarioNames(
+    '*Outliers*\n• *Perps open position and close it*',
+    mappings,
+  );
   const twice = linkScenarioNames(once, mappings);
 
   assert.equal(once, twice);
@@ -139,6 +142,33 @@ test('linkScenarioNames leaves an already linked scenario alone', () => {
     once,
     /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/,
   );
+});
+
+test('team mentions stay in the outliers section', () => {
+  const linked = linkScenarioNames(
+    [
+      '*Conclusions*',
+      '• `mod` leads *Perps open position and close it* (59358.1 ms).',
+      '• Low JS duty (<15%): Predict Deposit - Complete Flow Performance.',
+      '',
+      '*Outliers*',
+      '• *Perps open position and close it* — JS 59358.1 ms',
+      '• *Predict Deposit - Complete Flow Performance* — JS 38341.6 ms',
+      '',
+      '*Downloads*',
+      '• app-profiling-analysis',
+    ].join('\n'),
+    scenarioDownloadMap(ARTIFACTS, MANIFEST, 'MetaMask/metamask-mobile', '123'),
+  );
+  const [conclusions, outliers] = linked.split('*Outliers*');
+
+  // Every scenario stays a download link, wherever it is named.
+  assert.equal(conclusions.split('/artifacts/').length - 1, 2);
+  assert.doesNotMatch(conclusions, /subteam/);
+
+  assert.match(outliers, /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/);
+  assert.match(outliers, /<!subteam\^S095BEYMASG\|team-predict>/);
+  assert.equal(outliers.split('subteam').length - 1, 2);
 });
 
 test('listRunArtifacts surfaces a GitHub API failure', async () => {

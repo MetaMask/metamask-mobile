@@ -111,11 +111,12 @@ test('addScenarioArtifactLinks turns each named outcome into its download', () =
     2,
   );
   assert.doesNotMatch(digest, /\*Perps open position and close it\*/);
+  // The owner is tagged once, on the outlier, not again under conclusions.
   assert.equal(
     digest.split(
       '<!subteam^S094DMAQNCV|mm-perps-engineering-team>',
     ).length - 1,
-    2,
+    1,
   );
   assert.match(digest, /<!subteam\^S095BEYMASG\|team-predict>/);
 });

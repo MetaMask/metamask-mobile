@@ -148,23 +148,32 @@ function scenarioDownloadMap(artifacts, manifest, repo, runId) {
 }
 
 function formatLink(scenario, url, teamMention, style) {
-  return style === 'markdown'
-    ? `[${scenario}](${url})`
-    : `<${url}|${scenario}> ${teamMention}`;
+  if (style === 'markdown') {
+    return `[${scenario}](${url})`;
+  }
+  return teamMention
+    ? `<${url}|${scenario}> ${teamMention}`
+    : `<${url}|${scenario}>`;
 }
 
 // Existing links are kept intact so a second pass cannot nest one link inside
 // another.
 const EXISTING_LINK = /(<https?:\/\/[^>|]+\|[^>]+>|\[[^\]]+\]\(https?:\/\/[^)]+\))/;
+const SLACK_HEADING = /^\*([^*]+)\*$/;
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function linkScenarioNames(markdown, mappings, { style = 'slack' } = {}) {
-  let text = String(markdown || '');
+function linkLine(line, mappings, style, withMentions) {
+  let text = line;
   for (const { scenario, url, teamMention } of mappings) {
-    const linked = formatLink(scenario, url, teamMention, style);
+    const linked = formatLink(
+      scenario,
+      url,
+      withMentions ? teamMention : null,
+      style,
+    );
     const escaped = escapeRegExp(scenario);
     // Bold and plain spellings are matched in one pass, otherwise the second
     // replacement would run over the link the first one just inserted.
@@ -177,6 +186,35 @@ function linkScenarioNames(markdown, mappings, { style = 'slack' } = {}) {
       .join('');
   }
   return text;
+}
+
+/**
+ * Links every scenario name, and owns the digest section where the team is
+ * mentioned. Tagging a team under each conclusion put every owner at the top
+ * of the message, so ownership is stated once per outlier instead.
+ */
+function linkScenarioNames(
+  markdown,
+  mappings,
+  { style = 'slack', mentionSection = 'Outliers' } = {},
+) {
+  let section = null;
+  return String(markdown || '')
+    .split('\n')
+    .map((line) => {
+      const heading = line.match(SLACK_HEADING);
+      if (heading) {
+        section = heading[1];
+        return line;
+      }
+      return linkLine(
+        line,
+        mappings,
+        style,
+        style !== 'markdown' && section === mentionSection,
+      );
+    })
+    .join('\n');
 }
 
 function readManifest(inputPath) {
