@@ -28,6 +28,7 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
+import { SolScope } from '@metamask/keyring-api';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -165,28 +166,37 @@ export function getAvailableTokens({
   tokens,
   blockedTokens,
   fiatPayment,
+  selectedAssetId,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
   fiatPayment?: TransactionFiatPayment;
+  selectedAssetId?: string;
 }): AssetType[] {
   const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return tokens
     .filter((token) => {
-      if (
-        token.standard !== TokenStandard.ERC20 ||
-        !token.accountType?.includes('eip155') ||
-        (token.chainId && isTestNet(token.chainId))
-      ) {
+      const isEvmToken =
+        token.standard === TokenStandard.ERC20 &&
+        token.accountType?.includes('eip155') &&
+        !(token.chainId && isTestNet(token.chainId));
+      const isSolanaToken =
+        token.chainId === SolScope.Mainnet &&
+        token.accountType?.startsWith('solana:') &&
+        (token.address === `${SolScope.Mainnet}/slip44:501` ||
+          token.address.startsWith(`${SolScope.Mainnet}/token:`));
+
+      if (!isEvmToken && !isSolanaToken) {
         return false;
       }
 
       const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+        selectedAssetId === (token.assetId ?? token.address) ||
+        (payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+          payToken?.chainId === token.chainId);
 
       if (isSelected) {
         return true;
@@ -216,8 +226,9 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-          payToken?.chainId === token.chainId;
+        : selectedAssetId === (token.assetId ?? token.address) ||
+          (payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+            payToken?.chainId === token.chainId);
 
       return {
         ...token,

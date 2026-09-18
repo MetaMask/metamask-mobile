@@ -25,11 +25,15 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { useTransactionPaySource } from '../../../hooks/pay/useTransactionPaySource';
+import { useSolanaPayPresentation } from '../../../hooks/pay/useSolanaPayPresentation';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../hooks/pay/useIsMoneyAccountFlagDefault');
 jest.mock('../../../hooks/pay/usePayTokenAccountBalance');
+jest.mock('../../../hooks/pay/useTransactionPaySource');
+jest.mock('../../../hooks/pay/useSolanaPayPresentation');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -142,6 +146,15 @@ describe('PayWithRow', () => {
       },
       setPayToken: jest.fn(),
     });
+    jest.mocked(useTransactionPaySource).mockImplementation(() => ({
+      isSolana: false,
+      paySource: jest.mocked(useTransactionPayToken)().payToken,
+      setPaySource: jest.fn(),
+      solanaAsset: undefined,
+      solanaExecution: undefined,
+      solanaSource: undefined,
+    }));
+    jest.mocked(useSolanaPayPresentation).mockReturnValue(undefined);
 
     jest.mocked(useNavigation).mockReturnValue({
       navigate: navigateMock,

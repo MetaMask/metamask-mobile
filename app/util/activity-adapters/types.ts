@@ -10,6 +10,7 @@ import type {
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
 import type { Transaction } from '@metamask/keyring-api';
+import type { SolanaPayOutcome } from '@metamask/transaction-pay-controller';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { TriggerOrderType } from '@metamask/perps-controller';
 import type { TransactionGroup } from './adapters/transaction-group';
@@ -76,6 +77,7 @@ type ActivityRaw =
 
 interface MobileFields {
   isEarliestNonce?: boolean;
+  payOutcome?: SolanaPayOutcome;
   /** @deprecated Get raw transaction data directly as needed */
   raw?: ActivityRaw;
 }

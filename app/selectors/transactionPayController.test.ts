@@ -22,10 +22,16 @@ const TRANSACTION_ID_MOCK = 'tx-1';
 
 function createMockRootState(
   transactionData: Record<string, Record<string, unknown>> = {},
+  transactionMetadata: Record<string, Record<string, unknown>> = {},
 ): RootState {
   return {
     engine: {
       backgroundState: {
+        TransactionController: {
+          transactions: Object.entries(transactionMetadata).map(
+            ([id, metadata]) => ({ id, ...metadata }),
+          ),
+        },
         TransactionPayController: {
           transactionData,
         },
@@ -408,6 +414,64 @@ describe('transactionPayController selectors', () => {
       );
 
       expect(result).toBe(true);
+    });
+
+    it('returns true for an affordable Solana preflight', () => {
+      const state = createMockRootState(
+        {
+          [TRANSACTION_ID_MOCK]: {
+            solanaPayQuote: {
+              preflight: { affordability: { isAffordable: true } },
+            },
+          },
+        },
+        {
+          [TRANSACTION_ID_MOCK]: {
+            metamaskPay: {
+              source: {
+                sourceAccountId: 'solana:mainnet:account',
+                sourceAssetId: 'solana:mainnet/slip44:501',
+              },
+            },
+          },
+        },
+      );
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for a Solana preflight with a native shortfall', () => {
+      const state = createMockRootState(
+        {
+          [TRANSACTION_ID_MOCK]: {
+            solanaPayQuote: {
+              preflight: { affordability: { isAffordable: false } },
+            },
+          },
+        },
+        {
+          [TRANSACTION_ID_MOCK]: {
+            metamaskPay: {
+              source: {
+                sourceAccountId: 'solana:mainnet:account',
+                sourceAssetId: 'solana:mainnet/slip44:501',
+              },
+            },
+          },
+        },
+      );
+
+      const result = selectIsTransactionPaySubmitReadyByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
     });
 
     it('returns false when no pay state exists for the transaction', () => {
