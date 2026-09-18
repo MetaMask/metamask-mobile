@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayPrimaryRequiredToken,
+  useTransactionPayQuoteError,
   useTransactionPayQuotesLastUpdated,
   useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
@@ -69,6 +70,7 @@ export function useCustomAmountStage({
   const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const quotes = useTransactionPayQuotesRaw();
+  const quoteError = useTransactionPayQuoteError();
   const hasQuotes = Boolean(quotes?.length);
   const requiredToken = useTransactionPayPrimaryRequiredToken();
   const hasAmount = Boolean(
@@ -119,6 +121,14 @@ export function useCustomAmountStage({
       return;
     }
 
+    // A failed quote fetch carries no quotes, so `hasFreshQuote` can never
+    // fire and the override would hold the loader forever. Hand the stage back
+    // so the blocking quote-error alert renders instead.
+    if (quoteError && !isQuotesLoading) {
+      setStage(null);
+      return;
+    }
+
     // Newer than the baseline, gated on `hasQuotes` so an empty pre-fetch bump
     // (advances the timestamp but carries no quotes) never counts.
     const hasFreshQuote =
@@ -138,6 +148,7 @@ export function useCustomAmountStage({
     hasPrefetchedQuote,
     hasQuotes,
     isQuotesLoading,
+    quoteError,
     quotesLastUpdated,
   ]);
 
