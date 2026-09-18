@@ -17,6 +17,7 @@ import { ConfirmationLoader } from '../../confirm/confirm-component';
 import { useMoneyAccountDeposit } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
 import Logger from '../../../../../../util/Logger';
+import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { ConfirmationsDeveloperOptions } from './confirmations-developer-options';
 import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
 import {
@@ -146,9 +147,9 @@ describe('ConfirmationsDeveloperOptions', () => {
     } as ReturnType<typeof useStyles>);
 
     mockSelectSelectedInternalAccountAddress.mockReturnValue(MOCK_ACCOUNT);
-    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
-      address: MOCK_ACCOUNT,
-    })) as ReturnType<typeof selectSelectedInternalAccountByScope>);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(() =>
+      createMockInternalAccount(MOCK_ACCOUNT, 'Account 1'),
+    );
     mockSelectDefaultEndpointByChainId.mockReturnValue({
       networkClientId: MOCK_NETWORK_CLIENT_ID,
     } as ReturnType<typeof selectDefaultEndpointByChainId>);
@@ -166,7 +167,34 @@ describe('ConfirmationsDeveloperOptions', () => {
     mockControllerDeposit.mockResolvedValue(undefined);
     mockUsePerpsTrading.mockReturnValue({
       depositWithConfirmation: mockControllerDeposit,
-    } as ReturnType<typeof usePerpsTrading>);
+      placeOrder: jest.fn(),
+      cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
+      closePosition: jest.fn(),
+      getMarkets: jest.fn(),
+      getPositions: jest.fn(),
+      getAccountState: jest.fn(),
+      subscribeToPrices: jest.fn(),
+      subscribeToPositions: jest.fn(),
+      subscribeToOrderFills: jest.fn(),
+      depositWithOrder: jest.fn(),
+      clearDepositResult: jest.fn(),
+      withdraw: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
+      calculateFees: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
+      getOrderFills: jest.fn(),
+      getOrders: jest.fn(),
+      getFunding: jest.fn(),
+    });
     mockUseSelector.mockImplementation(((
       selector: (state: object) => unknown,
     ) => selector({})) as typeof useSelector);

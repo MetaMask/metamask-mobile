@@ -239,9 +239,21 @@ describe('Confirm', () => {
       'renders %s skeleton inside the non-dismissible sheet',
       (loader, skeletonTestId) => {
         useParamsMock.mockReturnValue({ forceBottomSheet: true, loader });
-        const state = cloneDeep(typedSignV1ConfirmationState);
-        state.engine.backgroundState.ApprovalController.pendingApprovals = {};
-        state.engine.backgroundState.ApprovalController.pendingApprovalCount = 0;
+        const initialState = cloneDeep(typedSignV1ConfirmationState);
+        const state = {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              ApprovalController: {
+                ...initialState.engine.backgroundState.ApprovalController,
+                pendingApprovals: {},
+                pendingApprovalCount: 0,
+              },
+            },
+          },
+        };
 
         const { getByTestId, UNSAFE_getByType } = renderWithProvider(
           <Confirm />,
@@ -294,12 +306,21 @@ describe('Confirm', () => {
         forceBottomSheet: true,
         loader: ConfirmationLoader.CustomAmount,
       });
-      const state = cloneDeep(typedSignV1ConfirmationState);
-      const approvals = state.engine.backgroundState.ApprovalController;
-      state.engine.backgroundState.ApprovalController = {
-        ...approvals,
-        pendingApprovals: {},
-        pendingApprovalCount: 0,
+      const initialState = cloneDeep(typedSignV1ConfirmationState);
+      const approvals = initialState.engine.backgroundState.ApprovalController;
+      const state = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            ApprovalController: {
+              ...approvals,
+              pendingApprovals: {},
+              pendingApprovalCount: 0,
+            },
+          },
+        },
       };
       const { store, UNSAFE_getByType, queryByTestId } = renderWithProvider(
         <Confirm />,
