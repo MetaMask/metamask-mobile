@@ -7,7 +7,8 @@ import { IconName } from '../../components/Icons/Icon';
 
 // Internal dependencies.
 import MainActionButton from './MainActionButton';
-import { MAINACTIONBUTTON_TEST_ID } from './MainActionButton.constants';
+
+const MAIN_ACTION_BUTTON_TEST_ID = 'main-action-button';
 
 describe('MainActionButton', () => {
   it('renders with required props', () => {
@@ -16,11 +17,11 @@ describe('MainActionButton', () => {
         iconName={IconName.Add}
         label="Test Button"
         onPress={jest.fn}
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
 
-    expect(getByTestId(MAINACTIONBUTTON_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(MAIN_ACTION_BUTTON_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders the label text', () => {
@@ -42,10 +43,10 @@ describe('MainActionButton', () => {
         label="Test Button"
         onPress={jest.fn}
         isDisabled
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
-    const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
+    const button = getByTestId(MAIN_ACTION_BUTTON_TEST_ID);
     expect(button).toBeDisabled();
   });
 
@@ -57,11 +58,11 @@ describe('MainActionButton', () => {
         iconName={IconName.Add}
         label="Test Button"
         onPress={mockOnPress}
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
 
-    fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+    fireEvent.press(getByTestId(MAIN_ACTION_BUTTON_TEST_ID));
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
@@ -77,10 +78,10 @@ describe('MainActionButton', () => {
         onPress={jest.fn}
         onPressIn={mockOnPressIn}
         onPressOut={mockOnPressOut}
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
-    const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
+    const button = getByTestId(MAIN_ACTION_BUTTON_TEST_ID);
 
     fireEvent(button, 'pressIn');
     fireEvent(button, 'pressOut');
@@ -98,11 +99,11 @@ describe('MainActionButton', () => {
         label="Test Button"
         onPress={mockOnPress}
         isDisabled
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
 
-    fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+    fireEvent.press(getByTestId(MAIN_ACTION_BUTTON_TEST_ID));
 
     expect(mockOnPress).not.toHaveBeenCalled();
   });
@@ -117,11 +118,11 @@ describe('MainActionButton', () => {
         onPress={jest.fn}
         onPressIn={mockOnPressIn}
         isDisabled
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
 
-    fireEvent(getByTestId(MAINACTIONBUTTON_TEST_ID), 'pressIn');
+    fireEvent(getByTestId(MAIN_ACTION_BUTTON_TEST_ID), 'pressIn');
 
     expect(mockOnPressIn).not.toHaveBeenCalled();
   });
@@ -135,11 +136,11 @@ describe('MainActionButton', () => {
         label="Styled Button"
         onPress={jest.fn}
         style={customStyle}
-        testID={MAINACTIONBUTTON_TEST_ID}
+        testID={MAIN_ACTION_BUTTON_TEST_ID}
       />,
     );
 
-    expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toMatchObject(
+    expect(getByTestId(MAIN_ACTION_BUTTON_TEST_ID).props.style).toMatchObject(
       customStyle,
     );
   });
