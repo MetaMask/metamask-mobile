@@ -101,7 +101,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent(input, 'focus');
 
       expect(input).toBeTruthy();
@@ -128,7 +128,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent(input, 'focus');
       fireEvent(input, 'blur');
 
@@ -157,7 +157,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent(input, 'keyPress', {
         nativeEvent: { key: 'Backspace' },
       });
@@ -241,7 +241,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent.changeText(
         input,
         'abandon ability able about above absent absorb abstract wallet walnut want war',
@@ -269,7 +269,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent.changeText(input, 'wallet');
 
       expect(mockOnSeedPhraseChange).toHaveBeenCalled();
@@ -318,7 +318,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent(input, 'focus');
       fireEvent(input, 'blur');
 
@@ -355,7 +355,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent.changeText(input, 'wal');
 
       rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet', '']} />);
@@ -419,7 +419,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} ref={ref} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent(input, 'focus');
 
       expect(ref.current?.handleSuggestionSelect).toBeDefined();
@@ -436,7 +436,7 @@ describe('SrpInputGrid', () => {
         <SrpInputGrid {...defaultProps} ref={ref} />,
       );
 
-      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      const input = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
       fireEvent(input, 'focus');
 
       ref.current?.handleSuggestionSelect('wallet');

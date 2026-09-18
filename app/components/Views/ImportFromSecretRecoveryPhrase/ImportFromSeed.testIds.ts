@@ -20,4 +20,11 @@ export const ImportFromSeedSelectorsIDs = {
   WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
   IMPORT_FROM_EXTENSION_LINK_ID:
     'import-from-seed-screen-import-from-extension-link-id',
+  IMPORT_OPTIONS_SHEET_ID: 'import-from-seed-screen-import-options-sheet-id',
+  IMPORT_OPTIONS_SHEET_CLOSE_ID:
+    'import-from-seed-screen-import-options-sheet-close-id',
+  IMPORT_FROM_SRP_QR_OPTION_ID:
+    'import-from-seed-screen-import-from-srp-qr-option-id',
+  IMPORT_FROM_EXTENSION_OPTION_ID:
+    'import-from-seed-screen-import-from-extension-option-id',
 };
