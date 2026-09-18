@@ -87,4 +87,21 @@ describe('SuccessErrorSheet', () => {
 
     expect(mockRoute.params.onClose).toHaveBeenCalled();
   });
+
+  it('does not render the header close button when the sheet is not interactable', () => {
+    const mockBlockingRoute = {
+      params: {
+        ...mockRoute.params,
+        isInteractable: false,
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={mockBlockingRoute} />,
+    );
+
+    expect(
+      queryByTestId(SuccessErrorSheetSelectorsIDs.CLOSE_BUTTON),
+    ).toBeNull();
+  });
 });

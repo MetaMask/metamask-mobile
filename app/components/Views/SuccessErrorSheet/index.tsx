@@ -71,6 +71,15 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
   const hasFooterButtons = Boolean(secondaryButtonLabel || primaryButtonLabel);
 
+  const headerCloseProps = isInteractable
+    ? {
+        onClose: handleHeaderClose,
+        closeButtonProps: {
+          testID: SuccessErrorSheetSelectorsIDs.CLOSE_BUTTON,
+        },
+      }
+    : {};
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -80,13 +89,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       keyboardAvoidingViewEnabled={false}
       testID={SuccessErrorSheetSelectorsIDs.SHEET}
     >
-      <HeaderStandard
-        title=""
-        onClose={handleHeaderClose}
-        closeButtonProps={{
-          testID: SuccessErrorSheetSelectorsIDs.CLOSE_BUTTON,
-        }}
-      />
+      <HeaderStandard title="" {...headerCloseProps} />
       <Box twClassName="px-4 pb-6 gap-2">
         <TitleAlert
           severity={
