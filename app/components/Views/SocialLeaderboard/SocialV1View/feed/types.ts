@@ -2,6 +2,7 @@ import type { PositionTokenAvatarData } from '../../components/PositionTokenAvat
 
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
+export type SocialV1FeedTab = 'trending' | 'following';
 
 export interface SocialV1FeedAsset {
   symbol: string;
@@ -75,19 +76,49 @@ export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
 }
 
 /**
+ * Composer-shared spot position. Reuses the open card layout; Copy trade is
+ * gated by `showCopyTrade` so a closed share still has no CTA.
+ */
+export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotShare';
+  side: SocialV1SpotSide;
+  markPriceLabel?: string;
+  entryPriceLabel?: string;
+  holdTimeLabel?: string;
+  showCopyTrade?: boolean;
+}
+
+/**
  * Two layouts -- open and closed -- crossed with the asset class. Open cards
  * lead with current value and offer Copy trade; closed cards lead with realized
  * P&L and offer nothing, because there is no longer a position to copy. The
- * asset class only decides which stat rows sit between.
+ * asset class only decides which stat rows sit between. `spotShare` is the
+ * composer insert of a spot position.
  */
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
   | SocialV1PerpsClosedFeedItem
   | SocialV1SpotOpenFeedItem
-  | SocialV1SpotClosedFeedItem;
+  | SocialV1SpotClosedFeedItem
+  | SocialV1SpotShareFeedItem;
+
+export interface SocialV1FeedPost {
+  id: string;
+  authorHandle: string;
+  authorImageUrl?: string | null;
+  winRateLabel?: string;
+  timestampMs: number;
+  likeCount: number;
+  commentCount: number;
+  gifUri?: string;
+  isPending?: boolean;
+  item: SocialV1FeedItem;
+}
 
 export interface UseSocialV1FeedResult {
-  items: SocialV1FeedItem[];
+  posts: SocialV1FeedPost[];
+  pendingPost: SocialV1FeedPost | null;
+  pendingStartedAtMs: number | null;
   isLoading: boolean;
   error: string | null;
 }
