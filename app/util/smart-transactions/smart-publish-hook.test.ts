@@ -169,7 +169,9 @@ function withRequest<ReturnValue>(
     .spyOn(smartTransactionsController, 'getFees')
     .mockResolvedValue({
       tradeTxFees: {
-        cancelFees: [],
+        cancelFees: [
+          { maxFeePerGas: 25687273902, maxPriorityFeePerGas: 5706290472 },
+        ],
         feeEstimate: 42000000000000,
         fees: [{ maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 }],
         gasLimit: 21000,
@@ -311,6 +313,9 @@ describe('submitSmartTransactionHook', () => {
 
         expect(result).toEqual({ transactionHash });
         const { txParams, chainId } = request.transactionMeta;
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledTimes(1);
         expect(
           request.transactionController.approveTransactionsWithSameNonce,
         ).toHaveBeenCalledWith(
