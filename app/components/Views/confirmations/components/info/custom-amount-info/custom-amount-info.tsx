@@ -237,6 +237,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // later is never dismissed from under them.
     const wasPrefillSkippedRef = useRef(skipDepositPrefill);
     const isPrefillSkipReleasedRef = useRef(false);
+
+    // Tapping the amount is an explicit request to edit, which the user can
+    // make as soon as the prefilled value renders — long before quotes arrive.
+    // A prefill landing or re-running afterwards must not auto-submit that
+    // keypad closed, which left the amount unresponsive until quotes settled.
+    const hasUserOpenedKeypadRef = useRef(false);
+
     useEffect(() => {
       if (wasPrefillSkippedRef.current && !skipDepositPrefill) {
         isPrefillSkipReleasedRef.current = true;
@@ -310,7 +317,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
-      if (wasPrefillPending.current && !isPrefillPending) {
+      if (
+        wasPrefillPending.current &&
+        !isPrefillPending &&
+        !hasUserOpenedKeypadRef.current
+      ) {
         handleDone();
       }
       wasPrefillPending.current = isPrefillPending;
@@ -328,10 +339,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      // A keypad opened only because the prefill was skipped is not editing.
+      // A keypad opened only because the prefill was skipped is not editing;
+      // one the user opened by tapping the amount is.
       if (
         stage === CustomAmountStage.AmountInput &&
-        (hasUserEditedAmountRef.current || !isPrefillSkipReleasedRef.current)
+        (hasUserEditedAmountRef.current ||
+          hasUserOpenedKeypadRef.current ||
+          !isPrefillSkipReleasedRef.current)
       ) {
         return;
       }
@@ -383,6 +397,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone, stage]);
 
     const handleAmountPress = useCallback(() => {
+      hasUserOpenedKeypadRef.current = true;
       setStage(CustomAmountStage.AmountInput);
     }, [setStage]);
 
