@@ -4,6 +4,7 @@ import {
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { useSourceAmountInput } from './index';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { playSelection } from '../../../../../util/haptics';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 import Engine from '../../../../../core/Engine';
@@ -62,6 +63,11 @@ jest.mock('../../utils/currencyUtils', () => ({
 jest.mock('../../utils/formatAmountWithLocaleSeparators', () => ({
   formatAmountWithLocaleSeparators: (value: string) => value,
 }));
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 
 const mockPlaySelection = jest.mocked(playSelection);
 const mockUseTokenFiatRate = jest.mocked(useTokenFiatRate);
@@ -71,6 +77,7 @@ const mockTrackUnifiedSwapBridgeEvent = jest.mocked(
 
 describe('useSourceAmountInput haptics', () => {
   it('plays selection haptic when toggling fiat mode', () => {
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
     mockUseTokenFiatRate.mockReturnValue(2000);
     mockPlaySelection.mockResolvedValue(undefined);
     const { result } = renderHook(() =>
@@ -84,7 +91,6 @@ describe('useSourceAmountInput haptics', () => {
           decimals: 18,
         },
         onSourceAmountChange: jest.fn(),
-        featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
       }),
     );
 
@@ -98,6 +104,7 @@ describe('useSourceAmountInput haptics', () => {
 
 describe('useSourceAmountInput analytics', () => {
   it('tracks the fiat toggle with the feature id of the flow using the input', () => {
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
     mockUseTokenFiatRate.mockReturnValue(2000);
     mockPlaySelection.mockResolvedValue(undefined);
     const { result } = renderHook(() =>
@@ -111,7 +118,6 @@ describe('useSourceAmountInput analytics', () => {
           decimals: 18,
         },
         onSourceAmountChange: jest.fn(),
-        featureId: FeatureId.LIMIT_ORDER,
       }),
     );
 

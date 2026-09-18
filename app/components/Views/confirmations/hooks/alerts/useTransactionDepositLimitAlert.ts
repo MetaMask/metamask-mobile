@@ -5,7 +5,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
@@ -44,7 +44,7 @@ export function useTransactionDepositLimitAlert({
 
   return useMemo(() => {
     if (!exceedsLimit || depositLimit === undefined) {
-      return [];
+      return NO_ALERTS;
     }
 
     const title = strings('alert_system.deposit_limit.title', {
