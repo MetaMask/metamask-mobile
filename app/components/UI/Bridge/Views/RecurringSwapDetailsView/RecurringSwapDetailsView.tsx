@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseCaipAssetType, type CaipChainId } from '@metamask/utils';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import {
   Box,
   Button,
@@ -14,6 +16,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import type {
   Status,
   TokenAmount,
@@ -26,6 +30,7 @@ import {
   ActivityDetailSection,
   ActivityDetailsAccountValue,
   ActivityDetailsBlockExplorerButton,
+  ActivityDetailsDoItAgainButton,
   ActivityDetailsDualAmountHeader,
   ActivityDetailsFeesAndTotal,
   ActivityDetailsNetworkValue,
@@ -42,7 +47,11 @@ import {
 } from '../../api/recurringOrders.types';
 import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { BridgeViewMode, type BridgeToken } from '../../types';
 import { getRecurringOrderTokens } from '../../utils/recurringOrders';
+import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
+import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
 
@@ -177,6 +186,53 @@ export function RecurringSwapDelegationButton({
   );
 }
 
+export function RecurringSwapAgainButton({
+  sourceToken,
+  destinationToken,
+}: {
+  sourceToken: BridgeToken;
+  destinationToken: BridgeToken;
+}) {
+  const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+  const { setSelectedTab, setRenderedTab } = useBridgeSession();
+
+  const handleSwapAgain = useCallback(() => {
+    dispatch(setSourceAmount(undefined));
+    setSelectedTab(BridgeTabKey.Market);
+    setRenderedTab(BridgeTabKey.Market);
+
+    const params = startSwapBridgePageLoadTrace({
+      sourcePage: 'RecurringSwapDetails',
+      bridgeViewMode: BridgeViewMode.Unified,
+      sourceToken,
+      destToken: destinationToken,
+      // TODO: Add a recurring source to MetaMetricsSwapsEventSource in @metamask/bridge-controller.
+      location: MetaMetricsSwapsEventSource.TransactionDetails,
+      scrollToTopOnNav: true,
+    });
+
+    navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params,
+    });
+  }, [
+    destinationToken,
+    dispatch,
+    navigation,
+    setRenderedTab,
+    setSelectedTab,
+    sourceToken,
+  ]);
+
+  return (
+    <ActivityDetailsDoItAgainButton
+      label={strings('activity_details.swap_again')}
+      onPress={handleSwapAgain}
+    />
+  );
+}
+
 function RecurringSwapDetailsView() {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -205,6 +261,8 @@ function RecurringSwapDetailsView() {
   const shouldOfferDelegation =
     swap.status === RecurringSwapStatus.Skipped &&
     swap.skipReason === 'needs_smart_account';
+  const shouldOfferSwapAgain =
+    swap.status === RecurringSwapStatus.Failed && Boolean(swap.txHash);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -305,15 +363,23 @@ function RecurringSwapDetailsView() {
               </>
             }
             footer={
-              shouldOfferDelegation ? (
+              swap.txHash ? (
+                <>
+                  <ActivityDetailsBlockExplorerButton
+                    chainId={chainId}
+                    hash={swap.txHash}
+                  />
+                  {shouldOfferSwapAgain ? (
+                    <RecurringSwapAgainButton
+                      sourceToken={sourceToken}
+                      destinationToken={destinationToken}
+                    />
+                  ) : null}
+                </>
+              ) : shouldOfferDelegation ? (
                 <RecurringSwapDelegationButton
                   address={order.src.walletAddress}
                   chainId={chainId}
-                />
-              ) : swap.txHash ? (
-                <ActivityDetailsBlockExplorerButton
-                  chainId={chainId}
-                  hash={swap.txHash}
                 />
               ) : null
             }

@@ -42,8 +42,24 @@ export const withBridgeSession = (Component: React.ComponentType) =>
   };
 
 export const BridgeViewWithSession = withBridgeSession(BridgeView);
+const RecurringSwapDetailsViewWithSession = withBridgeSession(
+  RecurringSwapDetailsView,
+);
 
 const ScreensStack = createNativeStackNavigator();
+const BridgeProbeStack = createNativeStackNavigator();
+const BridgeViewParamsProbe = createRouteParamsProbe(Routes.BRIDGE.BRIDGE_VIEW);
+
+function BridgeNavigatorProbe() {
+  return (
+    <BridgeProbeStack.Navigator screenOptions={{ headerShown: false }}>
+      <BridgeProbeStack.Screen
+        name={Routes.BRIDGE.BRIDGE_VIEW}
+        component={BridgeViewParamsProbe}
+      />
+    </BridgeProbeStack.Navigator>
+  );
+}
 
 const renderBridgeViewWithRoutes = (
   extraScreens: { name: string; Component: React.ComponentType<object> }[],
@@ -212,7 +228,12 @@ export function renderRecurringOrderDetailsView({
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
         Component:
-          RecurringSwapDetailsView as unknown as React.ComponentType<object>,
+          RecurringSwapDetailsViewWithSession as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.BRIDGE.ROOT,
+        Component:
+          BridgeNavigatorProbe as unknown as React.ComponentType<object>,
       },
       {
         name: Routes.WEBVIEW.MAIN,

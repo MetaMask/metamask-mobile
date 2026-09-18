@@ -22,6 +22,7 @@ import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView
 const BLOCK_EXPLORER_BUTTON_LABEL = strings(
   'activity_details.view_on_block_explorer',
 );
+const SWAP_AGAIN_BUTTON_LABEL = strings('activity_details.swap_again');
 
 function getRequiredTxHash(swap: RecurringSwap): string {
   if (!swap.txHash) {
@@ -118,6 +119,9 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(
       renderResult.getByText(BLOCK_EXPLORER_BUTTON_LABEL),
     ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByText(SWAP_AGAIN_BUTTON_LABEL),
+    ).not.toBeOnTheScreen();
 
     await userEvent.press(
       renderResult.getByTestId(
@@ -152,6 +156,7 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(
       renderResult.getByText(BLOCK_EXPLORER_BUTTON_LABEL),
     ).toBeOnTheScreen();
+    expect(renderResult.getByText(SWAP_AGAIN_BUTTON_LABEL)).toBeOnTheScreen();
   });
 
   it('shows skipped attempt details without transaction-only content', async () => {
@@ -191,6 +196,9 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
         RecurringSwapDetailsViewSelectorsIDs.DELEGATE_ACCOUNT_BUTTON,
       ),
     ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByText(SWAP_AGAIN_BUTTON_LABEL),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows a smart-account-required attempt without transaction-only content', async () => {
@@ -216,6 +224,25 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(
       renderResult.queryByText(BLOCK_EXPLORER_BUTTON_LABEL),
     ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByText(SWAP_AGAIN_BUTTON_LABEL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens Unified Swaps with the failed swap token pair and no amount', async () => {
+    const { renderResult } = await openSwapDetails(4);
+
+    await userEvent.press(renderResult.getByText(SWAP_AGAIN_BUTTON_LABEL));
+
+    const routeParams = await renderResult.findByTestId(
+      `route-${Routes.BRIDGE.BRIDGE_VIEW}-params`,
+    );
+    expect(routeParams).toHaveTextContent('"bridgeViewMode":"Unified"', {
+      exact: false,
+    });
+    expect(routeParams).toHaveTextContent('"symbol":"ETH"', { exact: false });
+    expect(routeParams).toHaveTextContent('"symbol":"USDC"', { exact: false });
+    expect(routeParams).not.toHaveTextContent('sourceAmount');
   });
 
   it('opens an on-chain swap in the block explorer', async () => {

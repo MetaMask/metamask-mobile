@@ -1,11 +1,47 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
-import { RecurringSwapDelegationButton } from './RecurringSwapDetailsView';
+import { BridgeViewMode, type BridgeToken } from '../../types';
+import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
+import {
+  RecurringSwapAgainButton,
+  RecurringSwapDelegationButton,
+} from './RecurringSwapDetailsView';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
+
+const mockSetSelectedTab = jest.fn();
+const mockSetRenderedTab = jest.fn();
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: () => ({
+    setSelectedTab: mockSetSelectedTab,
+    setRenderedTab: mockSetRenderedTab,
+  }),
+}));
+
+jest.mock('../../utils/swapBridgePageLoadTrace', () => ({
+  startSwapBridgePageLoadTrace: (route: Record<string, unknown>) => ({
+    ...route,
+    swapViewTraceId: 'test-trace-id',
+  }),
+}));
 
 jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
   useAutoUpgradeEIP7702Account: jest.fn(),
@@ -23,6 +59,18 @@ const mockGetUpgradeStatus = jest.fn();
 const DELEGATE_ACCOUNT_LABEL = strings(
   'bridge.recurring.delegate_your_account',
 );
+const SOURCE_TOKEN: BridgeToken = {
+  address: '0x0000000000000000000000000000000000000000',
+  chainId: 'eip155:1',
+  decimals: 18,
+  symbol: 'ETH',
+};
+const DESTINATION_TOKEN: BridgeToken = {
+  address: '0x1234567890123456789012345678901234567890',
+  chainId: 'eip155:1',
+  decimals: 6,
+  symbol: 'USDC',
+};
 
 function renderDelegationButton() {
   return renderWithProvider(
@@ -33,6 +81,44 @@ function renderDelegationButton() {
     {},
   );
 }
+
+describe('RecurringSwapAgainButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens Unified Swaps on the Market tab with tokens and no amount', () => {
+    const renderResult = renderWithProvider(
+      <RecurringSwapAgainButton
+        sourceToken={SOURCE_TOKEN}
+        destinationToken={DESTINATION_TOKEN}
+      />,
+      {},
+    );
+
+    fireEvent.press(
+      renderResult.getByText(strings('activity_details.swap_again')),
+    );
+
+    expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
+    expect(mockSetSelectedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
+    expect(mockSetRenderedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: expect.objectContaining({
+        sourcePage: 'RecurringSwapDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        sourceToken: SOURCE_TOKEN,
+        destToken: DESTINATION_TOKEN,
+        location: MetaMetricsSwapsEventSource.TransactionDetails,
+        scrollToTopOnNav: true,
+      }),
+    });
+    expect(mockNavigate.mock.calls[0][1].params).not.toHaveProperty(
+      'sourceAmount',
+    );
+  });
+});
 
 describe('RecurringSwapDelegationButton', () => {
   beforeEach(() => {
