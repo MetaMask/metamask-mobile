@@ -1000,6 +1000,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  SocialPostComposerView: undefined;
   MyProfileView: undefined;
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {
@@ -1131,6 +1132,7 @@ export type RootStackParamList = {
   CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
   CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
   CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
+  CardContactDetails: CardScreensStackParamList['CardContactDetails'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
