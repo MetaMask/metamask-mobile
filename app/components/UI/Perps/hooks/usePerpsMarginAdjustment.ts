@@ -47,11 +47,25 @@ export function usePerpsMarginAdjustment(
         `usePerpsMarginAdjustment: Setting isAdjusting to true (action: ${action})`,
       );
 
-      try {
-        // Convert amount to string with proper sign
-        // Positive for add, negative for remove
-        const adjustmentAmount = action === 'remove' ? -amount : amount;
+      // Positive for add, negative for remove
+      const adjustmentAmount = action === 'remove' ? -amount : amount;
+      const trackAdjustment = (
+        status:
+          | typeof PERPS_EVENT_VALUE.STATUS.SUCCESS
+          | typeof PERPS_EVENT_VALUE.STATUS.FAILED,
+        errorMessage?: string,
+      ) => {
+        track(MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION, {
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+          [PERPS_EVENT_PROPERTY.ACTION]: action,
+          [PERPS_EVENT_PROPERTY.STATUS]: status,
+          ...(errorMessage && {
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+          }),
+        });
+      };
 
+      try {
         const result = await updateMargin({
           symbol,
           amount: adjustmentAmount.toString(),
@@ -74,11 +88,7 @@ export function usePerpsMarginAdjustment(
                 ),
           );
 
-          track(MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION, {
-            [PERPS_EVENT_PROPERTY.ASSET]: symbol,
-            [PERPS_EVENT_PROPERTY.ACTION]: action,
-            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
-          });
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.SUCCESS);
 
           // Call success callback if provided
           options?.onSuccess?.();
@@ -86,6 +96,7 @@ export function usePerpsMarginAdjustment(
           DevLogger.log('Failed to adjust margin:', result.error);
 
           const errorMessage = translatePerpsError(result.error);
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -124,6 +135,7 @@ export function usePerpsMarginAdjustment(
         });
 
         const errorMessage = translatePerpsError(error);
+        trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(

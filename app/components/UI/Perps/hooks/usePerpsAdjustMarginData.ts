@@ -32,6 +32,8 @@ export interface UsePerpsAdjustMarginDataReturn {
   hasValidPositionData: boolean;
   /** Current margin in position */
   currentMargin: number;
+  /** Margin after applying the current input amount */
+  newMargin: number;
   /** Position notional value */
   positionValue: number;
   /** Max amount that can be added/removed */
@@ -58,25 +60,16 @@ const parseFiniteNumber = (
   value: string | number | null | undefined,
   fallback = 0,
 ): number => {
-  const parsedValue =
-    typeof value === 'number' ? value : Number.parseFloat(value || '');
+  if (
+    value === null ||
+    value === undefined ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
+    return fallback;
+  }
+  const parsedValue = Number(value);
   return Number.isFinite(parsedValue) ? parsedValue : fallback;
 };
-
-const isFiniteNumber = (value: string | number | null | undefined): boolean => {
-  if (value === null || value === undefined || value === '') {
-    return false;
-  }
-  return Number.isFinite(Number(value));
-};
-
-const isPositiveFiniteNumber = (
-  value: string | number | null | undefined,
-): boolean => isFiniteNumber(value) && Number(value) > 0;
-
-const isNonZeroFiniteNumber = (
-  value: string | number | null | undefined,
-): boolean => isFiniteNumber(value) && Number(value) !== 0;
 
 /**
  * Hook for margin adjustment data and calculations
@@ -110,21 +103,6 @@ export function usePerpsAdjustMarginData(
     [positions, symbol],
   );
 
-  const hasValidPositionData = useMemo(() => {
-    if (!position) {
-      return false;
-    }
-
-    return (
-      isPositiveFiniteNumber(position.marginUsed) &&
-      isPositiveFiniteNumber(position.positionValue) &&
-      isPositiveFiniteNumber(position.liquidationPrice) &&
-      isNonZeroFiniteNumber(position.size) &&
-      isPositiveFiniteNumber(position.entryPrice) &&
-      isPositiveFiniteNumber(position.leverage?.value)
-    );
-  }, [position]);
-
   // Get market info for max leverage fallback
   const marketInfo = useMemo(
     () => (symbol ? markets.find((m) => m.symbol === symbol) : null),
@@ -147,15 +125,29 @@ export function usePerpsAdjustMarginData(
     positionSize,
     entryPrice,
     isLong,
+    parsedPositionLeverage,
+    hasValidPositionData,
   } = useMemo(() => {
     const signedPositionSize = parseFiniteNumber(position?.size);
+    const currentMarginValue = parseFiniteNumber(position?.marginUsed);
+    const positionValueValue = parseFiniteNumber(position?.positionValue);
+    const entryPriceValue = parseFiniteNumber(position?.entryPrice);
+    const leverageValue = parseFiniteNumber(position?.leverage?.value);
     return {
-      currentMargin: parseFiniteNumber(position?.marginUsed),
-      positionValue: parseFiniteNumber(position?.positionValue),
+      currentMargin: currentMarginValue,
+      positionValue: positionValueValue,
       currentLiquidationPrice: parseFiniteNumber(position?.liquidationPrice),
       positionSize: Math.abs(signedPositionSize),
-      entryPrice: parseFiniteNumber(position?.entryPrice),
+      entryPrice: entryPriceValue,
       isLong: signedPositionSize > 0,
+      parsedPositionLeverage: leverageValue,
+      hasValidPositionData:
+        Boolean(position) &&
+        currentMarginValue > 0 &&
+        positionValueValue > 0 &&
+        signedPositionSize !== 0 &&
+        entryPriceValue > 0 &&
+        leverageValue > 0,
     };
   }, [position]);
 
@@ -169,10 +161,6 @@ export function usePerpsAdjustMarginData(
     [account],
   );
 
-  const parsedPositionLeverage = parseFiniteNumber(
-    position?.leverage?.value,
-    maxLeverage,
-  );
   const positionLeverage =
     parsedPositionLeverage > 0 ? parsedPositionLeverage : maxLeverage;
 
@@ -256,6 +244,7 @@ export function usePerpsAdjustMarginData(
     isLoading: isInitialLoading,
     hasValidPositionData,
     currentMargin,
+    newMargin,
     positionValue,
     maxAmount,
     currentLiquidationPrice,

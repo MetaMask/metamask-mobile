@@ -74,10 +74,11 @@ jest.mock('@metamask/perps-controller', () => ({
   PERPS_EVENT_PROPERTY: {
     ACTION: 'action',
     ASSET: 'asset',
+    ERROR_MESSAGE: 'error_message',
     STATUS: 'status',
   },
   PERPS_EVENT_VALUE: {
-    STATUS: { SUCCESS: 'success' },
+    STATUS: { FAILED: 'failed', SUCCESS: 'success' },
   },
   getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
 }));
@@ -215,7 +216,17 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnError).toHaveBeenCalledWith('Insufficient funds');
-      expect(mockTrack).not.toHaveBeenCalled();
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'add',
+          asset: 'ETH',
+          error_message: 'Insufficient funds',
+          status: 'failed',
+        },
+      );
     });
   });
 
@@ -329,6 +340,17 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnError).toHaveBeenCalledWith('Network error');
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'add',
+          asset: 'ETH',
+          error_message: 'Network error',
+          status: 'failed',
+        },
+      );
     });
 
     it('captures remove action in Logger context', async () => {

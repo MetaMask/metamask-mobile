@@ -133,6 +133,24 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.position).toBeNull();
     });
 
+    it('accepts a position without a liquidation price', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, liquidationPrice: null }],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.hasValidPositionData).toBe(true);
+      expect(result.current.currentLiquidationPrice).toBe(0);
+    });
+
     it('returns isLoading true when positions are loading', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
@@ -239,8 +257,8 @@ describe('usePerpsAdjustMarginData', () => {
 
     it.each([
       { marginUsed: '0' },
+      { marginUsed: '100abc' },
       { positionValue: '0' },
-      { liquidationPrice: 'NaN' },
       { size: '0' },
       { entryPrice: 'Infinity' },
       { leverage: { value: 0, type: 'isolated' as const } },
@@ -346,6 +364,7 @@ describe('usePerpsAdjustMarginData', () => {
       // marginDelta = 1000, positionSize = 0.5, currentLiqPrice = 80000
       // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 1 - 0.01 = 0.99
       // For long (direction=-1): newLiqPrice = 80000 + (-1 * 1000 / 0.5) / 0.99 ≈ 77979.80
+      expect(result.current.newMargin).toBe(6000);
       expect(result.current.newLiquidationPrice).toBeCloseTo(77979.8, 1);
     });
 
@@ -372,6 +391,7 @@ describe('usePerpsAdjustMarginData', () => {
       // marginDelta = -1000 (removing), positionSize = 0.5, currentLiqPrice = 80000
       // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 0.99
       // For long (direction=-1): newLiqPrice = 80000 + (-1 * -1000 / 0.5) / 0.99 ≈ 82020.20
+      expect(result.current.newMargin).toBe(7000);
       expect(result.current.newLiquidationPrice).toBeCloseTo(82020.2, 1);
     });
   });

@@ -69,6 +69,9 @@ import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSh
 
 export type PerpsAdjustMarginMode = 'add' | 'remove';
 
+const isAdjustMarginMode = (value: string): value is PerpsAdjustMarginMode =>
+  value === 'add' || value === 'remove';
+
 interface PerpsAdjustMarginBottomSheetProps {
   position: Position;
   initialMode: PerpsAdjustMarginMode;
@@ -84,12 +87,6 @@ interface SubmittedEstimate {
 
 const floorUsd = (value: number) => Math.floor(value * 100) / 100;
 
-const calculateNextMargin = (
-  currentMargin: number,
-  amount: number,
-  isAddMode: boolean,
-) => (isAddMode ? currentMargin + amount : Math.max(0, currentMargin - amount));
-
 const formatLiquidationDistance = (
   distance: number,
   liquidationPrice: number,
@@ -99,6 +96,13 @@ const formatLiquidationDistance = (
   liquidationPrice <= 0
     ? PERPS_CONSTANTS.FallbackDataDisplay
     : `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+
+const formatLiquidationPrice = (liquidationPrice: number) =>
+  Number.isFinite(liquidationPrice) && liquidationPrice > 0
+    ? formatPerpsFiat(liquidationPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      })
+    : PERPS_CONSTANTS.FallbackDataDisplay;
 
 const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
@@ -187,6 +191,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     isLoading,
     hasValidPositionData,
     currentMargin,
+    newMargin,
     maxAmount,
     currentLiquidationPrice,
     newLiquidationPrice,
@@ -228,12 +233,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const positionDataError = isPositionDataInvalid
     ? strings('perps.adjust_margin.position_data_unavailable')
     : null;
-  const displayedErrors = [
-    validationError,
-    submissionError,
-    positionError,
-    positionDataError,
-  ].filter((error): error is string => Boolean(error));
+  const displayedError =
+    positionError ?? positionDataError ?? submissionError ?? validationError;
+  const isValidationErrorDisplayed =
+    Boolean(validationError) && displayedError === validationError;
   const hasInvalidAmount =
     marginAmount <= 0 ||
     marginAmount > flooredMaxAmount ||
@@ -253,8 +256,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_ERROR,
-    conditions: [Boolean(validationError)],
-    resetConditions: [!validationError],
+    conditions: [isValidationErrorDisplayed],
+    resetConditions: [!isValidationErrorDisplayed],
     resetKey: mode,
     properties: {
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
@@ -290,17 +293,16 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
   const handleModeChange = useCallback(
     (nextMode: string) => {
-      if (adjustmentPendingRef.current) {
+      if (adjustmentPendingRef.current || !isAdjustMarginMode(nextMode)) {
         return;
       }
-      setMode(nextMode as PerpsAdjustMarginMode);
+      setMode(nextMode);
       setMarginAmountString('0');
       setIsInputFocused(false);
       setSubmissionError(null);
       submittedEstimateRef.current = null;
 
-      // The toggle replaces the action-choice sheet under treatment, so it
-      // carries that sheet's add/remove selection event.
+      // Track explicit add/remove changes made with the treatment toggle.
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           nextMode === 'remove'
@@ -366,7 +368,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       price: newLiquidationPrice,
       distance: newLiquidationDistance,
       currentMargin,
-      nextMargin: calculateNextMargin(currentMargin, marginAmount, isAddMode),
+      nextMargin: newMargin,
     };
 
     if (isAddMode) {
@@ -384,6 +386,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     isAddMode,
     isAdjusting,
     marginAmount,
+    newMargin,
     newLiquidationDistance,
     newLiquidationPrice,
     playHapticImpact,
@@ -397,9 +400,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     submittedEstimate?.distance ?? newLiquidationDistance;
   const displayCurrentMargin =
     submittedEstimate?.currentMargin ?? currentMargin;
-  const nextMargin =
-    submittedEstimate?.nextMargin ??
-    calculateNextMargin(currentMargin, marginAmount, isAddMode);
+  const displayNextMargin = submittedEstimate?.nextMargin ?? newMargin;
   const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   const renderTransitionValue = (
@@ -532,17 +533,16 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               />
             )}
 
-            {displayedErrors.map((error, index) => (
+            {displayedError && (
               <HelpText
-                key={`${error}-${index}`}
                 severity={HelpTextSeverity.Danger}
                 twClassName="justify-center text-center"
                 testID={PerpsAdjustMarginBottomSheetSelectorsIDs.ERROR}
                 accessibilityRole="alert"
               >
-                {error}
+                {displayedError}
               </HelpText>
-            ))}
+            )}
           </Box>
 
           <Box accessible={false}>
@@ -553,7 +553,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                 formatPerpsFiat(displayCurrentMargin, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
                 }),
-                formatPerpsFiat(nextMargin, {
+                formatPerpsFiat(displayNextMargin, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
                 }),
                 PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_VALUE,
@@ -585,12 +585,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                 )} ${strings('navigation.info')}`,
               }}
               value={renderTransitionValue(
-                formatPerpsFiat(currentLiquidationPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                }),
-                formatPerpsFiat(displayNewLiquidationPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                }),
+                formatLiquidationPrice(currentLiquidationPrice),
+                formatLiquidationPrice(displayNewLiquidationPrice),
                 PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
               )}
             />

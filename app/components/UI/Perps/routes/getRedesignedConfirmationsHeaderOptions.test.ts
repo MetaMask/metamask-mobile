@@ -9,17 +9,10 @@ import {
 } from './index';
 
 const mockUseRoute = jest.fn();
-const mockSetOptions = jest.fn();
-const mockScreenVsBottomSheetAbTest = { useBottomSheet: false };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ setOptions: mockSetOptions }),
   useRoute: () => mockUseRoute(),
-}));
-
-jest.mock('../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
-  usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
 jest.mock('../components/PerpsAdjustMarginBottomSheet', () => {
@@ -129,10 +122,9 @@ describe('PerpsAdjustMarginRouter', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the existing screen for the control assignment', () => {
-    mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+  it('renders the existing screen for the control presentation', () => {
     mockUseRoute.mockReturnValue({
-      params: { position, mode: 'add', useBottomSheet: true },
+      params: { position, mode: 'add', useBottomSheet: false },
     });
 
     render(React.createElement(PerpsAdjustMarginRouter));
@@ -141,19 +133,15 @@ describe('PerpsAdjustMarginRouter', () => {
     expect(
       screen.queryByTestId('adjust-margin-bottom-sheet'),
     ).not.toBeOnTheScreen();
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      title: 'Adjust Margin',
-      headerShown: false,
-    });
   });
 
-  it('renders the bottom sheet for the treatment assignment', () => {
-    mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+  it('renders the bottom sheet for the treatment presentation', () => {
     mockUseRoute.mockReturnValue({
       params: {
         position,
         mode: 'remove',
         enableHaptics: true,
+        useBottomSheet: true,
       },
     });
 
@@ -164,9 +152,6 @@ describe('PerpsAdjustMarginRouter', () => {
       'ETH-remove',
     );
     expect(screen.queryByTestId('adjust-margin-screen')).not.toBeOnTheScreen();
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      expect.objectContaining({ presentation: 'transparentModal' }),
-    );
   });
 
   it.each([
@@ -175,7 +160,6 @@ describe('PerpsAdjustMarginRouter', () => {
   ])(
     'falls back to the existing screen when treatment route params are incomplete',
     (params) => {
-      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
       mockUseRoute.mockReturnValue({ params });
 
       render(React.createElement(PerpsAdjustMarginRouter));

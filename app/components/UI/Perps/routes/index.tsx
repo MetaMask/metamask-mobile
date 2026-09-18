@@ -72,7 +72,6 @@ import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/c
 import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
-import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
@@ -204,16 +203,10 @@ const PerpsConfirmScreen = () => {
 };
 
 export const PerpsAdjustMarginRouter = () => {
-  const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsAdjustMargin'>>();
-  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
-  useEffect(() => {
-    navigation.setOptions(getAdjustMarginOptions(useBottomSheet));
-  }, [navigation, useBottomSheet]);
-
-  if (useBottomSheet && params?.position && params.mode) {
+  if (params?.useBottomSheet && params.position && params.mode) {
     return (
       <PerpsAdjustMarginBottomSheet
         position={params.position}

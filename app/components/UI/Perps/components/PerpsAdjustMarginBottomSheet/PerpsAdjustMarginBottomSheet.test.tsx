@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import type { Position } from '@metamask/perps-controller';
+import { SegmentedControl } from '@metamask/design-system-react-native';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
 import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
@@ -142,11 +143,13 @@ const position: Position = {
   stopLossCount: 0,
 };
 
-const createMarginData = (mode: 'add' | 'remove') => ({
+const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
   position,
   isLoading: false,
   hasValidPositionData: true,
   currentMargin: 500,
+  newMargin:
+    mode === 'add' ? 500 + inputAmount : Math.max(0, 500 - inputAmount),
   positionValue: 5000,
   maxAmount: mode === 'add' ? 1000 : 200,
   currentLiquidationPrice: 1900,
@@ -166,7 +169,13 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     mockHandleAddMargin.mockResolvedValue(undefined);
     mockHandleRemoveMargin.mockResolvedValue(undefined);
     mockUsePerpsAdjustMarginData.mockImplementation(
-      ({ mode }: { mode: 'add' | 'remove' }) => createMarginData(mode),
+      ({
+        mode,
+        inputAmount,
+      }: {
+        mode: 'add' | 'remove';
+        inputAmount: number;
+      }) => createMarginData(mode, inputAmount),
     );
   });
 
@@ -236,6 +245,31 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
     ).toHaveTextContent('10.00%');
+  });
+
+  it('shows fallback values when liquidation data is unavailable', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      currentLiquidationPrice: 0,
+      newLiquidationPrice: 0,
+      currentLiquidationDistance: 0,
+      newLiquidationDistance: 0,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
   });
 
   it('supports quick amounts while the keypad is open', () => {
@@ -324,6 +358,25 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
       ),
     ).toHaveTextContent('perps.adjust_margin.remove_margin_sheet');
+  });
+
+  it('ignores unsupported mode values', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    act(() => {
+      (
+        screen.UNSAFE_getByType(SegmentedControl).props as {
+          onChange: (mode: string) => void;
+        }
+      ).onChange('unsupported');
+    });
+
+    expect(mockUsePerpsAdjustMarginData).toHaveBeenLastCalledWith(
+      expect.objectContaining({ mode: 'add' }),
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('submits add mode through the existing adjustment handler', async () => {
@@ -518,6 +571,37 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         }),
       }),
     );
+  });
+
+  it('shows only the position error when validation also fails', () => {
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(100);
+    });
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove', 200),
+      position: null,
+      maxAmount: 0,
+    });
+    rerender(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(
+      screen.getByRole('alert', {
+        name: 'perps.errors.position_not_found',
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText('perps.errors.marginValidation.exceedsMaxRemovable'),
+    ).not.toBeOnTheScreen();
   });
 
   it('blocks submission when authoritative position data is malformed', () => {
