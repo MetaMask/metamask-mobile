@@ -110,8 +110,8 @@ const RIVE_MEASURE_SETTLE_DELAY_MS = 150;
 const OVERLAY_FADE_DURATION_MS = 600;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
-const HEADER_TOP_OFFSET = 70;
-const FOOTER_BOTTOM_OFFSET = 60;
+const HEADER_TOP_OFFSET = 65;
+const FOOTER_BOTTOM_OFFSET = 90;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
@@ -317,12 +317,15 @@ const MoneyOnboardingView = () => {
     instance,
   );
 
-  const { heightOffset: riveHeightOffset, onRiveLayout } =
-    useRiveLayoutMeasureNudge({
-      riveRef,
-      hasDrawn: currentStep !== undefined,
-      settleDelayMs: RIVE_MEASURE_SETTLE_DELAY_MS,
-    });
+  const {
+    heightOffset: riveHeightOffset,
+    isLayoutSettled,
+    onRiveLayout,
+  } = useRiveLayoutMeasureNudge({
+    riveRef,
+    hasDrawn: currentStep !== undefined,
+    settleDelayMs: RIVE_MEASURE_SETTLE_DELAY_MS,
+  });
 
   // Hardcoded to English to simplify event tracking.
   const stepTitlesEnglish: string[] = useMemo(
@@ -663,10 +666,12 @@ const MoneyOnboardingView = () => {
               testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
             />
           )}
-          <MoneyOnboardingTextOverlay
-            content={stepContent[overlayStep]}
-            opacity={overlayOpacity}
-          />
+          {isLayoutSettled && (
+            <MoneyOnboardingTextOverlay
+              content={stepContent[overlayStep]}
+              opacity={overlayOpacity}
+            />
+          )}
         </View>
       </ModalSafeAreaProvider>
     </Modal>

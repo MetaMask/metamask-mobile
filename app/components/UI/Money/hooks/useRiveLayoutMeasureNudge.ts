@@ -15,6 +15,13 @@ const MAX_MEASURE_NUDGES = 4;
 /** Height held back, in dp, while a measure pass is pending. */
 const MEASURE_OFFSET_DP = 1;
 
+/**
+ * Ceiling on the wait for the nudges to land. Settling depends on a layout
+ * pass that follows the final nudge, so this keeps a callback that never
+ * arrives from stranding callers that gate on `isLayoutSettled`.
+ */
+const SETTLE_TIMEOUT_MS = 2500;
+
 interface UseRiveLayoutMeasureNudgeParams {
   /** Native view methods from `useRive()`; `current` is set synchronously. */
   riveRef: RefObject<RiveViewRef | null>;
@@ -30,6 +37,8 @@ interface UseRiveLayoutMeasureNudgeParams {
 interface UseRiveLayoutMeasureNudgeResult {
   /** Subtract from the measured height while a measure pass is pending. */
   heightOffset: number;
+  /** Whether the last nudge has been absorbed by a full-size layout pass. */
+  isLayoutSettled: boolean;
   /** Pass to the `RiveView` `onLayout` prop. */
   onRiveLayout: (event?: LayoutChangeEvent) => Promise<void>;
 }
@@ -64,9 +73,11 @@ export function useRiveLayoutMeasureNudge({
   settleDelayMs,
 }: UseRiveLayoutMeasureNudgeParams): UseRiveLayoutMeasureNudgeResult {
   const [isMeasureOffsetApplied, setIsMeasureOffsetApplied] = useState(true);
+  const [isLayoutSettled, setIsLayoutSettled] = useState(false);
   const isViewReadyRef = useRef(false);
   const nudgeCountRef = useRef(0);
   const hasNudgedAfterFirstDrawRef = useRef(false);
+  const isFinalNudgeIssuedRef = useRef(false);
 
   const nudgeMeasure = useCallback(() => {
     if (nudgeCountRef.current >= MAX_MEASURE_NUDGES) {
@@ -104,6 +115,11 @@ export function useRiveLayoutMeasureNudge({
 
       // Full-size layout has landed, so this draw consumes the flagged resize.
       riveView.playIfNeeded();
+
+      // No nudge is left to shrink the view again, so this is the final size.
+      if (isFinalNudgeIssuedRef.current) {
+        setIsLayoutSettled(true);
+      }
     },
     [isMeasureOffsetApplied, riveRef],
   );
@@ -115,13 +131,34 @@ export function useRiveLayoutMeasureNudge({
 
     hasNudgedAfterFirstDrawRef.current = true;
     nudgeMeasure();
-    const timeoutId = setTimeout(nudgeMeasure, settleDelayMs);
+    const timeoutId = setTimeout(() => {
+      isFinalNudgeIssuedRef.current = true;
+      nudgeMeasure();
+    }, settleDelayMs);
 
     return () => clearTimeout(timeoutId);
   }, [hasDrawn, nudgeMeasure, settleDelayMs]);
 
+  useEffect(() => {
+    if (isLayoutSettled) {
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      Logger.error(
+        new Error(
+          `useRiveLayoutMeasureNudge: measure nudges did not settle within ${SETTLE_TIMEOUT_MS}ms`,
+        ),
+      );
+      setIsLayoutSettled(true);
+    }, SETTLE_TIMEOUT_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [isLayoutSettled]);
+
   return {
     heightOffset: isMeasureOffsetApplied ? MEASURE_OFFSET_DP : 0,
+    isLayoutSettled,
     onRiveLayout,
   };
 }
