@@ -26,6 +26,20 @@ export function getBridgeDestinationTxHash(
  * land on different history items. Empty for indexer-only rows, which have no
  * local transaction.
  */
+export function getKeyringTransactionByHash(
+  transactions: Transaction[] | undefined,
+  hash?: string,
+) {
+  if (!hash) {
+    return undefined;
+  }
+
+  const normalizedHash = hash.toLowerCase();
+  return transactions?.find(
+    (transaction) => transaction.id?.toLowerCase() === normalizedHash,
+  );
+}
+
 export function getBridgeExplorerSheetTx(
   transactionMeta?: TransactionMeta,
   keyringTransaction?: Transaction,

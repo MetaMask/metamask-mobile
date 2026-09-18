@@ -17,12 +17,13 @@ import {
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
 import { useLocalTransactionMeta } from '../hooks/useLocalTransactionMeta';
-import { useKeyringTransaction } from '../../../hooks/useKeyringTransaction';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
   getBridgeExplorerSheetTx,
   getBridgeHistoryItem,
+  getKeyringTransactionByHash,
 } from './bridgeDetailsUtils';
 
 export function BridgeDetails({
@@ -32,7 +33,13 @@ export function BridgeDetails({
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const transactionMeta = useLocalTransactionMeta(item.hash);
-  const keyringTransaction = useKeyringTransaction(item.hash);
+  const nonEvmTransactions = useSelector(
+    selectNonEvmTransactionsForSelectedAccountGroup,
+  );
+  const keyringTransaction = getKeyringTransactionByHash(
+    nonEvmTransactions?.transactions,
+    item.hash,
+  );
   const bridgeHistoryItem = getBridgeHistoryItem(
     item,
     bridgeHistory,
