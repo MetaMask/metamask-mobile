@@ -17,6 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 import {
   getManageAccountSectionHeaderId,
   getManageAccountSectionHeaderRemoveId,
+  getManageAccountSectionHeaderLockId,
 } from '../ManageAccounts.testIds';
 
 export interface ManageWalletSectionHeaderProps {
@@ -54,17 +55,11 @@ const ManageWalletSectionHeader = ({
         alignItems={BoxAlignItems.Center}
         twClassName="ml-3"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={`${getManageAccountSectionHeaderId(walletName)}-lock-label`}
-        >
-          {strings('multichain_accounts.manage_accounts.locked')}
-        </Text>
         <Icon
           name={IconName.Lock}
           size={IconSize.Sm}
           color={IconColor.IconAlternative}
+          testID={getManageAccountSectionHeaderLockId(walletName)}
           twClassName="ml-1"
         />
       </Box>

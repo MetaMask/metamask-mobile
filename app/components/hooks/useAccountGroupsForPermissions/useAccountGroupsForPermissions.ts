@@ -152,6 +152,12 @@ export const useAccountGroupsForPermissions = (
     const fulfillsRequestedAccounts = (
       accountGroup: AccountGroupWithInternalAccounts,
     ) => hasRequestedAccountIds(accountGroup, requestedCaipAccountIds);
+    // Hidden groups are only selectable when already connected or explicitly
+    // requested by the dApp.
+    const isSelectable = (accountGroup: AccountGroupWithInternalAccounts) =>
+      !accountGroup.metadata?.hidden ||
+      isConnected(accountGroup) ||
+      fulfillsRequestedAccounts(accountGroup);
 
     // Account groups that are currently connected via existing permissions (non-priority)
     const connectedAccountGroups: AccountGroupWithInternalAccounts[] =
@@ -160,7 +166,9 @@ export const useAccountGroupsForPermissions = (
     const supportedAccountGroups: AccountGroupWithInternalAccounts[] =
       accountGroupsToProcess.filter(
         (accountGroup) =>
-          isSupported(accountGroup) && !fulfillsRequestedAccounts(accountGroup),
+          isSelectable(accountGroup) &&
+          isSupported(accountGroup) &&
+          !fulfillsRequestedAccounts(accountGroup),
       );
     // Priority groups are groups that fulfill the requested account IDs and should be shown first
     // Connected account groups that contain accounts matching the specifically requested account IDs
@@ -203,6 +211,7 @@ export const useAccountGroupsForPermissions = (
       // Use selectedAccountGroup if it supports the request, otherwise use first supported group
       const selectedSupportsRequest =
         selectedAccountGroup &&
+        isSelectable(selectedAccountGroup) &&
         (requestedCaipChainIds.length > 0
           ? supportsChainIds(selectedAccountGroup, requestedCaipChainIds)
           : supportsNamespaces(selectedAccountGroup, requestedNamespaceSet));
