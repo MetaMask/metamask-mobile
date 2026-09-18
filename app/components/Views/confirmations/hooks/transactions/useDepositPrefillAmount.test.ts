@@ -24,6 +24,7 @@ import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
@@ -31,6 +32,11 @@ jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
 
 jest.mock('../../../../../util/abTest', () => ({
   resolveABTestAssignment: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
 }));
 
 jest.mock(
@@ -88,6 +94,7 @@ const getMoneyAccountDepositIntentMock = jest.mocked(
   getMoneyAccountDepositIntent,
 );
 const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
+const useParamsMock = jest.mocked(useParams);
 
 function mockDepositPrefillAbVariant(
   variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
@@ -217,6 +224,7 @@ describe('useDepositPrefillAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Treatment);
+    useParamsMock.mockReturnValue({});
     setupMocks();
   });
 
@@ -275,6 +283,42 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBeDefined();
+    });
+
+    it('returns disabled for moneyAccountDeposit when navigation provides an explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.moneyAccountDeposit,
+        }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual({
+        prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+        status: DepositPrefillStatus.Disabled,
+      });
+    });
+
+    it('keeps perpsDeposit prefill enabled when navigation provides an explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.perpsDeposit,
+        }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {
+          perpsDeposit: { enabled: true },
+        },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('1000');
     });
 
     it('does not apply the money-account A/B gate for non-deposit transaction types', () => {

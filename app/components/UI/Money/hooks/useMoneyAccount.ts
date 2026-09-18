@@ -45,6 +45,8 @@ export {
 const LOG_TAG = '[Money Account]';
 
 export interface InitiateDepositOptions {
+  /** Initial editable deposit amount in USD. */
+  amount?: string;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
@@ -52,6 +54,8 @@ export interface InitiateDepositOptions {
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
   replaceConfirmation?: boolean;
+  forceBottomSheet?: boolean;
+  bottomSheetHeightPercentage?: number;
   /**
    * Where the deposit was started from. Carried to the confirmation so it can
    * land somewhere other than the Money tab — see `navigateOnConfirm`.
@@ -75,10 +79,12 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
-function isMoneyConfirmationActive(): boolean {
+function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
   return (
     NavigationService.navigation.getCurrentRoute()?.name ===
-    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+    (forceBottomSheet
+      ? Routes.CONFIRMATION_REQUEST_MODAL
+      : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS)
   );
 }
 
@@ -150,12 +156,17 @@ export function useMoneyAccountDeposit() {
       }
 
       const confirmationParams = {
-        loader: isDepositPrefillEnabled(options?.intent)
-          ? ConfirmationLoader.PrefillCustomAmount
-          : ConfirmationLoader.AdvancedCustomAmount,
+        amount: options?.amount,
+        loader:
+          options?.amount === undefined &&
+          isDepositPrefillEnabled(options?.intent)
+            ? ConfirmationLoader.PrefillCustomAmount
+            : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
         launchedFrom: options?.launchedFrom,
+        forceBottomSheet: options?.forceBottomSheet,
+        bottomSheetHeightPercentage: options?.bottomSheetHeightPercentage,
       };
 
       // Navigate early for better UX; recover on failure below.
@@ -209,7 +220,7 @@ export function useMoneyAccountDeposit() {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
-          if (isMoneyConfirmationActive()) {
+          if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
             navigation.goBack();
           }
           showToast(

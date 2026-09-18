@@ -742,6 +742,89 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('43.21');
   });
 
+  it('preserves an explicit money account deposit amount when balance prefill is enabled', async () => {
+    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+      prefilledAmount: {
+        default: { enabled: false },
+        overrides: {
+          moneyAccountDeposit: { enabled: true },
+        },
+      },
+    });
+    (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+    useParamsMock.mockReturnValue({ amount: '5' });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '500',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result } = runHook({
+      transactionMeta: {
+        type: TransactionType.moneyAccountDeposit,
+        batchId: '0xtestbatchid' as Hex,
+      },
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.amountFiat).toBe('5');
+    expect(result.current.depositPrefillStatus).toBe(
+      DepositPrefillStatus.Disabled,
+    );
+  });
+
+  it('preserves edits after starting from an explicit money account deposit amount', async () => {
+    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+      prefilledAmount: {
+        default: { enabled: false },
+        overrides: {
+          moneyAccountDeposit: { enabled: true },
+        },
+      },
+    });
+    (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+    useParamsMock.mockReturnValue({ amount: '5' });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '500',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result, rerender } = runHook({
+      transactionMeta: {
+        type: TransactionType.moneyAccountDeposit,
+        batchId: '0xtestbatchid' as Hex,
+      },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('57');
+    });
+
+    useParamsMock.mockReturnValue({ amount: '5' });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '9999',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    await act(async () => {
+      rerender({});
+      jest.runAllTimers();
+    });
+
+    expect(result.current.amountFiat).toBe('57');
+  });
+
   it('displays the full input amount when isMaxAmount is true, not the destination-received targetAmount.usd', async () => {
     // The input field always shows what the user is putting in (their full
     // balance on Max). The net amount received after fees is surfaced by the
