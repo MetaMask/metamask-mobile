@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import RewardsReferralView from './RewardsReferralView';
+import RewardsReferralPerformanceView from './RewardsReferralPerformanceView';
 
 const mockGoBack = jest.fn();
 
@@ -10,11 +10,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: jest.fn(() => ({})) }),
-}));
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) =>
-    key === 'rewards.referral_title' ? 'Referrals' : key,
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
@@ -37,29 +32,33 @@ jest.mock(
   '../components/ReferralRevenueShareDashboard/ReferralRevenueShareDashboard',
   () => {
     const { View, Text } = jest.requireActual('react-native');
-    return () => (
+    return ({ mode }: { mode?: string }) => (
       <View testID="referral-revenue-share-dashboard">
-        <Text>Referral revenue share dashboard</Text>
+        <Text>{`dashboard-mode-${mode}`}</Text>
       </View>
     );
   },
 );
 
-describe('RewardsReferralView', () => {
+describe('RewardsReferralPerformanceView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the referral dashboard in the MetaMask Rewards shell', () => {
-    const { getByText, getByTestId } = render(<RewardsReferralView />);
+  it('renders the dashboard in performance mode with the Earnings header', () => {
+    const { getByText, getByTestId } = render(
+      <RewardsReferralPerformanceView />,
+    );
 
-    expect(getByText('Referrals')).toBeOnTheScreen();
-    expect(getByTestId('referral-revenue-share-dashboard')).toBeOnTheScreen();
-    expect(getByTestId('error-boundary-referralrewardsview')).toBeOnTheScreen();
+    expect(getByText('Earnings')).toBeOnTheScreen();
+    expect(getByText('dashboard-mode-performance')).toBeOnTheScreen();
+    expect(
+      getByTestId('error-boundary-rewardsreferralperformanceview'),
+    ).toBeOnTheScreen();
   });
 
-  it('navigates back from the header', () => {
-    const { getByTestId } = render(<RewardsReferralView />);
+  it('navigates back from the header back button', () => {
+    const { getByTestId } = render(<RewardsReferralPerformanceView />);
 
     fireEvent.press(getByTestId('header-back-button'));
 

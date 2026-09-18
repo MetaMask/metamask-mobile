@@ -2,6 +2,13 @@ import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
+
+jest.mock(
+  '../components/ReferralRevenueShareDashboard/ReferralRevenueShareDashboard',
+  () => ({
+    PrototypeExistingUserInviteHost: () => null,
+  }),
+);
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
