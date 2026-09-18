@@ -402,7 +402,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  twClassName="flex-1 rounded-lg"
                   onPress={() => onPercentagePress(0.25)}
                 >
                   25%
@@ -410,7 +410,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  twClassName="flex-1 rounded-lg"
                   onPress={() => onPercentagePress(0.5)}
                 >
                   50%
@@ -418,7 +418,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  twClassName="flex-1 rounded-lg"
                   onPress={onMaxPress}
                 >
                   {strings('perps.deposit.max_button')}
@@ -426,7 +426,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  twClassName="flex-1 rounded-lg"
                   onPress={onDonePress}
                 >
                   {strings('perps.deposit.done_button')}
