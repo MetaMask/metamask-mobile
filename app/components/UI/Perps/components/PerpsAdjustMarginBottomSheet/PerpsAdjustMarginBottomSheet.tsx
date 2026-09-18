@@ -345,12 +345,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   );
 
   const handleConfirm = useCallback(async () => {
-    if (
-      hasInvalidAmount ||
-      !position ||
-      !hasValidPositionData ||
-      isAdjusting
-    ) {
+    if (hasInvalidAmount || !position || !hasValidPositionData || isAdjusting) {
       return;
     }
 
