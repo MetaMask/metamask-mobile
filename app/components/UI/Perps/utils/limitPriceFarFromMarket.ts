@@ -144,7 +144,15 @@ export const getLimitPriceDirectionWarning = ({
   const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
   const price = Number(currentPrice);
 
-  if (!limitPrice || isNaN(parsedLimit) || !price || price <= 0) {
+  // A non-positive limit is an untouched input rather than a price the user
+  // chose, so it must not read as "below market".
+  if (
+    !limitPrice ||
+    isNaN(parsedLimit) ||
+    parsedLimit <= 0 ||
+    !price ||
+    price <= 0
+  ) {
     return '';
   }
 

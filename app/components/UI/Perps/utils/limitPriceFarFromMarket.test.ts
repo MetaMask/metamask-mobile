@@ -176,6 +176,17 @@ describe('getLimitPriceDirectionWarning', () => {
     ).toBe('');
   });
 
+  it('returns empty for a zero limit price the field renders as empty', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '0',
+        currentPrice: 3000,
+        direction: 'short',
+        isClosingPosition: true,
+      }),
+    ).toBe('');
+  });
+
   it('warns when an opening long sits above market', () => {
     expect(
       getLimitPriceDirectionWarning({

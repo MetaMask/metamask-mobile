@@ -1096,17 +1096,24 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_MARKET: 'close-position-bottom-sheet-order-type-market',
   ORDER_TYPE_LIMIT: 'close-position-bottom-sheet-order-type-limit',
   LIMIT_PRICE_INPUT: 'close-position-bottom-sheet-limit-price-input',
+  LIMIT_PRICE_ROW: 'close-position-bottom-sheet-limit-price-row',
+  LIMIT_PRICE_CURSOR: 'close-position-bottom-sheet-limit-price-cursor',
   LIMIT_PRESET_MID: 'close-position-bottom-sheet-limit-preset-mid',
   LIMIT_PRESET_TOP_OF_BOOK:
     'close-position-bottom-sheet-limit-preset-top-of-book',
   LIMIT_PRESET_PERCENT: 'close-position-bottom-sheet-limit-preset-percent-',
+  HEADER_LEVERAGE: 'close-position-bottom-sheet-header-leverage',
+  HEADER_PRICE: 'close-position-bottom-sheet-header-price',
+  HEADER_CHANGE: 'close-position-bottom-sheet-header-change',
+  ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
   MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
-  FEES_VALUE: 'close-position-bottom-sheet-fees-value',
-  FEES_TOOLTIP_BUTTON: 'close-position-bottom-sheet-fees-tooltip-button',
+  MARGIN_MODE_TAG: 'close-position-bottom-sheet-margin-mode-tag',
+  MARGIN_TOOLTIP_BUTTON: 'close-position-bottom-sheet-margin-tooltip-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
   TOTAL_TOOLTIP_BUTTON: 'close-position-bottom-sheet-total-tooltip-button',
   CONFIRM_BUTTON: 'close-position-bottom-sheet-confirm-button',
+  FEE_DISCLAIMER: 'close-position-bottom-sheet-fee-disclaimer',
 };
 
 // ========================================

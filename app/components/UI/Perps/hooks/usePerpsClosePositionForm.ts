@@ -15,11 +15,12 @@ import {
   type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
+import { ButtonSize } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TraceName } from '../../../../util/trace';
-import { ImpactMoment, playImpact, useHaptics } from '../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../util/haptics';
 import { useVipTier } from '../../Rewards/hooks/useVipTier';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import {
@@ -53,6 +54,28 @@ import {
 export interface UsePerpsClosePositionFormOptions {
   /** Overrides `navigation.goBack()` so a sheet can animate closed first. */
   dismiss?: () => void;
+  /** Applied to the confirm CTA this hook builds for the caller's footer. */
+  confirmButtonTestID?: string;
+}
+
+/** Shape `BottomSheetFooter` expects for the close CTA. */
+export interface PerpsCloseConfirmButtonProps {
+  children: string;
+  onPress: () => Promise<void>;
+  size: ButtonSize;
+  isDisabled: boolean;
+  isLoading: boolean;
+  testID?: string;
+}
+
+// Session-scoped so a later close — same or different position — reopens on
+// the last Market/Limit choice. Limit price stays on this form instance so
+// Market/Limit toggles do not wipe it; it is not reused across positions.
+let lastCloseOrderType: OrdinaryOrderType = 'market';
+
+/** Test-only. Resets the session close-order-type preference. */
+export function resetLastCloseOrderType(): void {
+  lastCloseOrderType = 'market';
 }
 
 export interface UsePerpsClosePositionFormResult {
@@ -83,14 +106,13 @@ export interface UsePerpsClosePositionFormResult {
   handleSliderValueChange: (value: number) => void;
   handleSliderDragEnd: (value: number) => void;
   handleSliderDragCancel: () => void;
-  handleSliderGrip: () => void;
-  handleSliderMark: () => void;
   handleAmountPress: () => void;
   handleKeypadChange: (input: { value: string; valueAsNumber: number }) => void;
   handlePercentagePress: (percentage: number) => void;
   handleMaxPress: () => void;
   handleDonePress: () => void;
   handleConfirm: () => Promise<void>;
+  confirmButtonProps: PerpsCloseConfirmButtonProps;
 
   feeResults: ReturnType<typeof usePerpsOrderFees>;
   rewardsState: ReturnType<typeof usePerpsRewards>;
@@ -105,8 +127,11 @@ export interface UsePerpsClosePositionFormResult {
 
 /**
  * Owns every non-visual concern of the close-position flow so the full-page
- * screen and the bottom-sheet variant cannot drift apart in behavior.
- * Presentational state — nested sheet visibility, layout — stays in the caller.
+ * screen and the bottom-sheet variant cannot drift apart in behavior. Layout
+ * and presentational state — nested sheet visibility, which blocks render —
+ * stay in the caller, with one deliberate exception: `confirmButtonProps`
+ * carries the CTA's copy, size, and disabled state, which both A/B arms must
+ * present identically.
  */
 export function usePerpsClosePositionForm(
   options?: UsePerpsClosePositionFormOptions,
@@ -159,7 +184,9 @@ export function usePerpsClosePositionForm(
     selectPerpsClosePositionLimitOrderEnabledFlag,
   );
 
-  const [orderType, setOrderType] = useState<OrdinaryOrderType>('market');
+  const [orderType, setOrderType] = useState<OrdinaryOrderType>(() =>
+    isClosePositionLimitOrderEnabled ? lastCloseOrderType : 'market',
+  );
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUserInputActive, setIsUserInputActive] = useState(false);
 
@@ -806,20 +833,9 @@ export function usePerpsClosePositionForm(
     setIsUserInputActive(false);
   }, []);
 
-  const handleSliderGrip = useCallback(() => {
-    playImpact(ImpactMoment.SliderGrip);
-  }, []);
-
-  const handleSliderMark = useCallback(() => {
-    playImpact(ImpactMoment.SliderTick);
-  }, []);
-
   const selectOrderType = useCallback((type: OrdinaryOrderType) => {
     setOrderType(type);
-    // Clear limit price when switching back to market order
-    if (type === 'market') {
-      setLimitPrice('');
-    }
+    lastCloseOrderType = type;
   }, []);
 
   // Hide provider-level limit price required error on this UI. Surface the
@@ -855,6 +871,21 @@ export function usePerpsClosePositionForm(
     (effectiveOrderType === 'market' && closePercentage === 0) ||
     !validationResult.isValid;
 
+  const confirmButtonTestID = options?.confirmButtonTestID;
+  const confirmButtonProps = useMemo(
+    () => ({
+      children: isClosing
+        ? strings('perps.close_position.closing')
+        : strings('perps.close_position.button'),
+      onPress: handleConfirm,
+      size: ButtonSize.Lg,
+      isDisabled: isConfirmDisabled,
+      isLoading: isClosing,
+      testID: confirmButtonTestID,
+    }),
+    [confirmButtonTestID, handleConfirm, isClosing, isConfirmDisabled],
+  );
+
   return {
     position,
     livePosition,
@@ -883,14 +914,13 @@ export function usePerpsClosePositionForm(
     handleSliderValueChange,
     handleSliderDragEnd,
     handleSliderDragCancel,
-    handleSliderGrip,
-    handleSliderMark,
     handleAmountPress,
     handleKeypadChange,
     handlePercentagePress,
     handleMaxPress,
     handleDonePress,
     handleConfirm,
+    confirmButtonProps,
 
     feeResults,
     rewardsState,

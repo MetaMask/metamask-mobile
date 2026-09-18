@@ -18,16 +18,6 @@ export const createStyles = (theme: Theme) => {
     scrollViewContentWithKeypad: {
       paddingBottom: 100,
     },
-    helpTextContainer: {
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      paddingHorizontal: 16,
-      marginTop: 16,
-      marginBottom: 16,
-      // Reserve space so content below doesn't jump when
-      // validation HelpText appears or wraps.
-      minHeight: 40,
-    },
     footerWithSummary: {
       paddingTop: 0,
     },

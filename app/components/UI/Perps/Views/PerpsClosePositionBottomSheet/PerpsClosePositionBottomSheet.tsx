@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -9,46 +8,37 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FilterButton,
-  FontWeight,
-  HelpText,
-  HelpTextSeverity,
-  IconName,
-  KeyValueRow,
-  KeyValueRowVariant,
   SectionDivider,
-  SegmentedControl,
-  SegmentedControlSize,
-  Slider,
   Text,
   TextColor,
-  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  getPerpsDisplaySymbol,
-  type OrdinaryOrderType,
-} from '@metamask/perps-controller';
+import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import PerpsSlider from '../../components/PerpsSlider';
+import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
-import { usePerpsLimitPriceInput } from './usePerpsLimitPriceInput';
-import {
-  formatPerpsFiat,
-  formatPositionSize,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
+import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
+import { formatPositionSize } from '../../utils/formatUtils';
+import PerpsCloseTotals from './components/PerpsCloseTotals';
+import PerpsClosePositionSheetHeader from './components/PerpsClosePositionSheetHeader';
+import PerpsLimitPriceRow from './components/PerpsLimitPriceRow';
+
+/** One top-of-book button here, unlike the modal's separate bid and ask. */
+const LIMIT_PRESET_TEST_IDS = {
+  mid: PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_MID,
+  bid: PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_TOP_OF_BOOK,
+  ask: PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_TOP_OF_BOOK,
+  percentPrefix: PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_PERCENT,
+};
 
 const PerpsClosePositionBottomSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const theme = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const dismiss = useCallback(() => {
@@ -68,31 +58,30 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     setLimitPrice,
     displayClosePercentage,
     liveCloseAmount,
-    closeAmountUSDString,
     displayUSDString,
-    isInputFocused,
     handleSliderValueChange,
     handleSliderDragEnd,
     handleSliderDragCancel,
-    handleSliderGrip,
-    handleSliderMark,
-    handleAmountPress,
-    handleKeypadChange,
-    handlePercentagePress,
-    handleMaxPress,
     handleDonePress,
-    handleConfirm,
+    confirmButtonProps,
     feeResults,
-    rewardsState,
     summaryMargin,
     summaryPnl,
     receiveAmount,
     filteredErrors,
     isClosing,
-    isConfirmDisabled,
-  } = usePerpsClosePositionForm({ dismiss });
+  } = usePerpsClosePositionForm({
+    dismiss,
+    confirmButtonTestID:
+      PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+  });
 
-  const [isEditingLimitPrice, setIsEditingLimitPrice] = useState(false);
+  // The sheet has two modes: reviewing the close (slider, totals, CTA) and
+  // editing the limit price (limit row, presets, keypad). The keypad covers
+  // the CTA in Figma, so everything below the amount swaps on this one flag.
+  const [isEditingLimitPrice, setIsEditingLimitPrice] = useState(
+    effectiveOrderType === 'limit',
+  );
   const [showTokenAmount, setShowTokenAmount] = useState(false);
 
   const handleDisplayToggle = useCallback(
@@ -107,6 +96,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     direction: isLong ? 'short' : 'long',
     limitPrice,
     setLimitPrice,
+    isClosingPosition: true,
+    testIDs: LIMIT_PRESET_TEST_IDS,
   });
 
   const handleLimitPriceDone = useCallback(() => {
@@ -121,68 +112,52 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         limitPriceInput.trackInputMethod();
       }
       selectOrderType(nextOrderType);
+      handleDonePress();
+      // Each toggle returns that variant's default: market is idle with
+      // the slider, limit is the limit-price keypad.
       setIsEditingLimitPrice(nextOrderType === 'limit');
     },
-    [limitPriceInput, selectOrderType],
+    [handleDonePress, limitPriceInput, selectOrderType],
   );
 
-  const handleFeesTooltipPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.CLOSE_POSITION_MODALS, {
-      screen: Routes.PERPS.MODALS.TOOLTIP,
-      params: {
-        contentKey: 'closing_fees',
-        data: {
-          metamaskFeeRate: feeResults.metamaskFeeRate,
-          protocolFeeRate: feeResults.protocolFeeRate,
-          originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-          feeDiscountPercentage: rewardsState.feeDiscountPercentage,
-        },
-      },
-    });
-  }, [
-    navigation,
-    feeResults.metamaskFeeRate,
-    feeResults.protocolFeeRate,
-    feeResults.originalMetamaskFeeRate,
-    rewardsState.feeDiscountPercentage,
-  ]);
+  const handleCloseSizePress = useCallback(() => {
+    setIsEditingLimitPrice(false);
+  }, []);
 
-  const handleTotalTooltipPress = useCallback(() => {
+  const handleLimitPriceRowPress = useCallback(() => {
+    handleDonePress();
+    setIsEditingLimitPrice(true);
+  }, [handleDonePress]);
+
+  // Two order types, so the header control swaps between them on tap rather
+  // than opening a picker.
+  const handleOrderTypeToggle = useCallback(() => {
+    handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
+  }, [effectiveOrderType, handleOrderTypeChange]);
+
+  const handleMarginTooltipPress = useCallback(() => {
     navigation.navigate(Routes.PERPS.MODALS.CLOSE_POSITION_MODALS, {
       screen: Routes.PERPS.MODALS.TOOLTIP,
-      params: { contentKey: 'close_position_you_receive' },
+      params: { contentKey: 'margin' },
     });
   }, [navigation]);
 
-  const leverage = livePosition.leverage?.value;
+  const totalFeeRate =
+    (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
+  const feePercentage =
+    totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
 
-  const feesValue = feeResults.isLoadingMetamaskFee ? (
-    <ActivityIndicator size="small" color={theme.colors.icon.alternative} />
-  ) : (
-    <PerpsFeesDisplay
-      feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-      fee={feeResults.totalFee}
-      originalFee={feeResults.undiscountedTotalFee}
-      testID={PerpsClosePositionBottomSheetSelectorsIDs.FEES_VALUE}
-      variant={TextVariant.BodyMd}
-    />
+  const displayedErrors = useMemo(
+    () =>
+      limitPriceInput.error
+        ? filteredErrors.filter((error) => error !== limitPriceInput.error)
+        : filteredErrors,
+    [filteredErrors, limitPriceInput.error],
   );
 
-  const confirmButtonProps = useMemo(
-    () => ({
-      children: isClosing
-        ? strings('perps.close_position.closing')
-        : strings('perps.close_position.button'),
-      onPress: handleConfirm,
-      size: ButtonSize.Lg,
-      isDisabled: isConfirmDisabled,
-      isLoading: isClosing,
-      testID: PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-    }),
-    [handleConfirm, isClosing, isConfirmDisabled],
-  );
-
-  const isKeypadVisible = isInputFocused || isEditingLimitPrice;
+  // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
+  // standalone `$` and shows only the numeric portion next to it.
+  const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
 
   return (
     <BottomSheet
@@ -190,215 +165,104 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       goBack={navigation.goBack}
       testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="flex-row items-center gap-3 px-4 pb-4">
-        <PerpsTokenLogo symbol={position.symbol} size={32} />
-        <Text
-          variant={TextVariant.HeadingMd}
-          testID={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE}
-        >
-          {`${strings('perps.close_position.close')} `}
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={isLong ? TextColor.SuccessDefault : TextColor.ErrorDefault}
-          >
-            {strings('perps.close_position.sheet_position_summary', {
-              direction: isLong
-                ? strings('perps.market.long')
-                : strings('perps.market.short'),
-              asset: getPerpsDisplaySymbol(position.symbol),
-              leverage: leverage ?? '',
-            })}
-          </Text>
-        </Text>
-      </Box>
+      <PerpsClosePositionSheetHeader
+        symbol={position.symbol}
+        isLong={isLong}
+        leverage={livePosition.leverage?.value}
+        currentPrice={currentPrice}
+        orderTypeLabel={
+          effectiveOrderType === 'market'
+            ? strings('perps.order.market')
+            : strings('perps.order.limit')
+        }
+        isOrderTypeToggleVisible={isClosePositionLimitOrderEnabled}
+        isOrderTypeToggleDisabled={isClosing}
+        onOrderTypeToggle={handleOrderTypeToggle}
+      />
+
+      <PerpsAmountDisplay
+        variant="tradeSheet"
+        amount={displayUSDString}
+        showWarning={false}
+        onPress={handleCloseSizePress}
+        accessibilityLabel={strings('perps.close_position.select_amount')}
+        showTokenAmount={showTokenAmount}
+        tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+        hasError={displayedErrors.length > 0}
+        tokenSymbol={position.symbol}
+        onDisplayToggle={handleDisplayToggle}
+        displayToggleAccessibilityLabel={strings(
+          'perps.close_position.toggle_amount_display',
+        )}
+        displayToggleTestID={
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE
+        }
+      />
 
       {!isEditingLimitPrice && (
-        <PerpsAmountDisplay
-          variant="tradeSheet"
-          amount={displayUSDString}
-          showWarning={false}
-          onPress={handleAmountPress}
-          accessibilityLabel={strings('perps.close_position.select_amount')}
-          isActive={isInputFocused}
-          showTokenAmount={showTokenAmount}
-          tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
-          hasError={filteredErrors.length > 0}
-          tokenSymbol={position.symbol}
-          onDisplayToggle={handleDisplayToggle}
-          displayToggleAccessibilityLabel={strings(
-            'perps.close_position.toggle_amount_display',
-          )}
-          displayToggleTestID={
-            PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE
-          }
-        />
-      )}
-
-      {!isKeypadVisible && (
         <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
-          <Slider
+          <PerpsSlider
             value={displayClosePercentage}
             onValueChange={handleSliderValueChange}
             onDragEnd={handleSliderDragEnd}
-            minimumValue={0}
-            maximumValue={100}
-            step={1}
-            showRangeLabels
-            showRangeDots
-            isDisabled={isClosing}
-            onGrip={handleSliderGrip}
-            onMark={handleSliderMark}
+            disabled={isClosing}
           />
-        </Box>
-      )}
-
-      {isClosePositionLimitOrderEnabled && (
-        <Box twClassName="flex-row items-center justify-between px-4 py-2">
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('perps.order.type.title')}
-          </Text>
-          <SegmentedControl
-            value={effectiveOrderType}
-            onChange={handleOrderTypeChange}
-            size={SegmentedControlSize.Sm}
-            testID={
-              PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_CONTROL
-            }
-          >
-            <FilterButton
-              value="market"
-              testID={
-                PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET
-              }
-            >
-              {strings('perps.order.market')}
-            </FilterButton>
-            <FilterButton
-              value="limit"
-              testID={
-                PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT
-              }
-            >
-              {strings('perps.order.limit')}
-            </FilterButton>
-          </SegmentedControl>
         </Box>
       )}
 
       {effectiveOrderType === 'limit' && (
-        <Box twClassName="px-4 py-2">
-          <TouchableOpacity onPress={() => setIsEditingLimitPrice(true)}>
-            <TextField
-              testID={
-                PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
-              }
-              value={limitPriceInput.formattedLimitPrice}
-              placeholder={strings('perps.order.limit_price')}
-              isReadOnly
-              isError={limitPriceInput.hasError}
-              startAccessory={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  $
-                </Text>
-              }
-              inputProps={{ showSoftInputOnFocus: false }}
-            />
-          </TouchableOpacity>
-          {limitPriceInput.error ? (
-            <HelpText severity={HelpTextSeverity.Danger} showIcon>
-              {limitPriceInput.error}
-            </HelpText>
-          ) : null}
-        </Box>
+        <PerpsLimitPriceRow
+          value={limitPriceInput.formattedLimitPrice.replace(/^\$/, '')}
+          hasValue={hasLimitPriceValue}
+          error={limitPriceInput.error}
+          isEditing={isEditingLimitPrice}
+          onPress={handleLimitPriceRowPress}
+        />
       )}
 
-      {!isKeypadVisible && (
+      {!isEditingLimitPrice && (
+        <PerpsCloseTotals
+          margin={summaryMargin}
+          marginMode={livePosition.leverage?.type}
+          pnl={summaryPnl}
+          receiveAmount={receiveAmount}
+          onMarginTooltipPress={handleMarginTooltipPress}
+        />
+      )}
+
+      {/* One BodySm line (22px) is reserved so a validation error appearing
+          mid-keypad-entry does not resize the sheet under the user's finger. */}
+      <PerpsValidationErrors
+        errors={displayedErrors}
+        twClassName="min-h-[22px] justify-center px-4"
+      />
+
+      {/* Figma puts the keypad over the CTA, so the whole footer hides with it. */}
+      {!isEditingLimitPrice && (
         <>
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.close_position.margin')}
-            value={formatPerpsFiat(summaryMargin, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}
-            valueTextProps={{
-              testID: PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
-            }}
-          />
-
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.close_position.fees')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: handleFeesTooltipPress,
-              testID:
-                PerpsClosePositionBottomSheetSelectorsIDs.FEES_TOOLTIP_BUTTON,
-            }}
-            value={feesValue}
-          />
-
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.close_position.total_inc_pnl')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: handleTotalTooltipPress,
-              testID:
-                PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_TOOLTIP_BUTTON,
-            }}
-            value={
-              <View>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE}
-                >
-                  {formatPerpsFiat(receiveAmount, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={
-                    summaryPnl < 0
-                      ? TextColor.ErrorDefault
-                      : TextColor.SuccessDefault
-                  }
-                  testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL}
-                >
-                  {`(${summaryPnl < 0 ? '-' : '+'}${formatPerpsFiat(
-                    Math.abs(summaryPnl),
-                    { ranges: PRICE_RANGES_MINIMAL_VIEW },
-                  )})`}
-                </Text>
-              </View>
-            }
+          <BottomSheetFooter
+            primaryButtonProps={confirmButtonProps}
+            twClassName="pt-3"
           />
+
+          {feePercentage ? (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+              twClassName="pt-2 text-center"
+              testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
+            >
+              {strings('perps.trade_sheet.includes_fee', { feePercentage })}
+            </Text>
+          ) : null}
         </>
       )}
 
-      <Box twClassName="px-4">
-        {filteredErrors.map((error, index) => (
-          <HelpText
-            key={`error-${index}`}
-            severity={HelpTextSeverity.Danger}
-            twClassName="w-full justify-center text-center"
-          >
-            {error}
-          </HelpText>
-        ))}
-      </Box>
-
-      <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
-
       {isEditingLimitPrice && (
         <>
-          <Box twClassName="flex-row gap-2 px-4 pt-3">
+          <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
             {limitPriceInput.presets.map((preset) => (
               <Button
                 key={preset.testID}
@@ -426,54 +290,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               currency="USD_PERPS"
               onChange={limitPriceInput.handleKeypadChange}
               decimals={5}
-            />
-          </Box>
-        </>
-      )}
-
-      {isInputFocused && !isEditingLimitPrice && (
-        <>
-          <Box twClassName="flex-row justify-between px-4 pt-3 mb-3 gap-2">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              onPress={() => handlePercentagePress(0.25)}
-              twClassName="flex-1"
-            >
-              25%
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              onPress={() => handlePercentagePress(0.5)}
-              twClassName="flex-1"
-            >
-              50%
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              onPress={handleMaxPress}
-              twClassName="flex-1"
-            >
-              {strings('perps.deposit.max_button')}
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              onPress={handleDonePress}
-              twClassName="flex-1"
-            >
-              {strings('perps.deposit.done_button')}
-            </Button>
-          </Box>
-
-          <Box twClassName="mb-4 px-4">
-            <Keypad
-              value={closeAmountUSDString}
-              onChange={handleKeypadChange}
-              currency={'USD'}
-              decimals={2}
             />
           </Box>
         </>

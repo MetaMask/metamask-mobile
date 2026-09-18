@@ -18,6 +18,7 @@ import {
   defaultPerpsTopOfBookMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import PerpsClosePositionBottomSheet from './PerpsClosePositionBottomSheet';
 
 const mockGoBack = jest.fn();
@@ -72,6 +73,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 // Pressable stub so tests can drive a keypad entry through the real onChange
 // wiring without depending on the real keypad layout.
 const MOCK_KEYPAD_VALUE = '3100';
+let mockKeypadValue = MOCK_KEYPAD_VALUE;
 jest.mock('../../../../Base/Keypad', () => {
   const ReactActual = jest.requireActual('react');
   const { TouchableOpacity: Touchable } = jest.requireActual('react-native');
@@ -84,11 +86,19 @@ jest.mock('../../../../Base/Keypad', () => {
     }) =>
       ReactActual.createElement(Touchable, {
         testID: 'mock-keypad',
-        onPress: () => onChange({ value: '3100', valueAsNumber: 3100 }),
+        onPress: () =>
+          onChange({
+            value: mockKeypadValue,
+            valueAsNumber: Number(mockKeypadValue),
+          }),
       }),
   };
 });
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
+jest.mock(
+  '../../components/LivePriceDisplay/LivePriceHeader',
+  () => 'LivePriceHeader',
+);
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -176,6 +186,9 @@ describe('PerpsClosePositionBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLastCloseOrderType();
+
+    mockKeypadValue = MOCK_KEYPAD_VALUE;
 
     useNavigationMock.mockReturnValue({
       goBack: mockGoBack,
@@ -222,10 +235,23 @@ describe('PerpsClosePositionBottomSheet', () => {
     usePerpsRewardsMock.mockReturnValue(defaultPerpsRewardsMock);
   });
 
+  afterEach(() => {
+    resetLastCloseOrderType();
+  });
+
   const renderSheet = () =>
     renderWithProvider(<PerpsClosePositionBottomSheet />, {
       state: STATE_MOCK,
     });
+
+  /** Taps the header control, which swaps between market and limit. */
+  const toggleOrderType = (utils: ReturnType<typeof renderSheet>) => {
+    fireEvent.press(
+      utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON,
+      ),
+    );
+  };
 
   describe('rendering', () => {
     it('renders the sheet with the position summary in the header', () => {
@@ -237,8 +263,14 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
       ).toHaveTextContent(
-        `${strings('perps.close_position.close')} ${strings('perps.market.long')} ETH 3x`,
+        strings('perps.close_position.sheet_title', {
+          direction: strings('perps.market.long'),
+          asset: 'ETH',
+        }),
       );
+      expect(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_LEVERAGE),
+      ).toHaveTextContent('3x');
     });
 
     it('labels a short position in the header', () => {
@@ -257,17 +289,23 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
       ).toHaveTextContent(
-        `${strings('perps.close_position.close')} ${strings('perps.market.short')} ETH 3x`,
+        strings('perps.close_position.sheet_title', {
+          direction: strings('perps.market.short'),
+          asset: 'ETH',
+        }),
       );
     });
 
-    it('renders margin, fees and total rows', () => {
-      const { getByTestId, getByText } = renderSheet();
+    it('renders margin and total rows without a separate fees row', () => {
+      const { getByTestId, getByText, queryByText } = renderSheet();
 
       expect(
         getByText(strings('perps.close_position.margin')),
       ).toBeOnTheScreen();
-      expect(getByText(strings('perps.close_position.fees'))).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+      expect(queryByText(strings('perps.close_position.fees'))).toBeNull();
       expect(
         getByText(strings('perps.close_position.total_inc_pnl')),
       ).toBeOnTheScreen();
@@ -345,11 +383,8 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(
         getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET,
+          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON,
         ),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
       ).toBeOnTheScreen();
     });
   });
@@ -366,11 +401,10 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
 
     it('reveals the limit price field when limit is selected', () => {
-      const { getByTestId } = renderSheet();
+      const utils = renderSheet();
+      const { getByTestId } = utils;
 
-      fireEvent.press(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
-      );
+      toggleOrderType(utils);
 
       expect(
         getByTestId(
@@ -379,22 +413,313 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the limit price field again when switching back to market', () => {
-      const { getByTestId, queryByTestId } = renderSheet();
+    it('opens the limit price keypad as the limit default', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      expect(utils.getByTestId('mock-keypad')).toBeOnTheScreen();
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_MID,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_TOP_OF_BOOK,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        utils.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
+    it('does not show the amount cursor while the limit price keypad is open', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      expect(utils.queryByTestId('cursor')).toBeNull();
+    });
+
+    it('shows a blinking cursor on the limit price while the keypad is open', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('places the limit price cursor before the placeholder when empty', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      const input = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+      );
+      const cursor = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
+      );
+      const siblings = input.parent?.children ?? [];
+
+      expect(siblings.indexOf(cursor)).toBeLessThan(siblings.indexOf(input));
+    });
+
+    it('keeps the limit price cursor visible after digits are entered', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
+      ).toHaveTextContent('3,100');
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the limit price cursor when the close size slider is showing', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(
+        utils.getByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
+      );
+
+      expect(
+        utils.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
+        ),
+      ).toBeNull();
+    });
+
+    it('returns to the market default when toggling back from limit', () => {
+      const utils = renderSheet();
+      const { getByTestId, queryByTestId, UNSAFE_queryAllByType } = utils;
+
+      toggleOrderType(utils);
+      toggleOrderType(utils);
+
+      expect(queryByTestId('mock-keypad')).toBeNull();
+      expect(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(1);
+    });
+
+    it('shows a muted zero in the limit price field until a price is entered', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
+      ).toHaveTextContent('0.00');
+    });
+
+    it('reopens the limit price keypad when the limit price row is pressed after Done', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(utils.queryByTestId('mock-keypad')).toBeNull();
 
       fireEvent.press(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
-      );
-      fireEvent.press(
-        getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_MARKET,
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
         ),
       );
+
+      expect(utils.getByTestId('mock-keypad')).toBeOnTheScreen();
+    });
+
+    it('reopens on the last selected order type', () => {
+      const firstOpen = renderSheet();
+
+      toggleOrderType(firstOpen);
+      firstOpen.unmount();
+
+      const { getByTestId } = renderSheet();
+
+      expect(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
+      ).toBeOnTheScreen();
+      expect(getByTestId('mock-keypad')).toBeOnTheScreen();
+    });
+
+    it('keeps the entered limit price when toggling to market and back to limit', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      toggleOrderType(utils);
+      toggleOrderType(utils);
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
+      ).toHaveTextContent('3,100');
+    });
+
+    it('hides the limit price field again when switching back to market', () => {
+      const utils = renderSheet();
+      const { getByTestId, queryByTestId } = utils;
+
+      toggleOrderType(utils);
+      toggleOrderType(utils);
 
       expect(
         queryByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
+      ).toBeNull();
+    });
+
+    it('hides the slider while the limit price keypad is open', () => {
+      const utils = renderSheet();
+      const { getByTestId, UNSAFE_queryAllByType } = utils;
+
+      toggleOrderType(utils);
+
+      expect(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(0);
+    });
+
+    it('does not open a keypad when the close size is shown', () => {
+      const { queryByTestId, UNSAFE_queryAllByType } = renderSheet();
+
+      expect(queryByTestId('mock-keypad')).toBeNull();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(1);
+    });
+
+    it('shows the slider when the close size is pressed on a limit view', () => {
+      const utils = renderSheet();
+      const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } = utils;
+
+      toggleOrderType(utils);
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+
+      expect(queryByTestId('mock-keypad')).toBeNull();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(1);
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('limit price validation', () => {
+    const selectLimitAndEnterPrice = (value: string) => {
+      mockKeypadValue = value;
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+
+      return utils;
+    };
+
+    it('does not repeat a limit-price error already shown on the field', () => {
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        ...defaultPerpsClosePositionValidationMock,
+        errors: [strings('perps.order.limit_price_modal.limit_price_too_far')],
+        isValid: false,
+      });
+
+      const { getAllByText } = selectLimitAndEnterPrice('6');
+
+      expect(
+        getAllByText(
+          strings('perps.order.limit_price_modal.limit_price_too_far'),
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not warn when the limit price is a zero that renders as an empty field', () => {
+      const { queryByText } = selectLimitAndEnterPrice('0');
+
+      expect(
+        queryByText(strings('perps.order.limit_price_modal.limit_price_below')),
+      ).toBeNull();
+    });
+
+    it('warns once a limit price below the market price is entered', () => {
+      const { getByText } = selectLimitAndEnterPrice('2900');
+
+      expect(
+        getByText(strings('perps.order.limit_price_modal.limit_price_below')),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('fee disclaimer', () => {
+    it('renders the combined fee rate beneath the CTA', () => {
+      const { getByTestId } = renderSheet();
+
+      expect(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
+      ).toHaveTextContent(
+        strings('perps.trade_sheet.includes_fee', { feePercentage: '0.045' }),
+      );
+    });
+
+    it('hides the fee rate while the keypad covers the CTA', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      expect(
+        utils.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
+        ),
+      ).toBeNull();
+    });
+
+    it('omits the fee rate when no fee rates are available', () => {
+      usePerpsOrderFeesMock.mockReturnValue({
+        ...defaultPerpsOrderFeesMock,
+        protocolFeeRate: undefined,
+        metamaskFeeRate: undefined,
+      });
+
+      const { queryByTestId } = renderSheet();
+
+      expect(
+        queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
       ).toBeNull();
     });
   });
@@ -409,11 +734,11 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
 
     it('is disabled while the limit price is empty', () => {
-      const { getByTestId } = renderSheet();
+      const utils = renderSheet();
+      const { getByTestId } = utils;
 
-      fireEvent.press(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
-      );
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
@@ -436,12 +761,12 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
 
     it('enables the CTA and submits a limit close once a price is entered', async () => {
-      const { getByTestId } = renderSheet();
+      const utils = renderSheet();
+      const { getByTestId } = utils;
 
-      fireEvent.press(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_LIMIT),
-      );
+      toggleOrderType(utils);
       fireEvent.press(getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
       const confirmButton = getByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
@@ -483,40 +808,16 @@ describe('PerpsClosePositionBottomSheet', () => {
   });
 
   describe('tooltips', () => {
-    it('opens the fees tooltip', () => {
+    it('opens the margin tooltip', () => {
       const { getByTestId } = renderSheet();
 
       fireEvent.press(
         getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.FEES_TOOLTIP_BUTTON,
+          PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_TOOLTIP_BUTTON,
         ),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          params: expect.objectContaining({ contentKey: 'closing_fees' }),
-        }),
-      );
-    });
-
-    it('opens the total tooltip', () => {
-      const { getByTestId } = renderSheet();
-
-      fireEvent.press(
-        getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_TOOLTIP_BUTTON,
-        ),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          params: expect.objectContaining({
-            contentKey: 'close_position_you_receive',
-          }),
-        }),
-      );
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 
@@ -530,7 +831,7 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(
         queryByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_CONTROL,
+          PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON,
         ),
       ).toBeNull();
     });

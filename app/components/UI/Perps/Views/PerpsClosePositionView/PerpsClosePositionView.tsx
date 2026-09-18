@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
@@ -9,11 +9,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HelpText,
-  HelpTextSeverity,
   KeyValueRow,
   KeyValueRowVariant,
-  Slider,
   Text,
   TextColor,
   TextVariant,
@@ -34,6 +31,8 @@ import {
 import { createStyles } from './PerpsClosePositionView.styles';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsSlider from '../../components/PerpsSlider';
+import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
@@ -62,14 +61,12 @@ const PerpsClosePositionView: React.FC = () => {
     handleSliderValueChange,
     handleSliderDragEnd,
     handleSliderDragCancel,
-    handleSliderGrip,
-    handleSliderMark,
     handleAmountPress,
     handleKeypadChange,
     handlePercentagePress,
     handleMaxPress,
     handleDonePress,
-    handleConfirm,
+    confirmButtonProps,
     feeResults,
     rewardsState,
     summaryMargin,
@@ -78,8 +75,10 @@ const PerpsClosePositionView: React.FC = () => {
     receiveAmount,
     filteredErrors,
     isClosing,
-    isConfirmDisabled,
-  } = usePerpsClosePositionForm();
+  } = usePerpsClosePositionForm({
+    confirmButtonTestID:
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+  });
 
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
@@ -120,20 +119,6 @@ const PerpsClosePositionView: React.FC = () => {
         receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />
-  );
-
-  const confirmButtonProps = useMemo(
-    () => ({
-      children: isClosing
-        ? strings('perps.close_position.closing')
-        : strings('perps.close_position.button'),
-      onPress: handleConfirm,
-      size: ButtonSize.Lg,
-      isDisabled: isConfirmDisabled,
-      isLoading: isClosing,
-      testID: PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-    }),
-    [handleConfirm, isClosing, isConfirmDisabled],
   );
 
   return (
@@ -184,18 +169,11 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
           <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
-            <Slider
+            <PerpsSlider
               value={displayClosePercentage}
               onValueChange={handleSliderValueChange}
               onDragEnd={handleSliderDragEnd}
-              minimumValue={0}
-              maximumValue={100}
-              step={1}
-              showRangeLabels
-              showRangeDots
-              isDisabled={isClosing}
-              onGrip={handleSliderGrip}
-              onMark={handleSliderMark}
+              disabled={isClosing}
             />
           </Box>
         )}
@@ -228,17 +206,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Validation Messages - keep visible while typing */}
         {/* Filter the errors and only show minimum $10 error */}
-        <Box style={styles.helpTextContainer}>
-          {filteredErrors.map((error, index) => (
-            <HelpText
-              key={`error-${index}`}
-              severity={HelpTextSeverity.Danger}
-              twClassName="w-full justify-center text-center"
-            >
-              {error}
-            </HelpText>
-          ))}
-        </Box>
+        <PerpsValidationErrors errors={filteredErrors} />
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}

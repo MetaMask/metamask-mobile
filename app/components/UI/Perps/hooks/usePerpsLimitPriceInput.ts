@@ -4,25 +4,24 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   LIMIT_PRICE_CONFIG,
   MAX_PERPS_INPUT_DIGITS,
-} from '../../constants/perpsConfig';
-import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+} from '../constants/perpsConfig';
+import { usePerpsLivePrices, usePerpsTopOfBook } from './stream';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
   formatLimitPriceInput,
   formatWithSignificantDigits,
-} from '../../utils/formatUtils';
-import { getLimitPriceDirectionWarning } from '../../utils/limitPriceFarFromMarket';
+} from '../utils/formatUtils';
+import { getLimitPriceDirectionWarning } from '../utils/limitPriceFarFromMarket';
 import {
   calculateLimitPriceForPercentage,
   isPriceOutsideDeviationBand,
   resolveOracleReferencePrice,
-} from '../../utils/orderUtils';
+} from '../utils/orderUtils';
 
 export interface PerpsLimitPricePreset {
   label: string;
@@ -30,28 +29,56 @@ export interface PerpsLimitPricePreset {
   onPress: () => void;
 }
 
+/**
+ * Preset test IDs differ per surface: the inline close sheet labels one
+ * top-of-book button, while the modal has distinct bid and ask buttons.
+ */
+export interface PerpsLimitPricePresetTestIDs {
+  mid: string;
+  bid: string;
+  ask: string;
+  percentPrefix: string;
+}
+
 export interface UsePerpsLimitPriceInputParams {
   asset: string;
   currentPrice: number;
-  /** Direction of the closing order, i.e. the opposite of the position. */
+  /** Direction of the order being placed, i.e. the opposite of a closing position. */
   direction: 'long' | 'short';
   limitPrice: string;
   setLimitPrice: (price: string) => void;
+  testIDs: PerpsLimitPricePresetTestIDs;
+  /**
+   * Applies HyperLiquid's max-deviation gate. Opening a limit order is left to
+   * the order form's own validation.
+   */
+  isClosingPosition?: boolean;
+  /** Unsubscribes from live price and book data while a modal is hidden. */
+  enabled?: boolean;
 }
 
 export interface UsePerpsLimitPriceInputResult {
+  /** Live mid, falling back to the price the caller passed in. */
+  currentPrice: number;
   formattedLimitPrice: string;
   presets: PerpsLimitPricePreset[];
+  /** Price sits outside the venue's accepted band, which blocks submission. */
+  exceedsMaxDeviation: boolean;
+  /** Non-blocking notice that the price is on the unfavourable side of market. */
+  directionWarning: string;
+  /** The deviation error when present, otherwise the direction warning. */
   error: string;
   hasError: boolean;
   handleKeypadChange: (input: { value: string; valueAsNumber: number }) => void;
   trackInputMethod: () => void;
+  resetInputMethod: () => void;
 }
 
 /**
- * Inline counterpart of `PerpsLimitPriceBottomSheet` for the close-position
- * sheet, where the field edits the order's limit price directly instead of
- * holding a draft that a nested sheet confirms.
+ * Limit price entry shared by the close-position sheet, which edits the order's
+ * price inline, and `PerpsLimitPriceBottomSheet`, which edits a draft its
+ * parent confirms. Owns the presets, the keypad contract, and the price
+ * validation so the two surfaces cannot drift apart.
  */
 export function usePerpsLimitPriceInput({
   asset,
@@ -59,11 +86,17 @@ export function usePerpsLimitPriceInput({
   direction,
   limitPrice,
   setLimitPrice,
+  testIDs,
+  isClosingPosition = false,
+  enabled = true,
 }: UsePerpsLimitPriceInputParams): UsePerpsLimitPriceInputResult {
   const { track } = usePerpsEventTracking();
   const inputMethodRef = useRef<string | null>(null);
 
-  const priceData = usePerpsLivePrices({ symbols: [asset], throttleMs: 1000 });
+  const priceData = usePerpsLivePrices({
+    symbols: enabled ? [asset] : [],
+    throttleMs: 1000,
+  });
   const currentPriceData = priceData[asset];
   const currentPrice = currentPriceData?.price
     ? parseFloat(currentPriceData.price)
@@ -74,8 +107,17 @@ export function usePerpsLimitPriceInput({
     currentPrice,
   );
 
-  const topOfBook = usePerpsTopOfBook({ symbol: asset });
+  const topOfBook = usePerpsTopOfBook({ symbol: enabled ? asset : '' });
   const isLong = direction === 'long';
+
+  // Destructured so an inline `testIDs` literal from a caller cannot rebuild
+  // the preset list on every render.
+  const {
+    mid: midTestID,
+    bid: bidTestID,
+    ask: askTestID,
+    percentPrefix: percentTestIDPrefix,
+  } = testIDs;
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -130,7 +172,7 @@ export function usePerpsLimitPriceInput({
     return [
       {
         label: strings('perps.order.limit_price_modal.mid_price'),
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_MID,
+        testID: midTestID,
         onPress: () => {
           if (currentPrice) {
             applyLimitPrice(
@@ -144,8 +186,7 @@ export function usePerpsLimitPriceInput({
         label: isLong
           ? strings('perps.order.limit_price_modal.bid_price')
           : strings('perps.order.limit_price_modal.ask_price'),
-        testID:
-          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_TOP_OF_BOOK,
+        testID: isLong ? bidTestID : askTestID,
         onPress: () => {
           if (parsedTopOfBook) {
             applyLimitPrice(
@@ -157,46 +198,52 @@ export function usePerpsLimitPriceInput({
       },
       ...percentagePresets.map((percentage) => ({
         label: `${percentage > 0 ? '+' : ''}${percentage}%`,
-        testID: `${PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_PERCENT}${percentage}`,
+        testID: `${percentTestIDPrefix}${percentage}`,
         onPress: () => applyPercentage(percentage),
       })),
     ];
-  }, [applyLimitPrice, currentPrice, isLong, limitPrice, topOfBook]);
+  }, [
+    applyLimitPrice,
+    askTestID,
+    bidTestID,
+    currentPrice,
+    isLong,
+    limitPrice,
+    midTestID,
+    percentTestIDPrefix,
+    topOfBook,
+  ]);
 
   const formattedLimitPrice = useMemo(
     () => formatLimitPriceInput(limitPrice),
     [limitPrice],
   );
 
-  const error = useMemo(() => {
-    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
-
-    if (
-      isPriceOutsideDeviationBand(
-        parsedLimit,
-        referencePrice,
-        LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-      )
-    ) {
-      return strings('perps.order.limit_price_modal.limit_price_too_far');
+  const exceedsMaxDeviation = useMemo(() => {
+    if (!isClosingPosition) {
+      return false;
     }
+    return isPriceOutsideDeviationBand(
+      parseFloat(limitPrice.replace(/[$,]/g, '')),
+      referencePrice,
+      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    );
+  }, [isClosingPosition, limitPrice, referencePrice]);
 
-    if (
-      !limitPrice ||
-      isNaN(parsedLimit) ||
-      !currentPrice ||
-      currentPrice <= 0
-    ) {
-      return '';
-    }
+  const directionWarning = useMemo(
+    () =>
+      getLimitPriceDirectionWarning({
+        limitPrice,
+        currentPrice,
+        direction,
+        isClosingPosition,
+      }),
+    [currentPrice, direction, isClosingPosition, limitPrice],
+  );
 
-    return getLimitPriceDirectionWarning({
-      limitPrice,
-      currentPrice,
-      direction,
-      isClosingPosition: true,
-    });
-  }, [currentPrice, direction, limitPrice, referencePrice]);
+  const error = exceedsMaxDeviation
+    ? strings('perps.order.limit_price_modal.limit_price_too_far')
+    : directionWarning;
 
   const trackInputMethod = useCallback(() => {
     if (!inputMethodRef.current) {
@@ -213,12 +260,20 @@ export function usePerpsLimitPriceInput({
     inputMethodRef.current = null;
   }, [asset, direction, track]);
 
+  const resetInputMethod = useCallback(() => {
+    inputMethodRef.current = null;
+  }, []);
+
   return {
+    currentPrice,
     formattedLimitPrice,
     presets,
+    exceedsMaxDeviation,
+    directionWarning,
     error,
     hasError: Boolean(error),
     handleKeypadChange,
     trackInputMethod,
+    resetInputMethod,
   };
 }
