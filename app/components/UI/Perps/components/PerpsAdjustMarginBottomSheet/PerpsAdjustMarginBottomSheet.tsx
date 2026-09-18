@@ -110,7 +110,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const submittedEstimateRef = useRef<SubmittedEstimate | null>(null);
-  const adjustmentPendingRef = useRef(false);
   const hasNavigatedBackRef = useRef(false);
   const { playImpact: playHapticImpact } = useHaptics();
   const [mode, setMode] = useState<PerpsAdjustMarginMode>(initialMode);
@@ -154,11 +153,9 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => {
-        adjustmentPendingRef.current = false;
         handleClose();
       },
       onError: (errorMessage) => {
-        adjustmentPendingRef.current = false;
         submittedEstimateRef.current = null;
         setSubmissionError(errorMessage);
         track(MetaMetricsEvents.PERPS_ERROR, {
@@ -293,7 +290,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
   const handleModeChange = useCallback(
     (nextMode: string) => {
-      if (adjustmentPendingRef.current || !isAdjustMarginMode(nextMode)) {
+      if (isAdjusting || !isAdjustMarginMode(nextMode)) {
         return;
       }
       setMode(nextMode);
@@ -312,7 +309,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
         [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
       });
     },
-    [routePosition.symbol, track],
+    [isAdjusting, routePosition.symbol, track],
   );
 
   const updateMarginAmount = useCallback((value: string) => {
@@ -352,8 +349,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       hasInvalidAmount ||
       !position ||
       !hasValidPositionData ||
-      isAdjusting ||
-      adjustmentPendingRef.current
+      isAdjusting
     ) {
       return;
     }
@@ -362,7 +358,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       playHapticImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
 
-    adjustmentPendingRef.current = true;
     setSubmissionError(null);
     submittedEstimateRef.current = {
       price: newLiquidationPrice,

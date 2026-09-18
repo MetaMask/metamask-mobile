@@ -71,6 +71,15 @@ const parseFiniteNumber = (
   return Number.isFinite(parsedValue) ? parsedValue : fallback;
 };
 
+const parseMaxLeverage = (
+  value: string | number | null | undefined,
+  fallback: number,
+): number =>
+  parseFiniteNumber(
+    typeof value === 'string' ? value.trim().replace(/x$/i, '') : value,
+    fallback,
+  );
+
 /**
  * Hook for margin adjustment data and calculations
  *
@@ -108,7 +117,7 @@ export function usePerpsAdjustMarginData(
     () => (symbol ? markets.find((m) => m.symbol === symbol) : null),
     [symbol, markets],
   );
-  const parsedMaxLeverage = parseFiniteNumber(
+  const parsedMaxLeverage = parseMaxLeverage(
     marketInfo?.maxLeverage,
     MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage,
   );

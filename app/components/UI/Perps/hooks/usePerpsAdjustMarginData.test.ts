@@ -482,6 +482,13 @@ describe('usePerpsAdjustMarginData', () => {
         ],
         isInitialLoading: false,
       });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [{ ...mockMarkets[0], maxLeverage: '25x' }],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -491,7 +498,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.positionLeverage).toBe(50);
+      expect(result.current.positionLeverage).toBe(25);
     });
   });
 });
