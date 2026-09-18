@@ -116,13 +116,18 @@ jobs:
     # CPU-saturated and wants more, while Appium peaks at 57% of 16 vCPU and 37%
     # of 32 GB and wants less. Right-sizing this profile is a follow-up.
     #
-    # iOS shares the `ios-build-tahoe-slim` profile rather than `ios-e2e`: this
-    # job inherits setup-e2e-env's Xcode default (26.6, required by Expo SDK 57)
-    # and only the tahoe-slim image carries that version.
+    # iOS stays on the `ios-e2e` profile: this job never compiles app code (the
+    # .app comes prebuilt from build-ios-e2e), it only builds WebDriverAgent.
+    # WDA must be built with an Xcode whose SDK matches the image's simulator
+    # runtime — on the tahoe-slim build image (Xcode 26.6 / iOS 26.5 SDK) the
+    # pool simulators run the iOS 18.6 runtime and WDA never launches
+    # ("Failed to start the preinstalled WebDriverAgent in 120000 ms").
+    # Xcode 26.6 is only required by Expo SDK 57 for the app build itself,
+    # which pins it explicitly in build-ios-e2e.yml.
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
-        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' ||
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
          'namespace-profile-metamask-android-e2e') ||
         (inputs.platform == 'ios' &&
           fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
