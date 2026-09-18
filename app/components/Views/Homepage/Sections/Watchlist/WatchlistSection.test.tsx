@@ -325,7 +325,6 @@ describe('WatchlistSection', () => {
     fireEvent.press(getByTestId('row-add-bitcoin'));
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
-    // The token, not just its id — its metadata seeds the optimistic row.
     expect(mockMutate).toHaveBeenCalledWith(
       suggested,
       expect.objectContaining({ onSuccess: expect.any(Function) }),

@@ -12,11 +12,6 @@ import { createAsyncBatcher } from '../utils/createAsyncBatcher';
 import type { WatchlistTokenMetadata } from '../utils/getTokens';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
-/**
- * Either a bare asset ID, or the token itself when the caller already holds its
- * metadata (e.g. a suggested row). Passing the token lets the optimistic
- * hydrated cache render the new row before `getTokens` resolves.
- */
 export type WatchlistAddEntry = CaipAssetType | WatchlistTokenMetadata;
 export type WatchlistAddInput = WatchlistAddEntry | WatchlistAddEntry[];
 export type WatchlistRemoveInput = CaipAssetType | CaipAssetType[];
@@ -88,8 +83,8 @@ const resolveOptimisticBaseAssets = (
 /**
  * Reconcile the hydrated token list against the optimistically updated blob
  * IDs. Removes dropped IDs immediately and reorders survivors to match the
- * blob. IDs with no metadata (e.g. an added asset the caller passed as a bare
- * ID) are omitted until the settled refetch.
+ * blob. IDs not yet present in the hydrated cache (e.g. a freshly added
+ * asset before `getTokens` resolves) are omitted until the settled refetch.
  */
 const applyOptimisticToHydrated = (
   hydrated: readonly WatchlistTokenMetadata[],
@@ -190,7 +185,6 @@ const useWatchlistMutation = <TInput>({
           if (old === undefined) {
             return old;
           }
-          // Cached metadata wins over the caller's copy, so it goes last.
           const tokens = [...(optimisticTokens?.(input) ?? []), ...old];
           return applyOptimisticToHydrated(tokens, nextAssets);
         },
