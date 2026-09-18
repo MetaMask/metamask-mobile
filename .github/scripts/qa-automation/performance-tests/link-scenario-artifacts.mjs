@@ -25,7 +25,8 @@ import path from 'path';
 
 const SCENARIO_ARTIFACT_PREFIX = 'hermes-profile-';
 // Mirrors the ownership tags on tests/performance/**/*.spec.ts. Slack group
-// ids are the same ones used by tests/scripts/weekly-app-profiling-report.mjs.
+// ids come from tests/scripts/weekly-app-profiling-report.mjs, plus Earn's id
+// documented in tests/teams-config.js.
 const SCENARIO_TEAMS = [
   {
     pattern: /\bPerps\b/i,
