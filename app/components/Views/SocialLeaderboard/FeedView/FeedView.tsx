@@ -412,14 +412,37 @@ const FeedView: React.FC<FeedViewProps> = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ section }: { section: SectionListData<FeedItem, FeedSection> }) => (
-      <Box twClassName="px-4 pt-4 pb-1 bg-default">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {section.dateLabel}
-        </Text>
-      </Box>
-    ),
-    [],
+    ({ section }: { section: SectionListData<FeedItem, FeedSection> }) => {
+      // The first day (usually "Today") sits under the filter row and should
+      // not add a divider. Later day groups restore the hairline that the
+      // section header otherwise interrupts.
+      const showSeparator = section !== sections[0];
+
+      return (
+        <Box twClassName="bg-default">
+          {showSeparator ? (
+            <Box
+              twClassName="h-px bg-muted my-1"
+              testID={FeedViewSelectorsIDs.SECTION_SEPARATOR}
+            />
+          ) : null}
+          {/* Under a hairline the label's line box adds ~6pt of leading above
+              its glyphs, so the top padding is trimmed by that much to keep the
+              date optically 16pt from the line, matching the row separators. */}
+          <Box
+            twClassName={showSeparator ? 'px-4 pt-1.5 pb-1' : 'px-4 pt-4 pb-1'}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {section.dateLabel}
+            </Text>
+          </Box>
+        </Box>
+      );
+    },
+    [sections],
   );
 
   const renderItemSeparator = useCallback(
