@@ -8,6 +8,7 @@ import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID } from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.constants';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import {
   AccountSelectorParams,
@@ -303,7 +304,7 @@ describe('AccountSelector', () => {
       expect(manageAccountsButton).toBeOnTheScreen();
       expect(manageAccountsButton).toHaveProp(
         'accessibilityLabel',
-        'Manage accounts',
+        strings('multichain_accounts.manage_accounts.title'),
       );
 
       fireEvent.press(manageAccountsButton);
