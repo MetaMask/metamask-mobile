@@ -34,8 +34,8 @@ const MOCK_ACCOUNT_ID_2 = createMockUuidFromAddress(
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    TokensController: {
-      addToken: jest.fn(),
+    AssetsController: {
+      addCustomAsset: jest.fn(),
     },
   },
 }));

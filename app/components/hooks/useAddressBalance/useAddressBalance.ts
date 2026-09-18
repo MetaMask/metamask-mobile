@@ -1,33 +1,40 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
+import { store } from '../../../store';
 import { getTicker } from '../../../util/transactions';
 import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../util/number';
 import {
+  selectEvmChainId,
   selectEvmTicker,
   selectNetworkConfigurationByChainId,
-  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectAccounts,
   selectAccountsByChainId,
 } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccountFormattedAddress,
+  selectInternalAccountsById,
+} from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 import { RootState } from '../../../reducers';
 import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
 import {
   selectContractBalances,
   selectContractBalancesPerChainId,
+  selectAllTokenBalances,
 } from '../../../selectors/tokenBalancesController';
 import { useAsyncResult } from '../useAsyncResult';
+import { toAssetId } from '../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export const ERC20_DEFAULT_DECIMALS = 18;
 
@@ -63,7 +70,17 @@ const useAddressBalance = (
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const selectedEvmChainId = useSelector(selectEvmChainId);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const watchingAccount = useMemo(() => {
+    if (!address) {
+      return undefined;
+    }
+    const lowerCaseAddress = address.toLowerCase();
+    return Object.values(internalAccountsById).find(
+      (account) => account.address.toLowerCase() === lowerCaseAddress,
+    );
+  }, [internalAccountsById, address]);
   if (chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
     accounts = accountsByChainId[chainId] ?? {};
@@ -80,22 +97,41 @@ const useAddressBalance = (
         name,
       } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { TokensController } = Engine.context as any;
-      if (!contractAddress || !decimals) {
+      const { AssetsController } = Engine.context;
+      if (!contractAddress || !decimals || !watchingAccount) {
         return;
       }
 
-      if (!contractBalances[contractAddress] && !dontWatchAsset) {
-        TokensController.addToken({
-          address: contractAddress,
-          symbol,
-          decimals,
-          image,
-          name,
-          networkClientId: selectedNetworkClientId,
-        });
+      const watchChainId = (chainId as Hex) ?? selectedEvmChainId;
+      // selectAllTokenBalances (getTokenBalancesControllerTokenBalances) is
+      // keyed by the InternalAccount's raw (lowercase) address, not the
+      // checksummed form — do NOT checksum this key or the lookup will
+      // always miss and re-add the same custom asset on every mount.
+      const watchingAccountAddress = watchingAccount.address as Hex;
+      // Read balances directly from the store instead of subscribing via
+      // useSelector: this effect only runs once on mount (see deps below),
+      // so a reactive subscription here would rerender this hook (and every
+      // consumer, e.g. confirmation headers) on every balance update across
+      // all accounts/chains for no benefit.
+      const allTokenBalances = selectAllTokenBalances(store.getState());
+      const alreadyWatchedOnChain =
+        !!allTokenBalances[watchingAccountAddress]?.[watchChainId]?.[
+          contractAddress
+        ];
+
+      if (!alreadyWatchedOnChain && !dontWatchAsset) {
+        const caipChainId = toEvmCaipChainId(watchChainId);
+        const caipAssetType = toAssetId(contractAddress, caipChainId);
+        if (caipAssetType) {
+          AssetsController.addCustomAsset(watchingAccount.id, caipAssetType, {
+            address: contractAddress,
+            symbol,
+            decimals,
+            iconUrl: image,
+            name: name ?? symbol,
+            chainId: watchChainId,
+          });
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
