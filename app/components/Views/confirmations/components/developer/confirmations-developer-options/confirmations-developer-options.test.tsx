@@ -13,7 +13,10 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
-import { ConfirmationLoader } from '../../confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  ConfirmationLaunchSource,
+} from '../../confirm/confirm-component';
 import { useMoneyAccountDeposit } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
 import Logger from '../../../../../../util/Logger';
@@ -506,6 +509,25 @@ describe('ConfirmationsDeveloperOptions', () => {
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         forceBottomSheet: true,
         amount: '5',
+      });
+    });
+
+    it('opens the membership top-up with its own button and launch source', async () => {
+      mockSelectMoneyAccountDepositEnabledFlag.mockReturnValue(true);
+      const { getByTestId } = render(<ConfirmationsDeveloperOptions />);
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        forceBottomSheet: true,
+        amount: '5',
+        launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
       });
     });
 

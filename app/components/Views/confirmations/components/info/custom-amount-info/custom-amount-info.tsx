@@ -14,6 +14,7 @@ import {
 import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
+import { MembershipInfo } from '../../../external/subscriptions/components/membership-info';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
@@ -47,7 +48,10 @@ import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMe
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { ConfirmationParams } from '../../confirm/confirm-component';
+import {
+  ConfirmationParams,
+  ConfirmationLaunchSource,
+} from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import EngineService from '../../../../../../core/EngineService';
@@ -157,6 +161,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
+    const { launchedFrom } = useParams<ConfirmationParams>();
+    const isMembershipTopUp =
+      launchedFrom === ConfirmationLaunchSource.MembershipTopUp;
 
     const {
       amountFiat,
@@ -464,7 +471,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disablePay !== true &&
             !hasAlert &&
             (isMoneyAccountDeposit ? (
-              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+              isMembershipTopUp ? (
+                <MembershipInfo amountFiat={amountFiat} />
+              ) : (
+                <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+              )
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
