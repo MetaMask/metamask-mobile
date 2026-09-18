@@ -774,7 +774,7 @@ describe('useTransactionCustomAmount', () => {
 
     expect(result.current.amountFiat).toBe('5');
     expect(result.current.depositPrefillStatus).toBe(
-      DepositPrefillStatus.Disabled,
+      DepositPrefillStatus.Prefilled,
     );
   });
 

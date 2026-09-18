@@ -285,7 +285,7 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBeDefined();
     });
 
-    it('returns disabled for moneyAccountDeposit when navigation provides an explicit amount', () => {
+    it('prefills the explicit Money amount instead of a balance percentage', () => {
       useParamsMock.mockReturnValue({ amount: '5' });
       setupMocks({
         transactionMeta: makeTransactionMeta({
@@ -296,11 +296,82 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current).toEqual({
-        prefillAmount: undefined,
+        prefillAmount: '5',
         percentage: undefined,
         isLimitCapped: false,
-        status: DepositPrefillStatus.Disabled,
+        status: DepositPrefillStatus.Prefilled,
       });
+    });
+
+    it('prefills an explicit amount even when balance prefill flags are disabled', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks({
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+
+    it('waits for a selected payment token before preparing the explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({ payToken: null });
+
+      const { result, rerender } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Loading);
+      act(() => {
+        setPayTokenWithBalance(makePayToken());
+        rerender({});
+      });
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+
+    it.each(['0', '-5', 'NaN', 'Infinity'])(
+      'does not automatically quote amount %s',
+      (amount) => {
+        useParamsMock.mockReturnValue({ amount });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
+
+    it('skips explicit amount autoquote without a funded token', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({ payToken: null, availableTokenBalances: [] });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('preserves the explicit amount instead of capping it to balance or deposit limits', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '2' }),
+        depositLimits: { moneyAccountDeposit: 3 },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.percentage).toBeUndefined();
+      expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('leaves explicit fiat amounts on the input flow', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+
+      const { result } = runHook({ autoSelectFiatPayment: true });
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
     });
 
     it('keeps perpsDeposit prefill enabled when navigation provides an explicit amount', () => {

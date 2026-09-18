@@ -2232,6 +2232,41 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('prefill auto-submit', () => {
+    it('prepares a nonzero initial amount once when its payment token becomes ready', async () => {
+      const updateTokenAmount = jest.fn().mockResolvedValue(undefined);
+      const onAmountSubmit = jest.fn();
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '5',
+          depositPrefillStatus: DepositPrefillStatus.Loading,
+          updateTokenAmount,
+        }),
+      );
+      const props = {
+        transactionType: TransactionType.moneyAccountDeposit,
+        onAmountSubmit,
+      };
+      const { rerender } = render(props);
+      expect(updateTokenAmount).not.toHaveBeenCalled();
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '5',
+          depositPrefillStatus: DepositPrefillStatus.Prefilled,
+          updateTokenAmount,
+        }),
+      );
+      await act(async () => {
+        rerender(createCustomAmountInfo(props));
+      });
+      await act(async () => {
+        rerender(createCustomAmountInfo(props));
+      });
+
+      expect(updateTokenAmount).toHaveBeenCalledTimes(1);
+      expect(onAmountSubmit).toHaveBeenCalledTimes(1);
+    });
+
     it('calls handleDone when isPrefillPending transitions to false', async () => {
       const updateTokenAmountMock = jest.fn();
       useTransactionCustomAmountMock.mockReturnValue(

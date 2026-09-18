@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -45,7 +46,7 @@ export {
 const LOG_TAG = '[Money Account]';
 
 export interface InitiateDepositOptions {
-  /** Initial editable deposit amount in USD. */
+  /** Initial editable deposit amount in USD, automatically quoted for token deposits. */
   amount?: string;
   preferredPaymentToken?: {
     address: Hex;
@@ -155,13 +156,22 @@ export function useMoneyAccountDeposit() {
         setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
+      const explicitAmount = new BigNumber(options?.amount ?? '0');
+      const shouldQuoteExplicitAmount =
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0) &&
+        options?.intent !== 'card' &&
+        !options?.autoSelectFiatPayment;
+
       const confirmationParams = {
         amount: options?.amount,
-        loader:
-          options?.amount === undefined &&
-          isDepositPrefillEnabled(options?.intent)
-            ? ConfirmationLoader.PrefillCustomAmount
-            : ConfirmationLoader.AdvancedCustomAmount,
+        loader: (
+          options?.amount !== undefined
+            ? shouldQuoteExplicitAmount
+            : isDepositPrefillEnabled(options?.intent)
+        )
+          ? ConfirmationLoader.PrefillCustomAmount
+          : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
         launchedFrom: options?.launchedFrom,
