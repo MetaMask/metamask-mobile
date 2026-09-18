@@ -165,6 +165,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     <>
       <SectionHeader
         title={strings('trending.perps_movers')}
+        subtitle={strings('trending.last_24h')}
         onViewAll={() =>
           navigateToPerpsMarketList(
             navigation,

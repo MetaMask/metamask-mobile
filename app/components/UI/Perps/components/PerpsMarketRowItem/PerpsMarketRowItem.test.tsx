@@ -80,6 +80,8 @@ describe('PerpsMarketRowItem', () => {
       ).toHaveTextContent('BTC');
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00% 24h')).toBeOnTheScreen();
+      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
@@ -203,7 +205,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={largePriceChangeMarket} />);
 
-      expect(screen.getByText('+85.50%')).toBeOnTheScreen();
+      expect(screen.getByText('+85.50% 24h')).toBeOnTheScreen();
     });
   });
 
@@ -418,7 +420,7 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC/USD')),
       ).toHaveTextContent('BTC/USD');
-      expect(screen.getByText('+2.50%')).toBeOnTheScreen();
+      expect(screen.getByText('+2.50% 24h')).toBeOnTheScreen();
     });
 
     it('handles unicode characters', () => {
@@ -537,7 +539,7 @@ describe('PerpsMarketRowItem', () => {
 
       // Should keep original data when price is the same
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
-      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00% 24h')).toBeOnTheScreen();
     });
 
     it('handles negative price changes correctly', () => {
@@ -626,7 +628,7 @@ describe('PerpsMarketRowItem', () => {
 
       expect(screen.getByText('$53,000')).toBeOnTheScreen();
       // Should keep original change data when percentChange24h is missing
-      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00% 24h')).toBeOnTheScreen();
       // Should keep original volume when volume24h is missing
       expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
@@ -715,6 +717,8 @@ describe('PerpsMarketRowItem', () => {
 
       // With 5 significant digits, this rounds to $100,000,000 (trailing zeros removed)
       expect(screen.getByText('$100,000,000')).toBeOnTheScreen();
+      expect(screen.getByText('+2.50% 24h')).toBeOnTheScreen();
+      expect(screen.getByText('$10.00B Vol')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
       expect(screen.getByText('BTC · $10.00B Vol')).toBeOnTheScreen();
     });
@@ -739,7 +743,7 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
-      expect(screen.getByText('+1.00%')).toBeOnTheScreen();
+      expect(screen.getByText('+1.00% 24h')).toBeOnTheScreen();
     });
 
     it('shows negative change', () => {
@@ -754,7 +758,7 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
-      expect(screen.getByText('-1.00%')).toBeOnTheScreen();
+      expect(screen.getByText('-1.00% 24h')).toBeOnTheScreen();
     });
 
     it('handles zero change correctly', () => {
@@ -769,7 +773,7 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
-      expect(screen.getByText('+0.00%')).toBeOnTheScreen();
+      expect(screen.getByText('+0.00% 24h')).toBeOnTheScreen();
     });
   });
 

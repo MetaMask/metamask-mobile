@@ -21,7 +21,7 @@ describe('ExplorePill', () => {
   });
 
   it('renders title and optional change label when non-empty', () => {
-    const { getByText, queryByText } = render(
+    const { getByText } = render(
       <ExplorePill
         onPress={jest.fn()}
         testID="pill"
