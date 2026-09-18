@@ -21,6 +21,7 @@ const ROW_REMOVE_ICON_ID_PREFIX = 'manage-accounts-row-remove-icon-';
 const SECTION_HEADER_ID_PREFIX = 'manage-accounts-section-header-';
 const SECTION_HEADER_REMOVE_ID_PREFIX =
   'manage-accounts-section-header-remove-';
+const SECTION_HEADER_LOCK_ID_PREFIX = 'manage-accounts-section-header-lock-';
 const ADD_ACCOUNT_FOOTER_ID_PREFIX = 'manage-accounts-add-account-footer-';
 
 /** Normalizes a wallet name into a stable test-ID slug. */
@@ -59,6 +60,11 @@ export const getManageAccountSectionHeaderId = (walletName: string): string =>
 export const getManageAccountSectionHeaderRemoveId = (
   walletName: string,
 ): string => `${SECTION_HEADER_REMOVE_ID_PREFIX}${toTestIdSlug(walletName)}`;
+
+/** Test ID for the lock icon shown on a locked wallet section header. */
+export const getManageAccountSectionHeaderLockId = (
+  walletName: string,
+): string => `${SECTION_HEADER_LOCK_ID_PREFIX}${toTestIdSlug(walletName)}`;
 
 /** Test ID for the "Add account" footer of a wallet section. */
 export const getManageAccountAddAccountFooterId = (
