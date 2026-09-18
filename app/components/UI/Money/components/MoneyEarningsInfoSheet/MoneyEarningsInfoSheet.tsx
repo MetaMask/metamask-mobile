@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
+  Box,
   BottomSheet,
   BottomSheetHeader,
   Text,
@@ -10,9 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import styleSheet from './MoneyEarningsInfoSheet.styles';
 import { MoneyEarningsInfoSheetTestIds } from './MoneyEarningsInfoSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -39,7 +37,6 @@ const VARIANT_CONFIG = {
 
 const MoneyEarningsInfoSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { styles } = useStyles(styleSheet, {});
   const { variant } = useParams<MoneyEarningsInfoSheetParams>();
   const config = VARIANT_CONFIG[variant] ?? VARIANT_CONFIG.monthly;
 
@@ -60,17 +57,20 @@ const MoneyEarningsInfoSheet = () => {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingSm}>{strings(config.titleKey)}</Text>
+        <Text variant={TextVariant.HeadingSm} twClassName="text-center">
+          {strings(config.titleKey)}
+        </Text>
       </BottomSheetHeader>
-      <View style={styles.content}>
+      <Box twClassName="gap-4 px-4 pb-6">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
+          twClassName="text-center"
           testID={MoneyEarningsInfoSheetTestIds.BODY}
         >
           {strings(config.bodyKey)}
         </Text>
-      </View>
+      </Box>
     </BottomSheet>
   );
 };
