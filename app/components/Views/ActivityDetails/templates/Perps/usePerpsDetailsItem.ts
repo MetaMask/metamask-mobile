@@ -59,7 +59,7 @@ export function usePerpsDetailsItem(
   const { transactions: unaggregatedTransactions } = usePerpsActivityQuery(
     shouldResolve ? accountId : undefined,
     isQueryEnabled,
-    false,
+    { fillDisplay: 'individual' },
   );
   const transaction = useMemo(() => {
     const target = shouldResolve ? identifier : undefined;

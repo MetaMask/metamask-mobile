@@ -981,6 +981,78 @@ describe('transactionTransforms', () => {
       );
     });
 
+    it('keeps both executions when two fills of one order share timestamp, size and price', () => {
+      // HyperLiquid does not guarantee those four values identify one execution, so a fill
+      // must never be dropped for looking like another.
+      const fills: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-twin',
+          direction: 'Open Long',
+          size: '1.5',
+          price: '3000',
+          fee: '0.1',
+          timestamp: 1700000000000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-twin',
+          direction: 'Open Long',
+          size: '1.5',
+          price: '3000',
+          fee: '0.1',
+          timestamp: 1700000000000,
+        },
+      ];
+
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+      const aggregated = transformFillsToTransactions(fills);
+
+      expect(individual).toHaveLength(2);
+      expect(new Set(individual.map((tx) => tx.id)).size).toBe(2);
+      expect(aggregated).toHaveLength(1);
+      expect(aggregated[0].subtitle).toBe('3 ETH');
+    });
+
+    it('leaves existing execution ids unchanged when a newer fill is prepended', () => {
+      const existing: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-history',
+          direction: 'Open Long',
+          size: '2',
+          timestamp: 1700000001000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-history',
+          direction: 'Open Long',
+          size: '3',
+          timestamp: 1700000000000,
+        },
+      ];
+      const newerFill: OrderFill = {
+        ...mockFill,
+        orderId: 'order-newer',
+        direction: 'Open Long',
+        size: '1',
+        timestamp: 1700000002000,
+      };
+
+      const before = transformFillsToTransactions(existing, {
+        aggregate: false,
+      });
+      const after = transformFillsToTransactions([newerFill, ...existing], {
+        aggregate: false,
+      });
+
+      expect(after.map((tx) => tx.id).slice(1)).toStrictEqual(
+        before.map((tx) => tx.id),
+      );
+    });
+
     it('defaults to aggregating when no options are passed', () => {
       const fills: OrderFill[] = ['1', '2'].map((size, index) => ({
         ...mockFill,

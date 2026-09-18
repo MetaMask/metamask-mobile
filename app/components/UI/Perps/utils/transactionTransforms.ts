@@ -384,6 +384,32 @@ export interface DepositRequest {
   depositId?: string;
 }
 
+/**
+ * Builds the ids of the rows shown when aggregation is off.
+ *
+ * The provider-neutral `OrderFill` model carries no execution id yet (HyperLiquid's `tid` does
+ * not reach it), so the id is derived from the fill's own content plus how many identical fills
+ * precede it. Unlike an index into the rendered list, that leaves every existing id untouched
+ * when a newer fill arrives, which keeps FlashList keys and Activity Details resolution stable
+ * across a refresh. The `fill-` namespace keeps these ids clear of the aggregated rows, whose
+ * id carries the last fill's orderId and timestamp.
+ *
+ * @param fills - The fills about to be turned into rows, in render order
+ * @returns One id per fill, positionally aligned with `fills`
+ */
+function buildIndividualFillIds(fills: OrderFill[]): string[] {
+  const occurrences = new Map<string, number>();
+
+  return fills.map((fill) => {
+    const key = `${fill.orderId || 'fill'}-${fill.timestamp}-${fill.size}-${
+      fill.price
+    }`;
+    const occurrence = occurrences.get(key) ?? 0;
+    occurrences.set(key, occurrence + 1);
+    return `fill-${key}-${occurrence}`;
+  });
+}
+
 export interface TransformFillsToTransactionsOptions {
   /**
    * When true (the default), collapse the fills of one order into a single row. When false,
@@ -412,12 +438,11 @@ export function transformFillsToTransactions(
   const fillsToTransform = aggregate
     ? aggregateFillsByOrder(fills)
     : [...fills].sort((left, right) => right.timestamp - left.timestamp);
-  // An aggregated row carries its last fill's orderId and timestamp, so without this the
-  // newest fill of the newest order would mint the same id as the row that combines it, and
-  // opening that row's details would show the combined trade instead of the single fill.
-  const idPrefix = aggregate ? '' : 'fill-';
+  const individualIds = aggregate
+    ? undefined
+    : buildIndividualFillIds(fillsToTransform);
 
-  return fillsToTransform.reduce((acc: PerpsTransaction[], fill) => {
+  return fillsToTransform.reduce((acc: PerpsTransaction[], fill, index) => {
     const {
       direction,
       orderId,
@@ -541,7 +566,9 @@ export function transformFillsToTransactions(
     }
 
     acc.push({
-      id: `${idPrefix}${orderId || 'fill'}-${timestamp}-${acc.length}`,
+      id: individualIds
+        ? individualIds[index]
+        : `${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
       category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,

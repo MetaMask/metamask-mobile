@@ -42,11 +42,9 @@ export function usePerpsActivityItems({
     isLoading,
     refetch,
     transactions,
-  } = usePerpsActivityQuery(
-    accountId,
-    enabled && isInitialized,
-    aggregateFills,
-  );
+  } = usePerpsActivityQuery(accountId, enabled && isInitialized, {
+    fillDisplay: aggregateFills ? 'aggregated' : 'individual',
+  });
 
   useFocusEffect(
     useCallback(() => {

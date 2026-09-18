@@ -151,33 +151,34 @@ function flattenPages(data?: InfiniteData<PerpsActivityPage>) {
 }
 
 /**
- * Collects the raw fills across loaded pages, deduped the same way merged fills are keyed.
+ * Collects the raw fills across loaded pages. Every execution is kept: the provider does not
+ * expose an id that identifies one, and two legitimate fills of the same order can share
+ * timestamp, size and price, so any content-derived key would drop real executions.
  */
 function flattenFills(data?: InfiniteData<PerpsActivityPage>) {
   if (!data) {
     return [];
   }
 
-  const seen = new Set<string>();
-  const fills: OrderFill[] = [];
-  for (const page of data.pages) {
-    for (const fill of page.fills ?? []) {
-      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      if (seen.has(key)) {
-        continue;
-      }
-      seen.add(key);
-      fills.push(fill);
-    }
-  }
+  return data.pages.flatMap((page) => page.fills ?? []);
+}
 
-  return fills;
+/**
+ * How the trade rows present an order that HyperLiquid filled in several pieces:
+ * `aggregated` collapses them into the one trade the user placed, `individual` lists every
+ * execution on its own row.
+ */
+export type PerpsFillDisplay = 'aggregated' | 'individual';
+
+export interface UsePerpsActivityQueryOptions {
+  /** Defaults to `aggregated`. */
+  fillDisplay?: PerpsFillDisplay;
 }
 
 export function usePerpsActivityQuery(
   accountId: CaipAccountId | undefined,
   enabled: boolean,
-  aggregateFills = true,
+  { fillDisplay = 'aggregated' }: UsePerpsActivityQueryOptions = {},
 ) {
   const query = useInfiniteQuery({
     queryKey: ['perpsActivity', accountId ?? null],
@@ -242,7 +243,7 @@ export function usePerpsActivityQuery(
     // flipping it re-renders from cached fills instead of refetching.
     const fillTransactions = transformFillsToTransactions(
       flattenFills(query.data),
-      { aggregate: aggregateFills },
+      { aggregate: fillDisplay === 'aggregated' },
     );
     const rest = flattenPages(query.data);
     const restHashes = new Set(
@@ -257,7 +258,7 @@ export function usePerpsActivityQuery(
     return [...fillTransactions, ...rest, ...extra].sort(
       (left, right) => right.timestamp - left.timestamp,
     );
-  }, [query.data, walletDeposits, walletWithdrawals, aggregateFills]);
+  }, [query.data, walletDeposits, walletWithdrawals, fillDisplay]);
 
   return {
     ...query,

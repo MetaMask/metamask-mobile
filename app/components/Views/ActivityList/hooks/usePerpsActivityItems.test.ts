@@ -325,7 +325,7 @@ describe('usePerpsActivityItems', () => {
     expect(usePerpsActivityQuery).toHaveBeenCalledWith(
       `eip155:42161:${address}`,
       true,
-      true,
+      { fillDisplay: 'aggregated' },
     );
   });
 
@@ -336,6 +336,8 @@ describe('usePerpsActivityItems', () => {
 
     renderHook(() => usePerpsActivityItems());
 
-    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true, true);
+    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true, {
+      fillDisplay: 'aggregated',
+    });
   });
 });

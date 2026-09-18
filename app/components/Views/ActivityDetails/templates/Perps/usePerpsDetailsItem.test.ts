@@ -86,20 +86,20 @@ describe('usePerpsDetailsItem', () => {
   it('resolves a row id that only exists while aggregation is turned off', () => {
     // The list can be showing individual executions when a row is tapped, and those ids do
     // not exist in the aggregated set the details screen builds by default.
-    const individualFill = {
-      id: 'order-1-1700000000000-2',
-    } as PerpsTransaction;
+    const individualFillId = 'fill-order-1-1700000000000-3000-1.5-0';
+    const individualFill = { id: individualFillId } as PerpsTransaction;
     usePerpsActivityQueryMock.mockImplementation(
-      (_accountId, _enabled, aggregateFills = true) =>
+      (_accountId, _enabled, options) =>
         ({
-          transactions: aggregateFills ? [trade, deposit] : [individualFill],
+          transactions:
+            options?.fillDisplay === 'individual'
+              ? [individualFill]
+              : [trade, deposit],
           isFetching: false,
         }) as ReturnType<typeof usePerpsActivityQuery>,
     );
 
-    const { result } = renderHook(() =>
-      usePerpsDetailsItem('order-1-1700000000000-2'),
-    );
+    const { result } = renderHook(() => usePerpsDetailsItem(individualFillId));
 
     expect(result.current.transaction).toBe(individualFill);
   });

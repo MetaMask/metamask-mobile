@@ -6,7 +6,7 @@ import PerpsAggregatedFillsCheckbox from './PerpsAggregatedFillsCheckbox';
 const TEST_ID = 'aggregated-checkbox';
 
 describe('PerpsAggregatedFillsCheckbox', () => {
-  it('reports the checked state when selected', () => {
+  it('exposes the checkbox role and its checked state when selected', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsAggregatedFillsCheckbox
         isSelected
@@ -15,12 +15,12 @@ describe('PerpsAggregatedFillsCheckbox', () => {
       />,
     );
 
-    expect(getByTestId(TEST_ID).props.accessibilityState).toEqual({
-      checked: true,
-    });
+    const control = getByTestId(TEST_ID);
+    expect(control.props.accessibilityRole).toBe('checkbox');
+    expect(control.props.accessibilityState).toMatchObject({ checked: true });
   });
 
-  it('reports the unchecked state when not selected', () => {
+  it('exposes the checkbox role and its unchecked state when not selected', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsAggregatedFillsCheckbox
         isSelected={false}
@@ -29,9 +29,9 @@ describe('PerpsAggregatedFillsCheckbox', () => {
       />,
     );
 
-    expect(getByTestId(TEST_ID).props.accessibilityState).toEqual({
-      checked: false,
-    });
+    const control = getByTestId(TEST_ID);
+    expect(control.props.accessibilityRole).toBe('checkbox');
+    expect(control.props.accessibilityState).toMatchObject({ checked: false });
   });
 
   it('turns aggregation off when a selected pill is pressed', () => {
