@@ -1,10 +1,8 @@
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonVariant,
-  FontWeight,
   HeaderStandard,
   Spinner,
   Text,
@@ -18,10 +16,14 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
-import { FlatList, Pressable } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../component-library/components-temp/Tabs';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
@@ -41,8 +43,8 @@ const FollowConnectionsView: React.FC = () => {
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
   const tw = useTailwind();
   const initialTab = route.params?.initialTab ?? 'followers';
-  const [activeTab, setActiveTab] = useState<'followers' | 'following'>(
-    initialTab,
+  const [activeIndex, setActiveIndex] = useState(
+    initialTab === 'following' ? 1 : 0,
   );
   const { followers } = useFollowers();
   const {
@@ -56,6 +58,32 @@ const FollowConnectionsView: React.FC = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const connectionTabs: TabItem[] = useMemo(
+    () => [
+      {
+        key: 'followers',
+        label: strings('social_leaderboard.my_profile.followers_tab', {
+          count: followers.length,
+        }),
+        content: null,
+        testID: FollowConnectionsViewSelectorsIDs.FOLLOWERS_TAB,
+      },
+      {
+        key: 'following',
+        label: strings('social_leaderboard.my_profile.following_tab', {
+          count: following.length,
+        }),
+        content: null,
+        testID: FollowConnectionsViewSelectorsIDs.FOLLOWING_TAB,
+      },
+    ],
+    [followers.length, following.length],
+  );
+
+  const handleTabPress = useCallback((index: number) => {
+    setActiveIndex(index);
+  }, []);
 
   const handleFollowingRowPress = useCallback(
     (trader: FollowedTrader) => {
@@ -209,66 +237,16 @@ const FollowConnectionsView: React.FC = () => {
         }}
         testID={FollowConnectionsViewSelectorsIDs.HEADER}
       />
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="border-b border-muted"
-        testID={FollowConnectionsViewSelectorsIDs.TABS}
-      >
-        <Pressable
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'followers' }}
-          onPress={() => setActiveTab('followers')}
-          style={tw.style(
-            'flex-1 items-center py-3 border-b-2',
-            activeTab === 'followers' ? 'border-default' : 'border-transparent',
-          )}
-          testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_TAB}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={
-              activeTab === 'followers' ? FontWeight.Bold : FontWeight.Regular
-            }
-            color={
-              activeTab === 'followers'
-                ? TextColor.TextDefault
-                : TextColor.TextAlternative
-            }
-          >
-            {strings('social_leaderboard.my_profile.followers_tab', {
-              count: followers.length,
-            })}
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'following' }}
-          onPress={() => setActiveTab('following')}
-          style={tw.style(
-            'flex-1 items-center py-3 border-b-2',
-            activeTab === 'following' ? 'border-default' : 'border-transparent',
-          )}
-          testID={FollowConnectionsViewSelectorsIDs.FOLLOWING_TAB}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={
-              activeTab === 'following' ? FontWeight.Bold : FontWeight.Regular
-            }
-            color={
-              activeTab === 'following'
-                ? TextColor.TextDefault
-                : TextColor.TextAlternative
-            }
-          >
-            {strings('social_leaderboard.my_profile.following_tab', {
-              count: following.length,
-            })}
-          </Text>
-        </Pressable>
+      <Box twClassName="border-b border-muted">
+        <TabsBar
+          tabs={connectionTabs}
+          activeIndex={activeIndex}
+          onTabPress={handleTabPress}
+          testID={FollowConnectionsViewSelectorsIDs.TABS}
+        />
       </Box>
       <Box twClassName="flex-1">
-        {activeTab === 'followers' ? followersContent : followingContent}
+        {activeIndex === 0 ? followersContent : followingContent}
       </Box>
     </SafeAreaView>
   );
