@@ -126,7 +126,7 @@ describe('AdvancedEIP1559Modal', () => {
     fireEvent.changeText(priorityFeeInput, '5');
 
     const gasLimitInput = getByTestId('gas-input');
-    fireEvent.changeText(gasLimitInput, '21000');
+    fireEvent.changeText(gasLimitInput, '12000');
 
     const saveButton = getByText('Save');
     fireEvent.press(saveButton);
@@ -134,7 +134,7 @@ describe('AdvancedEIP1559Modal', () => {
     expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith(
       simpleSendTransaction.id,
       expect.objectContaining({
-        gas: '0x5208',
+        gas: '0x2ee0',
         maxFeePerGas: '0x174876e800',
         maxPriorityFeePerGas: '0x12a05f200',
         userFeeLevel: 'custom',
