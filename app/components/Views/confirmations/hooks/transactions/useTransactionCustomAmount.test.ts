@@ -772,7 +772,12 @@ describe('useTransactionCustomAmount', () => {
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
         chainId: '0x1',
-      } as TransactionPaymentToken,
+        balanceFiat: '500',
+        balanceHuman: '500',
+        balanceRaw: '500000000',
+        decimals: 6,
+        symbol: 'USDC',
+      },
       setPayToken: jest.fn(),
     });
     const { result, rerender } = runHook({
