@@ -2,6 +2,7 @@ import React from 'react';
 import {
   AvatarTokenSize,
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -79,7 +80,11 @@ function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
 
   return (
     <Box twClassName="gap-1">
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {label}
       </Text>
       <Box twClassName="flex-row items-center gap-3">
