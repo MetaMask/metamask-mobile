@@ -248,51 +248,6 @@ function resolveRunsInWindow(
     .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 }
 
-function browserArtifactUrl(repo, runId, artifactId) {
-  return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifactId}`;
-}
-
-function listRunArtifacts(runId, repo) {
-  const payload = JSON.parse(
-    runGh(['api', `repos/${repo}/actions/runs/${runId}/artifacts`]) ||
-      '{"artifacts":[]}',
-  );
-  return payload.artifacts || [];
-}
-
-/**
- * Browser download links for dedicated Hermes CPU-profile artifacts on a
- * performance run. Falls back to the run's Artifacts tab when the listing
- * fails or those artifacts have already expired.
- */
-function collectProfileArtifactLinks(runId, repo, runUrl, artifacts = undefined) {
-  const fallback = runUrl ? `${runUrl}#artifacts` : null;
-  try {
-    const listed =
-      artifacts !== undefined
-        ? artifacts
-        : runId && repo
-          ? listRunArtifacts(runId, repo)
-          : [];
-    const links = listed
-      .filter(
-        (artifact) =>
-          !artifact.expired &&
-          String(artifact.name || '').startsWith('hermes-cpuprofiles-'),
-      )
-      .map((artifact) => ({
-        name: artifact.name,
-        url: browserArtifactUrl(repo, runId, artifact.id),
-      }));
-    if (links.length > 0) {
-      return links;
-    }
-  } catch (error) {
-    console.log(`ℹ️ Could not list profile artifacts: ${error.message}`);
-  }
-  return fallback ? [{ name: 'hermes-cpuprofiles-*', url: fallback }] : [];
-}
-
 function analysisArtifactsUrl(repo, analysisRunId) {
   if (!repo || !analysisRunId) {
     return null;
@@ -706,6 +661,7 @@ function loadProfile(
     return {
       ...metadata,
       skipped: false,
+      sourcePath: filePath,
       analysisPath,
       sourcemapPath,
       symbolicated: Boolean(sourcemapPath),
@@ -1342,15 +1298,6 @@ function buildMarkdown(report) {
 
 function markdownDownloadLines(meta = {}) {
   const lines = [];
-  const profiles = meta.profileArtifacts || [];
-  if (profiles.length > 0) {
-    lines.push(
-      'Hermes `.cpuprofile` files (feed these to an agent, 14-day retention):',
-    );
-    for (const artifact of profiles) {
-      lines.push(`- [${artifact.name}](${artifact.url})`);
-    }
-  }
   if (meta.analysisArtifactsUrl) {
     lines.push(
       `- [app-profiling-analysis](${meta.analysisArtifactsUrl}) — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (30-day retention).`,
@@ -1361,15 +1308,6 @@ function markdownDownloadLines(meta = {}) {
 
 function slackDownloadLines(meta = {}) {
   const lines = [];
-  const profiles = meta.profileArtifacts || [];
-  if (profiles.length > 0) {
-    lines.push(
-      '• Hermes `.cpuprofile` files (feed these to an agent, 14-day retention):',
-    );
-    for (const artifact of profiles) {
-      lines.push(`  • <${artifact.url}|${artifact.name}>`);
-    }
-  }
   if (meta.analysisArtifactsUrl) {
     lines.push(
       `• <${meta.analysisArtifactsUrl}|app-profiling-analysis> — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (30-day retention).`,
@@ -1895,6 +1833,108 @@ function writeOutputs(outputDirectory, report) {
   );
 }
 
+function writeScenarioArtifacts(
+  outputDirectory,
+  profiles,
+  scenarios,
+  performanceRunId = null,
+) {
+  const artifactsDirectory = path.join(outputDirectory, 'scenario-artifacts');
+  fs.mkdirSync(artifactsDirectory, { recursive: true });
+
+  const artifacts = scenarios.map((scenario, index) => {
+    const artifactName = `hermes-profile-${String(index + 1).padStart(2, '0')}-${sanitize(scenario.scenario).slice(0, 100)}`;
+    const scenarioDirectory = path.join(artifactsDirectory, artifactName);
+    const rawDirectory = path.join(scenarioDirectory, 'raw');
+    const symbolicatedDirectory = path.join(scenarioDirectory, 'symbolicated');
+    fs.mkdirSync(rawDirectory, { recursive: true });
+
+    const matchingProfiles = profiles.filter(
+      (profile) =>
+        profile.project === scenario.projectName &&
+        profile.scenario === scenario.scenario,
+    );
+    for (const profile of matchingProfiles) {
+      if (profile.sourcePath && fs.existsSync(profile.sourcePath)) {
+        fs.copyFileSync(
+          profile.sourcePath,
+          path.join(rawDirectory, path.basename(profile.sourcePath)),
+        );
+      }
+      if (
+        profile.symbolicated &&
+        profile.analysisPath &&
+        fs.existsSync(profile.analysisPath)
+      ) {
+        fs.mkdirSync(symbolicatedDirectory, { recursive: true });
+        fs.copyFileSync(
+          profile.analysisPath,
+          path.join(symbolicatedDirectory, path.basename(profile.analysisPath)),
+        );
+      }
+    }
+    fs.writeFileSync(
+      path.join(scenarioDirectory, 'README.md'),
+      `# ${displayName(scenario.scenario)}\n\n` +
+        `Performance run: ${performanceRunId || 'local analysis'}\n\n` +
+        '- `raw/` contains every Hermes `.cpuprofile` segment and retry captured for this scenario.\n' +
+        '- `symbolicated/` contains converted profiles with resolved source locations when a matching sourcemap was available.\n',
+    );
+    return {
+      artifactName,
+      path: scenarioDirectory,
+      scenario: displayName(scenario.scenario),
+    };
+  });
+
+  fs.writeFileSync(
+    path.join(outputDirectory, 'scenario-artifacts.json'),
+    `${JSON.stringify({ include: artifacts }, null, 2)}\n`,
+  );
+  return artifacts;
+}
+
+function writeWindowScenarioArtifacts(outputDirectory, runReports) {
+  const byScenario = new Map();
+  for (const report of runReports) {
+    const manifestPath = path.join(
+      outputDirectory,
+      'runs',
+      String(report.meta.runId),
+      'scenario-artifacts.json',
+    );
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    for (const artifact of manifest.include || []) {
+      const entries = byScenario.get(artifact.scenario) || [];
+      entries.push({ ...artifact, runId: report.meta.runId });
+      byScenario.set(artifact.scenario, entries);
+    }
+  }
+
+  const root = path.join(outputDirectory, 'scenario-artifacts');
+  fs.rmSync(root, { recursive: true, force: true });
+  fs.mkdirSync(root, { recursive: true });
+  const artifacts = [...byScenario.entries()].map(
+    ([scenario, runArtifacts], index) => {
+      const artifactName = `hermes-profile-${String(index + 1).padStart(2, '0')}-${sanitize(scenario).slice(0, 100)}`;
+      const target = path.join(root, artifactName);
+      for (const artifact of runArtifacts) {
+        fs.cpSync(
+          artifact.path,
+          path.join(target, `run-${artifact.runId}`),
+          { recursive: true },
+        );
+      }
+      return { artifactName, path: target, scenario };
+    },
+  );
+  fs.writeFileSync(
+    path.join(outputDirectory, 'scenario-artifacts.json'),
+    `${JSON.stringify({ include: artifacts }, null, 2)}\n`,
+  );
+  return artifacts;
+}
+
 function downloadRunInputs({ runId, repo, workingDirectory }) {
   const sourceDirectory = path.join(workingDirectory, 'source-profiles');
   const sourcemapDirectory = path.join(workingDirectory, 'source-sourcemaps');
@@ -2022,6 +2062,7 @@ async function analyzeRun({
     scenarioFilter: args.scenario,
     skillAnalyzerPath,
   });
+  writeScenarioArtifacts(workingDirectory, profiles, scenarios, runId);
 
   return {
     meta: {
@@ -2038,16 +2079,6 @@ async function analyzeRun({
       symbolicatedProfileCount: profiles.filter(
         (profile) => profile.symbolicated,
       ).length,
-      profileArtifacts: localDirectory
-        ? []
-        : collectProfileArtifactLinks(
-            runId,
-            args.repo,
-            run?.url ||
-              (runId
-                ? `https://github.com/${args.repo}/actions/runs/${runId}`
-                : null),
-          ),
       analysisArtifactsUrl: analysisArtifactsUrl(
         args.repo,
         process.env.GITHUB_RUN_ID,
@@ -2149,6 +2180,7 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     writeOutputs(runDirectory, report);
     runReports.push(report);
   }
+  writeWindowScenarioArtifacts(outputDirectory, runReports);
 
   const window = aggregateWindow(runReports, {
     lookbackHours: args.lookbackHours,
@@ -2189,8 +2221,8 @@ export {
   buildMarkdown,
   buildSlack,
   buildConclusions,
-  collectProfileArtifactLinks,
-  browserArtifactUrl,
+  writeScenarioArtifacts,
+  writeWindowScenarioArtifacts,
   markdownDownloadLines,
   slackDownloadLines,
   median,

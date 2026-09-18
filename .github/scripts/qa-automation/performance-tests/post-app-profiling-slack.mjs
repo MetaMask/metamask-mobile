@@ -136,6 +136,57 @@ function splitForSlack(markdown, maxLength = MAX_TEXT_LENGTH) {
   return parts;
 }
 
+function scenarioArtifactLinks(artifacts, repo, runId) {
+  return artifacts
+    .filter(
+      (artifact) =>
+        !artifact.expired &&
+        String(artifact.name || '').startsWith('hermes-profile-'),
+    )
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map(
+      (artifact) =>
+        `• <https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}|${artifact.name}>`,
+    );
+}
+
+async function listRunArtifacts(repo, runId, token, { fetchFn = fetch } = {}) {
+  const response = await fetchFn(
+    `https://api.github.com/repos/${repo}/actions/runs/${runId}/artifacts?per_page=100`,
+    {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`GitHub artifacts HTTP ${response.status}`);
+  }
+  const payload = await response.json();
+  return payload.artifacts || [];
+}
+
+function addScenarioArtifactLinks(markdown, links) {
+  if (links.length === 0) {
+    throw new Error('No per-scenario Hermes profile artifacts were published');
+  }
+  const section = [
+    '• Per-scenario Hermes profiles (feed these to an agent, 14-day retention):',
+    ...links.map((link) => `  ${link}`),
+  ].join('\n');
+  if (markdown.includes('*Downloads*')) {
+    return markdown.replace('*Downloads*', `*Downloads*\n${section}`);
+  }
+  const source = '_Source:_';
+  const index = markdown.indexOf(source);
+  if (index === -1) {
+    return `${markdown.trim()}\n\n*Downloads*\n${section}`;
+  }
+  return `${markdown.slice(0, index)}*Downloads*\n${section}\n\n${markdown.slice(index)}`;
+}
+
 async function post(channel, text, token, options) {
   const payload = {
     channel,
@@ -229,8 +280,24 @@ async function main() {
     return;
   }
 
+  let markdown = fs.readFileSync(markdownPath, 'utf8');
+  const githubToken = process.env.GITHUB_TOKEN;
+  const githubRepository = process.env.GITHUB_REPOSITORY;
+  const githubRunId = process.env.GITHUB_RUN_ID;
+  if (githubToken && githubRepository && githubRunId) {
+    const artifacts = await listRunArtifacts(
+      githubRepository,
+      githubRunId,
+      githubToken,
+    );
+    markdown = addScenarioArtifactLinks(
+      markdown,
+      scenarioArtifactLinks(artifacts, githubRepository, githubRunId),
+    );
+  }
+
   const result = await postSummary({
-    markdown: fs.readFileSync(markdownPath, 'utf8'),
+    markdown,
     target,
     token,
     runUrl: process.env.GITHUB_RUN_URL,
@@ -245,4 +312,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { isUserId, openDirectMessage, buildText, splitForSlack, postSummary };
+export {
+  isUserId,
+  openDirectMessage,
+  buildText,
+  splitForSlack,
+  scenarioArtifactLinks,
+  addScenarioArtifactLinks,
+  postSummary,
+};

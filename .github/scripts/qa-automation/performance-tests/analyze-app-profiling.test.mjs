@@ -23,7 +23,7 @@ import {
   buildMarkdown,
   buildSlack,
   buildConclusions,
-  collectProfileArtifactLinks,
+  writeScenarioArtifacts,
   median,
   scenarioFrameTotals,
   aggregateWindow,
@@ -607,7 +607,7 @@ test('Slack omits the sourcemap caveat once every profile is symbolicated', () =
   assert.doesNotMatch(buildSlack(report), /no matching sourcemap/);
 });
 
-test('Slack keeps the full Notes block and links profile artifacts', () => {
+test('Slack keeps the full Notes block and links the analysis artifact', () => {
   const notes = `${'fast-equals dominates Predict Deposit. '.repeat(40)}metroRequire is an outlier.`;
   const report = {
     meta: {
@@ -615,12 +615,6 @@ test('Slack keeps the full Notes block and links profile artifacts', () => {
       profileCount: 1,
       symbolicatedProfileCount: 1,
       ai: true,
-      profileArtifacts: [
-        {
-          name: 'hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14',
-          url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/35217706350/artifacts/99',
-        },
-      ],
       analysisArtifactsUrl:
         'https://github.com/MetaMask/metamask-mobile/actions/runs/88#artifacts',
     },
@@ -637,57 +631,64 @@ test('Slack keeps the full Notes block and links profile artifacts', () => {
   assert.match(slack, /\*Notes\*/);
   assert.equal(slack.includes(notes), true);
   assert.match(slack, /\*Downloads\*/);
-  assert.match(
-    slack,
-    /<https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/35217706350\/artifacts\/99\|hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14>/,
-  );
   assert.match(slack, /app-profiling-analysis/);
   assert.match(markdown, /## Downloads/);
-  assert.match(markdown, /feed these to an agent/);
+  assert.match(markdown, /per-scenario JSON/);
 });
 
-test('collectProfileArtifactLinks keeps hermes artifacts and skips expired ones', () => {
-  const links = collectProfileArtifactLinks(
+test('writeScenarioArtifacts packages every segment and retry by scenario', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scenario-artifacts-'));
+  const raw = path.join(root, 'profiles');
+  fs.mkdirSync(raw);
+  const firstPath = path.join(
+    raw,
+    'browserstack-android-Perps.cpuprofile',
+  );
+  const retryPath = path.join(
+    raw,
+    'browserstack-android-Perps.retry-1.cpuprofile',
+  );
+  fs.writeFileSync(firstPath, '{"first":true}');
+  fs.writeFileSync(retryPath, '{"retry":true}');
+  const profiles = [
+    {
+      ...profile(path.basename(firstPath)),
+      sourcePath: firstPath,
+      analysisPath: firstPath,
+    },
+    {
+      ...profile(path.basename(retryPath)),
+      sourcePath: retryPath,
+      analysisPath: retryPath,
+    },
+  ];
+  const scenarios = groupProfiles(profiles);
+
+  const artifacts = writeScenarioArtifacts(
+    root,
+    profiles,
+    scenarios,
     '35217706350',
-    'MetaMask/metamask-mobile',
-    'https://github.com/MetaMask/metamask-mobile/actions/runs/35217706350',
-    [
-      {
-        id: 1,
-        name: 'hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14',
-        expired: false,
-      },
-      {
-        id: 2,
-        name: 'hermes-cpuprofiles-android-onboarding-flow-Pixel-8-Pro-14',
-        expired: true,
-      },
-      { id: 3, name: 'android-imported-wallet-test-results-Pixel-8-Pro-14', expired: false },
-    ],
   );
 
-  assert.deepEqual(links, [
-    {
-      name: 'hermes-cpuprofiles-android-imported-wallet-Pixel-8-Pro-14',
-      url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/35217706350/artifacts/1',
-    },
-  ]);
-});
-
-test('collectProfileArtifactLinks falls back to the run Artifacts tab', () => {
-  const links = collectProfileArtifactLinks(
-    '9',
-    'MetaMask/metamask-mobile',
-    'https://github.com/MetaMask/metamask-mobile/actions/runs/9',
-    [],
+  assert.equal(artifacts.length, 1);
+  assert.match(artifacts[0].artifactName, /^hermes-profile-01-Perps$/);
+  assert.deepEqual(
+    fs
+      .readdirSync(path.join(artifacts[0].path, 'raw'))
+      .sort(),
+    [path.basename(firstPath), path.basename(retryPath)].sort(),
   );
-
-  assert.deepEqual(links, [
-    {
-      name: 'hermes-cpuprofiles-*',
-      url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/9#artifacts',
-    },
-  ]);
+  assert.match(
+    fs.readFileSync(path.join(artifacts[0].path, 'README.md'), 'utf8'),
+    /Performance run: 35217706350/,
+  );
+  assert.deepEqual(
+    JSON.parse(
+      fs.readFileSync(path.join(root, 'scenario-artifacts.json'), 'utf8'),
+    ),
+    { include: artifacts },
+  );
 });
 
 test('a worst first attempt is never labelled retry 0', () => {

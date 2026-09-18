@@ -5,6 +5,8 @@ import {
   openDirectMessage,
   buildText,
   splitForSlack,
+  scenarioArtifactLinks,
+  addScenarioArtifactLinks,
   postSummary,
 } from './post-app-profiling-slack.mjs';
 
@@ -55,6 +57,45 @@ test('splitForSlack keeps every paragraph across multiple messages', () => {
 
   assert.equal(parts.length, 2);
   assert.equal(parts.join('\n\n'), `${first}\n\n${second}`);
+});
+
+test('scenarioArtifactLinks creates sorted links for active scenario artifacts', () => {
+  const links = scenarioArtifactLinks(
+    [
+      { id: 22, name: 'hermes-profile-02-Send', expired: false },
+      { id: 11, name: 'hermes-profile-01-Perps', expired: false },
+      { id: 33, name: 'app-profiling-analysis', expired: false },
+      { id: 44, name: 'hermes-profile-03-Expired', expired: true },
+    ],
+    'MetaMask/metamask-mobile',
+    '123',
+  );
+
+  assert.deepEqual(links, [
+    '• <https://github.com/MetaMask/metamask-mobile/actions/runs/123/artifacts/11|hermes-profile-01-Perps>',
+    '• <https://github.com/MetaMask/metamask-mobile/actions/runs/123/artifacts/22|hermes-profile-02-Send>',
+  ]);
+});
+
+test('addScenarioArtifactLinks adds links to the Downloads section', () => {
+  const digest = addScenarioArtifactLinks(
+    '*Summary*\n\n*Downloads*\n• analysis report\n\n_Source:_ Hermes',
+    ['• <https://example.com/artifact|hermes-profile-01-Perps>'],
+  );
+
+  assert.match(digest, /Per-scenario Hermes profiles/);
+  assert.match(digest, /hermes-profile-01-Perps/);
+  assert.ok(
+    digest.indexOf('hermes-profile-01-Perps') <
+      digest.indexOf('analysis report'),
+  );
+});
+
+test('addScenarioArtifactLinks requires at least one scenario artifact', () => {
+  assert.throws(
+    () => addScenarioArtifactLinks('*Summary*', []),
+    /No per-scenario Hermes profile artifacts/,
+  );
 });
 
 test('buildText labels the run link so a failure notice names its target', () => {
