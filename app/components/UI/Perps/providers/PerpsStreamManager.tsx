@@ -129,6 +129,26 @@ function clearCapturedLoadingSessionTraceData(traceId: string): void {
 
 type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic' | 'cleared';
 
+// TAT-3974 reproduction marker — removed before the fix commit.
+const unthrottledDeliveryWindow = new Map<string, number>();
+let unthrottledWindowStartedAt = 0;
+function recordUnthrottledDelivery(channelName: string): void {
+  const now = Date.now();
+  if (now - unthrottledWindowStartedAt >= 1000) {
+    unthrottledDeliveryWindow.forEach((count, name) => {
+      DevLogger.log(
+        `[TAT-3974] BUG_MARKER: unthrottled fresh deliveries channel=${name} perSecond=${count}`,
+      );
+    });
+    unthrottledDeliveryWindow.clear();
+    unthrottledWindowStartedAt = now;
+  }
+  unthrottledDeliveryWindow.set(
+    channelName,
+    (unthrottledDeliveryWindow.get(channelName) ?? 0) + 1,
+  );
+}
+
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
@@ -358,6 +378,8 @@ abstract class StreamChannel<T> {
 
     // If no throttling (throttleMs is 0 or undefined), notify immediately
     if (!subscriber.throttleMs) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recordUnthrottledDelivery((this as any).constructor.name);
       subscriber.callback(updates);
       subscriber.onDelivery?.(source);
       return;
