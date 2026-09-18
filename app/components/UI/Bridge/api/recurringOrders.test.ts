@@ -111,19 +111,19 @@ describe('getRecurringSwaps', () => {
     });
 
     expect(firstPage.swaps.map(({ swapId }) => swapId)).toStrictEqual([
+      `${orderId}-6`,
       `${orderId}-5`,
-      `${orderId}-4`,
     ]);
     expect(secondPage.swaps.map(({ swapId }) => swapId)).toStrictEqual([
+      `${orderId}-4`,
       `${orderId}-3`,
-      `${orderId}-2`,
     ]);
   });
 
   it('omits the cursor on the final page', async () => {
     const result = await getRecurringSwaps(orderId, {
       limit: 2,
-      cursor: '4',
+      cursor: '5',
     });
 
     expect(result.swaps).toHaveLength(1);

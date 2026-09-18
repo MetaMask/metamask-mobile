@@ -8,4 +8,5 @@ export const RecurringSwapDetailsViewSelectorsIDs = {
   NETWORK_ROW: 'recurring-swap-details-network-row',
   TRANSACTION_ID_ROW: 'recurring-swap-details-transaction-id-row',
   FEES_AND_TOTAL: 'recurring-swap-details-fees-and-total',
+  DELEGATE_ACCOUNT_BUTTON: 'recurring-swap-details-delegate-account-button',
 } as const;

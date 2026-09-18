@@ -94,6 +94,16 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
     scheduledAt: '2026-09-05T12:00:00.000Z',
     executedAt: '2026-09-05T12:00:00.000Z',
   },
+  {
+    swapId: `${MOCK_RECURRING_OPEN_ORDER.orderId}-6`,
+    orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
+    status: RecurringSwapStatus.Skipped,
+    skipReason: 'needs_smart_account',
+    src: { amount: '0' },
+    dest: { amount: '0' },
+    scheduledAt: '2026-09-05T13:00:00.000Z',
+    executedAt: '2026-09-05T13:00:00.000Z',
+  },
 ];
 
 export const MOCK_RECURRING_SWAPS_BY_ORDER_ID: Readonly<

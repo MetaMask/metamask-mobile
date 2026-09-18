@@ -186,14 +186,42 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(
       renderResult.queryByText(BLOCK_EXPLORER_BUTTON_LABEL),
     ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.DELEGATE_ACCOUNT_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a smart-account-required attempt without transaction-only content', async () => {
+    const { renderResult } = await openSwapDetails(5);
+
+    expect(
+      within(
+        renderResult.getByTestId(
+          RecurringSwapDetailsViewSelectorsIDs.REASON_ROW,
+        ),
+      ).getByText(strings('bridge.recurring.needs_smart_account')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.TRANSACTION_ID_ROW,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.FEES_AND_TOTAL,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByText(BLOCK_EXPLORER_BUTTON_LABEL),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens an on-chain swap in the block explorer', async () => {
     const { renderResult } = await openSwapDetails(0);
 
-    await userEvent.press(
-      renderResult.getByText(BLOCK_EXPLORER_BUTTON_LABEL),
-    );
+    await userEvent.press(renderResult.getByText(BLOCK_EXPLORER_BUTTON_LABEL));
 
     expect(
       await renderResult.findByTestId(`route-${Routes.WEBVIEW.MAIN}-params`),

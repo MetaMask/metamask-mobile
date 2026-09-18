@@ -222,6 +222,12 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         received: '+0 USDC',
         spent: '-0 ETH',
       },
+      {
+        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
+        status: strings('bridge.recurring.needs_smart_account'),
+        received: '+0 USDC',
+        spent: '-0 ETH',
+      },
     ];
 
     for (const { swap, status, received, spent } of expectedRows) {

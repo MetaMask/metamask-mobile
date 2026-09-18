@@ -9224,6 +9224,7 @@
       "insufficient_balance": "Insufficient balance",
       "no_quotes_available": "No quotes available",
       "needs_smart_account": "Smart account required",
+      "delegate_your_account": "Delegate your account",
       "execution_failed": "Execution failed",
       "history_empty": "No swap history yet",
       "history_error": "Swap history couldn’t be loaded",

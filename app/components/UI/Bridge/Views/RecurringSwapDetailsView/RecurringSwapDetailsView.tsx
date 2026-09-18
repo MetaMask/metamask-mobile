@@ -1,10 +1,13 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseCaipAssetType, type CaipChainId } from '@metamask/utils';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   HeaderStandard,
   SectionDivider,
 } from '@metamask/design-system-react-native';
@@ -37,6 +40,8 @@ import {
   RecurringSwapStatus,
   type RecurringSwap,
 } from '../../api/recurringOrders.types';
+import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { getRecurringOrderTokens } from '../../utils/recurringOrders';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
@@ -96,6 +101,82 @@ function RecurringSwapFeesAndTotal({
   );
 }
 
+type DelegationStatus = 'checking' | 'required' | 'upgrading' | 'hidden';
+
+export function RecurringSwapDelegationButton({
+  address,
+  chainId,
+}: {
+  address: string;
+  chainId: string | undefined;
+}) {
+  const { autoUpgradeEIP7702Account, getUpgradeStatus } =
+    useAutoUpgradeEIP7702Account({ address, chainId });
+  const [delegationStatus, setDelegationStatus] =
+    useState<DelegationStatus>('checking');
+  const isDelegatingRef = useRef(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    setDelegationStatus('checking');
+    getUpgradeStatus()
+      .then((upgradeStatus) => {
+        if (!isActive) return;
+
+        setDelegationStatus(
+          upgradeStatus.isUpgradeRequired ? 'required' : 'hidden',
+        );
+      })
+      .catch((error) => {
+        if (!isActive) return;
+
+        showRecurringAutoUpgradeError(error);
+        setDelegationStatus('hidden');
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [getUpgradeStatus]);
+
+  const handleDelegateAccount = useCallback(async () => {
+    if (isDelegatingRef.current) return;
+
+    isDelegatingRef.current = true;
+    setDelegationStatus('upgrading');
+
+    try {
+      await autoUpgradeEIP7702Account();
+      setDelegationStatus('hidden');
+    } catch (error) {
+      showRecurringAutoUpgradeError(error);
+      setDelegationStatus('required');
+    } finally {
+      isDelegatingRef.current = false;
+    }
+  }, [autoUpgradeEIP7702Account]);
+
+  if (delegationStatus === 'hidden') return null;
+
+  const isLoading =
+    delegationStatus === 'checking' || delegationStatus === 'upgrading';
+
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={isLoading}
+      isLoading={isLoading}
+      onPress={handleDelegateAccount}
+      testID={RecurringSwapDetailsViewSelectorsIDs.DELEGATE_ACCOUNT_BUTTON}
+    >
+      {strings('bridge.recurring.delegate_your_account')}
+    </Button>
+  );
+}
+
 function RecurringSwapDetailsView() {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -121,6 +202,9 @@ function RecurringSwapDetailsView() {
   };
   const executionTimestamp = Date.parse(swap.executedAt ?? swap.scheduledAt);
   const skipReason = getSkipReason(swap);
+  const shouldOfferDelegation =
+    swap.status === RecurringSwapStatus.Skipped &&
+    swap.skipReason === 'needs_smart_account';
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -221,7 +305,12 @@ function RecurringSwapDetailsView() {
               </>
             }
             footer={
-              swap.txHash ? (
+              shouldOfferDelegation ? (
+                <RecurringSwapDelegationButton
+                  address={order.src.walletAddress}
+                  chainId={chainId}
+                />
+              ) : swap.txHash ? (
                 <ActivityDetailsBlockExplorerButton
                   chainId={chainId}
                   hash={swap.txHash}
