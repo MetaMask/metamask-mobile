@@ -6,12 +6,12 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type {
   PredictOrderPreview,
   PredictOrderPreviewFeeSource,
 } from '../../../types';
+import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -56,11 +56,8 @@ export const OrderPreviewRows = ({
   preview,
 }: {
   preview: PredictOrderPreview;
-}) => {
-  const tw = useTailwind();
-
-  return (
-    <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+}) => (
+  <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
       <QuoteRow
         label={strings('predict_next.order_preview.estimated_contracts')}
         value={String(preview.estimatedContracts)}
@@ -68,7 +65,7 @@ export const OrderPreviewRows = ({
       />
       <QuoteRow
         label={strings('predict_next.order_preview.average_price')}
-        value={formatUsd(preview.averagePrice)}
+        value={formatCents(preview.averagePrice)}
         testID={PredictOrderFlowTestIds.AVERAGE_PRICE}
       />
       <QuoteRow
@@ -117,5 +114,4 @@ export const OrderPreviewRows = ({
         </Text>
       </Box>
     </Box>
-  );
-};
+);

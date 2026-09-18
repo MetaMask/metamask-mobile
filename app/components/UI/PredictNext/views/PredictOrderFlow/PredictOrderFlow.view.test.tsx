@@ -259,6 +259,9 @@ describe('PredictOrderFlow', () => {
       screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
     ).toBeOnTheScreen();
     expect(screen.getByText('Price details')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AVERAGE_PRICE),
+    ).toHaveTextContent('46.5¢');
     expect(screen.getByText('Exchange fee')).toBeOnTheScreen();
     expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
   });
