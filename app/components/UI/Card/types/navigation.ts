@@ -58,6 +58,7 @@ export type CardScreensStackParamList = {
     transactionId: string;
     transaction?: CardTransaction;
   };
+  CardContactDetails: undefined;
   CardSetPin: { cardId: string };
   CardConfirmPin: { cardId: string };
   CardAuthentication:
@@ -143,6 +144,7 @@ export type CardModalsNavigationParamList = {
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
   CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
+  CardDigitalWalletInstructionsModal: undefined;
 };
 
 /**

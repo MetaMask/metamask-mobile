@@ -222,8 +222,19 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
-  const { initiateProvisioning, isProvisioning, canAddToWallet } =
-    useCardProvisioning(data);
+  const {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+  } = useCardProvisioning(data);
+  const isBaanxInternational =
+    activeProviderId === CardProviderIds.Baanx &&
+    userLocation === 'international';
+  const showDigitalWalletInstructions =
+    (isImmersve || isBaanxInternational) &&
+    !isPushProvisioningLoading &&
+    !canAddToWallet;
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -891,6 +902,11 @@ const CardHome = () => {
             onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
+            onContactDetails={actions.contactDetailsAction}
+            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            onDigitalWalletInstructions={
+              actions.digitalWalletInstructionsAction
+            }
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

@@ -12,6 +12,7 @@ import {
 
 const mockToggleWatchlistMarket = jest.fn();
 const mockGetWatchlistMarkets = jest.fn(() => ['BTC']);
+const mockFlushState = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -20,6 +21,13 @@ jest.mock('../../../../core/Engine', () => ({
         mockToggleWatchlistMarket(...args),
       getWatchlistMarkets: () => mockGetWatchlistMarkets(),
     },
+  },
+}));
+
+jest.mock('../../../../core/EngineService', () => ({
+  __esModule: true,
+  default: {
+    flushState: () => mockFlushState(),
   },
 }));
 
@@ -74,6 +82,7 @@ describe('usePerpsWatchlistActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetWatchlistMarkets.mockReturnValue(['BTC']);
+    mockFlushState.mockImplementation(() => undefined);
     // clearAllMocks leaves return values in place, so reset the persist promise
     // or a deferred one from the latency cases leaks into later tests.
     mockToggleWatchlistMarket.mockResolvedValue(undefined);
@@ -99,11 +108,14 @@ describe('usePerpsWatchlistActions', () => {
       });
 
       expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolvePersist();
         await pending;
       });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
     });
 
     it('shows the removed toast before the persist settles', async () => {
@@ -123,11 +135,85 @@ describe('usePerpsWatchlistActions', () => {
       });
 
       expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolvePersist();
         await pending;
       });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
+    });
+
+    it('flushes Redux state after persistence resolves with a reverted watchlist', async () => {
+      let watchlist = ['BTC'];
+      let resolvePersist: () => void = () => undefined;
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
+      mockToggleWatchlistMarket.mockImplementation(
+        (symbol: string) =>
+          new Promise<void>((resolve) => {
+            watchlist = watchlist.filter(
+              (marketSymbol) => marketSymbol !== symbol,
+            );
+            resolvePersist = () => {
+              watchlist = ['BTC'];
+              resolve();
+            };
+          }),
+      );
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      let pending: Promise<void> = Promise.resolve();
+      await act(async () => {
+        pending = result.current.removeFromWatchlist('BTC');
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolvePersist();
+        await pending;
+      });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
+      expect(mockGetWatchlistMarkets()).toEqual(['BTC']);
+      expect(mockShowToast).not.toHaveBeenCalledWith(mockRemoveError);
+    });
+
+    it('keeps successful feedback when Redux state delivery throws', async () => {
+      const flushError = new Error('Redux store does not exist');
+      mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+      mockFlushState.mockImplementation(() => {
+        throw flushError;
+      });
+
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      await act(async () => {
+        await result.current.addToWatchlist('ETH');
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+            PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'ETH',
+        }),
+      );
+      expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+      expect(mockShowToast).not.toHaveBeenCalledWith(mockAddError);
+      expect(Logger.error).toHaveBeenCalledWith(
+        flushError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            action: 'flush_engine_state',
+          }),
+        }),
+      );
     });
   });
 
