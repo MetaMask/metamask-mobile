@@ -8,8 +8,27 @@ export interface SocialV1FeedAsset {
   avatar: PositionTokenAvatarData;
 }
 
+/** The trader who published the post, rendered in the post header. */
+export interface SocialV1FeedAuthor {
+  /** Social API trader id, used to open their profile. */
+  id: string;
+  username: string;
+  /** Wallet address, used for the Maskicon fallback when there is no avatar. */
+  address?: string;
+  avatarUri?: string | null;
+  /**
+   * Whole percent (e.g. `92` for 92%), matching the leaderboard's
+   * `TopTrader.winRatePercent`. `null` when the window has no win-rate data,
+   * in which case the badge is omitted.
+   */
+  winRatePercent: number | null;
+}
+
 interface SocialV1FeedItemBase {
   id: string;
+  author: SocialV1FeedAuthor;
+  /** Post time in seconds or milliseconds -- see `tradeTimestampToMs`. */
+  timestamp: number;
   asset: SocialV1FeedAsset;
   /** Author comment. Presence selects the detailed (big) card. */
   comment?: string;
@@ -51,6 +70,25 @@ export type SocialV1FeedItem =
 
 export interface UseSocialV1FeedResult {
   items: SocialV1FeedItem[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+/** One chip in the feed's hot-tokens carousel. */
+export interface SocialV1HotToken {
+  /** Stable key, also used as the chip's test ID suffix. */
+  id: string;
+  /**
+   * Perps market symbol (e.g. `BTC`, `NVDA`, or a HIP-3 `dex:SYMBOL`). Drives
+   * icon resolution, which falls back to a monogram when no icon is published.
+   */
+  symbol: string;
+  /** Editorial label -- the topic's name, not the ticker (e.g. `Bitcoin perps`). */
+  label: string;
+}
+
+export interface UseSocialV1HotTokensResult {
+  tokens: SocialV1HotToken[];
   isLoading: boolean;
   error: string | null;
 }

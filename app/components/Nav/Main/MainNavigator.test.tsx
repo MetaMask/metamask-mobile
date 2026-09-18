@@ -9,7 +9,12 @@ import AddBookmark from '../../Views/AddBookmark';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import OfflineMode from '../../Views/OfflineMode';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -19,6 +24,7 @@ jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
     Screen: 'Screen',
+    Group: 'Group',
   }),
 }));
 
@@ -1678,13 +1684,10 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders ExploreHome', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.TRENDING_VIEW,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+      it('points the TrendingView tab straight at the Explore feed', () => {
+        expect(
+          getScreenComponent(homeTabsRoot, Routes.TRENDING_VIEW, 'TabScreen'),
+        ).toBe(ExploreFeed);
       });
 
       it('renders BrowserFlow', () => {
@@ -1859,6 +1862,36 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_SELECT_SHEET,
           ]),
         );
+      });
+
+      it('shares overlay options on one Group for the rewards sheets', () => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const group = root.findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+        )[0];
+        const groupedScreenNames = (group?.children ?? [])
+          .filter(
+            (child): child is ReactTestInstance =>
+              typeof child === 'object' &&
+              'props' in child &&
+              typeof child.props?.name === 'string',
+          )
+          .map((child) => child.props.name as string);
+
+        expect(group?.props?.screenOptions).toEqual({
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        });
+        expect(groupedScreenNames).toEqual([
+          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+          Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+          Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+          Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+          Routes.MODAL.REWARDS_SELECT_SHEET,
+        ]);
       });
     });
 

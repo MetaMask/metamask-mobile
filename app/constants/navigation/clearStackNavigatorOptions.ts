@@ -40,11 +40,6 @@ export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
   animation: 'ios_from_right',
 };
 
-export const slideFromLeftNativeOptions: NativeStackNavigationOptions = {
-  animation: 'ios_from_left',
-  animationMatchesGesture: true,
-};
-
 export const fadeNativeOptions: NativeStackNavigationOptions = {
   animation: 'fade',
   gestureEnabled: false,
