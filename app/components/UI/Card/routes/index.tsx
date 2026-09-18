@@ -40,6 +40,7 @@ import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
 import CardTransactionHistory from '../Views/CardTransactionHistory/CardTransactionHistory';
 import CardTransactionDetails from '../Views/CardTransactionDetails/CardTransactionDetails';
 import CardReportTransaction from '../Views/CardReportTransaction/CardReportTransaction';
+import ContactDetails from '../Views/ContactDetails/ContactDetails';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
@@ -119,6 +120,10 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.REPORT_TRANSACTION}
         component={CardReportTransaction}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.CONTACT_DETAILS}
+        component={ContactDetails}
       />
       <ScreensStack.Screen name={Routes.CARD.SET_PIN} component={SetCardPin} />
       <ScreensStack.Screen

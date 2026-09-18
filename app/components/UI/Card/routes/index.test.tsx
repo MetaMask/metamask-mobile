@@ -44,7 +44,9 @@ jest.mock('@react-navigation/native-stack', () => {
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
           {options?.headerShown === false && <Text>no-header</Text>}
-          {name === 'CardModals' && Component ? <Component /> : null}
+          {(name === 'CardHome' || name === 'CardModals') && Component ? (
+            <Component />
+          ) : null}
         </View>
       ),
     }),
@@ -64,6 +66,11 @@ jest.mock('../Views/CardWelcome/CardWelcome', () => {
 jest.mock('../Views/CardAuthentication/CardAuthentication', () => {
   const { View } = require('react-native');
   return () => <View testID="card-authentication" />;
+});
+
+jest.mock('../Views/ContactDetails/ContactDetails', () => {
+  const { View } = require('react-native');
+  return () => <View testID="contact-details" />;
 });
 
 jest.mock('../Views/SpendingLimit/SpendingLimit', () => {
@@ -179,6 +186,14 @@ jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
 }));
 
+jest.mock('../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: (state: {
+    card: { isAuthenticatedCard: boolean };
+  }) => state.card.isAuthenticatedCard,
+  selectIsCardholder: (state: { card: { isCardholder: boolean } }) =>
+    state.card.isCardholder,
+}));
+
 jest.mock('../../../../constants/navigation/Routes', () => ({
   CARD: {
     HOME: 'CardHome',
@@ -188,6 +203,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
     CREDIT_REDEEM: 'CreditRedeem',
+    CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     AUTHENTICATION: 'CardAuthentication',
@@ -270,9 +286,15 @@ describe('CardRoutes', () => {
     });
 
     it('includes CardHome screen', () => {
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(getAllByTestId('screen-CardHome').length).toBeGreaterThan(0);
+    });
+
+    it('includes Contact Details screen', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
-      expect(getByTestId('screen-CardHome')).toBeTruthy();
+      expect(getByTestId('screen-CardContactDetails')).toBeTruthy();
     });
 
     it('includes CardModals navigator', () => {

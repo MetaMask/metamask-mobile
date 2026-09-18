@@ -30,7 +30,7 @@ import {
   TotalMarketGroupCard,
 } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
-import { useEventWithLiveGame } from '../../hooks/useEventWithLiveGame';
+import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -254,7 +254,7 @@ export const PredictEventScreen = () => {
   const { venueId, eventId, titleSnapshot } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
-  const liveEvent = useEventWithLiveGame(venueId, query.data);
+  const liveEvent = useEventWithLiveData(venueId, query.data);
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
