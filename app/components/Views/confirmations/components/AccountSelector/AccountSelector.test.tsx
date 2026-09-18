@@ -451,8 +451,7 @@ describe('AccountSelector', () => {
           return mockInternalAccountsById;
         if (selector === selectVisibleAccountGroupsByWallet)
           return accountGroupsWithLedger;
-        if (selector === selectAccountToGroupMap)
-          return mockAccountToGroupMap;
+        if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
         if (selector === selectAvatarAccountType) return 'HD Key Tree';
         return undefined;
       },
