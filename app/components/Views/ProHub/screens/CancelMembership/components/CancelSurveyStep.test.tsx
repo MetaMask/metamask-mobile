@@ -48,6 +48,8 @@ const renderStep = (
     onBack: jest.fn(),
     onKeepMembership: jest.fn(),
     onCancelConfirm: jest.fn(),
+    isSubmitting: false,
+    errorMessage: null,
     ...overrides,
   };
   const utils = render(<CancelSurveyStep {...props} />);
@@ -467,6 +469,24 @@ describe('CancelSurveyStep', () => {
       );
 
       expect(scrollToSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cancellation state', () => {
+    it('shows the cancellation error', () => {
+      const errorMessage = 'Cancellation failed';
+      const { getByTestId } = renderStep({ errorMessage });
+
+      expect(
+        getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
+      ).toHaveTextContent(errorMessage);
+    });
+
+    it('disables both actions while cancellation is submitting', () => {
+      const { getByTestId } = renderStep({ isSubmitting: true });
+
+      expect(getByTestId(CancelMembershipTestIds.KEEP_BUTTON)).toBeDisabled();
+      expect(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON)).toBeDisabled();
     });
   });
 });
