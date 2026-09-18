@@ -64,6 +64,7 @@ import {
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { strings } from '../../../../locales/i18n';
+import { ActivityListSelectorsIDs } from '../ActivityList/ActivityList.testIds';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
@@ -493,7 +494,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -506,12 +507,19 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    // Wait for Transactions empty copy — the list shows a spinner until the EVM
-    // query settles, so the empty-state testID is not mounted yet.
-    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+        ).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
+    expect(await findByText(unfundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(addFundsLabel));
 
@@ -528,7 +536,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateFunded().build(),
         extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
@@ -541,10 +549,19 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    expect(await findByText(fundedDescription)).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+        ).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
+    expect(await findByText(fundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(swapTokensLabel));
 
