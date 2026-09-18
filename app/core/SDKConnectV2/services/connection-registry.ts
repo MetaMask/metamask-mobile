@@ -62,6 +62,18 @@ export class ConnectionRegistry {
   private deeplinks = new Set<string>();
   private appStateSubscription: NativeEventSubscription | null = null;
 
+  /**
+   * Number of new incoming connect deeplinks currently being established, plus
+   * the resolvers waiting for that count to reach zero.
+   *
+   * Background work (cold-start resume in {@link initialize} and foreground
+   * reconnect in {@link reconnectAll}) yields to in-flight connects via
+   * {@link waitForConnectIdle} so a fresh incoming connection isn't slowed by
+   * resume/reconnect traffic contending with it on the shared relay socket.
+   */
+  private activeConnectCount = 0;
+  private connectIdleResolvers: (() => void)[] = [];
+
   constructor(
     relayURL: string,
     keymanager: IKeyManager,
@@ -90,6 +102,23 @@ export class ConnectionRegistry {
     const persisted = await this.store.list().catch(() => []);
 
     for (const connInfo of persisted) {
+      // Defer resuming a persisted connection while a new connect is being
+      // established, so cold-start resume doesn't contend with the fresh
+      // incoming connection on the shared relay socket.
+      await this.waitForConnectIdle();
+
+      // The barrier may have parked this loop for a while. If this
+      // not-yet-resumed session was disconnected in the meantime, its store
+      // entry is gone — resuming it anyway would resurrect a session the
+      // user just removed. On a store read failure, err on resuming (the
+      // pre-barrier behavior).
+      const stillPersisted = await this.store
+        .get(connInfo.id)
+        .catch(() => connInfo);
+      if (!stillPersisted) {
+        continue;
+      }
+
       try {
         const conn = await Connection.create(
           connInfo,
@@ -258,6 +287,9 @@ export class ConnectionRegistry {
   public async handleConnectDeeplink(url: string): Promise<void> {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
+    // Mark this as an in-flight connect so background resume/reconnect work
+    // yields to it (see waitForConnectIdle).
+    this.beginNewConnect();
 
     logger.debug('Handling connect deeplink:', redactUrl(url));
 
@@ -366,6 +398,7 @@ export class ConnectionRegistry {
 
       if (conn) await this.cleanupConnection(conn);
     } finally {
+      this.endNewConnect();
       this.deeplinks.delete(url);
       // Loading-toast dismissal rules:
       // - On failure, always dismiss the loading toast. Otherwise the user
@@ -434,6 +467,7 @@ export class ConnectionRegistry {
   ): Promise<void> {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
+    this.beginNewConnect();
 
     try {
       await handleAgenticCliConnectDeeplink(
@@ -448,6 +482,7 @@ export class ConnectionRegistry {
         connReq,
       );
     } finally {
+      this.endNewConnect();
       this.deeplinks.delete(url);
     }
   }
@@ -532,6 +567,51 @@ export class ConnectionRegistry {
   }
 
   /**
+   * Marks the start of a new incoming connect so background resume/reconnect
+   * work defers to it. Must be paired with {@link endNewConnect}.
+   */
+  private beginNewConnect(): void {
+    this.activeConnectCount += 1;
+  }
+
+  /**
+   * Marks the end of a new incoming connect, releasing any background work that
+   * is waiting in {@link waitForConnectIdle} once no connects remain in flight.
+   */
+  private endNewConnect(): void {
+    this.activeConnectCount = Math.max(0, this.activeConnectCount - 1);
+    if (this.activeConnectCount === 0 && this.connectIdleResolvers.length > 0) {
+      const resolvers = this.connectIdleResolvers;
+      this.connectIdleResolvers = [];
+      for (const resolve of resolvers) {
+        resolve();
+      }
+    }
+  }
+
+  /**
+   * Resolves immediately when no new connect is in flight, otherwise waits
+   * until the in-flight connect(s) finish. Used to keep cold-start resume and
+   * foreground reconnect off the critical path of a fresh incoming connect.
+   *
+   * Re-checks the count in a loop: the wake-up from {@link endNewConnect}
+   * lands on a later microtask, so another connect may have already begun by
+   * the time a waiter resumes. Without the loop, background work could slip
+   * through and run alongside that new in-flight connect.
+   *
+   * Note the barrier only gates loop *iterations* — a resume/reconnect that
+   * has already started is never preempted mid-operation (an in-flight relay
+   * handshake cannot be cancelled).
+   */
+  private async waitForConnectIdle(): Promise<void> {
+    while (this.activeConnectCount > 0) {
+      await new Promise<void>((resolve) => {
+        this.connectIdleResolvers.push(resolve);
+      });
+    }
+  }
+
+  /**
    * Proactively refreshes all active connections. This is the primary mechanism
    * for preventing stale/zombie connections after the app was put in the background.
    *
@@ -544,6 +624,17 @@ export class ConnectionRegistry {
     const connections = Array.from(this.connections.values());
 
     for (const conn of connections) {
+      // Defer reconnecting an existing connection while a new connect is being
+      // established, so background reconnect traffic doesn't contend with it.
+      await this.waitForConnectIdle();
+
+      // The connection may have been disconnected/evicted while we were
+      // deferring (e.g. the in-flight connect triggered capacity eviction),
+      // so skip anything no longer in the registry.
+      if (!this.connections.has(conn.id)) {
+        continue;
+      }
+
       try {
         await conn.client.reconnect();
         logger.debug('Connection reconnected:', conn.id);
