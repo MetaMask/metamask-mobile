@@ -65,6 +65,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import { isSameOrigin } from '../../../util/url';
 import {
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
@@ -124,6 +125,7 @@ import {
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
+  isHttpPageUrl,
   resolveCommittedDocumentUrl,
 } from './utils';
 import { getURLProtocol } from '../../../util/general';
@@ -233,6 +235,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
     // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
     const loadingUrlRef = useRef('');
+    const loadStartIdRef = useRef(0);
+    const lastBoundWebViewKeyRef = useRef<number | null>(null);
+    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
     const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
@@ -592,12 +597,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       handleFirstUrl();
     }, [isTabActive, handleFirstUrl, webBrowserBridgeScript]);
 
+    const teardownBackgroundBridge = useCallback(() => {
+      backgroundBridgeRef.current?.onDisconnect();
+      backgroundBridgeRef.current = undefined;
+    }, []);
+
     // Cleanup bridges when tab is closed
     useEffect(
       () => () => {
-        backgroundBridgeRef.current?.onDisconnect();
+        teardownBackgroundBridge();
       },
-      [],
+      [teardownBackgroundBridge],
     );
 
     useEffect(() => {
@@ -693,9 +703,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
-        // First disconnect and reset bridge
-        backgroundBridgeRef.current?.onDisconnect();
-        backgroundBridgeRef.current = undefined;
+        let hostname: string;
+        try {
+          hostname = new URL(urlBridge).origin;
+        } catch {
+          return;
+        }
+        if (!hostname || hostname === 'null') {
+          return;
+        }
+
+        teardownBackgroundBridge();
 
         //@ts-expect-error - We should type bacgkround bridge js file
         const newBridge = new BackgroundBridge({
@@ -707,7 +725,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             getProviderState: () => void;
           }) =>
             getRpcMethodMiddleware({
-              hostname: new URL(urlBridge).origin,
+              hostname,
               getProviderState,
               navigation,
               // Website info
@@ -723,8 +741,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           isMainFrame,
         });
         backgroundBridgeRef.current = newBridge;
+        lastBoundWebViewKeyRef.current = webViewReloadKey;
       },
-      [navigation, tabId],
+      [navigation, tabId, teardownBackgroundBridge, webViewReloadKey],
     );
 
     const sendActiveAccount = useCallback(
@@ -790,10 +809,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         titleRef.current = siteInfo.title;
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
-        // Initialize the background bridge only once the navigation has
-        // committed, so the bridge origin always matches the page actually
-        // rendered in the WebView.
-        initializeBackgroundBridge(hostName, true);
+        // Bind on commit unless the destination-origin bridge was already
+        // created when this navigation started. Recreating it here would
+        // disconnect in-flight provider traffic on permitted dapps.
+        const existingBridge = backgroundBridgeRef.current;
+        if (!existingBridge || !isSameOrigin(existingBridge.url, hostName)) {
+          initializeBackgroundBridge(hostName, true);
+        }
         // Send the active account after the bridge has been initialized for the
         // committed origin, so account data is delivered through a bridge whose
         // origin matches the rendered page.
@@ -904,7 +926,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * on iOS (RNCWebView's iOS `loadUrl` command is a no-op; Android uses
      * native `loadUrl`). Remount matches Explore's fresh-tab loadRequest path.
      */
-    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const navigateWebViewToUrl = useCallback((url: string) => {
       const sanitizedUrl = sanitizeUrlInput(url);
       if (!sanitizedUrl) {
@@ -1204,6 +1225,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
           if (dataParsed.name) {
+            // Drop provider messages while the live bridge origin does not
+            // match the in-flight load. The destination-origin bridge is
+            // bound on allowed onLoadStart so permitted pages can talk
+            // before commit.
+            const bridgeUrl = backgroundBridgeRef.current?.url;
+            if (
+              isHttpPageUrl(loadingUrlRef.current) &&
+              bridgeUrl &&
+              !isSameOrigin(loadingUrlRef.current, bridgeUrl)
+            ) {
+              return;
+            }
             backgroundBridgeRef.current?.onMessage(dataParsed);
             return;
           }
@@ -1223,27 +1256,66 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onLoadStart = useCallback(
       async ({ nativeEvent }: WebViewNavigationEvent) => {
+        const loadStartId = loadStartIdRef.current + 1;
+        loadStartIdRef.current = loadStartId;
         loadingUrlRef.current = nativeEvent.url;
 
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
+        const canBindProvider = isHttpPageUrl(nativeEvent.url);
+
+        // Disconnect the previous-origin bridge on cross-origin http(s)
+        // navigation start. Same-origin navigations keep it. Blank loads
+        // from a WebView remount must not disconnect the live provider.
+        if (
+          canBindProvider &&
+          backgroundBridgeRef.current &&
+          resolvedUrlRef.current &&
+          !isSameOrigin(nativeEvent.url, resolvedUrlRef.current)
+        ) {
+          teardownBackgroundBridge();
+        }
 
         // Cancel loading the page if we detect its a phishing page.
         // Pass the full URL (including path) so the scanner can evaluate it,
         // not just the origin.
         const isAllowed = await isAllowedUrl(nativeEvent.url);
+        if (loadStartId !== loadStartIdRef.current) {
+          return false;
+        }
         if (!isAllowed) {
-          handleNotAllowedUrl(urlOrigin);
+          if (canBindProvider) {
+            handleNotAllowedUrl(urlOrigin);
+          }
           return false;
         }
 
-        // The background bridge is intentionally not initialized here.
-        // `onLoadStart` fires before the navigation has committed, so the bridge
-        // is initialized and the active account sent only once the navigation
-        // has committed, in `handleSuccessfulPageResolution`.
+        // Bind the destination-origin bridge as soon as the load is allowed
+        // so the incoming page can use the provider before commit. Skip when
+        // the current bridge already matches this origin on the same WebView.
+        // URL-bar navigations remount the WebView; the previous Port is dead
+        // and must be rebuilt even when the origin is unchanged.
+        if (canBindProvider && urlOrigin) {
+          const existingBridge = backgroundBridgeRef.current;
+          const webViewRemounted =
+            lastBoundWebViewKeyRef.current !== webViewReloadKey;
+          if (
+            !existingBridge ||
+            !isSameOrigin(existingBridge.url, urlOrigin) ||
+            webViewRemounted
+          ) {
+            initializeBackgroundBridge(urlOrigin, true);
+          }
+        }
         iconRef.current = undefined;
       },
-      [isAllowedUrl, handleNotAllowedUrl],
+      [
+        isAllowedUrl,
+        handleNotAllowedUrl,
+        teardownBackgroundBridge,
+        initializeBackgroundBridge,
+        webViewReloadKey,
+      ],
     );
 
     /**
@@ -1619,6 +1691,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const { OnLoadEnd, OnLoadProgress, OnLoadStart } =
       WebViewNavigationEventName;
 
+    const rebindBridgeOnCrossOriginBackForward = useCallback(
+      (nextUrl: string) => {
+        if (
+          !isHttpPageUrl(nextUrl) ||
+          !backgroundBridgeRef.current ||
+          !resolvedUrlRef.current ||
+          isSameOrigin(nextUrl, resolvedUrlRef.current)
+        ) {
+          return;
+        }
+
+        teardownBackgroundBridge();
+        initializeBackgroundBridge(new URLParse(nextUrl).origin, true);
+      },
+      [teardownBackgroundBridge, initializeBackgroundBridge],
+    );
+
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
         const { canGoForward, canGoBack, navigationType, loading, url, title } =
@@ -1638,6 +1727,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           if (!url) {
             return;
           }
+
+          // Disconnect the previous-origin bridge before the document-URL
+          // handshake when back/forward lands on a different http(s) origin.
+          rebindBridgeOnCrossOriginBackForward(url);
 
           // Sync the URL bar from the document; navigation events are not always
           // aligned with window.location after back/forward transitions.
@@ -1671,7 +1764,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
         }
       },
-      [favicon, handleSuccessfulPageResolution],
+      [
+        favicon,
+        handleSuccessfulPageResolution,
+        rebindBridgeOnCrossOriginBackForward,
+      ],
     );
 
     /*
