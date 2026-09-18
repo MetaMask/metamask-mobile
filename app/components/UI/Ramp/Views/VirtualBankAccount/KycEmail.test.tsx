@@ -75,4 +75,33 @@ describe('KycEmail', () => {
 
     expect(mockResetKyc).toHaveBeenCalled();
   });
+
+  it('shows the current KycController email, vendor, geoCountry, and sessionStatus', () => {
+    const sessionStatus = {
+      id: 'session-1',
+      finalStatus: 'new',
+    };
+
+    const { getByText } = renderWithProvider(<KycEmail />, {
+      state: {
+        engine: {
+          backgroundState: {
+            KycController: {
+              email: 'user@example.com',
+              vendor: 'iron',
+              geoCountry: 'BRA',
+              sessionStatus,
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByText('email: user@example.com')).toBeOnTheScreen();
+    expect(getByText('vendor: iron')).toBeOnTheScreen();
+    expect(getByText('geoCountry: BRA')).toBeOnTheScreen();
+    expect(
+      getByText(`sessionStatus: ${JSON.stringify(sessionStatus)}`),
+    ).toBeOnTheScreen();
+  });
 });
