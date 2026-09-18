@@ -61,7 +61,7 @@ const TitleMeta: React.FC<{
     twClassName="flex-1 min-w-0"
   >
     <Text
-      variant={TextVariant.BodyLg}
+      variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
       numberOfLines={1}
@@ -70,11 +70,11 @@ const TitleMeta: React.FC<{
     </Text>
     {direction ? (
       <>
-        <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
           {' \u00b7 '}
         </Text>
         <Text
-          variant={TextVariant.BodyLg}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           twClassName={directionClassName(direction)}
         >
@@ -111,7 +111,7 @@ const PnlValues: React.FC<{
   return (
     <Box alignItems={isClosedHero ? BoxAlignItems.Start : BoxAlignItems.End}>
       <Text
-        variant={isClosedHero ? TextVariant.HeadingMd : TextVariant.BodyLg}
+        variant={isClosedHero ? TextVariant.HeadingMd : TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={isClosedHero ? undefined : TextColor.TextDefault}
         twClassName={isClosedHero ? pnlClassName(isPnlPositive) : undefined}
