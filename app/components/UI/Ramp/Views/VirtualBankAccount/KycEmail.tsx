@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
+import React, { useEffect } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,6 +23,7 @@ export const KycEmailSelectorsIDs = {
   BACK_BUTTON: 'vba-kyc-email-back-button',
   EMAIL_INPUT: 'vba-kyc-email-input',
   CONTINUE_BUTTON: 'vba-kyc-email-continue-button',
+  RESET_BUTTON: 'vba-kyc-email-reset-button',
 } as const;
 
 const KycEmail = () => {
@@ -33,7 +35,13 @@ const KycEmail = () => {
     isContinueDisabled,
     goBack,
     startVerification,
+    resetKyc,
   } = useKycEmailVerification();
+
+  useEffect(() => {
+    console.log('[VBA KYC][View] KycEmail mounted');
+    return () => console.log('[VBA KYC][View] KycEmail unmounted');
+  }, []);
 
   return (
     <SafeAreaView
@@ -85,7 +93,7 @@ const KycEmail = () => {
             />
           </Box>
         </Box>
-        <Box padding={4}>
+        <Box padding={4} gap={3}>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -96,6 +104,16 @@ const KycEmail = () => {
             testID={KycEmailSelectorsIDs.CONTINUE_BUTTON}
           >
             {strings('virtual_bank_account.kyc_email.button')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={isVerifying}
+            onPress={resetKyc}
+            testID={KycEmailSelectorsIDs.RESET_BUTTON}
+          >
+            {strings('virtual_bank_account.kyc_email.reset_button')}
           </Button>
         </Box>
       </KeyboardAvoidingView>

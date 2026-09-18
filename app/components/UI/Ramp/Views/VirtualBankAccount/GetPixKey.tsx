@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
+import React, { useCallback, useEffect } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -60,18 +61,38 @@ const BenefitRow = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } =
-    useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const {
+    disclaimers,
+    isLoading,
+    isAccepting,
+    error,
+    acceptDisclaimers,
+    retry,
+  } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading && !error && Boolean(disclaimers?.length);
+    !isLoading && !isAccepting && !error && Boolean(disclaimers?.length);
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  useEffect(() => {
+    console.log('[VBA KYC][View] GetPixKey mounted');
+    return () => console.log('[VBA KYC][View] GetPixKey unmounted');
+  }, []);
 
-  const handleAgreeAndContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+  const handleBack = useCallback(() => {
+    console.log('[VBA KYC][View] GetPixKey back pressed');
+    navigation.goBack();
   }, [navigation]);
+
+  const handleAgreeAndContinue = useCallback(async () => {
+    console.log('[VBA KYC][View] GetPixKey continue pressed');
+    const accepted = await acceptDisclaimers();
+    console.log('[VBA KYC][View] GetPixKey acceptance result', { accepted });
+    if (accepted) {
+      console.log('[VBA KYC][View] Navigating to VerifyIdentity');
+      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+    }
+  }, [acceptDisclaimers, navigation]);
 
   return (
     <SafeAreaView
@@ -207,6 +228,7 @@ const GetPixKey = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isLoading={isAccepting}
           isDisabled={!canAgreeAndContinue}
           onPress={handleAgreeAndContinue}
           testID={GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON}

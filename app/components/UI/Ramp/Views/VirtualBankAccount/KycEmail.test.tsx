@@ -10,6 +10,7 @@ const mockUseKycEmailVerification = jest.mocked(useKycEmailVerification);
 const mockSetEmail = jest.fn();
 const mockGoBack = jest.fn();
 const mockStartVerification = jest.fn();
+const mockResetKyc = jest.fn();
 
 describe('KycEmail', () => {
   beforeEach(() => {
@@ -21,6 +22,7 @@ describe('KycEmail', () => {
       isContinueDisabled: true,
       goBack: mockGoBack,
       startVerification: mockStartVerification,
+      resetKyc: mockResetKyc,
     });
   });
 
@@ -49,6 +51,7 @@ describe('KycEmail', () => {
       isContinueDisabled: false,
       goBack: mockGoBack,
       startVerification: mockStartVerification,
+      resetKyc: mockResetKyc,
     });
     const { getByTestId } = renderWithProvider(<KycEmail />);
 
@@ -63,5 +66,13 @@ describe('KycEmail', () => {
     fireEvent.press(getByTestId(KycEmailSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('resets KYC when the reset button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<KycEmail />);
+
+    fireEvent.press(getByTestId(KycEmailSelectorsIDs.RESET_BUTTON));
+
+    expect(mockResetKyc).toHaveBeenCalled();
   });
 });

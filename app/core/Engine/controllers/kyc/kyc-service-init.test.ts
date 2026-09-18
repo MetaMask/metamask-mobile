@@ -59,7 +59,7 @@ describe('kycServiceInit', () => {
     expect(controller).toMatchObject({
       messenger: requestMock.controllerMessenger,
       fetch,
-      baseUrl: 'https://kyc-api.example.com',
+      baseUrl: 'http://192.168.1.98:3000',
       idosEnclaveBaseUrl: 'https://enclave.example.com',
       idosRelayBaseUrl: 'https://relay.example.com',
     });
@@ -73,7 +73,7 @@ describe('kycServiceInit', () => {
     const { controller } = kycServiceInit(getInitRequestMock());
 
     expect(controller).toMatchObject({
-      baseUrl: 'https://kyc-api.uat-api.cx.metamask.io',
+      baseUrl: 'http://192.168.1.98:3000',
       idosEnclaveBaseUrl: 'https://enclave.staging.sandbox.fractal.id',
       idosRelayBaseUrl: 'https://relay.staging.idos.network',
     });

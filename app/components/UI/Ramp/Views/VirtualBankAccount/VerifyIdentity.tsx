@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -141,9 +142,18 @@ const VbaVerifyIdentity = () => {
     transform: [{ rotate: `${chevronRotation.value}deg` }],
   }));
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  useEffect(() => {
+    console.log('[VBA KYC][View] VerifyIdentity mounted');
+    return () => console.log('[VBA KYC][View] VerifyIdentity unmounted');
+  }, []);
+
+  const handleBack = useCallback(() => {
+    console.log('[VBA KYC][View] VerifyIdentity back pressed');
+    navigation.goBack();
+  }, [navigation]);
 
   const handleContinue = useCallback(() => {
+    console.log('[VBA KYC][View] VerifyIdentity continue pressed');
     startSession();
   }, [startSession]);
 

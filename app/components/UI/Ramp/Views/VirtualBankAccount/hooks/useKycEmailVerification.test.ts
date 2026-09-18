@@ -18,6 +18,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
       startSession: jest.fn(),
+      reset: jest.fn(),
     },
   },
 }));
@@ -32,6 +33,7 @@ jest.mock('../../../../../../util/Logger', () => ({
 
 const mockKycController = Engine.context.KycController as unknown as {
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
+  reset: jest.Mock<Promise<void>, []>;
 };
 
 const enterEmailAndStart = async (
@@ -49,6 +51,7 @@ describe('useKycEmailVerification', () => {
       id: 'session-1',
       finalStatus: 'new',
     });
+    mockKycController.reset.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -114,5 +117,28 @@ describe('useKycEmailVerification', () => {
     });
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('resets the KYC controller and clears the email field', async () => {
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    act(() => result.current.setEmail('user@example.com'));
+    await act(result.current.resetKyc);
+
+    expect(mockKycController.reset).toHaveBeenCalled();
+    expect(result.current.email).toBe('');
+  });
+
+  it('alerts when reset rejects', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockKycController.reset.mockRejectedValue(new Error('Reset failed.'));
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await act(result.current.resetKyc);
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'Reset failed.',
+    );
   });
 });
