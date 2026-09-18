@@ -66,6 +66,10 @@
       "title": "Inaccurate fee",
       "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Insufficient funds",
       "message": "You do not have enough {{nativeCurrency}} in your account to pay for network fees.",
@@ -1195,6 +1199,11 @@
       "all": "All",
       "trade": "Trade",
       "just_now": "Just now",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "opened",
         "perps_added": "added",
@@ -1863,6 +1872,8 @@
         "active": "Active",
         "history": "History",
         "fill_history": "Fill history",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Previous",
         "next": "Next",
         "page_count": "Page {{page}} of {{total}}"
@@ -2079,10 +2090,7 @@
         "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
-        "active": "Active",
-        "history": "History",
         "filled_only": "Filled orders only",
-        "visible_count": "{{count}} visible",
         "running": "Running",
         "running_with_progress": "Running · {{progress}}",
         "cancel": "Cancel",
@@ -2778,6 +2786,7 @@
       "tabs": {
         "all": "All",
         "crypto": "Crypto",
+        "memecoin": "Memecoins",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
         "new": "New",
@@ -4472,7 +4481,7 @@
     "state_logs": "State logs",
     "add_network_title": "Add a network",
     "auto_lock": "Auto-lock",
-    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
     "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
@@ -6021,7 +6030,7 @@
       "only_numbers_allowed": "Only numbers are allowed",
       "negative_values_not_allowed": "Negative values are not allowed",
       "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
-      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
       "no_zero_value": "{{field}} must be greater than 0",
       "speed": "Speed",
@@ -6246,7 +6255,7 @@
       "remember_me": "Remember Me",
       "face_id": "Face ID",
       "touch_id": "Touch ID",
-      "device_authentication": "Device Authentication",
+      "device_authentication": "Device authentication",
       "device_passcode": "Device Passcode"
     }
   },
@@ -6538,35 +6547,7 @@
     "swap_completed": "Swapped {{from}} for {{to}}",
     "swap": "Swapped",
     "sent": "Sent to {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "Swapped {{symbolIn}} for {{symbolOut}}",
-      "erc20_sent": "Sent to {{address}}",
-      "erc20_received": "Received from {{address}}",
-      "eth_sent": "Sent to {{address}}",
-      "eth_received": "Received from {{address}}",
-      "erc721_sent": "Sent NFT to {{address}}",
-      "erc1155_sent": "Sent NFT to {{address}}",
-      "erc721_received": "Received NFT from {{address}}",
-      "erc1155_received": "Received NFT from {{address}}",
-      "rocketpool_stake_completed": "Staked",
-      "rocketpool_unstake_completed": "Unstaking complete",
-      "lido_stake_completed": "Staked",
-      "lido_withdrawal_requested": "Unstaking requested",
-      "lido_withdrawal_completed": "Unstaking complete",
-      "lido_stake_ready_to_be_withdrawn": "Withdrawal requested"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Your request to unstake {{amount}} {{symbol}} has been sent",
-      "lido_stake_ready_to_be_withdrawn": "You can now withdraw your unstaked {{symbol}}"
-    },
     "modal": {
-      "title_sent": "Sent {{symbol}}",
-      "title_received": "Received {{symbol}}",
-      "title_unstake_requested": "Unstaking requested",
-      "title_untake_ready": "Withdrawl ready",
-      "title_stake": "Staked {{symbol}}",
-      "title_unstake_completed": "Unstaking completed",
-      "title_swapped": "Swapped {{symbolIn}} to {{symbolOut}}",
       "label_address_to": "To",
       "label_address_from": "From",
       "label_address_to_you": "To (You)",
@@ -10001,7 +9982,12 @@
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
         "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
-        "retry_button": "Try again"
+        "retry_button": "Try again",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -10177,11 +10163,6 @@
         "kyc_pending": {
           "title": "Verification in progress",
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
-        },
-        "pending_verification": {
-          "title": "Finish setting up your card",
-          "description": "You have pending verification steps to complete before your card can be enabled.",
-          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {
@@ -10224,6 +10205,8 @@
         "manage_spending_limit_description_full": "Full access is on",
         "unlink_money_account": "Unlink Money account",
         "unlink_money_account_description": "Change your Card funding source",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
@@ -10240,8 +10223,51 @@
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
-        "change_asset_description": "Select a different token"
+        "change_asset_description": "Select a different token",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "Transactions",
