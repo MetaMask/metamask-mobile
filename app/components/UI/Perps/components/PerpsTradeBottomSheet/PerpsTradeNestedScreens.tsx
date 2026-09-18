@@ -2,7 +2,7 @@ import type { OrderType } from '@metamask/perps-controller';
 import React from 'react';
 import PerpsLeverageBottomSheet from '../PerpsLeverageBottomSheet';
 import { usePerpsTradeSheet } from './PerpsTradeBottomSheet';
-export { default as PerpsTradeSettingsScreen } from './PerpsTradeSettingsScreen';
+export { default as PerpsTradeTPSLScreen } from './PerpsTradeTPSLScreen';
 
 interface PerpsTradeLeverageScreenProps {
   onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;

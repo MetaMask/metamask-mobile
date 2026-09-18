@@ -5,8 +5,6 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonSize,
@@ -58,6 +56,7 @@ interface PerpsTradeScreenProps {
   limitPrice?: string;
   limitPriceWarning?: string;
   autoCloseText: string;
+  showAutoClose: boolean;
   margin: string;
   amount: string;
   tokenAmount?: string;
@@ -103,7 +102,6 @@ interface PerpsTradeScreenProps {
     preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
   ) => void;
   onLimitPriceDonePress: () => void;
-  onAutoClosePress: () => void;
   onPayWithPress: () => void;
   onMarginInfoPress: () => void;
   onSubmit: () => void;
@@ -222,6 +220,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   limitPrice,
   limitPriceWarning,
   autoCloseText,
+  showAutoClose,
   margin,
   amount,
   tokenAmount,
@@ -262,12 +261,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onLimitPriceKeypadChange,
   onLimitPricePresetPress,
   onLimitPriceDonePress,
-  onAutoClosePress,
   onPayWithPress,
   onMarginInfoPress,
   onSubmit,
 }) => {
-  const { navigateTo, close, title, banner } = usePerpsTradeSheet();
+  const { navigateTo, title, banner } = usePerpsTradeSheet();
   const [showAssetValue, setShowAssetValue] = useState(false);
   const directionLabel =
     direction === 'long'
@@ -350,20 +348,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             isDisabled={isOrderTypeDisabled}
             onPress={onOrderTypePress}
             endArrowDirection="down"
-          />
-          <ButtonIcon
-            testID={PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON}
-            size={ButtonIconSize.Md}
-            iconName={IconName.Setting}
-            accessibilityLabel={strings('perps.trade_sheet.settings')}
-            onPress={() => navigateTo('settings')}
-          />
-          <ButtonIcon
-            testID={PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON}
-            size={ButtonIconSize.Md}
-            iconName={IconName.Close}
-            accessibilityLabel={strings('perps.trade_sheet.close')}
-            onPress={close}
           />
         </Box>
       </Box>
@@ -514,22 +498,24 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             ) : null}
             {!isLimitPriceFocused ? (
               <>
-                <ActionRow
-                  testID={PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW}
-                  label={strings('perps.auto_close.title')}
-                  accessibilityLabel={`${strings(
-                    'perps.auto_close.title',
-                  )}, ${autoCloseText}`}
-                  value={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {autoCloseText}
-                    </Text>
-                  }
-                  onPress={onAutoClosePress}
-                />
+                {showAutoClose ? (
+                  <ActionRow
+                    testID={PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW}
+                    label={strings('perps.auto_close.title')}
+                    accessibilityLabel={`${strings(
+                      'perps.auto_close.title',
+                    )}, ${autoCloseText}`}
+                    value={
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {autoCloseText}
+                      </Text>
+                    }
+                    onPress={() => navigateTo('tpsl')}
+                  />
+                ) : null}
                 {showPayWith ? (
                   <ActionRow
                     testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}

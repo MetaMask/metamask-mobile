@@ -4,7 +4,6 @@ import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigateTo = jest.fn();
-const mockClose = jest.fn();
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
   | undefined;
@@ -14,7 +13,6 @@ jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
   usePerpsTradeSheet: () => ({
     navigateTo: mockNavigateTo,
-    close: mockClose,
     title: undefined,
     banner: undefined,
   }),
@@ -63,6 +61,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   percentChange24h: 3.02,
   orderType: 'market',
   autoCloseText: 'TP Off, SL Off',
+  showAutoClose: true,
   margin: '$3.41',
   amount: '10',
   tokenAmount: '0.11',
@@ -101,7 +100,6 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onLimitPriceKeypadChange: jest.fn(),
   onLimitPricePresetPress: jest.fn(),
   onLimitPriceDonePress: jest.fn(),
-  onAutoClosePress: jest.fn(),
   onPayWithPress: jest.fn(),
   onMarginInfoPress: jest.fn(),
   onSubmit: jest.fn(),
@@ -139,13 +137,11 @@ describe('PerpsTradeScreen errors', () => {
     const onSubmit = jest.fn();
     const onPayWithPress = jest.fn();
     const onOrderTypePress = jest.fn();
-    const onAutoClosePress = jest.fn();
     const onMarginInfoPress = jest.fn();
     render(
       <PerpsTradeScreen
         {...defaultProps}
         onOrderTypePress={onOrderTypePress}
-        onAutoClosePress={onAutoClosePress}
         onPayWithPress={onPayWithPress}
         onMarginInfoPress={onMarginInfoPress}
         onSubmit={onSubmit}
@@ -163,11 +159,6 @@ describe('PerpsTradeScreen errors', () => {
     expect(mockNavigateTo).toHaveBeenCalledWith('leverage');
 
     fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON),
-    );
-    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
-
-    fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
@@ -175,15 +166,10 @@ describe('PerpsTradeScreen errors', () => {
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
     );
-    expect(onAutoClosePress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('tpsl');
 
     fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW));
     expect(onMarginInfoPress).toHaveBeenCalledTimes(1);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-    expect(mockClose).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
@@ -192,6 +178,30 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(screen.getByLabelText('Market order type')).toBeOnTheScreen();
     expect(screen.getByLabelText('Margin, Isolated, $3.41')).toBeOnTheScreen();
+  });
+
+  it('opens Auto close for a limit order that has no limit price yet', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice={undefined}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    );
+
+    expect(mockNavigateTo).toHaveBeenCalledWith('tpsl');
+  });
+
+  it('hides Auto close when TP/SL is unavailable for the order flow', () => {
+    render(<PerpsTradeScreen {...defaultProps} showAutoClose={false} />);
+
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    ).not.toBeOnTheScreen();
   });
 
   it('hides the order CTA while the market is at its OI cap', () => {

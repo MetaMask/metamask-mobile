@@ -90,7 +90,7 @@ import PerpsTradeBottomSheet, {
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
   PerpsTradeLeverageScreen,
-  PerpsTradeSettingsScreen,
+  PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -233,7 +233,7 @@ interface PerpsOrderViewContentProps {
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
-  settings: 1,
+  tpsl: 1,
 };
 
 /**
@@ -1958,34 +1958,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [orderForm.asset, setMaxSlippage, track],
   );
 
-  const handleTradeSettingsSave = useCallback(
-    ({
-      takeProfitPrice,
-      stopLossPrice,
-      maxSlippageBps: nextMaxSlippageBps,
-    }: {
-      takeProfitPrice?: string;
-      stopLossPrice?: string;
-      maxSlippageBps: number;
-    }) => {
+  const handleTradeTPSLSave = useCallback(
+    (takeProfitPrice?: string, stopLossPrice?: string) => {
       setTakeProfitPrice(takeProfitPrice);
       setStopLossPrice(stopLossPrice);
-      if (nextMaxSlippageBps !== maxSlippageBps) {
-        handleSlippageSave(nextMaxSlippageBps);
-      }
     },
-    [handleSlippageSave, maxSlippageBps, setStopLossPrice, setTakeProfitPrice],
+    [setStopLossPrice, setTakeProfitPrice],
   );
-
-  const handleTradeSettingsSlippageEdit = useCallback(() => {
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(maxSlippageBps),
-      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
-    });
-  }, [maxSlippageBps, maxSlippageSource, orderForm.asset, track]);
 
   useInitPerpsPaymentToken(orderForm.asset ?? '');
 
@@ -2284,6 +2263,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 limitPrice={orderForm.limitPrice}
                 limitPriceWarning={limitPriceWarning}
                 autoCloseText={tpSlDisplayText}
+                showAutoClose={!hideTPSL}
                 margin={marginDisplay}
                 amount={displayAmount}
                 tokenAmount={livePositionSize}
@@ -2330,7 +2310,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
-                onAutoClosePress={handleTPSLPress}
                 onPayWithPress={handlePayWithPress}
                 onMarginInfoPress={() => handleTooltipPress('margin')}
                 onSubmit={() => handlePlaceOrder()}
@@ -2349,24 +2328,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 orderType={orderForm.type}
               />
             ),
-            settings: (
-              <PerpsTradeSettingsScreen
+            tpsl: (
+              <PerpsTradeTPSLScreen
                 asset={orderForm.asset}
                 amount={orderForm.amount}
                 currentPrice={assetData.price}
                 direction={orderForm.direction}
-                estimatedSlippageBps={estimatedSlippageBps}
                 initialTakeProfitPrice={orderForm.takeProfitPrice}
                 initialStopLossPrice={orderForm.stopLossPrice}
                 leverage={orderForm.leverage}
                 limitPrice={orderForm.limitPrice}
                 liquidationPrice={liquidationPrice}
-                maxSlippageBps={maxSlippageBps}
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
-                onOrderTypeChange={handleTradeSheetOrderTypeSelect}
-                onSlippageEdit={handleTradeSettingsSlippageEdit}
-                onSave={handleTradeSettingsSave}
+                onSave={handleTradeTPSLSave}
               />
             ),
           }}

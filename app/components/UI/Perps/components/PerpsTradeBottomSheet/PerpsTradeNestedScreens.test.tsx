@@ -1,17 +1,26 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
-import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
-import { PerpsTradeSettingsScreen } from './PerpsTradeNestedScreens';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
+import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
+import { PerpsTradeTPSLScreen } from './PerpsTradeNestedScreens';
 
 const mockGoBack = jest.fn();
-const mockClose = jest.fn();
 const mockHandleTakeProfitOff = jest.fn();
 const mockHandleStopLossOff = jest.fn();
+const mockHandleStopLossPriceChange = jest.fn();
 let mockHasChanges = true;
+let mockIsValid = true;
+let mockTakeProfitError = '';
+let mockStopLossError = '';
+let mockStopLossLiquidationError = '';
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   usePerpsTradeSheet: () => ({
-    close: mockClose,
     goBack: mockGoBack,
   }),
 }));
@@ -30,7 +39,7 @@ jest.mock('../../hooks/usePerpsTPSLForm', () => ({
     handlers: {
       handleTakeProfitPriceChange: jest.fn(),
       handleTakeProfitPercentageChange: jest.fn(),
-      handleStopLossPriceChange: jest.fn(),
+      handleStopLossPriceChange: mockHandleStopLossPriceChange,
       handleStopLossPercentageChange: jest.fn(),
       handleTakeProfitPriceFocus: jest.fn(),
       handleTakeProfitPriceBlur: jest.fn(),
@@ -48,51 +57,30 @@ jest.mock('../../hooks/usePerpsTPSLForm', () => ({
       handleStopLossSignToggle: jest.fn(),
     },
     validation: {
-      isValid: true,
+      isValid: mockIsValid,
       hasChanges: mockHasChanges,
-      takeProfitError: '',
-      stopLossError: '',
-      stopLossLiquidationError: '',
+      takeProfitError: mockTakeProfitError,
+      stopLossError: mockStopLossError,
+      stopLossLiquidationError: mockStopLossLiquidationError,
+    },
+    display: {
+      formattedTakeProfitPercentage: '30',
+      formattedStopLossPercentage: '30',
     },
   }),
 }));
 
-jest.mock('../PerpsSlippageBottomSheet', () => {
-  const { Pressable: MockPressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: unknown) => {
-      const { onSave, onSaveComplete } = props as {
-        onSave: (value: number) => void;
-        onSaveComplete: () => void;
-      };
-      return (
-        <MockPressable
-          testID="slippage-save"
-          onPress={() => {
-            onSave(100);
-            onSaveComplete();
-          }}
-        />
-      );
-    },
-  };
-});
-
-const defaultProps: React.ComponentProps<typeof PerpsTradeSettingsScreen> = {
+const defaultProps: React.ComponentProps<typeof PerpsTradeTPSLScreen> = {
   asset: 'SOL',
   amount: '10',
   currentPrice: 100,
   direction: 'long',
-  estimatedSlippageBps: 0,
   initialTakeProfitPrice: '110',
   initialStopLossPrice: '90',
   leverage: 3,
   liquidationPrice: '70',
-  maxSlippageBps: 300,
   orderType: 'market',
   szDecimals: 2,
-  onOrderTypeChange: jest.fn(),
   onSave: jest.fn(),
 };
 
@@ -100,65 +88,226 @@ describe('PerpsTradeNestedScreens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasChanges = true;
+    mockIsValid = true;
+    mockTakeProfitError = '';
+    mockStopLossError = '';
+    mockStopLossLiquidationError = '';
   });
 
-  it('commits TP/SL and slippage before returning to Trade', () => {
+  it('commits TP/SL before returning to Trade', async () => {
     const onSave = jest.fn();
-    render(<PerpsTradeSettingsScreen {...defaultProps} onSave={onSave} />);
+    render(<PerpsTradeTPSLScreen {...defaultProps} onSave={onSave} />);
 
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_SLIPPAGE_ROW),
-    );
-    fireEvent.press(screen.getByTestId('slippage-save'));
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_SAVE_BUTTON),
-    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
 
-    expect(onSave).toHaveBeenCalledWith({
-      takeProfitPrice: '110',
-      stopLossPrice: '90',
-      maxSlippageBps: 100,
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledWith('110', '90');
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('stays on the screen and disables Save while saving', async () => {
+    let resolveSave: () => void = () => undefined;
+    const onSave = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+    render(<PerpsTradeTPSLScreen {...defaultProps} onSave={onSave} />);
+
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeDisabled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    await act(async () => resolveSave());
+
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('updates order type without leaving the nested screen', () => {
-    const onOrderTypeChange = jest.fn();
-    render(
-      <PerpsTradeSettingsScreen
-        {...defaultProps}
-        onOrderTypeChange={onOrderTypeChange}
-      />,
-    );
-
-    fireEvent.press(screen.getByText('Limit'));
-
-    expect(onOrderTypeChange).toHaveBeenCalledWith('limit');
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
   it('clears TP/SL independently', () => {
-    render(<PerpsTradeSettingsScreen {...defaultProps} />);
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
 
     fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_TP_CLEAR_BUTTON),
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON),
     );
     fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_SL_CLEAR_BUTTON),
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON),
     );
 
     expect(mockHandleTakeProfitOff).toHaveBeenCalledTimes(1);
     expect(mockHandleStopLossOff).toHaveBeenCalledTimes(1);
   });
 
-  it('returns to Trade from the back button without closing the sheet', () => {
-    render(<PerpsTradeSettingsScreen {...defaultProps} />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BACK_BUTTON),
+  it('dismisses the keypad when clearing the focused field', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+    fireEvent(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT),
+      'focus',
     );
 
+    fireEvent.press(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON),
+    );
+
+    expect(
+      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('returns to Trade from the back button', () => {
+    const onSave = jest.fn();
+    render(<PerpsTradeTPSLScreen {...defaultProps} onSave={onSave} />);
+
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON));
+
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockClose).not.toHaveBeenCalled();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('swaps Save for the keypad while an input is focused', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    fireEvent(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT),
+      'focus',
+    );
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('7')).toBeOnTheScreen();
+  });
+
+  it('hides the keypad again from Done', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    const input = screen.getByTestId(
+      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
+    );
+    fireEvent(input, 'focus');
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON));
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('routes keypad input to the focused field', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    fireEvent(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      'focus',
+    );
+    fireEvent.press(screen.getByText('9'));
+
+    expect(mockHandleStopLossPriceChange).toHaveBeenCalledWith('909');
+  });
+
+  it('renders the ROE signs as static indicators', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByRole('button', { name: 'Toggle take profit return sign' }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Toggle stop loss return sign' }),
+    ).toBeNull();
+  });
+
+  it('references the limit price once a limit order has one', () => {
+    render(
+      <PerpsTradeTPSLScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="120"
+      />,
+    );
+
+    expect(screen.getByText('Limit price')).toBeOnTheScreen();
+    expect(screen.getByText('$120')).toBeOnTheScreen();
+  });
+
+  it('falls back to the current price for a limit order without a limit price', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} orderType="limit" />);
+
+    expect(screen.getByText('Current price')).toBeOnTheScreen();
+    expect(screen.getByText('$100')).toBeOnTheScreen();
+  });
+
+  it('disables Save and presents validation errors', () => {
+    mockIsValid = false;
+    mockTakeProfitError = 'Take profit must be above current price';
+
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR),
+    ).toHaveTextContent('Take profit must be above current price');
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('disables Save when TP/SL values have not changed', () => {
+    mockHasChanges = false;
+
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('surfaces the stop loss liquidation error', () => {
+    mockIsValid = false;
+    mockStopLossLiquidationError = 'Stop loss must be above liquidation price';
+
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR),
+    ).toHaveTextContent('Stop loss must be above liquidation price');
+  });
+
+  it('holds back trigger price messages while the form is valid', () => {
+    mockIsValid = true;
+    mockTakeProfitError = 'Take profit must be above current price';
+    mockStopLossError = 'Stop loss must be below current price';
+
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    expect(
+      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeEnabled();
   });
 });

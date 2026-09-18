@@ -869,6 +869,7 @@ interface MockTradeScreenProps {
   limitPrice?: string;
   limitPriceWarning?: string;
   autoCloseText: string;
+  showAutoClose: boolean;
   margin: string;
   payWithName: string;
   payWithBalance: string;
@@ -898,9 +899,16 @@ interface MockLeverageScreenProps {
   onConfirm: (leverage: number, inputMethod?: string) => void;
 }
 
+interface MockTPSLScreenProps {
+  initialTakeProfitPrice?: string;
+  initialStopLossPrice?: string;
+  onSave: (takeProfitPrice?: string, stopLossPrice?: string) => void;
+}
+
 let mockTradeScreenProps: MockTradeScreenProps | undefined;
 let mockTradeSheetOnClose: (() => void) | undefined;
 let mockLeverageScreenProps: MockLeverageScreenProps | undefined;
+let mockTPSLScreenProps: MockTPSLScreenProps | undefined;
 
 const getMockTradeScreenProps = (): MockTradeScreenProps => {
   if (!mockTradeScreenProps) {
@@ -914,6 +922,13 @@ const getMockLeverageScreenProps = (): MockLeverageScreenProps => {
     throw new Error('Leverage screen did not render');
   }
   return mockLeverageScreenProps;
+};
+
+const getMockTPSLScreenProps = (): MockTPSLScreenProps => {
+  if (!mockTPSLScreenProps) {
+    throw new Error('TP/SL screen did not render');
+  }
+  return mockTPSLScreenProps;
 };
 
 jest.mock(
@@ -936,6 +951,9 @@ jest.mock(
         ).props;
         mockLeverageScreenProps = (
           screens.leverage as React.ReactElement<MockLeverageScreenProps>
+        ).props;
+        mockTPSLScreenProps = (
+          screens.tpsl as React.ReactElement<MockTPSLScreenProps>
         ).props;
         return ReactActual.createElement(View, {
           testID: 'perps-trade-sheet',
@@ -1258,6 +1276,7 @@ describe('PerpsOrderView', () => {
     mockTradeScreenProps = undefined;
     mockTradeSheetOnClose = undefined;
     mockLeverageScreenProps = undefined;
+    mockTPSLScreenProps = undefined;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1381,6 +1400,44 @@ describe('PerpsOrderView', () => {
     expect(
       screen.queryByTestId(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
     ).not.toBeOnTheScreen();
+  });
+
+  it('wires the nested TP/SL screen to the Trade order form', () => {
+    const setTakeProfitPrice = jest.fn();
+    const setStopLossPrice = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        takeProfitPrice: '3100',
+        stopLossPrice: '2800',
+      },
+      setTakeProfitPrice,
+      setStopLossPrice,
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTPSLScreenProps()).toEqual(
+      expect.objectContaining({
+        initialTakeProfitPrice: '3100',
+        initialStopLossPrice: '2800',
+      }),
+    );
+
+    act(() => getMockTPSLScreenProps().onSave('3200', '2750'));
+
+    expect(setTakeProfitPrice).toHaveBeenCalledWith('3200');
+    expect(setStopLossPrice).toHaveBeenCalledWith('2750');
+  });
+
+  it('hides Auto close in add-to-position Trade sheets', () => {
+    useTradeSheetRoute({ hideTPSL: true });
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().showAutoClose).toBe(false);
   });
 
   it('keeps limit orders editable inside the Trade sheet', () => {
