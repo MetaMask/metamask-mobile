@@ -150,6 +150,7 @@ const createMockBridgeSession = (
   setRenderedTab: jest.fn(),
   latestSourceBalance: mockLatestSourceBalance,
   quoteParams: {},
+  setQuoteParams: jest.fn(),
   ...overrides,
 });
 

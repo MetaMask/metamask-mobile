@@ -16,7 +16,7 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { buildGenericQuoteRequest } from './utils';
+import { buildGenericQuoteRequest, type QuoteParams } from './utils';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import {
@@ -33,10 +33,7 @@ export const SwapQuotesContext = createContext<SwapQuotesContextValue | null>(
 
 interface UseSwapQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
-}
-
-interface UseQuoteDataParams extends UseSwapQuotesParams {
+  quoteParams: QuoteParams;
   /**
    * Whether this is the quote source for the rendered tab. The other quote
    * provider stays mounted to keep the tree stable, this flag skips
@@ -90,14 +87,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   const genericQuoteRequest = useMemo(
     (): GenericQuoteRequest | undefined =>
       buildGenericQuoteRequest({
-        quoteParams: {
-          srcAmount,
-          srcToken,
-          destToken,
-          walletAddress,
-          destWalletAddress,
-          slippage,
-        },
+        quoteParams,
         gasIncluded,
         gasIncluded7702,
         insufficientBalance,
@@ -143,7 +133,7 @@ const useQuoteData = ({
   latestSourceAtomicBalance,
   quoteParams,
   isActive,
-}: UseQuoteDataParams) => {
+}: UseSwapQuotesParams) => {
   const { quoteFetchError, quotesLoadingStatus } = useSelector(
     selectBridgeControllerState,
   );

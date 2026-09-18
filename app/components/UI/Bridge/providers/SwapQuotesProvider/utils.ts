@@ -12,15 +12,17 @@ const normalizeSrcAmount = (
   return calcTokenValue(srcAmount, decimals).toFixed(0);
 };
 
+export type QuoteParams = {
+  srcAmount?: string;
+  srcToken?: BridgeToken;
+  destToken?: BridgeToken;
+  walletAddress?: string;
+  destWalletAddress?: string;
+  slippage?: string;
+};
+
 export const buildGenericQuoteRequest = (input: {
-  quoteParams: {
-    srcAmount?: string;
-    srcToken?: BridgeToken;
-    destToken?: BridgeToken;
-    walletAddress?: string;
-    destWalletAddress?: string;
-    slippage?: string;
-  };
+  quoteParams: QuoteParams;
   gasIncluded: boolean;
   gasIncluded7702: boolean;
   insufficientBalance: boolean;

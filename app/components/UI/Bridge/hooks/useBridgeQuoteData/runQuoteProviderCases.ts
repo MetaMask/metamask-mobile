@@ -13,7 +13,7 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useBridgeSession } from '../useBridgeSession';
-import type { buildGenericQuoteRequest } from '../../providers/SwapQuotesProvider/utils';
+import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
 import { BigNumber } from 'ethers';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
@@ -38,7 +38,7 @@ export const runQuoteProviderCases = ({
   renderProvider: (state: DeepPartial<RootState>) => void;
   renderWithoutProvider: () => void;
   featureId: FeatureId;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
+  quoteParams: QuoteParams;
 }) =>
   describe(name, () => {
     beforeEach(() => {
@@ -94,6 +94,7 @@ export const runQuoteProviderCases = ({
           atomicBalance: BigNumber.from('1000000000'),
           displayBalance: '123',
         },
+        setQuoteParams: jest.fn(),
       });
     });
 

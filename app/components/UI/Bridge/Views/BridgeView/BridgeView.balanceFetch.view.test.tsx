@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { useEffect, useState } from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   MetaMetricsSwapsEventSource,
@@ -28,13 +29,15 @@ import { PriceImpactModalType } from '../../components/PriceImpactModal/constant
 import { TokenWarningModal } from '../../components/TokenWarningModal';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { MissingPriceModal } from '../../components/MissingPriceModal';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { SecurityDataType } from '../../types';
 import { SwapsBannersSelectorsIDs } from '../../components/SwapsBanners/SwapsBanners.testIds';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
-// Session owns the source-token fetch. Confirm / quote request reuse it.
+// BridgeView sets quote params, which starts the source-token fetch.
+// A modal opened alone never calls setQuoteParams, so it does not fetch.
 const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 1;
-const QUOTE_MODAL_NATIVE_SOURCE_FETCHES = 1;
+const QUOTE_MODAL_NATIVE_SOURCE_FETCHES = 0;
 
 const quotedBridgeControllerState = {
   quotes: [mockQuoteWithMetadata],
@@ -82,6 +85,22 @@ const waitForEthGetBalanceCalls = async (
   });
 
   expect(ethGetBalance).toHaveBeenCalledTimes(expectedCalls);
+};
+
+const MissingPriceModalAfterQuoteParams = () => {
+  const { setQuoteParams } = useBridgeSession();
+  const [hasQuoteParams, setHasQuoteParams] = useState(false);
+
+  useEffect(() => {
+    setQuoteParams({ srcToken: ETH_SOURCE });
+    setHasQuoteParams(true);
+  }, [setQuoteParams]);
+
+  if (!hasQuoteParams) {
+    return null;
+  }
+
+  return <MissingPriceModal />;
 };
 
 const createBridgeFlowState = () =>
@@ -199,7 +218,7 @@ describeForPlatforms('Bridge native source balance fetches', () => {
       },
     },
   ])(
-    'fetches native source balance once when $name opens',
+    'does not fetch native source balance when $name opens alone',
     async ({ Component, routeName, params }) => {
       renderComponentViewScreen(
         withBridgeSession(Component),
@@ -214,4 +233,22 @@ describeForPlatforms('Bridge native source balance fetches', () => {
       );
     },
   );
+
+  it('fetches native source balance once when setQuoteParams runs before MissingPriceModal opens', async () => {
+    const { findByText } = renderComponentViewScreen(
+      withBridgeSession(MissingPriceModalAfterQuoteParams),
+      { name: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL },
+      { state: createBridgeFlowState() },
+      { location: MetaMetricsSwapsEventSource.MainView },
+    );
+
+    expect(
+      await findByText(strings('swaps.market_price_unavailable_title')),
+    ).toBeOnTheScreen();
+
+    await waitForEthGetBalanceCalls(
+      ethGetBalance,
+      BRIDGE_VIEW_NATIVE_SOURCE_FETCHES,
+    );
+  });
 });
