@@ -64,20 +64,20 @@ import {
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { strings } from '../../../../locales/i18n';
-import { ActivityListSelectorsIDs } from '../ActivityList/ActivityList.testIds';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
 
-// Details testIDs mirrored locally so this route suite does not import from the
-// sibling ActivityDetails route (ADR 0020).
+// Details and list testIDs mirrored locally so this route suite does not import
+// from the sibling ActivityDetails / ActivityList routes (ADR 0020).
 const ACTIVITY_DETAILS_SCREEN = 'activity-details-screen';
 const ACTIVITY_DETAILS_AMOUNT_HEADER = 'activity-details-amount-header';
 const ACTIVITY_DETAILS_STATUS_PILL = 'activity-details-status-pill';
 const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
+const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
 
 const monToBaseBridgeState = (
   transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
@@ -509,9 +509,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
 
     await waitFor(
       () => {
-        expect(
-          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-        ).toBeNull();
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
       },
       { timeout: 10000 },
     );
@@ -551,9 +549,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
 
     await waitFor(
       () => {
-        expect(
-          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-        ).toBeNull();
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
       },
       { timeout: 10000 },
     );
