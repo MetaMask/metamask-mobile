@@ -12,6 +12,7 @@ import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import {
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
 } from '../constants/rampsBuyCufTags';
 
@@ -27,13 +28,21 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockStartRampsBuyQuoteFetchTrace = jest.fn(() => 'quote-cuf-op-1');
 const mockEndRampsBuyQuoteFetchTrace = jest.fn();
-jest.mock('../utils/rampsBuyCufTrace', () => ({
-  // Cast through a rest-param signature so tsc accepts the spread (TS2556).
-  startRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
-    (mockStartRampsBuyQuoteFetchTrace as (...a: unknown[]) => string)(...args),
-  endRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
-    (mockEndRampsBuyQuoteFetchTrace as (...a: unknown[]) => void)(...args),
-}));
+jest.mock('../utils/rampsBuyCufTrace', () => {
+  const actual = jest.requireActual<typeof import('../utils/rampsBuyCufTrace')>(
+    '../utils/rampsBuyCufTrace',
+  );
+  return {
+    ...actual,
+    // Cast through a rest-param signature so tsc accepts the spread (TS2556).
+    startRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+      (mockStartRampsBuyQuoteFetchTrace as (...a: unknown[]) => string)(
+        ...args,
+      ),
+    endRampsBuyQuoteFetchTrace: (...args: unknown[]) =>
+      (mockEndRampsBuyQuoteFetchTrace as (...a: unknown[]) => void)(...args),
+  };
+});
 
 const createMockStore = () =>
   configureStore({
@@ -70,7 +79,7 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
 };
 
 const mockQuotesResponse = {
-  success: [{ provider: 'test', quote: { amountIn: 100 } }],
+  success: [{ provider: '/providers/transak', quote: { amountIn: 100 } }],
   sorted: [],
   error: [],
   customActions: [],
@@ -203,7 +212,9 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.status).toBe('loading');
       expect(result.current.data).toBeNull();
-      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalled();
+      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        tags: { [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak' },
+      });
 
       await waitFor(() => {
         expect(result.current.status).toBe('success');
@@ -215,7 +226,11 @@ describe('useRampsQuotes', () => {
       expect(result.current.error).toBeNull();
       expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
         id: 'quote-cuf-op-1',
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak',
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+        },
       });
       expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -252,6 +267,88 @@ describe('useRampsQuotes', () => {
         data: {
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak',
+        },
+      });
+    });
+
+    it('records a PayPal custom-action quote as a provider success', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+      const paypalOptions: GetQuotesOptions = {
+        ...options,
+        providers: ['/providers/paypal'],
+        paymentMethods: ['/payments/paypal'],
+      };
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        {
+          success: [
+            {
+              provider: '/providers/paypal',
+              quote: { amountIn: 100, isCustomAction: true },
+            },
+          ],
+          sorted: [],
+          error: [],
+          customActions: [],
+        },
+      );
+
+      const { result } = renderHook(() => useRampsQuotes(paypalOptions), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        tags: { [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal' },
+      });
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-1',
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+          [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+        },
+      });
+    });
+
+    it('records an HTTP-ok PayPal miss as a no-quote failure', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+      const paypalOptions: GetQuotesOptions = {
+        ...options,
+        providers: ['/providers/paypal'],
+        paymentMethods: ['/payments/paypal'],
+      };
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        {
+          success: [],
+          sorted: [],
+          error: [
+            { provider: '/providers/paypal', error: 'PayPal unavailable' },
+          ],
+          customActions: [],
+        },
+      );
+
+      const { result } = renderHook(() => useRampsQuotes(paypalOptions), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-1',
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+          [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
         },
       });
     });
@@ -364,7 +461,11 @@ describe('useRampsQuotes', () => {
 
       expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
         id: 'quote-cuf-op-2',
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak',
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+        },
       });
     });
 
@@ -453,7 +554,11 @@ describe('useRampsQuotes', () => {
       });
       expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
         id: 'quote-cuf-op-1',
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak',
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+        },
       });
       mockEndRampsBuyQuoteFetchTrace.mockClear();
 
@@ -537,7 +642,11 @@ describe('useRampsQuotes', () => {
       await waitFor(() => {
         expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
           id: 'quote-cuf-op-1',
-          data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+            [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak',
+            [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+          },
         });
       });
     });
@@ -616,7 +725,11 @@ describe('useRampsQuotes', () => {
       await waitFor(() => {
         expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
           id: 'quote-cuf-op-2',
-          data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+            [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/transak',
+            [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+          },
         });
       });
     });

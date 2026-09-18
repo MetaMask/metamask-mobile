@@ -25,6 +25,7 @@ import { PERPS_CONSTANTS, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
@@ -51,6 +52,7 @@ const PerpsOrderRedirect: React.FC = () => {
   const { depositWithOrder } = usePerpsTrading();
   const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   const hasStartedRef = useRef(false);
   useEffect(() => {
@@ -96,6 +98,7 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
@@ -138,6 +141,7 @@ const PerpsOrderRedirect: React.FC = () => {
     asset,
     fromTokenDetails,
     transactionActiveAbTests,
+    useBottomSheet,
     depositWithOrder,
     activeProvider,
     navigation,

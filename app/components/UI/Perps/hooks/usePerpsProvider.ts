@@ -19,7 +19,7 @@ import {
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
-import { isPerpsProviderSelectorEnabled } from '../utils/lighterFeatureFlags';
+import { isLighterProviderEnabled } from '../utils/lighterFeatureFlags';
 import { selectPerpsLighterProviderEnabledFlag } from '../selectors/featureFlags';
 
 interface OrderCapabilitiesState {
@@ -55,6 +55,7 @@ export function usePerpsProvider(
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
   const lighterEnabled = useSelector(selectPerpsLighterProviderEnabledFlag);
+  const isLighterBuildEnabled = isLighterProviderEnabled();
 
   /**
    * Get list of available providers based on feature flags
@@ -62,14 +63,14 @@ export function usePerpsProvider(
   const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
     const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
 
-    if (lighterEnabled) {
+    if (isLighterBuildEnabled && lighterEnabled) {
       providers.push('lighter');
       providers.push('aggregated');
     }
 
     return providers;
-  }, [lighterEnabled]);
-  const isProviderSelectorEnabled = isPerpsProviderSelectorEnabled();
+  }, [isLighterBuildEnabled, lighterEnabled]);
+  const isProviderSelectorEnabled = isLighterBuildEnabled && lighterEnabled;
 
   /**
    * Switch to a different provider

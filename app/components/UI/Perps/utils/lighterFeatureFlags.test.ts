@@ -1,7 +1,4 @@
-import {
-  isLighterProviderEnabled,
-  isPerpsProviderSelectorEnabled,
-} from './lighterFeatureFlags';
+import { isLighterProviderEnabled } from './lighterFeatureFlags';
 
 describe('lighterFeatureFlags', () => {
   describe('isLighterProviderEnabled', () => {
@@ -39,27 +36,6 @@ describe('lighterFeatureFlags', () => {
       };
 
       const result = isLighterProviderEnabled(environment);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isPerpsProviderSelectorEnabled', () => {
-    it('exposes the selector in the development environment', () => {
-      const environment = { METAMASK_ENVIRONMENT: 'dev' };
-
-      const result = isPerpsProviderSelectorEnabled(environment);
-
-      expect(result).toBe(true);
-    });
-
-    it('hides the selector outside development despite the Lighter override', () => {
-      const environment = {
-        METAMASK_ENVIRONMENT: 'production',
-        MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true',
-      };
-
-      const result = isPerpsProviderSelectorEnabled(environment);
 
       expect(result).toBe(false);
     });

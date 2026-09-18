@@ -2,17 +2,6 @@
 <html lang="en">
 
 <head>
-  <!--
-    Deny-all network boundary. The signer receives a SecureKeychain-backed
-    private key, and `originWhitelist` on the host only gates navigation —
-    it does not stop fetch/XHR/WebSocket/subresource requests from the page
-    or the WASM module. The Go/WASM payload is inlined as base64 and
-    instantiated from memory, so the page needs no network access at all.
-    `connect-src 'none'` blocks fetch, XHR, WebSocket and beacon;
-    `default-src 'none'` covers every other fetch directive.
-  -->
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'none'; connect-src 'none'; img-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'; form-action 'none'; base-uri 'none'; frame-src 'none'; object-src 'none'">
   <title>Lighter WASM signer</title>
 </head>
 

@@ -241,6 +241,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
+      const useBottomSheet = Boolean(params.useBottomSheet);
       // Lighter has no deposit-with-order route. Trade its existing venue
       // balance directly, without creating a transaction or changing UI mode.
       if (activeProvider === 'lighter') {
@@ -256,8 +257,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              showPerpsHeader: useBottomSheet
+                ? false
+                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           );
         })

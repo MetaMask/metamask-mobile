@@ -179,6 +179,40 @@ describe('useFiatConfirm', () => {
       );
     });
 
+    it('uses the fee-on-top amount for a Brazil Transak aggregator checkout', () => {
+      const rampsQuote = {
+        provider: '/providers/transak',
+        providerInfo: { type: 'aggregator' },
+        quote: {
+          amountIn: 15,
+          amountOut: 14.2,
+          paymentMethod: '/payments/debit-credit-card',
+          providerFee: 0.8,
+        },
+      };
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: '/payments/debit-credit-card',
+        amountFiat: '15',
+        rampsQuote,
+        caipAssetId:
+          'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 52,
+          quote: rampsQuote,
+        }),
+        expect.any(Object),
+      );
+    });
+
     it('updates fiat payment with orderId on onOrderCreated callback', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',

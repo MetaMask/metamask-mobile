@@ -19,17 +19,3 @@ export function isLighterProviderEnabled(
     environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
   );
 }
-
-/**
- * The provider/network selector is a developer tool and is never exposed by
- * the explicit infrastructure override in non-development builds.
- */
-export function isPerpsProviderSelectorEnabled(
-  environment: LighterFeatureEnvironment = {
-    METAMASK_ENVIRONMENT: process.env.METAMASK_ENVIRONMENT,
-    MM_PERPS_LIGHTER_PROVIDER_ENABLED:
-      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED,
-  },
-): boolean {
-  return environment.METAMASK_ENVIRONMENT === 'dev';
-}

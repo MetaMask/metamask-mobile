@@ -11,10 +11,12 @@ import { PerpsSelectProviderViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsSelectProviderView', () => {
   const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
+  const originalLighterOverride = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.METAMASK_ENVIRONMENT = 'dev';
+    delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
   });
 
   afterEach(() => {
@@ -22,6 +24,11 @@ describe('PerpsSelectProviderView', () => {
       delete process.env.METAMASK_ENVIRONMENT;
     } else {
       process.env.METAMASK_ENVIRONMENT = originalEnvironment;
+    }
+    if (originalLighterOverride === undefined) {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    } else {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = originalLighterOverride;
     }
   });
 
@@ -61,5 +68,16 @@ describe('PerpsSelectProviderView', () => {
         screen.queryByTestId(PerpsSelectProviderViewSelectorsIDs.SHEET),
       ).not.toBeOnTheScreen();
     });
+  });
+
+  it('exposes the selector in an explicit Lighter production build', async () => {
+    process.env.METAMASK_ENVIRONMENT = 'production';
+    process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+
+    renderPerpsSelectProviderView();
+
+    expect(
+      await screen.findByTestId(PerpsSelectProviderViewSelectorsIDs.SHEET),
+    ).toBeOnTheScreen();
   });
 });

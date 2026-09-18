@@ -18,6 +18,7 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTestEnvironment } from '../../../util/test/utils';
+import ScreenTtcProbeHost from '../../../hooks/performance/ScreenTtcProbeHost';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -133,6 +134,7 @@ const Root = ({ foxCode }: RootProps) => {
                                   mode={ReduceMotion.Never}
                                 />
                                 <App />
+                                <ScreenTtcProbeHost />
                               </HardwareWalletProvider>
                             </ToastContextWrapper>
                           </UIMessengerProvider>

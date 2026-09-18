@@ -33,11 +33,10 @@ jest.mock('../services/PerpsConnectionManager', () => ({
 }));
 
 const mockIsLighterProviderEnabled = jest.fn();
-const mockIsPerpsProviderSelectorEnabled = jest.fn();
 jest.mock('../utils/lighterFeatureFlags', () => ({
   isLighterProviderEnabled: () => mockIsLighterProviderEnabled(),
-  isPerpsProviderSelectorEnabled: () => mockIsPerpsProviderSelectorEnabled(),
 }));
+const mockLighterRemoteFlagEnabled = jest.fn();
 
 const mockUseSelector = useSelector as jest.Mock;
 const mockGetOrderCapabilities = jest.mocked(
@@ -77,7 +76,7 @@ const mockAggregatedProviderSelectors = (
 beforeEach(() => {
   jest.clearAllMocks();
   mockIsLighterProviderEnabled.mockReturnValue(false);
-  mockIsPerpsProviderSelectorEnabled.mockReturnValue(false);
+  mockLighterRemoteFlagEnabled.mockReturnValue(false);
   mockGetOrderCapabilities.mockResolvedValue({
     status: 'ready',
     providerId: 'hyperliquid',
@@ -86,7 +85,7 @@ beforeEach(() => {
   // Default: Hyperliquid active on mainnet.
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectPerpsLighterProviderEnabledFlag) {
-      return mockIsLighterProviderEnabled();
+      return mockLighterRemoteFlagEnabled();
     }
     if (selector === selectPerpsProvider) {
       return 'hyperliquid';
@@ -111,6 +110,7 @@ describe('usePerpsProvider', () => {
 
     it('includes Lighter and aggregated providers in development', () => {
       mockIsLighterProviderEnabled.mockReturnValue(true);
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
 
       const { result } = renderHook(() => usePerpsProvider());
 
@@ -692,38 +692,40 @@ describe('usePerpsProvider', () => {
     });
 
     it('enables the provider selector in development', () => {
-      mockIsPerpsProviderSelectorEnabled.mockReturnValue(true);
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
 
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isProviderSelectorEnabled).toBe(true);
     });
 
-    it('enables the multi-provider badge in development', () => {
+    it('enables the multi-provider badge when both gates are enabled', () => {
       mockIsLighterProviderEnabled.mockReturnValue(true);
-      mockIsPerpsProviderSelectorEnabled.mockReturnValue(true);
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
 
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isMultiProviderEnabled).toBe(true);
     });
 
-    it('hides the provider selector for an explicit production override', () => {
-      mockIsLighterProviderEnabled.mockReturnValue(true);
-      mockIsPerpsProviderSelectorEnabled.mockReturnValue(false);
+    it('keeps Lighter unavailable when the runtime flag is enabled without the build gate', () => {
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
 
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isProviderSelectorEnabled).toBe(false);
+      expect(result.current.availableProviders).toEqual(['hyperliquid']);
     });
 
-    it('hides the multi-provider badge for a production override', () => {
+    it('keeps Lighter unavailable when the build gate is enabled without the runtime flag', () => {
       mockIsLighterProviderEnabled.mockReturnValue(true);
-      mockIsPerpsProviderSelectorEnabled.mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isMultiProviderEnabled).toBe(false);
+      expect(result.current.isProviderSelectorEnabled).toBe(false);
+      expect(result.current.availableProviders).toEqual(['hyperliquid']);
     });
   });
 });

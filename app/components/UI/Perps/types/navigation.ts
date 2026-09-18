@@ -27,6 +27,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsModeSelection: undefined;
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
   PerpsSelectAdjustMarginAction: {
     position: Position;
@@ -75,6 +76,8 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  useBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -210,6 +213,7 @@ export type PerpsStackParamList = {
   // Action selection routes
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
 
   PerpsSelectAdjustMarginAction: {

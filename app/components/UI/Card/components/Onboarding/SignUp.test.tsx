@@ -339,6 +339,9 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             return state;
         }
       },
+      settings: () => ({
+        avatarAccountType: 'Maskicon',
+      }),
     },
   });
 };
@@ -884,6 +887,7 @@ describe('SignUp Component', () => {
         getByTestId('signup-immersve-phone-number-input'),
       ).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
+      expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 
@@ -1062,7 +1066,12 @@ describe('SignUp Component', () => {
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
-        { email: 'gb@example.com', countryKey: 'GB' },
+        expect.objectContaining({
+          email: 'gb@example.com',
+          countryKey: 'GB',
+          hasExistingCard: false,
+          fundingAddress: expect.any(String),
+        }),
       );
     });
 
@@ -1094,7 +1103,12 @@ describe('SignUp Component', () => {
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'active' },
-        { email: 'gb@example.com', countryKey: 'GB' },
+        expect.objectContaining({
+          email: 'gb@example.com',
+          countryKey: 'GB',
+          hasExistingCard: false,
+          fundingAddress: expect.any(String),
+        }),
       );
     });
 

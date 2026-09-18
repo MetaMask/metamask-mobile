@@ -55,7 +55,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsOrderBookEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    // Retain local development enablement when no valid remote flag exists.
+    // Default to false if no flag is set (disabled by default)
     const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
@@ -516,6 +516,33 @@ export const selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag =
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
   });
+
+/**
+ * Client-config / Redux key for the Cross margin feature flag.
+ * LaunchDarkly key (kebab-case): `perps-cross-margin-enabled`.
+ */
+export const PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY =
+  'perpsCrossMarginEnabled' as const;
+
+/**
+ * Selector for Cross margin support on existing positions.
+ * When enabled: Cross positions show the Cross badge, the shared-collateral
+ * liquidation explanation and a non-editable "Position margin used" label.
+ * When disabled: Cross positions fall back to the isolated presentation.
+ * Defaults to false so Cross margin can be rolled out and rolled back
+ * independently of Pro mode.
+ *
+ * @returns boolean - true if Cross margin display is enabled, false otherwise
+ */
+export const selectPerpsCrossMarginEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.[PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY];
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
 
 /**
  * Selector for the Lighter venue provider (TAT-3766 POC).

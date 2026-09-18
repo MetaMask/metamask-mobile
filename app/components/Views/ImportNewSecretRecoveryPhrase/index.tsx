@@ -24,11 +24,13 @@ import {
   BoxFlexDirection,
   Button,
   ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
   IconName,
   IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -296,7 +298,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            twClassName="gap-0.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -306,8 +308,10 @@ const ImportNewSecretRecoveryPhrase = () => {
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
               iconProps={{
                 color: IconColor.IconAlternative,
+                size: IconSize.Sm,
               }}
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"

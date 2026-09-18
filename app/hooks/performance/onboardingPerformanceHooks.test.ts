@@ -41,11 +41,17 @@ jest.mock('./useRenderStormMonitor', () => ({
   useRenderStormMonitor: jest.fn(),
 }));
 
+jest.mock('./screenTtcRegistry', () => ({
+  recordScreenTtc: jest.fn(),
+}));
+
 const {
   trace: mockTrace,
   endTrace: mockEndTrace,
   getPerformanceTimestamp: mockGetPerformanceTimestamp,
 } = jest.requireMock('../../util/trace');
+
+const { recordScreenTtc } = jest.requireMock('./screenTtcRegistry');
 
 const expectEnd = (partial: Record<string, unknown>) => {
   expect(mockEndTrace).toHaveBeenCalledWith(expect.objectContaining(partial));
@@ -57,6 +63,7 @@ describe('onboarding performance hooks', () => {
     mockGetPerformanceTimestamp.mockReturnValue(mockPerformanceMountTs);
     _resetOnboardingNavigationPerformanceForTesting();
     jest.useFakeTimers();
+    jest.setSystemTime(mockPerformanceMountTs);
   });
 
   afterEach(() => {
@@ -85,6 +92,30 @@ describe('onboarding performance hooks', () => {
         name: TraceName.OnboardingScreenTimeToContent,
         data: expect.objectContaining({ success: true }),
       });
+    });
+
+    it('records TTC when content is ready', () => {
+      mockGetPerformanceTimestamp
+        .mockReturnValueOnce(mockPerformanceMountTs)
+        .mockReturnValue(mockPerformanceMountTs + 42);
+
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useScreenPerformance({
+            screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+            contentReady,
+            isEmpty: false,
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      expect(recordScreenTtc).toHaveBeenCalledWith(
+        OnboardingScreenIds.CHOOSE_PASSWORD,
+        42,
+        'filled',
+      );
     });
 
     it('respects enabled:false', () => {

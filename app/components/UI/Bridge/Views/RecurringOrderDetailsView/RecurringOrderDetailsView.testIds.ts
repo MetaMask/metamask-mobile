@@ -11,15 +11,21 @@ export const RecurringOrderDetailsViewSelectorsIDs = {
   HISTORY: 'recurring-order-details-history',
   HISTORY_ROW: (swapId: string) =>
     `recurring-order-details-history-row-${swapId}`,
+  HISTORY_LOADING: 'recurring-order-details-history-loading',
+  HISTORY_ERROR: 'recurring-order-details-history-error',
+  HISTORY_RETRY_BUTTON: 'recurring-order-details-history-retry-button',
+  HISTORY_EMPTY: 'recurring-order-details-history-empty',
+  HISTORY_NEXT_PAGE_LOADING:
+    'recurring-order-details-history-next-page-loading',
   CANCEL_BUTTON: 'recurring-order-details-cancel-button',
   DUPLICATE_BUTTON: 'recurring-order-details-duplicate-button',
-  NOT_FOUND: 'recurring-order-details-not-found',
   CANCEL_SHEET: 'recurring-order-details-cancel-sheet',
   CANCEL_SHEET_CLOSE_BUTTON:
     'recurring-order-details-cancel-sheet-close-button',
   CANCEL_SHEET_CONFIRM_BUTTON:
     'recurring-order-details-cancel-sheet-confirm-button',
   OPEN_ORDER_ROW: (orderId: string) => `recurring-order-open-row-${orderId}`,
-  COMPLETED_ORDER_ROW: 'recurring-order-completed-row',
+  HISTORY_ORDER_ROW: (orderId: string) =>
+    `recurring-order-history-row-${orderId}`,
   TEST_ENTRY_BUTTON: 'recurring-order-details-test-entry-button',
 } as const;

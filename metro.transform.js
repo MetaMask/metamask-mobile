@@ -230,4 +230,3 @@ function getESLintInstance() {
 
 // Exposed for focused code-fencing tests only.
 module.exports.getBuildTypeFeatures = getBuildTypeFeatures;
-module.exports.availableFeatures = availableFeatures;

@@ -29,7 +29,6 @@ import {
   selectIsFirstTimePerpsUser,
   selectPerpsMode,
 } from '../../UI/Perps/selectors/perpsController';
-import { usePerpsMode } from '../../UI/Perps/hooks';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
@@ -37,6 +36,10 @@ import { selectBatchSellEnabled } from '../../../selectors/featureFlagController
 import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
 } from './TradeWalletActions';
+import {
+  TRADE_TRAY_GLASS_FILL_OPACITY,
+  TRADE_TRAY_GLASS_RADIUS,
+} from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -123,12 +126,6 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
 }));
 
-jest.mock('../../UI/Perps/hooks', () => ({
-  usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
-  })),
-}));
-
 const mockHasCompletedPerpsModeSelection = jest.fn(() =>
   Promise.resolve(false),
 );
@@ -197,6 +194,25 @@ jest.mock('../../../hooks/useABTest', () => ({
     };
   },
 }));
+
+let mockIsGlassEnabled = false;
+const mockGlassView = jest.fn();
+jest.mock('../../../component-library/hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => ({
+    isGlassEnabled: mockIsGlassEnabled,
+    glassColorScheme: 'dark',
+  }),
+}));
+jest.mock('expo-glass-effect', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    GlassView: (props: Record<string, unknown>) => {
+      mockGlassView(props);
+      return ReactActual.createElement(View, props);
+    },
+  };
+});
 
 let mockIsBlurAvailable = true;
 jest.mock('../../../component-library/hooks/useBlurMaterial', () => ({
@@ -497,10 +513,6 @@ describe('TradeWalletActions', () => {
       remove: jest.fn(),
     });
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(true);
-    jest.mocked(usePerpsMode).mockReturnValue({
-      mode: PerpsMode.Lite,
-      setMode: jest.fn(),
-    });
     jest.mocked(isHardwareAccount).mockReturnValue(false);
 
     mockCreateEventBuilder.mockReturnValue(mockLegacyEventBuilder);
@@ -530,7 +542,7 @@ describe('TradeWalletActions', () => {
   });
 
   it('should renderScreen correctly', () => {
-    const { getByTestId, getByText, queryByTestId } = renderScreen(
+    const { getByTestId, queryByText, queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -543,7 +555,7 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
     ).toBeDefined();
-    expect(getByText('New')).toBeOnTheScreen();
+    expect(queryByText('New')).toBeNull();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
@@ -712,6 +724,106 @@ describe('TradeWalletActions', () => {
     });
   });
 
+  describe('Liquid Glass sheet', () => {
+    const nativeTrayParams = {
+      onDismiss: mockOnDismiss,
+      hasBottomNotch: false,
+      anchorsToTabBar: true,
+    };
+
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+      mockIsTradeFocusedArm = false;
+    });
+
+    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline', () => {
+      mockUseParams.mockReturnValue(nativeTrayParams);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(mockGlassView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          glassEffectStyle: 'regular',
+          colorScheme: 'dark',
+        }),
+      );
+      const [glassProps] = mockGlassView.mock.calls[0];
+      expect(StyleSheet.flatten(glassProps.style)).toMatchObject({
+        borderRadius: TRADE_TRAY_GLASS_RADIUS,
+      });
+      const fill = jest
+        .mocked(
+          getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+        )
+        .children.find(
+          (child) =>
+            typeof child !== 'string' &&
+            StyleSheet.flatten(child.props.style)?.opacity ===
+              TRADE_TRAY_GLASS_FILL_OPACITY,
+        );
+      expect(fill).toBeDefined();
+    });
+
+    it('takes precedence over the blur sheet in the trade-focused arm', () => {
+      mockIsTradeFocusedArm = true;
+      mockUseParams.mockReturnValue(nativeTrayParams);
+
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockGlassView).toHaveBeenCalled();
+      expect(mockBlurView).not.toHaveBeenCalled();
+    });
+
+    it('never draws the notched sheet as glass', () => {
+      mockUseParams.mockReturnValue({
+        onDismiss: mockOnDismiss,
+        buttonLayout: { height: 100, width: 100, x: 654, y: 321 },
+      });
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockGlassView).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to the opaque sheet when glass is unavailable', () => {
+      mockIsGlassEnabled = false;
+      mockUseParams.mockReturnValue(nativeTrayParams);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockGlassView).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('renders without the overlay cut-out when the opener has not measured yet', () => {
     // Both openers measure asynchronously; a tap can beat the measurement.
     mockUseParams.mockReturnValue({ onDismiss: mockOnDismiss });
@@ -807,7 +919,7 @@ describe('TradeWalletActions', () => {
     ).toBeDefined();
   });
 
-  it('renders the Lite badge on the Perps row when Lite mode is active', () => {
+  it('does not render Lite or Pro tags on the Perps row', () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -819,65 +931,7 @@ describe('TradeWalletActions', () => {
       >
     ).mockReturnValue(true);
 
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).toHaveTextContent('Lite');
-  });
-
-  it('renders the Pro badge on the Perps row when Pro mode is active', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPerpsProModeEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsProModeEnabledFlag
-      >
-    ).mockReturnValue(true);
-    jest.mocked(usePerpsMode).mockReturnValue({
-      mode: PerpsMode.Pro,
-      setMode: jest.fn(),
-    });
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).toHaveTextContent('Pro');
-  });
-
-  it('hides the mode badge when the Pro mode flag is disabled', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPerpsProModeEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsProModeEnabledFlag
-      >
-    ).mockReturnValue(false);
-
-    const { getByTestId, queryByTestId } = renderScreen(
+    const { getByTestId, queryByText } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -890,33 +944,8 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeDefined();
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('keeps the mode badge visible when the Perps action is disabled', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPerpsProModeEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsProModeEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      { name: 'TradeWalletActions' },
-      { state: mockInitialState },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE),
-    ).toHaveTextContent('Lite');
+    expect(queryByText('Lite')).toBeNull();
+    expect(queryByText('Pro')).toBeNull();
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
