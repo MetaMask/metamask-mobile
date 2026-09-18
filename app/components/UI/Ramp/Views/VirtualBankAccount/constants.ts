@@ -1,8 +1,5 @@
 import AppConstants from '../../../../../core/AppConstants';
 
-// ISO 3166-1 alpha-3 country code; the VBA MVP is Brazil-only.
-export const VBA_KYC_COUNTRY_CODE = 'USA';
-
 // Identity vendor for Get Pix Key. Passed to `KycController.startSession`.
 export const VBA_KYC_VENDOR = 'iron' as const;
 

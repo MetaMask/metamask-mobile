@@ -26,7 +26,7 @@ import { TagShape } from '../../../../../component-library/base-components/TagBa
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
+import { PIX_BRAND_COLOR } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import LegalLink from './components/LegalLink';
@@ -67,7 +67,7 @@ const GetPixKey = () => {
     error,
     acceptDisclaimers,
     retry,
-  } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+  } = useKycDisclaimers();
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =

@@ -8,7 +8,6 @@ import type {
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
-import { VBA_KYC_COUNTRY_CODE } from '../constants';
 
 interface UseKycStartSessionResult {
   isStarting: boolean;
@@ -38,9 +37,10 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
         );
       }
 
+      const country = await Engine.context.KycService.getGeoCountry();
       const catalog =
         await Engine.context.KycController.fetchSessionDisclaimers({
-          country: VBA_KYC_COUNTRY_CODE,
+          country,
         });
 
       await Engine.context.KycController.recordSessionDisclaimers({

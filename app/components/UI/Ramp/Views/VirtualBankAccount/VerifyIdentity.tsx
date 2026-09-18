@@ -30,11 +30,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-  VBA_KYC_COUNTRY_CODE,
-} from './constants';
+import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
@@ -127,8 +123,7 @@ const AccordionRow = ({
 const VbaVerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } =
-    useKycSessionDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const { isStarting, startSession } = useKycStartSession();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);

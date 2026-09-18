@@ -1,7 +1,6 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
-import { VBA_KYC_COUNTRY_CODE } from '../constants';
 import { useKycStartSession } from './useKycStartSession';
 
 const mockKycControllerState = {
@@ -18,6 +17,9 @@ jest.mock('../../../../../../core/Engine', () => ({
       recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
     },
+    KycService: {
+      getGeoCountry: jest.fn(),
+    },
   },
 }));
 
@@ -33,6 +35,9 @@ const mockKycController = Engine.context.KycController as unknown as {
   fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
   recordSessionDisclaimers: jest.Mock<Promise<void>, [unknown]>;
   launchProviderFlow: jest.Mock<Promise<void>, [unknown]>;
+};
+const mockKycService = Engine.context.KycService as unknown as {
+  getGeoCountry: jest.Mock<Promise<string>, []>;
 };
 
 const catalog = {
@@ -61,6 +66,7 @@ describe('useKycStartSession', () => {
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
     mockKycController.launchProviderFlow.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockKycService.getGeoCountry.mockResolvedValue('BRA');
   });
 
   afterEach(() => {
@@ -72,8 +78,9 @@ describe('useKycStartSession', () => {
 
     await act(result.current.startSession);
 
+    expect(mockKycService.getGeoCountry).toHaveBeenCalled();
     expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
-      country: VBA_KYC_COUNTRY_CODE,
+      country: 'BRA',
     });
     expect(mockKycController.recordSessionDisclaimers).toHaveBeenCalledWith({
       providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],

@@ -2,12 +2,16 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
+const mockGetGeoCountry = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
       fetchSessionDisclaimers: (...args: unknown[]) =>
         mockFetchSessionDisclaimers(...args),
+    },
+    KycService: {
+      getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
     },
   },
 }));
@@ -35,13 +39,15 @@ describe('useKycSessionDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockGetGeoCountry.mockResolvedValue('BRA');
   });
 
-  it('loads idOS and SumSub catalog documents for the given country via KycController', async () => {
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+  it('loads idOS and SumSub catalog documents for the geo country via KycController', async () => {
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    expect(mockGetGeoCountry).toHaveBeenCalled();
     expect(mockFetchSessionDisclaimers).toHaveBeenCalledWith({
       country: 'BRA',
     });
@@ -70,7 +76,7 @@ describe('useKycSessionDisclaimers', () => {
       kycProvider: [],
     });
 
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -85,7 +91,7 @@ describe('useKycSessionDisclaimers', () => {
         new Promise(() => undefined),
       );
 
-      const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+      const { result } = renderHook(() => useKycSessionDisclaimers());
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
@@ -104,7 +110,7 @@ describe('useKycSessionDisclaimers', () => {
       new Error('not signed in'),
     );
 
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -117,7 +123,7 @@ describe('useKycSessionDisclaimers', () => {
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(catalog);
 
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toBe('server error');

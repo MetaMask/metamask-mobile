@@ -30,10 +30,9 @@ const FETCH_TIMEOUT_MS = 10_000;
  * response is reported as an `error` (with `disclaimers` left `null`) so the
  * retry affordance is reachable. There's intentionally no static fallback copy.
  *
- * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
  * @returns Disclaimer data, loading/acceptance state, and actions.
  */
-export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
+export const useKycDisclaimers = (): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
@@ -82,10 +81,13 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       });
     });
 
-    const controllerLoad = Engine.context.KycController.fetchVendorDisclaimers({
-      vendor: VBA_KYC_VENDOR,
-      country,
-    });
+    const controllerLoad = (async () => {
+      const country = await Engine.context.KycService.getGeoCountry();
+      return Engine.context.KycController.fetchVendorDisclaimers({
+        vendor: VBA_KYC_VENDOR,
+        country,
+      });
+    })();
 
     const loadDisclaimers = async () => {
       try {
@@ -136,7 +138,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [country, retryCount]);
+  }, [retryCount]);
 
   return {
     disclaimers,

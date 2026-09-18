@@ -4,6 +4,7 @@ import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockFetchVendorDisclaimers = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
+const mockGetGeoCountry = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -13,25 +14,28 @@ jest.mock('../../../../../../core/Engine', () => ({
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
+    KycService: {
+      getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
+    },
   },
 }));
 
-const disclaimers = [
-  { id: '1', url: 'https://t.c', display_name: 'T&C' },
-];
+const disclaimers = [{ id: '1', url: 'https://t.c', display_name: 'T&C' }];
 
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchVendorDisclaimers.mockResolvedValue(disclaimers);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockGetGeoCountry.mockResolvedValue('BRA');
   });
 
   it('loads vendor disclaimers through KycController', async () => {
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    expect(mockGetGeoCountry).toHaveBeenCalled();
     expect(mockFetchVendorDisclaimers).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
       country: 'BRA',
@@ -43,7 +47,7 @@ describe('useKycDisclaimers', () => {
   it('surfaces errors returned by KycController', async () => {
     mockFetchVendorDisclaimers.mockRejectedValue(new Error('server error'));
 
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -54,7 +58,7 @@ describe('useKycDisclaimers', () => {
   it('treats an empty response as an error', async () => {
     mockFetchVendorDisclaimers.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -67,7 +71,7 @@ describe('useKycDisclaimers', () => {
     try {
       mockFetchVendorDisclaimers.mockReturnValue(new Promise(() => undefined));
 
-      const { result } = renderHook(() => useKycDisclaimers('BRA'));
+      const { result } = renderHook(() => useKycDisclaimers());
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
@@ -84,7 +88,7 @@ describe('useKycDisclaimers', () => {
     mockFetchVendorDisclaimers
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(disclaimers);
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
     await waitFor(() => expect(result.current.error).toBe('server error'));
 
     act(() => result.current.retry());
@@ -96,7 +100,7 @@ describe('useKycDisclaimers', () => {
   });
 
   it('records every displayed vendor disclaimer through KycController', async () => {
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let accepted = false;
@@ -115,7 +119,7 @@ describe('useKycDisclaimers', () => {
     mockRecordVendorDisclaimers.mockRejectedValue(
       new Error('Consent recording failed'),
     );
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let accepted = true;
