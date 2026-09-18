@@ -636,11 +636,10 @@ const MoneyOnboardingView = () => {
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBind={instance}
           autoPlay
-          fit={Fit.FitWidth}
+          fit={Fit.Layout}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
           style={StyleSheet.absoluteFill}
-          // style={styles.rive}
           testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
         />
       )}
