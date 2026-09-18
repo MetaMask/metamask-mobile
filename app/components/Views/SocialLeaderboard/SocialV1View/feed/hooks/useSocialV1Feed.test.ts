@@ -5,6 +5,7 @@ import {
 } from '../mocks/socialV1Feed.mock';
 import {
   resetSocialV1ComposedFeedStore,
+  startSocialV1PendingPostCountdown,
   submitSocialV1ComposedPost,
   COMPOSER_POSTING_DELAY_MS,
 } from '../store/socialV1ComposedFeedStore';
@@ -83,6 +84,14 @@ describe('useSocialV1Feed', () => {
     });
 
     expect(result.current.pendingPost?.item.comment).toBe('this is alpha');
+    // The clock only starts once the banner is on screen, so the post is still
+    // pending here no matter how much time passes.
+    expect(result.current.pendingStartedAtMs).toBeNull();
+
+    act(() => {
+      startSocialV1PendingPostCountdown();
+    });
+
     expect(result.current.pendingStartedAtMs).not.toBeNull();
 
     act(() => {

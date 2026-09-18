@@ -16,6 +16,8 @@ import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
 ): UseSocialV1FeedResult => {
+  // Subscribed for the re-render only; the posts themselves are read straight
+  // from the store below so a bumped revision always yields fresh data.
   useSyncExternalStore(
     subscribeSocialV1ComposedFeed,
     getSocialV1ComposedFeedRevision,

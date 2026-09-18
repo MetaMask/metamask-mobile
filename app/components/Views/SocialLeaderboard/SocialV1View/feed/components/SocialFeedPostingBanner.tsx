@@ -14,14 +14,19 @@ import { strings } from '../../../../../../../locales/i18n';
 import superheroAvatar from '../../../../../../images/socialV1/superhero.png';
 import {
   COMPOSER_POSTING_DELAY_MS,
-  commitSocialV1PendingPost,
+  startSocialV1PendingPostCountdown,
 } from '../store/socialV1ComposedFeedStore';
 import { SocialFeedPostingBannerSelectorsIDs } from './SocialFeedPostingBanner.testIds';
 
 export interface SocialFeedPostingBannerProps {
   authorHandle: string;
   authorImageUrl?: string | null;
-  startedAtMs: number;
+  /**
+   * When the countdown started, or `null` before it has. Mounting with `null`
+   * starts it, which is what keeps the progress bar anchored to the moment it
+   * became visible rather than to the (possibly much earlier) submit.
+   */
+  startedAtMs: number | null;
 }
 
 const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
@@ -33,6 +38,11 @@ const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    if (startedAtMs == null) {
+      startSocialV1PendingPostCountdown();
+      return undefined;
+    }
+
     const tick = () => {
       const next = Math.min(
         1,
@@ -43,17 +53,12 @@ const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
     };
 
     if (tick() >= 1) {
-      // Fallback: if the store's own setTimeout was dropped (rare, but
-      // observed on Fast Refresh reloads), commit here so the pending banner
-      // never gets stuck at 100%.
-      commitSocialV1PendingPost();
       return undefined;
     }
 
     const intervalId = setInterval(() => {
       if (tick() >= 1) {
         clearInterval(intervalId);
-        commitSocialV1PendingPost();
       }
     }, 50);
 

@@ -108,7 +108,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <SocialFeedPostingBanner
                   authorHandle={pendingPost.authorHandle}
                   authorImageUrl={pendingPost.authorImageUrl}
-                  startedAtMs={pendingStartedAtMs ?? Date.now()}
+                  startedAtMs={pendingStartedAtMs}
                 />
               ) : null}
               {posts.map((post) => (

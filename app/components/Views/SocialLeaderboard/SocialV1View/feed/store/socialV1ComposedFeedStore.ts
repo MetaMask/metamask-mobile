@@ -2,7 +2,15 @@
 // It’s an in-memory module store so a post can survive leaving the composer.
 // TODO(Social):  When real POST exists, this should go away (or shrink to “optimistic UI while the request is in flight”).
 import type { SocialV1FeedPost } from '../types';
+
 export const COMPOSER_POSTING_DELAY_MS = 1500;
+
+/**
+ * Ceiling on how long a post may sit pending before the countdown starts on
+ * its own. The banner normally starts it as soon as it mounts; this only fires
+ * if the banner never appears, so a post can’t be stranded pending forever.
+ */
+export const COMPOSER_COUNTDOWN_FALLBACK_MS = 1200;
 
 type Listener = () => void;
 
@@ -13,6 +21,7 @@ interface StoreState {
   shouldFocusTrending: boolean;
   revision: number;
   postingTimer: ReturnType<typeof setTimeout> | null;
+  countdownFallbackTimer: ReturnType<typeof setTimeout> | null;
   listeners: Set<Listener>;
 }
 
@@ -31,12 +40,24 @@ const bootstrap = (): StoreState => ({
   shouldFocusTrending: false,
   revision: 0,
   postingTimer: null,
+  countdownFallbackTimer: null,
   listeners: new Set(),
 });
 
 const globalScope = globalThis as unknown as Record<string, StoreState>;
 const state: StoreState = globalScope[STORE_GLOBAL_KEY] ?? bootstrap();
 globalScope[STORE_GLOBAL_KEY] = state;
+
+const clearTimers = () => {
+  if (state.postingTimer) {
+    clearTimeout(state.postingTimer);
+    state.postingTimer = null;
+  }
+  if (state.countdownFallbackTimer) {
+    clearTimeout(state.countdownFallbackTimer);
+    state.countdownFallbackTimer = null;
+  }
+};
 
 const notify = () => {
   state.revision += 1;
@@ -85,10 +106,7 @@ export const consumeSocialV1FocusTrending = (): boolean => {
 };
 
 export const resetSocialV1ComposedFeedStore = (): void => {
-  if (state.postingTimer) {
-    clearTimeout(state.postingTimer);
-    state.postingTimer = null;
-  }
+  clearTimers();
   state.composedPosts = [];
   state.pendingPost = null;
   state.pendingStartedAtMs = null;
@@ -101,10 +119,7 @@ export const commitSocialV1PendingPost = (): void => {
     return;
   }
 
-  if (state.postingTimer) {
-    clearTimeout(state.postingTimer);
-    state.postingTimer = null;
-  }
+  clearTimers();
 
   // The stored pending post carries the composer-facing id (`composed-*`); the
   // outward-facing pending shape uses `pending-*` so the banner and the
@@ -121,22 +136,51 @@ export const commitSocialV1PendingPost = (): void => {
   notify();
 };
 
-export const submitSocialV1ComposedPost = (post: SocialV1FeedPost): void => {
-  if (state.postingTimer) {
-    clearTimeout(state.postingTimer);
-    state.postingTimer = null;
+/**
+ * Start the posting countdown, anchored to the instant the progress bar
+ * mounted. Idempotent, so a banner that remounts (tab switch, re-render)
+ * keeps the original clock rather than restarting it.
+ */
+export const startSocialV1PendingPostCountdown = (): void => {
+  if (!state.pendingPost || state.pendingStartedAtMs != null) {
+    return;
   }
 
-  state.shouldFocusTrending = true;
+  if (state.countdownFallbackTimer) {
+    clearTimeout(state.countdownFallbackTimer);
+    state.countdownFallbackTimer = null;
+  }
+
   state.pendingStartedAtMs = Date.now();
-  state.pendingPost = { ...post, isPending: true, id: `pending-${post.id}` };
   notify();
 
-  // The store owns the commit lifecycle. Banner + feed effects are visual
-  // only; if they never run (e.g. tab not focused, JS paused) the post still
-  // lands on Trending once the timer fires.
+  // The store owns the commit so the post still lands if the banner unmounts
+  // mid-progress (e.g. the user swipes to Following).
   state.postingTimer = setTimeout(() => {
     state.postingTimer = null;
     commitSocialV1PendingPost();
   }, COMPOSER_POSTING_DELAY_MS);
+};
+
+/**
+ * Park the composed post as pending. The countdown deliberately does *not*
+ * start here: the composer is still on screen and popping it plus painting
+ * Trending can take longer than `COMPOSER_POSTING_DELAY_MS`, which would
+ * commit the post before anyone ever saw the progress bar. `startSocialV1
+ * PendingPostCountdown` starts the clock once the banner is actually visible,
+ * and the fallback timer here starts it anyway if the banner never mounts, so
+ * a post can never be stranded pending.
+ */
+export const submitSocialV1ComposedPost = (post: SocialV1FeedPost): void => {
+  clearTimers();
+
+  state.shouldFocusTrending = true;
+  state.pendingStartedAtMs = null;
+  state.pendingPost = { ...post, isPending: true, id: `pending-${post.id}` };
+  notify();
+
+  state.countdownFallbackTimer = setTimeout(() => {
+    state.countdownFallbackTimer = null;
+    startSocialV1PendingPostCountdown();
+  }, COMPOSER_COUNTDOWN_FALLBACK_MS);
 };

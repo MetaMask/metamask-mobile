@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   COMPOSER_POSTING_DELAY_MS,
   getSocialV1ComposedPosts,
+  getSocialV1PendingStartedAtMs,
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
 } from '../store/socialV1ComposedFeedStore';
@@ -69,24 +70,24 @@ describe('SocialFeedPostingBanner', () => {
     expect(screen.getByText('giga-whale')).toBeOnTheScreen();
   });
 
-  it('commits immediately when the posting delay already elapsed', () => {
+  it('starts the countdown when it mounts before the clock is set', () => {
     submitSocialV1ComposedPost({
-      id: 'composed-late',
+      id: 'composed-1',
       authorHandle: 'giga-whale',
       timestampMs: 1_000_000,
       likeCount: 0,
       commentCount: 0,
-      item: mockOpenPerpsFeedItem({ comment: 'late banner' }),
+      item: mockOpenPerpsFeedItem({ comment: 'this is alpha' }),
     });
 
+    expect(getSocialV1PendingStartedAtMs()).toBeNull();
+
     renderWithProvider(
-      <SocialFeedPostingBanner
-        authorHandle="giga-whale"
-        startedAtMs={1_000_000 - COMPOSER_POSTING_DELAY_MS}
-      />,
+      <SocialFeedPostingBanner authorHandle="giga-whale" startedAtMs={null} />,
     );
 
-    expect(getSocialV1ComposedPosts()[0]?.id).toBe('composed-late');
+    expect(getSocialV1PendingStartedAtMs()).toBe(1_000_000);
+    expect(getSocialV1ComposedPosts()).toHaveLength(0);
   });
 
   it('commits the queued post when the progress bar completes', () => {
@@ -100,10 +101,7 @@ describe('SocialFeedPostingBanner', () => {
     });
 
     renderWithProvider(
-      <SocialFeedPostingBanner
-        authorHandle="giga-whale"
-        startedAtMs={1_000_000}
-      />,
+      <SocialFeedPostingBanner authorHandle="giga-whale" startedAtMs={null} />,
     );
 
     act(() => {
