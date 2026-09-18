@@ -27,7 +27,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
   onAddPress,
 }) => (
   <Box testID="watchlist-suggested-section">
-    {hasWatchlist ? (
+    {hasWatchlist && (
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
@@ -36,7 +36,7 @@ const WatchlistSuggestedSection: React.FC<WatchlistSuggestedSectionProps> = ({
       >
         {strings('token_watchlist.suggested')}
       </Text>
-    ) : null}
+    )}
     <Animated.View
       layout={LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)}
     >
