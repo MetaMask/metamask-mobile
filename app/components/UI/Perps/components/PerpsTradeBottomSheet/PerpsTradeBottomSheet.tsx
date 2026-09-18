@@ -148,6 +148,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hasClosedRef = useRef(false);
+  const isClosingRef = useRef(false);
   const hasReportedInteractiveRef = useRef(false);
   const [isClosing, setIsClosing] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
@@ -228,9 +229,10 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   }, [onClose, reportCancelBeforeInteractive]);
 
   const close = useCallback(() => {
-    if (isClosing || hasClosedRef.current) {
+    if (isClosingRef.current || hasClosedRef.current) {
       return;
     }
+    isClosingRef.current = true;
     setIsClosing(true);
     const sheet = bottomSheetRef.current;
     if (sheet?.onCloseBottomSheet) {
@@ -240,7 +242,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     } else {
       handleClose();
     }
-  }, [handleClose, isClosing]);
+  }, [handleClose]);
 
   const contextValue = useMemo(
     () => ({ activeScreen, navigateTo, goBack, close, title, banner }),

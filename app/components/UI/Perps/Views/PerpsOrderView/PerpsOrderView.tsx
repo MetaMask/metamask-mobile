@@ -440,17 +440,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // The compact Trade sheet exposes market and limit orders only.
   useEffect(() => {
-    if (
-      useBottomSheet &&
-      orderForm.type !== 'market' &&
-      orderForm.type !== 'limit'
-    ) {
+    if (!useBottomSheet) {
+      return;
+    }
+
+    if (orderForm.type === 'market' && orderForm.limitPrice) {
+      updateOrderForm({ type: 'market', limitPrice: undefined });
+    } else if (orderForm.type !== 'market' && orderForm.type !== 'limit') {
       updateOrderForm({
         type: 'market',
         limitPrice: undefined,
       });
     }
-  }, [orderForm.type, updateOrderForm, useBottomSheet]);
+  }, [orderForm.limitPrice, orderForm.type, updateOrderForm, useBottomSheet]);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
@@ -1446,6 +1448,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         setLimitPrice(undefined);
         setIsLimitPriceFocused(false);
       } else if (!orderForm.limitPrice) {
+        tradeSheetLimitPriceInputMethodRef.current = null;
         setIsInputFocused(false);
         setIsLimitPriceFocused(true);
       }
@@ -2128,10 +2131,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       midPrice: assetData.price,
       szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
-    const tradeSheetPercentChange = (() => {
-      const parsed = Number.parseFloat(currentPrice?.percentChange24h ?? '');
-      return Number.isFinite(parsed) ? parsed : null;
-    })();
+    const rawPercentChange = Number.parseFloat(
+      currentPrice?.percentChange24h ?? '',
+    );
+    const tradeSheetPercentChange = Number.isFinite(rawPercentChange)
+      ? rawPercentChange
+      : null;
     const isTradeSheetHeaderLoading = !currentPrice || assetData.price <= 0;
     const isTradeSheetPayWithLoading =
       isLoadingAccount || (hasCustomTokenSelected && isPayStateNotReady);
@@ -2144,6 +2149,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isMarketDataUnavailable ||
       isFeesLoading;
     const bottomSheetErrors = [
+      ...(isMarketDataUnavailable && !isMarketDataLoading
+        ? [
+            {
+              key: 'market-data-unavailable',
+              message: strings('perps.failed_to_load_market_data'),
+            },
+          ]
+        : []),
       ...(hasInsufficientFundsError
         ? [
             {

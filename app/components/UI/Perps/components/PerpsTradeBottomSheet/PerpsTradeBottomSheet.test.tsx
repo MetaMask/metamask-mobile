@@ -10,6 +10,8 @@ import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 let openCallback: (() => void) | undefined;
 let hardwareBackHandler: (() => boolean | null | undefined) | undefined;
+const mockCloseBottomSheet = jest.fn();
+let mockDeferSheetClose = false;
 const tradeSheetConfig = {
   rootScreen: 'trade' as const,
   screenDepth: {
@@ -39,7 +41,10 @@ jest.mock('@metamask/design-system-react-native', () => {
             openCallback = callback;
           },
           onCloseBottomSheet: (callback?: () => void) => {
-            onClose();
+            mockCloseBottomSheet();
+            if (!mockDeferSheetClose) {
+              onClose();
+            }
             callback?.();
           },
         }));
@@ -110,6 +115,8 @@ describe('PerpsTradeBottomSheet', () => {
   beforeEach(() => {
     openCallback = undefined;
     hardwareBackHandler = undefined;
+    mockCloseBottomSheet.mockClear();
+    mockDeferSheetClose = false;
     jest
       .spyOn(BackHandler, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -217,6 +224,29 @@ describe('PerpsTradeBottomSheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onCancelBeforeInteractive).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts the close animation only once for synchronous close requests', () => {
+    mockDeferSheetClose = true;
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <CloseTestScreen />,
+          leverage: null,
+          settings: null,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    const closeButton = screen.getByTestId('close-trade');
+    fireEvent.press(closeButton);
+    fireEvent.press(closeButton);
+
+    expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
   it('reports the root screen interactive once after layout', () => {

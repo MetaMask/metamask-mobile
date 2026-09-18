@@ -75,6 +75,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type OrderType,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
@@ -806,6 +807,7 @@ const createBottomSheetMock = (testId: string) => {
 
 // Leverage the stub confirms with when tests press the confirm testID below.
 let mockLeverageConfirmValue = 3;
+let mockOrderTypeOnSelect: ((type: OrderType) => void) | undefined;
 
 // Lightweight stub so tests can confirm a leverage through the real
 // onConfirm wiring (clamp/flush logic) without depending on the real
@@ -838,9 +840,26 @@ jest.mock('../../components/PerpsLeverageBottomSheet', () => {
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () =>
   createBottomSheetMock('limit-price-bottom-sheet'),
 );
-jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
-  createBottomSheetMock('order-type-bottom-sheet'),
-);
+jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
+  const MockReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      onSelect,
+    }: {
+      isVisible: boolean;
+      onSelect: (type: OrderType) => void;
+    }) => {
+      mockOrderTypeOnSelect = onSelect;
+      return isVisible
+        ? MockReact.createElement('View', {
+            testID: 'order-type-bottom-sheet',
+          })
+        : null;
+    },
+  };
+});
 jest.mock('../../components/PerpsBottomSheetTooltip', () =>
   createBottomSheetMock('perps-order-view-bottom-sheet-tooltip'),
 );
@@ -1227,9 +1246,9 @@ describe('PerpsOrderView', () => {
       validateNow: jest.fn(),
     });
     mockPerpsAdvancedChartEnabled = false;
-    mockPaymentOverride = undefined;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
+    mockOrderTypeOnSelect = undefined;
     mockIsPaySubmitReady = true;
     mockPayTokenAccountBalanceUsd = '0';
     mockProviderEffectiveAvailableBalance = undefined;
@@ -1408,6 +1427,26 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  it('clears a stale limit price when the Trade sheet opens as a market order', () => {
+    const updateOrderForm = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'market',
+        limitPrice: '3100',
+      },
+      updateOrderForm,
+    });
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(updateOrderForm).toHaveBeenCalledWith({
+      type: 'market',
+      limitPrice: undefined,
+    });
+  });
+
   it('falls back to the market price when the order book is unavailable', () => {
     const setLimitPrice = jest.fn();
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
@@ -1460,6 +1499,27 @@ describe('PerpsOrderView', () => {
         [PERPS_EVENT_PROPERTY.INPUT_METHOD]:
           PERPS_EVENT_VALUE.INPUT_METHOD.KEYBOARD,
       }),
+    );
+  });
+
+  it('does not track stale limit input when limit mode auto-opens', () => {
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => {
+      getMockTradeScreenProps().onLimitPriceKeypadChange({
+        value: '2950',
+        valueAsNumber: 2950,
+      });
+      mockOrderTypeOnSelect?.('market');
+      mockOrderTypeOnSelect?.('limit');
+    });
+    mockCreateEventBuilder.mockClear();
+
+    act(() => getMockTradeScreenProps().onLimitPriceDonePress());
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
     );
   });
 
@@ -5247,6 +5307,28 @@ describe('PerpsOrderView', () => {
       await waitFor(() => {
         expect(screen.getByText('Leverage')).toBeOnTheScreen();
       });
+    });
+
+    it('explains why Trade sheet submission is blocked when market data is unavailable', () => {
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: false,
+        error: new Error('Market unavailable'),
+        refetch: jest.fn(),
+      });
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+      expect(getMockTradeScreenProps().errorMessages).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'market-data-unavailable',
+            message: 'perps.failed_to_load_market_data',
+          }),
+        ]),
+      );
     });
   });
 
