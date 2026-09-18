@@ -30,10 +30,6 @@ export interface LimitOrderConfirmationModalParams {
    */
   triggerPrice: string;
   /**
-   * Comparison against the current market price. Omitted while at market.
-   */
-  triggerComparison?: LimitOrderConfirmationMarketComparison;
-  /**
    * Token the trigger price is quoted in, used for the trigger row avatar.
    */
   triggerToken?: BridgeToken;
@@ -63,13 +59,13 @@ export interface LimitOrderConfirmationModalProps
    */
   costTolerance: string;
   /**
+   * Comparison against the current market price.
+   */
+  triggerComparison?: LimitOrderConfirmationMarketComparison;
+  /**
    * Fired when the user confirms the order.
    */
   onConfirm: () => void;
-  /**
-   * Fired when the user taps the edit icon on the cost tolerance row.
-   */
-  onEditCostTolerancePress: () => void;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

@@ -120,7 +120,7 @@ describe('DeviceSecurityToggle', () => {
       const { getByText } = renderComponent();
       await waitFor(() => {
         // strings('app_settings.enable_biometrics_in_settings') from en.json
-        expect(getByText('Enable Device Authentication')).toBeOnTheScreen();
+        expect(getByText('Enable device authentication')).toBeOnTheScreen();
       });
     });
 
@@ -134,7 +134,7 @@ describe('DeviceSecurityToggle', () => {
       });
       const { getByText } = renderComponent();
       const button = await waitFor(() =>
-        getByText('Enable Device Authentication'),
+        getByText('Enable device authentication'),
       );
       fireEvent.press(button);
       expect(Linking.openSettings).toHaveBeenCalled();

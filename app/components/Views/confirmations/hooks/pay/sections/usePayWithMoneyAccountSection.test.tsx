@@ -78,8 +78,10 @@ describe('usePayWithMoneyAccountSection', () => {
         return {
           enableMoneyAccountTransactions: {
             perpsDeposit: true,
+            perpsDepositAndOrder: true,
             perpsWithdraw: true,
             predictDeposit: true,
+            predictDepositAndOrder: true,
             predictWithdraw: true,
           },
         };
@@ -111,6 +113,33 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
+  it.each([
+    [TransactionType.perpsDepositAndOrder, { perpsDeposit: true }],
+    [TransactionType.predictDepositAndOrder, { predictDeposit: true }],
+  ])(
+    'returns null for %s when only the matching deposit flag is enabled',
+    (transactionType, enableMoneyAccountTransactions) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: transactionType,
+        txParams: {},
+      } as never);
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return { enableMoneyAccountTransactions };
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current).toBeNull();
+    },
+  );
+
   it('returns null for predict transaction when only perps types are enabled', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
@@ -120,6 +149,7 @@ describe('usePayWithMoneyAccountSection', () => {
         return {
           enableMoneyAccountTransactions: {
             perpsDeposit: true,
+            perpsDepositAndOrder: true,
             perpsWithdraw: true,
           },
         };
@@ -147,6 +177,7 @@ describe('usePayWithMoneyAccountSection', () => {
         return {
           enableMoneyAccountTransactions: {
             predictDeposit: true,
+            predictDepositAndOrder: true,
             predictWithdraw: true,
           },
         };
@@ -186,8 +217,10 @@ describe('usePayWithMoneyAccountSection', () => {
         return {
           enableMoneyAccountTransactions: {
             perpsDeposit: true,
+            perpsDepositAndOrder: true,
             perpsWithdraw: true,
             predictDeposit: true,
+            predictDepositAndOrder: true,
             predictWithdraw: true,
           },
         };
@@ -209,7 +242,12 @@ describe('usePayWithMoneyAccountSection', () => {
   });
 
   describe('when the money account funds the transaction', () => {
-    it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])(
       'returns null for %s when the withdrawable balance is zero',
       (txType) => {
         useTransactionMetadataRequestMock.mockReturnValue({
@@ -295,7 +333,9 @@ describe('usePayWithMoneyAccountSection', () => {
 
   it.each([
     TransactionType.perpsDeposit,
+    TransactionType.perpsDepositAndOrder,
     TransactionType.predictDeposit,
+    TransactionType.predictDepositAndOrder,
     TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
   ])(

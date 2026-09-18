@@ -1,13 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { PriceImpactModalRouterParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PriceImpactHeader } from './PriceImpactHeader';
 import { PriceImpactDescription } from './PriceImpactDescription';
 import { PriceImpactFooter } from './PriceImpactFooter';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import {
@@ -25,17 +24,10 @@ export const PriceImpactModal = () => {
   const { goBack } = useNavigation<AppNavigationProp>();
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
-  const { type, token, location } = useParams<PriceImpactModalRouterParams>();
+  const { type, location } = useParams<PriceImpactModalRouterParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const tokenBalance = useLatestBalance({
-    address: token?.address,
-    decimals: token?.decimals,
-    chainId: token?.chainId,
-  });
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteDataContext();
   const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
