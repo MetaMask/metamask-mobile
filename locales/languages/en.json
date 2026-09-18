@@ -1409,6 +1409,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "following",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -9147,14 +9155,16 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "Create Order",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "You get",
