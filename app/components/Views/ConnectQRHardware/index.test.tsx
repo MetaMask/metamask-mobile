@@ -376,6 +376,8 @@ describe('ConnectQRHardware', () => {
 
     expect(header).toBeOnTheScreen();
     expect(StyleSheet.flatten(header.props.style).marginTop).toBe(44);
+    expect(StyleSheet.flatten(header.props.style).paddingLeft).toBe(16);
+    expect(StyleSheet.flatten(header.props.style).paddingRight).toBe(16);
   });
 
   it('excludes top and bottom edges from parent SafeAreaView because header and instruction own spacing', async () => {

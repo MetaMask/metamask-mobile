@@ -33,6 +33,9 @@ interface ManageCardOptionsProps {
   onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
+  onContactDetails: () => void;
+  showDigitalWalletInstructions: boolean;
+  onDigitalWalletInstructions: () => void;
   showUnlinkMoneyAccount: boolean;
   onUnlinkMoneyAccount: () => void;
   showRevokeAllowance?: boolean;
@@ -68,6 +71,9 @@ const ManageCardOptions = ({
   onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
+  onContactDetails,
+  showDigitalWalletInstructions,
+  onDigitalWalletInstructions,
   showUnlinkMoneyAccount,
   onUnlinkMoneyAccount,
   showRevokeAllowance = false,
@@ -185,6 +191,21 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           />
         )}
+        {isFullySetUp &&
+          !hideManageOptions &&
+          showDigitalWalletInstructions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.add_to_digital_wallet',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.add_to_digital_wallet_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onDigitalWalletInstructions}
+              testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
+            />
+          )}
         {((isAuthenticated &&
           !isLoading &&
           card &&
@@ -259,6 +280,21 @@ const ManageCardOptions = ({
               rightIcon={IconName.ArrowRight}
               onPress={onManageSpendingLimit}
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            />
+          )}
+        {isFullySetUp &&
+          capabilities?.supportsContactDetails &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.contact_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.contact_details_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onContactDetails}
+              testID={CardHomeSelectors.CONTACT_DETAILS_ITEM}
             />
           )}
         {isFullySetUp && showUnlinkMoneyAccount && (

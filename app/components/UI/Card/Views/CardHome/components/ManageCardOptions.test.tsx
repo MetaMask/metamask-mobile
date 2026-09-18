@@ -36,6 +36,7 @@ const buildCapabilities = (
     supportsCashback: false,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsContactDetails: false,
     ...overrides,
   }) as CardProviderCapabilities;
 
@@ -57,7 +58,21 @@ interface RenderOverrides {
 
 const renderComponent = (
   capabilities: CardProviderCapabilities,
-  overrides: RenderOverrides = {},
+  overrides: {
+    card?: CardDetails;
+    isFrozen?: boolean;
+    hasSetupActions?: boolean;
+    hasSetupAlerts?: boolean;
+    cardDetailsVisible?: boolean;
+    showUnlinkMoneyAccount?: boolean;
+    showRevokeAllowance?: boolean;
+    onRevokeAllowance?: () => void;
+    fundingAccountName?: string;
+    onTransactionHistory?: () => void;
+    showTransactionHistoryDuringSetup?: boolean;
+    hasPriorityTokenBalance?: boolean;
+    hasAlertOnlyState?: boolean;
+  } = {},
 ) =>
   render(
     <ManageCardOptions
@@ -80,6 +95,9 @@ const renderComponent = (
       onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
+      onContactDetails={jest.fn()}
+      showDigitalWalletInstructions={false}
+      onDigitalWalletInstructions={jest.fn()}
       showUnlinkMoneyAccount={overrides.showUnlinkMoneyAccount ?? false}
       onUnlinkMoneyAccount={jest.fn()}
       showRevokeAllowance={overrides.showRevokeAllowance ?? false}
@@ -97,6 +115,47 @@ const renderComponent = (
       }
     />,
   );
+
+describe('ManageCardOptions contact details gating', () => {
+  it('shows contact details when supported and the card is fully set up', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsContactDetails: true,
+      }),
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides contact details when the provider does not support them', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM)).toBeNull();
+  });
+
+  it.each([
+    { hasSetupActions: true, hasSetupAlerts: false },
+    { hasSetupActions: false, hasSetupAlerts: true },
+  ])('hides contact details while card setup is incomplete', (setupState) => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsContactDetails: true,
+      }),
+      {
+        hasSetupActions: setupState.hasSetupActions,
+        hasSetupAlerts: setupState.hasSetupAlerts,
+      },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM)).toBeNull();
+  });
+});
 
 describe('ManageCardOptions funding-limit gating', () => {
   it('shows change asset and manage spending limit when supportsFundingLimits is true', () => {
@@ -181,6 +240,59 @@ describe('ManageCardOptions travel gating', () => {
     );
 
     expect(queryByTestId(CardHomeSelectors.TRAVEL_ITEM)).toBeNull();
+  });
+});
+
+describe('ManageCardOptions digital wallet instructions gating', () => {
+  it('shows digital wallet instructions for a fully set up card when enabled', () => {
+    const { getByTestId } = render(
+      <ManageCardOptions
+        card={CARD}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsFundingLimits: false })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="international"
+        isFrozen={false}
+        isFreezeLoading={false}
+        isPinLoading={false}
+        cardDetailsVisible={false}
+        onViewCardDetails={jest.fn()}
+        onViewPin={jest.fn()}
+        onSetPin={jest.fn()}
+        onToggleFreeze={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showDigitalWalletInstructions
+        onDigitalWalletInstructions={jest.fn()}
+        onContactDetails={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance={false}
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides digital wallet instructions when the Card Home gate is disabled', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: false }),
+    );
+
+    expect(
+      queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+    ).not.toBeOnTheScreen();
   });
 });
 

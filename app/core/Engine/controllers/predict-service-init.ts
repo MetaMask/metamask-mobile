@@ -50,12 +50,13 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
   const controller = new PredictLiveDataService({
     messenger: controllerMessenger,
     venueId: KALSHI_VENUE_ID,
-    createClient: (onGameUpdate) =>
+    createClient: ({ onGameUpdate, onQuoteUpdate }) =>
       new PredictLiveDataClient({
         baseUrl: process.env.MM_PREDICT_API_URL,
         getBearerToken: () =>
           initMessenger.call('AuthenticationController:getBearerToken'),
         onGameUpdate,
+        onQuoteUpdate,
       }),
   });
 
