@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import EthQuery from '@metamask/eth-query';
 import { query } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 
 export interface IAccount {
   address: string;
@@ -43,7 +44,10 @@ export const useAccountsBalance = (accounts: IAccount[]) => {
         }
       });
       if (unTrackedAccounts.length > 0) {
-        Promise.all(
+        // Use allSettled instead of all: a single address failing to resolve
+        // (e.g. a flaky RPC call) must not prevent the other addresses in
+        // this batch from showing their balance.
+        Promise.allSettled(
           unTrackedAccounts.map(async (address) => {
             const balance = (await query(ethQuery, 'getBalance', [
               address,
@@ -51,9 +55,18 @@ export const useAccountsBalance = (accounts: IAccount[]) => {
             return [address, balance] as const;
           }),
         ).then((results) => {
-          const newlyTrackedAccounts = Object.fromEntries(
-            results.map(([address, balance]) => [address, { balance }]),
-          );
+          const newlyTrackedAccounts: AccountBalances = {};
+          results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+              const [address, balance] = result.value;
+              newlyTrackedAccounts[address] = { balance };
+            } else {
+              Logger.error(
+                result.reason,
+                `Failed to fetch balance for account ${unTrackedAccounts[index]}`,
+              );
+            }
+          });
           setTrackedAccounts({
             ...trackedAccounts,
             ...newlyTrackedAccounts,

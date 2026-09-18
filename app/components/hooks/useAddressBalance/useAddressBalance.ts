@@ -6,6 +6,7 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
+import { store } from '../../../store';
 import { getTicker } from '../../../util/transactions';
 import {
   renderFromTokenMinimalUnit,
@@ -80,7 +81,6 @@ const useAddressBalance = (
       (account) => account.address.toLowerCase() === lowerCaseAddress,
     );
   }, [internalAccountsById, address]);
-  const allTokenBalances = useSelector(selectAllTokenBalances);
   if (chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
     accounts = accountsByChainId[chainId] ?? {};
@@ -103,9 +103,17 @@ const useAddressBalance = (
       }
 
       const watchChainId = (chainId as Hex) ?? selectedEvmChainId;
-      const watchingAccountAddress = safeToChecksumAddress(
-        watchingAccount.address,
-      ) as Hex;
+      // selectAllTokenBalances (getTokenBalancesControllerTokenBalances) is
+      // keyed by the InternalAccount's raw (lowercase) address, not the
+      // checksummed form — do NOT checksum this key or the lookup will
+      // always miss and re-add the same custom asset on every mount.
+      const watchingAccountAddress = watchingAccount.address as Hex;
+      // Read balances directly from the store instead of subscribing via
+      // useSelector: this effect only runs once on mount (see deps below),
+      // so a reactive subscription here would rerender this hook (and every
+      // consumer, e.g. confirmation headers) on every balance update across
+      // all accounts/chains for no benefit.
+      const allTokenBalances = selectAllTokenBalances(store.getState());
       const alreadyWatchedOnChain =
         !!allTokenBalances[watchingAccountAddress]?.[watchChainId]?.[
           contractAddress
