@@ -330,6 +330,20 @@ describe('PerpsTradeScreen errors', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('preserves in-progress limit price input while editing', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="98.50"
+        isLimitPriceFocused
+      />,
+    );
+
+    expect(screen.getByText('$98.50')).toBeOnTheScreen();
+    expect(screen.queryByText('$98.5')).not.toBeOnTheScreen();
+  });
+
   it.each([
     ['LIMIT_PRICE_PRESET_MID', 'mid'],
     ['LIMIT_PRICE_PRESET_BOOK', 'book'],

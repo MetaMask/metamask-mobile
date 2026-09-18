@@ -280,7 +280,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       : strings('perps.order.limit');
   const isEditing = isInputFocused || isLimitPriceFocused;
   const limitPriceDisplay = limitPrice
-    ? formatPerpsFiat(limitPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+    ? isLimitPriceFocused
+      ? `$${limitPrice}`
+      : formatPerpsFiat(limitPrice, { ranges: PRICE_RANGES_UNIVERSAL })
     : strings('perps.order.set_price');
 
   return (
