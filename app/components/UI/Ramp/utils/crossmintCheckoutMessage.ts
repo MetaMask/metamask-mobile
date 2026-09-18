@@ -1,7 +1,7 @@
 /**
  * Best-effort parsing of Crossmint embedded checkout `postMessage` events.
  *
- * With `enableApplePay` set on the WebView, iOS disables the usual
+ * On iOS 15 the WebView sets `enableApplePay`, which drops the usual
  * `ReactNativeWebView.postMessage` polyfill, so these events may never
  * arrive; order state is authoritatively tracked by polling the on-ramp
  * API through the precreated-order processor.
