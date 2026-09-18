@@ -1,10 +1,5 @@
 import React, { memo, useMemo } from 'react';
-import {
-  StyleProp,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
-} from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -15,6 +10,7 @@ import {
   TextVariant,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { RectButton } from 'react-native-gesture-handler';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 
@@ -83,6 +79,7 @@ const KeypadButton = memo(
     children,
     isDisabled,
     boxWrapperProps,
+    onPress,
     ...props
   }: KeypadButtonProps) => {
     const { colors } = useTheme();
@@ -91,11 +88,13 @@ const KeypadButton = memo(
     return (
       // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
       <Box twClassName="flex-1" {...boxWrapperProps}>
-        <TouchableOpacity
+        <RectButton
           style={[styles.keypadButton, style]}
-          disabled={isDisabled}
+          enabled={!isDisabled}
+          exclusive={false}
           accessibilityRole="button"
           accessible
+          onPress={() => onPress?.()}
           {...props}
         >
           <Text
@@ -105,7 +104,7 @@ const KeypadButton = memo(
           >
             {children}
           </Text>
-        </TouchableOpacity>
+        </RectButton>
       </Box>
     );
   },
@@ -123,21 +122,23 @@ interface KeypadDeleteButtonProps {
 }
 
 const KeypadDeleteButton = memo(
-  ({ style, boxWrapperProps, ...props }: KeypadDeleteButtonProps) => {
+  ({ style, boxWrapperProps, onPress, ...props }: KeypadDeleteButtonProps) => {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
     return (
       // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
       <Box twClassName="flex-1" {...boxWrapperProps}>
-        <TouchableOpacity
+        <RectButton
           style={[styles.keypadDeleteButton, style]}
+          exclusive={false}
           accessibilityRole="button"
           accessible
+          onPress={() => onPress?.()}
           {...props}
         >
           <Icon name={IconName.Backspace} size={IconSize.Xl} />
-        </TouchableOpacity>
+        </RectButton>
       </Box>
     );
   },
