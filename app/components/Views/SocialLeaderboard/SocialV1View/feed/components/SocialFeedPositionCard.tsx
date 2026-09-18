@@ -23,6 +23,10 @@ export interface SocialFeedPositionCardProps {
   now?: number;
 }
 
+export interface PositionCardBodyProps {
+  item: SocialV1FeedItem;
+}
+
 const compactSubHeader = (
   marketCapLabel?: string,
   volumeLabel?: string,
@@ -41,7 +45,7 @@ const compactSubHeader = (
 };
 
 /** The position card that forms the body of a post, per feed item variant. */
-const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
+export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
   if (item.variant === 'perpsOpen') {
     const stats: PositionCardStatRow[] = [
       {
@@ -133,6 +137,44 @@ const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
           isPnlPositive={item.isPnlPositive}
         />
         <PositionCardStats rows={stats} cardId={item.id} />
+      </PositionCardShell>
+    );
+  }
+
+  if (item.variant === 'spotShare') {
+    const stats: PositionCardStatRow[] = [
+      {
+        key: 'entry',
+        label: strings('social_leaderboard.feed.position_card.entry_price'),
+        value: item.entryPriceLabel,
+        testID: getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+      },
+      {
+        key: 'holdTime',
+        label: strings('social_leaderboard.feed.position_card.hold_time'),
+        value: item.holdTimeLabel,
+        testID: getSocialFeedPositionCardStatTestId(item.id, 'holdTime'),
+      },
+    ];
+
+    return (
+      <PositionCardShell>
+        <PositionCardHeader
+          layout="compact"
+          avatar={item.asset.avatar}
+          symbol={item.asset.symbol}
+          side={item.side}
+          subHeaderLabel={item.markPriceLabel}
+          valueLabel={item.valueLabel}
+          pnlLabel={item.pnlLabel}
+          isPnlPositive={item.isPnlPositive}
+        />
+        <PositionCardStats rows={stats} cardId={item.id} />
+        {item.showCopyTrade ? (
+          <CopyTradeButton
+            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+          />
+        ) : null}
       </PositionCardShell>
     );
   }

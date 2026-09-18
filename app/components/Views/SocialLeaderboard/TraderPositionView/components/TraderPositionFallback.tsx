@@ -6,6 +6,7 @@ import {
   TextVariant,
   TextColor,
   BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -59,8 +60,10 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
   return (
     <Box
       alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
       gap={3}
       padding={4}
+      twClassName="flex-1"
       testID={TraderPositionViewSelectorsIDs.FALLBACK}
     >
       <Image
