@@ -1267,7 +1267,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
-            options={{ headerShown: false, ...fadeNativeOptions }}
+            options={{
+              headerShown: false,
+              ...fadeNativeOptions,
+              ...transparentModalScreenOptions,
+            }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}

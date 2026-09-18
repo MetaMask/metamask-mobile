@@ -99,7 +99,7 @@ const Root = ({ foxCode }: RootProps) => {
     // native-stack does not add this automatically.
     <GestureHandlerRootView style={styles.gestureRoot}>
       <SafeAreaProvider>
-        <KeyboardProvider statusBarTranslucent>
+        <KeyboardProvider>
           <ReduxProvider store={store}>
             <PersistGate persistor={persistor}>
               <ErrorBoundary view="Root">

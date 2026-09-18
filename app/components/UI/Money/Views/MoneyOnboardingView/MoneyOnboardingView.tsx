@@ -26,6 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useRiveLayoutMeasureNudge } from '../../hooks/useRiveLayoutMeasureNudge';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -38,6 +39,7 @@ import {
   Fit,
   RiveErrorType,
   RiveView,
+  useRive,
   useRiveFile,
   useRiveNumber,
   useRiveString,
@@ -49,6 +51,7 @@ import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
   type LayoutChangeEvent,
+  Modal,
   PixelRatio,
   StyleSheet,
   useWindowDimensions,
@@ -66,6 +69,8 @@ import Logger from '../../../../../util/Logger';
 import moneyOnboardingFlowV26Animation from '../../../../../animations/money_onboarding_flow_v26.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { useTheme } from '../../../../../util/theme';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -96,11 +101,17 @@ const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
 
 /** Transition speed passed to the Rive artboard. */
 const RIVE_TRANSITION_SPEED = 300;
+
+/**
+ * Covers the Android modal window and Rive surface settling after the first
+ * draw, since a surface resize does not re-flag the artboard for resize.
+ */
+const RIVE_MEASURE_SETTLE_DELAY_MS = 150;
 const OVERLAY_FADE_DURATION_MS = 600;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
-const HEADER_TOP_OFFSET = 60;
-const FOOTER_BOTTOM_OFFSET = 100;
+const HEADER_TOP_OFFSET = 70;
+const FOOTER_BOTTOM_OFFSET = 60;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
@@ -133,9 +144,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
   },
-  riveHidden: {
-    opacity: 0,
-  },
   textGroup: {
     position: 'absolute',
   },
@@ -166,11 +174,9 @@ const FALLBACK_APY = 4;
 
 const MoneyOnboardingTextOverlay = ({
   content,
-  isVisible,
   opacity,
 }: {
   content?: OnboardingTextContent;
-  isVisible: boolean;
   opacity: SharedValue<number>;
 }) => {
   const insets = useSafeAreaInsets();
@@ -186,9 +192,9 @@ const MoneyOnboardingTextOverlay = ({
 
   const animatedStyle = useAnimatedStyle(
     () => ({
-      opacity: isVisible ? opacity.value : 0,
+      opacity: opacity.value,
     }),
-    [isVisible],
+    [],
   );
 
   return (
@@ -272,6 +278,8 @@ const MoneyOnboardingView = () => {
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 
+  const { riveRef, setHybridRef } = useRive();
+
   const { riveFile } = useRiveFile(moneyOnboardingFlowV26Animation);
   // VM instance is created off the file (async) and bound via `dataBind`
   // (replaces the legacy `AutoBind(true)` mode).
@@ -280,16 +288,14 @@ const MoneyOnboardingView = () => {
     async: true,
   });
 
+  const { colors: themeColors } = useTheme();
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
-  const [riveDimensions, setRiveDimensions] = useState<{
+  const [riveLayout, setRiveLayout] = useState<{
     height: number;
     width: number;
   }>();
-  const [isRiveLaidOut, setIsRiveLaidOut] = useState(false);
-  const [shouldPlayRive, setShouldPlayRive] = useState(false);
-  const [isRiveVisible, setIsRiveVisible] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(1);
 
@@ -298,8 +304,6 @@ const MoneyOnboardingView = () => {
     'transitionSpeed',
     instance,
   );
-  const { setValue: setHeight } = useRiveNumber('height', instance);
-  const { setValue: setWidth } = useRiveNumber('width', instance);
   const { setValue: setApyValue } = useRiveString(
     RIVE_APY_VALUE_PATH,
     instance,
@@ -312,6 +316,13 @@ const MoneyOnboardingView = () => {
     RIVE_CURRENT_STEP_PATH,
     instance,
   );
+
+  const { heightOffset: riveHeightOffset, onRiveLayout } =
+    useRiveLayoutMeasureNudge({
+      riveRef,
+      hasDrawn: currentStep !== undefined,
+      settleDelayMs: RIVE_MEASURE_SETTLE_DELAY_MS,
+    });
 
   // Hardcoded to English to simplify event tracking.
   const stepTitlesEnglish: string[] = useMemo(
@@ -364,11 +375,9 @@ const MoneyOnboardingView = () => {
     if (!instance) return;
 
     // Config
-    setHeight(100);
-    // setWidth(width);
     setTransitionSpeed(RIVE_TRANSITION_SPEED);
     setButtonText(strings('money.rive_onboarding.button_text'));
-  }, [instance, setTransitionSpeed, setButtonText, setHeight]);
+  }, [instance, setTransitionSpeed, setButtonText]);
 
   // Kept out of the config effect above so a rate change re-pushes the APY
   // without replaying the one-off setup.
@@ -603,10 +612,6 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToMoneyHome],
   );
 
-  const handleRiveLayout = useCallback(() => {
-    setIsRiveLaidOut(true);
-  }, []);
-
   const handleRootLayout = useCallback((event: LayoutChangeEvent) => {
     const { height, width } = event.nativeEvent.layout;
 
@@ -614,69 +619,57 @@ const MoneyOnboardingView = () => {
       return;
     }
 
-    setRiveDimensions((currentDimensions) => {
-      if (
-        currentDimensions?.height === height &&
-        currentDimensions.width === width
-      ) {
-        return currentDimensions;
-      }
-
-      return { height, width };
-    });
+    setRiveLayout((currentLayout) =>
+      currentLayout?.height === height && currentLayout.width === width
+        ? currentLayout
+        : { height, width },
+    );
   }, []);
 
-  useEffect(() => {
-    if (!isRiveLaidOut) {
-      return;
-    }
-
-    const animationFrameId = requestAnimationFrame(() => {
-      setShouldPlayRive(true);
-    });
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isRiveLaidOut]);
-
-  useEffect(() => {
-    if (!shouldPlayRive) {
-      return;
-    }
-
-    const animationFrameId = requestAnimationFrame(() => {
-      setIsRiveVisible(true);
-    });
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [shouldPlayRive]);
-
   return (
-    <View onLayout={handleRootLayout} style={styles.root}>
-      {riveFile && instance && riveDimensions && (
-        <RiveView
-          file={riveFile}
-          artboardName={RIVE_ARTBOARD_NAME}
-          stateMachineName={RIVE_STATE_MACHINE_NAME}
-          dataBind={instance}
-          autoPlay={shouldPlayRive}
-          fit={isRiveLaidOut ? Fit.Layout : Fit.Cover}
-          layoutScaleFactor={PixelRatio.get()}
-          onError={handleError}
-          onLayout={handleRiveLayout}
-          style={[
-            styles.rive,
-            riveDimensions,
-            !isRiveVisible && styles.riveHidden,
-          ]}
-          testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
-        />
-      )}
-      <MoneyOnboardingTextOverlay
-        content={stepContent[overlayStep]}
-        isVisible={isRiveVisible}
-        opacity={overlayOpacity}
-      />
-    </View>
+    <Modal
+      visible
+      statusBarTranslucent
+      navigationBarTranslucent
+      hardwareAccelerated
+      animationType="fade"
+      backdropColor={themeColors.background.default}
+    >
+      <ModalSafeAreaProvider>
+        <View
+          onLayout={handleRootLayout}
+          style={styles.root}
+          testID={MoneyOnboardingViewTestIds.ROOT}
+        >
+          {riveFile && instance && riveLayout && (
+            <RiveView
+              hybridRef={setHybridRef}
+              file={riveFile}
+              artboardName={RIVE_ARTBOARD_NAME}
+              stateMachineName={RIVE_STATE_MACHINE_NAME}
+              dataBind={instance}
+              autoPlay
+              fit={Fit.Layout}
+              layoutScaleFactor={PixelRatio.get()}
+              onError={handleError}
+              onLayout={onRiveLayout}
+              style={[
+                styles.rive,
+                {
+                  width: riveLayout.width,
+                  height: riveLayout.height - riveHeightOffset,
+                },
+              ]}
+              testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
+            />
+          )}
+          <MoneyOnboardingTextOverlay
+            content={stepContent[overlayStep]}
+            opacity={overlayOpacity}
+          />
+        </View>
+      </ModalSafeAreaProvider>
+    </Modal>
   );
 };
 
