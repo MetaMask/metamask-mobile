@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { FeatureId, formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
@@ -17,9 +18,6 @@ import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bri
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import { TokenSelectorType } from '../../types';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
-import { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../useBridgeQuoteRequest';
-import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
 import { useLatestBalance } from '../useLatestBalance';
@@ -88,50 +86,16 @@ export const useLimitOrderSwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.LIMIT_ORDER,
   });
+  const destTokenAmount: string | undefined = '';
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
-  const { destTokenAmount, isLoading } = useBridgeQuoteDataContext();
   const { handleSwitchTokens } = useSwitchTokens();
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const isSourceNetworkGasSponsored = useIsNetworkGasSponsored(
     sourceToken?.chainId,
   );
-
-  // Gas sponsorship only covers trades that stay on a single sponsored chain.
-  const isQuoteSponsored =
-    Boolean(sourceToken?.chainId) &&
-    sourceToken?.chainId === destToken?.chainId &&
-    isSourceNetworkGasSponsored;
-
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
-  // A limit order can't be signed by a hardware wallet on any chain, so no
-  // quote is ever requested for one. The inputs stay interactive and
-  // `HardwareWalletUnsupportedBanner` explains why no quote appears. Gating
-  // here rather than in useBridgeQuoteRequest keeps hardware wallets working
-  // for Market orders, which share that hook but not this one.
-  const isHardwareWallet = useIsHardwareWalletForBridge();
-
-  // Both pickers are restricted to EVM chains, so no destination address is
-  // needed: that is only required for bridges involving a non-EVM chain.
-  const hasValidBridgeInputs =
-    !isHardwareWallet &&
-    sourceAmount !== undefined &&
-    sourceAmount !== '.' &&
-    Boolean(sourceToken?.decimals) &&
-    Boolean(destToken);
-
-  useEffect(() => {
-    if (hasValidBridgeInputs) {
-      updateQuoteParams();
-    }
-    return () => {
-      updateQuoteParams.cancel();
-    };
-  }, [hasValidBridgeInputs, updateQuoteParams]);
 
   const handleSourceMaxPress = useCallback(() => {
     if (!latestSourceBalance?.displayBalance) {
@@ -173,16 +137,20 @@ export const useLimitOrderSwapInputs = ({
       type: TokenSelectorType.Source,
       enabledChainIds,
       excludeRwaTokens: true,
+      featureId: FeatureId.LIMIT_ORDER,
     });
   }, [enabledChainIds, navigation]);
 
   const handleDestTokenPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
-      enabledChainIds,
+      enabledChainIds: sourceToken?.chainId
+        ? [formatChainIdToCaip(sourceToken.chainId)]
+        : [],
       excludeRwaTokens: true,
+      featureId: FeatureId.LIMIT_ORDER,
     });
-  }, [enabledChainIds, navigation]);
+  }, [navigation, sourceToken?.chainId]);
 
   return {
     enabledChainIds,
@@ -193,10 +161,9 @@ export const useLimitOrderSwapInputs = ({
     handleSourceMaxPress,
     handleSourcePresetAmountSelect,
     handleSourceTokenPress,
-    isDestAmountLoading: isLoading,
     isFlipDisabled: !sourceToken || !destToken || !isDestNetworkEnabled,
-    isQuoteSponsored,
     sourceAmount,
+    isSourceNetworkGasSponsored,
     sourceAmountInput,
     sourceToken,
   };

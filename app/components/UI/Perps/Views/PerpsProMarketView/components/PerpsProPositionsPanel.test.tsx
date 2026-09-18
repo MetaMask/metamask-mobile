@@ -391,6 +391,33 @@ describe('PerpsProPositionsPanel', () => {
     });
   });
 
+  it('spaces the TWAP inner tabs below the filter row', () => {
+    // Arrange
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY),
+    ).toHaveStyle({ paddingTop: 12 });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('keeps TWAP selected when Chase is hidden', () => {
     // Arrange
     renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
@@ -438,8 +465,8 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps a retained TWAP selected through account-switch loading', () => {
-    // Arrange: placement rollout is off, but discovery found an active TWAP.
+  it('keeps a running TWAP selected through account-switch loading', () => {
+    // Arrange: the rollout is on and the account has an active TWAP.
     const activeOrder = makeTwapOrder();
     mockUsePerpsTwapOrders.mockReturnValue({
       twapOrders: [activeOrder],
@@ -448,7 +475,9 @@ describe('PerpsProPositionsPanel', () => {
       refresh: mockRefreshTwapOrders,
       isRefreshing: false,
     });
-    const view = renderPanel('SOL');
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
     fireEvent.press(
       screen.getByTestId(
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
@@ -512,15 +541,14 @@ describe('PerpsProPositionsPanel', () => {
     );
   });
 
-  it('keeps rollback discovery active until the TWAP tab starts live updates', () => {
+  it('reads no TWAP schedules while the rollout is disabled', () => {
     // Arrange
-    const view = renderPanel('SOL');
+    renderPanel('SOL');
 
-    // Assert: rollout is off and no schedule has surfaced yet, but discovery
-    // remains active while the hidden tab is unselected.
+    // Assert
     expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        enableDiscovery: true,
+        skipInitialFetch: true,
         enableLiveUpdates: false,
       }),
     );
@@ -529,8 +557,31 @@ describe('PerpsProPositionsPanel', () => {
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
       ),
     ).not.toBeOnTheScreen();
+  });
 
-    // Act: an error exposes the retained-access tab without a remount.
+  it('hides the TWAP tab while the rollout is disabled and a schedule is still running', () => {
+    // Arrange
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ orderId: 'retained-twap' })],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+
+    // Act
+    renderPanel('SOL');
+
+    // Assert
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the TWAP tab while the rollout is disabled and the schedule read failed', () => {
+    // Arrange
     mockUsePerpsTwapOrders.mockReturnValue({
       twapOrders: [],
       isLoading: false,
@@ -538,19 +589,41 @@ describe('PerpsProPositionsPanel', () => {
       refresh: mockRefreshTwapOrders,
       isRefreshing: false,
     });
-    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
-    fireEvent.press(
+
+    // Act
+    renderPanel('SOL');
+
+    // Assert
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('offers the TWAP tab while the rollout is enabled', () => {
+    // Arrange
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+
+    // Act
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+
+    // Assert
+    expect(
       screen.getByTestId(
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
       ),
-    );
-
-    // Assert
+    ).toBeOnTheScreen();
     expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        enableDiscovery: false,
-        enableLiveUpdates: true,
-      }),
+      expect.objectContaining({ skipInitialFetch: false }),
     );
   });
 

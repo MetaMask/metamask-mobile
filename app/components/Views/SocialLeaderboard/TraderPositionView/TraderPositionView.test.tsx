@@ -501,13 +501,10 @@ describe('TraderPositionView', () => {
       screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'trader1',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+    });
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 

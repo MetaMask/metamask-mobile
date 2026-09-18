@@ -30,10 +30,9 @@ import {
   ButtonVariant,
   Text as DesignSystemText,
 } from '@metamask/design-system-react-native';
+import { EARN_LENDING_BALANCE_TEST_IDS } from './EarnLendingBalance.testIds';
 
-export const EARN_LENDING_BALANCE_TEST_IDS = {
-  WITHDRAW_BUTTON: 'withdraw-button',
-};
+export { EARN_LENDING_BALANCE_TEST_IDS } from './EarnLendingBalance.testIds';
 
 export interface EarnLendingBalanceProps {
   asset: TokenI;

@@ -318,6 +318,8 @@ describe('PredictMarketSingle', () => {
     // Mock user as not eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
     });
 
     const { getByText } = renderWithProvider(
@@ -437,6 +439,8 @@ describe('PredictMarketSingle', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
@@ -465,6 +469,8 @@ describe('PredictMarketSingle', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({

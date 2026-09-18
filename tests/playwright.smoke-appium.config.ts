@@ -73,7 +73,13 @@ const appiumRetries =
 
 export default defineConfig({
   testDir: './smoke-appium',
-  ...(includeApiSpecs ? {} : { testIgnore: ['**/api-specs/**'] as const }),
+  // Jest unit tests (*.test.ts) colocated under smoke-appium crash Playwright's
+  // loader (jest.mock at module top level → "jest is not defined") and abort test
+  // discovery, making whole-dir `--grep` match 0 specs. Playwright smoke specs
+  // are *.spec.ts; exclude *.test.ts unconditionally so bare `--grep <tag>` works.
+  ...(includeApiSpecs
+    ? { testIgnore: ['**/*.test.ts'] as const }
+    : { testIgnore: ['**/api-specs/**', '**/*.test.ts'] as const }),
   fullyParallel: false,
   // Per-test timeout: cold WDA build on CI can take up to 10 min plus test time.
   timeout: 15 * 60 * 1000,

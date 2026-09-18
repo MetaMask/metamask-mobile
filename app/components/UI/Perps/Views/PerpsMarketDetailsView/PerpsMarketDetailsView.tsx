@@ -177,7 +177,10 @@ import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
   MarketInsightsDisclaimerBottomSheet,
+  getMarketInsightsTraceId,
+  getMarketInsightsTraceTags,
   useMarketInsights,
+  useMarketInsightsEntryTrace,
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
@@ -415,7 +418,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     timeAgo: perpsInsightsTimeAgo,
     isLoading: isPerpsInsightsLoading,
     error: perpsInsightsError,
-  } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
+    cacheState: perpsInsightsCacheState,
+  } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled, {
+    source: 'perps',
+    stage: 'entry_card',
+    assetType: 'perps',
+  });
+  const perpsInsightsEntryTraceId = useMarketInsightsEntryTrace({
+    assetIdentifier: market?.symbol,
+    assetType: 'perps',
+    cacheState: perpsInsightsCacheState,
+    enabled: isPerpsInsightsEnabled,
+    error: perpsInsightsError,
+    isLoading: isPerpsInsightsLoading,
+    report: perpsInsightsReport,
+    source: 'perps',
+  });
   const previousInsightsSymbolRef = useRef(market?.symbol);
   const isInsightsStateForCurrentSymbol =
     previousInsightsSymbolRef.current === market?.symbol;
@@ -1522,9 +1540,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         digest_id: perpsInsightsReport.digestId,
       }),
     });
+    const traceId = getMarketInsightsTraceId(
+      market.symbol,
+      'perps',
+      'full_view',
+    );
     trace({
       name: TraceName.MarketInsightsViewLoad,
       op: TraceOperation.MarketInsightsLoad,
+      id: traceId,
+      tags: getMarketInsightsTraceTags(
+        { source: 'perps', stage: 'full_view', assetType: 'perps' },
+        'warm',
+      ),
     });
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: market.symbol,
@@ -2004,6 +2032,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
                 onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                traceId={perpsInsightsEntryTraceId}
                 source="perps"
                 testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
               />

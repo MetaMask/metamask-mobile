@@ -51,6 +51,14 @@ import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonAnimated,
+  Icon as MMDSIcon,
+  IconColor as MMDSIconColor,
+  IconName as MMDSIconName,
+  IconSize as MMDSIconSize,
   Text as CustomText,
   TextColor,
   TextVariant,
@@ -75,6 +83,7 @@ import {
   ButtonIconVariant,
 } from '../../../component-library/components/Toast';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -770,6 +779,7 @@ const Wallet = ({
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
   const isCompactHeader = headerNavBarVariant.isCompactHeaderEnabled;
+  const isHeaderSearchEnabled = headerNavBarVariant.isHeaderSearchEnabled;
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);
@@ -887,12 +897,19 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  const floatingTabBarInset = useFloatingTabBarInset();
+
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
+      {
+        flex: undefined,
+        flexGrow: 0,
+        overflow: 'visible' as const,
+        paddingBottom: floatingTabBarInset,
+      },
     ],
-    [styles.wrapper],
+    [styles.wrapper, floatingTabBarInset],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1099,15 +1116,34 @@ const Wallet = ({
   ) : null;
 
   const compactHeaderAccountName = isCompactHeader ? (
-    <CustomText
-      variant={TextVariant.HeadingMd}
+    <ButtonAnimated
+      onPress={handleAccountHubPress}
       style={styles.compactHeaderAccountName}
-      numberOfLines={1}
       onLayout={handleAccountNameLayout}
-      testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+      testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON}
+      accessibilityRole="button"
+      accessibilityLabel={displayName}
     >
-      {displayName}
-    </CustomText>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+      >
+        <CustomText
+          variant={TextVariant.HeadingLg}
+          numberOfLines={1}
+          twClassName="shrink"
+          testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+        >
+          {displayName}
+        </CustomText>
+        <MMDSIcon
+          name={MMDSIconName.ArrowRight}
+          size={MMDSIconSize.Md}
+          color={MMDSIconColor.IconAlternative}
+        />
+      </Box>
+    </ButtonAnimated>
   ) : null;
 
   const portfolioHeader = balanceBreakdownLayout ? (
@@ -1178,6 +1214,9 @@ const Wallet = ({
                   displayName={displayName}
                   handleRewardsPress={handleRewardsPress}
                   handleAccountHubPress={handleAccountHubPress}
+                  handleSearchPress={
+                    isHeaderSearchEnabled ? handleSearchPress : undefined
+                  }
                   touchAreaSlop={touchAreaSlop}
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}

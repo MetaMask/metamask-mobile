@@ -65,7 +65,7 @@ const ELIGIBLE_USER = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
     },
   },
@@ -79,7 +79,7 @@ const ELIGIBLE_USER_WITH_BUY_SHEET = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
@@ -291,6 +291,15 @@ describe('PredictMarketDetails', () => {
         renderPredictMarketDetailsViewWithRoutes({
           initialParams: { marketId: MARKET_ID },
           extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+          overrides: {
+            engine: {
+              backgroundState: {
+                PredictController: {
+                  eligibility: { status: 'ineligible' as const, country: 'US' },
+                },
+              },
+            },
+          },
         });
 
       fireEvent.press(await findByText(/Yes.*¢/));
@@ -306,8 +315,16 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows the share button once the market has loaded', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, queryByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
+          ),
+        ).not.toBeOnTheScreen();
       });
 
       expect(
@@ -341,9 +358,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      renderPredictMarketDetailsView({
+      const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -355,9 +374,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      renderPredictMarketDetailsView({
+      const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -520,6 +541,8 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: MOCK_PREDICT_MULTI_OUTCOME_MARKET.id },
       });
 
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
+
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
       );
@@ -547,19 +570,30 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { findByTestId, findByText } = renderPredictMarketDetailsView({
-        initialParams: { marketId: MARKET_ID },
-      });
+      const { findByTestId, findByText, queryByTestId } =
+        renderPredictMarketDetailsView({
+          initialParams: { marketId: MARKET_ID },
+        });
 
-      const screen = await findByTestId(
-        PredictMarketDetailsSelectorsIDs.SCREEN,
-      );
+      await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+
       await waitFor(() => {
         expect(
-          within(screen).getByText(MOCK_PREDICT_MARKET.title),
-        ).toBeOnTheScreen();
+          queryByTestId(
+            PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
+          ),
+        ).not.toBeOnTheScreen();
       });
 
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            PredictMarketDetailsSelectorsIDs.DETAILS_BUTTONS_SKELETON_BUTTON_1,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+
+      expect(await findByText(MOCK_PREDICT_MARKET.title)).toBeOnTheScreen();
       expect(await findByText('Yes • 0¢')).toBeOnTheScreen();
       expect(await findByText('No • 0¢')).toBeOnTheScreen();
     });
@@ -647,6 +681,8 @@ describe('PredictMarketDetails', () => {
       const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
 
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),

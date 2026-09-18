@@ -6,6 +6,7 @@ import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import {
+  FeatureId,
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNativeAddress,
@@ -200,6 +201,7 @@ export const useSwapBridgeNavigation = ({
       chainIds: enabledChainRanking.map(
         (chain: { chainId: CaipChainId }) => chain.chainId,
       ),
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     }).catch(() => undefined);
   }, [enabledChainRanking, fetchPopularTokens]);
 

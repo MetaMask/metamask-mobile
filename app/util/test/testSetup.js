@@ -595,6 +595,14 @@ NativeModules.NotifeeApiModule = {
   eventsNotifyReady: jest.fn(),
 };
 
+NativeModules.SNSMobileSDKModule = {
+  launch: jest.fn(() => Promise.resolve({ success: false, status: 'Failed' })),
+  dismiss: jest.fn(),
+  updateAccessToken: jest.fn(),
+  addListener: jest.fn(),
+  removeListeners: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
@@ -618,6 +626,11 @@ NativeModules.AesForked = {
 
 NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
+};
+
+NativeModules.BrazePushModule = {
+  registerPush: jest.fn().mockResolvedValue(undefined),
+  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
 };
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {

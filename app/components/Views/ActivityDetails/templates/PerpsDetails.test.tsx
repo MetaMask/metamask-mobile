@@ -687,6 +687,7 @@ describe('PerpsDetails', () => {
       // transaction is all there is. It must still be the Perps funding screen.
       const { getByText } = renderWithProvider(
         <PerpsDetails item={localPerpsFundsItem()} />,
+        { state: stateWithPayTransaction('0xperpsdeposit') },
       );
 
       expect(getByText('Transaction fee')).toBeOnTheScreen();
@@ -786,7 +787,7 @@ describe('PerpsDetails', () => {
       // PAY_METADATA pays from Ethereum while the row's chainId is Arbitrum.
       const { getByTestId, getByText, queryByText } = renderWithProvider(
         <PerpsDetails item={localPerpsFundsItem('perpsWithdraw')} />,
-        { state: stateWithNetworks },
+        { state: stateWithPayTransaction('0xperpsdeposit') },
       );
 
       expect(

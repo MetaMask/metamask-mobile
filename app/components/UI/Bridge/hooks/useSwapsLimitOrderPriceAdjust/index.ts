@@ -2,7 +2,7 @@ import { useCallback, useEffect, useReducer } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { useTokenFiatRate } from '../useTokenFiatRate';
+import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import { formatLimitOrderFiatPriceFromTokenAmount } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
@@ -41,8 +41,8 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType,
   } = state;
 
-  const destFiatRate = useTokenFiatRate(destToken);
-  const sourceFiatRate = useTokenFiatRate(sourceToken);
+  const destFiatRate = useLiveTokenFiatRate(destToken);
+  const sourceFiatRate = useLiveTokenFiatRate(sourceToken);
   const isSell = executionType === LimitOrderExecutionType.SELL;
   const quotedToken = isSell ? sourceToken : destToken;
   const counterToken = isSell ? destToken : sourceToken;

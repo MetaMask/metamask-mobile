@@ -8,8 +8,11 @@
  * suppressed at the `yarn npm audit` level itself via npmAuditIgnoreAdvisories
  * in .yarnrc.yml.
  *
- * This script never attempts a fix itself — every advisory it finds lands in
- * the `manual` bucket and, from there, a tracking issue.
+ * This script never attempts a fix itself — it only builds the initial
+ * `manual` list scripts/attempt-audit-fix.ts hands to MetaMask/ai-analyzer.
+ * It exists as its own step (rather than folded into attempt-audit-fix.ts)
+ * so the workflow can post its "N advisories detected" Slack message right
+ * away, before running the AI step that can take a few minutes.
  *
  * Usage: yarn ts-node --transpile-only scripts/collect-audit-advisories.ts <audit-ndjson-path> [skip-ids-json-path]
  *
@@ -18,10 +21,18 @@
  * [skip-ids-json-path] is an optional path to a JSON array of advisory IDs to
  * skip.
  *
+ * At most MAX_ADVISORIES_PER_RUN (env var, default 20) advisories are
+ * collected per run. Per advisory, the fix loop runs a handful of yarn
+ * commands plus a full re-audit — against timeout-minutes: 30 and a cold
+ * first run against accumulated advisories, an uncapped batch could time
+ * out mid-run having produced nothing. The excess is simply left uncollected
+ * this run (not skip-listed), so it's picked up again next run.
+ *
  * Writes a result file (default ./audit-fix-result.json, override with
  * AUDIT_FIX_RESULT_PATH env var) shaped as:
  * { fixed: [], manual: [{ pkg, id, severity, title, url, reason }] }
- * `fixed` always starts empty — nothing in this PR ever populates it.
+ * `fixed` always starts empty — scripts/attempt-audit-fix.ts is what
+ * populates it, once (and if) the AI tier verifiably clears an advisory.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -49,6 +60,7 @@ interface FixResult {
 }
 
 const RESULT_PATH = process.env.AUDIT_FIX_RESULT_PATH || 'audit-fix-result.json';
+const DEFAULT_MAX_ADVISORIES_PER_RUN = 20;
 
 /**
  * Parse the NDJSON tree output of `yarn npm audit --json` into a flat advisory list.
@@ -97,16 +109,24 @@ export function loadSkipIds(path: string | undefined): Set<string> {
 
 /**
  * De-dupes advisories by (pkg, id) and drops anything in skipIds, turning
- * what's left into the `manual` list. Pure function (no I/O) so it can be
- * unit tested directly.
+ * what's left into the `manual` list — capped at `maxPerRun` (see the
+ * MAX_ADVISORIES_PER_RUN doc comment above); anything past the cap is
+ * dropped from this run's result entirely, not skip-listed, so it's
+ * collected again on the next run. Pure function (no I/O) so it can be unit
+ * tested directly.
  */
-export function buildResult(advisories: AuditAdvisory[], skipIds: Set<string>): FixResult {
+export function buildResult(advisories: AuditAdvisory[], skipIds: Set<string>, maxPerRun = DEFAULT_MAX_ADVISORIES_PER_RUN): FixResult {
   const result: FixResult = { fixed: [], manual: [] };
 
   // Multiple lines can share the same (pkg, id) if the same advisory line was
   // captured more than once in the tree output; de-dupe defensively.
   const seen = new Set<string>();
   for (const advisory of advisories) {
+    if (result.manual.length >= maxPerRun) {
+      console.log(`Reached MAX_ADVISORIES_PER_RUN (${maxPerRun}) — remaining advisories will be collected on a later run.`);
+      break;
+    }
+
     const key = `${advisory.pkg}@@${advisory.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -122,7 +142,7 @@ export function buildResult(advisories: AuditAdvisory[], skipIds: Set<string>): 
       severity: advisory.severity,
       title: advisory.title,
       url: advisory.url,
-      reason: 'Pending review.',
+      reason: 'Pending AI-assisted review.',
     });
   }
 
@@ -139,7 +159,8 @@ export function main(): void {
   const raw = readFileSync(auditPath, 'utf8');
   const advisories = parseAuditNdjson(raw);
   const skipIds = loadSkipIds(skipIdsPath);
-  const result = buildResult(advisories, skipIds);
+  const maxPerRun = Number(process.env.MAX_ADVISORIES_PER_RUN) || DEFAULT_MAX_ADVISORIES_PER_RUN;
+  const result = buildResult(advisories, skipIds, maxPerRun);
 
   writeFileSync(RESULT_PATH, `${JSON.stringify(result, null, 2)}\n`);
   console.log(`\nWrote ${RESULT_PATH}: ${result.manual.length} advisor${result.manual.length === 1 ? 'y' : 'ies'} pending review.`);

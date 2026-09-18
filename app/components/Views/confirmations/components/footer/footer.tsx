@@ -38,10 +38,14 @@ import {
 import {
   MMM_ORIGIN,
   MM_PAY_TRANSACTION_TYPES,
+  PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useIsTransactionPaySubmitReady,
+} from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
@@ -78,9 +82,14 @@ export const Footer = () => {
     TRANSFER_TRANSACTION_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
+  const isPaySubmitReady = useIsTransactionPaySubmitReady();
   const isMMPayTransaction = hasTransactionType(
     transactionMetadata,
     MM_PAY_TRANSACTION_TYPES,
+  );
+  const isPayTokenRequiredTransaction = hasTransactionType(
+    transactionMetadata,
+    PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   );
   const isPayAmountStale = useIsTransactionPayAmountStale();
   const { isGaslessLoading } = useIsGaslessLoading();
@@ -189,6 +198,11 @@ export const Footer = () => {
     isTransactionValueUpdating ||
     isPayLoading ||
     (isMMPayTransaction && isPayAmountStale) ||
+    // Mirror the publish guard: pay-token-required transactions (predict and
+    // perps deposits) throw "MetaMask Pay: Cannot submit without quote" at
+    // publish when no executable quote or validated direct/fiat route exists.
+    // Block confirm in exactly those states instead of letting the tap fail.
+    (isPayTokenRequiredTransaction && !isPaySubmitReady) ||
     isGaslessLoading;
 
   const isFooterVisible =

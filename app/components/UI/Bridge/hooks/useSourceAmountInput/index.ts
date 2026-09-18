@@ -38,11 +38,13 @@ const getFiatToggleEventProperties = ({
   nextPrimaryDenomination,
   sourceToken,
   destToken,
+  featureId,
 }: {
   previousPrimaryDenomination: InputPrimaryDenomination;
   nextPrimaryDenomination: InputPrimaryDenomination;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  featureId: FeatureId;
 }) => {
   const srcChainId = sourceToken?.chainId
     ? getDecimalChainId(sourceToken.chainId)
@@ -71,7 +73,7 @@ const getFiatToggleEventProperties = ({
     new_primary_denomination: nextPrimaryDenomination,
     token_symbol_source: sourceToken?.symbol ?? '',
     token_symbol_destination: destToken?.symbol ?? null,
-    feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+    feature_id: featureId,
   };
 };
 
@@ -80,11 +82,17 @@ export const useSourceAmountInput = ({
   sourceAmount,
   sourceToken,
   onSourceAmountChange,
+  featureId,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   onSourceAmountChange: (value: string | undefined) => void;
+  /**
+   * Identifies the flow using this input so analytics events are attributed to
+   * it rather than to plain swaps.
+   */
+  featureId: FeatureId;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
@@ -130,11 +138,12 @@ export const useSourceAmountInput = ({
             nextPrimaryDenomination,
             sourceToken,
             destToken,
+            featureId,
           }),
         );
       }
     },
-    [activeInputPrimaryDenomination, destToken, sourceToken],
+    [activeInputPrimaryDenomination, destToken, sourceToken, featureId],
   );
 
   const handleAmountChange = useCallback(

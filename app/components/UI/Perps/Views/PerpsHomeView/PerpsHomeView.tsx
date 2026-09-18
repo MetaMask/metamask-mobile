@@ -217,7 +217,12 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening();
+  const whatsHappeningFeed = useWhatsHappening({
+    telemetryContext: {
+      source: WhatsHappeningSource.Perps,
+      stage: 'carousel',
+    },
+  });
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({

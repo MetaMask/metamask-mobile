@@ -3,8 +3,11 @@ import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeSt
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useMemo } from 'react';
 
+const normalizeEvmTransactionHash = (hash: string) =>
+  /^0x/i.test(hash) ? hash.toLowerCase() : undefined;
+
 /**
- * Looks up a bridge history item by source tx hash (case-insensitive)
+ * Looks up by exact source tx hash, with case-insensitive matching for EVM hashes.
  */
 export const findBridgeHistoryItemBySrcTxHash = (
   bridgeHistoryItemsBySrcTxHash: Record<string, BridgeHistoryItem>,
@@ -14,12 +17,10 @@ export const findBridgeHistoryItemBySrcTxHash = (
     return undefined;
   }
 
-  const normalizedHash = hash.toLowerCase();
+  const normalizedHash = normalizeEvmTransactionHash(hash);
   return (
     bridgeHistoryItemsBySrcTxHash[hash] ??
-    Object.entries(bridgeHistoryItemsBySrcTxHash).find(
-      ([key]) => key.toLowerCase() === normalizedHash,
-    )?.[1]
+    (normalizedHash ? bridgeHistoryItemsBySrcTxHash[normalizedHash] : undefined)
   );
 };
 
@@ -45,10 +46,18 @@ export const useBridgeHistoryItemBySrcTxHash = () => {
         const srcTxHash = bridgeTx.status?.srcChain?.txHash;
         if (srcTxHash) {
           bySrcTxHash[srcTxHash] = bridgeTx;
+          const normalizedSrcTxHash = normalizeEvmTransactionHash(srcTxHash);
+          if (normalizedSrcTxHash) {
+            bySrcTxHash[normalizedSrcTxHash] = bridgeTx;
+          }
         }
         const destTxHash = bridgeTx.status?.destChain?.txHash;
         if (destTxHash) {
           byDestTxHash[destTxHash] = bridgeTx;
+          const normalizedDestTxHash = normalizeEvmTransactionHash(destTxHash);
+          if (normalizedDestTxHash) {
+            byDestTxHash[normalizedDestTxHash] = bridgeTx;
+          }
         }
       });
 

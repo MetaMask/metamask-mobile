@@ -39,7 +39,9 @@ describe('PredictController.getActivity', () => {
       Promise<PredictActivity[]>,
       [GetActivityParams & { address: string }]
     >(),
-    isEligible: jest.fn().mockResolvedValue({ isEligible: false }),
+    isEligible: jest
+      .fn()
+      .mockResolvedValue({ isEligible: false, country: 'US' }),
   } as unknown as jest.Mocked<PolymarketProvider>;
 
   const createController = () => {

@@ -2,6 +2,27 @@ import { renderHook } from '@testing-library/react-native';
 
 import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
 import { mockContext, runQuoteRequestCases } from './runQuoteRequestCases';
+import type { DebounceSettings } from 'lodash';
+
+jest.mock('lodash', () => {
+  const actual = jest.requireActual<typeof import('lodash')>('lodash');
+
+  return {
+    ...actual,
+    debounce: ((
+      fn: (...args: unknown[]) => unknown,
+      wait?: number,
+      options?: DebounceSettings,
+    ) => {
+      const debounced = actual.debounce(fn, wait, options);
+      const flush = debounced.flush.bind(debounced);
+
+      debounced.flush = (() => flush() ?? fn()) as typeof debounced.flush;
+
+      return debounced;
+    }) as typeof actual.debounce,
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),

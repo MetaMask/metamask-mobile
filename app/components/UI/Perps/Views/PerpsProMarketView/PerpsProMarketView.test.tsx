@@ -1383,6 +1383,30 @@ describe('PerpsProMarketView', () => {
     expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682');
   });
 
+  it('keeps a decimal the BTC ladder never displayed out of the limit price', () => {
+    // Hyperliquid returns BTC levels as "64120.0", and BTC's market price shows
+    // no decimal at all, so the filled limit price must not carry one either —
+    // including while the asset precision is still unknown.
+    mockSzDecimals = undefined;
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: { ...buildLiveBook('64120.0'), midPrice: '64125.0' },
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('64120');
+  });
+
   describe('Recently viewed tracking', () => {
     it('records the market view when the screen is focused', () => {
       renderView();
