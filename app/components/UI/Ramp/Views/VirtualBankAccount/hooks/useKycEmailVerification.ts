@@ -1,4 +1,3 @@
-/* eslint-disable no-console -- Temporary VBA KYC flow diagnostics. */
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -28,35 +27,22 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const trimmedEmail = email.trim();
   const isContinueDisabled = !trimmedEmail || isVerifying;
 
-  const goBack = useCallback(() => {
-    console.log('[VBA KYC][Email] Back pressed');
-    navigation.goBack();
-  }, [navigation]);
+  const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const startVerification = useCallback(async () => {
     if (!trimmedEmail || isVerifying) {
-      console.log('[VBA KYC][Email] Start skipped', {
-        hasEmail: Boolean(trimmedEmail),
-        isVerifying,
-      });
       return;
     }
 
-    console.log('[VBA KYC][Email] Starting KYC session');
     setIsVerifying(true);
     try {
-      const sessionStatus = await Engine.context.KycController.startSession({
+      await Engine.context.KycController.startSession({
         vendor: VBA_KYC_VENDOR,
         email: trimmedEmail,
       });
 
-      console.log('[VBA KYC][Email] KYC session ready', {
-        finalStatus: sessionStatus.finalStatus,
-      });
-      console.log('[VBA KYC][Email] Navigating to Get Pix Key');
       navigation.navigate(Routes.RAMP.GET_PIX_KEY);
     } catch (error) {
-      console.log('[VBA KYC][Email] Failed to start KYC session', error);
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
       });
@@ -68,19 +54,15 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
           : strings('virtual_bank_account.kyc_email.error_description'),
       );
     } finally {
-      console.log('[VBA KYC][Email] Start request finished');
       setIsVerifying(false);
     }
   }, [isVerifying, navigation, trimmedEmail]);
 
   const resetKyc = useCallback(async () => {
-    console.log('[VBA KYC][Email] Resetting KYC controller');
     try {
       await Engine.context.KycController.reset();
       setEmail('');
-      console.log('[VBA KYC][Email] KYC controller reset');
     } catch (error) {
-      console.log('[VBA KYC][Email] Failed to reset KYC controller', error);
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
       });
