@@ -1,11 +1,13 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { NavigationContext } from '@react-navigation/native';
+import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsTradeSettingsScreen } from './PerpsTradeNestedScreens';
 
 const mockGoBack = jest.fn();
 const mockClose = jest.fn();
-const mockRouteGoBack = jest.fn();
+const mockHandleTakeProfitOff = jest.fn();
+const mockHandleStopLossOff = jest.fn();
+let mockHasChanges = true;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   usePerpsTradeSheet: () => ({
@@ -15,66 +17,148 @@ jest.mock('./PerpsTradeBottomSheet', () => ({
 }));
 
 jest.mock('../PerpsLeverageBottomSheet', () => () => null);
+jest.mock('../../hooks/usePerpsTPSLForm', () => ({
+  usePerpsTPSLForm: () => ({
+    formState: {
+      takeProfitPrice: '110',
+      stopLossPrice: '90',
+      takeProfitPercentage: '30',
+      stopLossPercentage: '30',
+      takeProfitSign: '+',
+      stopLossSign: '-',
+    },
+    handlers: {
+      handleTakeProfitPriceChange: jest.fn(),
+      handleTakeProfitPercentageChange: jest.fn(),
+      handleStopLossPriceChange: jest.fn(),
+      handleStopLossPercentageChange: jest.fn(),
+      handleTakeProfitPriceFocus: jest.fn(),
+      handleTakeProfitPriceBlur: jest.fn(),
+      handleTakeProfitPercentageFocus: jest.fn(),
+      handleTakeProfitPercentageBlur: jest.fn(),
+      handleStopLossPriceFocus: jest.fn(),
+      handleStopLossPriceBlur: jest.fn(),
+      handleStopLossPercentageFocus: jest.fn(),
+      handleStopLossPercentageBlur: jest.fn(),
+    },
+    buttons: {
+      handleTakeProfitOff: mockHandleTakeProfitOff,
+      handleStopLossOff: mockHandleStopLossOff,
+      handleTakeProfitSignToggle: jest.fn(),
+      handleStopLossSignToggle: jest.fn(),
+    },
+    validation: {
+      isValid: true,
+      hasChanges: mockHasChanges,
+      takeProfitError: '',
+      stopLossError: '',
+      stopLossLiquidationError: '',
+    },
+  }),
+}));
+
 jest.mock('../PerpsSlippageBottomSheet', () => {
   const { Pressable: MockPressable } = jest.requireActual('react-native');
-  return (props: unknown) => {
-    const { onBack, onClose, onSave, onSaveComplete } = props as {
-      onBack: () => void;
-      onClose: () => void;
-      onSave: (value: number) => void;
-      onSaveComplete: () => void;
-    };
-    return (
-      <>
-        <MockPressable testID="settings-back" onPress={onBack} />
-        <MockPressable testID="settings-close" onPress={onClose} />
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      const { onSave, onSaveComplete } = props as {
+        onSave: (value: number) => void;
+        onSaveComplete: () => void;
+      };
+      return (
         <MockPressable
-          testID="settings-save"
+          testID="slippage-save"
           onPress={() => {
             onSave(100);
             onSaveComplete();
           }}
         />
-      </>
-    );
+      );
+    },
   };
 });
 
-const navigationValue = {
-  goBack: mockRouteGoBack,
-  isFocused: () => true,
-  addListener: () => jest.fn(),
-} as never;
+const defaultProps: React.ComponentProps<typeof PerpsTradeSettingsScreen> = {
+  asset: 'SOL',
+  amount: '10',
+  currentPrice: 100,
+  direction: 'long',
+  estimatedSlippageBps: 0,
+  initialTakeProfitPrice: '110',
+  initialStopLossPrice: '90',
+  leverage: 3,
+  liquidationPrice: '70',
+  maxSlippageBps: 300,
+  orderType: 'market',
+  szDecimals: 2,
+  onOrderTypeChange: jest.fn(),
+  onSave: jest.fn(),
+};
 
 describe('PerpsTradeNestedScreens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasChanges = true;
   });
 
-  it('renders functional slippage settings in the nested screen', () => {
+  it('commits TP/SL and slippage before returning to Trade', () => {
     const onSave = jest.fn();
-    render(
-      <NavigationContext.Provider value={navigationValue}>
-        <PerpsTradeSettingsScreen currentValueBps={50} onSave={onSave} />
-      </NavigationContext.Provider>,
+    render(<PerpsTradeSettingsScreen {...defaultProps} onSave={onSave} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_SLIPPAGE_ROW),
+    );
+    fireEvent.press(screen.getByTestId('slippage-save'));
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_SAVE_BUTTON),
     );
 
-    fireEvent.press(screen.getByTestId('settings-save'));
-
-    expect(onSave).toHaveBeenCalledWith(100);
+    expect(onSave).toHaveBeenCalledWith({
+      takeProfitPrice: '110',
+      stopLossPrice: '90',
+      maxSlippageBps: 100,
+    });
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the whole sheet from the nested settings screen', () => {
+  it('updates order type without leaving the nested screen', () => {
+    const onOrderTypeChange = jest.fn();
     render(
-      <NavigationContext.Provider value={navigationValue}>
-        <PerpsTradeSettingsScreen currentValueBps={50} onSave={jest.fn()} />
-      </NavigationContext.Provider>,
+      <PerpsTradeSettingsScreen
+        {...defaultProps}
+        onOrderTypeChange={onOrderTypeChange}
+      />,
     );
 
-    fireEvent.press(screen.getByTestId('settings-close'));
+    fireEvent.press(screen.getByText('Limit'));
 
-    expect(mockClose).toHaveBeenCalledTimes(1);
-    expect(mockRouteGoBack).not.toHaveBeenCalled();
+    expect(onOrderTypeChange).toHaveBeenCalledWith('limit');
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('clears TP/SL independently', () => {
+    render(<PerpsTradeSettingsScreen {...defaultProps} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_TP_CLEAR_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_SL_CLEAR_BUTTON),
+    );
+
+    expect(mockHandleTakeProfitOff).toHaveBeenCalledTimes(1);
+    expect(mockHandleStopLossOff).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns to Trade from the back button without closing the sheet', () => {
+    render(<PerpsTradeSettingsScreen {...defaultProps} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BACK_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockClose).not.toHaveBeenCalled();
   });
 });

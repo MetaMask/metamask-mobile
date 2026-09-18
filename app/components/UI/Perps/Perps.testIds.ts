@@ -1042,6 +1042,18 @@ export const PerpsTradeSheetSelectorsIDs = {
     'perps-trade-sheet-limit-price-preset-percentage-2',
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
+  SETTINGS_BACK_BUTTON: 'perps-trade-sheet-settings-back-button',
+  SETTINGS_ORDER_TYPE: 'perps-trade-sheet-settings-order-type',
+  SETTINGS_TP_PRICE_INPUT: 'perps-trade-sheet-settings-tp-price-input',
+  SETTINGS_TP_PERCENT_INPUT: 'perps-trade-sheet-settings-tp-percent-input',
+  SETTINGS_TP_SIGN_BUTTON: 'perps-trade-sheet-settings-tp-sign-button',
+  SETTINGS_TP_CLEAR_BUTTON: 'perps-trade-sheet-settings-tp-clear-button',
+  SETTINGS_SL_PRICE_INPUT: 'perps-trade-sheet-settings-sl-price-input',
+  SETTINGS_SL_PERCENT_INPUT: 'perps-trade-sheet-settings-sl-percent-input',
+  SETTINGS_SL_SIGN_BUTTON: 'perps-trade-sheet-settings-sl-sign-button',
+  SETTINGS_SL_CLEAR_BUTTON: 'perps-trade-sheet-settings-sl-clear-button',
+  SETTINGS_SLIPPAGE_ROW: 'perps-trade-sheet-settings-slippage-row',
+  SETTINGS_SAVE_BUTTON: 'perps-trade-sheet-settings-save-button',
 };
 
 // ========================================

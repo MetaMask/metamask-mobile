@@ -1958,6 +1958,35 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [orderForm.asset, setMaxSlippage, track],
   );
 
+  const handleTradeSettingsSave = useCallback(
+    ({
+      takeProfitPrice,
+      stopLossPrice,
+      maxSlippageBps: nextMaxSlippageBps,
+    }: {
+      takeProfitPrice?: string;
+      stopLossPrice?: string;
+      maxSlippageBps: number;
+    }) => {
+      setTakeProfitPrice(takeProfitPrice);
+      setStopLossPrice(stopLossPrice);
+      if (nextMaxSlippageBps !== maxSlippageBps) {
+        handleSlippageSave(nextMaxSlippageBps);
+      }
+    },
+    [handleSlippageSave, maxSlippageBps, setStopLossPrice, setTakeProfitPrice],
+  );
+
+  const handleTradeSettingsSlippageEdit = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(maxSlippageBps),
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+    });
+  }, [maxSlippageBps, maxSlippageSource, orderForm.asset, track]);
+
   useInitPerpsPaymentToken(orderForm.asset ?? '');
 
   // Money Account is not reachable through this view's own pay-token
@@ -2322,8 +2351,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ),
             settings: (
               <PerpsTradeSettingsScreen
-                currentValueBps={maxSlippageBps}
-                onSave={handleSlippageSave}
+                asset={orderForm.asset}
+                amount={orderForm.amount}
+                currentPrice={assetData.price}
+                direction={orderForm.direction}
+                estimatedSlippageBps={estimatedSlippageBps}
+                initialTakeProfitPrice={orderForm.takeProfitPrice}
+                initialStopLossPrice={orderForm.stopLossPrice}
+                leverage={orderForm.leverage}
+                limitPrice={orderForm.limitPrice}
+                liquidationPrice={liquidationPrice}
+                maxSlippageBps={maxSlippageBps}
+                orderType={tradeSheetOrderType}
+                szDecimals={szDecimals ?? undefined}
+                onOrderTypeChange={handleTradeSheetOrderTypeSelect}
+                onSlippageEdit={handleTradeSettingsSlippageEdit}
+                onSave={handleTradeSettingsSave}
               />
             ),
           }}
