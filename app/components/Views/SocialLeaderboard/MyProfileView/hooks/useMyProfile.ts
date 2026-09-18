@@ -44,7 +44,7 @@ export const useMyProfile = (): UseMyProfileResult => {
     profile: {
       profileId: 'current-user',
       displayName: 'Giga Whale',
-      handle: 'giga-whale.metamask',
+      handle: 'giga-whale',
       bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
       imageUrl: null,
       rankingTag: 'whale',

@@ -3,18 +3,19 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
-import {
-  HotTokensCarousel,
-  SocialFeedPositionCard,
-} from '../SocialV1View/feed/components';
+import { HotTokensCarousel } from '../SocialV1View/feed/components';
+import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
+import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
+import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import type { SocialV1FeedTab } from '../SocialV1View/feed/types';
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
 >['onScroll'];
 
-export type SocialFeedShellTab = 'trending' | 'following';
+export type SocialFeedShellTab = SocialV1FeedTab;
 
 export interface EmptyShellTabPageProps {
   tab: SocialFeedShellTab;
@@ -31,9 +32,10 @@ export interface EmptyShellTabPageProps {
 
 /**
  * Social Bundle V1 Trending / Following page: mocked position cards until the
- * API supplies post/comment fields.
+ * API supplies post/comment fields. Trending also shows locally composed posts.
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
+  tab,
   isActive = true,
   onScroll,
   pageRef,
@@ -42,7 +44,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
-  const { items: feedItems } = useSocialV1Feed();
+  const { posts, pendingPost, pendingStartedAtMs } = useSocialV1Feed(tab);
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
   useEffect(() => {
@@ -50,6 +52,27 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       setHasBeenActive(true);
     }
   }, [isActive]);
+
+  useEffect(() => {
+    if (!pendingPost) {
+      return;
+    }
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [pendingPost]);
+
+  // Posts present on the first render are pre-existing feed content and must
+  // render at rest; anything that shows up later is a freshly committed
+  // composed post and gets the entrance animation. The ref is only written in
+  // an effect so a double-render never marks a new post as already seen.
+  const seenPostIdsRef = useRef<Set<string> | null>(null);
+  if (seenPostIdsRef.current === null) {
+    seenPostIdsRef.current = new Set(posts.map((post) => post.id));
+  }
+  const seenPostIds = seenPostIdsRef.current;
+
+  useEffect(() => {
+    posts.forEach((post) => seenPostIds.add(post.id));
+  }, [posts, seenPostIds]);
 
   useImperativeHandle(
     pageRef,
@@ -81,8 +104,20 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           <Box twClassName="pb-8 gap-4">
             <HotTokensCarousel />
             <Box twClassName="px-4 gap-6">
-              {feedItems.map((item) => (
-                <SocialFeedPositionCard key={item.id} item={item} />
+              {pendingPost ? (
+                <SocialFeedPostingBanner
+                  authorHandle={pendingPost.authorHandle}
+                  authorImageUrl={pendingPost.authorImageUrl}
+                  startedAtMs={pendingStartedAtMs}
+                />
+              ) : null}
+              {posts.map((post) => (
+                <SocialFeedPostEntrance
+                  key={post.id}
+                  animate={!seenPostIds.has(post.id)}
+                >
+                  <SocialFeedPostShell post={post} />
+                </SocialFeedPostEntrance>
               ))}
             </Box>
           </Box>
