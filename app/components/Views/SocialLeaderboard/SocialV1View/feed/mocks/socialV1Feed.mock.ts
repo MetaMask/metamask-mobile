@@ -1,3 +1,4 @@
+import { HOUR, MINUTE } from '../../../../../../constants/time';
 import type {
   SocialV1FeedItem,
   SocialV1PerpsClosedFeedItem,
@@ -5,18 +6,25 @@ import type {
   SocialV1SpotCompactFeedItem,
 } from '../types';
 
-const BTC_OPEN_CHART_SERIES = [
-  98000, 99500, 101200, 103800, 102400, 104213, 108900, 112400, 118200, 124800,
-];
+// Relative so the mock posts keep reading as recent activity rather than
+// aging into an absolute date as the fixture gets older.
+const minutesAgo = (minutes: number) => Date.now() - minutes * MINUTE;
+const hoursAgo = (hours: number) => Date.now() - hours * HOUR;
 
 export const mockOpenPerpsFeedItem = (
   overrides: Partial<SocialV1PerpsOpenFeedItem> = {},
 ): SocialV1PerpsOpenFeedItem => ({
   id: 'v1-feed-btc-open',
   variant: 'perpsOpen',
+  author: {
+    id: 'v1-trader-doji',
+    username: 'Doji',
+    address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+    avatarUri: null,
+    winRatePercent: 92,
+  },
+  timestamp: minutesAgo(40),
   comment: 'Leverage is a lifestyle.',
-  showChart: true,
-  chartSeries: BTC_OPEN_CHART_SERIES,
   asset: {
     symbol: 'BTC',
     avatar: {
@@ -43,8 +51,15 @@ export const mockClosedPerpsFeedItem = (
 ): SocialV1PerpsClosedFeedItem => ({
   id: 'v1-feed-eth-closed',
   variant: 'perpsClosed',
+  author: {
+    id: 'v1-trader-kaito',
+    username: 'kaito.eth',
+    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    avatarUri: null,
+    winRatePercent: 61,
+  },
+  timestamp: hoursAgo(3),
   comment: 'Risk managed. Mostly.',
-  showChart: false,
   asset: {
     symbol: 'ETH',
     avatar: {
@@ -71,6 +86,14 @@ export const mockCompactSpotFeedItem = (
 ): SocialV1SpotCompactFeedItem => ({
   id: 'v1-feed-pepe-compact',
   variant: 'spotCompact',
+  author: {
+    id: 'v1-trader-frog',
+    username: 'frogwater',
+    address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    avatarUri: null,
+    winRatePercent: null,
+  },
+  timestamp: minutesAgo(8),
   asset: {
     symbol: 'PEPE',
     avatar: {

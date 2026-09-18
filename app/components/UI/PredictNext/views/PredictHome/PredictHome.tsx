@@ -17,7 +17,7 @@ import {
 import Reanimated from 'react-native-reanimated';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useFeed } from '../../hooks/useFeed';
-import { useEventsWithLiveGames } from '../../hooks/useEventsWithLiveGames';
+import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
 import {
   FEED_SCREENS,
@@ -71,7 +71,7 @@ export const PredictHome = () => {
     () => [...feedNflEvents, ...feedNcaaEvents],
     [feedNflEvents, feedNcaaEvents],
   );
-  const liveEvents = useEventsWithLiveGames(KALSHI_VENUE_ID, feedEvents);
+  const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents);
   const nflEvents = useMemo(
     () => liveEvents.slice(0, feedNflEvents.length),
     [liveEvents, feedNflEvents.length],

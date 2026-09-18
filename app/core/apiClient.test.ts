@@ -1,6 +1,12 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
+import { isBackendAuthDisabled } from './coreBackendApiUrls';
 import Engine from './Engine';
 import './apiClient';
+
+jest.mock('./coreBackendApiUrls', () => ({
+  getBackendApiUrlsOption: jest.fn(() => ({})),
+  isBackendAuthDisabled: jest.fn(() => false),
+}));
 
 jest.mock('@metamask/core-backend', () => ({
   createApiPlatformClient: jest.fn(() => ({ accounts: {} })),
@@ -22,6 +28,7 @@ jest.mock('./Engine', () => ({
 }));
 
 const createApiPlatformClientMock = jest.mocked(createApiPlatformClient);
+const isBackendAuthDisabledMock = jest.mocked(isBackendAuthDisabled);
 const getBearerTokenMock = jest.mocked(
   Engine.context.AuthenticationController.getBearerToken,
 );
@@ -57,5 +64,12 @@ describe('apiClient', () => {
     getBearerTokenMock.mockRejectedValueOnce(new Error('boom'));
 
     await expect(getBearerToken()).resolves.toBeUndefined();
+  });
+
+  it('skips the bearer token when backend auth is disabled', async () => {
+    isBackendAuthDisabledMock.mockReturnValueOnce(true);
+
+    await expect(getBearerToken()).resolves.toBeUndefined();
+    expect(getBearerTokenMock).not.toHaveBeenCalled();
   });
 });

@@ -120,7 +120,6 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -174,7 +173,9 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  SocialPostComposerView,
   MyProfileView,
+  FollowConnectionsView,
   ManageProfileView,
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
@@ -431,21 +432,6 @@ const BrowserFlow = (props) => {
         initialParams={props.route.params}
         options={{ presentation: 'modal' }}
       />
-    </NativeStack.Navigator>
-  );
-};
-
-const ExploreHome = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.TRENDING_FEED}
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
-        headerShown: false,
-      }}
-    >
-      <NativeStack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
     </NativeStack.Navigator>
   );
 };
@@ -850,7 +836,7 @@ const HomeTabs = () => {
                       rootScreenName,
                     ),
                 }}
-                component={ExploreHome}
+                component={ExploreFeed}
               />
               <Tab.Screen
                 name={Routes.BROWSER.HOME}
@@ -1037,36 +1023,32 @@ const MainNavigator = () => {
         component={RewardsNavigator}
         options={{ headerShown: false }}
       />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-        component={RewardsInfoSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
-      />
+      <NativeStack.Group screenOptions={rewardsModalScreenOptions}>
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+          component={RewardsBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+          component={RewardsInfoSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+          component={RewardsClaimBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+          component={RewardOptInAccountGroupModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+          component={EndOfSeasonClaimBottomSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_SELECT_SHEET}
+          component={RewardsSelectSheet}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
@@ -1110,7 +1092,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
-        options={{ headerShown: false, ...slideFromLeftNativeOptions }}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
         name="Asset"
@@ -1440,11 +1422,29 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.V1}
             component={SocialV1View}
+            options={{
+              headerShown: false,
+              // `enableFreeze(true)` is global (index.js). The feed must keep
+              // reacting to the composed-post store while the composer sits on
+              // top, otherwise the posting banner and the committed post are
+              // both swallowed by the frozen subtree.
+              freezeOnBlur: false,
+              ...slideFromRightNativeOptions,
+            }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_COMPOSER}
+            component={SocialPostComposerView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
+            component={FollowConnectionsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

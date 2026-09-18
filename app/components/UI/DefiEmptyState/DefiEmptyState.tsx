@@ -24,10 +24,7 @@ export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
 
   const handleExploreDefi = () => {
     navigate(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-      params: {
-        initialTab: EXPLORE_TAB_INDEX.SITES,
-      },
+      initialTab: EXPLORE_TAB_INDEX.SITES,
     });
   };
 

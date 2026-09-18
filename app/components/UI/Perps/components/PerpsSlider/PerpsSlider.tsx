@@ -100,14 +100,69 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   const isCompact = variant === 'compact';
 
+  // The design system `Slider` only repositions its thumb when `value` changes;
+  // it ignores range changes. Driving it in percent means a range change moves
+  // `value`, so the thumb follows without remounting (remounting would kill an
+  // in-flight drag, and the range streams from live price/balance feeds).
+  const range = maximumValue - minimumValue;
+  const toPercent = (domainValue: number) =>
+    range > 0 ? ((domainValue - minimumValue) / range) * 100 : 0;
+  const toDomain = useCallback(
+    (percent: number) => {
+      const span = maximumValue - minimumValue;
+      if (span <= 0) {
+        return minimumValue;
+      }
+      const raw = minimumValue + (percent / 100) * span;
+      // Percent is a float; round so the caller only sees exact step multiples.
+      const stepped = step > 0 ? Math.round(raw / step) * step : raw;
+      return Math.min(maximumValue, Math.max(minimumValue, stepped));
+    },
+    [maximumValue, minimumValue, step],
+  );
+
+  // One caller step, in percent. Keeps the slider's grid identical to the
+  // caller's, so VoiceOver's step-sized increments still move one step.
+  const percentStep = range > 0 && step > 0 ? (step / range) * 100 : 0.1;
+  // Snap onto the emit grid: the slider suppresses stale echoes by matching
+  // `value` against its own emits with ===, so the fed-back percent has to be
+  // bit-identical to the emitted one. Rebuild it as `index * percentStep` —
+  // the same expression the slider emits — rather than converting back through
+  // percent, which lands a few ULPs off and silently misses the match.
+  // Clamped because `maximumValue` is a live float that is rarely a whole
+  // multiple of `step`: the last index then lands just past the end of the
+  // track (e.g. max 33.5 step 1 gives 101.49), which would push the thumb past
+  // the slider's own maximum.
+  const percentValue =
+    range > 0 && step > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round((toDomain(toPercent(value)) - minimumValue) / step) *
+              percentStep,
+          ),
+        )
+      : 0;
+
+  const handlePercentChange = useCallback(
+    (percent: number) => onValueChange(toDomain(percent)),
+    [onValueChange, toDomain],
+  );
+
+  const handlePercentDragEnd = useCallback(
+    (percent: number) => onDragEnd?.(toDomain(percent)),
+    [onDragEnd, toDomain],
+  );
+
   const slider = (
     <Slider
-      value={value}
-      onValueChange={onValueChange}
-      onDragEnd={onDragEnd}
-      minimumValue={minimumValue}
-      maximumValue={maximumValue}
-      step={step}
+      value={percentValue}
+      onValueChange={handlePercentChange}
+      onDragEnd={onDragEnd ? handlePercentDragEnd : undefined}
+      minimumValue={0}
+      maximumValue={100}
+      step={percentStep}
       showRangeLabels={showPercentageLabels}
       showRangeDots={showPercentageMarkers}
       onGrip={handleGrip}

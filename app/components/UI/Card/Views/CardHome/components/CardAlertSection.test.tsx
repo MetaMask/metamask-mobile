@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import CardAlertSection from './CardAlertSection';
-import { CardMessageBoxType } from '../../../types';
+import { CardMessageBoxType, type CardProvisioningView } from '../../../types';
 import type { CardAlert } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('../../../components/CardMessageBox/CardMessageBox', () => {
@@ -31,20 +31,14 @@ const mockOnDismissSpendingLimitWarning = jest.fn();
 
 function renderComponent(
   alerts: CardAlert[],
-  extras?: {
-    hasPendingVerification?: boolean;
-    onContinueVerification?: () => void;
-    isReconcilingProvisioning?: boolean;
-  },
+  provisioningView?: CardProvisioningView,
 ) {
   return render(
     <CardAlertSection
       alerts={alerts}
       onNavigateToSpendingLimit={mockOnNavigateToSpendingLimit}
       onDismissSpendingLimitWarning={mockOnDismissSpendingLimitWarning}
-      hasPendingVerification={extras?.hasPendingVerification}
-      onContinueVerification={extras?.onContinueVerification}
-      isReconcilingProvisioning={extras?.isReconcilingProvisioning}
+      provisioningView={provisioningView}
     />,
   );
 }
@@ -88,7 +82,15 @@ describe('CardAlertSection', () => {
     expect(props.hasOnDismiss).toBe(false);
   });
 
-  it('renders CardProvisioning CardMessageBox for card_provisioning alert', () => {
+  it('does not render a banner for allowance_revoked (Enable card button covers it)', () => {
+    const { toJSON } = renderComponent([
+      { type: 'allowance_revoked', dismissable: false },
+    ]);
+
+    expect(toJSON()).toBeNull();
+  });
+
+  it('renders CardProvisioning CardMessageBox for card_provisioning by default', () => {
     const { getByTestId } = renderComponent([
       { type: 'card_provisioning', dismissable: false },
     ]);
@@ -103,29 +105,33 @@ describe('CardAlertSection', () => {
     expect(props.hasOnDismiss).toBe(false);
   });
 
-  it('renders PendingVerification CardMessageBox with CTA when verification is pending', () => {
-    const onContinue = jest.fn();
-    const { getByTestId, queryByTestId } = renderComponent(
+  it('hides the card_provisioning banner when provisioningView is hidden', () => {
+    const { toJSON } = renderComponent(
       [{ type: 'card_provisioning', dismissable: false }],
-      { hasPendingVerification: true, onContinueVerification: onContinue },
+      'hidden',
     );
 
-    const box = getByTestId(
-      `card-message-box-${CardMessageBoxType.PendingVerification}`,
+    expect(toJSON()).toBeNull();
+  });
+
+  it('renders KYCPending for card_provisioning when KYC is under review', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      [{ type: 'card_provisioning', dismissable: false }],
+      'kyc_under_review',
     );
-    expect(box).toBeOnTheScreen();
+
+    expect(
+      getByTestId(`card-message-box-${CardMessageBoxType.KYCPending}`),
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(`card-message-box-${CardMessageBoxType.CardProvisioning}`),
     ).not.toBeOnTheScreen();
-
-    const props = JSON.parse(box.props.accessibilityLabel);
-    expect(props.hasOnConfirm).toBe(true);
   });
 
   it('renders a skeleton while provisioning status is being reconciled', () => {
     const { getByTestId, queryByTestId } = renderComponent(
       [{ type: 'card_provisioning', dismissable: false }],
-      { isReconcilingProvisioning: true, hasPendingVerification: true },
+      'reconciling',
     );
 
     expect(getByTestId('card-provisioning-alert-skeleton')).toBeOnTheScreen();
@@ -133,9 +139,7 @@ describe('CardAlertSection', () => {
       queryByTestId(`card-message-box-${CardMessageBoxType.CardProvisioning}`),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(
-        `card-message-box-${CardMessageBoxType.PendingVerification}`,
-      ),
+      queryByTestId(`card-message-box-${CardMessageBoxType.KYCPending}`),
     ).not.toBeOnTheScreen();
   });
 
