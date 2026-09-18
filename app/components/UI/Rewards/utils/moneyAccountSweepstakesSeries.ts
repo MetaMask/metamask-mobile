@@ -124,22 +124,19 @@ export function mapSeriesStatusToCampaignStatus(
 
 export type MoneyAccountSweepstakesEntryRoute =
   | { kind: 'dashboard' }
-  | { kind: 'tour'; campaignId: string }
   | { kind: 'details'; campaignId: string };
 
 /**
- * Resolve where a Money Account Sweepstakes entry point (deeplink / tile) should land.
+ * Resolve where a Money Account Sweepstakes deeplink should land.
  *
  * - upcoming / empty → stay on dashboard
  * - previous → details for the last campaign in the series
- * - active → tour when eligible, otherwise details for the current active campaign
+ * - active → details for the current active campaign (never the tour)
  */
 export function resolveMoneyAccountSweepstakesEntryRoute({
   series,
-  optedInAny,
 }: {
   series: MoneyAccountSweepstakesSeries;
-  optedInAny: boolean;
 }): MoneyAccountSweepstakesEntryRoute {
   if (!series.seriesStatus || series.campaigns.length === 0) {
     return { kind: 'dashboard' };
@@ -160,12 +157,6 @@ export function resolveMoneyAccountSweepstakesEntryRoute({
   const activeCampaign = series.activeCampaign;
   if (!activeCampaign) {
     return { kind: 'dashboard' };
-  }
-
-  const hasTour = (activeCampaign.details?.howItWorks?.tour?.length ?? 0) > 0;
-
-  if (hasTour && !optedInAny) {
-    return { kind: 'tour', campaignId: activeCampaign.id };
   }
 
   return { kind: 'details', campaignId: activeCampaign.id };
