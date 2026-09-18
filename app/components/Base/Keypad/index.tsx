@@ -70,6 +70,9 @@ function KeypadComponent({
   const handleKeypadPress = useCallback(
     (pressedKey: Keys) => {
       const newValue = handler(valueRef.current, pressedKey);
+      // Update synchronously so rapid presses build on each other before React
+      // commits the controlled value prop back through a render.
+      valueRef.current = newValue;
       let valueAsNumber = 0;
       try {
         valueAsNumber = decimalSeparator
