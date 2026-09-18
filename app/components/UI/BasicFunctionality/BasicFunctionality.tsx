@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/reducers';
 import styles from './BasicFunctionality.styles';
 import { BasicFunctionalityComponentProps } from './BasicFunctionality.types';
+import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from './BasicFunctionality.constants';
 import AppConstants from '../../../core/AppConstants';
 
 export default function BasicFunctionalityComponent({
@@ -36,6 +37,7 @@ export default function BasicFunctionalityComponent({
           {strings('default_settings.basic_functionality')}
         </Text>
         <Switch
+          testID={BASIC_FUNCTIONALITY_SWITCH_TEST_ID}
           disabled={disabled}
           value={isEnabled}
           onChange={handleSwitchToggle}
