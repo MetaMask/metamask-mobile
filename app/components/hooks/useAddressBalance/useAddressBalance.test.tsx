@@ -37,6 +37,9 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       addToken: jest.fn(),
     },
+    AssetsController: {
+      addCustomAsset: jest.fn(),
+    },
   },
 }));
 
