@@ -1,8 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import ProHub from './ProHub';
+import ProHub, { MembershipBanner } from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import {
+  ALSO_INCLUDED_ITEMS,
+  MEMBERSHIP_BANNER_STATES,
+  MembershipBannerKind,
+  MOCK_PRO_HUB_STATS,
+} from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -110,7 +115,7 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_label')),
+        toRegex(strings('pro_hub.membership_status.active')),
       );
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
@@ -128,6 +133,27 @@ describe('ProHub', () => {
             rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
           }),
         ),
+      );
+    });
+
+    it('renders the add funds alert with due date, description, and action', () => {
+      const { getByTestId } = renderProHub();
+
+      const banner = getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER);
+      const actionButton = getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION);
+
+      expect(banner).toHaveTextContent(
+        toRegex(
+          strings('pro_hub.membership_alert.low_balance.title', {
+            date: MOCK_PRO_HUB_STATS.addFundsDueDate,
+          }),
+        ),
+      );
+      expect(banner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_alert.low_balance.description')),
+      );
+      expect(actionButton).toHaveTextContent(
+        strings('pro_hub.membership_alert.low_balance.action'),
       );
     });
 
@@ -243,6 +269,83 @@ describe('ProHub', () => {
       renderProHub();
 
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('MembershipBanner', () => {
+    const renderMembershipBanner = (
+      kind: (typeof MembershipBannerKind)[keyof typeof MembershipBannerKind],
+    ) =>
+      render(
+        <MembershipBanner
+          testID={ProHubTestIds.MEMBERSHIP_BANNER}
+          state={MEMBERSHIP_BANNER_STATES[kind]}
+          addFundsDueDate={MOCK_PRO_HUB_STATS.addFundsDueDate}
+          onAction={jest.fn()}
+        />,
+      );
+
+    it('renders overdue payment failed copy and danger icon', () => {
+      const { getByTestId } = renderMembershipBanner(
+        MembershipBannerKind.Overdue,
+      );
+
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
+      ).toHaveTextContent(strings('pro_hub.membership_status.overdue'));
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
+      ).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_alert.payment_failed.title')),
+      );
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
+      ).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_alert.payment_failed.description')),
+      );
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
+      ).toHaveTextContent(
+        strings('pro_hub.membership_alert.payment_failed.action'),
+      );
+    });
+
+    it('renders deactivated inactive copy and danger icon', () => {
+      const { getByTestId } = renderMembershipBanner(
+        MembershipBannerKind.Deactivated,
+      );
+
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
+      ).toHaveTextContent(strings('pro_hub.membership_status.deactivated'));
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
+      ).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_alert.inactive.title')),
+      );
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
+      ).toHaveTextContent(strings('pro_hub.membership_alert.inactive.action'));
+    });
+
+    it('renders active renewal failed copy and warning icon', () => {
+      const { getByTestId } = renderMembershipBanner(
+        MembershipBannerKind.ActiveRenewalFailed,
+      );
+
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
+      ).toHaveTextContent(strings('pro_hub.membership_status.active'));
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
+      ).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_alert.renewal_failed.title')),
+      );
+      expect(
+        getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
+      ).toHaveTextContent(
+        strings('pro_hub.membership_alert.renewal_failed.action'),
+      );
     });
   });
 });
