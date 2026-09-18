@@ -12,7 +12,7 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
-import { ApprovalType } from '@metamask/controller-utils';
+import { ApprovalType, ERC20 } from '@metamask/controller-utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import {
   getSafeJson,
@@ -111,6 +111,14 @@ export const wallet_watchAsset = async ({
   );
   if (!isTokenOnNetwork) {
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
+  }
+
+  // AssetsController.addCustomAsset only supports fungible (ERC-20) assets
+  // today. wallet_watchAsset (EIP-747) is not defined for NFTs, but dapps
+  // have historically sent ERC721/ERC1155 type values; TokensController used
+  // to reject those explicitly, so keep doing the same here.
+  if (type !== ERC20) {
+    throw new Error(`Asset of type ${type} not supported`);
   }
 
   const permittedAccounts = getPermittedAccounts(hostname);

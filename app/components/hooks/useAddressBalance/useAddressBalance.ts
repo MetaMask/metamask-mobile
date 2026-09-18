@@ -1,5 +1,5 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
@@ -22,7 +22,7 @@ import {
 } from '../../../selectors/accountTrackerController';
 import {
   selectSelectedInternalAccountFormattedAddress,
-  selectInternalAccountByAddresses,
+  selectInternalAccountsById,
 } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 import { RootState } from '../../../reducers';
@@ -30,6 +30,7 @@ import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
 import {
   selectContractBalances,
   selectContractBalancesPerChainId,
+  selectAllTokenBalances,
 } from '../../../selectors/tokenBalancesController';
 import { useAsyncResult } from '../useAsyncResult';
 import { toAssetId } from '../../UI/Bridge/hooks/useAssetMetadata/utils';
@@ -69,9 +70,17 @@ const useAddressBalance = (
     selectSelectedInternalAccountFormattedAddress,
   );
   const selectedEvmChainId = useSelector(selectEvmChainId);
-  const [watchingAccount] = useSelector((state: RootState) =>
-    selectInternalAccountByAddresses(state)(address ? [address] : []),
-  );
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const watchingAccount = useMemo(() => {
+    if (!address) {
+      return undefined;
+    }
+    const lowerCaseAddress = address.toLowerCase();
+    return Object.values(internalAccountsById).find(
+      (account) => account.address.toLowerCase() === lowerCaseAddress,
+    );
+  }, [internalAccountsById, address]);
+  const allTokenBalances = useSelector(selectAllTokenBalances);
   if (chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
     accounts = accountsByChainId[chainId] ?? {};
@@ -89,16 +98,20 @@ const useAddressBalance = (
       } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
       const { AssetsController } = Engine.context;
-      if (!contractAddress || !decimals) {
+      if (!contractAddress || !decimals || !watchingAccount) {
         return;
       }
 
-      if (
-        !contractBalances[contractAddress] &&
-        !dontWatchAsset &&
-        watchingAccount
-      ) {
-        const watchChainId = (chainId as Hex) ?? selectedEvmChainId;
+      const watchChainId = (chainId as Hex) ?? selectedEvmChainId;
+      const watchingAccountAddress = safeToChecksumAddress(
+        watchingAccount.address,
+      ) as Hex;
+      const alreadyWatchedOnChain =
+        !!allTokenBalances[watchingAccountAddress]?.[watchChainId]?.[
+          contractAddress
+        ];
+
+      if (!alreadyWatchedOnChain && !dontWatchAsset) {
         const caipChainId = toEvmCaipChainId(watchChainId);
         const caipAssetType = toAssetId(contractAddress, caipChainId);
         if (caipAssetType) {
