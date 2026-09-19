@@ -11,7 +11,7 @@ import {
   Icon,
   IconName,
   IconSize,
-  Skeleton,
+  SectionDivider,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -35,6 +35,7 @@ import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RefererHeroCard from '../components/Money/RefererHeroCard';
 import RefereeHeroCard from '../components/Money/RefereeHeroCard';
 import RewardsOptInSection from '../components/Money/RewardsOptInSection';
+import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { navigateToRewardsRoute } from '../utils';
@@ -49,6 +50,7 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
+  WAYS_TO_EARN_DIVIDER: 'rewards-money-dashboard-ways-to-earn-divider',
   ERROR_BANNER: 'rewards-money-dashboard-error-banner',
 } as const;
 
@@ -101,14 +103,16 @@ const RewardsMoneyDashboard: React.FC = () => {
   );
 
   const headerEndAccessory = (
-    <Box twClassName="flex-row gap-2">
-      <Icon
-        name={IconName.Chart}
-        size={IconSize.Md}
-        accessible
-        accessibilityLabel={localizedText?.performanceTitle}
-        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CHART_BUTTON}
-      />
+    <Box twClassName="flex-row items-center gap-2">
+      <Box twClassName="h-8 w-8 items-center justify-center">
+        <Icon
+          name={IconName.Chart}
+          size={IconSize.Lg}
+          accessible
+          accessibilityLabel={localizedText?.performanceTitle}
+          testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CHART_BUTTON}
+        />
+      </Box>
       <ButtonIcon
         disabled={!subscriptionId}
         iconName={IconName.Setting}
@@ -126,35 +130,10 @@ const RewardsMoneyDashboard: React.FC = () => {
     !isProfileResolved ||
     (!referralMe && Boolean(referralMeEntry?.loading))
   ) {
+    // The same surface the tab shows while the persona resolves, so the two
+    // waits read as one screen rather than a skeleton swapping for another.
     return (
-      <SafeAreaView
-        edges={{ top: 'additive' }}
-        style={tw.style('flex-1 bg-default')}
-        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER}
-      >
-        {/* Mirrors the loaded layout — header, tabs, hero, two preview cards —
-            so the skeleton does not reflow when referral me lands. */}
-        <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING}>
-          <Box twClassName="flex-row items-center justify-between px-4 py-3">
-            <Skeleton style={tw.style('h-7 w-32 rounded-md')} />
-            <Box twClassName="flex-row gap-2">
-              <Skeleton style={tw.style('h-6 w-6 rounded-full')} />
-              <Skeleton style={tw.style('h-6 w-6 rounded-full')} />
-            </Box>
-          </Box>
-
-          <Box twClassName="flex-row gap-6 border-b border-muted px-4 pb-3">
-            <Skeleton style={tw.style('h-5 w-24 rounded-md')} />
-            <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
-          </Box>
-
-          <Box twClassName="gap-4 p-4">
-            <Skeleton style={tw.style('h-44 w-full rounded-xl')} />
-            <Skeleton style={tw.style('h-28 w-full rounded-xl')} />
-            <Skeleton style={tw.style('h-28 w-full rounded-xl')} />
-          </Box>
-        </Box>
-      </SafeAreaView>
+      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
     );
   }
 
@@ -247,8 +226,17 @@ const RewardsMoneyDashboard: React.FC = () => {
                 {referralMe ? (
                   subscriptionId ? (
                     <>
-                      <CampaignsPreview />
-                      <BenefitsPreview />
+                      <SectionDivider
+                        marginVertical={8}
+                        style={tw.style('mb-3')}
+                        testID={
+                          REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_DIVIDER
+                        }
+                      />
+                      <Box twClassName="gap-4">
+                        <CampaignsPreview />
+                        <BenefitsPreview />
+                      </Box>
                     </>
                   ) : (
                     <RewardsOptInSection

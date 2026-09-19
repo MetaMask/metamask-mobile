@@ -19,6 +19,20 @@ describe('RewardsTabSkeleton', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders under a caller-supplied container testID', () => {
+    render(<RewardsTabSkeleton testID="rewards-money-dashboard-loading" />);
+
+    expect(
+      screen.getByTestId('rewards-money-dashboard-loading'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(REWARDS_TAB_SKELETON_TEST_IDS.CONTAINER),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(REWARDS_TAB_SKELETON_TEST_IDS.HEADER),
+    ).toBeOnTheScreen();
+  });
+
   it('applies the default background so the tab does not flash an untinted screen', () => {
     render(<RewardsTabSkeleton />);
 

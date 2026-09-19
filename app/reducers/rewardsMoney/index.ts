@@ -105,6 +105,7 @@ const rewardsMoneySlice = createSlice({
       entry.error = false;
       entry.data = action.payload.data;
     },
+    resetRewardsMoneyState: () => initialState,
   },
 });
 
@@ -115,6 +116,7 @@ export const {
   setEarningsSummaryLoading,
   setEarningsSummaryError,
   setEarningsSummary,
+  resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 
 export default rewardsMoneySlice.reducer;
