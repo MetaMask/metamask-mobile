@@ -38,7 +38,7 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
-import type { buildGenericQuoteRequest } from '../../providers/SwapQuotesProvider/utils';
+import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 const BridgeView = () => {
@@ -67,7 +67,7 @@ const BridgeView = () => {
   );
 
   const quoteParams = useMemo(
-    (): Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'] => ({
+    (): QuoteParams => ({
       srcToken: sourceToken,
       destToken,
       srcAmount: sourceAmount,

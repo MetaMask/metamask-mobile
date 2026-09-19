@@ -16,7 +16,7 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { buildGenericQuoteRequest } from './utils';
+import { buildGenericQuoteRequest, type QuoteParams } from './utils';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import {
@@ -33,11 +33,12 @@ export const SwapQuotesContext = createContext<SwapQuotesContextValue | null>(
 
 interface UseSwapQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'] /**
+  quoteParams: QuoteParams;
+  /**
    * Whether this is the quote source for the rendered tab. The other quote
    * provider stays mounted to keep the tree stable, this flag skips
    * expensive computations.
-   */;
+   */
   isActive?: boolean;
 }
 
@@ -83,35 +84,26 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     selectGasIncludedQuoteParams,
   );
 
-  const genericQuoteRequest = useMemo(
-    (): GenericQuoteRequest | undefined =>
-      buildGenericQuoteRequest({
-        quoteParams: {
-          srcAmount,
-          srcToken,
-          destToken,
-          walletAddress,
-          destWalletAddress,
-          slippage,
-        },
-        gasIncluded,
-        gasIncluded7702,
-        insufficientBalance,
-        insufficientNativeReserveError: Boolean(insufficientNativeReserveError),
-      }),
-    [
-      srcAmount,
-      srcToken,
-      destToken,
-      walletAddress,
-      destWalletAddress,
-      slippage,
+  const genericQuoteRequest = useMemo((): GenericQuoteRequest | undefined => {
+    return buildGenericQuoteRequest({
+      quoteParams,
       gasIncluded,
       gasIncluded7702,
       insufficientBalance,
-      insufficientNativeReserveError,
-    ],
-  );
+      insufficientNativeReserveError: Boolean(insufficientNativeReserveError),
+    });
+  }, [
+    srcAmount,
+    srcToken,
+    destToken,
+    walletAddress,
+    destWalletAddress,
+    slippage,
+    gasIncluded,
+    gasIncluded7702,
+    insufficientBalance,
+    insufficientNativeReserveError,
+  ]);
 
   const debouncedUpdateQuoteParams = useUpdateQuoteParams({
     featureId: params.featureId,
@@ -125,16 +117,6 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   const refreshQuotes = useCallback(() => {
     debouncedUpdateQuoteParams({ isRefresh: true });
   }, [debouncedUpdateQuoteParams]);
-
-  // Pass quoteParams to the bridge-controller
-  useEffect(() => {
-    if (!isActive) return;
-    debouncedUpdateQuoteParams();
-
-    return () => {
-      debouncedUpdateQuoteParams.cancel();
-    };
-  }, [debouncedUpdateQuoteParams, isActive]);
 
   return useMemo(
     () => ({

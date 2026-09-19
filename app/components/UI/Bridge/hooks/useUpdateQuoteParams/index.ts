@@ -169,14 +169,23 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     updateQuoteParams,
     walletAddress,
     debounceWait,
+    genericQuoteRequest,
   ]);
 
-  useEffect(
-    () => () => {
+  // Pass quoteParams to the bridge-controller
+
+  useEffect(() => {
+    console.log('==== useEffect debouncedUpdateQuoteParams', {
+      genericQuoteRequest,
+    });
+    // TODO only if active
+    // if (!isActive) return;
+    debouncedUpdateQuoteParams();
+
+    return () => {
       debouncedUpdateQuoteParams.cancel();
-    },
-    [debouncedUpdateQuoteParams],
-  );
+    };
+  }, [debouncedUpdateQuoteParams, genericQuoteRequest]);
 
   return useMemo(
     () => debouncedUpdateQuoteParams,

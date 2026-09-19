@@ -7,7 +7,7 @@ import {
   TAB_TO_FEATURE_ID,
 } from '../../Views/BridgeView/BridgeView.constants';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
-import type { buildGenericQuoteRequest } from '../SwapQuotesProvider/utils';
+import type { QuoteParams } from '../SwapQuotesProvider/utils';
 import { SwapsFeatureIdProvider } from '../SwapsFeatureIdProvider';
 import type { FeatureId } from '@metamask/bridge-controller';
 
@@ -17,10 +17,8 @@ export const BridgeSessionContext = createContext<{
   setSelectedTab: (tab: BridgeTabKey) => void;
   setRenderedTab: (tab: BridgeTabKey) => void;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
-  setQuoteParams: (
-    quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'],
-  ) => void;
+  quoteParams: QuoteParams;
+  setQuoteParams: (quoteParams: QuoteParams) => void;
 } | null>(null);
 
 /**
@@ -44,9 +42,7 @@ export const BridgeSessionProvider = ({
 
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
 
-  const [quoteParams, setQuoteParams] = useState<
-    Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams']
-  >({});
+  const [quoteParams, setQuoteParams] = useState<QuoteParams>({});
 
   const latestSourceBalance = useLatestBalance(
     {

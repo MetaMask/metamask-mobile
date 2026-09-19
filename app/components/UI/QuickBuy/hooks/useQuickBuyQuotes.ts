@@ -6,6 +6,7 @@ import {
   formatAddressToCaipReference,
   formatChainIdToCaip,
   isNonEvmChainId,
+  isValidQuoteRequest,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   toQuoteResponseV2,
@@ -58,6 +59,7 @@ import { parseCaipAssetType } from '@metamask/utils';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
 import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
+import type { QuoteParams } from '../../Bridge/providers/SwapQuotesProvider/utils';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -314,7 +316,8 @@ export function useQuickBuyQuotes({
 
   const maybeSwapQuotes = useSwapQuotes();
   const { setQuoteParams } = useBridgeSession();
-  const quoteParams = useMemo(() => {
+  // TODO only for swapQuotes
+  const quoteParams: QuoteParams | undefined = useMemo(() => {
     if (
       !sourceToken ||
       !destToken ||
@@ -326,9 +329,9 @@ export function useQuickBuyQuotes({
     }
 
     return {
-      sourceToken,
+      srcToken: sourceToken,
       destToken,
-      sourceTokenAmount,
+      srcAmount: sourceTokenAmount,
       slippage,
       walletAddress,
       destAddress,
@@ -346,18 +349,42 @@ export function useQuickBuyQuotes({
     gasIncluded7702,
   ]);
 
+  // TODO only for quickBuy
   const quoteRequest = useMemo(() => {
-    if (!quoteParams) {
+    if (
+      !sourceToken ||
+      !destToken ||
+      !walletAddress ||
+      !sourceTokenAmount ||
+      sourceToken.decimals === undefined
+    ) {
       return;
     }
 
-    return buildQuoteRequest(quoteParams);
-  }, [quoteParams]);
+    return buildQuoteRequest({
+      sourceToken,
+      destToken,
+      sourceTokenAmount,
+      slippage,
+      walletAddress,
+      destAddress,
+      gasIncluded,
+      gasIncluded7702,
+    });
+  }, [
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
+    slippage,
+    walletAddress,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+  ]);
 
   // If migrated, set swap quoteParams to trigger quote polling
   useEffect(() => {
     if (maybeSwapQuotes && quoteParams) {
-      console.log('====useEffect setQuoteParams', quoteRequest);
       // TODO include analytics/trace params
       setQuoteParams(quoteParams);
     }
