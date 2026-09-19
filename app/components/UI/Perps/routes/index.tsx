@@ -32,7 +32,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
-import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsTPSLRouter from '../Views/PerpsTPSLRouter';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
@@ -432,7 +432,7 @@ const PerpsScreenStack = () => {
               {/* TP/SL View - Regular screen */}
               <Stack.Screen
                 name={Routes.PERPS.TPSL}
-                component={PerpsTPSLView}
+                component={PerpsTPSLRouter}
                 options={{
                   ...transparentModalScreenOptions,
                   title: strings('perps.tpsl.title'),

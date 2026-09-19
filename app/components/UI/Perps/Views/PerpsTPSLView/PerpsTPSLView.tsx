@@ -24,7 +24,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  BottomSheet,
   BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
   ButtonsAlignment,
   Button,
   ButtonBase,
@@ -146,11 +149,35 @@ const SectionHelpText: React.FC<{
   </Box>
 );
 
-const PerpsTPSLView: React.FC = () => {
+export interface PerpsTPSLViewProps {
+  /**
+   * `sheet` renders the TAT-3747 bottom-sheet treatment. `screen` is the
+   * control and must stay byte-for-byte the experience that shipped.
+   */
+  variant?: 'screen' | 'sheet';
+}
+
+const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
+  variant = 'screen',
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
+
+  const isSheet = variant === 'sheet';
+  const sheetRef = useRef<BottomSheetRef>(null);
+
+  // The sheet plays its close animation before the route pops; the screen pops
+  // straight away. Both paths must dismiss before `onConfirm` runs — see the
+  // Android Fabric note in handleConfirm.
+  const dismiss = useCallback(() => {
+    if (isSheet) {
+      sheetRef.current?.onCloseBottomSheet();
+      return;
+    }
+    navigation.goBack();
+  }, [isSheet, navigation]);
 
   // Extract params from navigation route
   const {
@@ -372,8 +399,8 @@ const PerpsTPSLView: React.FC = () => {
     if (enableHaptics) {
       playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     }
-    navigation.goBack();
-  }, [enableHaptics, navigation, playImpact]);
+    dismiss();
+  }, [dismiss, enableHaptics, playImpact]);
 
   const scrollFocusedSectionIntoView = useCallback((inputType: string) => {
     const sectionRef =
@@ -592,7 +619,7 @@ const PerpsTPSLView: React.FC = () => {
     // Dismiss first (same as PerpsClosePositionView). Updating while this
     // screen is still dismissing crashes Android Fabric under nav v7 —
     // optimistic parent re-render races react-native-screens' transition.
-    navigation.goBack();
+    dismiss();
 
     // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
     await onConfirm(
@@ -607,7 +634,7 @@ const PerpsTPSLView: React.FC = () => {
     stopLossPrice,
     onConfirm,
     dismissKeypad,
-    navigation,
+    dismiss,
     actualDirection,
     position,
     takeProfitPercentage,
@@ -825,18 +852,8 @@ const PerpsTPSLView: React.FC = () => {
           }),
         });
 
-  return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
-      edges={['bottom']}
-      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
-    >
-      <HeaderStandard
-        includesTopInset
-        title={strings('perps.tpsl.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON }}
-      />
+  const body = (
+    <>
       <ScrollView
         ref={scrollViewRef}
         style={tw.style('flex-1')}
@@ -1205,6 +1222,37 @@ const PerpsTPSLView: React.FC = () => {
           />
         )}
       </Box>
+    </>
+  );
+
+  if (isSheet) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={navigation.goBack}
+        testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+      >
+        <BottomSheetHeader onBack={handleBack}>
+          {strings('perps.tpsl.title')}
+        </BottomSheetHeader>
+        {body}
+      </BottomSheet>
+    );
+  }
+
+  return (
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      edges={['bottom']}
+      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+    >
+      <HeaderStandard
+        includesTopInset
+        title={strings('perps.tpsl.title')}
+        onBack={handleBack}
+        backButtonProps={{ testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON }}
+      />
+      {body}
     </SafeAreaView>
   );
 };
