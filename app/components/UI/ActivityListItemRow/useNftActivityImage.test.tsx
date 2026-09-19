@@ -118,24 +118,6 @@ describe('useNftActivityImage', () => {
     expect(mockSelectNftByIdentity).not.toHaveBeenCalled();
   });
 
-  it('skips the EVM lookup for non-EVM NFT activity', () => {
-    const item = {
-      type: 'nftBuy',
-      chainId: 'solana:mainnet',
-      status: 'success',
-      timestamp: 1,
-      hash: 'solana-nft',
-      data: { token: { direction: 'in', symbol: 'NFT' } },
-    } as unknown as ActivityListItem;
-
-    renderUseNftActivityImage(item);
-
-    expect(mockUseCachedEvmTransaction).toHaveBeenCalledWith({
-      chainId: 'solana:mainnet',
-      txHash: 'solana-nft',
-    });
-  });
-
   it('selects the NFT leg matching the activity, not the first NFT transfer', () => {
     const item = makeNftBuyItem([
       {

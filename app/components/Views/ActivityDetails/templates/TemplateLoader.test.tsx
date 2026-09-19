@@ -29,18 +29,6 @@ jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
 }));
 
-jest.mock('../../../../selectors/multichain/multichain', () => {
-  const actual = jest.requireActual(
-    '../../../../selectors/multichain/multichain',
-  );
-  return {
-    ...actual,
-    selectNonEvmTransactionsForSelectedAccountGroup: jest.fn(() => ({
-      transactions: [],
-    })),
-  };
-});
-
 jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
