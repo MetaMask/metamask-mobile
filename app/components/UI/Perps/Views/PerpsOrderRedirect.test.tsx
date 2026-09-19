@@ -14,6 +14,12 @@ import Logger from '../../../../util/Logger';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
+// Legacy deposit lifecycle cases retain the Hyperliquid route. Lighter routing
+// is covered with real Redux state in PerpsOrderRedirect.view.test.tsx.
+jest.mock('react-redux', () => ({
+  useSelector: () => 'hyperliquid',
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),

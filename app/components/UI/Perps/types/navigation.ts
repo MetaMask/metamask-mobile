@@ -9,6 +9,7 @@ import {
   type SortDirection,
   type SortOptionId,
   type MarketTypeFilter,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
@@ -58,6 +59,7 @@ export type PerpsClosePositionModalsNavigationParamList = {
 export type PerpsOrderRouteParams = {
   direction: 'long' | 'short';
   asset: string;
+  providerId?: PerpsProviderType;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
   leverage?: number;
@@ -85,6 +87,7 @@ export type PerpsOrderRouteParams = {
 export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: PerpsOrderRouteParams;
+  PerpsBalanceOrder: PerpsOrderRouteParams;
 
   PerpsOrderSuccess: {
     orderId: string;

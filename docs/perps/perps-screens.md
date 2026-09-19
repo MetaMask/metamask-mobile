@@ -1,6 +1,6 @@
 # Perps Screens & Views Documentation
 
-Complete architectural reference for all 17 Perps screens in MetaMask Mobile.
+Complete architectural reference for all 18 Perps screens in MetaMask Mobile.
 
 ## Table of Contents
 
@@ -9,18 +9,19 @@ Complete architectural reference for all 17 Perps screens in MetaMask Mobile.
 3. [PerpsMarketListView](#perpsmarketlistview) - Market browser
 4. [PerpsMarketDetailsView](#perpsmarketdetailsview) - Market detail
 5. [PerpsOrderView](#perpsorderview) - Order entry
-6. [PerpsPositionsView](#perpspositionsview) - Positions list
-7. [PerpsClosePositionView](#perpsclosepositio nview) - Close position
-8. [PerpsAdjustMarginView](#perpsadjustmarginview) - Adjust margin
-9. [PerpsCloseAllPositionsView](#perpsclosealpositionsview) - Close all
-10. [PerpsCancelAllOrdersView](#perpcancelallordersview) - Cancel all
-11. [PerpsTPSLView](#perpstpslview) - TP/SL management
-12. [PerpsTransactionsView](#perpstransactionsview) - Transaction history
-13. [PerpsWithdrawView](#perpswithdrawview) - Withdrawal
-14. [PerpsHeroCardView](#perpsherocardview) - Hero cards
-15. [PerpsEmptyState](#perpsemptystate) - Empty states
-16. [PerpsRedirect](#perpsredirect) - Routing logic
-17. [HIP3DebugView](#hip3debugview) - Debug tools
+6. [PerpsBalanceOrderView](#perpsbalanceorderview) - Funded Lighter order entry
+7. [PerpsPositionsView](#perpspositionsview) - Positions list
+8. [PerpsClosePositionView](#perpsclosepositio nview) - Close position
+9. [PerpsAdjustMarginView](#perpsadjustmarginview) - Adjust margin
+10. [PerpsCloseAllPositionsView](#perpsclosealpositionsview) - Close all
+11. [PerpsCancelAllOrdersView](#perpcancelallordersview) - Cancel all
+12. [PerpsTPSLView](#perpstpslview) - TP/SL management
+13. [PerpsTransactionsView](#perpstransactionsview) - Transaction history
+14. [PerpsWithdrawView](#perpswithdrawview) - Withdrawal
+15. [PerpsHeroCardView](#perpsherocardview) - Hero cards
+16. [PerpsEmptyState](#perpsemptystate) - Empty states
+17. [PerpsRedirect](#perpsredirect) - Routing logic
+18. [HIP3DebugView](#hip3debugview) - Debug tools
 
 ---
 
@@ -287,6 +288,31 @@ User action:
 - **From:** PerpsMarketDetailsView (Trade button)
 - **To:** PerpsTPSLView (optional, after order placed)
 - **Back:** Returns to market details
+
+---
+
+## PerpsBalanceOrderView
+
+**Location:** `app/components/UI/Perps/Views/PerpsBalanceOrderView/PerpsBalanceOrderView.tsx`
+
+### Purpose & User Journey
+
+Feature-gated Lighter order entry for users with an existing venue balance. It reuses the Pro order form without creating a deposit transaction or changing the user's Lite/Pro preference.
+
+### Navigation
+
+- **Route:** `Routes.PERPS.BALANCE_ORDER`
+- **From:** Lite market Long/Short actions and the token-details order redirect when Lighter is active
+- **Params:** Standard `PerpsOrderRouteParams`, including direction, asset, optional provider ID, source, and optional limit price
+- **Back:** Returns to the previous Lite or token-details screen
+
+### testIDs
+
+| Constant                                      | testID                      |
+| --------------------------------------------- | --------------------------- |
+| `PerpsBalanceOrderViewSelectorsIDs.CONTAINER` | `perps-balance-order`       |
+| `PerpsBalanceOrderViewSelectorsIDs.BACK`      | `perps-balance-order-back`  |
+| `PerpsBalanceOrderViewSelectorsIDs.ERROR`     | `perps-balance-order-error` |
 
 ---
 

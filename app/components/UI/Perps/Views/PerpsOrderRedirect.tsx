@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -15,6 +16,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { selectPerpsProvider } from '../selectors/perpsController';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
@@ -48,6 +50,7 @@ const PerpsOrderRedirect: React.FC = () => {
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
+  const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
@@ -58,6 +61,19 @@ const PerpsOrderRedirect: React.FC = () => {
     // Prevent double execution
     if (hasStartedRef.current) return;
     hasStartedRef.current = true;
+
+    if (activeProvider === 'lighter') {
+      navigation.dispatch(
+        StackActions.replace(Routes.PERPS.BALANCE_ORDER, {
+          direction,
+          asset,
+          fromTokenDetails,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          transactionActiveAbTests,
+        }),
+      );
+      return;
+    }
 
     Logger.log('[PerpsOrderRedirect] Starting depositWithOrder', {
       direction,
@@ -127,6 +143,7 @@ const PerpsOrderRedirect: React.FC = () => {
     transactionActiveAbTests,
     useBottomSheet,
     depositWithOrder,
+    activeProvider,
     navigation,
     showToast,
     PerpsToastOptions,

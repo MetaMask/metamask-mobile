@@ -23,6 +23,8 @@ const newOverrides = [
       'app/lib/Money/feature-flags.ts',
       'app/lib/Money/feature-flags.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
+      'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
+      'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/util/test/utils.js',
