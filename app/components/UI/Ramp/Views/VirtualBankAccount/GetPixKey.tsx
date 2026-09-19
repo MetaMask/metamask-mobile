@@ -24,11 +24,11 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import TagBase from '../../../../../component-library/base-components/TagBase';
 import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 import LegalLink from './components/LegalLink';
 
 // Pix's badge is bold italic white on brand teal regardless of app theme.
@@ -76,8 +76,10 @@ const GetPixKey = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(async () => {
+    // Record vendor-terms acceptance, then let the backend stage decide the
+    // next screen (rather than hardcoding Verify Identity) so resume works.
     if (await acceptDisclaimers()) {
-      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+      await hydrateAndNavigateVbaOnboarding(navigation, 'get-pix-key-continue');
     }
   }, [acceptDisclaimers, navigation]);
 

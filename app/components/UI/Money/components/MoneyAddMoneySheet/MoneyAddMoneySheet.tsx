@@ -39,6 +39,7 @@ import { selectHasUnapprovedTransactions } from '../../../../../selectors/transa
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Routes from '../../../../../constants/navigation/Routes';
+import { hydrateAndNavigateVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hydrateAndNavigateVbaOnboarding';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -166,8 +167,13 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
+    // Hydrate VBA onboarding from the account and route to whatever stage the
+    // user is at (fresh users land on the email step; returning users resume).
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
+      hydrateAndNavigateVbaOnboarding(
+        navigation,
+        'money-add-money-sheet',
+      ).catch(() => undefined);
     });
   }, [navigation, trackSurfaceClicked]);
 
