@@ -66,6 +66,10 @@
       "title": "Неверная комиссия",
       "message": "Мы не можем предоставить точную сумму комиссии, и эта оценка может быть завышена. Мы рекомендуем вам установить собственный лимит газа, но существует риск, что транзакция все равно не удастся."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Недостаточно средств",
       "message": "На вашем счете недостаточно {{nativeCurrency}} для оплаты комиссий сети.",
@@ -546,6 +550,9 @@
     "reset_wallet_desc_2": "из MetaMask на этом устройстве. Это нельзя отменить.",
     "reset_wallet_desc_login": "Чтобы восстановить кошелек, вы можете использовать свою секретную фразу восстановления или пароль от аккаунта Google или Apple. У MetaMask нет этой информации.",
     "reset_wallet_desc_srp": "Чтобы восстановить свой кошелек, убедитесь, что у вас есть ваша секретная фраза для восстановления. У MetaMask нет этой информации.",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "Биометрическая аутентификация отменена",
     "biometric_authentication_cancelled_title": "Биометрическая настройка не удалась",
     "biometric_authentication_cancelled_description": "Повторно настройте биометрическую аутентификацию в настройках.",
@@ -1145,7 +1152,8 @@
       "button": "Продолжить",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
@@ -1195,6 +1203,11 @@
       "all": "Все",
       "trade": "Торговать",
       "just_now": "Только что",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "открыто",
         "perps_added": "добавлено",
@@ -1247,8 +1260,31 @@
         "status": "Статус",
         "closed": "Закрыто",
         "buy": "Купить",
-        "sell": "Продать"
+        "sell": "Продать",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1297,7 +1333,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "Solana",
-          "base": "Основа"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1377,6 +1413,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "подписки",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1863,6 +1907,8 @@
         "active": "Активно",
         "history": "История",
         "fill_history": "История исполнений",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Предыдущее",
         "next": "Далее",
         "page_count": "Страница {{page}} из {{total}}"
@@ -2079,10 +2125,7 @@
         "max_distance_reached_notification": "Ваш следящий ордер для {{symbol}} достиг максимальной дистанции и теперь является лимитным ордером.",
         "tab": "Следящий ордер",
         "tab_with_count": "Следящий ({{count}})",
-        "active": "Активно",
-        "history": "История",
         "filled_only": "Только исполненные ордера",
-        "visible_count": "{{count}} отображается",
         "running": "Выполняется",
         "running_with_progress": "Выполняется · {{progress}}",
         "cancel": "Отмена",
@@ -2778,6 +2821,7 @@
       "tabs": {
         "all": "Все",
         "crypto": "Крипто",
+        "memecoin": "Memecoins",
         "pre_ipo": "До IPO",
         "forex": "Валюты",
         "new": "Новые",
@@ -3254,6 +3298,7 @@
       "loading_accessibility_label": "Загрузка истории рынка",
       "unable_to_load": "Не удалось загрузить историю рынка.",
       "unavailable_for_range": "История рынка недоступна для этого диапазона.",
+      "range_live": "LIVE",
       "chart_accessibility_label": "История рыночной вероятности. {{values}}",
       "chart_scrub_accessibility_label": "История рыночной вероятности на {{time}}. {{values}}"
     },
@@ -4472,7 +4517,7 @@
     "state_logs": "Журналы состояния",
     "add_network_title": "Добавить сеть",
     "auto_lock": "Автоблокировка",
-    "enable_device_authentication": "Включить аутентификацию устройства",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "Для разблокировки MetaMask используйте биометрические данные или пароль вашего устройства.",
     "auto_lock_desc": "Выберите временной интервал до автоблокировки приложения.",
     "state_logs_desc": "Это поможет MetaMask отладить любую проблему, с которой вы можете столкнуться. Отправьте его в службу поддержки MetaMask через значок «гамбургер» > Отправьте отзыв или ответьте на свой существующий запрос о поддержке, если он у вас есть.",
@@ -6021,6 +6066,7 @@
       "only_numbers_allowed": "Разрешены только цифры",
       "negative_values_not_allowed": "Отрицательные значения не допускаются",
       "max_base_fee_must_be_greater_than_priority_fee": "Максимальная базовая комиссия должна быть больше платы за приоритет",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "Плата за приоритет должна быть меньше максимальной базовой комиссии",
       "no_zero_value": "{{field}} должно быть больше 0",
       "speed": "Скорость",
@@ -6245,7 +6291,7 @@
       "remember_me": "Запомнить меня",
       "face_id": "Face ID",
       "touch_id": "Touch ID",
-      "device_authentication": "Аутентификация устройства",
+      "device_authentication": "Device authentication",
       "device_passcode": "Пароль устройства"
     }
   },
@@ -6350,14 +6396,12 @@
     "skip_button_confirm": "Пропустить",
     "skip_title": "Пропустить этап защиты счета?",
     "skip_check": "Если вы потеряете эту секретную фразу для восстановления, вы утратите доступ к этому кошельку.",
-    "what_is_seedphrase_title": "Что такое секретная фраза для восстановления?",
-    "what_is_seedphrase_text_1": "Секретная фраза для восстановления, также называемая сид-фразой или мнемонической фразой, представляет собой набор слов, который позволяет вам получить доступ к вашему криптокошельку и управлять им. Чтобы переместить ваш кошелек в MetaMask, вам нужна эта фраза.",
-    "what_is_seedphrase_text_2": "Вам нужно сохранить секретную фразу для восстановления в тайне и в безопасном месте. Если кто-то узнает эту фразу, этот человек получит контроль над вашими счетами.",
-    "what_is_seedphrase_text_3": "Сохраните фразу в месте, к которому только вы можете получить доступ. Если вы ее потеряете, даже MetaMask не поможет вам ее восстановить.",
-    "what_is_seedphrase_text_4": "Любой, кто знает вашу секретную фразу для восстановления, может:",
-    "seedPhrase_point_1": "Получить все ваши деньги",
-    "seedPhrase_point_2": "Подтвердить транзакции",
-    "seedPhrase_point_3": "Изменить ваши данные для входа",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "Понятно"
   },
   "account_backup_step_1B": {
@@ -6451,10 +6495,8 @@
   "manual_backup_step_1": {
     "steps": "Шаг {{currentStep}} из {{totalSteps}}",
     "action": "Сохраните свою секретную фразу для восстановления",
-    "info-1": "Ваш",
-    "info-2": "Секретная фраза для восстановления",
-    "info-3": "дает полный доступ к кошельку.",
-    "info-4": "Запишите ее, соблюдая правильный порядок и цифры. Храните ее в безопасном месте и никому не передавайте.",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "Продолжить",
     "reveal": "Нажмите, чтобы показать",
     "watching": "Убедитесь, что никто не смотрит на ваш экран.",
@@ -9055,7 +9097,9 @@
       "empty": {
         "open_orders": "Открытые ордера появятся здесь",
         "history": "История ордеров появится здесь"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9087,14 +9131,16 @@
         "week": "{{count}} нед.",
         "month": "{{count}} мес."
       },
-      "est_network_fee": "Прим. комиссия сети",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "Создать ордер",
       "paying": "Оплата",
       "receiving": "Получено",
       "trigger_condition": "Условие срабатывания",
       "expiry_label": "Срок действия",
       "confirm_order": "Подтвердить ордер",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "Вы получаете",
@@ -9162,6 +9208,7 @@
       "spend_summary": "Вы тратите {{amount}} {{symbol}} каждые {{everyValue}} {{unit}} {{repeatCount}} раз(а)",
       "percent_filled": "{{percent}}% исполнено",
       "completed": "Завершено",
+      "cancelled": "Cancelled",
       "you_sent": "Вы отправили",
       "you_receive": "Вы получаете",
       "filled_progress": "{{percent}}%",
@@ -9175,6 +9222,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} выполнено",
       "not_enough_gas": "Недостаточно газа",
       "out_of_price_range": "Вне диапазона цены",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "Ошибка",
       "filled": "Выполнен",
       "order_not_found": "Ордер не найден",
@@ -9972,7 +10025,12 @@
         "description": "Одобрите использование картой MetaMask ваших USDC в сети Base для покупок.",
         "helper_text": "Обычно это занимает несколько секунд. Не закрывайте приложение.",
         "confirm_button": "Одобрить пополнение",
-        "retry_button": "Повторить попытку"
+        "retry_button": "Повторить попытку",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "Проверка вашей личности...",
@@ -10148,11 +10206,6 @@
         "kyc_pending": {
           "title": "Выполняется проверка",
           "description": "Выполняется проверка вашей личности. Обычно это занимает менее 12 часов."
-        },
-        "pending_verification": {
-          "title": "Завершите настройку вашей карты",
-          "description": "Вам нужно завершить незавершенные шаги проверки, прежде чем ваша карта будет активирована.",
-          "confirm_button_label": "Продолжить проверку"
         }
       },
       "messages": {
@@ -10195,6 +10248,8 @@
         "manage_spending_limit_description_full": "Активирован полный доступ",
         "unlink_money_account": "Отвязать Money Account",
         "unlink_money_account_description": "Изменить источник финансирования карты",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "Путешествия MetaMask",
         "travel_description": "Бронируйте отели со скидками до 70%",
         "card_tos_title": "Положения и условия",
@@ -10211,8 +10266,51 @@
         "freeze_success": "Карта успешно заблокирована",
         "unfreeze_success": "Карта успешно разблокирована",
         "change_asset": "Изменить актив",
-        "change_asset_description": "Выбрать другой токен"
+        "change_asset_description": "Выбрать другой токен",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "Транзакции",
@@ -10678,7 +10776,7 @@
       "bonus": "Бонус",
       "details": "Подробности",
       "points": "Баллы",
-      "points_base": "Основа",
+      "points_base": "Базовая",
       "points_boost": "Повышающий коэффициент",
       "points_total": "Итого",
       "description": "Описание"

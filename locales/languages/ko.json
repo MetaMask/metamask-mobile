@@ -66,6 +66,10 @@
       "title": "수수료가 정확하지 않음",
       "message": "정확한 수수료를 산정할 수 없어 견적이 높게 책정되었을 수 있습니다. 사용자 지정 가스 한도를 입력해 보세요. 하지만 그 경우에도 거래가 실패할 가능성이 있습니다."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "자금 부족",
       "message": "계정에 네트워크 수수료를 지불할 {{nativeCurrency}}(이)가 부족합니다.",
@@ -546,6 +550,9 @@
     "reset_wallet_desc_2": "영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     "reset_wallet_desc_login": "지갑을 복구하려면 비밀복구구문, Google 계정 비밀번호, Apple 계정 비밀번호를 사용할 수 있습니다. MetaMask는 이 정보를 보관하지 않습니다.",
     "reset_wallet_desc_srp": "지갑을 복구하려면 비밀복구구문이 있어야 합니다. MetaMask는 이 정보를 보관하지 않습니다.",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "바이오메트릭 인증 취소",
     "biometric_authentication_cancelled_title": "바이오메트릭 설정 실패",
     "biometric_authentication_cancelled_description": "설정에서 바이오메트릭 인증을 다시 설정하세요.",
@@ -1145,7 +1152,8 @@
       "button": "계속",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
@@ -1195,6 +1203,11 @@
       "all": "모두",
       "trade": "거래하기",
       "just_now": "지금",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "진입",
         "perps_added": "추가함",
@@ -1247,8 +1260,31 @@
         "status": "상태",
         "closed": "닫힘",
         "buy": "매수",
-        "sell": "매도"
+        "sell": "매도",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1297,7 +1333,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "솔라나",
-          "base": "기본"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1377,6 +1413,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "팔로우 중",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1863,6 +1907,8 @@
         "active": "진행 중",
         "history": "내역",
         "fill_history": "체결 내역",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "이전",
         "next": "다음",
         "page_count": "{{total}}페이지 중 {{page}}페이지"
@@ -2079,10 +2125,7 @@
         "max_distance_reached_notification": "{{symbol}} 체이스 주문이 최대 범위에 도달하여 현재 지정가 주문으로 대기 중입니다.",
         "tab": "체이스",
         "tab_with_count": "체이스 ({{count}})",
-        "active": "진행 중",
-        "history": "내역",
         "filled_only": "체결된 주문만",
-        "visible_count": "{{count}}개 표시",
         "running": "실행 중",
         "running_with_progress": "실행 중 · {{progress}}",
         "cancel": "취소",
@@ -2778,6 +2821,7 @@
       "tabs": {
         "all": "모두",
         "crypto": "암호화폐",
+        "memecoin": "Memecoins",
         "pre_ipo": "상장 전",
         "forex": "외환",
         "new": "신규",
@@ -3254,6 +3298,7 @@
       "loading_accessibility_label": "마켓 기록 불러오기",
       "unable_to_load": "마켓 기록을 불러올 수 없습니다.",
       "unavailable_for_range": "이 기간의 마켓 기록을 확인할 수 없습니다.",
+      "range_live": "LIVE",
       "chart_accessibility_label": "마켓 확률 기록. {{values}}",
       "chart_scrub_accessibility_label": "{{time}}의 마켓 확률 기록. {{values}}"
     },
@@ -4472,7 +4517,7 @@
     "state_logs": "상태 로그",
     "add_network_title": "네트워크 추가",
     "auto_lock": "자동 잠금",
-    "enable_device_authentication": "장치 인증 활성화",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "장치의 바이오메트릭 또는 암호를 사용해 MetaMask를 잠금 해제하세요.",
     "auto_lock_desc": "앱이 자동으로 잠기기 전까지 걸리는 시간을 선택하세요.",
     "state_logs_desc": "이렇게 하면 MetaMask에서 발생할 수 있는 문제를 디버깅하는 데 도움이 됩니다. 햄버거 아이콘 > 피드백 보내기로 문의하시거나 또는 기존 문의 티켓이 있으면, 해당 티켓으로 회신하여 MetaMask 지원 서비스로 보내주시기 바랍니다.",
@@ -6021,6 +6066,7 @@
       "only_numbers_allowed": "숫자만 허용됩니다",
       "negative_values_not_allowed": "음수 값은 허용되지 않습니다",
       "max_base_fee_must_be_greater_than_priority_fee": "최대 기본 요금은 우선 요금보다 높아야 합니다",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "우선 요금은 최대 기본 요금보다 낮아야 합니다",
       "no_zero_value": "{{field}}(은)는 0보다 커야 합니다",
       "speed": "속도",
@@ -6245,7 +6291,7 @@
       "remember_me": "로그인 유지",
       "face_id": "Face ID",
       "touch_id": "Touch ID",
-      "device_authentication": "기기 인증",
+      "device_authentication": "Device authentication",
       "device_passcode": "기기 비밀번호"
     }
   },
@@ -6350,14 +6396,12 @@
     "skip_button_confirm": "건너뛰기",
     "skip_title": "계정 보안을 건너뛸까요?",
     "skip_check": "이 비밀복구구문을 잃으면 지갑에 접근할 수 없습니다.",
-    "what_is_seedphrase_title": "비밀복구구문이란?",
-    "what_is_seedphrase_text_1": "비밀복구구문은 시드구문 또는 니모닉이라고도 하며, 암호화폐 지갑에 접근하고 제어할 수 있게 해주는 단어 조합입니다. 지갑을 MetaMask로 옮기려면 이 구문이 필요합니다.",
-    "what_is_seedphrase_text_2": "비밀 복구 구문은 비밀스럽고 안전한 곳에 보관해야 합니다. 누군가가 비밀 복구 구문을 알게 되면, 해당 계정을 제어할 수 있게 됩니다.",
-    "what_is_seedphrase_text_3": "본인만 접근할 수 있는 곳에 이를 저장하세요. 이를 잃어버리게 되면 MetaMask도 구문 복구를 도와드릴 수 없습니다.",
-    "what_is_seedphrase_text_4": "비밀복구구문을 가진 사람은 다음을 수행할 수 있습니다.",
-    "seedPhrase_point_1": "모든 자금을 인출할 수 있습니다",
-    "seedPhrase_point_2": "트랜잭션을 컨펌할 수 있습니다",
-    "seedPhrase_point_3": "로그인 정보를 변경할 수 있습니다",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "컨펌"
   },
   "account_backup_step_1B": {
@@ -6451,10 +6495,8 @@
   "manual_backup_step_1": {
     "steps": "{{currentStep}} 단계/{{totalSteps}} 단계",
     "action": "비밀복구구문을 저장하고",
-    "info-1": "내",
-    "info-2": "비밀복구구문입니다",
-    "info-3": "지갑에 대한 전체 접근 권한을 부여합니다.",
-    "info-4": "숫자를 순서대로 정확하게 적어두세요. 안전한 곳에 보관하고 절대 다른 사람과 공유하지 마세요.",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "계속",
     "reveal": "탭하여 공개",
     "watching": "다른 사람이 본인의 화면을 보고 있지는 않은지 확인하세요.",
@@ -9055,7 +9097,9 @@
       "empty": {
         "open_orders": "미체결 주문이 여기에 표시됩니다",
         "history": "주문 내역이 여기에 표시됩니다"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9087,14 +9131,16 @@
         "week": "{{count}}주",
         "month": "{{count}}개월"
       },
-      "est_network_fee": "예상 네트워크 수수료",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "주문 생성",
       "paying": "결제 금액",
       "receiving": "받는 중",
       "trigger_condition": "트리거 조건",
       "expiry_label": "유효기간",
       "confirm_order": "주문 컨펌",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "수령 금액",
@@ -9162,6 +9208,7 @@
       "spend_summary": "총 {{repeatCount}}회에 걸쳐 {{everyValue}}{{unit}}마다 {{amount}} {{symbol}}씩 지출합니다",
       "percent_filled": "{{percent}}% 체결",
       "completed": "완료",
+      "cancelled": "Cancelled",
       "you_sent": "전송 금액:",
       "you_receive": "받음:",
       "filled_progress": "{{percent}}%",
@@ -9175,6 +9222,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} 체결됨",
       "not_enough_gas": "가스 부족",
       "out_of_price_range": "가격 범위를 벗어남",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "실패",
       "filled": "체결됨",
       "order_not_found": "주문을 찾을 수 없음",
@@ -9972,7 +10025,12 @@
         "description": "구매 시 Base의 USDC를 사용하도록 MetaMask 카드를 승인하세요.",
         "helper_text": "보통 몇 초 정도 소요됩니다. 앱을 종료하지 마세요.",
         "confirm_button": "자금 승인",
-        "retry_button": "다시 시도"
+        "retry_button": "다시 시도",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "본인 인증 중",
@@ -10148,11 +10206,6 @@
         "kyc_pending": {
           "title": "신원 인증 진행 중",
           "description": "신원 인증을 검토 중입니다. 일반적으로 12시간 이내에 완료됩니다."
-        },
-        "pending_verification": {
-          "title": "카드 설정 완료하기",
-          "description": "카드를 활성화하려면 대기 중인 인증 단계를 완료해야 합니다.",
-          "confirm_button_label": "인증 계속하기"
         }
       },
       "messages": {
@@ -10195,6 +10248,8 @@
         "manage_spending_limit_description_full": "제한 없이 사용할 수 있습니다",
         "unlink_money_account": "Money Account 연결 해제",
         "unlink_money_account_description": "카드 자금 출처를 변경하세요",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "최대 70% 할인된 가격으로 호텔을 예약하세요",
         "card_tos_title": "이용약관",
@@ -10211,8 +10266,51 @@
         "freeze_success": "카드가 성공적으로 정지되었습니다",
         "unfreeze_success": "카드가 성공적으로 정지 해제되었습니다",
         "change_asset": "자산 변경",
-        "change_asset_description": "다른 토큰 선택"
+        "change_asset_description": "다른 토큰 선택",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "트랜잭션",

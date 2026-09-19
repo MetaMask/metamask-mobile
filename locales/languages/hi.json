@@ -66,6 +66,10 @@
       "title": "गलत फीस",
       "message": "हम सही फीस नहीं बता सकते और यह अंदाज़ा ज़्यादा हो सकता है। हमारा सुझाव है कि आप एक कस्टम गैस लिमिट डालें, हालांकि आपका ट्रांसेक्शन फेल भी हो सकता है।"
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "अपर्याप्त फंड",
       "message": "नेटवर्क शुल्क का भुगतान करने के लिए आपके अकाउंट में पर्याप्त {{nativeCurrency}} नहीं है।",
@@ -546,6 +550,9 @@
     "reset_wallet_desc_2": "पर MetaMask से आपका वॉलेट डेटा हमेशा के लिए मिटा दिया जाएगा। इसे वापस नहीं लाया जा सकता।",
     "reset_wallet_desc_login": "अपने वॉलेट को रिस्टोर करने के लिए, आप अपने सीक्रेट रिकवरी फ्रेज़, या अपने Google या Apple अकाउंट के पासवर्ड का उपयोग कर सकते हैं। MetaMask के पास यह जानकारी नहीं है।",
     "reset_wallet_desc_srp": "अपने वॉलेट को रिस्टोर करने के लिए, सुनिश्चित करें कि आपके पास अपना सीक्रेट रिकवरी फ्रेज़ है। MetaMask के पास यह जानकारी नहीं है।",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "बायोमेट्रिक ऑथेंटिकेशन कैंसिल हो गया",
     "biometric_authentication_cancelled_title": "बायोमेट्रिक सेटअप नहीं हो पाया",
     "biometric_authentication_cancelled_description": "कृपया सेटिंग्स से बायोमेट्रिक ऑथेंटिकेशन को फिर से री-सेटअप करें।",
@@ -1145,7 +1152,8 @@
       "button": "जारी रखें",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
@@ -1195,6 +1203,11 @@
       "all": "सभी",
       "trade": "ट्रेड करें",
       "just_now": "अभी-अभी",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "खोला गया",
         "perps_added": "जोड़ा गया",
@@ -1247,8 +1260,31 @@
         "status": "स्टेटस",
         "closed": "बंद किया गया",
         "buy": "खरीदें",
-        "sell": "बेचें"
+        "sell": "बेचें",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1297,7 +1333,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "Solana",
-          "base": "बेस"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1377,6 +1413,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "फ़ॉलो कर रहे हैं",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1863,6 +1907,8 @@
         "active": "एक्टिव",
         "history": "हिस्ट्री",
         "fill_history": "फ़िल इतिहास",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "पिछला",
         "next": "आगे",
         "page_count": "{{total}} में से पेज {{page}}"
@@ -2079,10 +2125,7 @@
         "max_distance_reached_notification": "आपका {{symbol}} चेज़ ऑर्डर अपनी अधिकतम दूरी तक पहुंच गया है और अब लिमिट ऑर्डर के रूप में रुका हुआ है।",
         "tab": "चेज़",
         "tab_with_count": "चेज़ ({{count}})",
-        "active": "एक्टिव",
-        "history": "हिस्ट्री",
         "filled_only": "केवल पूर्ण ऑर्डर",
-        "visible_count": "{{count}} दिखाई दे रहे हैं",
         "running": "चल रहा है",
         "running_with_progress": "चल रहा है · {{progress}}",
         "cancel": "कैंसिल करें",
@@ -2778,6 +2821,7 @@
       "tabs": {
         "all": "सभी",
         "crypto": "क्रिप्टो",
+        "memecoin": "Memecoins",
         "pre_ipo": "Pre-IPO",
         "forex": "फॉरेक्स",
         "new": "नया",
@@ -3254,6 +3298,7 @@
       "loading_accessibility_label": "मार्केट हिस्ट्री लोड हो रही है",
       "unable_to_load": "मार्केट हिस्ट्री लोड नहीं हो सकी।",
       "unavailable_for_range": "इस रेंज के लिए मार्केट हिस्ट्री उपलब्ध नहीं है।",
+      "range_live": "LIVE",
       "chart_accessibility_label": "मार्केट प्रोबेबिलिटी हिस्ट्री। {{values}}",
       "chart_scrub_accessibility_label": "{{time}} पर मार्केट प्रोबेबिलिटी हिस्ट्री। {{values}}"
     },
@@ -4472,7 +4517,7 @@
     "state_logs": "स्टेट लॉग्स",
     "add_network_title": "एक नेटवर्क जोड़ें",
     "auto_lock": "ऑटो-लॉक",
-    "enable_device_authentication": "डिवाइस ऑथेंटिकेशन चालू करें",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "MetaMask को अनलॉक करने के लिए अपने डिवाइस के बायोमेट्रिक्स या पासकोड का इस्तेमाल करें।",
     "auto_lock_desc": "एप्लिकेशन के अपने आप लॉक होने में लगने वाले समय का चयन करें। ",
     "state_logs_desc": "किसी समस्या को डिबग करने में यह MetaMask की मदद करेगा, जिससे आपका मुकाबला हो सकता है।  कृपया इसे हैमबर्गर आइकन > फीडबेक भेजें के जरिए MetaMask समर्थन को भेजें, या अपने वर्तमान टिकट का जवाब दें यदि आपके पास एक है।",
@@ -6021,6 +6066,7 @@
       "only_numbers_allowed": "केवल नंबरों की अनुमति है",
       "negative_values_not_allowed": "नेगेटिव वैल्यूज़ की अनुमति नहीं है",
       "max_base_fee_must_be_greater_than_priority_fee": "अधिकतम बेस फी को प्रायोरिटी फी से ज़्यादा होना चाहिए",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "प्रायोरिटी फी को अधिकतम बेस फी से कम होना चाहिए",
       "no_zero_value": "{{field}} को 0 से ज़्यादा होना चाहिए",
       "speed": "स्पीड",
@@ -6245,7 +6291,7 @@
       "remember_me": "मुझे याद रखें",
       "face_id": "फेस ID",
       "touch_id": "टच ID",
-      "device_authentication": "डिवाइस प्रमाणीकरण",
+      "device_authentication": "Device authentication",
       "device_passcode": "डिवाइस पासकोड"
     }
   },
@@ -6350,14 +6396,12 @@
     "skip_button_confirm": "छोड़ दें",
     "skip_title": "अकाउंट की सुरक्षा को छोड़ दें?",
     "skip_check": "यदि आप यह सीक्रेट रिकवरी फ्रेज़ खो देते हैं, तो आप इस वॉलेट तक नहीं पहुंच पाएंगे।",
-    "what_is_seedphrase_title": "सीक्रेट रिकवरी फ्रेज़ क्या है?",
-    "what_is_seedphrase_text_1": "एक सीक्रेट रिकवरी फ्रेज़, जिसे सीड फ्रेज़ या निमोनिक भी कहा जाता है, शब्दों का एक समूह है जो आपको अपने क्रिप्टो वॉलेट तक पहुँचने और उसे नियंत्रित करने देता है। अपने वॉलेट को MetaMask में ले जाने के लिए, आपको इस फ्रेज़ की आवश्यकता है।",
-    "what_is_seedphrase_text_2": "आपको अपने सीक्रेट रिकवरी फ्रेज को गुप्त और सुरक्षित रखना चाहिए। यदि किसी को आपका सीक्रेट रिकवरी फ्रेज मिल जाता है, वो आपके अकाउंट पर नियंत्रण हासिल कर लेगा।",
-    "what_is_seedphrase_text_3": "इसे ऐसी जगह सहेजें जहां केवल आप इस तक पहुंच सकें। यदि आप इसे खो देते हैं, तो MetaMask भी इसे रिकवर करने में आपकी मदद नहीं कर सकता।",
-    "what_is_seedphrase_text_4": "आपके सीक्रेट रिकवरी फ्रेज़ के साथ कोई भी निम्नलिखित कर सकता है:",
-    "seedPhrase_point_1": "आपके सारे पैसे ले सकता है",
-    "seedPhrase_point_2": "ट्रांसेक्शन कन्फर्म कर सकता है",
-    "seedPhrase_point_3": "आपकी लॉगिन जानकारी बदल सकता है",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "समझ गए"
   },
   "account_backup_step_1B": {
@@ -6451,10 +6495,8 @@
   "manual_backup_step_1": {
     "steps": "{{totalSteps}} का स्टेप {{currentStep}}",
     "action": "अपने सीक्रेट रिकवरी फ्रेज को सहेजें",
-    "info-1": "आपका",
-    "info-2": "सीक्रेट रिकवरी फ्रेज़ है",
-    "info-3": "पूरे वॉलेट तक पूर्ण पहुँच प्रदान करता है।",
-    "info-4": "इसे सही ऑर्डर और संख्या के साथ लिख लें। इसे सुरक्षित रखें और कभी साझा न करें।",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "जारी रखें",
     "reveal": "दिखाने के लिए टैप करें",
     "watching": "सुनिश्चित करें कि कोई आपकी स्क्रीन ना देख रहा हो।",
@@ -9055,7 +9097,9 @@
       "empty": {
         "open_orders": "खुले ऑर्डर यहाँ दिखेंगे",
         "history": "ऑर्डर हिस्ट्री यहाँ दिखेगी"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9087,14 +9131,16 @@
         "week": "{{count}} सप्ताह",
         "month": "{{count}} महीना"
       },
-      "est_network_fee": "अनुमानित नेटवर्क शुल्क",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "ऑर्डर बनाएं",
       "paying": "भुगतान किया जा रहा है",
       "receiving": "प्राप्त कर रहे हैं",
       "trigger_condition": "ट्रिगर का शर्त",
       "expiry_label": "एक्सपायरी",
       "confirm_order": "ऑर्डर कन्फर्म करें",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "आप पाते हैं",
@@ -9162,6 +9208,7 @@
       "spend_summary": "आप हर {{everyValue}} {{unit}} से ज़्यादा {{repeatCount}} बार {{amount}} {{symbol}} खर्च करते हैं",
       "percent_filled": "{{percent}}% भरा गया",
       "completed": "पूरा किया गया",
+      "cancelled": "Cancelled",
       "you_sent": "आपने भेजे",
       "you_receive": "आप प्राप्त करते हैं",
       "filled_progress": "{{percent}}%",
@@ -9175,6 +9222,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} भरा गया",
       "not_enough_gas": "पर्याप्त गैस नहीं",
       "out_of_price_range": "प्राइस रेंज से बाहर",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "नहीं हो पाया",
       "filled": "भरा गया",
       "order_not_found": "ऑर्डर नहीं मिला",
@@ -9972,7 +10025,12 @@
         "description": "खरीदारी के लिए अपने बेस पर मौजूद USDC का उपयोग करने हेतु MetaMask कार्ड को एप्रूव करें।",
         "helper_text": "इसमें आमतौर पर कुछ सेकंड लगते हैं। कृपया ऐप बंद न करें।",
         "confirm_button": "फंडिंग एप्रूव करें",
-        "retry_button": "फिर से प्रयास करें"
+        "retry_button": "फिर से प्रयास करें",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "आपकी पहचान वेरीफाई की जा रही है",
@@ -10148,11 +10206,6 @@
         "kyc_pending": {
           "title": "वेरिफिकेशन प्रोग्रेस में है",
           "description": "आपकी पहचान सत्यापन की समीक्षा की जा रही है। यह आम तौर पर 12 घंटे से कम समय लेता है।"
-        },
-        "pending_verification": {
-          "title": "अपना कार्ड सेटअप पूरा करें",
-          "description": "आपके कार्ड को चालू करने से पहले कुछ सत्यापन चरण पूरे करना आवश्यक हैं, जो अभी पूरे नहीं हुए हैं।",
-          "confirm_button_label": "सत्यापन जारी रखें"
         }
       },
       "messages": {
@@ -10195,6 +10248,8 @@
         "manage_spending_limit_description_full": "फुल एक्सेस चालू है",
         "unlink_money_account": "Money Account को अनलिंक करें",
         "unlink_money_account_description": "अपना कार्ड फंडिंग सोर्स बदलें",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask ट्रैवल",
         "travel_description": "70% तक की छूट के साथ होटल बुक करें",
         "card_tos_title": "नियम और शर्त",
@@ -10211,8 +10266,51 @@
         "freeze_success": "कार्ड अच्छे से फ्रीज़ हो गया",
         "unfreeze_success": "कार्ड अच्छे से अनफ्रीज़ हो गया",
         "change_asset": "एसेट बदलें",
-        "change_asset_description": "कोई दूसरा टोकन चुनें"
+        "change_asset_description": "कोई दूसरा टोकन चुनें",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "ट्रांसेक्शन्स",

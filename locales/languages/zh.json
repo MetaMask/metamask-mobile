@@ -66,6 +66,10 @@
       "title": "费用不准确",
       "message": "我们无法提供准确的费用，当前估值可能偏高。建议您自定义燃料限制，但交易仍有失败风险。"
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "资金不足",
       "message": "您的账户中没有足够的 {{nativeCurrency}} 来支付网络费用。",
@@ -546,6 +550,9 @@
     "reset_wallet_desc_2": "MetaMask 永久删除。此操作无法撤销。",
     "reset_wallet_desc_login": "要恢复您的钱包，您可以使用您的私钥助记词，或您的 Google 账户/ Apple 账户密码。MetaMask 没有这些信息。",
     "reset_wallet_desc_srp": "要恢复您的钱包，请确保您已备份私钥助记词。MetaMask 不会存储此信息。",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "生物特征认证已取消",
     "biometric_authentication_cancelled_title": "生物特征设置失败",
     "biometric_authentication_cancelled_description": "请在设置中重新设定生物识别身份验证。",
@@ -1145,7 +1152,8 @@
       "button": "继续",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
@@ -1195,6 +1203,11 @@
       "all": "所有",
       "trade": "交易",
       "just_now": "刚刚",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "已开立",
         "perps_added": "已添加",
@@ -1247,8 +1260,31 @@
         "status": "状态",
         "closed": "已平仓",
         "buy": "买入",
-        "sell": "卖出"
+        "sell": "卖出",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1297,7 +1333,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "Solana",
-          "base": "基数"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1377,6 +1413,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "正在关注",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1863,6 +1907,8 @@
         "active": "已激活",
         "history": "历史记录",
         "fill_history": "成交历史记录",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "先前",
         "next": "下一步",
         "page_count": "第 {{page}} 页，共 {{total}} 页"
@@ -2079,10 +2125,7 @@
         "max_distance_reached_notification": "您的 {{symbol}} 追踪订单已达最大距离，现作为限价单等待成交。",
         "tab": "追单",
         "tab_with_count": "追单（{{count}}）",
-        "active": "已激活",
-        "history": "历史记录",
         "filled_only": "仅显示已成交订单",
-        "visible_count": "{{count}} 笔可见",
         "running": "运行中",
         "running_with_progress": "运行中 · {{progress}}",
         "cancel": "取消",
@@ -2778,6 +2821,7 @@
       "tabs": {
         "all": "所有",
         "crypto": "加密货币",
+        "memecoin": "Memecoins",
         "pre_ipo": "盘前市场",
         "forex": "外汇",
         "new": "新增",
@@ -3254,6 +3298,7 @@
       "loading_accessibility_label": "正在加载市场历史",
       "unable_to_load": "无法加载市场历史。",
       "unavailable_for_range": "此范围的市场历史不可用。",
+      "range_live": "LIVE",
       "chart_accessibility_label": "市场概率历史。{{values}}",
       "chart_scrub_accessibility_label": "{{time}} 的市场概率历史。{{values}}"
     },
@@ -4472,7 +4517,7 @@
     "state_logs": "状态记录",
     "add_network_title": "添加网络",
     "auto_lock": "自动锁定",
-    "enable_device_authentication": "启用设备认证",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "使用您设备的生物识别功能或密码来解锁 MetaMask。",
     "auto_lock_desc": "选择应用程序自动锁定之前空闲的时间。",
     "state_logs_desc": "这将帮助 MetaMask 调试您可能遇到的任何问题。请通过电子邮件将其发送到 support@metamask.io",
@@ -6021,6 +6066,7 @@
       "only_numbers_allowed": "仅允许使用数字",
       "negative_values_not_allowed": "不可使用负值",
       "max_base_fee_must_be_greater_than_priority_fee": "最大基础费用必须大于优先费用",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "优先费用必须小于最大基础费用",
       "no_zero_value": "{{field}} 必须大于 0",
       "speed": "速度",
@@ -6245,7 +6291,7 @@
       "remember_me": "记住我",
       "face_id": "面容 ID",
       "touch_id": "触控 ID",
-      "device_authentication": "设备验证",
+      "device_authentication": "Device authentication",
       "device_passcode": "设备密码"
     }
   },
@@ -6350,14 +6396,12 @@
     "skip_button_confirm": "跳过",
     "skip_title": "跳过账户安全？",
     "skip_check": "如果您弄丢该私钥助记词，将无法访问此钱包。",
-    "what_is_seedphrase_title": "什么是“私钥助记词”？",
-    "what_is_seedphrase_text_1": "私钥助记词（也称为助记词）是一组词语，可让您访问和控制自己的加密货币钱包。若要将钱包迁移至 MetaMask，您需要此助记词。",
-    "what_is_seedphrase_text_2": "您必须确保助记词保密、安全。如果有人得到您的私钥助记词，他们将能够控制您的账户。",
-    "what_is_seedphrase_text_3": "将它保存在只有您能够接触的地方。一旦丢失，即使是 MetaMask 也无法帮您找回。",
-    "what_is_seedphrase_text_4": "任何拥有您的私钥助记词的人可以：",
-    "seedPhrase_point_1": "拿走您所有的资金",
-    "seedPhrase_point_2": "确认交易",
-    "seedPhrase_point_3": "修改您的登录信息",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "知道了"
   },
   "account_backup_step_1B": {
@@ -6451,10 +6495,8 @@
   "manual_backup_step_1": {
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "action": "请保存您的助记词",
-    "info-1": "您的",
-    "info-2": "私钥助记词",
-    "info-3": "将授予完整的钱包访问权限。",
-    "info-4": "请按正确顺序和数字记录下来。妥善保管，切勿泄露。",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "继续",
     "reveal": "点击即可显示",
     "watching": "确保没有人在看您的屏幕。",
@@ -9055,7 +9097,9 @@
       "empty": {
         "open_orders": "未平仓订单在此处显示",
         "history": "订单历史记录在此处显示"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9087,14 +9131,16 @@
         "week": "{{count}} 周",
         "month": "{{count}} 个月"
       },
-      "est_network_fee": "预估网络费用",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "创建订单",
       "paying": "正在支付",
       "receiving": "正在接收",
       "trigger_condition": "触发条件",
       "expiry_label": "到期时间",
       "confirm_order": "确认订单",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "您获得",
@@ -9162,6 +9208,7 @@
       "spend_summary": "您每 {{everyValue}} {{unit}} 花费 {{amount}} {{symbol}}，重复 {{repeatCount}} 次",
       "percent_filled": "{{percent}}% 已成交",
       "completed": "已完成",
+      "cancelled": "Cancelled",
       "you_sent": "您已发送",
       "you_receive": "您收到",
       "filled_progress": "{{percent}}%",
@@ -9175,6 +9222,12 @@
       "history_progress": "已成交 {{filledOrderCount}}/{{totalOrderCount}} 笔",
       "not_enough_gas": "燃料不足",
       "out_of_price_range": "超出价格范围",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "失败",
       "filled": "已成交",
       "order_not_found": "未找到订单",
@@ -9972,7 +10025,12 @@
         "description": "批准 MetaMask 卡使用您在 Base 上的 USDC 进行购买。",
         "helper_text": "这通常只需几秒钟。请勿关闭应用。",
         "confirm_button": "批准充值",
-        "retry_button": "请重试"
+        "retry_button": "请重试",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "正在验证您的身份",
@@ -10148,11 +10206,6 @@
         "kyc_pending": {
           "title": "验证中",
           "description": "您的身份验证正在审核中。此过程通常耗时少于 12 小时。"
-        },
-        "pending_verification": {
-          "title": "完成卡设置",
-          "description": "在您的卡启用之前，您还有待完成的验证步骤。",
-          "confirm_button_label": "继续验证"
         }
       },
       "messages": {
@@ -10195,6 +10248,8 @@
         "manage_spending_limit_description_full": "全部权限已开启",
         "unlink_money_account": "解除 Money Account 关联",
         "unlink_money_account_description": "更改您的卡资金来源",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "预订酒店享高达 70% 折扣",
         "card_tos_title": "条款和条件",
@@ -10211,8 +10266,51 @@
         "freeze_success": "卡已成功冻结",
         "unfreeze_success": "卡已成功解冻",
         "change_asset": "更改资产",
-        "change_asset_description": "选择其他代币"
+        "change_asset_description": "选择其他代币",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "交易",
@@ -10678,7 +10776,7 @@
       "bonus": "奖励",
       "details": "详情",
       "points": "积分",
-      "points_base": "基数",
+      "points_base": "基础积分",
       "points_boost": "加成",
       "points_total": "总额",
       "description": "描述"
