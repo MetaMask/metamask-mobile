@@ -63,7 +63,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import Logger from '../../../../../util/Logger';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const moneyOnboardingFlowV26Animation = require('../../../../../animations/money_onboarding_debug_3.riv');
+const moneyOnboardingFlowV26Animation = require('../../../../../animations/money_onboarding_debug_10.riv');
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { useTheme } from '../../../../../util/theme';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
@@ -570,6 +570,7 @@ const MoneyOnboardingView = () => {
       handleClose(currentStepRef.current);
     },
   });
+
   useRiveTrigger(ONBOARDING_COMPLETED_TRIGGER, instance, {
     onTrigger: handleOnboardingCompleted,
   });
