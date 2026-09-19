@@ -1,0 +1,51 @@
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
+
+export const REWARDS_TAB_SKELETON_TEST_IDS = {
+  CONTAINER: 'rewards-tab-skeleton',
+  HEADER: 'rewards-tab-skeleton-header',
+  BODY: 'rewards-tab-skeleton-body',
+} as const;
+
+/**
+ * Tab-level loading surface for the Rewards tab.
+ *
+ * Shown while the Money referral persona is unresolved, when neither home may
+ * be mounted yet. It mirrors the chrome both homes open with — top safe-area
+ * inset, default background, a title row with end accessories, then a card
+ * body — so the handoff to `RewardsDashboard` or `RewardsMoneyDashboard` does
+ * not move the header or flash an untinted background.
+ */
+const RewardsTabSkeleton: React.FC = () => {
+  const tw = useTailwind();
+
+  return (
+    <SafeAreaView
+      edges={{ top: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+      testID={REWARDS_TAB_SKELETON_TEST_IDS.CONTAINER}
+    >
+      <Box
+        twClassName="flex-row items-center justify-between px-4 py-3"
+        testID={REWARDS_TAB_SKELETON_TEST_IDS.HEADER}
+      >
+        <Skeleton style={tw.style('h-7 w-32 rounded-md')} />
+        <Box twClassName="flex-row gap-2">
+          <Skeleton style={tw.style('h-8 w-8 rounded-full')} />
+          <Skeleton style={tw.style('h-8 w-8 rounded-full')} />
+        </Box>
+      </Box>
+
+      <Box twClassName="px-4 gap-4" testID={REWARDS_TAB_SKELETON_TEST_IDS.BODY}>
+        <Skeleton style={tw.style('h-10 w-full rounded-md')} />
+        <Skeleton style={tw.style('h-44 w-full rounded-xl')} />
+        <Skeleton style={tw.style('h-28 w-full rounded-xl')} />
+      </Box>
+    </SafeAreaView>
+  );
+};
+
+export default RewardsTabSkeleton;

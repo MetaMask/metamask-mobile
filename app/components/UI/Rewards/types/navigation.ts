@@ -171,6 +171,15 @@ export interface RewardOptInAccountGroupModalParams {
 }
 
 /**
+ * Params for `RewardsMoneyInviteSheet`.
+ * `referralCode` prefills the sheet when the caller already has a code
+ * (deeplink or onboarding); it is absent when the user opens it to type one.
+ */
+export interface RewardsMoneyInviteSheetParams {
+  referralCode?: string;
+}
+
+/**
  * Param list for screens registered in `RewardsNavigator`.
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -229,4 +238,5 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsClaimBottomSheetModal: RewardsClaimBottomSheetModalParams | undefined;
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
+  RewardsMoneyInviteSheet: RewardsMoneyInviteSheetParams | undefined;
 };

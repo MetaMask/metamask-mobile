@@ -27,6 +27,7 @@ import {
   type ReferralFunnelDto,
   type ReferralMeDto,
   type ReferrerOriginType,
+  type RegisterRefereeDto,
   type RewardsMoneyControllerState,
 } from './types';
 
@@ -154,6 +155,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getReferralFunnel',
   'getReferralCodes',
   'validateReferralCode',
+  'registerReferee',
   'getEarningsSummary',
   'getEarningsLedger',
   'getClaimHistory',
@@ -177,6 +179,7 @@ export class RewardsMoneyController extends BaseController<
   RewardsMoneyControllerMessenger
 > {
   readonly #isDisabled: () => boolean;
+  readonly #referralMeRequestGeneration = new Map<string, number>();
 
   constructor({
     messenger,
@@ -260,12 +263,15 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    const fetchFresh = () =>
-      this.messenger.call('RewardsMoneyDataService:getReferralMe');
+    let requestGeneration = 0;
+    const fetchFresh = () => {
+      requestGeneration = this.#startReferralMeRequest(profileId);
+      return this.messenger.call('RewardsMoneyDataService:getReferralMe');
+    };
 
     if (params.forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeReferralMe(profileId, fresh);
+      this.#writeReferralMeIfLatest(profileId, fresh, requestGeneration);
       return fresh;
     }
 
@@ -274,7 +280,8 @@ export class RewardsMoneyController extends BaseController<
       ttl: REFERRAL_ME_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.referralMe[key],
       fetchFresh,
-      writeCache: (key, payload) => this.#writeReferralMe(key, payload),
+      writeCache: (key, payload) =>
+        this.#writeReferralMeIfLatest(key, payload, requestGeneration),
     });
   }
 
@@ -338,6 +345,22 @@ export class RewardsMoneyController extends BaseController<
     return this.messenger.call(
       'RewardsMoneyDataService:validateReferralCode',
       code,
+    );
+  }
+
+  /**
+   * Enrols the session profile under a referrer's code. Nothing is cached: the
+   * referral role that changes as a result is read back through
+   * `getReferralMe({ forceFresh: true })`.
+   */
+  async registerReferee(params: RegisterRefereeDto): Promise<void> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    await this.messenger.call(
+      'RewardsMoneyDataService:registerReferee',
+      params,
     );
   }
 
@@ -554,6 +577,26 @@ export class RewardsMoneyController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  #startReferralMeRequest(profileId: string): number {
+    const generation =
+      (this.#referralMeRequestGeneration.get(profileId) ?? 0) + 1;
+    this.#referralMeRequestGeneration.set(profileId, generation);
+    return generation;
+  }
+
+  #writeReferralMeIfLatest(
+    profileId: string,
+    payload: ReferralMeDto,
+    requestGeneration: number,
+  ): void {
+    if (
+      this.#referralMeRequestGeneration.get(profileId) !== requestGeneration
+    ) {
+      return;
+    }
+    this.#writeReferralMe(profileId, payload);
   }
 
   #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {
