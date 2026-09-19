@@ -66,6 +66,10 @@
       "title": "Phí không chính xác",
       "message": "Chúng tôi không thể cung cấp mức phí chính xác và ước tính này có thể cao. Chúng tôi đề xuất bạn nhập hạn mức phí gas tùy chỉnh, nhưng vẫn có rủi ro giao dịch sẽ thất bại."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Không đủ tiền",
       "message": "Bạn không có đủ {{nativeCurrency}} trong tài khoản để thanh toán phí mạng.",
@@ -546,6 +550,9 @@
     "reset_wallet_desc_2": "khỏi MetaMask trên thiết bị này. Hành động này không thể hoàn tác.",
     "reset_wallet_desc_login": "Để khôi phục ví, bạn có thể sử dụng Cụm từ khôi phục bí mật hoặc mật khẩu tài khoản Google hoặc Apple của bạn. MetaMask không lưu trữ thông tin này.",
     "reset_wallet_desc_srp": "Để khôi phục ví, hãy đảm bảo bạn có Cụm từ khôi phục bí mật. MetaMask không lưu trữ thông tin này.",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "Xác thực sinh trắc học đã bị hủy",
     "biometric_authentication_cancelled_title": "Thiết lập sinh trắc học thất bại",
     "biometric_authentication_cancelled_description": "Thiết lập lại xác thực sinh trắc học trong phần cài đặt.",
@@ -1145,7 +1152,8 @@
       "button": "Tiếp tục",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
@@ -1195,6 +1203,11 @@
       "all": "Tất cả",
       "trade": "Giao dịch",
       "just_now": "Vừa xong",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "đã mở",
         "perps_added": "đã thêm",
@@ -1247,8 +1260,31 @@
         "status": "Trạng thái",
         "closed": "Đã đóng",
         "buy": "Mua",
-        "sell": "Bán"
+        "sell": "Bán",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1297,7 +1333,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "Solana",
-          "base": "Cơ bản"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1377,6 +1413,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "đang theo dõi",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1863,6 +1907,8 @@
         "active": "Đang hoạt động",
         "history": "Lịch sử",
         "fill_history": "Lịch sử khớp lệnh",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Trước đó",
         "next": "Tiếp theo",
         "page_count": "Trang {{page}}/{{total}}"
@@ -2079,10 +2125,7 @@
         "max_distance_reached_notification": "Lệnh bám giá {{symbol}} của bạn đã đạt khoảng cách tối đa và hiện đang chờ khớp dưới dạng lệnh giới hạn.",
         "tab": "Bám giá",
         "tab_with_count": "Bám giá ({{count}})",
-        "active": "Đang hoạt động",
-        "history": "Lịch sử",
         "filled_only": "Chỉ lệnh đã khớp",
-        "visible_count": "Hiển thị {{count}}",
         "running": "Đang chạy",
         "running_with_progress": "Đang chạy · {{progress}}",
         "cancel": "Hủy",
@@ -2778,6 +2821,7 @@
       "tabs": {
         "all": "Tất cả",
         "crypto": "Crypto",
+        "memecoin": "Memecoins",
         "pre_ipo": "Trước IPO",
         "forex": "Ngoại hối",
         "new": "Mới",
@@ -3254,6 +3298,7 @@
       "loading_accessibility_label": "Đang tải lịch sử thị trường",
       "unable_to_load": "Không thể tải lịch sử thị trường.",
       "unavailable_for_range": "Không có lịch sử thị trường cho phạm vi này.",
+      "range_live": "LIVE",
       "chart_accessibility_label": "Lịch sử xác suất thị trường. {{values}}",
       "chart_scrub_accessibility_label": "Lịch sử xác suất thị trường lúc {{time}}. {{values}}"
     },
@@ -4472,7 +4517,7 @@
     "state_logs": "Nhật ký trạng thái",
     "add_network_title": "Thêm mạng",
     "auto_lock": "Tự động khóa",
-    "enable_device_authentication": "Bật xác thực thiết bị",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "Sử dụng sinh trắc học hoặc mật mã của thiết bị để mở khóa MetaMask.",
     "auto_lock_desc": "Chọn khoảng thời gian trước khi ứng dụng tự động khóa.",
     "state_logs_desc": "Điều này sẽ giúp MetaMask gỡ lỗi bất kỳ sự cố nào bạn có thể gặp phải. Vui lòng gửi đến bộ phận hỗ trợ MetaMask thông qua biểu tượng bánh hamburger > Gửi phản hồi hoặc trả lời phiếu hỏi đáp hiện tại của bạn nếu có.",
@@ -6021,6 +6066,7 @@
       "only_numbers_allowed": "Chỉ được phép nhập số",
       "negative_values_not_allowed": "Không được phép sử dụng giá trị âm",
       "max_base_fee_must_be_greater_than_priority_fee": "Phí cơ sở tối đa phải lớn hơn phí ưu tiên",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "Phí ưu tiên phải nhỏ hơn phí cơ sở tối đa",
       "no_zero_value": "{{field}} phải lớn hơn 0",
       "speed": "Tốc độ",
@@ -6245,7 +6291,7 @@
       "remember_me": "Ghi nhớ tôi",
       "face_id": "Face ID",
       "touch_id": "Touch ID",
-      "device_authentication": "Xác thực thiết bị",
+      "device_authentication": "Device authentication",
       "device_passcode": "Mật mã thiết bị"
     }
   },
@@ -6350,14 +6396,12 @@
     "skip_button_confirm": "Bỏ qua",
     "skip_title": "Bỏ qua việc bảo mật tài khoản?",
     "skip_check": "Nếu bạn làm mất Cụm từ khôi phục bí mật này, bạn sẽ không thể truy cập ví này.",
-    "what_is_seedphrase_title": "Cụm từ khôi phục bí mật là gì?",
-    "what_is_seedphrase_text_1": "Cụm từ khôi phục bí mật, còn được gọi là cụm từ khôi phục hoặc thông tin gợi nhớ, là một tập hợp các từ cho phép bạn truy cập và kiểm soát ví tiền mã hóa của mình. Để chuyển ví sang MetaMask, bạn cần cụm từ này.",
-    "what_is_seedphrase_text_2": "Bạn phải giữ Cụm từ khôi phục bí mật một cách bảo mật và an toàn. Nếu ai đó có được Cụm từ khôi phục bí mật của bạn, thì họ sẽ có toàn quyền kiểm soát các tài khoản của bạn.",
-    "what_is_seedphrase_text_3": "Lưu cụm từ này ở một nơi mà bạn có thể truy cập. Nếu bạn làm mất, thì ngay cả MetaMask cũng không thể giúp bạn khôi phục.",
-    "what_is_seedphrase_text_4": "Bất kỳ ai có Cụm từ khôi phục bí mật của bạn đều có thể:",
-    "seedPhrase_point_1": "Lấy toàn bộ tiền của bạn",
-    "seedPhrase_point_2": "Xác nhận giao dịch",
-    "seedPhrase_point_3": "Thay đổi thông tin đăng nhập",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "Đã hiểu"
   },
   "account_backup_step_1B": {
@@ -6451,10 +6495,8 @@
   "manual_backup_step_1": {
     "steps": "Bước {{currentStep}}/{{totalSteps}}",
     "action": "Hãy lưu Cụm từ khôi phục bí mật của bạn",
-    "info-1": "Cụm từ khôi phục bí mật",
-    "info-2": "Cụm từ khôi phục bí mật của bạn",
-    "info-3": "cung cấp quyền truy cập ví đầy đủ.",
-    "info-4": "Ghi lại theo đúng thứ tự và số. Cất giữ an toàn và không bao giờ chia sẻ.",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "Tiếp tục",
     "reveal": "Nhấn để hiển thị",
     "watching": "Đảm bảo không có ai đang quan sát màn hình của bạn.",
@@ -9055,7 +9097,9 @@
       "empty": {
         "open_orders": "Các lệnh mở sẽ xuất hiện tại đây",
         "history": "Lịch sử lệnh sẽ xuất hiện tại đây"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9087,14 +9131,16 @@
         "week": "{{count}} tuần",
         "month": "{{count}} tháng"
       },
-      "est_network_fee": "Phí mạng ước tính",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "Tạo lệnh",
       "paying": "Thanh toán",
       "receiving": "Đang nhận",
       "trigger_condition": "Điều kiện kích hoạt",
       "expiry_label": "Ngày hết hạn",
       "confirm_order": "Xác nhận lệnh",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "Bạn nhận",
@@ -9162,6 +9208,7 @@
       "spend_summary": "Bạn chi tiêu {{amount}} {{symbol}} sau mỗi {{everyValue}} {{unit}}, tổng cộng {{repeatCount}} lần",
       "percent_filled": "Đã khớp {{percent}}%",
       "completed": "Đã hoàn tất",
+      "cancelled": "Cancelled",
       "you_sent": "Bạn đã gửi",
       "you_receive": "Bạn nhận",
       "filled_progress": "{{percent}}%",
@@ -9175,6 +9222,12 @@
       "history_progress": "Đã khớp {{filledOrderCount}}/{{totalOrderCount}}",
       "not_enough_gas": "Không đủ gas",
       "out_of_price_range": "Ngoài phạm vi giá",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "Không thành công",
       "filled": "Đã khớp",
       "order_not_found": "Không tìm thấy lệnh",
@@ -9972,7 +10025,12 @@
         "description": "Chấp thuận MetaMask Card để sử dụng USDC của bạn trên Base cho các giao dịch mua.",
         "helper_text": "Quá trình này thường chỉ mất vài giây. Không đóng ứng dụng.",
         "confirm_button": "Chấp thuận nguồn tiền",
-        "retry_button": "Thử lại"
+        "retry_button": "Thử lại",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "Đang xác minh danh tính của bạn",
@@ -10148,11 +10206,6 @@
         "kyc_pending": {
           "title": "Đang xác minh",
           "description": "Xác minh danh tính của bạn đang được xem xét. Quá trình này thường mất chưa đến 12 giờ."
-        },
-        "pending_verification": {
-          "title": "Hoàn tất thiết lập thẻ của bạn",
-          "description": "Bạn còn các bước xác minh đang chờ hoàn tất trước khi thẻ của bạn có thể được kích hoạt.",
-          "confirm_button_label": "Tiếp tục xác minh"
         }
       },
       "messages": {
@@ -10195,6 +10248,8 @@
         "manage_spending_limit_description_full": "Quyền truy cập đầy đủ đang bật",
         "unlink_money_account": "Hủy liên kết Money Account",
         "unlink_money_account_description": "Thay đổi nguồn cấp tiền cho Thẻ của bạn",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "Đặt phòng khách sạn với mức giảm giá lên đến 70%",
         "card_tos_title": "Điều khoản và điều kiện",
@@ -10211,8 +10266,51 @@
         "freeze_success": "Đã khóa thẻ thành công",
         "unfreeze_success": "Đã mở khóa thẻ thành công",
         "change_asset": "Thay đổi tài sản",
-        "change_asset_description": "Chọn token khác"
+        "change_asset_description": "Chọn token khác",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "Giao dịch",

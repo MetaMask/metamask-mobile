@@ -66,6 +66,10 @@
       "title": "Yanlış ücret",
       "message": "Doğru ücreti sağlayamıyoruz ve bu tahmin yüksek olabilir. Özel bir gaz limiti girmenizi öneririz ancak işlemin yine de başarısız olma riski vardır."
     },
+    "gas_limit_below_minimum": {
+      "title": "Low gas limit",
+      "message": "To continue with this transaction, you'll need to increase the gas limit to 12000 or higher."
+    },
     "insufficient_balance": {
       "title": "Para yetersiz",
       "message": "Hesabınızda ağ ücretlerini ödemek için yeterli {{nativeCurrency}} yok.",
@@ -546,6 +550,9 @@
     "reset_wallet_desc_2": "MetaMask'ten kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "reset_wallet_desc_login": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizi veya Google ya da Apple hesap şifrenizi kullanabilirsiniz. MetaMask bu bilgilere sahip değildir.",
     "reset_wallet_desc_srp": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizin hazır bulunduğundan emin olun. MetaMask bu bilgiye sahip değildir.",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "Biyometrik doğrulama iptal edildi",
     "biometric_authentication_cancelled_title": "Biyometrik Kurulum Başarısız Oldu",
     "biometric_authentication_cancelled_description": "Ayarlar bölümünden biyometrik doğrulama kurulumunu tekrar yapın.",
@@ -1145,7 +1152,8 @@
       "button": "Devam et",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
@@ -1195,6 +1203,11 @@
       "all": "Tümü",
       "trade": "İşlem Yap",
       "just_now": "Az önce",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "açıldı",
         "perps_added": "eklendi",
@@ -1247,8 +1260,31 @@
         "status": "Durum",
         "closed": "Kapatıldı",
         "buy": "Satın al",
-        "sell": "Sat"
+        "sell": "Sat",
+        "hold_time": "Hold time"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Position",
+      "chip_gif": "GIF",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Open",
+      "tab_closed": "Closed",
+      "section_tokens": "Tokens",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Try again",
+      "posting": "Posting..."
     },
     "shell": {
       "subnav": {
@@ -1297,7 +1333,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "Solana",
-          "base": "Baz"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1377,6 +1413,14 @@
       "open_profile": "Open my profile",
       "followers": "followers",
       "following": "takip Ediliyor",
+      "followers_tab": "{{count}} followers",
+      "following_tab": "{{count}} following",
+      "win_rate": "Win rate",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_followers": "No followers yet.",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1863,6 +1907,8 @@
         "active": "Aktif",
         "history": "Geçmiş",
         "fill_history": "Gerçekleşen emir geçmişi",
+        "toggle_hint": "Switches between the Active, History and Fill history views.",
+        "toggle_hint_without_fills": "Switches between the Active and History views.",
         "previous": "Önceki",
         "next": "Sonraki",
         "page_count": "Sayfa {{page}} / {{total}}"
@@ -2079,10 +2125,7 @@
         "max_distance_reached_notification": "{{symbol}} Chase emriniz maksimum mesafesine ulaştı ve şu anda bir limit emri olarak bekliyor.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
-        "active": "Aktif",
-        "history": "Geçmiş",
         "filled_only": "Yalnızca gerçekleşen emirler",
-        "visible_count": "{{count}} adet gösteriliyor",
         "running": "Çalıştırılıyor",
         "running_with_progress": "Çalıştırılıyor · {{progress}}",
         "cancel": "İptal",
@@ -2778,6 +2821,7 @@
       "tabs": {
         "all": "Tümü",
         "crypto": "Kripto",
+        "memecoin": "Memecoins",
         "pre_ipo": "Halka Arz Öncesi",
         "forex": "Forex",
         "new": "Yeni",
@@ -3254,6 +3298,7 @@
       "loading_accessibility_label": "Piyasa geçmişi yükleniyor",
       "unable_to_load": "Piyasa geçmişi yüklenemedi.",
       "unavailable_for_range": "Piyasa geçmişi bu aralık için kullanılamıyor.",
+      "range_live": "LIVE",
       "chart_accessibility_label": "Piyasa olasılık geçmişi. {{values}}",
       "chart_scrub_accessibility_label": "{{time}} itibarıyla piyasa olasılık geçmişi. {{values}}"
     },
@@ -4472,7 +4517,7 @@
     "state_logs": "Durum günlükleri",
     "add_network_title": "Ağ ekle",
     "auto_lock": "Otomatik kilitle",
-    "enable_device_authentication": "Cihaz Doğrulamayı Etkinleştir",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "MetaMask'in kilidini açmak için cihazınızın biyometrik verilerini veya parolasını kullanın.",
     "auto_lock_desc": "Uygulama otomatik olarak kilitlenmeden süre miktarını seçin.",
     "state_logs_desc": "Bu, MetaMask'ın, karşılaşabileceğiniz her sorunu çözmesine yardımcı olur. Lütfen hamburger simgesinden > Geri Bildirim Gönder kısmından MetaMask destek bölümüne gönderin veya varsa mevcut sorgunuza yanıt verin.",
@@ -6021,6 +6066,7 @@
       "only_numbers_allowed": "Yalnızca sayılara izin verilir",
       "negative_values_not_allowed": "Negatif değerlere izin verilmez",
       "max_base_fee_must_be_greater_than_priority_fee": "Maks. baz ücret öncelik ücretinden büyük olmalıdır",
+      "gas_limit_below_minimum": "Gas limit must be at least 12000",
       "priority_fee_too_high": "Öncelik ücreti maks. baz ücretten küçük olmalıdır",
       "no_zero_value": "{{field}}, 0'dan büyük olmalıdır",
       "speed": "Hız",
@@ -6245,7 +6291,7 @@
       "remember_me": "Beni Hatırla",
       "face_id": "Face ID",
       "touch_id": "Touch ID",
-      "device_authentication": "Cihaz Kimlik Doğrulaması",
+      "device_authentication": "Device authentication",
       "device_passcode": "Cihaz Parolası"
     }
   },
@@ -6350,14 +6396,12 @@
     "skip_button_confirm": "Atla",
     "skip_title": "Hesap güvenliğini atla?",
     "skip_check": "Bu Gizli Kurtarma İfadesini kaybederseniz bu cüzdana erişim sağlayamayacaksınız.",
-    "what_is_seedphrase_title": "Gizli Kurtarma İfadesi nedir?",
-    "what_is_seedphrase_text_1": "G\nAnahtar cümle veya kurtarma ifadesi olarak da anılan Gizli Kurtarma İfadesi, kripto cüzdanınıza erişiminizi ve kontrolü sağlayan bir sözcük dizisidir. Cüzdanınızı MetaMask'e taşımak için bu ifadeye ihtiyacınız olur.",
-    "what_is_seedphrase_text_2": "Gizli Kurtarma İfadenizi gizli ve güvende tutmalısınız. Gizli Kurtarma İfadenizi ele geçiren biri hesaplarınızın kontrolünü de ele geçirir.",
-    "what_is_seedphrase_text_3": "Sadece sizin erişim sağlayabileceğiniz bir yere kaydedin. Kaybettiğiniz takdirde onu kurtarmanıza MetaMask bile yardımcı olamaz.",
-    "what_is_seedphrase_text_4": "Gizli Kurtarma İfadenizi elinde bulunduran herkes:",
-    "seedPhrase_point_1": "Tüm paranızı alabilir",
-    "seedPhrase_point_2": "İşlemleri onaylayabilir",
-    "seedPhrase_point_3": "Oturum açma bilgilerinizi değiştirebilir",
+    "what_is_seedphrase_title": "Secret Recovery Phrase",
+    "what_is_seedphrase_description": "Your Secret Recovery Phrase restores your wallet on a new device.",
+    "keep_private_title": "Keep it private.",
+    "keep_private_description": "Anyone with it can access your wallet and move your funds. MetaMask will never ask you to share it.",
+    "store_safely_title": "Store it safely.",
+    "store_safely_description": "Write it down in order and keep it offline somewhere only you can access. MetaMask can't recover it if it's lost.",
     "what_is_seedphrase_confirm": "Anladım"
   },
   "account_backup_step_1B": {
@@ -6451,10 +6495,8 @@
   "manual_backup_step_1": {
     "steps": "Adım {{currentStep}}/{{totalSteps}}",
     "action": "Gizli Kurtarma İfadenizi kaydedin",
-    "info-1": "Size ait",
-    "info-2": "Gizli Kurtarma İfadesi",
-    "info-3": "tam cüzdan erişimi verir.",
-    "info-4": "Doğru sıralamada ve doğru sayılarla yazın. Güvenli bir şekilde saklayın ve asla paylaşmayın.",
+    "description": "Your Secret Recovery Phrase gives full access to your wallet. Write the words down in order and never share them.",
+    "what_is_srp": "What is a Secret Recovery Phrase?",
     "continue": "Devam",
     "reveal": "Açığa çıkarmak için dokunun",
     "watching": "Hiç kimsenin ekranınızı izlemediğinden emin olun.",
@@ -9055,7 +9097,9 @@
       "empty": {
         "open_orders": "Açık emirler burada gösterilir",
         "history": "Emir geçmişi burada gösterilir"
-      }
+      },
+      "error": "Orders couldn’t be loaded",
+      "try_again": "Try again"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -9087,14 +9131,16 @@
         "week": "{{count}} hafta",
         "month": "{{count}} ay"
       },
-      "est_network_fee": "Tah. ağ ücreti",
+      "est_network_fee": "Delegation fee (one time)",
       "create_order": "Emir Oluştur",
       "paying": "Ödeniyor",
       "receiving": "Alınıyor",
       "trigger_condition": "Tetikleme koşulu",
       "expiry_label": "Son geçerlilik tarihi",
       "confirm_order": "Emri onayla",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "edit_cost_tolerance": "Edit cost tolerance",
+      "try_again": "Try again",
+      "error_calculation_network_fees": "Couldn't calculate the network fee."
     },
     "recurring": {
       "you_get": "Aldığınız",
@@ -9162,6 +9208,7 @@
       "spend_summary": "Her {{everyValue}} {{unit}} için {{repeatCount}} kez {{amount}} {{symbol}} harcarsınız",
       "percent_filled": "%{{percent}} gerçekleşti",
       "completed": "Tamamlandı",
+      "cancelled": "Cancelled",
       "you_sent": "Gönderdiğiniz",
       "you_receive": "Aldığınız",
       "filled_progress": "{{percent}}%",
@@ -9175,6 +9222,12 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} gerçekleşti",
       "not_enough_gas": "Yeterli gaz yok",
       "out_of_price_range": "Fiyat aralığının dışında",
+      "insufficient_balance": "Insufficient balance",
+      "no_quotes_available": "No quotes available",
+      "needs_smart_account": "Smart account required",
+      "execution_failed": "Execution failed",
+      "history_empty": "No swap history yet",
+      "history_error": "Swap history couldn’t be loaded",
       "failed": "Başarısız oldu",
       "filled": "Gerçekleşti",
       "order_not_found": "Emir bulunamadı",
@@ -9972,7 +10025,12 @@
         "description": "Satın alma işlemlerinde Base ağındaki USDC varlıklarınızı kullanabilmesi için MetaMask Card'ı onaylayın.",
         "helper_text": "Bu işlem genellikle birkaç saniye sürer. Uygulamayı kapatmayın.",
         "confirm_button": "Fonlamayı onayla",
-        "retry_button": "Tekrar dene"
+        "retry_button": "Tekrar dene",
+        "reapprove": {
+          "title": "Set up card funding",
+          "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
+          "confirm_button": "Approve funding"
+        }
       },
       "verifying_registration": {
         "title": "Kimliğiniz doğrulanıyor",
@@ -10148,11 +10206,6 @@
         "kyc_pending": {
           "title": "Doğrulama işlemi devam ediyor",
           "description": "Kimlik doğrulama işleminiz inceleniyor. Bu işlem genellikle 12 saatten kısa sürer."
-        },
-        "pending_verification": {
-          "title": "Kart kurulumunuzu tamamlayın",
-          "description": "Kartınızın etkinleştirilebilmesi için tamamlamanız gereken bekleyen doğrulama adımları var.",
-          "confirm_button_label": "Doğrulama işlemine devam et"
         }
       },
       "messages": {
@@ -10195,6 +10248,8 @@
         "manage_spending_limit_description_full": "Tam erişim açık",
         "unlink_money_account": "Money account hesabının bağlantısını kes",
         "unlink_money_account_description": "Kart fonlama kaynağınızı değiştirin",
+        "unlink_funding_account": "Unlink card",
+        "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "%70'e varan indirimlerle otel rezervasyonu yapın",
         "card_tos_title": "Şart ve koşullar",
@@ -10211,8 +10266,51 @@
         "freeze_success": "Kart başarıyla donduruldu",
         "unfreeze_success": "Kart dondurma işlemi başarıyla iptal edildi",
         "change_asset": "Varlık değiştir",
-        "change_asset_description": "Farklı bir token seçin"
+        "change_asset_description": "Farklı bir token seçin",
+        "contact_details": "Contact details",
+        "contact_details_description": "Update your email and phone number",
+        "add_to_digital_wallet": "Add to digital wallet",
+        "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Contact details",
+      "description": "Keep your email address and phone number up to date.",
+      "email_label": "Email address",
+      "phone_label": "Phone number",
+      "invalid_email": "Enter a valid email address",
+      "invalid_phone": "Enter a valid phone number",
+      "save": "Save",
+      "retry": "Try again",
+      "load_error": "We couldn't load your contact details. Try again.",
+      "update_error": "We couldn't update your contact details. Try again.",
+      "success_message": "Contact details updated"
+    },
+    "digital_wallet_instructions": {
+      "title": "Add card to digital wallet",
+      "description": "Reveal your MetaMask Card details below, then follow these steps to add your card manually.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Open Apple Wallet and tap the plus button.",
+          "choose_card": "Select Debit or Credit Card, then choose to enter card details manually.",
+          "enter_details": "Enter your MetaMask Card details and follow the prompts to finish adding your card."
+        },
+        "google": {
+          "open_wallet": "Open Google Wallet and tap Add to Wallet.",
+          "choose_card": "Select Payment card, then choose New credit or debit card.",
+          "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Unlink card",
+      "description": "You'll no longer be able to make purchases with your card. Relink anytime.",
+      "unlink_button": "Unlink card",
+      "pending_title": "Unlinking {{accountName}}",
+      "success_title": "{{accountName}} was unlinked",
+      "error": "Something went wrong unlinking your account"
     },
     "transactions": {
       "title": "İşlemler",
@@ -10678,7 +10776,7 @@
       "bonus": "Bonus",
       "details": "Ayrıntılar",
       "points": "Puan",
-      "points_base": "Baz",
+      "points_base": "Temel",
       "points_boost": "Yükseltme",
       "points_total": "Toplam",
       "description": "Açıklama"
