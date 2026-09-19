@@ -38,8 +38,6 @@ import {
   Fit,
   RiveErrorType,
   RiveView,
-  RiveViewRef,
-  useRive,
   useRiveFile,
   useRiveNumber,
   useRiveString,
@@ -50,8 +48,6 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
-  type LayoutChangeEvent,
-  Modal,
   PixelRatio,
   StyleSheet,
   useWindowDimensions,
@@ -69,9 +65,8 @@ import Logger from '../../../../../util/Logger';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const moneyOnboardingFlowV26Animation = require('../../../../../animations/money_onboarding_debug_3.riv');
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
-// import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
-// import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../../util/theme';
+import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -252,12 +247,6 @@ const MoneyOnboardingTextOverlay = ({
   );
 };
 
-// Safety net for revealing the artboard if the view-ready signal never arrives
-// (`useRive` reports readiness via `riveViewRef`, which stays unset if
-// `awaitViewReady` times out), so the artboard can't be left permanently faded
-// out over the gradient.
-const RIVE_REVEAL_FALLBACK_MS = 1500;
-
 const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
@@ -275,7 +264,6 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { riveViewRef, setHybridRef } = useRive();
   const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -601,35 +589,10 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToMoneyHome],
   );
 
-  const riveRef = useRef<RiveViewRef | null>(null);
-
-  // Android: the renderer stops advancing as soon as the state machine settles
-  // (~2 frames), but this artboard animates its layout into place over up to 1s.
-  // Keep it advancing until that's done. See MUSD-####.
-  useEffect(() => {
-    if (!instance) return;
-    const started = Date.now();
-    const id = setInterval(() => {
-      riveRef.current?.playIfNeeded();
-      if (Date.now() - started > 1200) clearInterval(id);
-    }, 50);
-    return () => clearInterval(id);
-  }, [instance]);
-
   return (
-    // <Modal
-    //   visible
-    //   statusBarTranslucent
-    //   navigationBarTranslucent
-    //   hardwareAccelerated
-    //   animationType="fade"
-    //   backdropColor={themeColors.background.default}
-    // >
-    //   <ModalSafeAreaProvider>
     <View style={styles.root} testID={MoneyOnboardingViewTestIds.ROOT}>
       {riveFile && instance && (
         <RiveView
-          hybridRef={setHybridRef}
           file={riveFile}
           artboardName={RIVE_ARTBOARD_NAME}
           stateMachineName={RIVE_STATE_MACHINE_NAME}
@@ -647,8 +610,6 @@ const MoneyOnboardingView = () => {
         opacity={overlayOpacity}
       />
     </View>
-    //   </ModalSafeAreaProvider>
-    // </Modal>
   );
 };
 
@@ -716,9 +677,9 @@ const MoneyOnboardingViewE2E = () => {
 };
 
 const MoneyOnboardingViewGate = () => {
-  // if (isE2EOrPerformanceTest) {
-  //   return <MoneyOnboardingViewE2E />;
-  // }
+  if (isE2EOrPerformanceTest) {
+    return <MoneyOnboardingViewE2E />;
+  }
   return <MoneyOnboardingView />;
 };
 

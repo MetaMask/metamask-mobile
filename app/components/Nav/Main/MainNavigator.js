@@ -120,7 +120,6 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
-  fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -1267,13 +1266,6 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
-            options={
-              {
-                // headerShown: false,
-                // ...fadeNativeOptions,
-                // ...transparentModalScreenOptions,
-              }
-            }
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}
@@ -1357,7 +1349,6 @@ const MainNavigator = () => {
             component={PerpsModalStackWithErrorGate}
             options={{
               ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
             }}
           />
         </>
