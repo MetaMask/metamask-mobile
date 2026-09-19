@@ -71,7 +71,9 @@ export const PredictHome = () => {
     () => [...feedNflEvents, ...feedNcaaEvents],
     [feedNflEvents, feedNcaaEvents],
   );
-  const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents);
+  const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents, {
+    marketScope: 'card',
+  });
   const nflEvents = useMemo(
     () => liveEvents.slice(0, feedNflEvents.length),
     [liveEvents, feedNflEvents.length],
