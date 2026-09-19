@@ -600,7 +600,7 @@
         );
       } catch (error) {
         window.ReactNativeWebView.postMessage(
-          JSON.stringify({ type: 'error', message: error.message })
+          JSON.stringify({ type: 'initError', message: error.message })
         );
         console.error('Error loading Go SDK:', error);
       }

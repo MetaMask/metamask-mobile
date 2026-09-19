@@ -404,7 +404,7 @@ describe('usePerpsNavigation', () => {
       });
     });
 
-    it('routes an explicit Lighter order directly while aggregated', () => {
+    it('switches to Lighter before routing an explicit order while aggregated', async () => {
       mockActiveProvider = 'aggregated';
       const { result } = renderHook(() => usePerpsNavigation());
       const params = {
@@ -415,12 +415,15 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToOrder(params);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.BALANCE_ORDER,
-        params,
-      );
+      expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
+      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.BALANCE_ORDER,
+          params,
+        );
+      });
       expect(mockDepositWithOrder).not.toHaveBeenCalled();
-      expect(mockSwitchProvider).not.toHaveBeenCalled();
     });
 
     it('switches a concrete provider before routing an explicit Lighter order', async () => {
@@ -453,7 +456,7 @@ describe('usePerpsNavigation', () => {
     });
 
     it('does not route an explicit Lighter order when provider switching fails', async () => {
-      mockActiveProvider = 'hyperliquid';
+      mockActiveProvider = 'aggregated';
       mockSwitchProvider.mockResolvedValueOnce({
         success: false,
         error: 'Provider switch failed',

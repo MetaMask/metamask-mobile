@@ -278,13 +278,12 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         }
       };
-      // Lighter has no deposit-with-order route. Aggregated mode can trade its
-      // venue balance directly; a conflicting concrete mode must switch first.
+      // Lighter has no deposit-with-order route. Switch first so the form uses
+      // Lighter's balance and market metadata, including from aggregated mode.
       if (orderProvider === 'lighter') {
         if (
           params.providerId === 'lighter' &&
           activeProvider !== undefined &&
-          activeProvider !== PROVIDER_CONFIG.AggregatedProvider &&
           activeProvider !== params.providerId
         ) {
           switchToOrderProvider()

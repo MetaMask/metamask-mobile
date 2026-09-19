@@ -89,6 +89,7 @@ function rejectAllPending(reason: string): void {
 
 type LighterPageMessage =
   | { type: 'ready' }
+  | { type: 'initError'; message: string }
   | { type: 'executeResult'; executeId: string; result: unknown }
   | { type: 'executeError'; executeId: string; message: string }
   | { type: 'log' | 'warn' | 'error'; message: string | string[] };
@@ -127,6 +128,10 @@ export function parseLighterPageMessage(
   switch (parsed.type) {
     case 'ready':
       return { type: 'ready' };
+    case 'initError':
+      return typeof parsed.message === 'string'
+        ? { type: 'initError', message: parsed.message }
+        : null;
     case 'executeResult':
       return typeof parsed.executeId === 'string' && 'result' in parsed
         ? {
@@ -187,7 +192,7 @@ export function isValidLighterSignerResult(
  *
  * Follows the SnapsExecutionWebView precedent (0x0 view mounted in Root before
  * Engine interactions) and the reference Lighter RN SDK postMessage protocol:
- * page → RN: ready | log | warn | error | executeResult | executeError;
+ * page → RN: ready | initError | log | warn | error | executeResult | executeError;
  * RN → page: { type: 'execute', function, params, executeId }.
  *
  * On `ready` it connects the module-level lighterSignerBridge executor, which
@@ -248,116 +253,123 @@ export const LighterSignerWebView = () => {
     };
   }, []);
 
-  const onMessage = useCallback((event: WebViewMessageEvent) => {
-    const message = parseLighterPageMessage(event.nativeEvent.data);
-    if (!message) {
-      DevLogger.log(
-        '[LighterSignerWebView] Invalid message',
-        event.nativeEvent.data,
-      );
-      return;
-    }
-
-    switch (message.type) {
-      case 'ready': {
-        if (reloadTimerRef.current || isUnavailableRef.current) {
-          return;
-        }
-        DevLogger.log('[LighterSignerWebView] WASM signer ready');
-        // The threshold counts CONSECUTIVE failed reloads. Without this reset
-        // the counter climbs for the whole WebView lifetime, so a handful of
-        // transient content-process deaths spread across a long session — each
-        // one fully recovered — would eventually trip terminal unavailability.
-        reloadAttemptsRef.current = 0;
-        const execute: LighterExecutor = (call, timeoutMs) => {
-          const webview = webviewRef.current;
-          if (!webview) {
-            return Promise.reject(
-              new Error('Lighter signer WebView is not mounted'),
-            );
-          }
-          return new Promise((resolve, reject) => {
-            nextExecuteSequence += 1;
-            const executeId = `${call.function}_${nextExecuteSequence}`;
-            const timer = setTimeout(() => {
-              delete executePromises[executeId];
-              reject(
-                new Error(
-                  `Lighter signer call ${call.function} timed out after ${timeoutMs}ms`,
-                ),
-              );
-            }, timeoutMs);
-            executePromises[executeId] = {
-              resolve,
-              reject,
-              timer,
-              functionName: call.function,
-            };
-            try {
-              webview.postMessage(
-                JSON.stringify({ type: 'execute', ...call, executeId }),
-              );
-            } catch (error) {
-              clearTimeout(timer);
-              delete executePromises[executeId];
-              reject(error);
-            }
-          });
-        };
-        connectLighterExecutor(execute);
-        logReadyLatency(mountedAtRef.current);
-        break;
-      }
-      case 'executeResult':
-        {
-          const pendingResult = executePromises[message.executeId];
-          if (pendingResult) {
-            clearTimeout(pendingResult.timer);
-            if (
-              isRecord(message.result) &&
-              typeof message.result.error === 'string' &&
-              message.result.error.trim().length > 0
-            ) {
-              // WASM failures return an error without the success payload.
-              pendingResult.reject(new Error(message.result.error));
-            } else if (
-              isValidLighterSignerResult(
-                pendingResult.functionName,
-                message.result,
-              )
-            ) {
-              pendingResult.resolve(message.result);
-            } else {
-              pendingResult.reject(
-                new Error(
-                  `Invalid Lighter signer result for ${pendingResult.functionName}`,
-                ),
-              );
-            }
-          }
-          delete executePromises[message.executeId];
-        }
-        break;
-      case 'executeError':
-        {
-          const pendingError = executePromises[message.executeId];
-          if (pendingError) {
-            clearTimeout(pendingError.timer);
-            pendingError.reject(new Error(message.message));
-          }
-          delete executePromises[message.executeId];
-        }
-        break;
-      case 'log':
-      case 'warn':
-      case 'error':
+  const onMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      const message = parseLighterPageMessage(event.nativeEvent.data);
+      if (!message) {
         DevLogger.log(
-          `[LighterSignerWebView] page ${message.type}:`,
-          message.message,
+          '[LighterSignerWebView] Invalid message',
+          event.nativeEvent.data,
         );
-        break;
-    }
-  }, []);
+        return;
+      }
+
+      switch (message.type) {
+        case 'ready': {
+          if (reloadTimerRef.current || isUnavailableRef.current) {
+            return;
+          }
+          DevLogger.log('[LighterSignerWebView] WASM signer ready');
+          // The threshold counts CONSECUTIVE failed reloads. Without this reset
+          // the counter climbs for the whole WebView lifetime, so a handful of
+          // transient content-process deaths spread across a long session — each
+          // one fully recovered — would eventually trip terminal unavailability.
+          reloadAttemptsRef.current = 0;
+          const execute: LighterExecutor = (call, timeoutMs) => {
+            const webview = webviewRef.current;
+            if (!webview) {
+              return Promise.reject(
+                new Error('Lighter signer WebView is not mounted'),
+              );
+            }
+            return new Promise((resolve, reject) => {
+              nextExecuteSequence += 1;
+              const executeId = `${call.function}_${nextExecuteSequence}`;
+              const timer = setTimeout(() => {
+                delete executePromises[executeId];
+                reject(
+                  new Error(
+                    `Lighter signer call ${call.function} timed out after ${timeoutMs}ms`,
+                  ),
+                );
+              }, timeoutMs);
+              executePromises[executeId] = {
+                resolve,
+                reject,
+                timer,
+                functionName: call.function,
+              };
+              try {
+                webview.postMessage(
+                  JSON.stringify({ type: 'execute', ...call, executeId }),
+                );
+              } catch (error) {
+                clearTimeout(timer);
+                delete executePromises[executeId];
+                reject(error);
+              }
+            });
+          };
+          connectLighterExecutor(execute);
+          logReadyLatency(mountedAtRef.current);
+          break;
+        }
+        case 'executeResult':
+          {
+            const pendingResult = executePromises[message.executeId];
+            if (pendingResult) {
+              clearTimeout(pendingResult.timer);
+              if (
+                isRecord(message.result) &&
+                typeof message.result.error === 'string' &&
+                message.result.error.trim().length > 0
+              ) {
+                // WASM failures return an error without the success payload.
+                pendingResult.reject(new Error(message.result.error));
+              } else if (
+                isValidLighterSignerResult(
+                  pendingResult.functionName,
+                  message.result,
+                )
+              ) {
+                pendingResult.resolve(message.result);
+              } else {
+                pendingResult.reject(
+                  new Error(
+                    `Invalid Lighter signer result for ${pendingResult.functionName}`,
+                  ),
+                );
+              }
+            }
+            delete executePromises[message.executeId];
+          }
+          break;
+        case 'executeError':
+          {
+            const pendingError = executePromises[message.executeId];
+            if (pendingError) {
+              clearTimeout(pendingError.timer);
+              pendingError.reject(new Error(message.message));
+            }
+            delete executePromises[message.executeId];
+          }
+          break;
+        case 'log':
+        case 'warn':
+        case 'error':
+        case 'initError':
+          DevLogger.log(
+            `[LighterSignerWebView] page ${message.type}:`,
+            message.message,
+          );
+          if (message.type === 'initError') {
+            handleFailure();
+          }
+          break;
+      }
+    },
+    [handleFailure],
+  );
 
   if (isUnavailable) {
     return null;
