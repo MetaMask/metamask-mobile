@@ -19,9 +19,12 @@ jest.mock('../../../selectors/nftController', () => ({
   selectNftByIdentity: jest.fn(),
 }));
 
-jest.mock('../../Views/ActivityList/hooks/activity/useCachedEvmTransaction', () => ({
-  useCachedEvmTransaction: jest.fn(),
-}));
+jest.mock(
+  '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
+  () => ({
+    useCachedEvmTransaction: jest.fn(),
+  }),
+);
 
 const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.MockedFunction<
   typeof getFormattedIpfsUrl

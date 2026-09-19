@@ -30,7 +30,9 @@ jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
 }));
 
 jest.mock('../../../../selectors/multichain/multichain', () => {
-  const actual = jest.requireActual('../../../../selectors/multichain/multichain');
+  const actual = jest.requireActual(
+    '../../../../selectors/multichain/multichain',
+  );
   return {
     ...actual,
     selectNonEvmTransactionsForSelectedAccountGroup: jest.fn(() => ({

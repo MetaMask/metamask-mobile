@@ -185,11 +185,14 @@ const mockCachedEvmTransactions = new Map<
   { transactionProtocol?: string }
 >();
 
-jest.mock('../../Views/ActivityList/hooks/activity/useCachedEvmTransaction', () => ({
-  useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
-    (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
-    undefined,
-}));
+jest.mock(
+  '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
+  () => ({
+    useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
+      (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
+      undefined,
+  }),
+);
 
 jest.mock('../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
