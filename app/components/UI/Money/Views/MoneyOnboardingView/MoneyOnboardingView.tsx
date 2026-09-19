@@ -69,8 +69,8 @@ import Logger from '../../../../../util/Logger';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const moneyOnboardingFlowV26Animation = require('../../../../../animations/money_onboarding_debug_3.riv');
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
-import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
-import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+// import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
+// import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../../util/theme';
 
 /**
@@ -275,7 +275,6 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { height, width } = useWindowDimensions();
   const { riveViewRef, setHybridRef } = useRive();
   const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
