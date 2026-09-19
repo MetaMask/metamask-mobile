@@ -62,8 +62,10 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import Logger from '../../../../../util/Logger';
-import moneyOnboardingFlowV26Animation from '../../../../../animations/money_onboarding_flow_v26.riv';
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const moneyOnboardingFlowV26Animation = require('../../../../../animations/money_onboarding_debug_10.riv');
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { useTheme } from '../../../../../util/theme';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 
 /**
@@ -95,11 +97,12 @@ const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
 
 /** Transition speed passed to the Rive artboard. */
 const RIVE_TRANSITION_SPEED = 300;
+
 const OVERLAY_FADE_DURATION_MS = 600;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
-const HEADER_TOP_OFFSET = 60;
-const FOOTER_BOTTOM_OFFSET = 100;
+const HEADER_TOP_OFFSET = 65;
+const FOOTER_BOTTOM_OFFSET = 90;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
@@ -127,8 +130,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  riveHidden: {
-    opacity: 0,
+  rive: {
+    width: '100%',
+    height: '100%',
   },
   textGroup: {
     position: 'absolute',
@@ -160,11 +164,9 @@ const FALLBACK_APY = 4;
 
 const MoneyOnboardingTextOverlay = ({
   content,
-  isVisible,
   opacity,
 }: {
   content?: OnboardingTextContent;
-  isVisible: boolean;
   opacity: SharedValue<number>;
 }) => {
   const insets = useSafeAreaInsets();
@@ -180,9 +182,9 @@ const MoneyOnboardingTextOverlay = ({
 
   const animatedStyle = useAnimatedStyle(
     () => ({
-      opacity: isVisible ? opacity.value : 0,
+      opacity: opacity.value,
     }),
-    [isVisible],
+    [],
   );
 
   return (
@@ -274,11 +276,10 @@ const MoneyOnboardingView = () => {
     async: true,
   });
 
+  const { colors: themeColors } = useTheme();
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
-  const [isRiveLaidOut, setIsRiveLaidOut] = useState(false);
-  const [isRiveVisible, setIsRiveVisible] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(1);
 
@@ -569,6 +570,7 @@ const MoneyOnboardingView = () => {
       handleClose(currentStepRef.current);
     },
   });
+
   useRiveTrigger(ONBOARDING_COMPLETED_TRIGGER, instance, {
     onTrigger: handleOnboardingCompleted,
   });
@@ -588,24 +590,8 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToMoneyHome],
   );
 
-  const handleRiveLayout = useCallback(() => {
-    setIsRiveLaidOut(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isRiveLaidOut) {
-      return;
-    }
-
-    const animationFrameId = requestAnimationFrame(() => {
-      setIsRiveVisible(true);
-    });
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isRiveLaidOut]);
-
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID={MoneyOnboardingViewTestIds.ROOT}>
       {riveFile && instance && (
         <RiveView
           file={riveFile}
@@ -613,17 +599,15 @@ const MoneyOnboardingView = () => {
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBind={instance}
           autoPlay
-          fit={isRiveLaidOut ? Fit.Layout : Fit.Cover}
+          fit={Fit.Layout}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
-          onLayout={handleRiveLayout}
-          style={[StyleSheet.absoluteFill, !isRiveVisible && styles.riveHidden]}
+          style={StyleSheet.absoluteFill}
           testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
         />
       )}
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
-        isVisible={isRiveVisible}
         opacity={overlayOpacity}
       />
     </View>

@@ -120,7 +120,6 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
-  fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
@@ -1139,7 +1138,6 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
-            options={{ headerShown: false, ...fadeNativeOptions }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}
@@ -1223,7 +1221,6 @@ const MainNavigator = () => {
             component={PerpsModalStackWithErrorGate}
             options={{
               ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
             }}
           />
         </>

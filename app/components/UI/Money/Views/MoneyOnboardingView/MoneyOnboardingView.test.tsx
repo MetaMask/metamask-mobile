@@ -1,7 +1,8 @@
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import {
   Dimensions,
+  type LayoutChangeEvent,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
@@ -24,6 +25,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import {
   __fireRiveTrigger,
+  __getLastUseRiveMethods,
   __getRivePropertySetter,
   __resetRiveMocks,
   __setRivePropertyValue,
@@ -104,6 +106,7 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('../../../../../util/haptics', () => ({
@@ -166,7 +169,7 @@ const mockWorklets = jest.requireMock(
 interface MockRiveViewProps {
   fit?: Fit;
   onError?: (error: RiveError) => void;
-  onLayout?: () => void;
+  onLayout?: (event?: LayoutChangeEvent) => void | Promise<void>;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -235,13 +238,53 @@ const completeOnboarding = async () => {
   setOnboardingCompleted(true);
 };
 
-const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
+/** Container size reported to `onLayout`, which the Rive view is sized from. */
+const ROOT_LAYOUT = { height: 844, width: 390 };
 
-const triggerRiveLayout = () => {
-  act(() => {
-    mockRiveViewProps.current?.onLayout?.();
+/** Matches `RIVE_MEASURE_SETTLE_DELAY_MS` in the view. */
+const RIVE_MEASURE_SETTLE_DELAY_MS = 150;
+
+const buildLayoutEvent = (height: number, width: number) =>
+  ({
+    nativeEvent: { layout: { height, width, x: 0, y: 0 } },
+  } as LayoutChangeEvent);
+
+/**
+ * The Rive view only mounts once the container reports a size, so every render
+ * lays the container out first.
+ */
+const renderMoneyOnboardingView = () => {
+  const view = render(<MoneyOnboardingView />);
+  // Absent when the E2E gate renders instead of the animated view.
+  const root = view.queryByTestId(MoneyOnboardingViewTestIds.ROOT);
+
+  if (root) {
+    act(() => {
+      fireEvent(
+        root,
+        'layout',
+        buildLayoutEvent(ROOT_LAYOUT.height, ROOT_LAYOUT.width),
+      );
+    });
+  }
+
+  return view;
+};
+
+/** Awaited because the handler waits on `awaitViewReady` before sizing. */
+const triggerRiveLayout = async () => {
+  await act(async () => {
+    await mockRiveViewProps.current?.onLayout?.(
+      buildLayoutEvent(
+        StyleSheet.flatten(mockRiveViewProps.current?.style)?.height as number,
+        ROOT_LAYOUT.width,
+      ),
+    );
   });
 };
+
+const getRiveHeight = () =>
+  StyleSheet.flatten(mockRiveViewProps.current?.style)?.height;
 
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
@@ -342,49 +385,56 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
-  describe('Rive initial layout', () => {
-    it('starts hidden with Cover fit before native layout', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
-
-      expect(mockRiveViewProps.current?.fit).toBe(Fit.Cover);
-      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
-        0,
-      );
-      expect(
-        StyleSheet.flatten(
-          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
-        ).opacity,
-      ).toBe(0);
-    });
-
-    it('switches to Layout fit after native layout while remaining hidden', () => {
+  // Android resizes a Fit.Layout artboard only on a native measure pass, so
+  // the view holds 1dp back and restores it to force that pass. See
+  // useRiveLayoutMeasureNudge.
+  describe('Rive Fit.Layout measure nudge', () => {
+    it('renders the animation with Layout fit', () => {
       renderMoneyOnboardingView();
 
-      triggerRiveLayout();
-
       expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
-      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
-        0,
-      );
     });
 
-    it('reveals Rive and overlay on the animation frame after layout', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
+    it('holds the view 1dp short of the container before the first layout pass', () => {
+      renderMoneyOnboardingView();
 
-      triggerRiveLayout();
+      expect(getRiveHeight()).toBe(ROOT_LAYOUT.height - 1);
+    });
+
+    it('restores the full container height once the view reports ready', async () => {
+      renderMoneyOnboardingView();
+
+      await triggerRiveLayout();
+
+      expect(getRiveHeight()).toBe(ROOT_LAYOUT.height);
+    });
+
+    it('plays the animation on the full-size layout pass so the artboard resize is drawn', async () => {
+      renderMoneyOnboardingView();
+
+      await triggerRiveLayout();
+      await triggerRiveLayout();
+
+      expect(__getLastUseRiveMethods()?.playIfNeeded).toHaveBeenCalled();
+    });
+
+    it('does not play the animation before the full-size layout pass lands', async () => {
+      renderMoneyOnboardingView();
+
+      await triggerRiveLayout();
+
+      expect(__getLastUseRiveMethods()?.playIfNeeded).not.toHaveBeenCalled();
+    });
+
+    it('nudges the measure pass again once the window settle delay elapses', async () => {
+      renderMoneyOnboardingView();
+      await triggerRiveLayout();
 
       act(() => {
-        jest.runOnlyPendingTimers();
+        jest.advanceTimersByTime(RIVE_MEASURE_SETTLE_DELAY_MS);
       });
 
-      expect(
-        StyleSheet.flatten(mockRiveViewProps.current?.style).opacity,
-      ).toBeUndefined();
-      expect(
-        StyleSheet.flatten(
-          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
-        ).opacity,
-      ).toBe(1);
+      expect(getRiveHeight()).toBe(ROOT_LAYOUT.height - 1);
     });
   });
 
