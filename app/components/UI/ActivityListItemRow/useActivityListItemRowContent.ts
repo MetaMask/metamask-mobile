@@ -265,9 +265,7 @@ function predictMarketSubtitle(item: ActivityListItem): string | undefined {
   return getPredictActivity(item)?.title;
 }
 
-function protocolSubtitle(transactionProtocol?: string) {
-  const protocol = transactionProtocol;
-
+function protocolSubtitle(protocol?: string) {
   if (
     !protocol ||
     protocol === 'GENERIC' ||

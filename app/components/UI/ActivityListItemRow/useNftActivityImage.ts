@@ -54,7 +54,7 @@ function toHexChainId(chainId: string): Hex | undefined {
  */
 function getNftIdentity(
   item: ActivityListItem,
-  valueTransfers: NftValueTransfer[] | undefined,
+  transfers: NftValueTransfer[] | undefined,
 ): NftIdentity | undefined {
   if (!NFT_ACTIVITY_KINDS.has(item.type)) {
     return undefined;
@@ -62,13 +62,12 @@ function getNftIdentity(
 
   const { from, to } = item.data as { from?: string; to?: string };
   const nftTransfer =
-    valueTransfers?.find(
+    transfers?.find(
       (transfer) =>
         isNftTransferType(transfer.transferType) &&
         areAddressesEqual(transfer.from ?? '', from ?? '') &&
         areAddressesEqual(transfer.to ?? '', to ?? ''),
-    ) ??
-    valueTransfers?.find(({ transferType }) => isNftTransferType(transferType));
+    ) ?? transfers?.find(({ transferType }) => isNftTransferType(transferType));
 
   const contractAddress = nftTransfer?.contractAddress;
   const tokenId = nftTransfer?.tokenId;
