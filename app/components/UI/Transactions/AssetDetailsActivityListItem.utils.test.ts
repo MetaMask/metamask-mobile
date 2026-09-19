@@ -44,14 +44,8 @@ describe('AssetDetailsActivityListItem utils', () => {
       tokenChainId: '0x89',
     });
 
-    expect(item.raw?.type).toBe('localTransaction');
-    if (item.raw?.type !== 'localTransaction') {
-      throw new Error('Expected local transaction activity item');
-    }
     expect(item.chainId).toBe('eip155:137');
-    expect(item.raw?.data.primaryTransaction.chainId).toBe('0x89');
-    expect(item.raw?.data.primaryTransaction.txParams.chainId).toBe('0x89');
-    expect(item.raw?.data.nativeAssetSymbol).toBe('ETH');
+    expect(item.type).toBe('send');
   });
 
   it('creates transaction details params for redesigned asset detail rows', () => {
@@ -115,16 +109,7 @@ describe('AssetDetailsActivityListItem utils', () => {
         ...overrides,
       });
 
-    const expectLocalTransaction = (
-      item: ReturnType<typeof mapTransactionToActivityItem>,
-    ) => {
-      if (item.raw?.type !== 'localTransaction') {
-        throw new Error('Expected local transaction activity item');
-      }
-      return item.raw.data;
-    };
-
-    it('attaches contractTokenMetadata when the tx targets the asset contract', () => {
+    it('uses the asset token metadata when the tx targets the asset contract', () => {
       const item = mapTransactionToActivityItem({
         transaction: createTokenTransfer(),
         assetSymbol: 'USDG',
@@ -134,11 +119,12 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1237',
       });
 
-      const data = expectLocalTransaction(item);
-      expect(data.contractTokenMetadata).toStrictEqual({
-        symbol: 'USDG',
-        decimals: 6,
-      });
+      expect(item.data.token).toEqual(
+        expect.objectContaining({
+          symbol: 'USDG',
+          decimals: 6,
+        }),
+      );
     });
 
     it('matches assetAddress case-insensitively (checksummed vs lowercase)', () => {
@@ -151,13 +137,15 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1237',
       });
 
-      expect(expectLocalTransaction(item).contractTokenMetadata).toStrictEqual({
-        symbol: 'USDG',
-        decimals: 6,
-      });
+      expect(item.data.token).toEqual(
+        expect.objectContaining({
+          symbol: 'USDG',
+          decimals: 6,
+        }),
+      );
     });
 
-    it('does not attach contractTokenMetadata when the tx targets another contract', () => {
+    it('does not use asset token metadata when the tx targets another contract', () => {
       const item = mapTransactionToActivityItem({
         // to: 0x456 — e.g. a router/swap call on the asset page
         transaction: createTransaction(),
@@ -168,24 +156,20 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1237',
       });
 
-      expect(
-        expectLocalTransaction(item).contractTokenMetadata,
-      ).toBeUndefined();
+      expect(item.data.token?.symbol).not.toBe('USDG');
     });
 
-    it('does not attach contractTokenMetadata when assetAddress is not provided (legacy call)', () => {
+    it('does not use asset token metadata when assetAddress is not provided (legacy call)', () => {
       const item = mapTransactionToActivityItem({
         transaction: createTokenTransfer(),
         assetSymbol: 'USDG',
         currentChainId: '0x1237',
       });
 
-      expect(
-        expectLocalTransaction(item).contractTokenMetadata,
-      ).toBeUndefined();
+      expect(item.data.token?.decimals).not.toBe(6);
     });
 
-    it('does not attach contractTokenMetadata when txParams.to is undefined (contract deployment)', () => {
+    it('does not use asset token metadata when txParams.to is undefined (contract deployment)', () => {
       const item = mapTransactionToActivityItem({
         transaction: createTransaction({
           txParams: { from: '0x123', value: '0x0' },
@@ -197,9 +181,7 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1237',
       });
 
-      expect(
-        expectLocalTransaction(item).contractTokenMetadata,
-      ).toBeUndefined();
+      expect(item.data.token?.symbol).not.toBe('USDG');
     });
   });
 
@@ -348,10 +330,6 @@ describe('AssetDetailsActivityListItem utils', () => {
         bridgeHistoryItem,
       });
 
-      if (item.raw?.type !== 'localTransaction') {
-        throw new Error('Expected local transaction activity item');
-      }
-      expect(item.raw.data.activityStatus).toBeUndefined();
       expect(item.status).toBe('pending');
     });
 
@@ -364,10 +342,7 @@ describe('AssetDetailsActivityListItem utils', () => {
         bridgeHistoryItem: completedBridgeHistoryItem,
       });
 
-      if (item.raw?.type !== 'localTransaction') {
-        throw new Error('Expected local transaction activity item');
-      }
-      expect(item.raw.data.activityStatus).toBeUndefined();
+      expect(item.type).toBe('swap');
     });
   });
 
@@ -380,10 +355,7 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1237',
       });
 
-      if (item.raw?.type !== 'localTransaction') {
-        throw new Error('Expected local transaction activity item');
-      }
-      expect(item.raw.data.nativeAssetSymbol).toBe('ETH');
+      expect(item.data.token?.symbol).toBe('ETH');
     });
 
     it('falls back to assetSymbol when nativeAssetSymbol is absent (legacy behavior)', () => {
@@ -393,10 +365,7 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1237',
       });
 
-      if (item.raw?.type !== 'localTransaction') {
-        throw new Error('Expected local transaction activity item');
-      }
-      expect(item.raw.data.nativeAssetSymbol).toBe('USDG');
+      expect(item.data.token?.symbol).toBe('USDG');
     });
   });
 });

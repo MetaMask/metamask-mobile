@@ -48,6 +48,13 @@ function toFiatToken(
   };
 }
 
+function predictDisplayExtras(activity: PredictActivity) {
+  return {
+    ...(activity.title ? { predictTitle: activity.title } : {}),
+    ...(activity.icon ? { predictIcon: activity.icon } : {}),
+  };
+}
+
 /**
  * Returns `null` for entries that don't map to a feed item — including
  * unrecognized future entry variants. The activity feed must never throw on a
@@ -62,7 +69,6 @@ export function mapPredictActivity({
   // Provider timestamps are Unix seconds; ActivityListItem.timestamp is in
   // milliseconds (used by date grouping and the row date headers).
   const timestamp = entry.timestamp * 1000;
-  const raw = { type: 'predictActivity', data: activity } as const;
   // `id` is a synthetic composite (getPolymarketActivityId), NOT the bare tx
   // hash — one on-chain tx can yield several activities, so the tx hash isn't
   // unique per row. We use it as `hash` for stable identity / React keys, but
@@ -78,9 +84,9 @@ export function mapPredictActivity({
         status: 'success',
         timestamp,
         hash: id,
-        raw,
         data: {
           token: toFiatToken(entry.amount, 'out', quoteAsset),
+          ...predictDisplayExtras(activity),
         },
       };
 
@@ -91,9 +97,9 @@ export function mapPredictActivity({
         status: 'success',
         timestamp,
         hash: id,
-        raw,
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
+          ...predictDisplayExtras(activity),
         },
       };
 
@@ -104,9 +110,9 @@ export function mapPredictActivity({
         status: 'success',
         timestamp,
         hash: id,
-        raw,
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
+          ...predictDisplayExtras(activity),
         },
       };
 

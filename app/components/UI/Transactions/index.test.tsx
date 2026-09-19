@@ -638,10 +638,7 @@ describe('UnconnectedTransactions', () => {
       const activityRow = {
         type: 'activity',
         item: {
-          raw: {
-            data: { primaryTransaction: transaction },
-            type: 'localTransaction',
-          },
+          hash: 'transaction',
         },
       };
       mockGroupActivityListItems.mockReturnValue([

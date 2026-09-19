@@ -9,17 +9,7 @@ import type {
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
-import type { Transaction } from '@metamask/keyring-api';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { TriggerOrderType } from '@metamask/perps-controller';
-import type { TransactionGroup } from './adapters/transaction-group';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../components/UI/Predict/types';
-import type { RampsOrder } from '@metamask/ramps-controller';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
 export type {
   ActivityKind,
@@ -66,18 +56,8 @@ export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
   return PERPS_ORDER_KIND_SET.has(kind);
 }
 
-type ActivityRaw =
-  | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
-  | { type: 'keyringTransaction'; data: Transaction }
-  | { type: 'localTransaction'; data: TransactionGroup }
-  | { type: 'perpsTransaction'; data: PerpsTransaction }
-  | { type: 'predictActivity'; data: PredictActivity }
-  | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
-
 interface MobileFields {
   isEarliestNonce?: boolean;
-  /** @deprecated Get raw transaction data directly as needed */
-  raw?: ActivityRaw;
 }
 
 type SplitByKind<T> = T extends { type: infer K }
@@ -96,6 +76,8 @@ interface MobileDataExtras {
   /** Semantic trigger type localized by the Activity presentation layer. */
   perpsTriggerOrderType?: TriggerOrderType;
   fees?: ActivityFee[];
+  predictTitle?: string;
+  predictIcon?: string;
 }
 
 type WithMobileDataTokens<T> = T extends { data: infer D }

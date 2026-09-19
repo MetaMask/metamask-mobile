@@ -103,6 +103,7 @@ import {
 } from './helpers/transformations';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
+import { useFindRampOrder } from './hooks/useFindRampOrder';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   navigateToRampOrderTarget,
@@ -220,6 +221,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     // Local EVM transactions mapped through the shared adapter
     const localActivityItems = useLocalActivityItems();
     const rampActivityItems = useRampActivityItems();
+    const findRampOrder = useFindRampOrder();
     const { goToBuy } = useRampNavigation();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -763,7 +765,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
-        const { raw } = item;
+        const rampOrder = findRampOrder(item.hash);
 
         // Ramp rows own their redesign gate: flag ON → ActivityDetails /
         // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
@@ -771,15 +773,15 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // flag-OFF never accidentally hits ActivityDetails.
         // Sell/offramp always uses legacy OrderDetails — that screen owns the
         // Continue → Send Transaction flow which ActivityDetails does not.
-        if (raw?.type === 'rampOrder') {
-          if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
+        if (rampOrder) {
+          if (resolveRampOrderTarget(rampOrder) === 'deposit-resume-buy') {
             goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
             return;
           }
 
           if (item.type === 'sell') {
             navigateToRampOrderTarget({
-              data: raw.data,
+              data: rampOrder,
               navigation,
               goToBuy,
             });
@@ -798,7 +800,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         }
       },
-      [goToBuy, navigation],
+      [findRampOrder, goToBuy, navigation],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.

@@ -13,7 +13,6 @@ const makeItem = (
     timestamp,
     hash,
     data: {},
-    raw: { type: source, data: {} },
   }) as unknown as ActivityListItem;
 
 describe('mergeActivityItems', () => {

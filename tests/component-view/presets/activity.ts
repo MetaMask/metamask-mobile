@@ -2344,6 +2344,23 @@ export const buildActivityCvPerpsFundingTransaction = (
   };
 };
 
+export const buildActivityCvPerpsHistoryTransactions = () => [
+  buildActivityCvPerpsCompletedDepositTransaction(),
+  buildActivityCvPerpsPendingDepositTransaction(),
+  buildActivityCvPerpsFailedDepositTransaction(),
+  buildActivityCvPerpsCompletedWithdrawalTransaction(),
+  buildActivityCvPerpsTradeTransaction('openShort'),
+  buildActivityCvPerpsTradeTransaction('openLong'),
+  buildActivityCvPerpsTradeTransaction('closeShort'),
+  buildActivityCvPerpsTradeTransaction('closeLong'),
+  buildActivityCvPerpsOrderTransaction('marketCloseShort'),
+  buildActivityCvPerpsOrderTransaction('stopMarketCloseShort'),
+  buildActivityCvPerpsOrderTransaction('takeProfitCanceled'),
+  buildActivityCvPerpsOrderTransaction('takeProfitFilled'),
+  buildActivityCvPerpsFundingTransaction('received'),
+  buildActivityCvPerpsFundingTransaction('paid'),
+];
+
 export const buildActivityCvPerpsFundingItem = (
   kind: ActivityCvPerpsFundingKind,
 ): ActivityListItem => {

@@ -1,4 +1,3 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem, TokenAmount } from './types';
 import { GAS_FEE_SPONSORED } from './fees';
 import {
@@ -184,12 +183,6 @@ describe('activity list helpers', () => {
     });
 
     it('keeps a richer same-type API copy over a local Money Account row', () => {
-      const transaction = {
-        id: 'money-withdraw',
-        type: TransactionType.batch,
-        txParams: { from: '0xmoney' },
-        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
-      };
       const local = makeItem({
         type: 'receive',
         data: {
@@ -197,13 +190,6 @@ describe('activity list helpers', () => {
           to: '0xeoa',
           token: { direction: 'in', symbol: 'mUSD' },
         },
-        raw: {
-          type: 'localTransaction',
-          data: {
-            initialTransaction: transaction,
-            primaryTransaction: transaction,
-          },
-        } as never,
       });
       const api = makeItem({
         type: 'receive',

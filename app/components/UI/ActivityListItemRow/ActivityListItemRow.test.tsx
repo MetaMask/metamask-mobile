@@ -1314,19 +1314,11 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:137',
       status: 'success',
       timestamp: 1_700_000_000_000,
-      raw: {
-        type: 'predictActivity',
-        data: {
-          id: 'p1',
-          providerId: 'polymarket',
-          title: 'Will Spain win the 2026 FIFA World Cup?',
-          icon: 'https://example.com/spain.png',
-          entry: { type: 'buy', timestamp: 1, amount: 3 },
-        },
-      },
       hash: 'predict-1',
       data: {
         token: { amount: '3', symbol: 'USDC', direction: 'out' },
+        predictTitle: 'Will Spain win the 2026 FIFA World Cup?',
+        predictIcon: 'https://example.com/spain.png',
       },
     } as unknown as ActivityListItem;
 
@@ -2534,12 +2526,10 @@ describe('getLocalTransactionStatus — all local transaction status paths', () 
 // ---------------------------------------------------------------------------
 
 interface MakePendingLocalItemOptions {
-  txStatus?: string;
   isEarliestNonce?: boolean;
 }
 
 const makePendingLocalItem = ({
-  txStatus = 'submitted',
   isEarliestNonce = true,
 }: MakePendingLocalItemOptions = {}): ActivityListItem =>
   ({
@@ -2549,15 +2539,6 @@ const makePendingLocalItem = ({
     timestamp: 1_700_000_000_000,
     hash: '0xabc',
     isEarliestNonce,
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: {
-          id: 'tx-1',
-          status: txStatus,
-        },
-      },
-    },
     data: {
       from: '0xfrom',
       to: '0x1234567890',
@@ -2593,7 +2574,7 @@ describe('ActivityListItemRow — pending rows', () => {
   });
 
   it('renders the pending title, spinner, and normal subtitle', () => {
-    const item = makePendingLocalItem({ txStatus: 'submitted' });
+    const item = makePendingLocalItem();
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
     );
@@ -2675,7 +2656,7 @@ describe('ActivityListItemRow — pending rows', () => {
   });
 
   it('does not render speed-up or cancel actions for pending rows', () => {
-    const item = makePendingLocalItem({ txStatus: 'submitted' });
+    const item = makePendingLocalItem();
     const { queryByText } = render(
       <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
     );
