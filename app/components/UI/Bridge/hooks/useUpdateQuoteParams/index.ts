@@ -59,6 +59,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
    */
   const updateQuoteParams = useCallback(
     async (options: UpdateQuoteParamsOptions = {}) => {
+      console.log('====updateQuoteParams', options);
       if (!genericQuoteRequest) {
         return;
       }
@@ -83,7 +84,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         throw error;
       }
     },
-    [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
+    [
+      metricsContext,
+      quoteRequestIndex,
+      quoteRequestCount,
+      genericQuoteRequest,
+      featureId,
+    ],
   );
 
   const {
@@ -162,14 +169,23 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     updateQuoteParams,
     walletAddress,
     debounceWait,
+    genericQuoteRequest,
   ]);
 
-  useEffect(
-    () => () => {
+  // Pass quoteParams to the bridge-controller
+
+  useEffect(() => {
+    console.log('==== useEffect debouncedUpdateQuoteParams', {
+      genericQuoteRequest,
+    });
+    // TODO only if active
+    // if (!isActive) return;
+    debouncedUpdateQuoteParams();
+
+    return () => {
       debouncedUpdateQuoteParams.cancel();
-    },
-    [debouncedUpdateQuoteParams],
-  );
+    };
+  }, [debouncedUpdateQuoteParams, genericQuoteRequest]);
 
   return useMemo(
     () => debouncedUpdateQuoteParams,

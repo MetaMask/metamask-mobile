@@ -6,6 +6,7 @@ import {
   formatAddressToCaipReference,
   formatChainIdToCaip,
   isNonEvmChainId,
+  isValidQuoteRequest,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   toQuoteResponseV2,
@@ -56,6 +57,9 @@ import {
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
+import type { QuoteParams } from '../../Bridge/providers/SwapQuotesProvider/utils';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -210,6 +214,10 @@ const selectQuoteMetadataDeps = createSelector(
   }),
 );
 
+// TODO skip useEffects if swapQuotes
+/**
+ * @deprecated Use useSwapQuotes instead
+ */
 export function useQuickBuyQuotes({
   sourceToken,
   destToken,
@@ -293,6 +301,7 @@ export function useQuickBuyQuotes({
   // for. Null until the first fetch settles (or after quotes are reset).
   const settledRequestParamsKeyRef = useRef<string | null>(null);
 
+  // TODO skip expensive operations
   const resetQuotesIdle = useCallback(() => {
     setRawQuotes([]);
     setIsQuoteLoading(false);
@@ -305,9 +314,10 @@ export function useQuickBuyQuotes({
     settledRequestParamsKeyRef.current = null;
   }, []);
 
-  const fetchQuotes = useCallback(async () => {
-    abortControllerRef.current?.abort();
-
+  const maybeSwapQuotes = useSwapQuotes();
+  const { setQuoteParams } = useBridgeSession();
+  // TODO only for swapQuotes
+  const quoteParams: QuoteParams | undefined = useMemo(() => {
     if (
       !sourceToken ||
       !destToken ||
@@ -315,25 +325,80 @@ export function useQuickBuyQuotes({
       !sourceTokenAmount ||
       sourceToken.decimals === undefined
     ) {
-      resetQuotesIdle();
       return;
     }
 
-    const params = buildQuoteRequest({
+    return {
+      srcToken: sourceToken,
+      destToken,
+      srcAmount: sourceTokenAmount,
+      slippage,
+      walletAddress,
+      destAddress,
+      gasIncluded,
+      gasIncluded7702,
+    };
+  }, [
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
+    slippage,
+    walletAddress,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+  ]);
+
+  // TODO only for quickBuy
+  const quoteRequest = useMemo(() => {
+    if (
+      !sourceToken ||
+      !destToken ||
+      !walletAddress ||
+      !sourceTokenAmount ||
+      sourceToken.decimals === undefined
+    ) {
+      return;
+    }
+
+    return buildQuoteRequest({
       sourceToken,
       destToken,
       sourceTokenAmount,
       slippage,
       walletAddress,
-      destAddress: destAddress ?? undefined,
+      destAddress,
       gasIncluded,
       gasIncluded7702,
     });
+  }, [
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
+    slippage,
+    walletAddress,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+  ]);
 
-    if (!params) {
+  // If migrated, set swap quoteParams to trigger quote polling
+  useEffect(() => {
+    if (maybeSwapQuotes && quoteParams) {
+      // TODO include analytics/trace params
+      setQuoteParams(quoteParams);
+    }
+  }, [maybeSwapQuotes, quoteParams, setQuoteParams]);
+
+  const fetchQuotes = useCallback(async () => {
+    abortControllerRef.current?.abort();
+
+    if (!quoteRequest) {
       resetQuotesIdle();
       return;
     }
+
+    console.log('==== legacy update', { quoteRequest });
 
     // Snapshot of the request-only inputs this fetch is for, recorded as settled
     // once the result (or error) lands so later input changes register as stale.
@@ -365,7 +430,7 @@ export function useQuickBuyQuotes({
             [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
             [QuickBuyEventProperties.AMOUNT_USD]:
               analyticsContext.amountUsd ?? 0,
-            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
+            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken?.symbol,
           }
         : null;
 
@@ -394,7 +459,7 @@ export function useQuickBuyQuotes({
         const accumulated: QuickBuyQuote[] = [];
         let hasReceivedQuote = false;
 
-        await streamQuickBuyQuotes(params, featureId, controller.signal, {
+        await streamQuickBuyQuotes(quoteRequest, featureId, controller.signal, {
           onQuote: (quote) => {
             if (controller.signal.aborted) {
               return;
@@ -437,7 +502,7 @@ export function useQuickBuyQuotes({
         fireReceived(accumulated.length);
       } else {
         const result = await Engine.context.BridgeController.fetchQuotes(
-          params,
+          quoteRequest,
           featureId,
           controller.signal,
         );
@@ -490,14 +555,7 @@ export function useQuickBuyQuotes({
       fireReceived(0);
     }
   }, [
-    sourceToken,
-    destToken,
-    sourceTokenAmount,
-    slippage,
-    walletAddress,
-    destAddress,
-    gasIncluded,
-    gasIncluded7702,
+    quoteRequest,
     shouldStream,
     resetQuotesIdle,
     analyticsContext,

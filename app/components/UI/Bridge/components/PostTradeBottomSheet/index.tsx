@@ -338,6 +338,7 @@ export const PostTradeBottomSheet = () => {
     Engine.context.BridgeController?.resetState?.();
     // Re-request a quote since resetState() cleared it and identical inputs
     // won't re-trigger BridgeView's quote effect.
+    // TODO refresh call?
     updateQuoteParams();
 
     sheetRef.current?.onCloseBottomSheet();
