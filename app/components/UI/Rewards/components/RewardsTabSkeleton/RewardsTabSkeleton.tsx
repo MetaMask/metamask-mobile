@@ -10,23 +10,27 @@ export const REWARDS_TAB_SKELETON_TEST_IDS = {
   BODY: 'rewards-tab-skeleton-body',
 } as const;
 
+interface RewardsTabSkeletonProps {
+  testID?: string;
+}
+
 /**
- * Tab-level loading surface for the Rewards tab.
+ * The single loading surface for the Rewards tab.
  *
- * Shown while the Money referral persona is unresolved, when neither home may
- * be mounted yet. It mirrors the chrome both homes open with — top safe-area
- * inset, default background, a title row with end accessories, then a card
- * body — so the handoff to `RewardsDashboard` or `RewardsMoneyDashboard` does
- * not move the header or flash an untinted background.
+ * The tab resolves the Money referral persona before it may mount a home, and
+ * the home it picks then waits on its own fetch. Both phases render this, so
+ * the handoff reads as one screen instead of two skeletons swapping places.
  */
-const RewardsTabSkeleton: React.FC = () => {
+const RewardsTabSkeleton: React.FC<RewardsTabSkeletonProps> = ({
+  testID = REWARDS_TAB_SKELETON_TEST_IDS.CONTAINER,
+}) => {
   const tw = useTailwind();
 
   return (
     <SafeAreaView
       edges={{ top: 'additive' }}
       style={tw.style('flex-1 bg-default')}
-      testID={REWARDS_TAB_SKELETON_TEST_IDS.CONTAINER}
+      testID={testID}
     >
       <Box
         twClassName="flex-row items-center justify-between px-4 py-3"
