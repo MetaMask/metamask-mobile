@@ -28,6 +28,15 @@ export type EarningOriginType =
   | 'REFERRAL_REV_SHARE'
   | 'SOCIAL_FOLLOW_TRADE';
 
+/**
+ * What one claim settles, and the key the summary groups by. Both cashback
+ * mechanisms settle as one family, so they are one balance on a read surface.
+ */
+export type EarningClaimFamily =
+  | 'REFERRAL_TRADE_FEE_CASHBACK'
+  | 'REFERRAL_REV_SHARE'
+  | 'SOCIAL_FOLLOW_TRADE';
+
 export type ClaimBlockingReason =
   | 'SUSPENDED'
   | 'ADDRESS_BLOCKED'
@@ -414,6 +423,11 @@ export interface GetReferralFunnelDto {
 
 export interface GetReferralCodesDto {
   forceFresh?: boolean;
+}
+
+export interface RegisterRefereeDto {
+  /** The referrer's code. The referee is the bearer token's own profile. */
+  code: string;
 }
 
 export interface GetEarningsSummaryDto {
