@@ -5,6 +5,7 @@ import type {
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
+  resetRewardsMoneyState,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
@@ -230,6 +231,26 @@ describe('rewardsMoneyReducer', () => {
         data: mockReferralMe,
       });
       expect(afterData.referralMe[PROFILE_A]?.data?.variant).toBe('NONE');
+    });
+  });
+
+  describe('resetRewardsMoneyState', () => {
+    it('clears every profile-keyed cache so a new API host cannot read the old one', () => {
+      const withData = rewardsMoneyReducer(
+        initialState,
+        setReferralMe({ profileId: PROFILE_A, data: mockReferralMe }),
+      );
+      const withSummary = rewardsMoneyReducer(
+        withData,
+        setEarningsSummary({
+          profileId: PROFILE_A,
+          data: mockEarningsSummary,
+        }),
+      );
+
+      const state = rewardsMoneyReducer(withSummary, resetRewardsMoneyState());
+
+      expect(state).toEqual({ referralMe: {}, earningsSummary: {} });
     });
   });
 });

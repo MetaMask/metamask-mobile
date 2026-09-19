@@ -313,6 +313,9 @@ describe('RewardsMoneyDashboard', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_DIVIDER),
+    ).toBeOnTheScreen();
     expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
     expect(getByTestId('benefits-preview')).toBeOnTheScreen();
     expect(
@@ -403,6 +406,9 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
     expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
     expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_DIVIDER),
+    ).not.toBeOnTheScreen();
   });
 
   it('disables settings when there is no subscription', () => {
