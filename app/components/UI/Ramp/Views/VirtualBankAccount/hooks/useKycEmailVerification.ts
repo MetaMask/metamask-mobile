@@ -4,9 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../constants';
+import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -43,7 +43,9 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         email: trimmedEmail,
       });
 
-      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
+      // Let the backend stage decide the next screen (rather than hardcoding
+      // Get Pix Key) so a returning user resumes at the right step.
+      await hydrateAndNavigateVbaOnboarding(navigation, 'email-continue');
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
