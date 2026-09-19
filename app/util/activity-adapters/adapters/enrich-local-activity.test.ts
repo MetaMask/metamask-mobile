@@ -55,12 +55,11 @@ const mapLocalActivity = (
       ) as ActivityListItem,
       prepared,
     ),
-    raw: { type: 'localTransaction' as const, data: transactionGroup },
   };
 };
 
 describe('local activity call-site mapping', () => {
-  it('maps a simple send via client-utils and attaches mobile raw', () => {
+  it('maps a simple send via client-utils', () => {
     const transactionGroup = buildGroup();
     const item = mapLocalActivity(transactionGroup);
 
@@ -69,7 +68,6 @@ describe('local activity call-site mapping', () => {
       chainId: 'eip155:1',
       status: 'success',
       data: { from, to },
-      raw: { type: 'localTransaction', data: transactionGroup },
     });
   });
 

@@ -183,10 +183,10 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    const activity = {
-      ...mapApiTransaction({ subjectAddress, transaction: tx }),
-      raw: { type: 'apiEvmTransaction' as const, data: tx },
-    } as ActivityListItem;
+    const activity = mapApiTransaction({
+      subjectAddress,
+      transaction: tx,
+    }) as ActivityListItem;
     items.push(classifyPooledStakingActivity(tx, activity));
   }
 
@@ -224,7 +224,6 @@ export function mapNonEvmTransactions(
         },
         subjectAddress,
       }),
-      raw: { type: 'keyringTransaction' as const, data: transaction },
     } as ActivityListItem);
     const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
     const quote = bridgeHistoryItem?.quote;

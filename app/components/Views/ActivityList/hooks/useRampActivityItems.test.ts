@@ -87,7 +87,6 @@ describe('useRampActivityItems', () => {
       type: 'buy',
       chainId: 'eip155:1',
       hash: '0xbuyhash',
-      raw: { type: 'rampOrder', data: buyOrder },
       data: { token: { amount: '5.01', symbol: 'mUSD', direction: 'in' } },
     });
   });
@@ -111,7 +110,7 @@ describe('useRampActivityItems', () => {
     expect(result.current[0].hash).toBe('0xbuyhash');
   });
 
-  it('includes v2 controller orders with native RampsOrder in raw.data', () => {
+  it('includes v2 controller orders as buy activity items', () => {
     const v2Order = createV2Order({
       id: '/providers/transak/orders/v2-order-1',
       providerOrderId: 'v2-order-1',
@@ -135,13 +134,8 @@ describe('useRampActivityItems', () => {
     expect(result.current[0]).toMatchObject({
       type: 'buy',
       hash: '0xbuyhash',
-      raw: { type: 'rampOrder', data: v2Order },
       data: { token: { amount: '5.01', symbol: 'mUSD', direction: 'in' } },
     });
-    expect(result.current[0].raw?.data).not.toHaveProperty(
-      'provider',
-      FIAT_ORDER_PROVIDERS.RAMPS_V2,
-    );
   });
 
   it('includes v2 orders with non-EVM CAIP-2 network metadata', () => {
@@ -171,7 +165,6 @@ describe('useRampActivityItems', () => {
       type: 'buy',
       chainId: solanaChainId,
       hash: '0xbuyhash',
-      raw: { type: 'rampOrder', data: v2Order },
     });
   });
 });

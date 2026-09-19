@@ -62,7 +62,6 @@ describe('mapPredictActivity', () => {
       status: 'success',
       timestamp: 1_700_000_000_000,
       hash: 'activity-1',
-      raw: { type: 'predictActivity', data: baseBuy },
       data: {
         token: {
           amount: '100',
@@ -70,6 +69,7 @@ describe('mapPredictActivity', () => {
           assetId: USDC_ASSET_ID,
           direction: 'out',
         },
+        predictTitle: 'Will it rain tomorrow?',
       },
     });
   });
@@ -87,7 +87,6 @@ describe('mapPredictActivity', () => {
       status: 'success',
       timestamp: 1_700_000_100_000,
       hash: 'activity-2',
-      raw: { type: 'predictActivity', data: baseSell },
       data: {
         token: {
           amount: '75',
@@ -95,6 +94,7 @@ describe('mapPredictActivity', () => {
           assetId: USDC_ASSET_ID,
           direction: 'in',
         },
+        predictTitle: 'Will it rain tomorrow?',
       },
     });
   });
@@ -112,7 +112,6 @@ describe('mapPredictActivity', () => {
       status: 'success',
       timestamp: 1_700_000_200_000,
       hash: 'activity-3',
-      raw: { type: 'predictActivity', data: baseClaim },
       data: {
         token: {
           amount: '250',
@@ -120,6 +119,7 @@ describe('mapPredictActivity', () => {
           assetId: USDC_ASSET_ID,
           direction: 'in',
         },
+        predictTitle: 'Will it rain tomorrow?',
       },
     });
   });

@@ -106,7 +106,6 @@ const rampItem = (type: 'buy' | 'sell'): ActivityListItem =>
     status: 'success',
     timestamp: 1,
     hash: '0xramp',
-    raw: { type: 'rampOrder', data: {} },
     data: {
       token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
     },
@@ -424,33 +423,8 @@ describe('TemplateLoader', () => {
       status: 'success',
       timestamp: 1,
       hash: '0xperps',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'deposit-1',
-          type: 'deposit',
-          category: 'deposit',
-          title: 'Account funded',
-          subtitle: '+$100',
-          timestamp: 1,
-          asset: 'USDC',
-          depositWithdrawal: {
-            amount: '+$100',
-            amountNumber: 100,
-            isPositive: true,
-            asset: 'USDC',
-            txHash: '0xperps',
-            status: 'completed',
-            type: 'deposit',
-          },
-        },
-      },
       data: {
-        token: {
-          amount: '100',
-          symbol: 'USDC',
-          direction: 'in',
-        },
+        token: { amount: '100', symbol: 'USDC', direction: 'in' },
       },
     } as ActivityListItem;
     const { getByTestId, queryByTestId } = renderWithProvider(

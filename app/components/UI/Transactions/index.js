@@ -712,10 +712,14 @@ const Transactions = (props) => {
     if (item.type === 'date-header') {
       return <ActivityListDateHeader timestamp={item.date} />;
     }
-    const tx =
-      item.item.raw?.type === 'localTransaction'
-        ? item.item.raw.data.primaryTransaction
-        : undefined;
+    const identifier = item.item.hash?.toLowerCase();
+    const tx = identifier
+      ? filteredTransactions.find((transaction) => {
+          const hash = transaction.hash?.toLowerCase();
+          const id = String(transaction.id ?? '').toLowerCase();
+          return hash === identifier || id === identifier;
+        })
+      : undefined;
     return tx ? (
       <AssetDetailsActivityListItem
         transaction={tx}

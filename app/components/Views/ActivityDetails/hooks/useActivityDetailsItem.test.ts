@@ -22,7 +22,7 @@ import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
-import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
+import { useFindRampOrder } from '../../ActivityList/hooks/useFindRampOrder';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -31,7 +31,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
-jest.mock('../../ActivityList/hooks/useRampActivityItems');
+jest.mock('../../ActivityList/hooks/useFindRampOrder');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
   ...jest.requireActual('../../ActivityList/helpers/transformations'),
@@ -48,7 +48,7 @@ jest.mock('./useLocalTransactionMeta', () => ({
 }));
 
 const useApiTransactionMock = jest.mocked(useApiTransaction);
-const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
+const useFindRampOrderMock = jest.mocked(useFindRampOrder);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
@@ -119,17 +119,17 @@ function setSources({
   localGroups,
   confirmed = [],
   nonEvm = [],
-  ramp = [],
+  rampOrder,
 }: {
   local?: ActivityListItem[];
   localGroups?: ReturnType<typeof stubGroup>[];
   confirmed?: ActivityListItem[];
   nonEvm?: ActivityListItem[];
-  ramp?: ActivityListItem[];
+  rampOrder?: FiatOrder;
 }) {
   const groups = localGroups ?? local.map(stubGroup);
   localByIdentifier = identifierMapFrom(local, groups);
-  useRampActivityItemsMock.mockReturnValue(ramp);
+  useFindRampOrderMock.mockReturnValue(jest.fn().mockReturnValue(rampOrder));
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
     isFetching: false,
@@ -145,6 +145,7 @@ describe('useActivityDetailsItem', () => {
       isFetching: false,
     });
     useLocalTransactionMetaMock.mockReturnValue(undefined);
+    useFindRampOrderMock.mockReturnValue(jest.fn());
     localByIdentifier = new Map();
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectLocalActivityItemsByIdentifier) {
@@ -416,7 +417,7 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetched');
-    expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
+    expect(result.current.item?.type).toBeDefined();
   });
 
   it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
@@ -664,23 +665,23 @@ describe('useActivityDetailsItem', () => {
 
   it('resolves a Ramp item by hash from fiat orders', () => {
     const ramp = mapRampOrder({ order: rampOrder }) as ActivityListItem;
-    setSources({ ramp: [ramp] });
+    setSources({ rampOrder });
 
     const { result } = renderHook(() =>
       useActivityDetailsItem('0xramp', 'eip155:59144'),
     );
 
-    expect(result.current.item).toBe(ramp);
+    expect(result.current.item).toEqual(ramp);
   });
 
   it('resolves a Ramp item by order id when a transaction hash is available', () => {
     const ramp = mapRampOrder({ order: rampOrder }) as ActivityListItem;
-    setSources({ ramp: [ramp] });
+    setSources({ rampOrder });
 
     const { result } = renderHook(() =>
       useActivityDetailsItem('ramp-order-id', 'eip155:59144'),
     );
 
-    expect(result.current.item).toBe(ramp);
+    expect(result.current.item).toEqual(ramp);
   });
 });

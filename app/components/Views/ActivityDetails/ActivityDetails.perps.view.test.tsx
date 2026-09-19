@@ -17,6 +17,7 @@ import {
   buildActivityCvPerpsOrderTransaction,
   buildActivityCvPerpsPayTransaction,
   buildActivityCvPerpsPendingDepositItem,
+  buildActivityCvPerpsHistoryTransactions,
   buildActivityCvPerpsTradeItem,
   initialStateActivityWithPerpsDetails,
 } from '../../../../tests/component-view/presets/activity';
@@ -89,14 +90,9 @@ const {
   DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
 
-function getPerpsTransaction(item: ActivityListItem) {
-  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
-}
-
-function seedPerpsHistory(item: ActivityListItem) {
-  const transaction = getPerpsTransaction(item);
+function seedPerpsHistory() {
   usePerpsActivityQueryMock.mockReturnValue({
-    transactions: transaction ? [transaction] : [],
+    transactions: buildActivityCvPerpsHistoryTransactions(),
     isFetching: false,
   } as ReturnType<typeof usePerpsActivityQuery>);
 }
@@ -112,7 +108,7 @@ function payStatusForItem(item: ActivityListItem) {
 }
 
 const renderPerpsDetails = (item: ActivityListItem) => {
-  seedPerpsHistory(item);
+  seedPerpsHistory();
   const payTransactions =
     item.type === 'perpsAddFunds'
       ? [
@@ -131,7 +127,7 @@ const renderPerpsDetails = (item: ActivityListItem) => {
 };
 
 const renderPerpsTradeDetails = (item: ActivityListItem) => {
-  seedPerpsHistory(item);
+  seedPerpsHistory();
   const state = initialStateActivityWithPerpsDetails().build();
 
   return renderActivityDetailsView({

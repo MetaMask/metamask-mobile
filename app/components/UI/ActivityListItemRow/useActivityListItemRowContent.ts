@@ -257,12 +257,8 @@ function perpsPositionSubtitle(
   );
 }
 
-function getPredictActivity(item: ActivityListItem) {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
-}
-
-function predictMarketSubtitle(item: ActivityListItem): string | undefined {
-  return getPredictActivity(item)?.title;
+function predictMarketSubtitle(item: ActivityListItem) {
+  return item.data.predictTitle;
 }
 
 function protocolSubtitle(transactionProtocol?: string) {
@@ -883,7 +879,7 @@ function resolveCoreContent(
         subtitle: strings('transactions.activity_predictions_balance'),
         primaryToken: item.data.token,
       };
-    // Predict trades: the subtitle is the market question, carried on `raw`.
+    // Predict trades: the subtitle is the market question.
     case 'predictionPlaced':
     case 'predictionCashedOut':
     case 'predictionClaimWinnings':
@@ -1307,7 +1303,7 @@ export function useActivityListItemRowContent(
       : undefined
     : undefined;
   const predictIconUrl = isPredictTradeKind(item.type)
-    ? getPredictActivity(item)?.icon
+    ? item.data.predictIcon
     : undefined;
 
   let avatarTokens: TokenAmount[];

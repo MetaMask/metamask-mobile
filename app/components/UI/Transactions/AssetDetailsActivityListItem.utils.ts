@@ -96,7 +96,6 @@ export const mapTransactionToActivityItem = ({
       ) as ActivityListItem,
       prepared,
     ),
-    raw: { type: 'localTransaction' as const, data: transactionGroup },
   };
 };
 
