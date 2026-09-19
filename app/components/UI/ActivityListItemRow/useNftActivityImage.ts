@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getFormattedIpfsUrl, type Nft } from '@metamask/assets-controllers';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
-import { type Hex } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 import {
   isNftTransferType,
   type ActivityListItem,
