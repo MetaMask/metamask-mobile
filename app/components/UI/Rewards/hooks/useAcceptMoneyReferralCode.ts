@@ -19,11 +19,12 @@ import {
 } from './useValidateMoneyReferralCode';
 
 /**
- * Substring the API uses when it refuses a self-referral. A 403 also covers
- * refusals we cannot name for the user (KOL, active trader), so the body is
- * what separates them.
+ * Substrings the API uses on the refusals a 403 can carry. The status alone
+ * cannot separate them — self-referral, a referrer being referred, and an
+ * active trader all answer 403 — so the body is what names each one.
  */
 const SELF_REFERRAL_BODY_SNIPPET = 'own referral code';
+const REFERRER_REFUSAL_BODY_SNIPPET = 'kol cannot register as a referee';
 
 /**
  * A refresh discarded because the session changed is retried under the new
@@ -45,11 +46,14 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
   if (status === 409) {
     return strings('rewards.error_messages.already_referred');
   }
-  if (
-    status === 403 &&
-    bodyText.toLowerCase().includes(SELF_REFERRAL_BODY_SNIPPET)
-  ) {
-    return strings('rewards.error_messages.cannot_use_own_referral_code');
+  if (status === 403) {
+    const body = bodyText.toLowerCase();
+    if (body.includes(SELF_REFERRAL_BODY_SNIPPET)) {
+      return strings('rewards.error_messages.cannot_use_own_referral_code');
+    }
+    if (body.includes(REFERRER_REFUSAL_BODY_SNIPPET)) {
+      return strings('rewards.error_messages.referrer_cannot_be_referred');
+    }
   }
   return strings('rewards.error_messages.something_went_wrong');
 }
@@ -65,16 +69,28 @@ export interface UseAcceptMoneyReferralCodeResult {
    * Whether an accept attempt is in progress
    */
   isLoading: boolean;
+  /**
+   * Refusal copy for the invite sheet field. Empty while idle or after a
+   * successful registration. A toast is not used for these refusals: the
+   * sheet already shows validation the same way.
+   */
+  errorMessage: string;
+  /**
+   * Clears {@link errorMessage}. Call when the typed code changes so a
+   * previous refusal does not outlive the code that caused it.
+   */
+  clearError: () => void;
 }
 
 /**
  * Accepts a Rewards Money referral invite.
  *
  * Validation runs first so a malformed or unknown code never reaches
- * `POST /wr/referral/referee`. A refusal keeps the sheet open with the reason;
- * only a successful registration dismisses it, after the referral role has
- * been read back with `forceFresh` so Rewards Home routes to the Money
- * dashboard on the way out.
+ * `POST /wr/referral/referee`. A refusal keeps the sheet open and writes the
+ * reason onto {@link UseAcceptMoneyReferralCodeResult.errorMessage}; only a
+ * successful registration dismisses it, after the referral role has been
+ * read back with `forceFresh` so Rewards Home routes to the Money dashboard
+ * on the way out.
  */
 export const useAcceptMoneyReferralCode =
   (): UseAcceptMoneyReferralCodeResult => {
@@ -84,8 +100,13 @@ export const useAcceptMoneyReferralCode =
     const { validateCode } = useValidateMoneyReferralCode();
     const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const isAcceptingRef = useRef(false);
     const isMountedRef = useRef(true);
+
+    const clearError = useCallback(() => {
+      setErrorMessage('');
+    }, []);
 
     useEffect(() => {
       isMountedRef.current = true;
@@ -134,17 +155,18 @@ export const useAcceptMoneyReferralCode =
         }
 
         try {
+          if (isMountedRef.current) {
+            setErrorMessage('');
+          }
           const validationError = await validateCode(code);
           if (validationError) {
             // A failed validation call is not a code the server rejected, so it
             // does not claim the code is invalid.
             if (isMountedRef.current) {
-              showToast(
-                RewardsToastOptions.error(
-                  validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
-                    ? strings('rewards.error_messages.something_went_wrong')
-                    : validationError,
-                ),
+              setErrorMessage(
+                validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
+                  ? strings('rewards.error_messages.something_went_wrong')
+                  : validationError,
               );
             }
             return false;
@@ -157,9 +179,7 @@ export const useAcceptMoneyReferralCode =
             );
           } catch (error) {
             if (isMountedRef.current) {
-              showToast(
-                RewardsToastOptions.error(getRegisterRefereeErrorTitle(error)),
-              );
+              setErrorMessage(getRegisterRefereeErrorTitle(error));
             }
             return false;
           }
@@ -212,7 +232,7 @@ export const useAcceptMoneyReferralCode =
       ],
     );
 
-    return { acceptReferralCode, isLoading };
+    return { acceptReferralCode, isLoading, errorMessage, clearError };
   };
 
 export default useAcceptMoneyReferralCode;
