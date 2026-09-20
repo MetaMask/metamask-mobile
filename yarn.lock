@@ -9841,9 +9841,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/core-backend@npm:11.0.0"
+"@metamask/core-backend@npm:@metamask-previews/core-backend@11.0.0-preview-d1cca62":
+  version: 11.0.0-preview-d1cca62
+  resolution: "@metamask-previews/core-backend@npm:11.0.0-preview-d1cca62"
   dependencies:
     "@metamask/account-tree-controller": "npm:^10.0.1"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -9855,8 +9855,8 @@ __metadata:
     "@tanstack/query-core": "npm:^5.62.16"
     async-mutex: "npm:^0.5.0"
     cockatiel: "npm:^3.1.2"
-    uuid: "npm:^9.0.1"
-  checksum: 10/5743ece912208c0c8a38c1f031343e57af73f00714e61390ffd3b29ff9e50febf88a3e9d0b2358f0badafa4fa617202c4a6baa0e785fb8758da753ad678dc983
+    uuid: "npm:^11.1.1"
+  checksum: 10/adce9f747075104b1135bf28cc046506af8d0c74a7e117d3250bbcd36dbb4fce4734e9525ff743e2b13e425d49799d0fc4c58541c742e0a735c0934524d2c5d4
   languageName: node
   linkType: hard
 

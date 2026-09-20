@@ -4,6 +4,10 @@ import {
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
 } from '@metamask/ramps-controller';
+import type {
+  RampsActivityServiceEventReceivedEvent,
+  RampsActivityServiceStatusChangedEvent,
+} from '@metamask/core-backend';
 import {
   Messenger,
   MessengerActions,
@@ -71,6 +75,8 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
     'RampsControllerInit',
     RemoteFeatureFlagControllerGetStateAction,
     | RampsControllerOrderStatusChangedEvent
+    | RampsActivityServiceEventReceivedEvent
+    | RampsActivityServiceStatusChangedEvent
     | RemoteFeatureFlagControllerStateChangeEvent,
     RootMessenger
   >({
@@ -82,6 +88,8 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
     actions: ['RemoteFeatureFlagController:getState'],
     events: [
       'RampsController:orderStatusChanged',
+      'RampsActivityService:eventReceived',
+      'RampsActivityService:statusChanged',
       'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
     ],
     messenger,

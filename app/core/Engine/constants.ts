@@ -18,6 +18,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
+  'RampsActivityService',
   'OHLCVService',
   'MultichainAccountService',
   'SnapAccountService',

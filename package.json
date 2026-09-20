@@ -186,6 +186,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/core-backend": {
+      "type": "non-breaking",
+      "previewVersion": "11.0.0-preview-d1cca62"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
