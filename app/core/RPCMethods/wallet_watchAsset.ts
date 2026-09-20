@@ -98,9 +98,6 @@ export const wallet_watchAsset = async ({
   const { ApprovalController, AssetsController, NetworkController } =
     Engine.context;
   const state = store.getState();
-  // Selected-network middleware sets `networkClientId` to the dapp's own
-  // network, which `wallet_switchEthereumChain` changes without touching the
-  // wallet's globally selected network.
   const networkClientId = req.networkClientId ?? selectNetworkClientId(state);
   const chainId =
     NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId)
@@ -115,7 +112,7 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_VALID);
   }
 
-  // Check if the token contract exists on the dapp-selected network.
+  // Check if token exists on wallet's active network.
   const isTokenOnNetwork = await isSmartContractAddress(
     address,
     chainId,
@@ -129,7 +126,6 @@ export const wallet_watchAsset = async ({
     throw new Error(`Asset of type ${type} not supported`);
   }
 
-  // AssetsController keys assets by account id, like every other add-token path.
   const evmAccount = selectSelectedAccountGroupEvmInternalAccount(state);
   if (!evmAccount) {
     throw rpcErrors.internal('No EVM account available to watch the asset on.');
@@ -152,7 +148,6 @@ export const wallet_watchAsset = async ({
   } catch (e) {}
 
   const finalTokenSymbol = fetchedSymbol ?? symbol;
-  // Decimals arrive as a string, but AssetsController persists a number.
   const finalTokenDecimals = parseInt(String(fetchedDecimals ?? decimals), 10);
   if (
     Number.isNaN(finalTokenDecimals) ||
@@ -171,8 +166,6 @@ export const wallet_watchAsset = async ({
 
   const approvalId = random();
 
-  // Show the EIP-747 confirmation and wait for the user. A rejection throws
-  // here, so the asset is never persisted below.
   await ApprovalController.add({
     id: approvalId,
     origin: requestOrigin || ORIGIN_METAMASK,

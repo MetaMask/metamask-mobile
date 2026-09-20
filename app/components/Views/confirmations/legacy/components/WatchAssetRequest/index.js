@@ -116,9 +116,6 @@ const WatchAssetRequest = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const globalChainId = useSelector(selectEvmChainId);
-  // Dapp-suggested assets carry the chain the request targeted, which can
-  // differ from the wallet's selected network. Balance and header must follow
-  // the asset's chain so they match where the token is being added.
   const chainId = asset.chainId ?? globalChainId;
   const networkClientId = asset.chainId
     ? Engine.context.NetworkController.findNetworkClientIdByChainId(
