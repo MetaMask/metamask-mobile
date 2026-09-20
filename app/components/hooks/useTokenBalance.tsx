@@ -6,14 +6,12 @@ import type BN4 from 'bnjs4';
  * Hook to handle the balance of ERC20 tokens
  * @property requestedTokenAddress Token contract address
  * @property userCurrentAddress Public address which holds the token
- * @property networkClientId Optional network client to query (dapp-selected chain)
  * @returns Array that consists of `[balance, loading, error]`
  */
 
 const useTokenBalance = (
   requestedTokenAddress: string,
   userCurrentAddress: string,
-  networkClientId?: string,
 ): [BN4 | null, boolean, boolean] => {
   // This hook should be only used with ERC20 tokens
   const [tokenBalance, setTokenBalance]: [
@@ -31,22 +29,17 @@ const useTokenBalance = (
   const fetchBalance = async (
     tokenAddress: string,
     userAddress: string,
-    clientId?: string,
   ): Promise<void> => {
-    AssetsContractController.getERC20BalanceOf(
-      tokenAddress,
-      userAddress,
-      clientId,
-    )
+    AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
       .then((balance: BN4) => setTokenBalance(balance))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchBalance(requestedTokenAddress, userCurrentAddress, networkClientId);
+    fetchBalance(requestedTokenAddress, userCurrentAddress);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedTokenAddress, userCurrentAddress, networkClientId]);
+  }, [requestedTokenAddress, userCurrentAddress]);
 
   return [tokenBalance, loading, error];
 };

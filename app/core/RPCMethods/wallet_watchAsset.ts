@@ -1,10 +1,3 @@
-import {
-  ApprovalType,
-  ERC20,
-  ORIGIN_METAMASK,
-} from '@metamask/controller-utils';
-import { rpcErrors } from '@metamask/rpc-errors';
-import { v1 as random } from 'uuid';
 import Engine from '../Engine';
 import { store } from '../../store';
 
@@ -19,7 +12,6 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { buildEvmCaip19AssetId } from '../../util/multichain/buildEvmCaip19AssetId';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../selectors/multichainAccounts/accountTreeController';
 import { isValidAddress } from 'ethereumjs-util';
 import {
   getSafeJson,
@@ -95,7 +87,7 @@ export const wallet_watchAsset = async ({
     },
   } = req;
 
-  const { ApprovalController, AssetsController, NetworkController } =
+  const { AssetsController, NetworkController, TokensController } =
     Engine.context;
   const state = store.getState();
   const networkClientId = req.networkClientId ?? selectNetworkClientId(state);
@@ -122,21 +114,16 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   }
 
-  if (type !== ERC20) {
-    throw new Error(`Asset of type ${type} not supported`);
-  }
-
-  const evmAccount = selectSelectedAccountGroupEvmInternalAccount(state);
-  if (!evmAccount) {
-    throw rpcErrors.internal('No EVM account available to watch the asset on.');
-  }
-
   const permittedAccounts = getPermittedAccounts(hostname);
+  // This should return the current active account on the Dapp.
+  const selectedInternalAccount =
+    Engine.context.AccountsController.getSelectedAccount();
   // Fallback to wallet address if there is no connected account to Dapp.
-  const interactingAddress = permittedAccounts?.[0] || evmAccount.address;
-
+  const interactingAddress =
+    permittedAccounts?.[0] || selectedInternalAccount.address;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
+  // *This is an hotfix this logic should live on whatchAsset method on TokensController*
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
@@ -148,50 +135,40 @@ export const wallet_watchAsset = async ({
   } catch (e) {}
 
   const finalTokenSymbol = fetchedSymbol ?? symbol;
-  const finalTokenDecimals = parseInt(String(fetchedDecimals ?? decimals), 10);
-  if (
-    Number.isNaN(finalTokenDecimals) ||
-    finalTokenDecimals < 0 ||
-    finalTokenDecimals > 36
-  ) {
-    throw rpcErrors.invalidParams(
-      `Invalid decimals "${decimals}": must be an integer 0 <= 36`,
-    );
-  }
+  const finalTokenDecimals = fetchedDecimals ?? decimals;
 
   const safePageMeta =
     _pageMeta !== undefined
       ? getSafeJson<Record<string, Json>>(stripNonJsonValues(_pageMeta))
       : undefined;
 
-  const approvalId = random();
-
-  await ApprovalController.add({
-    id: approvalId,
-    origin: requestOrigin || ORIGIN_METAMASK,
-    type: ApprovalType.WatchAsset,
-    requestData: {
-      id: approvalId,
-      interactingAddress,
-      asset: {
-        address,
-        symbol: finalTokenSymbol,
-        decimals: finalTokenDecimals,
-        image,
-        chainId,
-      },
-      pageMeta: safePageMeta ?? null,
+  await TokensController.watchAsset({
+    asset: {
+      address,
+      symbol: finalTokenSymbol,
+      // @ts-expect-error TODO: Fix decimal type
+      decimals: finalTokenDecimals,
+      image,
+    },
+    type,
+    interactingAddress,
+    networkClientId,
+    origin: requestOrigin,
+    pageMeta: safePageMeta,
+    requestMetadata: {
+      origin: requestOrigin,
+      pageMeta: safePageMeta,
     },
   });
 
   await AssetsController.addCustomAsset(
-    evmAccount.id,
+    selectedInternalAccount.id,
     buildEvmCaip19AssetId(address, chainId),
     {
       address,
       symbol: finalTokenSymbol,
       name: finalTokenSymbol,
-      decimals: finalTokenDecimals,
+      decimals: parseInt(String(finalTokenDecimals), 10),
       chainId,
       iconUrl: image,
     },

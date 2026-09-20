@@ -14,7 +14,6 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import useTokenBalance from '../../../../../hooks/useTokenBalance';
 import { useTheme } from '../../../../../../util/theme';
 import NotificationManager from '../../../../../../core/NotificationManager';
-import Engine from '../../../../../../core/Engine';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../../util/transactions';
@@ -115,18 +114,8 @@ const WatchAssetRequest = ({
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
-  const globalChainId = useSelector(selectEvmChainId);
-  const chainId = asset.chainId ?? globalChainId;
-  const networkClientId = asset.chainId
-    ? Engine.context.NetworkController.findNetworkClientIdByChainId(
-        asset.chainId,
-      )
-    : undefined;
-  const [balance, , error] = useTokenBalance(
-    asset.address,
-    interactingAddress,
-    networkClientId,
-  );
+  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
+  const chainId = useSelector(selectEvmChainId);
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
