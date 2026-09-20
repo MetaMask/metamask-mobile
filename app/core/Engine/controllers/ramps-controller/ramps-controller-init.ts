@@ -51,9 +51,11 @@ export const rampsControllerInit: MessengerClientInitFunction<
 
   let subscriptionsRegistered = false;
   let refreshPromise: Promise<void> | undefined;
+  let isRefreshQueued = false;
 
   const refreshAutoramps = (): void => {
     if (refreshPromise) {
+      isRefreshQueued = true;
       return;
     }
     refreshPromise = controller
@@ -66,6 +68,10 @@ export const rampsControllerInit: MessengerClientInitFunction<
       })
       .finally(() => {
         refreshPromise = undefined;
+        if (isRefreshQueued) {
+          isRefreshQueued = false;
+          refreshAutoramps();
+        }
       });
   };
 

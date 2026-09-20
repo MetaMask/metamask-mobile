@@ -258,17 +258,30 @@ describe('ramps controller init', () => {
     });
   });
 
-  it('coalesces ramps activity refresh signals while a refresh is running', () => {
+  it('runs one trailing refresh for signals received during a refresh', async () => {
     const { controller } = rampsControllerInit(initRequestMock);
     const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
     const activityHandler = subscribeMock.mock.calls.find(
       ([event]) => event === 'RampsActivityService:eventReceived',
     )?.[1] as (event: { needsFetch: boolean }) => void;
+    let resolveRefresh: (() => void) | undefined;
+    jest.mocked(controller.refreshAutoramps).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRefresh = () => resolve([]);
+      }),
+    );
 
+    activityHandler({ needsFetch: true });
     activityHandler({ needsFetch: true });
     activityHandler({ needsFetch: true });
 
     expect(controller.refreshAutoramps).toHaveBeenCalledTimes(1);
+
+    resolveRefresh?.();
+
+    await waitFor(() => {
+      expect(controller.refreshAutoramps).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('does not refresh autoramps when a ramps-activity event does not need fetch', () => {
