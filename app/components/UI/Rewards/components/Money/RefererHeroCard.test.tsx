@@ -5,6 +5,7 @@ import type {
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
 import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
 
@@ -62,7 +63,7 @@ describe('RefererHeroCard', () => {
         })}
         isEarningsLoading={false}
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     expect(getByText('SOPHIE')).toBeOnTheScreen();
@@ -90,7 +91,7 @@ describe('RefererHeroCard', () => {
         earningsSummary={summary}
         isEarningsLoading={false}
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     expect(queryByText('$99.00')).not.toBeOnTheScreen();
@@ -106,7 +107,7 @@ describe('RefererHeroCard', () => {
         })}
         isEarningsLoading={false}
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     expect(getByText('$41.75')).toBeOnTheScreen();
@@ -121,7 +122,7 @@ describe('RefererHeroCard', () => {
         earningsSummary={null}
         isEarningsLoading
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
@@ -135,7 +136,7 @@ describe('RefererHeroCard', () => {
         earningsSummary={null}
         isEarningsLoading={false}
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     fireEvent.press(getByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON));
