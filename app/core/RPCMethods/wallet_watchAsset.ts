@@ -59,7 +59,7 @@ export const wallet_watchAsset = async ({
       image: string;
     };
     type: string;
-  }> & { networkClientId?: string };
+  }>;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: PendingJsonRpcResponse<any>;
@@ -90,7 +90,9 @@ export const wallet_watchAsset = async ({
   const { AssetsController, NetworkController, TokensController } =
     Engine.context;
   const state = store.getState();
-  const networkClientId = req.networkClientId ?? selectNetworkClientId(state);
+  const networkClientId =
+    (req as { networkClientId?: string }).networkClientId ??
+    selectNetworkClientId(state);
   const chainId =
     NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId)
       ?.chainId ?? selectEvmChainId(state);
@@ -116,11 +118,13 @@ export const wallet_watchAsset = async ({
 
   const permittedAccounts = getPermittedAccounts(hostname);
   // This should return the current active account on the Dapp.
-  const selectedInternalAccount =
-    Engine.context.AccountsController.getSelectedAccount();
+  const selectedInternalAccountAddress =
+    Engine.context.AccountsController.getSelectedAccount().address;
+  const selectedInternalAccountId =
+    Engine.context.AccountsController.getSelectedAccount().id;
   // Fallback to wallet address if there is no connected account to Dapp.
   const interactingAddress =
-    permittedAccounts?.[0] || selectedInternalAccount.address;
+    permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
   // *This is an hotfix this logic should live on whatchAsset method on TokensController*
@@ -162,7 +166,7 @@ export const wallet_watchAsset = async ({
   });
 
   await AssetsController.addCustomAsset(
-    selectedInternalAccount.id,
+    selectedInternalAccountId,
     buildEvmCaip19AssetId(address, chainId),
     {
       address,
