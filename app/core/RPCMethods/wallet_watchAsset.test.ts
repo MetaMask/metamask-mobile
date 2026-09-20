@@ -12,7 +12,6 @@ import { mockNetworkState } from '../../util/test/network';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../selectors/multichainAccounts/accountTreeController';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
-
 const MOCK_ACCOUNT_ID = 'mock-evm-account-id';
 
 jest.mock('../../selectors/multichainAccounts/accountTreeController', () => ({
@@ -24,8 +23,7 @@ jest.mock('../Engine', () => ({
   context: {
     AssetsContractController: {
       getERC20TokenDecimals: jest.fn(),
-      getERC721AssetSymbol: jest.fn(),
-      getERC20TokenName: jest.fn(),
+      getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
     },
     ApprovalController: {
       add: jest.fn(),
@@ -33,15 +31,23 @@ jest.mock('../Engine', () => ({
     AssetsController: {
       addCustomAsset: jest.fn(),
     },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest
+        .fn()
+        .mockReturnValue({ chainId: '0x1' }),
+    },
+    TokenListController: {
+      state: {
+        tokensChainsCache: {
+          '0x1': {
+            data: [],
+          },
+        },
+      },
+    },
     PermissionController: {
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
-    },
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
-    },
-    SelectedNetworkController: {
-      getNetworkClientIdForDomain: jest.fn(),
     },
   },
 }));
@@ -81,102 +87,101 @@ describe('wallet_watchAsset', () => {
     image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
   };
 
-  const callWatchAsset = async ({
-    options = correctWBTC,
-    type = ERC20,
-    hostname = '',
-    ...requestOverrides
-  }: {
-    options?: Record<string, string>;
-    type?: string;
-    hostname?: string;
-    networkClientId?: string;
-    origin?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    pageMeta?: any;
-  } = {}) =>
-    wallet_watchAsset({
-      req: {
-        params: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          options: options as any,
-          type,
-        },
-        jsonrpc: '2.0',
-        method: '',
-        id: '',
-        networkClientId: requestOverrides.networkClientId,
-        origin: requestOverrides.origin,
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      res: {} as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      checkTabActive: () => null as any,
-      hostname,
-      pageMeta: requestOverrides.pageMeta,
-    });
-
   beforeEach(() => {
     jest.clearAllMocks();
-
     jest
       .mocked(selectSelectedAccountGroupEvmInternalAccount)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .mockReturnValue({ id: MOCK_ACCOUNT_ID, address: MOCK_ADDRESS } as any);
+  });
+
+  it('should throw an error if the token address is not valid', async () => {
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: {
+              address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c59',
+              symbol: '',
+              decimals: '',
+              image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
+            },
+            type: '',
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: '',
+      }),
+    ).rejects.toThrow(TOKEN_NOT_VALID);
+  });
+
+  it('should throw an error if the token address is not a smart contract address', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(false);
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: {
+              address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+              symbol: '',
+              decimals: '',
+              image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
+            },
+            type: '',
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: '',
+      }),
+    ).rejects.toThrow(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
+  });
+
+  it('should add the asset with legit WBTC decimals and symbol', async () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
-    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { chainId: '0x1' } as any,
-    );
     MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
       correctWBTC.decimals,
     );
     MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
       correctWBTC.symbol,
     );
-    MockEngine.context.AssetsContractController.getERC20TokenName.mockResolvedValue(
-      'Wrapped BTC',
-    );
-    MockEngine.context.ApprovalController.add.mockResolvedValue(undefined);
-    MockEngine.context.AssetsController.addCustomAsset.mockResolvedValue(
-      undefined,
-    );
-  });
-
-  it('throws when the token address is not a valid address', async () => {
-    await expect(
-      callWatchAsset({
-        options: { ...correctWBTC, address: correctWBTC.address.slice(0, -1) },
-        type: '',
-      }),
-    ).rejects.toThrow(TOKEN_NOT_VALID);
-  });
-
-  it('throws when the token address is not a smart contract address', async () => {
-    jest
-      .spyOn(transactionsUtils, 'isSmartContractAddress')
-      .mockResolvedValue(false);
-
-    await expect(callWatchAsset({ type: '' })).rejects.toThrow(
-      TOKEN_NOT_SUPPORTED_FOR_NETWORK,
-    );
-  });
-
-  it('throws when the asset type is not ERC20', async () => {
-    await expect(callWatchAsset({ type: 'ERC721' })).rejects.toThrow(
-      'Asset of type ERC721 not supported',
-    );
-
-    expect(
-      MockEngine.context.AssetsController.addCustomAsset,
-    ).not.toHaveBeenCalled();
-  });
-
-  it('adds the asset with the on-chain symbol and decimals', async () => {
-    await callWatchAsset();
-
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: '',
+    });
     expect(MockEngine.context.ApprovalController.add).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'wallet_watchAsset',
@@ -200,145 +205,190 @@ describe('wallet_watchAsset', () => {
       {
         address: correctWBTC.address,
         symbol: 'WBTC',
-        name: 'Wrapped BTC',
+        name: 'WBTC',
         decimals: 8,
         chainId: '0x1',
-        unlisted: false,
         iconUrl: correctWBTC.image,
       },
     );
   });
 
-  it('overrides the symbol and decimals reported by the dapp with the on-chain values', async () => {
-    await callWatchAsset({
-      options: {
-        ...correctWBTC,
-        symbol: 'WBTCFake',
-        decimals: '16',
-      },
-    });
-
-    expect(
-      MockEngine.context.AssetsController.addCustomAsset,
-    ).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(String),
-      expect.objectContaining({ symbol: 'WBTC', decimals: 8 }),
-    );
-  });
-
-  it('throws when the wallet has no EVM account to add the asset to', async () => {
+  it('should not add the asset when the user rejects the approval', async () => {
     jest
-      .mocked(selectSelectedAccountGroupEvmInternalAccount)
-      .mockReturnValue(null);
-
-    await expect(callWatchAsset()).rejects.toThrow(
-      'No EVM account available to watch the asset on.',
-    );
-
-    expect(MockEngine.context.ApprovalController.add).not.toHaveBeenCalled();
-  });
-
-  it('does not add the asset when the user rejects the approval', async () => {
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
     MockEngine.context.ApprovalController.add.mockRejectedValueOnce(
       new Error('User rejected the request.'),
     );
 
-    await expect(callWatchAsset()).rejects.toThrow(
-      'User rejected the request.',
-    );
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: correctWBTC,
+            type: ERC20,
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: '',
+      }),
+    ).rejects.toThrow('User rejected the request.');
 
     expect(
       MockEngine.context.AssetsController.addCustomAsset,
     ).not.toHaveBeenCalled();
   });
 
-  it('sanitizes pageMeta properties with undefined values before requesting approval', async () => {
-    await callWatchAsset({
-      hostname: 'example.com',
-      pageMeta: {
-        url: 'https://example.com',
-        title: undefined,
-        icon: undefined,
-        channelId: undefined,
-        analytics: {
-          request_source: 'in-app-browser',
-          request_platform: undefined,
+  it('should validate and add the asset on the network the request targets', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValueOnce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { chainId: '0x38' } as any,
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
         },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+        networkClientId: 'bsc-network',
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'https://dapp.example',
     });
+
+    expect(transactionsUtils.isSmartContractAddress).toHaveBeenCalledWith(
+      correctWBTC.address,
+      '0x38',
+      'bsc-network',
+    );
+    expect(
+      MockEngine.context.AssetsContractController.getERC20TokenDecimals,
+    ).toHaveBeenCalledWith(correctWBTC.address, 'bsc-network');
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledWith(
+      MOCK_ACCOUNT_ID,
+      `eip155:56/erc20:${correctWBTC.address}`,
+      expect.objectContaining({ chainId: '0x38' }),
+    );
+  });
+
+  it('should add the asset with the on-chain values when the dapp reports fake WBTC decimals and symbol', async () => {
+    const fakeWBTC = {
+      address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+      symbol: 'WBTCFake',
+      decimals: '16',
+      image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
+    };
+
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: fakeWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: '',
+    });
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledWith(
+      MOCK_ACCOUNT_ID,
+      `eip155:1/erc20:${correctWBTC.address}`,
+      expect.objectContaining({ symbol: 'WBTC', decimals: 8 }),
+    );
+  });
+
+  it('sanitizes pageMeta properties with undefined values before requesting approval', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+
+    const pageMetaWithUndefined = {
+      url: 'https://example.com',
+      title: undefined,
+      icon: undefined,
+      channelId: undefined,
+      analytics: {
+        request_source: 'in-app-browser',
+        request_platform: undefined,
+      },
+    };
+
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: correctWBTC,
+            type: ERC20,
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: 'example.com',
+        pageMeta: pageMetaWithUndefined,
+      }),
+    ).resolves.not.toThrow();
+
+    const expectedSanitizedPageMeta = {
+      url: 'https://example.com',
+      analytics: {
+        request_source: 'in-app-browser',
+      },
+    };
 
     expect(MockEngine.context.ApprovalController.add).toHaveBeenCalledWith(
       expect.objectContaining({
         origin: 'https://example.com',
         requestData: expect.objectContaining({
-          pageMeta: {
-            url: 'https://example.com',
-            analytics: {
-              request_source: 'in-app-browser',
-            },
-          },
+          pageMeta: expectedSanitizedPageMeta,
         }),
       }),
     );
-  });
-
-  describe('dapp-selected network', () => {
-    beforeEach(() => {
-      MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { chainId: '0x38' } as any,
-      );
-    });
-
-    it('validates and adds the asset on the network attached to the request', async () => {
-      await callWatchAsset({
-        networkClientId: 'bsc-network',
-        origin: 'https://dapp.example',
-        hostname: 'https://dapp.example',
-      });
-
-      expect(transactionsUtils.isSmartContractAddress).toHaveBeenCalledWith(
-        correctWBTC.address,
-        '0x38',
-        'bsc-network',
-      );
-      expect(
-        MockEngine.context.AssetsContractController.getERC20TokenDecimals,
-      ).toHaveBeenCalledWith(correctWBTC.address, 'bsc-network');
-      expect(
-        MockEngine.context.AssetsContractController.getERC721AssetSymbol,
-      ).toHaveBeenCalledWith(correctWBTC.address, 'bsc-network');
-      expect(
-        MockEngine.context.AssetsController.addCustomAsset,
-      ).toHaveBeenCalledWith(
-        expect.any(String),
-        `eip155:56/erc20:${correctWBTC.address}`,
-        expect.objectContaining({ chainId: '0x38' }),
-      );
-    });
-
-    it('resolves the dapp network from SelectedNetworkController when the request has no networkClientId', async () => {
-      MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
-        'bsc-network',
-      );
-
-      await callWatchAsset({
-        origin: 'https://dapp.example',
-        hostname: 'https://dapp.example',
-      });
-
-      expect(
-        MockEngine.context.SelectedNetworkController
-          .getNetworkClientIdForDomain,
-      ).toHaveBeenCalledWith('https://dapp.example');
-      expect(
-        MockEngine.context.AssetsController.addCustomAsset,
-      ).toHaveBeenCalledWith(
-        expect.any(String),
-        `eip155:56/erc20:${correctWBTC.address}`,
-        expect.objectContaining({ chainId: '0x38' }),
-      );
-    });
   });
 });

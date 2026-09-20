@@ -23,7 +23,6 @@ import { selectSelectedAccountGroupEvmInternalAccount } from '../../selectors/mu
 import { isValidAddress } from 'ethereumjs-util';
 import {
   getSafeJson,
-  Hex,
   Json,
   JsonRpcRequest,
   PendingJsonRpcResponse,
@@ -53,63 +52,6 @@ import { MESSAGE_TYPE } from '../createTracingMiddleware';
 const stripNonJsonValues = <Type>(value: Type): Type =>
   JSON.parse(JSON.stringify(value));
 
-type WatchAssetRpcRequest = JsonRpcRequest<{
-  options: {
-    address: string;
-    decimals: string;
-    symbol: string;
-    image: string;
-  };
-  type: string;
-}> & {
-  networkClientId?: string;
-  origin?: string;
-};
-
-/**
- * Resolves the EVM network the requesting dapp is on.
- *
- * `wallet_switchEthereumChain` updates SelectedNetworkController for the dapp
- * origin without changing the wallet's globally selected network. Validation
- * and persistence must use that per-dapp client, otherwise tokens are checked
- * and stored against the wrong chain.
- *
- * @param requestNetworkClientId - `networkClientId` already attached to the
- * JSON-RPC request by selected-network middleware, when present.
- * @param origin - Request origin (preferred SelectedNetworkController key).
- * @param hostname - BackgroundBridge hostname/origin fallback.
- * @returns The dapp's `chainId` and `networkClientId`, falling back to the
- * wallet's globally selected network when no dapp network is available.
- */
-export const getNetworkForWatchAssetRequest = ({
-  requestNetworkClientId,
-  origin,
-  hostname,
-}: {
-  requestNetworkClientId?: string;
-  origin?: string;
-  hostname: string;
-}): { chainId: Hex; networkClientId: string } => {
-  const { NetworkController, SelectedNetworkController } = Engine.context;
-  const state = store.getState();
-  const domain = origin || hostname;
-
-  const networkClientId =
-    requestNetworkClientId ||
-    (domain
-      ? SelectedNetworkController.getNetworkClientIdForDomain(domain)
-      : undefined) ||
-    selectNetworkClientId(state);
-
-  const networkConfiguration =
-    NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
-
-  return {
-    chainId: networkConfiguration?.chainId ?? selectEvmChainId(state),
-    networkClientId,
-  };
-};
-
 export const wallet_watchAsset = async ({
   req,
   res,
@@ -117,7 +59,15 @@ export const wallet_watchAsset = async ({
   checkTabActive,
   pageMeta: _pageMeta,
 }: {
-  req: WatchAssetRpcRequest;
+  req: JsonRpcRequest<{
+    options: {
+      address: string;
+      decimals: string;
+      symbol: string;
+      image: string;
+    };
+    type: string;
+  }> & { networkClientId?: string };
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: PendingJsonRpcResponse<any>;
@@ -145,12 +95,16 @@ export const wallet_watchAsset = async ({
     },
   } = req;
 
-  const { ApprovalController, AssetsController } = Engine.context;
-  const { chainId, networkClientId } = getNetworkForWatchAssetRequest({
-    requestNetworkClientId: req.networkClientId,
-    origin: req.origin,
-    hostname,
-  });
+  const { ApprovalController, AssetsController, NetworkController } =
+    Engine.context;
+  const state = store.getState();
+  // Selected-network middleware sets `networkClientId` to the dapp's own
+  // network, which `wallet_switchEthereumChain` changes without touching the
+  // wallet's globally selected network.
+  const networkClientId = req.networkClientId ?? selectNetworkClientId(state);
+  const chainId =
+    NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId)
+      ?.chainId ?? selectEvmChainId(state);
 
   checkTabActive();
   const requestOrigin = _pageMeta?.url ?? hostname;
@@ -175,46 +129,38 @@ export const wallet_watchAsset = async ({
     throw new Error(`Asset of type ${type} not supported`);
   }
 
-  // The unified AssetsController keys assets by account id, and every other
-  // add-token path resolves it from the selected account group's EVM account.
-  const evmAccount = selectSelectedAccountGroupEvmInternalAccount(
-    store.getState(),
-  );
-
+  // AssetsController keys assets by account id, like every other add-token path.
+  const evmAccount = selectSelectedAccountGroupEvmInternalAccount(state);
   if (!evmAccount) {
     throw rpcErrors.internal('No EVM account available to watch the asset on.');
   }
 
   const permittedAccounts = getPermittedAccounts(hostname);
-  // Prefer the account the dapp is connected to for display purposes.
+  // Fallback to wallet address if there is no connected account to Dapp.
   const interactingAddress = permittedAccounts?.[0] || evmAccount.address;
 
-  // The dapp-provided symbol and decimals are overridden with the on-chain
-  // values when they can be read, since dapps sometimes report them wrongly.
-  let fetchedDecimals, fetchedSymbol, fetchedName;
+  // This variables are to override the value of decimals and symbol from the dapp
+  // if they are wrong accordingly to the token address
+  let fetchedDecimals, fetchedSymbol;
   try {
-    [fetchedDecimals, fetchedSymbol, fetchedName] = await Promise.all([
+    [fetchedDecimals, fetchedSymbol] = await Promise.all([
       AssetsContractController.getERC20TokenDecimals(address, networkClientId),
       AssetsContractController.getERC721AssetSymbol(address, networkClientId),
-      AssetsContractController.getERC20TokenName(address, networkClientId),
     ]);
     //The catch it's only to prevent the fetch from the chain to fail
     // eslint-disable-next-line no-empty
   } catch (e) {}
 
   const finalTokenSymbol = fetchedSymbol ?? symbol;
-  const finalTokenDecimals = Number.parseInt(
-    String(fetchedDecimals ?? decimals),
-    10,
-  );
-
+  // Decimals arrive as a string, but AssetsController persists a number.
+  const finalTokenDecimals = parseInt(String(fetchedDecimals ?? decimals), 10);
   if (
-    !Number.isInteger(finalTokenDecimals) ||
+    Number.isNaN(finalTokenDecimals) ||
     finalTokenDecimals < 0 ||
     finalTokenDecimals > 36
   ) {
     throw rpcErrors.invalidParams(
-      `Invalid decimals "${String(decimals)}": must be an integer 0 <= 36`,
+      `Invalid decimals "${decimals}": must be an integer 0 <= 36`,
     );
   }
 
@@ -223,18 +169,13 @@ export const wallet_watchAsset = async ({
       ? getSafeJson<Record<string, Json>>(stripNonJsonValues(_pageMeta))
       : undefined;
 
-  const normalizedImage =
-    typeof image === 'string' && image.trim() !== '' ? image : null;
-
   const approvalId = random();
 
   // Show the EIP-747 confirmation and wait for the user. A rejection throws
   // here, so the asset is never persisted below.
   await ApprovalController.add({
     id: approvalId,
-    // ApprovalController rejects empty origins, which the old controller
-    // guarded against with the same fallback.
-    origin: requestOrigin.trim() === '' ? ORIGIN_METAMASK : requestOrigin,
+    origin: requestOrigin || ORIGIN_METAMASK,
     type: ApprovalType.WatchAsset,
     requestData: {
       id: approvalId,
@@ -243,10 +184,10 @@ export const wallet_watchAsset = async ({
         address,
         symbol: finalTokenSymbol,
         decimals: finalTokenDecimals,
-        image: normalizedImage,
+        image,
         chainId,
       },
-      ...(safePageMeta ? { pageMeta: safePageMeta } : {}),
+      pageMeta: safePageMeta ?? null,
     },
   });
 
@@ -256,11 +197,10 @@ export const wallet_watchAsset = async ({
     {
       address,
       symbol: finalTokenSymbol,
-      name: fetchedName ?? finalTokenSymbol,
+      name: finalTokenSymbol,
       decimals: finalTokenDecimals,
       chainId,
-      unlisted: false,
-      ...(normalizedImage ? { iconUrl: normalizedImage } : {}),
+      iconUrl: image,
     },
   );
 
