@@ -127,8 +127,8 @@ export const wallet_watchAsset = async ({
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
-      AssetsContractController.getERC20TokenDecimals(address, networkClientId),
-      AssetsContractController.getERC721AssetSymbol(address, networkClientId),
+      AssetsContractController.getERC20TokenDecimals(address),
+      AssetsContractController.getERC721AssetSymbol(address),
     ]);
     //The catch it's only to prevent the fetch from the chain to fail
     // eslint-disable-next-line no-empty

@@ -363,7 +363,7 @@ describe('wallet_watchAsset', () => {
     );
     expect(
       MockEngine.context.AssetsContractController.getERC20TokenDecimals,
-    ).toHaveBeenCalledWith(correctWBTC.address, 'bsc-network');
+    ).toHaveBeenCalledWith(correctWBTC.address);
     expect(MockEngine.context.TokensController.watchAsset).toHaveBeenCalledWith(
       expect.objectContaining({ networkClientId: 'bsc-network' }),
     );
