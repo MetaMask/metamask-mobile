@@ -14,12 +14,11 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
+  FontWeight,
+  SectionHeader,
+  Skeleton,
   Text,
   TextVariant,
-  FontWeight,
-  Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
@@ -223,92 +222,88 @@ const EarnRewardsPreview: React.FC = () => {
   const cardStyle = { width: cardWidth };
 
   return (
-    <Box
-      twClassName="gap-3 pb-3"
-      testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2 px-4"
-      >
-        {showMusdSkeleton && (
-          <ActivityIndicator size="small" color={colors.primary.default} />
-        )}
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.earn_rewards.title')}
-        </Text>
-      </Box>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        snapToOffsets={snapOffsets}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollEndDrag={handleScrollEndDrag}
-        contentContainerStyle={styles.carouselContent}
-      >
-        {items.map((item, index) => (
-          <View
-            key={item}
-            style={[cardStyle, index < items.length - 1 && styles.cardGap]}
-          >
-            {item === 'musd-skeleton' && (
-              <Skeleton style={tw.style('h-28 rounded-xl')} />
-            )}
-            {item === 'musd' && (
-              <EarnCard
-                testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
-                image={musdImage}
-                title={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {strings('rewards.earn_rewards.musd_money_title', {
-                      percentage: apyPercent ?? 3,
-                    })}
+    <Box testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}>
+      <SectionHeader
+        title={strings('rewards.earn_rewards.title')}
+        startAccessory={
+          showMusdSkeleton ? (
+            <ActivityIndicator size="small" color={colors.primary.default} />
+          ) : undefined
+        }
+      />
+      {/* paddingTop matches CampaignsPreview / BenefitsPreview, where
+          sections pair SectionHeader with a pt-3 content box. */}
+      <Box paddingTop={3}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          snapToOffsets={snapOffsets}
+          onScrollBeginDrag={handleScrollBeginDrag}
+          onScrollEndDrag={handleScrollEndDrag}
+          contentContainerStyle={styles.carouselContent}
+        >
+          {items.map((item, index) => (
+            <View
+              key={item}
+              style={[cardStyle, index < items.length - 1 && styles.cardGap]}
+            >
+              {item === 'musd-skeleton' && (
+                <Skeleton style={tw.style('h-28 rounded-xl')} />
+              )}
+              {item === 'musd' && (
+                <EarnCard
+                  testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+                  image={musdImage}
+                  title={
                     <Text
-                      accessibilityRole="link"
-                      accessibilityLabel={strings(
-                        'rewards.earn_rewards.musd_disclaimer_accessibility_label',
-                      )}
-                      testID={
-                        REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK
-                      }
-                      twClassName="text-primary"
-                      onPress={handleMusdDisclaimerPress}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
                     >
-                      *
+                      {strings('rewards.earn_rewards.musd_money_title', {
+                        percentage: apyPercent ?? 3,
+                      })}
+                      <Text
+                        accessibilityRole="link"
+                        accessibilityLabel={strings(
+                          'rewards.earn_rewards.musd_disclaimer_accessibility_label',
+                        )}
+                        testID={
+                          REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK
+                        }
+                        twClassName="text-primary"
+                        onPress={handleMusdDisclaimerPress}
+                      >
+                        *
+                      </Text>
                     </Text>
-                  </Text>
-                }
-                subtitle={strings('rewards.earn_rewards.musd_subtitle')}
-                onPress={handleMusdPress}
-                disabled={isDragging}
-              />
-            )}
-            {item === 'card' && (
-              <EarnCard
-                testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-                image={cardImage}
-                title={
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {strings('rewards.earn_rewards.card_title')}
-                  </Text>
-                }
-                subtitle={cardSubtitle}
-                onPress={handleCardPress}
-                disabled={isDragging}
-              />
-            )}
-          </View>
-        ))}
-      </ScrollView>
+                  }
+                  subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+                  onPress={handleMusdPress}
+                  disabled={isDragging}
+                />
+              )}
+              {item === 'card' && (
+                <EarnCard
+                  testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+                  image={cardImage}
+                  title={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {strings('rewards.earn_rewards.card_title')}
+                    </Text>
+                  }
+                  subtitle={cardSubtitle}
+                  onPress={handleCardPress}
+                  disabled={isDragging}
+                />
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      </Box>
     </Box>
   );
 };

@@ -50,8 +50,9 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  WAYS_TO_EARN_DIVIDER: 'rewards-money-dashboard-ways-to-earn-divider',
   ERROR_BANNER: 'rewards-money-dashboard-error-banner',
+  CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
+  BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
 } as const;
 
 type RewardsMoneyTab = 'waysToEarn' | 'earnings';
@@ -226,15 +227,26 @@ const RewardsMoneyDashboard: React.FC = () => {
                 {referralMe ? (
                   subscriptionId ? (
                     <>
-                      <SectionDivider
-                        marginVertical={8}
-                        style={tw.style('mb-3')}
+                      <Box
                         testID={
-                          REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_DIVIDER
+                          REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION
                         }
-                      />
-                      <Box twClassName="gap-4">
+                      >
+                        <SectionDivider
+                          marginVertical={0}
+                          twClassName="mt-8 mb-5"
+                        />
                         <CampaignsPreview />
+                      </Box>
+                      <Box
+                        testID={
+                          REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION
+                        }
+                      >
+                        <SectionDivider
+                          marginVertical={0}
+                          twClassName="mt-8 mb-5"
+                        />
                         <BenefitsPreview />
                       </Box>
                     </>

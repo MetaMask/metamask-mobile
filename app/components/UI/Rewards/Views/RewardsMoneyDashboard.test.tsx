@@ -313,9 +313,6 @@ describe('RewardsMoneyDashboard', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_DIVIDER),
-    ).toBeOnTheScreen();
     expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
     expect(getByTestId('benefits-preview')).toBeOnTheScreen();
     expect(
@@ -324,6 +321,19 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders campaigns and benefits sections with dividers on the dashboard', () => {
+    const { getByTestId } = renderDashboard();
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+    ).toBeOnTheScreen();
+    expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
+    expect(getByTestId('benefits-preview')).toBeOnTheScreen();
   });
 
   it('renders the referee hero and hides the referrer share card', () => {
@@ -407,7 +417,10 @@ describe('RewardsMoneyDashboard', () => {
     expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
     expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_DIVIDER),
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
     ).not.toBeOnTheScreen();
   });
 

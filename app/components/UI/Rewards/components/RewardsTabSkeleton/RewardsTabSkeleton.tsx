@@ -46,7 +46,16 @@ const RewardsTabSkeleton: React.FC<RewardsTabSkeletonProps> = ({
       <Box twClassName="px-4 gap-4" testID={REWARDS_TAB_SKELETON_TEST_IDS.BODY}>
         <Skeleton style={tw.style('h-10 w-full rounded-md')} />
         <Skeleton style={tw.style('h-44 w-full rounded-xl')} />
-        <Skeleton style={tw.style('h-28 w-full rounded-xl')} />
+        <Box twClassName="flex-row gap-3">
+          <Skeleton style={tw.style('h-28 flex-1 rounded-xl')} />
+          <Skeleton style={tw.style('h-28 flex-1 rounded-xl')} />
+        </Box>
+        <Skeleton style={tw.style('h-6 w-40 rounded-md')} />
+        <Skeleton style={tw.style('h-50 w-full rounded-xl')} />
+        <Skeleton style={tw.style('h-6 w-32 rounded-md')} />
+        <Skeleton style={tw.style('h-24 w-full rounded-xl')} />
+        <Skeleton style={tw.style('h-24 w-full rounded-xl')} />
+        <Skeleton style={tw.style('h-24 w-full rounded-xl')} />
       </Box>
     </SafeAreaView>
   );
