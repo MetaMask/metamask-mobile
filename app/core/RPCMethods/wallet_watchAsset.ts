@@ -1,3 +1,10 @@
+import {
+  ApprovalType,
+  ERC20,
+  ORIGIN_METAMASK,
+} from '@metamask/controller-utils';
+import { rpcErrors } from '@metamask/rpc-errors';
+import { v1 as random } from 'uuid';
 import Engine from '../Engine';
 import { store } from '../../store';
 
@@ -11,6 +18,8 @@ import {
   selectEvmChainId,
   selectNetworkClientId,
 } from '../../selectors/networkController';
+import { buildEvmCaip19AssetId } from '../../util/multichain/buildEvmCaip19AssetId';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../selectors/multichainAccounts/accountTreeController';
 import { isValidAddress } from 'ethereumjs-util';
 import {
   getSafeJson,
@@ -62,8 +71,8 @@ type WatchAssetRpcRequest = JsonRpcRequest<{
  *
  * `wallet_switchEthereumChain` updates SelectedNetworkController for the dapp
  * origin without changing the wallet's globally selected network. Validation
- * and `TokensController.watchAsset` must use that per-dapp client, otherwise
- * tokens are checked/stored against the wrong chain.
+ * and persistence must use that per-dapp client, otherwise tokens are checked
+ * and stored against the wrong chain.
  *
  * @param requestNetworkClientId - `networkClientId` already attached to the
  * JSON-RPC request by selected-network middleware, when present.
@@ -136,7 +145,7 @@ export const wallet_watchAsset = async ({
     },
   } = req;
 
-  const { TokensController } = Engine.context;
+  const { ApprovalController, AssetsController } = Engine.context;
   const { chainId, networkClientId } = getNetworkForWatchAssetRequest({
     requestNetworkClientId: req.networkClientId,
     origin: req.origin,
@@ -162,52 +171,98 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   }
 
+  if (type !== ERC20) {
+    throw new Error(`Asset of type ${type} not supported`);
+  }
+
+  // The unified AssetsController keys assets by account id, and every other
+  // add-token path resolves it from the selected account group's EVM account.
+  const evmAccount = selectSelectedAccountGroupEvmInternalAccount(
+    store.getState(),
+  );
+
+  if (!evmAccount) {
+    throw rpcErrors.internal('No EVM account available to watch the asset on.');
+  }
+
   const permittedAccounts = getPermittedAccounts(hostname);
-  // This should return the current active account on the Dapp.
-  const selectedInternalAccountAddress =
-    Engine.context.AccountsController.getSelectedAccount().address;
-  // Fallback to wallet address if there is no connected account to Dapp.
-  const interactingAddress =
-    permittedAccounts?.[0] || selectedInternalAccountAddress;
-  // This variables are to override the value of decimals and symbol from the dapp
-  // if they are wrong accordingly to the token address
-  // *This is an hotfix this logic should live on whatchAsset method on TokensController*
-  let fetchedDecimals, fetchedSymbol;
+  // Prefer the account the dapp is connected to for display purposes.
+  const interactingAddress = permittedAccounts?.[0] || evmAccount.address;
+
+  // The dapp-provided symbol and decimals are overridden with the on-chain
+  // values when they can be read, since dapps sometimes report them wrongly.
+  let fetchedDecimals, fetchedSymbol, fetchedName;
   try {
-    [fetchedDecimals, fetchedSymbol] = await Promise.all([
+    [fetchedDecimals, fetchedSymbol, fetchedName] = await Promise.all([
       AssetsContractController.getERC20TokenDecimals(address, networkClientId),
       AssetsContractController.getERC721AssetSymbol(address, networkClientId),
+      AssetsContractController.getERC20TokenName(address, networkClientId),
     ]);
     //The catch it's only to prevent the fetch from the chain to fail
     // eslint-disable-next-line no-empty
   } catch (e) {}
 
   const finalTokenSymbol = fetchedSymbol ?? symbol;
-  const finalTokenDecimals = fetchedDecimals ?? decimals;
+  const finalTokenDecimals = Number.parseInt(
+    String(fetchedDecimals ?? decimals),
+    10,
+  );
+
+  if (
+    !Number.isInteger(finalTokenDecimals) ||
+    finalTokenDecimals < 0 ||
+    finalTokenDecimals > 36
+  ) {
+    throw rpcErrors.invalidParams(
+      `Invalid decimals "${String(decimals)}": must be an integer 0 <= 36`,
+    );
+  }
 
   const safePageMeta =
     _pageMeta !== undefined
       ? getSafeJson<Record<string, Json>>(stripNonJsonValues(_pageMeta))
       : undefined;
 
-  await TokensController.watchAsset({
-    asset: {
-      address,
-      symbol: finalTokenSymbol,
-      // @ts-expect-error TODO: Fix decimal type
-      decimals: finalTokenDecimals,
-      image,
-    },
-    type,
-    interactingAddress,
-    networkClientId,
-    origin: requestOrigin,
-    pageMeta: safePageMeta,
-    requestMetadata: {
-      origin: requestOrigin,
-      pageMeta: safePageMeta,
+  const normalizedImage =
+    typeof image === 'string' && image.trim() !== '' ? image : null;
+
+  const approvalId = random();
+
+  // Show the EIP-747 confirmation and wait for the user. A rejection throws
+  // here, so the asset is never persisted below.
+  await ApprovalController.add({
+    id: approvalId,
+    // ApprovalController rejects empty origins, which the old controller
+    // guarded against with the same fallback.
+    origin: requestOrigin.trim() === '' ? ORIGIN_METAMASK : requestOrigin,
+    type: ApprovalType.WatchAsset,
+    requestData: {
+      id: approvalId,
+      interactingAddress,
+      asset: {
+        address,
+        symbol: finalTokenSymbol,
+        decimals: finalTokenDecimals,
+        image: normalizedImage,
+        chainId,
+      },
+      ...(safePageMeta ? { pageMeta: safePageMeta } : {}),
     },
   });
+
+  await AssetsController.addCustomAsset(
+    evmAccount.id,
+    buildEvmCaip19AssetId(address, chainId),
+    {
+      address,
+      symbol: finalTokenSymbol,
+      name: fetchedName ?? finalTokenSymbol,
+      decimals: finalTokenDecimals,
+      chainId,
+      unlisted: false,
+      ...(normalizedImage ? { iconUrl: normalizedImage } : {}),
+    },
+  );
 
   res.result = true;
 };

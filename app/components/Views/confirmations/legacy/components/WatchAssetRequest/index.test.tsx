@@ -19,11 +19,8 @@ jest.mock('../../../../../../core/Engine', () => ({
     AssetsContractController: {
       getERC20BalanceOf: jest.fn().mockResolvedValue(null),
     },
-    SelectedNetworkController: {
-      getNetworkClientIdForDomain: jest.fn(),
-    },
     NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
   },
 }));
@@ -53,22 +50,19 @@ describe('WatchAssetRequest', () => {
     expect(getByTestId(AssetWatcherSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('queries token balance on the dapp-selected network', () => {
-    Engine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
-      'bsc-network',
-    );
-    Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
-      { chainId: '0x38' },
-    );
+  it('queries the token balance on the network the asset belongs to', () => {
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockReturnValue('bsc-network');
 
     const { getByTestId } = renderWithProvider(
       <WatchAssetRequest
-        origin="https://dapp.example"
         suggestedAssetMeta={{
           asset: {
             address: '0x0000000000000000000000000000000000000002',
             symbol: 'TKN',
             decimals: 0,
+            chainId: '0x38',
           },
           interactingAddress: '0x0000000000000000000000000000000000000001',
         }}
@@ -77,8 +71,8 @@ describe('WatchAssetRequest', () => {
     );
 
     expect(
-      Engine.context.SelectedNetworkController.getNetworkClientIdForDomain,
-    ).toHaveBeenCalledWith('https://dapp.example');
+      Engine.context.NetworkController.findNetworkClientIdByChainId,
+    ).toHaveBeenCalledWith('0x38');
     expect(
       Engine.context.AssetsContractController.getERC20BalanceOf,
     ).toHaveBeenCalledWith(

@@ -101,14 +101,12 @@ const createStyles = (colors) =>
  * @param {object} props
  * @param {any} props.suggestedAssetMeta
  * @param {any} [props.currentPageInformation]
- * @param {string} [props.origin] Dapp origin used to resolve the per-dapp network
  * @param {() => void} [props.onCancel]
  * @param {() => Promise<void> | void} [props.onConfirm]
  */
 const WatchAssetRequest = ({
   suggestedAssetMeta,
   currentPageInformation,
-  origin,
   onCancel,
   onConfirm,
 }) => {
@@ -118,24 +116,15 @@ const WatchAssetRequest = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const globalChainId = useSelector(selectEvmChainId);
-  const { NetworkController, SelectedNetworkController } = Engine.context;
-  let dappOrigin = origin;
-  if (!dappOrigin && currentPageInformation?.url) {
-    try {
-      dappOrigin = new URL(currentPageInformation.url).origin;
-    } catch (error) {
-      dappOrigin = undefined;
-    }
-  }
-  const networkClientId = dappOrigin
-    ? SelectedNetworkController.getNetworkClientIdForDomain(dappOrigin)
+  // Dapp-suggested assets carry the chain the request targeted, which can
+  // differ from the wallet's selected network. Balance and header must follow
+  // the asset's chain so they match where the token is being added.
+  const chainId = asset.chainId ?? globalChainId;
+  const networkClientId = asset.chainId
+    ? Engine.context.NetworkController.findNetworkClientIdByChainId(
+        asset.chainId,
+      )
     : undefined;
-  const dappChainId = networkClientId
-    ? NetworkController.getNetworkConfigurationByNetworkClientId(
-        networkClientId,
-      )?.chainId
-    : undefined;
-  const chainId = dappChainId ?? globalChainId;
   const [balance, , error] = useTokenBalance(
     asset.address,
     interactingAddress,
@@ -280,10 +269,6 @@ WatchAssetRequest.propTypes = {
    * Object containing current page title, url, and icon href
    */
   currentPageInformation: PropTypes.object,
-  /**
-   * Origin of the dapp that requested wallet_watchAsset
-   */
-  origin: PropTypes.string,
 };
 
 export default WatchAssetRequest;
