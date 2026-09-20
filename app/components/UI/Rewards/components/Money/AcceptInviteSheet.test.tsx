@@ -378,11 +378,15 @@ describe('AcceptInviteSheet', () => {
       clearError: jest.fn(),
     });
 
-    const { getByTestId } = await renderSheet('KOL1');
+    const { getByTestId, queryByTestId } = await renderSheet('KOL1');
 
     expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
       strings('rewards.error_messages.cannot_use_own_referral_code'),
     );
+
+    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
+
+    expect(queryByTestId(TEST_IDS.CODE_VALID)).toBeNull();
 
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 

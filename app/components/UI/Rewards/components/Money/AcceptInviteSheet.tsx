@@ -158,7 +158,7 @@ const InviteCodeField: React.FC<InviteCodeFieldProps> = ({
                 alignItems={BoxAlignItems.Center}
                 gap={2}
               >
-                {isValidated && (
+                {isValidated && !errorMessage && (
                   <Icon
                     name={IconName.Check}
                     size={IconSize.Md}
