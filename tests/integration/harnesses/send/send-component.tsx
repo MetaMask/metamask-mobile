@@ -23,6 +23,13 @@ jest.mock(
 );
 
 jest.mock(
+  '../../../../app/components/Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: () => undefined,
+  }),
+);
+
+jest.mock(
   '../../../../app/components/Views/confirmations/hooks/send/useAccountOverrideGroupId',
   () => ({
     useAccountOverrideGroupId: () => undefined,
