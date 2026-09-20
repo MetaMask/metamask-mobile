@@ -46,6 +46,14 @@ jest.mock('../Engine', () => {
       AccountsController: {
         getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
       },
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest
+          .fn()
+          .mockReturnValue({ chainId: '0x1' }),
+      },
+      SelectedNetworkController: {
+        getNetworkClientIdForDomain: jest.fn(),
+      },
     },
   };
 });
@@ -84,6 +92,13 @@ describe('wallet_watchAsset', () => {
     decimals: '8',
     image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
   };
+
+  beforeEach(() => {
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: '0x1' },
+    );
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReset();
+  });
 
   it('should throw an error if the token address is not valid', async () => {
     await expect(
@@ -308,5 +323,109 @@ describe('wallet_watchAsset', () => {
         pageMeta: expectedSanitizedPageMeta,
       },
     });
+  });
+
+  it('validates and watches the asset on the dapp-selected network', async () => {
+    const isSmartContractAddress = jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: '0x38' },
+    );
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+    const spyOnWatchAsset = jest.spyOn(
+      Engine.context.TokensController,
+      'watchAsset',
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+        networkClientId: 'bsc-network',
+        origin: 'https://dapp.example',
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'https://dapp.example',
+    });
+
+    expect(isSmartContractAddress).toHaveBeenCalledWith(
+      correctWBTC.address,
+      '0x38',
+      'bsc-network',
+    );
+    expect(
+      MockEngine.context.AssetsContractController.getERC20TokenDecimals,
+    ).toHaveBeenCalledWith(correctWBTC.address, 'bsc-network');
+    expect(
+      MockEngine.context.AssetsContractController.getERC721AssetSymbol,
+    ).toHaveBeenCalledWith(correctWBTC.address, 'bsc-network');
+    expect(spyOnWatchAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        networkClientId: 'bsc-network',
+      }),
+    );
+  });
+
+  it('resolves the dapp network from SelectedNetworkController when the request has no networkClientId', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+      'bsc-network',
+    );
+    MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+      { chainId: '0x38' },
+    );
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      correctWBTC.decimals,
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      correctWBTC.symbol,
+    );
+    const spyOnWatchAsset = jest.spyOn(
+      Engine.context.TokensController,
+      'watchAsset',
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: correctWBTC,
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+        origin: 'https://dapp.example',
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: 'https://dapp.example',
+    });
+
+    expect(
+      MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain,
+    ).toHaveBeenCalledWith('https://dapp.example');
+    expect(spyOnWatchAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        networkClientId: 'bsc-network',
+      }),
+    );
   });
 });

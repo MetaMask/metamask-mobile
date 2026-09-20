@@ -22,6 +22,7 @@ const WatchAssetApproval = () => {
         onConfirm={onConfirm}
         suggestedAssetMeta={asset}
         currentPageInformation={pageMeta}
+        origin={approvalRequest.origin}
       />
     </ApprovalModal>
   );

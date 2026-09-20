@@ -14,6 +14,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import useTokenBalance from '../../../../../hooks/useTokenBalance';
 import { useTheme } from '../../../../../../util/theme';
 import NotificationManager from '../../../../../../core/NotificationManager';
+import Engine from '../../../../../../core/Engine';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../../util/transactions';
@@ -100,12 +101,14 @@ const createStyles = (colors) =>
  * @param {object} props
  * @param {any} props.suggestedAssetMeta
  * @param {any} [props.currentPageInformation]
+ * @param {string} [props.origin] Dapp origin used to resolve the per-dapp network
  * @param {() => void} [props.onCancel]
  * @param {() => Promise<void> | void} [props.onConfirm]
  */
 const WatchAssetRequest = ({
   suggestedAssetMeta,
   currentPageInformation,
+  origin,
   onCancel,
   onConfirm,
 }) => {
@@ -114,8 +117,30 @@ const WatchAssetRequest = ({
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
-  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
-  const chainId = useSelector(selectEvmChainId);
+  const globalChainId = useSelector(selectEvmChainId);
+  const { NetworkController, SelectedNetworkController } = Engine.context;
+  let dappOrigin = origin;
+  if (!dappOrigin && currentPageInformation?.url) {
+    try {
+      dappOrigin = new URL(currentPageInformation.url).origin;
+    } catch (error) {
+      dappOrigin = undefined;
+    }
+  }
+  const networkClientId = dappOrigin
+    ? SelectedNetworkController.getNetworkClientIdForDomain(dappOrigin)
+    : undefined;
+  const dappChainId = networkClientId
+    ? NetworkController.getNetworkConfigurationByNetworkClientId(
+        networkClientId,
+      )?.chainId
+    : undefined;
+  const chainId = dappChainId ?? globalChainId;
+  const [balance, , error] = useTokenBalance(
+    asset.address,
+    interactingAddress,
+    networkClientId,
+  );
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
@@ -255,6 +280,10 @@ WatchAssetRequest.propTypes = {
    * Object containing current page title, url, and icon href
    */
   currentPageInformation: PropTypes.object,
+  /**
+   * Origin of the dapp that requested wallet_watchAsset
+   */
+  origin: PropTypes.string,
 };
 
 export default WatchAssetRequest;

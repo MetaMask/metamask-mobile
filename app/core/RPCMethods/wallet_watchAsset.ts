@@ -14,6 +14,7 @@ import {
 import { isValidAddress } from 'ethereumjs-util';
 import {
   getSafeJson,
+  Hex,
   Json,
   JsonRpcRequest,
   PendingJsonRpcResponse,
@@ -43,6 +44,63 @@ import { MESSAGE_TYPE } from '../createTracingMiddleware';
 const stripNonJsonValues = <Type>(value: Type): Type =>
   JSON.parse(JSON.stringify(value));
 
+type WatchAssetRpcRequest = JsonRpcRequest<{
+  options: {
+    address: string;
+    decimals: string;
+    symbol: string;
+    image: string;
+  };
+  type: string;
+}> & {
+  networkClientId?: string;
+  origin?: string;
+};
+
+/**
+ * Resolves the EVM network the requesting dapp is on.
+ *
+ * `wallet_switchEthereumChain` updates SelectedNetworkController for the dapp
+ * origin without changing the wallet's globally selected network. Validation
+ * and `TokensController.watchAsset` must use that per-dapp client, otherwise
+ * tokens are checked/stored against the wrong chain.
+ *
+ * @param requestNetworkClientId - `networkClientId` already attached to the
+ * JSON-RPC request by selected-network middleware, when present.
+ * @param origin - Request origin (preferred SelectedNetworkController key).
+ * @param hostname - BackgroundBridge hostname/origin fallback.
+ * @returns The dapp's `chainId` and `networkClientId`, falling back to the
+ * wallet's globally selected network when no dapp network is available.
+ */
+export const getNetworkForWatchAssetRequest = ({
+  requestNetworkClientId,
+  origin,
+  hostname,
+}: {
+  requestNetworkClientId?: string;
+  origin?: string;
+  hostname: string;
+}): { chainId: Hex; networkClientId: string } => {
+  const { NetworkController, SelectedNetworkController } = Engine.context;
+  const state = store.getState();
+  const domain = origin || hostname;
+
+  const networkClientId =
+    requestNetworkClientId ||
+    (domain
+      ? SelectedNetworkController.getNetworkClientIdForDomain(domain)
+      : undefined) ||
+    selectNetworkClientId(state);
+
+  const networkConfiguration =
+    NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
+
+  return {
+    chainId: networkConfiguration?.chainId ?? selectEvmChainId(state),
+    networkClientId,
+  };
+};
+
 export const wallet_watchAsset = async ({
   req,
   res,
@@ -50,15 +108,7 @@ export const wallet_watchAsset = async ({
   checkTabActive,
   pageMeta: _pageMeta,
 }: {
-  req: JsonRpcRequest<{
-    options: {
-      address: string;
-      decimals: string;
-      symbol: string;
-      image: string;
-    };
-    type: string;
-  }>;
+  req: WatchAssetRpcRequest;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: PendingJsonRpcResponse<any>;
@@ -87,9 +137,11 @@ export const wallet_watchAsset = async ({
   } = req;
 
   const { TokensController } = Engine.context;
-  const state = store.getState();
-  const chainId = selectEvmChainId(state);
-  const networkClientId = selectNetworkClientId(state);
+  const { chainId, networkClientId } = getNetworkForWatchAssetRequest({
+    requestNetworkClientId: req.networkClientId,
+    origin: req.origin,
+    hostname,
+  });
 
   checkTabActive();
   const requestOrigin = _pageMeta?.url ?? hostname;
@@ -100,7 +152,7 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_VALID);
   }
 
-  // Check if token exists on wallet's active network.
+  // Check if the token contract exists on the dapp-selected network.
   const isTokenOnNetwork = await isSmartContractAddress(
     address,
     chainId,
@@ -123,8 +175,8 @@ export const wallet_watchAsset = async ({
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
-      AssetsContractController.getERC20TokenDecimals(address),
-      AssetsContractController.getERC721AssetSymbol(address),
+      AssetsContractController.getERC20TokenDecimals(address, networkClientId),
+      AssetsContractController.getERC721AssetSymbol(address, networkClientId),
     ]);
     //The catch it's only to prevent the fetch from the chain to fail
     // eslint-disable-next-line no-empty
