@@ -7,6 +7,11 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import Logger from '../../../../util/Logger';
+import {
+  type RampsActivityEvent,
+  WebSocketState,
+} from '@metamask/core-backend';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -44,13 +49,31 @@ export const rampsControllerInit: MessengerClientInitFunction<
     // service). Keep that action delegated in the controller messenger.
   });
 
-  let orderSubscriptionsRegistered = false;
+  let subscriptionsRegistered = false;
+  let refreshPromise: Promise<void> | undefined;
 
-  const registerOrderSubscriptions = (): void => {
-    if (orderSubscriptionsRegistered) {
+  const refreshAutoramps = (): void => {
+    if (refreshPromise) {
       return;
     }
-    orderSubscriptionsRegistered = true;
+    refreshPromise = controller
+      .refreshAutoramps()
+      .catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'RampsController: failed to refresh after ramps activity signal',
+        );
+      })
+      .finally(() => {
+        refreshPromise = undefined;
+      });
+  };
+
+  const registerSubscriptions = (): void => {
+    if (subscriptionsRegistered) {
+      return;
+    }
+    subscriptionsRegistered = true;
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForNotifications,
@@ -59,10 +82,27 @@ export const rampsControllerInit: MessengerClientInitFunction<
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
     );
+    initMessenger.subscribe(
+      'RampsActivityService:eventReceived',
+      (event: RampsActivityEvent) => {
+        if (!event.needsFetch) {
+          return;
+        }
+        refreshAutoramps();
+      },
+    );
+    initMessenger.subscribe(
+      'RampsActivityService:statusChanged',
+      ({ status }) => {
+        if (status === WebSocketState.CONNECTED) {
+          refreshAutoramps();
+        }
+      },
+    );
   };
 
   const startRampsController = (): void => {
-    registerOrderSubscriptions();
+    registerSubscriptions();
     controller
       .init()
       .then(() => {

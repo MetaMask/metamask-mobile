@@ -272,6 +272,9 @@ import {
   AccountActivityService,
   AccountActivityServiceActions,
   AccountActivityServiceEvents,
+  RampsActivityService,
+  RampsActivityServiceActions,
+  RampsActivityServiceEvents,
   OHLCVService,
   OHLCVServiceActions,
   OHLCVServiceEvents,
@@ -708,6 +711,7 @@ export type GlobalActions =
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | AccountActivityServiceActions
+  | RampsActivityServiceActions
   | OHLCVServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -825,6 +829,7 @@ export type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
+  | RampsActivityServiceEvents
   | OHLCVServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -1011,6 +1016,7 @@ export type MessengerClients = {
   ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
+  RampsActivityService: RampsActivityService;
   OHLCVService: OHLCVService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
@@ -1213,6 +1219,7 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
   | 'AccountActivityService'
+  | 'RampsActivityService'
   | 'OHLCVService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'

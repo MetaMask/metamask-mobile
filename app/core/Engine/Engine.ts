@@ -60,6 +60,7 @@ import { notificationServicesPushControllerInit } from './controllers/notificati
 import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
+  rampsActivityServiceInit,
   ohlcvServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
@@ -375,6 +376,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
+        RampsActivityService: rampsActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         SnapAccountService: snapAccountServiceInit,
@@ -577,6 +579,7 @@ export class Engine {
     );
     const accountActivityService =
       messengerClientsByName.AccountActivityService;
+    const rampsActivityService = messengerClientsByName.RampsActivityService;
     const ohlcvService = messengerClientsByName.OHLCVService;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -675,6 +678,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
+      RampsActivityService: rampsActivityService,
       OHLCVService: ohlcvService,
       AccountsController: accountsController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
