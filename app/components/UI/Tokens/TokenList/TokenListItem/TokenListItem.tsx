@@ -16,7 +16,7 @@ import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativ
 import { FlashListAssetKey } from '../TokenList';
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
-import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import { makeSelectAsset } from '../../../../../selectors/assets/assets-list';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
@@ -186,12 +186,24 @@ export const TokenListItem = React.memo(
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF
 
-    const asset = useSelector((state: RootState) =>
-      selectAsset(state, {
+    // One selector instance per row, fed a stable params object: both are
+    // required for the row's asset to keep its reference across store updates
+    // that leave this asset untouched, which in turn keeps the row from
+    // re-rendering on every balance poll.
+    const selectAssetForRow = useMemo(() => makeSelectAsset(), []);
+    const assetParams = useMemo(
+      () => ({
         address: assetKey.address,
         chainId: assetKey.chainId as string,
         isStaked: assetKey.isStaked,
       }),
+      [assetKey.address, assetKey.chainId, assetKey.isStaked],
+    );
+    const asset = useSelector(
+      useCallback(
+        (state: RootState) => selectAssetForRow(state, assetParams),
+        [selectAssetForRow, assetParams],
+      ),
     );
 
     const isAssetInactive = useSelector((state: RootState) =>

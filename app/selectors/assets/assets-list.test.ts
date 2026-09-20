@@ -8,12 +8,13 @@ import {
   SolAccountType,
   TrxScope,
 } from '@metamask/keyring-api';
-import { KnownCaipNamespace } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import type { RootState } from '../../reducers';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { createDeepEqualSelector } from '../util';
 import {
   createSelectSortedAssetsBySelectedAccountGroup,
+  makeSelectAsset,
   selectAsset,
   selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
@@ -1835,6 +1836,96 @@ describe('selectAsset', () => {
         expect(result?.balanceFiat).toBe('$24,000.00');
         expect(result?.balanceFiat).not.toContain('US$');
       },
+    );
+  });
+});
+
+describe('makeSelectAsset', () => {
+  const ACCOUNT_ADDRESS = '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab';
+  const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+  const DAI_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+
+  const NATIVE_PARAMS = {
+    address: NATIVE_ADDRESS,
+    chainId: '0x1',
+    isStaked: false,
+  };
+  const DAI_PARAMS = {
+    address: DAI_ADDRESS,
+    chainId: '0x1',
+    isStaked: false,
+  };
+
+  /**
+   * Builds a state where only DAI's balance differs, mimicking a balance poll
+   * that touches a single token while leaving the rest of the list alone.
+   */
+  const stateWithDaiBalance = (hexBalance: Hex, amount: string) => {
+    const state = mockState();
+    const { TokenBalancesController, AssetsController } =
+      state.engine.backgroundState;
+
+    TokenBalancesController.tokenBalances[ACCOUNT_ADDRESS]['0x1'][DAI_ADDRESS] =
+      hexBalance;
+    AssetsController.assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'][
+      `eip155:1/erc20:${DAI_ADDRESS}`
+    ] = { amount };
+
+    return state;
+  };
+
+  beforeEach(() => {
+    mockI18n.locale = 'en';
+  });
+
+  it('keeps the asset reference stable when an unrelated balance changes', () => {
+    const selectNativeAsset = makeSelectAsset();
+    const before = stateWithDaiBalance('0xad78ebc5ac6200000', '200');
+    const after = stateWithDaiBalance('0x1bc16d674ec80000', '2');
+
+    // Guards the premise of this test: the asset map itself must churn,
+    // otherwise reference stability would be trivially satisfied upstream.
+    expect(selectAssetsBySelectedAccountGroup(after)).not.toBe(
+      selectAssetsBySelectedAccountGroup(before),
+    );
+
+    expect(selectNativeAsset(after, NATIVE_PARAMS)).toBe(
+      selectNativeAsset(before, NATIVE_PARAMS),
+    );
+  });
+
+  it('returns a new reference when the selected asset itself changes', () => {
+    const selectDaiAsset = makeSelectAsset();
+    const before = stateWithDaiBalance('0xad78ebc5ac6200000', '200');
+    const after = stateWithDaiBalance('0x1bc16d674ec80000', '2');
+
+    const first = selectDaiAsset(before, DAI_PARAMS);
+    const second = selectDaiAsset(after, DAI_PARAMS);
+
+    expect(second).not.toBe(first);
+    expect(first?.balance).toBe('200');
+    expect(second?.balance).toBe('2');
+  });
+
+  it('gives each instance its own cache so interleaved reads stay stable', () => {
+    const selectNativeAsset = makeSelectAsset();
+    const selectDaiAsset = makeSelectAsset();
+    const before = stateWithDaiBalance('0xad78ebc5ac6200000', '200');
+    const after = stateWithDaiBalance('0x1bc16d674ec80000', '2');
+
+    const nativeFirst = selectNativeAsset(before, NATIVE_PARAMS);
+    selectDaiAsset(before, DAI_PARAMS);
+    const nativeSecond = selectNativeAsset(after, NATIVE_PARAMS);
+    selectDaiAsset(after, DAI_PARAMS);
+
+    expect(nativeSecond).toBe(nativeFirst);
+  });
+
+  it('returns the same asset as the shared selectAsset instance', () => {
+    const state = mockState();
+
+    expect(makeSelectAsset()(state, NATIVE_PARAMS)).toStrictEqual(
+      selectAsset(state, NATIVE_PARAMS),
     );
   });
 });

@@ -8,6 +8,7 @@ import {
   getNativeTokenAddress,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
+import { deepEqual } from 'fast-equals';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
@@ -590,74 +591,92 @@ export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       chainIds,
     );
 
+export interface SelectAssetParams {
+  address: string;
+  chainId: string;
+  isStaked?: boolean;
+}
+
+/**
+ * Creates a selector instance dedicated to a single asset. Components that
+ * render one asset per instance (e.g. token list rows) should hold their own
+ * instance so the returned `TokenI` keeps its reference while that asset is
+ * unchanged.
+ *
+ * `selectAssetsBySelectedAccountGroup` returns a fresh object whenever any
+ * balance anywhere changes, so the result function re-runs and produces a new
+ * `TokenI` for every asset. `resultEqualityCheck` collapses that back onto the
+ * previous reference when the asset itself is unchanged, which lets consumers
+ * skip re-rendering. It only compares against the instance's own most recent
+ * result, hence the one-instance-per-asset requirement.
+ */
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
-export const selectAsset = createSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    selectStakedAssets,
-    selectAllTokens,
-    selectSelectedInternalAccountAddress,
-    selectSelectedInternalAccountByScope,
+export const makeSelectAsset = () =>
+  createSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      selectStakedAssets,
+      selectAllTokens,
+      selectSelectedInternalAccountAddress,
+      selectSelectedInternalAccountByScope,
+      (_state: RootState, params: SelectAssetParams) => params.address,
+      (_state: RootState, params: SelectAssetParams) => params.chainId,
+      (_state: RootState, params: SelectAssetParams) => params.isStaked,
+    ],
     (
-      _state: RootState,
-      params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params.address,
-    (
-      _state: RootState,
-      params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params.chainId,
-    (
-      _state: RootState,
-      params: { address: string; chainId: string; isStaked?: boolean },
-    ) => params.isStaked,
-  ],
-  (
-    assets,
-    stakedAssets,
-    allTokens,
-    selectedAddress,
-    getAccountByScope,
-    address,
-    chainId,
-    isStaked,
-  ) => {
-    const chainIdInCaip = isCaipChainId(chainId)
-      ? chainId
-      : toEvmCaipChainId(chainId as Hex);
+      assets,
+      stakedAssets,
+      allTokens,
+      selectedAddress,
+      getAccountByScope,
+      address,
+      chainId,
+      isStaked,
+    ) => {
+      const chainIdInCaip = isCaipChainId(chainId)
+        ? chainId
+        : toEvmCaipChainId(chainId as Hex);
 
-    // Get the account for this chain from the selected account group
-    const scopedAccountId = getAccountByScope(chainIdInCaip)?.id;
+      // Get the account for this chain from the selected account group
+      const scopedAccountId = getAccountByScope(chainIdInCaip)?.id;
 
-    const asset = isStaked
-      ? stakedAssets.find(
-          (item) =>
-            item.chainId === chainId &&
-            (!scopedAccountId || item.accountId === scopedAccountId) &&
-            item.stakedAsset.assetId === address,
-        )?.stakedAsset
-      : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
-          const itemIsStaked = Boolean(item.isStaked);
-          const targetIsStaked = Boolean(isStaked);
-          return (
-            item.assetId === address &&
-            (!scopedAccountId || item.accountId === scopedAccountId) &&
-            itemIsStaked === targetIsStaked
-          );
-        });
+      const asset = isStaked
+        ? stakedAssets.find(
+            (item) =>
+              item.chainId === chainId &&
+              (!scopedAccountId || item.accountId === scopedAccountId) &&
+              item.stakedAsset.assetId === address,
+          )?.stakedAsset
+        : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
+            const itemIsStaked = Boolean(item.isStaked);
+            const targetIsStaked = Boolean(isStaked);
+            return (
+              item.assetId === address &&
+              (!scopedAccountId || item.accountId === scopedAccountId) &&
+              itemIsStaked === targetIsStaked
+            );
+          });
 
-    // Look up aggregators and rwaData from the original token in allTokens
-    const originalToken = selectedAddress
-      ? allTokens?.[chainId as Hex]?.[selectedAddress]?.find(
-          (token) => token.address.toLowerCase() === address.toLowerCase(),
-        )
-      : undefined;
+      // Look up aggregators and rwaData from the original token in allTokens
+      const originalToken = selectedAddress
+        ? allTokens?.[chainId as Hex]?.[selectedAddress]?.find(
+            (token) => token.address.toLowerCase() === address.toLowerCase(),
+          )
+        : undefined;
 
-    const aggregators = originalToken?.aggregators;
-    const rwaData = (originalToken as TokenI | undefined)?.rwaData;
+      const aggregators = originalToken?.aggregators;
+      const rwaData = (originalToken as TokenI | undefined)?.rwaData;
 
-    return asset ? assetToToken(asset, aggregators, rwaData) : undefined;
-  },
-);
+      return asset ? assetToToken(asset, aggregators, rwaData) : undefined;
+    },
+    { memoizeOptions: { resultEqualityCheck: deepEqual } },
+  );
+
+/**
+ * Shared instance for one-off reads. Callers that read many different assets
+ * should use {@link makeSelectAsset} instead.
+ */
+export const selectAsset = makeSelectAsset();
 
 const oneHundredThousandths = 0.00001;
 const oneHundredths = 0.01;
