@@ -4,6 +4,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
+import Pressable from '../../../../../component-library/components-temp/Pressable/Pressable';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import ShareCodeSheet, { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
 
@@ -90,8 +91,6 @@ const LOCALIZED_TEXT = {
   copyLink: 'Copy link',
   messages: 'Messages',
   telegram: 'Telegram',
-  copiedOnce: 'Copied 1 time',
-  copiedTimes: 'Copied {count} times',
 } as unknown as ReferralLocalizedText;
 
 interface RenderOptions {
@@ -263,6 +262,12 @@ describe('ShareCodeSheet', () => {
     ) =>
       queryByTestId(TEST_IDS.COPY_LINK_CHECK, { includeHiddenElements: true });
 
+    it('uses the repo Pressable to provide pressed feedback for every action', () => {
+      const { UNSAFE_getAllByType } = renderSheet();
+
+      expect(UNSAFE_getAllByType(Pressable)).toHaveLength(4);
+    });
+
     it.each([
       ['share via', TEST_IDS.SHARE_VIA, 'Share via'],
       ['copy link', TEST_IDS.COPY_LINK, 'Copy link'],
@@ -311,8 +316,8 @@ describe('ShareCodeSheet', () => {
       expect(getByTestId(TEST_IDS.COPY_LINK)).toBeOnTheScreen();
     });
 
-    it('copies the resolved url and confirms the first copy', () => {
-      const { getByTestId, queryByTestId, getByText } = renderSheet({
+    it('copies the resolved url and confirms with the check icon', () => {
+      const { getByTestId, queryByTestId, queryByText } = renderSheet({
         shareUrl: API_SHARE_URL,
       });
 
@@ -322,11 +327,11 @@ describe('ShareCodeSheet', () => {
 
       expect(Clipboard.setString).toHaveBeenCalledWith(API_SHARE_URL);
       expect(queryCheckIcon(queryByTestId)).not.toBeNull();
-      expect(getByText('Copied 1 time')).toBeOnTheScreen();
+      expect(queryByText(/Copied/)).toBeNull();
     });
 
-    it('counts repeated copies', () => {
-      const { getByTestId, getByText } = renderSheet();
+    it('keeps the check icon on repeated copies without a count label', () => {
+      const { getByTestId, queryByTestId, queryByText } = renderSheet();
 
       fireEvent.press(getByTestId(TEST_IDS.COPY_LINK));
       fireEvent.press(getByTestId(TEST_IDS.COPY_LINK));
@@ -334,10 +339,11 @@ describe('ShareCodeSheet', () => {
 
       expect(Clipboard.setString).toHaveBeenCalledTimes(3);
       expect(Clipboard.setString).toHaveBeenLastCalledWith(CODE_URL);
-      expect(getByText('Copied 3 times')).toBeOnTheScreen();
+      expect(queryCheckIcon(queryByTestId)).not.toBeNull();
+      expect(queryByText(/Copied/)).toBeNull();
     });
 
-    it('forgets the copy count once the parent reopens the sheet', () => {
+    it('forgets the copied confirmation once the parent reopens the sheet', () => {
       const sheet = (open: boolean) => (
         <ShareCodeSheet
           open={open}
@@ -347,17 +353,14 @@ describe('ShareCodeSheet', () => {
           onClose={jest.fn()}
         />
       );
-      const { getByTestId, queryByTestId, queryByText, rerender } = render(
-        sheet(true),
-      );
+      const { getByTestId, queryByTestId, rerender } = render(sheet(true));
 
       fireEvent.press(getByTestId(TEST_IDS.COPY_LINK));
-      expect(queryByText('Copied 1 time')).toBeOnTheScreen();
+      expect(queryCheckIcon(queryByTestId)).not.toBeNull();
 
       rerender(sheet(false));
       rerender(sheet(true));
 
-      expect(queryByText('Copied 1 time')).toBeNull();
       expect(queryCheckIcon(queryByTestId)).toBeNull();
     });
 

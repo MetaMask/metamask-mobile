@@ -5,18 +5,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Linking,
-  Modal,
-  Platform,
-  Pressable,
-  Share,
-  StyleSheet,
-} from 'react-native';
+import { Linking, Modal, Platform, Share, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Clipboard from '@react-native-clipboard/clipboard';
 import QRCode from 'react-native-qrcode-svg';
+import Pressable from '../../../../../component-library/components-temp/Pressable/Pressable';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -30,7 +24,6 @@ import {
   IconName,
   IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,7 +40,6 @@ export const SHARE_CODE_SHEET_TEST_IDS = {
   COPY_LINK_CHECK: 'share-code-sheet-copy-link-check',
   MESSAGES: 'share-code-sheet-messages',
   TELEGRAM: 'share-code-sheet-telegram',
-  COPIED_COUNT: 'share-code-sheet-copied-count',
 } as const;
 
 const styles = StyleSheet.create({
@@ -106,8 +98,6 @@ function useShareCopy(localizedText: ReferralLocalizedText | undefined) {
       messages: localizedText?.messages ?? '',
       telegram: localizedText?.telegram ?? '',
       inviteBody: localizedText?.inviteBody ?? '',
-      copiedOnce: localizedText?.copiedOnce ?? '',
-      copiedTimes: localizedText?.copiedTimes ?? '',
     }),
     [localizedText],
   );
@@ -144,7 +134,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const copy = useShareCopy(localizedText);
   const resolvedShareUrl = resolveMoneyShareUrl(code, shareUrl);
-  const [copyCount, setCopyCount] = useState(0);
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
   // Every dismissal route — the header button, the overlay, a swipe, the
   // hardware back button — lands on the same sheet close, and the parent is
   // told once per opening.
@@ -152,7 +142,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
 
   useEffect(() => {
     if (open) {
-      setCopyCount(0);
+      setIsLinkCopied(false);
       hasReportedCloseRef.current = false;
     }
   }, [open]);
@@ -191,7 +181,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     }
 
     Clipboard.setString(resolvedShareUrl);
-    setCopyCount((count) => count + 1);
+    setIsLinkCopied(true);
   }, [resolvedShareUrl]);
 
   const handleMessages = useCallback(() => {
@@ -229,8 +219,6 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     });
   }, [copy.inviteBody, resolvedShareUrl]);
 
-  const isLinkCopied = copyCount > 0;
-
   // Without a link there is nothing for these to act on, so they are left out
   // rather than shown inert.
   const actions = resolvedShareUrl
@@ -266,12 +254,6 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
         },
       ].filter((action) => Boolean(action.label))
     : [];
-
-  const copiedLabel = isLinkCopied
-    ? copyCount === 1
-      ? copy.copiedOnce
-      : copy.copiedTimes.replace('{count}', String(copyCount))
-    : '';
 
   if (!open) {
     return null;
@@ -372,17 +354,6 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
                     </Pressable>
                   ))}
                 </Box>
-              )}
-              {Boolean(copiedLabel) && (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.SuccessDefault}
-                  twClassName="mt-4"
-                  accessibilityLiveRegion="polite"
-                  testID={SHARE_CODE_SHEET_TEST_IDS.COPIED_COUNT}
-                >
-                  {copiedLabel}
-                </Text>
               )}
             </Box>
           </BottomSheet>
