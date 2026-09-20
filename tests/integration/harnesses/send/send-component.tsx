@@ -7,11 +7,12 @@ import React from 'react';
  */
 let mockAssets: AccountGroupAssets = {};
 let mockFiatRate = 0;
+const mockEmptyAssets: AccountGroupAssets = {};
 
 jest.mock('../../../../app/selectors/assets/assets-list', () => ({
   ...jest.requireActual('../../../../app/selectors/assets/assets-list'),
   selectAssetsBySelectedAccountGroup: () => mockAssets,
-  selectAssetsByAccountGroupId: () => ({}),
+  selectAssetsByAccountGroupId: () => mockEmptyAssets,
 }));
 
 jest.mock(
