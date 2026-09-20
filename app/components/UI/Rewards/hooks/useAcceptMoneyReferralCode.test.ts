@@ -1,4 +1,4 @@
-import { createElement, type ReactNode } from 'react';
+import { createElement, type ComponentProps, type ReactNode } from 'react';
 import { act, renderHook } from '@testing-library/react-hooks';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
@@ -49,7 +49,7 @@ const buildReferralMe = (
   status: 'ACTIVE',
   referral_code: null,
   referred_by: {
-    code: CODE,
+    referral_code: CODE,
     earning_start: null,
     earning_end: null,
   },
@@ -87,7 +87,11 @@ describe('useAcceptMoneyReferralCode', () => {
       reducer: { rewardsMoney: rewardsMoneyReducer },
     });
     const wrapper = ({ children }: { children?: ReactNode }) =>
-      createElement(Provider, { store }, children);
+      createElement(
+        Provider,
+        { store } as ComponentProps<typeof Provider>,
+        children,
+      );
 
     return {
       store,
