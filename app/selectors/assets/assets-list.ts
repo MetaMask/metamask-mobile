@@ -182,14 +182,23 @@ const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
   trxInLockPeriod: undefined,
 });
 
+const EMPTY_ACCOUNT_TREE: AssetListState['accountTree'] = { wallets: {} };
+const EMPTY_INTERNAL_ACCOUNTS: AssetListState['internalAccounts'] = {
+  accounts: {},
+  selectedAccount: '',
+};
+const EMPTY_NETWORK_CONFIGURATIONS: AssetListState['networkConfigurationsByChainId'] =
+  {};
+
 const getStateForAssetSelector = (state: RootState): AssetListState => {
   const { AccountTreeController, AccountsController, NetworkController } =
     state.engine.backgroundState;
 
   return {
-    accountTree: AccountTreeController.accountTree,
-    selectedAccountGroup: AccountTreeController.selectedAccountGroup,
-    internalAccounts: AccountsController.internalAccounts,
+    accountTree: AccountTreeController?.accountTree ?? EMPTY_ACCOUNT_TREE,
+    selectedAccountGroup: AccountTreeController?.selectedAccountGroup ?? '',
+    internalAccounts:
+      AccountsController?.internalAccounts ?? EMPTY_INTERNAL_ACCOUNTS,
     allTokens: getTokensControllerAllTokens(state),
     allIgnoredTokens: getTokensControllerAllIgnoredTokens(state),
     tokenBalances: getTokenBalancesControllerTokenBalances(state),
@@ -202,7 +211,8 @@ const getStateForAssetSelector = (state: RootState): AssetListState => {
     currencyRates: getCurrencyRateControllerCurrencyRates(state),
     currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
     networkConfigurationsByChainId:
-      NetworkController.networkConfigurationsByChainId,
+      NetworkController?.networkConfigurationsByChainId ??
+      EMPTY_NETWORK_CONFIGURATIONS,
     accountsByChainId: getAccountTrackerControllerAccountsByChainId(
       state,
     ) as AssetListState['accountsByChainId'],
