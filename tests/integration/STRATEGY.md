@@ -130,6 +130,7 @@ Do **not** put domain rollout plans, coverage estimates, or Real/Mocked inventor
 | ------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | Perps              | `[harnesses/perps/perps-use-cases.md](harnesses/perps/perps-use-cases.md)`           | `[harnesses/perps/STRATEGY.md](harnesses/perps/STRATEGY.md)`       |
 | Networks / Core UX | `[harnesses/networks/core-ux-use-cases.md](harnesses/networks/core-ux-use-cases.md)` | `[harnesses/networks/STRATEGY.md](harnesses/networks/STRATEGY.md)` |
+| Send               | `[harnesses/send/send-use-cases.md](harnesses/send/send-use-cases.md)`               | `[harnesses/send/STRATEGY.md](harnesses/send/STRATEGY.md)`         |
 
 ## Where things live
 

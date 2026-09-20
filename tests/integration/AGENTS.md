@@ -34,6 +34,7 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 | ------------------ | -------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | Perps              | [`harnesses/perps/`](harnesses/perps/)       | [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md)       | [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md)           |
 | Networks / Core UX | [`harnesses/networks/`](harnesses/networks/) | [`harnesses/networks/STRATEGY.md`](harnesses/networks/STRATEGY.md) | [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) |
+| Send               | [`harnesses/send/`](harnesses/send/)         | [`harnesses/send/STRATEGY.md`](harnesses/send/STRATEGY.md)         | [`harnesses/send/send-use-cases.md`](harnesses/send/send-use-cases.md)               |
 
 ### PredictNext — [`harnesses/predict-next.ts`](harnesses/predict-next.ts)
 
