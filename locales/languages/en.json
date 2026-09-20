@@ -10708,6 +10708,7 @@
       "invalid_referral_code": "Invalid referral code. Please check and try again.",
       "already_referred": "You have already been referred by another user.",
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
       "invalid_bonus_code": "Invalid bonus code",
       "already_redeemed": "You have already redeemed this bonus code",
       "reached_maximum": "This bonus code has reached its maximum number of uses"

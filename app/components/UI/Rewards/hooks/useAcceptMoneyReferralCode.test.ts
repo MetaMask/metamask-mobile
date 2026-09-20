@@ -177,6 +177,8 @@ describe('useAcceptMoneyReferralCode', () => {
 
     expect(typeof result.current.acceptReferralCode).toBe('function');
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.errorMessage).toBe('');
+    expect(typeof result.current.clearError).toBe('function');
   });
 
   describe('validation before registering', () => {
@@ -193,13 +195,10 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         0,
       );
-      expect(mockErrorToast).toHaveBeenCalledWith(
+      expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.invalid_referral_code'),
       );
-      expect(mockShowToast).toHaveBeenCalledWith({
-        kind: 'error',
-        title: strings('rewards.error_messages.invalid_referral_code'),
-      });
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -215,9 +214,10 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         0,
       );
-      expect(mockErrorToast).toHaveBeenCalledWith(
+      expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.something_went_wrong'),
       );
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -235,9 +235,10 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         0,
       );
-      expect(mockErrorToast).toHaveBeenCalledWith(
+      expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.invalid_referral_code'),
       );
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 
@@ -338,7 +339,12 @@ describe('useAcceptMoneyReferralCode', () => {
       ],
       [
         403,
-        'KOLs cannot be referred',
+        'A KOL cannot register as a referee',
+        'rewards.error_messages.referrer_cannot_be_referred',
+      ],
+      [
+        403,
+        'Accounts with recent trading activity cannot register as a referee',
         'rewards.error_messages.something_went_wrong',
       ],
       [500, 'boom', 'rewards.error_messages.something_went_wrong'],
@@ -360,7 +366,8 @@ describe('useAcceptMoneyReferralCode', () => {
         });
 
         expect(accepted).toBe(false);
-        expect(mockErrorToast).toHaveBeenCalledWith(strings(expectedKey));
+        expect(result.current.errorMessage).toBe(strings(expectedKey));
+        expect(mockShowToast).not.toHaveBeenCalled();
         expect(mockGoBack).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(callsFor('RewardsMoneyController:getReferralMe')).toHaveLength(
@@ -379,10 +386,36 @@ describe('useAcceptMoneyReferralCode', () => {
         await result.current.acceptReferralCode(CODE);
       });
 
-      expect(mockErrorToast).toHaveBeenCalledWith(
+      expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.something_went_wrong'),
       );
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('clears the field error when asked', async () => {
+      mockMessenger({
+        registerError: new RewardsMoneyHttpError(
+          'Register referee failed: 409',
+          409,
+          'already referred',
+        ),
+      });
+
+      const { result } = renderAcceptHook();
+      await act(async () => {
+        await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(result.current.errorMessage).toBe(
+        strings('rewards.error_messages.already_referred'),
+      );
+
+      act(() => {
+        result.current.clearError();
+      });
+
+      expect(result.current.errorMessage).toBe('');
     });
   });
 
