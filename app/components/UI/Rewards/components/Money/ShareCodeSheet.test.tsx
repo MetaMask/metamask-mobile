@@ -178,17 +178,16 @@ describe('ShareCodeSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the code itself', () => {
-      const { getByTestId } = renderSheet();
+    it('does not print the referral code as text, matching the KOL share sheet', () => {
+      const { queryByText } = renderSheet();
 
-      expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent(CODE);
+      expect(queryByText(CODE)).toBeNull();
     });
   });
 
   describe('resolved share url', () => {
-    // The QR graphic is hidden from assistive tech — the code text and the
-    // copy action are what a screen reader can act on — so the queries for it
-    // have to look past that.
+    // The QR graphic is hidden from assistive tech — the copy action is what a
+    // screen reader can act on — so the queries for it have to look past that.
     const getQrValue = (
       getByTestId: ReturnType<typeof render>['getByTestId'],
     ) =>
@@ -214,7 +213,7 @@ describe('ShareCodeSheet', () => {
       expect(getQrValue(getByTestId)).toBe(templateUrl);
     });
 
-    it('keeps the code visible but drops the QR and the link actions when there is no url', () => {
+    it('drops the QR and the link actions when there is no url', () => {
       const { getByTestId, queryByTestId } = renderSheet({
         code: null,
         shareUrl: null,
@@ -242,7 +241,7 @@ describe('ShareCodeSheet', () => {
       expect(Clipboard.setString).toHaveBeenCalledWith(CODE_URL);
     });
 
-    it('still shows the code when the url is unusable', () => {
+    it('still presents the sheet when the url is unusable', () => {
       const { getByTestId, queryByTestId } = renderSheet({
         code: '',
         shareUrl: `javascript:${'alert(1)'}`,
@@ -398,6 +397,61 @@ describe('ShareCodeSheet', () => {
       );
     });
 
+    it('fills {url} in inviteBody for the SMS composer', () => {
+      Platform.OS = 'ios';
+      const { getByTestId } = renderSheet({
+        localizedText: {
+          ...LOCALIZED_TEXT,
+          inviteBody:
+            'Earn 2× cashback on Swaps and Perps trades for a limited time. {url}',
+        } as unknown as ReferralLocalizedText,
+      });
+
+      fireEvent.press(getByTestId(TEST_IDS.MESSAGES));
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `sms:&body=${encodeURIComponent(
+          `Earn 2× cashback on Swaps and Perps trades for a limited time. ${CODE_URL}`,
+        )}`,
+      );
+    });
+
+    it('appends the url when inviteBody has no {url} placeholder', () => {
+      Platform.OS = 'android';
+      const { getByTestId } = renderSheet({
+        localizedText: {
+          ...LOCALIZED_TEXT,
+          inviteBody:
+            'Earn 2× cashback on Swaps and Perps trades for a limited time.',
+        } as unknown as ReferralLocalizedText,
+      });
+
+      fireEvent.press(getByTestId(TEST_IDS.MESSAGES));
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `sms:?body=${encodeURIComponent(
+          `Earn 2× cashback on Swaps and Perps trades for a limited time. ${CODE_URL}`,
+        )}`,
+      );
+    });
+
+    it('sends only the url when inviteBody still has an unsubstituted placeholder', () => {
+      Platform.OS = 'ios';
+      const { getByTestId } = renderSheet({
+        localizedText: {
+          ...LOCALIZED_TEXT,
+          inviteBody:
+            'Earn {cashbackMultiplier}× cashback on Swaps and Perps trades for a limited time.',
+        } as unknown as ReferralLocalizedText,
+      });
+
+      fireEvent.press(getByTestId(TEST_IDS.MESSAGES));
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `sms:&body=${encodeURIComponent(CODE_URL)}`,
+      );
+    });
+
     it('opens the SMS composer with the Android body separator', () => {
       Platform.OS = 'android';
       const { getByTestId } = renderSheet();
@@ -411,6 +465,40 @@ describe('ShareCodeSheet', () => {
 
     it('opens Telegram with the url', () => {
       const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(TEST_IDS.TELEGRAM));
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `https://t.me/share/url?url=${encodeURIComponent(CODE_URL)}`,
+      );
+    });
+
+    it('opens Telegram with inviteBody as the share text', () => {
+      const { getByTestId } = renderSheet({
+        localizedText: {
+          ...LOCALIZED_TEXT,
+          inviteBody:
+            'Earn 2× cashback on Swaps and Perps trades for a limited time.',
+        } as unknown as ReferralLocalizedText,
+      });
+
+      fireEvent.press(getByTestId(TEST_IDS.TELEGRAM));
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        `https://t.me/share/url?url=${encodeURIComponent(CODE_URL)}&text=${encodeURIComponent(
+          'Earn 2× cashback on Swaps and Perps trades for a limited time.',
+        )}`,
+      );
+    });
+
+    it('opens Telegram without text when inviteBody still has an unsubstituted placeholder', () => {
+      const { getByTestId } = renderSheet({
+        localizedText: {
+          ...LOCALIZED_TEXT,
+          inviteBody:
+            'Earn {cashbackMultiplier}× cashback on Swaps and Perps trades for a limited time.',
+        } as unknown as ReferralLocalizedText,
+      });
 
       fireEvent.press(getByTestId(TEST_IDS.TELEGRAM));
 
