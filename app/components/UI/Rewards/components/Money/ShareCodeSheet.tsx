@@ -25,7 +25,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -43,7 +42,6 @@ export const SHARE_CODE_SHEET_TEST_IDS = {
   CONTAINER: 'share-code-sheet',
   CLOSE: 'share-code-sheet-close',
   QR: 'share-code-sheet-qr',
-  CODE: 'share-code-sheet-code',
   SHARE_VIA: 'share-code-sheet-share-via',
   COPY_LINK: 'share-code-sheet-copy-link',
   COPY_LINK_CHECK: 'share-code-sheet-copy-link-check',
@@ -59,6 +57,34 @@ const styles = StyleSheet.create({
 });
 
 const QR_SIZE = 180;
+
+/**
+ * Caption from `inviteBody` for SMS and Telegram. `{url}` is stripped (the
+ * link is attached separately). A leftover `{placeholder}` is not sendable.
+ */
+export function buildShareInviteText(template: string | undefined): string {
+  const trimmed = template?.trim() ?? '';
+  if (!trimmed) {
+    return '';
+  }
+  const withoutUrlPlaceholder = trimmed
+    .replaceAll('{url}', ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!withoutUrlPlaceholder || /\{[^{}]+\}/.test(withoutUrlPlaceholder)) {
+    return '';
+  }
+  return withoutUrlPlaceholder;
+}
+
+/** SMS has no separate URL field, so the link rides in the body. */
+export function buildShareSmsBody(
+  template: string | undefined,
+  url: string,
+): string {
+  const text = buildShareInviteText(template);
+  return text ? `${text} ${url}` : url;
+}
 
 /**
  * Share copy, resolved per key.
@@ -79,6 +105,7 @@ function useShareCopy(localizedText: ReferralLocalizedText | undefined) {
       copyLink: localizedText?.copyLink ?? '',
       messages: localizedText?.messages ?? '',
       telegram: localizedText?.telegram ?? '',
+      inviteBody: localizedText?.inviteBody ?? '',
       copiedOnce: localizedText?.copiedOnce ?? '',
       copiedTimes: localizedText?.copiedTimes ?? '',
     }),
@@ -117,7 +144,6 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const copy = useShareCopy(localizedText);
   const resolvedShareUrl = resolveMoneyShareUrl(code, shareUrl);
-  const displayCode = code?.trim() ?? '';
   const [copyCount, setCopyCount] = useState(0);
   // Every dismissal route — the header button, the overlay, a swipe, the
   // hardware back button — lands on the same sheet close, and the parent is
@@ -176,32 +202,37 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     // The two platforms disagree on how a body is attached to an `sms:` URL:
     // iOS wants it as a second field (`&`), Android as the first query
     // parameter (`?`). The wrong separator opens an empty composer.
+    const smsBody = buildShareSmsBody(copy.inviteBody, resolvedShareUrl);
+    const encodedBody = encodeURIComponent(smsBody);
     const smsUrl =
       Platform.OS === 'ios'
-        ? `sms:&body=${encodeURIComponent(resolvedShareUrl)}`
-        : `sms:?body=${encodeURIComponent(resolvedShareUrl)}`;
+        ? `sms:&body=${encodedBody}`
+        : `sms:?body=${encodedBody}`;
 
     Linking.openURL(smsUrl).catch((error) => {
       Logger.log('Error while opening messages for Money referral link', error);
     });
-  }, [resolvedShareUrl]);
+  }, [copy.inviteBody, resolvedShareUrl]);
 
   const handleTelegram = useCallback(() => {
     if (!resolvedShareUrl) {
       return;
     }
 
-    Linking.openURL(
-      `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}`,
-    ).catch((error) => {
+    const inviteText = buildShareInviteText(copy.inviteBody);
+    const telegramUrl = inviteText
+      ? `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}&text=${encodeURIComponent(inviteText)}`
+      : `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}`;
+
+    Linking.openURL(telegramUrl).catch((error) => {
       Logger.log('Error while opening Telegram for Money referral link', error);
     });
-  }, [resolvedShareUrl]);
+  }, [copy.inviteBody, resolvedShareUrl]);
 
   const isLinkCopied = copyCount > 0;
 
   // Without a link there is nothing for these to act on, so they are left out
-  // rather than shown inert. The code itself still renders.
+  // rather than shown inert.
   const actions = resolvedShareUrl
     ? [
         {
@@ -276,7 +307,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
             <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
               {resolvedShareUrl ? (
                 // The graphic carries no information a screen reader can use;
-                // the code below it and the copy action do.
+                // the copy action does.
                 <Box
                   twClassName="rounded-xl border border-muted bg-default p-3"
                   importantForAccessibility="no-hide-descendants"
@@ -289,16 +320,6 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
                   />
                 </Box>
               ) : null}
-              {Boolean(displayCode) && (
-                <Text
-                  variant={TextVariant.HeadingLg}
-                  fontWeight={FontWeight.Bold}
-                  twClassName="mt-4"
-                  testID={SHARE_CODE_SHEET_TEST_IDS.CODE}
-                >
-                  {displayCode}
-                </Text>
-              )}
               {actions.length > 0 && (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
