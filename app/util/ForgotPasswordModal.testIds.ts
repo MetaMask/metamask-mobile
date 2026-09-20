@@ -9,6 +9,7 @@ export const ForgotPasswordModalSelectorsIDs = {
   CANCEL_BUTTON: 'forgot-password-modal-cancel-button',
   WARNING_TEXT: 'forgot-password-modal-warning-text',
   BACK_BUTTON: 'forgot-password-modal-back-button',
+  CLOSE_BUTTON: 'forgot-password-modal-close-button',
 };
 
 export const ForgotPasswordModalSelectorsText = {

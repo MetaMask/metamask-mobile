@@ -34,10 +34,13 @@ on:
           - android
         default: all
       build_attribution:
-        description: "Analytics build attribution (METAMASK_BUILD_ATTRIBUTION). Set to 'nightly' for OTA pushes to nightly builds, or analytics will report the update as a Runway RC"
+        description: "Analytics build attribution. Use 'nightly' for nightly OTA. Official RC OTA is published via Runway OTA RC, not this form. Unofficial leaves rc OTAs as -rc-unofficial."
         required: false
-        type: string
-        default: ''
+        type: choice
+        options:
+          - unofficial
+          - nightly
+        default: unofficial
 
   workflow_call:
     inputs:
@@ -66,8 +69,8 @@ on:
       build_attribution:
         description: >-
           Optional analytics build attribution forwarded to eas-update-platform.yml as
-          METAMASK_BUILD_ATTRIBUTION. Set to 'nightly' for OTA pushes to nightly builds so the
-          rebuilt bundle keeps reporting `-rc-nightly` / `-exp-nightly`.
+          METAMASK_BUILD_ATTRIBUTION. Nightly OTA passes 'nightly'. Official RC OTA
+          passes 'official'. Empty or other values report `-rc-unofficial` for rc.
         type: string
         required: false
         default: ''

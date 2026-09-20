@@ -550,6 +550,9 @@
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
+    "reset_wallet_desc_srp_bold": "Secret Recovery Phrase",
+    "reset_wallet_desc_srp_2": "MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "Biometric authentication cancelled",
     "biometric_authentication_cancelled_title": "Biometric Setup Failed",
     "biometric_authentication_cancelled_description": "Set up biometric authentication again from the settings.",
@@ -1149,7 +1152,8 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
   "social_leaderboard": {
