@@ -668,6 +668,101 @@ describe('selectAssetsBySelectedAccountGroup', () => {
   });
 });
 
+describe('selectAssetsBySelectedAccountGroup memoization', () => {
+  const resetCache = () => {
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
+    selectAssetsBySelectedAccountGroup.clearCache();
+  };
+
+  beforeEach(() => {
+    resetCache();
+  });
+
+  it('does not recompute when NetworkController metadata unrelated to assets changes', () => {
+    const state = mockState();
+
+    selectAssetsBySelectedAccountGroup(state);
+    const recomputations = selectAssetsBySelectedAccountGroup.recomputations();
+    const nextState = {
+      ...state,
+      engine: {
+        ...state.engine,
+        backgroundState: {
+          ...state.engine.backgroundState,
+          NetworkController: {
+            ...state.engine.backgroundState.NetworkController,
+            networksMetadata: {
+              '0x1': { status: 'available', EIPS: { 1559: true } },
+            },
+            selectedNetworkClientId: 'other-network-client',
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    selectAssetsBySelectedAccountGroup(nextState);
+
+    expect(selectAssetsBySelectedAccountGroup.recomputations()).toBe(
+      recomputations,
+    );
+  });
+
+  it('does not recompute when AccountTreeController sync flags change', () => {
+    const state = mockState();
+
+    selectAssetsBySelectedAccountGroup(state);
+    const recomputations = selectAssetsBySelectedAccountGroup.recomputations();
+    const nextState = {
+      ...state,
+      engine: {
+        ...state.engine,
+        backgroundState: {
+          ...state.engine.backgroundState,
+          AccountTreeController: {
+            ...state.engine.backgroundState.AccountTreeController,
+            isAccountTreeSyncingInProgress: true,
+            hasAccountTreeSyncingSyncedAtLeastOnce: true,
+            accountGroupsMetadata: { churn: true },
+            accountWalletsMetadata: { churn: true },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    selectAssetsBySelectedAccountGroup(nextState);
+
+    expect(selectAssetsBySelectedAccountGroup.recomputations()).toBe(
+      recomputations,
+    );
+  });
+
+  it('recomputes when the selected account group changes', () => {
+    const state = mockState();
+
+    selectAssetsBySelectedAccountGroup(state);
+    const recomputations = selectAssetsBySelectedAccountGroup.recomputations();
+    const nextState = {
+      ...state,
+      engine: {
+        ...state.engine,
+        backgroundState: {
+          ...state.engine.backgroundState,
+          AccountTreeController: {
+            ...state.engine.backgroundState.AccountTreeController,
+            selectedAccountGroup: 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/1',
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    selectAssetsBySelectedAccountGroup(nextState);
+
+    expect(selectAssetsBySelectedAccountGroup.recomputations()).toBe(
+      recomputations + 1,
+    );
+  });
+});
+
 describe('selectSortedAssetsBySelectedAccountGroup', () => {
   it('returns all assets sorted by fiat amount when all networks are selected', () => {
     const state = mockState();

@@ -182,13 +182,21 @@ const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
   trxInLockPeriod: undefined,
 });
 
-const getStateForAssetSelector = (state: RootState) => {
+/**
+ * Builds the AssetListState consumed by assets-controllers selectors.
+ *
+ * Pass only the fields those selectors read. Spreading whole controllers would
+ * over-subscribe to churning metadata (network availability polls, selected
+ * client id, account-tree sync flags) and re-derive every asset on each tick.
+ */
+const getStateForAssetSelector = (state: RootState): AssetListState => {
   const { AccountTreeController, AccountsController, NetworkController } =
     state.engine.backgroundState;
 
   return {
-    ...AccountTreeController,
-    ...AccountsController,
+    accountTree: AccountTreeController.accountTree,
+    selectedAccountGroup: AccountTreeController.selectedAccountGroup,
+    internalAccounts: AccountsController.internalAccounts,
     allTokens: getTokensControllerAllTokens(state),
     allIgnoredTokens: getTokensControllerAllIgnoredTokens(state),
     tokenBalances: getTokenBalancesControllerTokenBalances(state),
@@ -200,18 +208,11 @@ const getStateForAssetSelector = (state: RootState) => {
     conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
     currencyRates: getCurrencyRateControllerCurrencyRates(state),
     currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
-    ...NetworkController,
+    networkConfigurationsByChainId:
+      NetworkController.networkConfigurationsByChainId,
     accountsByChainId: getAccountTrackerControllerAccountsByChainId(
       state,
-    ) as Record<
-      Hex,
-      Record<
-        Hex,
-        {
-          balance: Hex | null;
-        }
-      >
-    >,
+    ) as AssetListState['accountsByChainId'],
   };
 };
 
