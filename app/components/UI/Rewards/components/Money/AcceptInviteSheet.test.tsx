@@ -216,6 +216,8 @@ describe('AcceptInviteSheet', () => {
     mockUseAcceptMoneyReferralCode.mockReturnValue({
       acceptReferralCode: mockAcceptReferralCode,
       isLoading: false,
+      errorMessage: '',
+      clearError: jest.fn(),
     });
     mockEngineCall.mockImplementation(async (action: string) => {
       if (action === 'RewardsMoneyController:validateReferralCode') {
@@ -366,6 +368,44 @@ describe('AcceptInviteSheet', () => {
     expect(mockAcceptReferralCode).not.toHaveBeenCalled();
   });
 
+  it('shows a register refusal as the field error instead of blocking accept', async () => {
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings(
+        'rewards.error_messages.cannot_use_own_referral_code',
+      ),
+      clearError: jest.fn(),
+    });
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
+      strings('rewards.error_messages.cannot_use_own_referral_code'),
+    );
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+  });
+
+  it('clears the register error when the code is edited', async () => {
+    const mockClearError = jest.fn();
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings('rewards.error_messages.already_referred'),
+      clearError: mockClearError,
+    });
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
+    fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'AB12CD');
+
+    expect(mockClearError).toHaveBeenCalled();
+  });
+
   it('still allows accept when validation itself failed', async () => {
     mockEngineCall.mockImplementation(async (action: string) => {
       if (action === 'RewardsMoneyController:validateReferralCode') {
@@ -459,6 +499,8 @@ describe('AcceptInviteSheet', () => {
     mockUseAcceptMoneyReferralCode.mockReturnValue({
       acceptReferralCode: mockAcceptReferralCode,
       isLoading: true,
+      errorMessage: '',
+      clearError: jest.fn(),
     });
 
     const { getByTestId } = await renderSheet('KOL1');
@@ -478,6 +520,8 @@ describe('AcceptInviteSheet', () => {
       mockUseAcceptMoneyReferralCode.mockReturnValue({
         acceptReferralCode: mockAcceptReferralCode,
         isLoading: true,
+        errorMessage: '',
+        clearError: jest.fn(),
       });
 
       const { getByTestId } = await renderSheet('KOL1');
