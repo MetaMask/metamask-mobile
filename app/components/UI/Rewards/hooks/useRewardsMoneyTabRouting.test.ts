@@ -107,7 +107,7 @@ describe('useRewardsMoneyTabRouting', () => {
       mockUseFocusEffect.mock.calls[
         mockUseFocusEffect.mock.calls.length - 1
       ][0];
-    let cleanup: void | (() => void);
+    let cleanup: void | (() => void) | undefined;
     act(() => {
       cleanup = focusCallback();
     });

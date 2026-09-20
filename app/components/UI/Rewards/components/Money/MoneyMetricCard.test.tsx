@@ -1,6 +1,7 @@
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import MoneyMetricCard from './MoneyMetricCard';
 
 const renderCard = (
@@ -15,7 +16,7 @@ const renderCard = (
       testID="metric-card"
       {...props}
     />,
-    { state: { user: { appTheme: 'light' } } },
+    { state: { user: { appTheme: AppThemeKey.light } } },
   );
 
 describe('MoneyMetricCard', () => {
