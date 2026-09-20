@@ -4,6 +4,7 @@ import type {
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
 
 const LOCALIZED_TEXT = {
@@ -58,7 +59,7 @@ describe('RefereeHeroCard', () => {
         earningsSummary={SUMMARY}
         isEarningsLoading={false}
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     expect(getByText('INVITER')).toBeOnTheScreen();
@@ -78,7 +79,7 @@ describe('RefereeHeroCard', () => {
         earningsSummary={null}
         isEarningsLoading={false}
       />,
-      { state: { user: { appTheme: 'light' } } },
+      { state: { user: { appTheme: AppThemeKey.light } } },
     );
 
     expect(getByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
