@@ -8,7 +8,6 @@ import {
   getNativeTokenAddress,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import { deepEqual } from 'fast-equals';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
@@ -54,7 +53,10 @@ import { selectEnabledNetworksByNamespace } from '../networkEnablementController
 import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
-import { createDeepEqualSelector } from '../util';
+import {
+  createDeepEqualResultSelector,
+  createDeepEqualSelector,
+} from '../util';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
@@ -591,37 +593,27 @@ export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       chainIds,
     );
 
-export interface SelectAssetParams {
-  address: string;
-  chainId: string;
-  isStaked?: boolean;
-}
-
-/**
- * Creates a selector instance dedicated to a single asset. Components that
- * render one asset per instance (e.g. token list rows) should hold their own
- * instance so the returned `TokenI` keeps its reference while that asset is
- * unchanged.
- *
- * `selectAssetsBySelectedAccountGroup` returns a fresh object whenever any
- * balance anywhere changes, so the result function re-runs and produces a new
- * `TokenI` for every asset. `resultEqualityCheck` collapses that back onto the
- * previous reference when the asset itself is unchanged, which lets consumers
- * skip re-rendering. It only compares against the instance's own most recent
- * result, hence the one-instance-per-asset requirement.
- */
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const makeSelectAsset = () =>
-  createSelector(
+  createDeepEqualResultSelector(
     [
       selectAssetsBySelectedAccountGroup,
       selectStakedAssets,
       selectAllTokens,
       selectSelectedInternalAccountAddress,
       selectSelectedInternalAccountByScope,
-      (_state: RootState, params: SelectAssetParams) => params.address,
-      (_state: RootState, params: SelectAssetParams) => params.chainId,
-      (_state: RootState, params: SelectAssetParams) => params.isStaked,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.address,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.chainId,
+      (
+        _state: RootState,
+        params: { address: string; chainId: string; isStaked?: boolean },
+      ) => params.isStaked,
     ],
     (
       assets,
@@ -669,13 +661,8 @@ export const makeSelectAsset = () =>
 
       return asset ? assetToToken(asset, aggregators, rwaData) : undefined;
     },
-    { memoizeOptions: { resultEqualityCheck: deepEqual } },
   );
 
-/**
- * Shared instance for one-off reads. Callers that read many different assets
- * should use {@link makeSelectAsset} instead.
- */
 export const selectAsset = makeSelectAsset();
 
 const oneHundredThousandths = 0.00001;
