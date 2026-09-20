@@ -117,9 +117,8 @@ describe('RewardsOptInSection', () => {
         'Rewards are not supported in your region yet. We are working on expanding access, so check back later.',
       ),
     ).toBeOnTheScreen();
-    expect(
-      queryByText('Opt in to Rewards to start earning.'),
-    ).not.toBeOnTheScreen();
+    expect(getByText('Opt in to Rewards to start earning.')).toBeOnTheScreen();
+    expect(queryByText('Rewards terms apply.')).not.toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
         .accessibilityState?.disabled,
@@ -130,7 +129,7 @@ describe('RewardsOptInSection', () => {
     mockOptinAllowedForGeo = null;
     mockOptinAllowedForGeoError = true;
 
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByText } = render(
       <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
     );
 
@@ -139,6 +138,7 @@ describe('RewardsOptInSection', () => {
         'We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.',
       ),
     ).toBeOnTheScreen();
+    expect(queryByText('Rewards terms apply.')).not.toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
         .accessibilityState?.disabled,

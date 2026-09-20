@@ -119,7 +119,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
             testID={REWARDS_OPT_IN_SECTION_TEST_IDS.ICON}
           />
         }
-        description={disabledReason ?? localizedText.invitedOptInDescription}
+        description={localizedText.invitedOptInDescription}
         descriptionProps={{
           variant: TextVariant.BodyMd,
           color: TextColor.TextAlternative,
@@ -140,13 +140,13 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
         onAction={() => optin({ bulkLink: true })}
         twClassName="mx-auto px-4"
       />
-      {localizedText.invitedOptInLegal ? (
+      {disabledReason || localizedText.invitedOptInLegal ? (
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
           twClassName="px-4 pb-8 pt-6 text-center"
         >
-          {localizedText.invitedOptInLegal}
+          {disabledReason ?? localizedText.invitedOptInLegal}
         </Text>
       ) : null}
     </Box>
