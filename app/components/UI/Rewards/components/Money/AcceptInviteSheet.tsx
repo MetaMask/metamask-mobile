@@ -277,8 +277,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     isValid,
     isUnknownError,
   } = useValidateMoneyReferralCode(initialReferralCode);
-  const { acceptReferralCode, isLoading: isAccepting } =
-    useAcceptMoneyReferralCode();
+  const {
+    acceptReferralCode,
+    isLoading: isAccepting,
+    errorMessage: registerError,
+    clearError,
+  } = useAcceptMoneyReferralCode();
 
   const canRequestEdit = Boolean(copy.useDifferentCode);
   const [isEditRequested, setIsEditRequested] = useState(false);
@@ -296,16 +300,26 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // A code the server rejected, as opposed to validation that could not run.
   const isRejectedCode =
     hasCodeToValidate && !isValidating && !isValid && !isUnknownError;
-  const errorMessage = isRejectedCode
-    ? strings('rewards.error_messages.invalid_referral_code')
-    : isUnknownError
-      ? strings('rewards.error_messages.something_went_wrong')
-      : '';
+  const errorMessage =
+    registerError ||
+    (isRejectedCode
+      ? strings('rewards.error_messages.invalid_referral_code')
+      : isUnknownError
+        ? strings('rewards.error_messages.something_went_wrong')
+        : '');
 
   // A code that could not be validated is still offered to the server, which
   // is the authority on it; a rejected one would only be refused again.
   const canAccept =
     hasCodeToValidate && !isValidating && !isRejectedCode && !isAccepting;
+
+  const handleChangeReferralCode = useCallback(
+    (code: string) => {
+      clearError();
+      setReferralCode(code);
+    },
+    [clearError, setReferralCode],
+  );
 
   const handleBeginEditing = useCallback(() => {
     codeAtEditStartRef.current = referralCode;
@@ -383,7 +397,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           errorMessage={errorMessage}
           onBeginEditing={handleBeginEditing}
           onCancelEditing={handleCancelEditing}
-          onChangeReferralCode={setReferralCode}
+          onChangeReferralCode={handleChangeReferralCode}
         />
       </Box>
       <BottomSheetFooter
