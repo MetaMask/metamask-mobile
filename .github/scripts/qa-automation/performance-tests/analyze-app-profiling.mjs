@@ -17,6 +17,8 @@
  *   node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs
  *   … --run 123456789
  *   … --lookback-hours 24
+ *   … --weekly
+ *   … --collect-only --run 123456789
  *   … --scenario "Cold Start"
  *   … --current-dir ./downloaded-test-results --skip-ai
  *
@@ -35,6 +37,14 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import transformerModule from '@margelo/hermes-profile-transformer';
+import {
+  buildWeeklyMarkdown,
+  buildWeeklyParentSlack,
+  buildWeeklyReport,
+  buildWeeklyScenarioCard,
+  inHalfOpenRange,
+  weekBounds,
+} from './weekly-hermes-conclusions.mjs';
 
 const transformHermesProfile =
   transformerModule.default || transformerModule;
@@ -85,6 +95,10 @@ function parseArgs(argv) {
     scheduledOnly: true,
     dryRun: false,
     lookbackHours: null,
+    weekly: false,
+    collectOnly: false,
+    skipScenarioArtifacts: false,
+    now: null,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -137,6 +151,23 @@ function parseArgs(argv) {
       case '--any-run':
         args.scheduledOnly = false;
         break;
+      case '--weekly':
+        args.weekly = true;
+        args.skipAi = true;
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--collect-only':
+        args.collectOnly = true;
+        args.skipAi = true;
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--skip-scenario-artifacts':
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--now':
+        args.now = next;
+        index += 1;
+        break;
       case '--dry-run':
         args.dryRun = true;
         break;
@@ -166,6 +197,10 @@ Options:
   --run <id>             Performance workflow run id
   --lookback-hours <n>   Analyze every run in the window and report medians
   --days <n>             Same window expressed in days
+  --weekly               Week-over-week exception report (scheduled main runs)
+  --collect-only         Analyze one run without Slack-sized scenario zips
+  --skip-scenario-artifacts  Skip per-scenario profile bundles
+  --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
   --repo <owner/name>    GitHub repo (default: ${DEFAULT_REPO})
   --workflow <file>      Source workflow (default: ${DEFAULT_WORKFLOW})
@@ -248,6 +283,35 @@ function resolveRunsInWindow(
     .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 }
 
+function resolveRunsInRange(
+  runs,
+  { sinceIso, untilIso, scheduledOnly = true } = {},
+) {
+  return runs
+    .filter(
+      (run) =>
+        run.status === 'completed' &&
+        ['success', 'failure'].includes(run.conclusion) &&
+        (!scheduledOnly || run.event === 'schedule') &&
+        inHalfOpenRange(run.createdAt, sinceIso, untilIso),
+    )
+    .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+}
+
+function getRunMetadata(repo, runId) {
+  return JSON.parse(
+    runGh([
+      'run',
+      'view',
+      String(runId),
+      '--repo',
+      repo,
+      '--json',
+      'databaseId,url,createdAt,event,headSha,conclusion,status',
+    ]) || '{}',
+  );
+}
+
 function analysisArtifactsUrl(repo, analysisRunId) {
   if (!repo || !analysisRunId) {
     return null;
@@ -274,6 +338,102 @@ function downloadArtifactPattern(runId, pattern, destination, repo) {
     console.log(`ℹ️ ${pattern} unavailable: ${error.message}`);
     return false;
   }
+}
+
+function findNamedFile(directory, fileName) {
+  if (!directory || !fs.existsSync(directory)) {
+    return null;
+  }
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isFile() && entry.name === fileName) {
+      return fullPath;
+    }
+    if (entry.isDirectory()) {
+      const nested = findNamedFile(fullPath, fileName);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+  return null;
+}
+
+function tryReadCollectedReport(repo, analysisRunId) {
+  const destination = fs.mkdtempSync(
+    path.join(os.tmpdir(), `app-profiling-collected-${analysisRunId}-`),
+  );
+  try {
+    const downloaded = downloadArtifactPattern(
+      analysisRunId,
+      'app-profiling-analysis',
+      destination,
+      repo,
+    );
+    if (!downloaded) {
+      return null;
+    }
+    const reportPath = findNamedFile(destination, 'report.json');
+    if (!reportPath) {
+      return null;
+    }
+    const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    const mode = report.meta?.mode;
+    if (mode === 'lookback-window' || mode === 'weekly-conclusions') {
+      return null;
+    }
+    if (!report.meta?.runId || !Array.isArray(report.scenarios)) {
+      return null;
+    }
+    return report;
+  } catch (error) {
+    console.log(
+      `ℹ️ Could not reuse analysis ${analysisRunId}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    return null;
+  } finally {
+    fs.rmSync(destination, { recursive: true, force: true });
+  }
+}
+
+function loadCollectedReports(repo, sinceIso, untilIso) {
+  const analysisRuns = JSON.parse(
+    runGh([
+      'run',
+      'list',
+      '--repo',
+      repo,
+      '--workflow',
+      'analyze-app-profiling.yml',
+      '--limit',
+      '80',
+      '--json',
+      'databaseId,conclusion,createdAt,status',
+    ]) || '[]',
+  );
+  const sinceMs = Date.parse(sinceIso) - 6 * 60 * 60 * 1000;
+  const untilMs = Date.parse(untilIso) + 24 * 60 * 60 * 1000;
+  const byPerformanceRunId = new Map();
+  for (const analysisRun of analysisRuns) {
+    if (
+      analysisRun.status !== 'completed' ||
+      analysisRun.conclusion !== 'success'
+    ) {
+      continue;
+    }
+    const created = Date.parse(analysisRun.createdAt);
+    if (created < sinceMs || created > untilMs) {
+      continue;
+    }
+    const report = tryReadCollectedReport(repo, analysisRun.databaseId);
+    if (!report) {
+      continue;
+    }
+    byPerformanceRunId.set(String(report.meta.runId), report);
+  }
+  return byPerformanceRunId;
 }
 
 function findAndroidSourcemaps(directory, output = []) {
@@ -1772,6 +1932,30 @@ function writeWindowOutputs(outputDirectory, window) {
   );
 }
 
+function writeWeeklyOutputs(outputDirectory, weekly) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  writeEmptyScenarioManifest(outputDirectory);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'report.json'),
+    `${JSON.stringify(weekly, null, 2)}\n`,
+  );
+  const markdown = `${buildWeeklyMarkdown(weekly)}\n`;
+  fs.writeFileSync(path.join(outputDirectory, 'report.md'), markdown);
+  fs.writeFileSync(path.join(outputDirectory, 'github-summary.md'), markdown);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack.md'),
+    `${buildWeeklyParentSlack(weekly)}\n`,
+  );
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack-cards.json'),
+    `${JSON.stringify(
+      weekly.cards.map((card) => buildWeeklyScenarioCard(card)),
+      null,
+      2,
+    )}\n`,
+  );
+}
+
 async function callClaude(briefing) {
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
   if (!apiKey) {
@@ -1892,6 +2076,14 @@ function writeScenarioArtifacts(
     `${JSON.stringify({ include: artifacts }, null, 2)}\n`,
   );
   return artifacts;
+}
+
+function writeEmptyScenarioManifest(outputDirectory) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  fs.writeFileSync(
+    path.join(outputDirectory, 'scenario-artifacts.json'),
+    `${JSON.stringify({ include: [] }, null, 2)}\n`,
+  );
 }
 
 function writeWindowScenarioArtifacts(outputDirectory, runReports) {
@@ -2047,6 +2239,19 @@ async function analyzeRun({
   skillAnalyzerPath,
   localDirectory = null,
 }) {
+  let resolvedRun = run;
+  if (!resolvedRun && runId && !localDirectory) {
+    try {
+      resolvedRun = getRunMetadata(args.repo, runId);
+    } catch (error) {
+      console.log(
+        `ℹ️ Could not load run metadata for ${runId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
   const { sourceDirectory, sourcemapDirectory } = localDirectory
     ? { sourceDirectory: localDirectory, sourcemapDirectory: localDirectory }
     : downloadRunInputs({
@@ -2062,15 +2267,20 @@ async function analyzeRun({
     scenarioFilter: args.scenario,
     skillAnalyzerPath,
   });
-  writeScenarioArtifacts(workingDirectory, profiles, scenarios, runId);
+  if (args.skipScenarioArtifacts) {
+    writeEmptyScenarioManifest(workingDirectory);
+  } else {
+    writeScenarioArtifacts(workingDirectory, profiles, scenarios, runId);
+  }
 
   return {
     meta: {
+      mode: args.collectOnly ? 'collect' : 'single-run',
       runId,
       runUrl:
-        run?.url ||
+        resolvedRun?.url ||
         (runId ? `https://github.com/${args.repo}/actions/runs/${runId}` : null),
-      createdAt: run?.createdAt || null,
+      createdAt: resolvedRun?.createdAt || null,
       generatedAt: new Date().toISOString(),
       source: 'Hermes CPU sampling profiles only',
       reasoningSkill: 'mms-swaps-cpu-profile-audit',
@@ -2104,6 +2314,11 @@ async function main() {
   console.log(
     `🧭 Reasoning parser: ${path.relative(process.cwd(), skillAnalyzerPath)}`,
   );
+
+  if (args.weekly) {
+    await runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath });
+    return;
+  }
 
   if (args.lookbackHours && !args.currentDir) {
     await runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath });
@@ -2195,6 +2410,127 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   );
 }
 
+async function reportsForRuns({
+  args,
+  runs,
+  collectedByRunId,
+  outputDirectory,
+  skillAnalyzerPath,
+  label,
+}) {
+  const reports = [];
+  for (const run of runs) {
+    const runId = String(run.databaseId);
+    const collected = collectedByRunId.get(runId);
+    if (collected) {
+      console.log(`📦 Reusing collected report for ${runId}`);
+      reports.push({
+        ...collected,
+        meta: {
+          ...collected.meta,
+          runId,
+          runUrl: collected.meta.runUrl || run.url,
+          createdAt: collected.meta.createdAt || run.createdAt,
+        },
+      });
+      continue;
+    }
+    console.log(`\n▶️ ${label} run ${runId} (${run.createdAt})`);
+    const runDirectory = path.join(outputDirectory, 'runs', runId);
+    const report = await analyzeRun({
+      args: { ...args, skipScenarioArtifacts: true, collectOnly: true },
+      run,
+      runId,
+      workingDirectory: runDirectory,
+      skillAnalyzerPath,
+    });
+    writeOutputs(runDirectory, report);
+    reports.push(report);
+  }
+  return reports;
+}
+
+async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
+  const now = args.now ? new Date(args.now) : new Date();
+  if (Number.isNaN(now.getTime())) {
+    fail('--now must be a valid date');
+  }
+  const bounds = weekBounds(now);
+  const listedRuns = listLatestRuns({
+    repo: args.repo,
+    workflow: args.workflow,
+    branch: args.branch,
+    limit: 80,
+  });
+  const thisWeekRuns = resolveRunsInRange(listedRuns, {
+    sinceIso: bounds.thisWeek.since,
+    untilIso: bounds.thisWeek.until,
+    scheduledOnly: true,
+  });
+  const lastWeekRuns = resolveRunsInRange(listedRuns, {
+    sinceIso: bounds.lastWeek.since,
+    untilIso: bounds.lastWeek.until,
+    scheduledOnly: true,
+  });
+  if (thisWeekRuns.length === 0 && lastWeekRuns.length === 0) {
+    fail('No scheduled performance runs finished in the last two UTC weeks');
+  }
+  console.log(
+    `🗓️ This week ${bounds.thisWeek.since} → ${bounds.thisWeek.until}: ${thisWeekRuns.map((run) => run.databaseId).join(', ') || 'none'}`,
+  );
+  console.log(
+    `🗓️ Previous week ${bounds.lastWeek.since} → ${bounds.lastWeek.until}: ${lastWeekRuns.map((run) => run.databaseId).join(', ') || 'none'}`,
+  );
+
+  const collectedByRunId = loadCollectedReports(
+    args.repo,
+    bounds.lastWeek.since,
+    bounds.thisWeek.until,
+  );
+  const thisWeekReports = await reportsForRuns({
+    args,
+    runs: thisWeekRuns,
+    collectedByRunId,
+    outputDirectory,
+    skillAnalyzerPath,
+    label: 'this-week',
+  });
+  const lastWeekReports = await reportsForRuns({
+    args,
+    runs: lastWeekRuns,
+    collectedByRunId,
+    outputDirectory,
+    skillAnalyzerPath,
+    label: 'last-week',
+  });
+
+  const thisWindow = aggregateWindow(thisWeekReports, {
+    lookbackHours: 168,
+    since: bounds.thisWeek.since,
+    until: bounds.thisWeek.until,
+    repo: args.repo,
+    reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
+  });
+  const lastWindow = aggregateWindow(lastWeekReports, {
+    lookbackHours: 168,
+    since: bounds.lastWeek.since,
+    until: bounds.lastWeek.until,
+    repo: args.repo,
+    reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
+  });
+  const weekly = buildWeeklyReport({
+    thisWindow,
+    lastWindow,
+    bounds,
+    thisWeekRunCount: thisWeekRuns.length,
+    lastWeekRunCount: lastWeekRuns.length,
+  });
+  writeWeeklyOutputs(outputDirectory, weekly);
+  console.log(
+    `\n✅ Wrote weekly conclusions for ${weekly.cards.length} flagged scenarios (${thisWeekReports.length} this-week reports, ${lastWeekReports.length} last-week reports) to ${outputDirectory}`,
+  );
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) =>
     fail(error instanceof Error ? error.message : String(error)),
@@ -2205,6 +2541,8 @@ export {
   parseArgs,
   resolveLatestRun,
   resolveRunsInWindow,
+  resolveRunsInRange,
+  writeEmptyScenarioManifest,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,

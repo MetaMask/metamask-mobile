@@ -21,6 +21,7 @@
  */
 
 import fs from 'fs';
+import path from 'path';
 import {
   listRunArtifacts,
   linkScenarioNames,
@@ -185,7 +186,7 @@ async function postAllParts(
       parentTs = last.ts;
     }
   }
-  return last;
+  return { parentTs, last };
 }
 
 /**
@@ -196,21 +197,39 @@ async function postAllParts(
  * Messages that exceed Slack's 40k limit are posted as a thread, not cut.
  */
 async function postSummary(
-  { markdown, target, token, runUrl, runLabel },
+  { markdown, target, token, runUrl, runLabel, cards = [] },
   options = {},
 ) {
   const footerReserve = runUrl ? 400 : 0;
   const parts = splitForSlack(markdown, MAX_TEXT_LENGTH - footerReserve);
+  const cardParts = cards.flatMap((card) =>
+    splitForSlack(card, MAX_TEXT_LENGTH - footerReserve),
+  );
 
-  try {
-    return await postAllParts(
-      target,
+  const deliver = async (channel) => {
+    const posted = await postAllParts(
+      channel,
       parts,
       token,
       options,
-      runUrl,
+      cardParts.length > 0 ? '' : runUrl,
       runLabel,
     );
+    let last = posted.last;
+    for (let index = 0; index < cardParts.length; index += 1) {
+      const isLast = index === cardParts.length - 1;
+      last = await post(
+        channel,
+        buildText(cardParts[index], isLast ? runUrl : '', runLabel),
+        token,
+        { ...options, threadTs: posted.parentTs },
+      );
+    }
+    return last;
+  };
+
+  try {
+    return await deliver(target);
   } catch (error) {
     if (!isUserId(target)) {
       throw error;
@@ -221,7 +240,18 @@ async function postSummary(
   }
 
   const channel = await openDirectMessage(target, token, options);
-  return postAllParts(channel, parts, token, options, runUrl, runLabel);
+  return deliver(channel);
+}
+
+function readSlackCards(markdownPath) {
+  const cardsPath = path.join(path.dirname(markdownPath), 'slack-cards.json');
+  if (!fs.existsSync(cardsPath)) {
+    return [];
+  }
+  const parsed = JSON.parse(fs.readFileSync(cardsPath, 'utf8'));
+  return Array.isArray(parsed)
+    ? parsed.filter((card) => typeof card === 'string' && card.trim())
+    : [];
 }
 
 async function main() {
@@ -253,11 +283,18 @@ async function main() {
       githubRunId,
       githubToken,
     );
-    markdown = addScenarioArtifactLinks(markdown, artifacts, {
-      repo: githubRepository,
-      runId: githubRunId,
-      manifest: readManifest(markdownPath),
-    });
+    const hasScenarioArtifacts = artifacts.some((artifact) =>
+      String(artifact.name || '').startsWith('hermes-profile-'),
+    );
+    if (hasScenarioArtifacts) {
+      markdown = addScenarioArtifactLinks(markdown, artifacts, {
+        repo: githubRepository,
+        runId: githubRunId,
+        manifest: readManifest(markdownPath),
+      });
+    } else {
+      console.log('ℹ️ No per-scenario Hermes artifacts; posting digest as-is');
+    }
   }
 
   const result = await postSummary({
@@ -266,6 +303,7 @@ async function main() {
     token,
     runUrl: process.env.GITHUB_RUN_URL,
     runLabel: process.env.GITHUB_RUN_LABEL,
+    cards: readSlackCards(markdownPath),
   });
   console.log(`✅ Slack message sent to ${result.channel} (ts=${result.ts})`);
 }
@@ -283,4 +321,5 @@ export {
   splitForSlack,
   addScenarioArtifactLinks,
   postSummary,
+  readSlackCards,
 };

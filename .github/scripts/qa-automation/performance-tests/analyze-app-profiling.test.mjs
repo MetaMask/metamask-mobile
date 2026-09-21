@@ -56,6 +56,20 @@ function profile(fileName, overrides = {}) {
   };
 }
 
+test('parseArgs supports weekly and collect-only modes', () => {
+  const weekly = parseArgs(['--weekly', '--now', '2026-09-21T09:00:00.000Z']);
+  assert.equal(weekly.weekly, true);
+  assert.equal(weekly.skipAi, true);
+  assert.equal(weekly.skipScenarioArtifacts, true);
+  assert.equal(weekly.now, '2026-09-21T09:00:00.000Z');
+
+  const collect = parseArgs(['--collect-only', '--run', '99']);
+  assert.equal(collect.collectOnly, true);
+  assert.equal(collect.skipAi, true);
+  assert.equal(collect.skipScenarioArtifacts, true);
+  assert.equal(collect.run, '99');
+});
+
 test('parseArgs supports local Hermes-only analysis', () => {
   const args = parseArgs([
     '--run',
