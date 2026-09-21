@@ -268,6 +268,50 @@ describe('AcceptInviteSheet', () => {
     },
   );
 
+  it('does not pop again when accept refreshes referral me to a referee', async () => {
+    const { getByTestId, queryByTestId, store } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+
+    await act(async () => {
+      store.dispatch(
+        setReferralMe({
+          profileId: PROFILE_ID,
+          data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+        }),
+      );
+    });
+
+    // Dismissal after register belongs to useAcceptMoneyReferralCode. This
+    // screen must not goBack a second time just because variant is no longer
+    // NONE — that would pop Rewards as well as the sheet.
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('closes when a pending referral-me load settles as already referred', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: { loading: true, error: false, data: null },
+    };
+
+    const { queryByTestId, store } = renderSheetSync('KOL1');
+
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    await act(async () => {
+      store.dispatch(
+        setReferralMe({
+          profileId: PROFILE_ID,
+          data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+        }),
+      );
+    });
+
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('prefills the normalized route code', async () => {
     const { getByTestId } = await renderSheet('kol1');
 
