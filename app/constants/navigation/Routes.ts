@@ -435,6 +435,7 @@ const Routes = {
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
+    PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',

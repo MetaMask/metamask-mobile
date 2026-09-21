@@ -171,6 +171,7 @@ import {
   SocialPostComposerView,
   MyProfileView,
   FollowConnectionsView,
+  ProfilesToFollowView,
   ManageProfileView,
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
@@ -1315,6 +1316,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.PROFILES_TO_FOLLOW}
+            component={ProfilesToFollowView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

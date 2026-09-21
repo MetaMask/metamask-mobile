@@ -4,12 +4,19 @@ import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
+import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import type { SocialV1FeedTab } from '../SocialV1View/feed/types';
+import type {
+  SocialV1FeedPost,
+  SocialV1FeedTab,
+} from '../SocialV1View/feed/types';
+
+/** Insert the Popular traders rail after this many Trending posts. */
+export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -84,6 +91,21 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [],
   );
 
+  const showPopularTraders = tab === 'trending';
+  const leadingPosts = showPopularTraders
+    ? posts.slice(0, TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+    : posts;
+  const trailingPosts = showPopularTraders
+    ? posts.slice(TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+    : [];
+
+  const renderPosts = (feedPosts: SocialV1FeedPost[]) =>
+    feedPosts.map((post) => (
+      <SocialFeedPostEntrance key={post.id} animate={!seenPostIds.has(post.id)}>
+        <SocialFeedPostShell post={post} />
+      </SocialFeedPostEntrance>
+    ));
+
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
       <Animated.ScrollView
@@ -111,15 +133,12 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   startedAtMs={pendingStartedAtMs}
                 />
               ) : null}
-              {posts.map((post) => (
-                <SocialFeedPostEntrance
-                  key={post.id}
-                  animate={!seenPostIds.has(post.id)}
-                >
-                  <SocialFeedPostShell post={post} />
-                </SocialFeedPostEntrance>
-              ))}
+              {renderPosts(leadingPosts)}
             </Box>
+            {showPopularTraders ? <PopularTradersCarousel /> : null}
+            {trailingPosts.length > 0 ? (
+              <Box twClassName="px-4 gap-6">{renderPosts(trailingPosts)}</Box>
+            ) : null}
           </Box>
         ) : null}
       </Animated.ScrollView>

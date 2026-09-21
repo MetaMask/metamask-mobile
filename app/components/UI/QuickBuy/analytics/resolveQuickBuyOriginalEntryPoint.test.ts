@@ -30,6 +30,15 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
       'trader_feed',
     );
   });
+
+  it('maps trending_carousel and profiles_to_follow to trader_feed', () => {
+    expect(
+      resolveQuickBuyOriginalEntryPointFromProfile('trending_carousel'),
+    ).toBe('trader_feed');
+    expect(
+      resolveQuickBuyOriginalEntryPointFromProfile('profiles_to_follow'),
+    ).toBe('trader_feed');
+  });
 });
 
 describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
