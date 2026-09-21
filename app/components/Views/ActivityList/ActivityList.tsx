@@ -167,6 +167,8 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
+  /** Collapse each Perps order's fills into one row. Defaults to on. */
+  aggregateFills?: boolean;
   trackScreenViewed?: boolean;
   entryPoint?: ActivityScreenEntryPoint;
 }
@@ -185,6 +187,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter,
       networkFilter,
       subFilterKinds,
+      aggregateFills = true,
       trackScreenViewed = false,
       entryPoint,
     },
@@ -228,6 +231,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         isPerpsEnabled &&
         (typeFilter === ActivityTypeFilter.Perps ||
           typeFilter === ActivityTypeFilter.All),
+      aggregateFills,
     });
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const predictFilterActive =
