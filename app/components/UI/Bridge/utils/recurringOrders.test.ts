@@ -94,15 +94,13 @@ describe('recurring order formatting', () => {
     expect(result).toBe(0.9);
   });
 
-  it('formats a structured USD price range in the current currency', () => {
+  it('formats a structured price range in USD', () => {
     const result = formatRecurringPriceRange({
       priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
-      currentCurrency: 'EUR',
-      usdToCurrentCurrencyRate: 0.9,
     });
 
-    expect(result).toContain('€1,620.00');
-    expect(result).toContain('€1,980.00');
+    expect(result).toContain('$1,800.00');
+    expect(result).toContain('$2,200.00');
   });
 
   it('formats average execution price in the current currency', () => {
