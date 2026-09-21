@@ -180,9 +180,20 @@ describe('Amount', () => {
 
   it('display default value of amount as placeholder', () => {
     const { getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
     fireEvent.press(getByTestId('fiat_toggle'));
-    expect(getByTestId('send_amount').children[0]).toEqual('0.00');
+    expect(getByTestId('send_amount')).toHaveTextContent('0.00');
+  });
+
+  it('formats the main input with animated thousands separators', () => {
+    const { getByRole, getByTestId } = renderComponent();
+
+    fireEvent.press(getByRole('button', { name: '1' }));
+    fireEvent.press(getByRole('button', { name: '2' }));
+    fireEvent.press(getByRole('button', { name: '3' }));
+    fireEvent.press(getByRole('button', { name: '4' }));
+
+    expect(getByTestId('send_amount')).toHaveTextContent('1,234');
   });
 
   it('seeds display and send-context value from predefinedAmount', () => {
@@ -190,7 +201,7 @@ describe('Amount', () => {
 
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
     expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
   });
 
@@ -209,7 +220,7 @@ describe('Amount', () => {
 
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
 
     // Clear every digit until the keypad reports an empty value.
     const deleteButton = getByTestId('keypad-delete-button');
@@ -217,7 +228,7 @@ describe('Amount', () => {
       fireEvent.press(deleteButton);
     }
 
-    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
     expect(
       mockAmountSelectionMetrics.setAmountInputTypeToken,
     ).toHaveBeenCalledTimes(1);
@@ -250,9 +261,9 @@ describe('Amount', () => {
       updateValue: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
 
-    const { getByRole, getByText } = renderComponent();
+    const { getByRole, getByTestId } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
-    expect(getByText('$ 4500.00')).toBeTruthy();
+    expect(getByTestId('send_amount_alternate')).toHaveTextContent('$ 4500.00');
   });
 
   it('display fiat conversion of amount entered for solana asset', () => {
@@ -270,9 +281,9 @@ describe('Amount', () => {
       updateValue: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
 
-    const { getByRole, getByText } = renderComponent();
+    const { getByRole, getByTestId } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
-    expect(getByText('$ 250.00')).toBeTruthy();
+    expect(getByTestId('send_amount_alternate')).toHaveTextContent('$ 250.00');
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
@@ -299,11 +310,11 @@ describe('Amount', () => {
       value: '1',
     } as unknown as ReturnType<typeof useSendContext>);
 
-    const { getByRole, getByText, getByTestId } = renderComponent();
+    const { getByRole, getByTestId } = renderComponent();
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.press(getByRole('button', { name: '5' }));
-    expect(getByText('1 ETH')).toBeTruthy();
-    expect(getByText('$ 250.00 available')).toBeTruthy();
+    expect(getByTestId('send_amount_alternate')).toHaveTextContent('1 ETH');
+    expect(getByTestId('send_balance')).toHaveTextContent('$ 250.00 available');
   });
 
   it('calls metrics methods on changing fiat mode', () => {
@@ -408,8 +419,8 @@ describe('Amount', () => {
       updateValue: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
 
-    const { getByText } = renderComponent(solanaSendStateMock);
-    expect(getByText('400 SOL available')).toBeTruthy();
+    const { getByTestId } = renderComponent(solanaSendStateMock);
+    expect(getByTestId('send_balance')).toHaveTextContent('400 SOL available');
   });
 
   it('on amount page options - 25%, 50%, 75%, Max are present', () => {

@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { View } from 'react-native';
 import {
   useNavigation,
   useFocusEffect,
@@ -14,6 +15,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
@@ -50,7 +52,6 @@ import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
 import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
@@ -132,8 +133,8 @@ function BuildQuote() {
   const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { formatCurrency } = useFormatters();
-  const cursorOpacity = useBlinkingCursor();
 
   const params = useParams<BuildQuoteParams>();
   const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
@@ -342,12 +343,9 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
-
-  const amountDisplayString = useMemo(
-    () => `${currencyPrefix}${amount}${currencySuffix}`,
-    [currencyPrefix, currencySuffix, amount],
+  const amountFontSize = getFontSizeForInputLength(
+    `${currencyPrefix}${amount}${currencySuffix}`.length,
   );
-  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
   const amountLineHeight = amountFontSize + 10;
 
   /*
@@ -783,40 +781,32 @@ function BuildQuote() {
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
               <View style={styles.amountRow}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
+                <AnimatedAmountDisplay
                   color={
-                    amountInputHasError ? TextColor.ErrorDefault : undefined
+                    amountInputHasError
+                      ? TextColor.ErrorDefault
+                      : TextColor.TextDefault
                   }
-                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  numberOfLines={1}
-                >
-                  {currencyPrefix}
-                  {amount}
-                </Text>
-                <Animated.View
-                  style={[
-                    styles.cursor,
-                    {
-                      height: Math.max(amountLineHeight - 4, 16),
-                      opacity: cursorOpacity,
-                    },
-                  ]}
+                  containerStyle={styles.amountRow}
+                  cursor={{
+                    style: [
+                      styles.cursor,
+                      {
+                        height: Math.max(amountLineHeight - 4, 16),
+                      },
+                    ],
+                  }}
+                  fontWeight={FontWeight.Regular}
+                  prefix={currencyPrefix}
+                  rollDigits={false}
+                  suffix={currencySuffix || undefined}
+                  style={tw.style(
+                    `text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`,
+                  )}
+                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                  value={amount}
+                  variant={TextVariant.BodyMd}
                 />
-                {currencySuffix ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Regular}
-                    color={
-                      amountInputHasError ? TextColor.ErrorDefault : undefined
-                    }
-                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  >
-                    {currencySuffix}
-                  </Text>
-                ) : null}
               </View>
               <PaymentMethodPill
                 label={

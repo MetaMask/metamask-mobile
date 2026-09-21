@@ -30,6 +30,41 @@ describe('Keypad', () => {
       pressedKey: '1',
     });
   });
+
+  it('builds rapid consecutive presses from the latest pending value', () => {
+    const mockOnChange = jest.fn();
+    const { getByText } = render(
+      <Keypad currency="native" value="0" onChange={mockOnChange} />,
+    );
+
+    act(() => {
+      fireEvent.press(getByText('1'));
+      fireEvent.press(getByText('2'));
+    });
+
+    expect(mockOnChange.mock.calls.map(([change]) => change.value)).toEqual([
+      '1',
+      '12',
+    ]);
+  });
+
+  it('preserves pending presses across a stale rerender', () => {
+    const mockOnChange = jest.fn();
+    const { getByText, rerender } = render(
+      <Keypad currency="native" value="0" onChange={mockOnChange} />,
+    );
+
+    act(() => {
+      fireEvent.press(getByText('1'));
+      rerender(<Keypad currency="native" value="0" onChange={mockOnChange} />);
+      fireEvent.press(getByText('2'));
+    });
+
+    expect(mockOnChange.mock.calls.map(([change]) => change.value)).toEqual([
+      '1',
+      '12',
+    ]);
+  });
 });
 
 describe('Keypad components', () => {

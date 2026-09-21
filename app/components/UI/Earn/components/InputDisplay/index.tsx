@@ -1,9 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  TextColor as DesignTextColor,
+  TextVariant as DesignTextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -47,8 +52,6 @@ export interface InputDisplayProps {
   error?: string;
   onPressAmount?: () => void;
 }
-
-const { View: AnimatedView } = Animated;
 
 const createStyles = (
   colors: Colors,
@@ -144,30 +147,7 @@ const InputDisplay = ({
     isStablecoinLendingEnabled,
     shouldShowLendingMaxSafeWithdrawalMessage,
   });
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
-
   const ticker = asset.ticker ?? asset.symbol;
-
-  useEffect(() => {
-    const blinkAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(cursorOpacity, {
-          toValue: 0,
-          duration: 800,
-          easing: () => Easing.bounce(1),
-          useNativeDriver: true,
-        }),
-        Animated.timing(cursorOpacity, {
-          toValue: 1,
-          easing: () => Easing.bounce(1),
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    blinkAnimation.start();
-  }, [cursorOpacity]);
 
   const balanceInfo = useMemo(() => {
     if (error) return error;
@@ -236,20 +216,16 @@ const InputDisplay = ({
         </Text>
       </View>
       <View style={styles.amountRow}>
-        <Pressable onPress={onPressAmount}>
-          <View style={styles.amountRow}>
-            <Text
-              style={styles.amountText}
-              color={TextColor.Default}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? amountFiatNumber : amountToken}
-            </Text>
-            {isStablecoinLendingEnabled ? (
-              <AnimatedView
-                style={[styles.amountCursor, { opacity: cursorOpacity }]}
-              />
-            ) : null}
+        <AnimatedAmountDisplay
+          color={DesignTextColor.TextDefault}
+          containerStyle={styles.amountRow}
+          cursor={
+            isStablecoinLendingEnabled ? { style: styles.amountCursor } : false
+          }
+          onPress={onPressAmount}
+          rollDigits={false}
+          style={styles.amountText}
+          suffix={
             <Text
               style={styles.amountText}
               color={TextColor.Muted}
@@ -257,8 +233,10 @@ const InputDisplay = ({
             >
               {isFiat ? currentCurrency.toUpperCase() : ticker}
             </Text>
-          </View>
-        </Pressable>
+          }
+          value={isFiat ? amountFiatNumber : amountToken}
+          variant={DesignTextVariant.DisplayMd}
+        />
       </View>
       <View>
         <CurrencyToggle
