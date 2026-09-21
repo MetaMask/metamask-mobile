@@ -1141,6 +1141,15 @@ const AppFlow = () => {
   // A lazy `useState` initialiser rather than a ref write during render: the
   // initialiser runs exactly once, before children evaluate, and stays
   // compatible with React Compiler (this directory is opted in).
+  //
+  // This is deliberately a side effect during render, which React does not
+  // formally permit, and the trade-off is accepted knowingly: the span exists to
+  // measure the synchronous navigator module-evaluation burst that happens
+  // *during* this render, and any effect — layout included — fires after it.
+  // Known cost: a render that is thrown away (StrictMode double-render, Suspense,
+  // an error boundary, a concurrent interruption) opens a span the effect below
+  // never closes, which the tracing layer then finishes at its cleanup cap with
+  // `trace.timed_out: true`. Filter that attribute when dashboarding this span.
   useState(() => {
     if (hasMeasuredRootNavigatorRender) {
       return null;

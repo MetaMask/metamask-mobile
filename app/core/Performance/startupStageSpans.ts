@@ -1,21 +1,89 @@
 import { Performance } from '.';
+import Logger from '../../util/Logger';
+import getUIStartupSpan from './UIStartup';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 
 /**
- * Owns the two startup spans whose start and end live in different files.
+ * Owns the startup spans whose start and end live in different files, so that
+ * every one of them carries the same two properties rather than each call site
+ * re-deriving them.
  *
- * Both are once-per-launch measurements, so the guards are module-scoped: a
- * remount must not reopen a span, and a repeated native `onLayout` must not
- * close one twice.
+ * **Once per launch.** These measure a launch, not a mount, so the guards are
+ * module-scoped: a remount must not reopen a span, a repeated native `onLayout`
+ * must not close one twice, and closing a span that never opened must be a
+ * no-op (an unmatched `endTrace` would emit a bogus start).
+ *
+ * **Never changes control flow.** See `safely`.
  */
 let postInitGapOpen = false;
 let postInitGapClosed = false;
 let unlockLaidOutOpen = false;
 let unlockLaidOutClosed = false;
+let splashRevealOpen = false;
+let splashRevealClosed = false;
+let rehydrationOpen = false;
+let rehydrationClosed = false;
 
 /**
- * Opens the window between `Engine.init()` finishing and the navigator's first
- * render.
+ * Runs a tracing call so that it cannot alter the behaviour it measures.
+ *
+ * Every span here sits on the critical path: the rehydration span opens
+ * immediately before `getAllPersistedState()`, and the splash span closes inside
+ * the fade callback that reveals the UI. Without this, a throw from the tracing
+ * layer — `getTraceTags` reads Redux state, so malformed state is enough — would
+ * either abort `EngineService.start()` (no Engine, splash forever) or strand the
+ * splash overlay on screen permanently.
+ *
+ * A lost measurement is an acceptable outcome. A wallet that will not start is
+ * not.
+ */
+function safely(operation: () => void): void {
+  try {
+    operation();
+  } catch (error) {
+    Logger.error(error as Error, 'startupStageSpans: tracing call failed');
+  }
+}
+
+/**
+ * Opens the span covering the filesystem reads and `JSON.parse` of every
+ * `persist:<Controller>` blob, before a single controller is constructed.
+ *
+ * Spanned separately from `Engine.init()` so startup can be told apart as
+ * I/O-bound or CPU-bound here.
+ */
+export function startControllerStateRehydration(): void {
+  if (rehydrationOpen) {
+    return;
+  }
+  rehydrationOpen = true;
+  safely(() =>
+    trace({
+      name: TraceName.ControllerStateRehydration,
+      op: TraceOperation.StorageRehydration,
+      parentContext: getUIStartupSpan(),
+    }),
+  );
+}
+
+/** Closes the rehydration span once persisted state has been read and parsed. */
+export function endControllerStateRehydration(): void {
+  if (!rehydrationOpen || rehydrationClosed) {
+    return;
+  }
+  rehydrationClosed = true;
+  safely(() => endTrace({ name: TraceName.ControllerStateRehydration }));
+}
+
+/**
+ * Opens the window between the `EngineInitialization` span ending and the
+ * navigator's first render.
+ *
+ * Note the boundary is the end of that *span* — which covers `Engine.init()`
+ * **and** `initializeControllers()` — not the return of the `Engine.init()` call
+ * itself. Starting it any earlier would overlap `EngineInitialization` and
+ * double-count `initializeControllers` across two spans; as placed, the ladder
+ * has neither a gap nor an overlap.
  *
  * Nothing the user can see happens here, which is exactly why it needs a span:
  * it is where fire-and-forget startup work lands. It measured 1,102 ms before
@@ -28,10 +96,12 @@ export function startPostInitGap(): void {
     return;
   }
   postInitGapOpen = true;
-  trace({
-    name: TraceName.PostInitGap,
-    op: TraceOperation.UIStartup,
-  });
+  safely(() =>
+    trace({
+      name: TraceName.PostInitGap,
+      op: TraceOperation.UIStartup,
+    }),
+  );
 }
 
 /** Closes the post-init window when the navigator first renders. */
@@ -40,7 +110,47 @@ export function endPostInitGap(): void {
     return;
   }
   postInitGapClosed = true;
-  endTrace({ name: TraceName.PostInitGap });
+  safely(() => endTrace({ name: TraceName.PostInitGap }));
+}
+
+/**
+ * Opens the splash reveal-tax span the moment the gate unblocks.
+ *
+ * Neither `UIStartup` (ends at `App`'s first render) nor Sentry's
+ * `app_start_cold` (ends at root mount) covers this window, so without an
+ * explicit span the fixed animation + fade budget is invisible to every shipped
+ * metric.
+ *
+ * Guarded because `trace()` replaces a pending span that shares its key by
+ * finishing the previous one at a capped timestamp — so an unguarded remount
+ * would emit a spurious span rather than being harmless.
+ */
+export function startSplashRevealTax(): void {
+  if (splashRevealOpen) {
+    return;
+  }
+  splashRevealOpen = true;
+  safely(() =>
+    trace({
+      name: TraceName.SplashRevealTax,
+      op: TraceOperation.UIStartup,
+    }),
+  );
+}
+
+/**
+ * Closes the reveal-tax span once the splash overlay has actually gone.
+ *
+ * Children have been rendering underneath since `appServicesReady` flipped, so
+ * everything in this window is perceived latency the user pays with nothing to
+ * show for it.
+ */
+export function endSplashRevealTax(): void {
+  if (!splashRevealOpen || splashRevealClosed) {
+    return;
+  }
+  splashRevealClosed = true;
+  safely(() => endTrace({ name: TraceName.SplashRevealTax }));
 }
 
 /**
@@ -61,11 +171,13 @@ export function startAppStartToUnlockLaidOut(): void {
     return;
   }
   unlockLaidOutOpen = true;
-  trace({
-    name: TraceName.AppStartToUnlockLaidOut,
-    op: TraceOperation.UIStartup,
-    startTime: Performance.appLaunchTime,
-  });
+  safely(() =>
+    trace({
+      name: TraceName.AppStartToUnlockLaidOut,
+      op: TraceOperation.UIStartup,
+      startTime: Performance.appLaunchTime,
+    }),
+  );
 }
 
 /**
@@ -84,7 +196,7 @@ export function endAppStartToUnlockLaidOut(): void {
     return;
   }
   unlockLaidOutClosed = true;
-  endTrace({ name: TraceName.AppStartToUnlockLaidOut });
+  safely(() => endTrace({ name: TraceName.AppStartToUnlockLaidOut }));
 }
 
 /** @internal Reset between tests. Do not call in production code. */
@@ -93,4 +205,8 @@ export function resetStartupStageSpansForTesting(): void {
   postInitGapClosed = false;
   unlockLaidOutOpen = false;
   unlockLaidOutClosed = false;
+  splashRevealOpen = false;
+  splashRevealClosed = false;
+  rehydrationOpen = false;
+  rehydrationClosed = false;
 }

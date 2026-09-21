@@ -5,11 +5,9 @@ import { useSelector } from 'react-redux';
 import { selectAppServicesReady } from '../../../reducers/user/selectors';
 import FoxLoader from '../../UI/FoxLoader';
 import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
+  endSplashRevealTax,
+  startSplashRevealTax,
+} from '../../../core/Performance/startupStageSpans';
 /**
  * A higher order component that gate keeps the children until the app services are finished loaded
  * and the splash animation has completed.
@@ -32,26 +30,23 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      // Closes the reveal-tax span: children have been rendering underneath
-      // since `appServicesReady` flipped, so everything between that moment and
-      // here is perceived latency the user pays with nothing to show for it.
-      endTrace({ name: TraceName.SplashRevealTax });
+      // Reveal first, measure second. The actual guarantee is that
+      // `endSplashRevealTax` is throw-safe — ordering alone is not enough, since
+      // an escaping error prevents React from flushing `setLoaderDone` and the
+      // splash would stay up for the rest of the session (covered by
+      // ControllersGate.test.tsx). This order is belt-and-braces on top.
       setLoaderDone(true);
+      endSplashRevealTax();
     });
   }, [loaderOpacity]);
 
-  // Open the reveal-tax span the moment the gate unblocks. Neither `UIStartup`
-  // (ends at App's first render) nor Sentry's `app_start_cold` (ends at root
-  // mount) covers this window, so without an explicit span the fixed
-  // 800ms + 250ms + 300ms below is invisible to every shipped metric.
+  // Opens the span covering the fixed 800ms + 250ms + 300ms reveal budget below,
+  // which no shipped metric sees. Guarded once-per-launch inside the helper.
   useEffect(() => {
     if (!appServicesReady) {
       return;
     }
-    trace({
-      name: TraceName.SplashRevealTax,
-      op: TraceOperation.UIStartup,
-    });
+    startSplashRevealTax();
   }, [appServicesReady]);
 
   // Only fade out once BOTH the animation is done AND app services are ready.
