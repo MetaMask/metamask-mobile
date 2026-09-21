@@ -145,9 +145,10 @@ describe('useAddressBalance', () => {
     mockGetERC20BalanceOf = jest
       .fn()
       .mockReturnValue(Promise.resolve(0x0186a0));
-    Object.assign(mockedEngine.context.AssetsContractController, {
+    mockedEngine.context.AssetsContractController = {
+      ...(mockedEngine.context.AssetsContractController ?? {}),
       getERC20BalanceOf: mockGetERC20BalanceOf,
-    });
+    } as typeof mockedEngine.context.AssetsContractController;
   });
 
   it('render balance from AccountTrackerController.accounts for ETH', () => {
