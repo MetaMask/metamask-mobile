@@ -666,7 +666,7 @@ const BAANX_CAPABILITIES = {
   supportsFundingLimits: true,
   fundingChains: ['eip155:59144', 'eip155:8453'],
   supportsFreeze: true,
-  supportsPushProvisioning: true,
+  pushProvisioning: { applePay: true, googlePay: true },
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
   supportsPinSet: false,
@@ -1083,7 +1083,6 @@ function setupLoadCardDataMock(
   if (config.kycStatus?.verificationState && !ud) {
     account = {
       verificationStatus: config.kycStatus.verificationState,
-      provisioningEligible: false,
       holderName: null,
       shippingAddress: null,
       countryOfResidence: config.countryOfResidence ?? null,
@@ -1120,7 +1119,6 @@ function setupLoadCardDataMock(
       ud.firstName && ud.lastName ? `${ud.firstName} ${ud.lastName}` : null;
     account = {
       verificationStatus: config.kycStatus?.verificationState ?? null,
-      provisioningEligible: false,
       holderName: derivedHolderName,
       shippingAddress,
       countryOfResidence: config.countryOfResidence ?? null,
@@ -1159,6 +1157,14 @@ function setupLoadCardDataMock(
           availableFundingAssets: fundingAssets,
           card,
           account,
+          walletProvisioning: card
+            ? {
+                eligible: card.status === 'ACTIVE',
+                cardholderName: account?.holderName ?? '',
+                lastFour: String(card.lastFour ?? ''),
+                network: 'MASTERCARD' as const,
+              }
+            : null,
           alerts,
           actions,
           delegationSettings: config.delegationSettings,
@@ -1203,6 +1209,12 @@ function overrideCardHomeDataBalance(
         type: CardType.VIRTUAL,
       },
       account: null,
+      walletProvisioning: {
+        eligible: true,
+        cardholderName: '',
+        lastFour: '1234',
+        network: 'MASTERCARD' as const,
+      },
       alerts: [],
       actions: [{ type: 'add_funds', enabled: true }],
     },
@@ -6102,7 +6114,7 @@ describe('CardHome Component', () => {
       mockResetProvisioningStatus.mockClear();
     });
 
-    it('calls usePushProvisioning with cardDetails from card status', async () => {
+    it('calls usePushProvisioning with the card id and wallet provisioning', async () => {
       // Given: authenticated user with card details
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
@@ -6120,19 +6132,18 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: usePushProvisioning should be called with memoized cardDetails
       await waitFor(() => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
       const options = getLastCallOptions();
 
-      // Verify cardDetails is passed correctly
-      expect(options.cardDetails).toEqual({
-        id: 'card-123',
-        holderName: 'John Doe',
-        panLast4: '1234',
-        status: 'ACTIVE',
+      expect(options.cardId).toBe('card-123');
+      expect(options.walletProvisioning).toEqual({
+        eligible: true,
+        cardholderName: 'John Doe',
+        lastFour: '1234',
+        network: 'MASTERCARD',
       });
     });
 
@@ -6174,7 +6185,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('passes null cardDetails when no card exists', async () => {
+    it('passes null wallet provisioning when no card exists', async () => {
       // Given: authenticated user without card
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
@@ -6192,14 +6203,14 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cardDetails should be null
       await waitFor(() => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
       const options = getLastCallOptions();
 
-      expect(options.cardDetails).toBeNull();
+      expect(options.cardId).toBeUndefined();
+      expect(options.walletProvisioning).toBeNull();
     });
 
     it('provides onSuccess callback that shows success toast', async () => {
@@ -6291,11 +6302,12 @@ describe('CardHome Component', () => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
-      // Then: holderName should come from KYC userDetails, not cardDetails
       const options = getLastCallOptions();
-      const cardDetails = options.cardDetails as { holderName: string };
+      const walletProvisioning = options.walletProvisioning as {
+        cardholderName: string;
+      };
 
-      expect(cardDetails.holderName).toBe('Jane Smith');
+      expect(walletProvisioning.cardholderName).toBe('Jane Smith');
     });
   });
 
@@ -6537,7 +6549,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6594,7 +6605,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6650,7 +6660,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6706,7 +6715,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',

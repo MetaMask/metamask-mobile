@@ -1,6 +1,10 @@
 import { ControllerCardAdapter } from './ControllerCardAdapter';
 import { ProvisioningError, ProvisioningErrorCode } from '../../types';
 import Engine from '../../../../../../core/Engine';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -9,6 +13,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     CardController: {
+      state: { activeProviderId: 'baanx' },
       createGoogleWalletProvisioningRequest: jest.fn(),
       createApplePayProvisioningRequest: jest.fn(),
     },
@@ -25,12 +30,26 @@ describe('ControllerCardAdapter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Engine.context.CardController.state.activeProviderId = 'baanx';
     adapter = new ControllerCardAdapter();
   });
 
   describe('properties', () => {
-    it('has correct providerId', () => {
-      expect(adapter.providerId).toBe('galileo');
+    it('reads the active provider id', () => {
+      expect(adapter.providerId).toBe('baanx');
+    });
+
+    it('falls back to baanx when no provider is active', () => {
+      Engine.context.CardController.state.activeProviderId = null;
+
+      expect(adapter.providerId).toBe('baanx');
+    });
+  });
+
+  describe('supportsWallet', () => {
+    it('supports Apple Wallet and Google Wallet', () => {
+      expect(adapter.supportsWallet('apple_wallet')).toBe(true);
+      expect(adapter.supportsWallet('google_wallet')).toBe(true);
     });
   });
 
@@ -85,16 +104,9 @@ describe('ControllerCardAdapter', () => {
   });
 
   describe('getApplePayEncryptedPayload', () => {
-    // Base64-encoded test data
-    const mockNonceBase64 = 'dGVzdC1ub25jZQ=='; // "test-nonce"
-    const mockNonceSignatureBase64 = 'dGVzdC1zaWduYXR1cmU='; // "test-signature"
-    const mockCertificatesBase64 = ['bGVhZi1jZXJ0', 'aW50ZXJtZWRpYXRlLWNlcnQ=']; // "leaf-cert", "intermediate-cert"
-
-    // Expected hex values
-    const expectedNonceHex = '746573742d6e6f6e6365';
-    const expectedNonceSignatureHex = '746573742d7369676e6174757265';
-    const expectedLeafCertHex = '6c6561662d63657274';
-    const expectedIntermediateCertHex = '696e7465726d6564696174652d63657274';
+    const mockNonceBase64 = 'dGVzdC1ub25jZQ==';
+    const mockNonceSignatureBase64 = 'dGVzdC1zaWduYXR1cmU=';
+    const mockCertificatesBase64 = ['bGVhZi1jZXJ0', 'aW50ZXJtZWRpYXRlLWNlcnQ='];
 
     const mockSuccessResponse = {
       encryptedPassData: 'encrypted-pass-data',
@@ -102,7 +114,7 @@ describe('ControllerCardAdapter', () => {
       ephemeralPublicKey: 'ephemeral-key',
     };
 
-    it('converts base64 nonce/certificates to hex before calling controller', async () => {
+    it('forwards raw PassKit values to the controller', async () => {
       mockCreateApplePay.mockResolvedValue(mockSuccessResponse);
 
       await adapter.getApplePayEncryptedPayload(
@@ -112,10 +124,9 @@ describe('ControllerCardAdapter', () => {
       );
 
       expect(mockCreateApplePay).toHaveBeenCalledWith({
-        leafCertificate: expectedLeafCertHex,
-        intermediateCertificate: expectedIntermediateCertHex,
-        nonce: expectedNonceHex,
-        nonceSignature: expectedNonceSignatureHex,
+        nonce: mockNonceBase64,
+        nonceSignature: mockNonceSignatureBase64,
+        certificates: mockCertificatesBase64,
       });
     });
 
@@ -133,27 +144,76 @@ describe('ControllerCardAdapter', () => {
       expect(result.ephemeralPublicKey).toBe('ephemeral-key');
     });
 
-    it('throws ProvisioningError(ENCRYPTION_FAILED) when certificates.length < 2', async () => {
+    it('maps an invalid provider request to ENCRYPTION_FAILED', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidRequest,
+          'APPLE_PAY_PAYLOAD_INVALID',
+        ),
+      );
+
       await expect(
         adapter.getApplePayEncryptedPayload(
           mockNonceBase64,
           mockNonceSignatureBase64,
-          ['bGVhZi1jZXJ0'],
+          mockCertificatesBase64,
         ),
       ).rejects.toMatchObject({
         code: ProvisioningErrorCode.ENCRYPTION_FAILED,
       });
     });
 
-    it('throws ProvisioningError(ENCRYPTION_FAILED) when certificates is empty', async () => {
+    it('maps a forbidden provider error to CARD_NOT_ELIGIBLE', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(CardProviderErrorCode.Forbidden, 'FORBIDDEN'),
+      );
+
       await expect(
         adapter.getApplePayEncryptedPayload(
           mockNonceBase64,
           mockNonceSignatureBase64,
-          [],
+          mockCertificatesBase64,
         ),
       ).rejects.toMatchObject({
-        code: ProvisioningErrorCode.ENCRYPTION_FAILED,
+        code: ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
+      });
+    });
+
+    it('maps a provider server error to PROVIDER_UNAVAILABLE', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'PAYMENT_BRIDGE_ERROR',
+        ),
+      );
+
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.PROVIDER_UNAVAILABLE,
+      });
+    });
+
+    it('maps invalid credentials to UNKNOWN_ERROR', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidCredentials,
+          'unauthorized',
+        ),
+      );
+
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.UNKNOWN_ERROR,
       });
     });
 

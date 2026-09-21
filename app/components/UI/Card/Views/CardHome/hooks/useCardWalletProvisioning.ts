@@ -11,41 +11,21 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../../pushProvisioning';
-import {
-  buildProvisioningUserAddress,
-  buildCardholderName,
-} from '../../../util/buildUserAddress';
+import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
-export function useCardProvisioning(data: CardHomeData | null | undefined) {
+export function useCardWalletProvisioning(
+  data: CardHomeData | null | undefined,
+) {
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-
-  const cardholderName = useMemo(() => {
-    if (!data?.account?.holderName) return 'Card Holder';
-    const parts = data.account.holderName.split(' ');
-    return buildCardholderName({
-      firstName: parts[0],
-      lastName: parts.slice(1).join(' ') || undefined,
-    } as never);
-  }, [data?.account?.holderName]);
-
-  const cardDetailsForProvisioning = useMemo(
-    () =>
-      data?.card
-        ? {
-            id: data.card.id,
-            holderName: cardholderName,
-            panLast4: data.card.lastFour,
-            status: data.card.status,
-          }
-        : null,
-    [data?.card, cardholderName],
-  );
+  const walletProvisioning = data?.walletProvisioning ?? null;
 
   const userAddressForProvisioning = useMemo(() => {
     const addr = data?.account?.shippingAddress;
-    if (!addr) return undefined;
+    if (!addr || !walletProvisioning) {
+      return undefined;
+    }
     return buildProvisioningUserAddress(
       {
         addressLine1: addr.line1,
@@ -55,16 +35,16 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
         zip: addr.postalCode,
         phoneNumber: null,
         phoneCountryCode: null,
-      } as never,
-      cardholderName,
+      },
+      walletProvisioning.cardholderName,
     );
-  }, [data?.account?.shippingAddress, cardholderName]);
+  }, [data?.account?.shippingAddress, walletProvisioning]);
 
   const { initiateProvisioning, isProvisioning, isLoading, canAddToWallet } =
     usePushProvisioning({
-      cardDetails: cardDetailsForProvisioning,
+      cardId: data?.card?.id,
+      walletProvisioning,
       userAddress: userAddressForProvisioning,
-      provisioningEligible: data?.account?.provisioningEligible ?? false,
       onSuccess: () => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,

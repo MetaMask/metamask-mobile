@@ -3,11 +3,10 @@
  *
  * Core types and interfaces for the push provisioning feature.
  * Supports adding cards to mobile wallets (Google Wallet, Apple Pay)
- * from card providers (Galileo, etc.).
+ * from card providers.
  */
 
-/** Supported card provider identifiers */
-export type CardProviderId = 'galileo';
+import type { CardWalletProvisioningInfo } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 /** Supported mobile wallet types */
 export type WalletType = 'google_wallet' | 'apple_wallet';
@@ -39,6 +38,7 @@ export enum ProvisioningErrorCode {
   CARD_PROVIDER_NOT_FOUND = 'CARD_PROVIDER_NOT_FOUND',
   CARD_NOT_ELIGIBLE = 'CARD_NOT_ELIGIBLE',
   ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
+  PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
   INVALID_CARD_DATA = 'INVALID_CARD_DATA',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   PLATFORM_NOT_SUPPORTED = 'PLATFORM_NOT_SUPPORTED',
@@ -153,19 +153,11 @@ export class ProvisioningError extends Error {
   }
 }
 
-/** Card details from CardHome (to avoid duplicate API calls) */
-export interface CardDetails {
-  id: string;
-  holderName: string;
-  panLast4: string;
-  status: string;
-}
-
 /** Options for usePushProvisioning hook */
 export interface UsePushProvisioningOptions {
-  cardDetails?: CardDetails | null;
+  cardId?: string;
+  walletProvisioning?: CardWalletProvisioningInfo | null;
   userAddress?: UserAddress;
-  provisioningEligible: boolean;
   onSuccess?: (result: ProvisioningResult) => void;
   onError?: (error: ProvisioningError) => void;
   onCancel?: () => void;
