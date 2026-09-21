@@ -86,6 +86,11 @@ export interface ProvisionCardParams {
   cardholderName: string;
   lastFourDigits: string;
   cardDescription?: string;
+  /**
+   * Opaque issuer id stored on the Apple pass.
+   * When set, iOS eligibility matches this id instead of the PAN suffix.
+   */
+  primaryAccountIdentifier?: string;
   encryptedPayload: EncryptedPayload;
   userAddress?: UserAddress;
   /** Callback for Apple Pay: PassKit provides nonce/certs, returns encrypted payload */

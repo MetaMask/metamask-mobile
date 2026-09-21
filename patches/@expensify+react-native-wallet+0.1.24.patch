@@ -1,0 +1,82 @@
+diff --git a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+--- a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
++++ b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+@@ -41,6 +41,8 @@
+   cardHolderName: string;
+   lastDigits: string;
+   cardDescription: string;
++  /** Opaque issuer id. PassKit uses it to recognize a reissued card. */
++  primaryAccountIdentifier?: string;
+ };
+ 
+ type onCardActivatedPayload = {
+diff --git a/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts b/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts
+--- a/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts
++++ b/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts
+@@ -33,6 +33,8 @@
+     cardHolderName: string;
+     lastDigits: string;
+     cardDescription: string;
++    /** Opaque issuer id. PassKit uses it to recognize a reissued card. */
++    primaryAccountIdentifier?: string;
+ };
+ type onCardActivatedPayload = {
+     tokenId: string;
+diff --git a/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm b/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
+--- a/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
++++ b/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
+@@ -39,12 +39,16 @@
+                  reject:(RCTPromiseRejectBlock)reject)
+ {
+   @try {
+-    NSDictionary *cardDataDict = @{
++    NSMutableDictionary *cardDataDict = [@{
+       @"network": [self safeString:cardData.network()],
+       @"cardHolderName": [self safeString:cardData.cardHolderName()],
+       @"lastDigits": [self safeString:cardData.lastDigits()],
+       @"cardDescription": [self safeString:cardData.cardDescription()],
+-    };
++    } mutableCopy];
++    NSString *primaryAccountIdentifier = [self safeString:cardData.primaryAccountIdentifier()];
++    if (primaryAccountIdentifier.length > 0) {
++      cardDataDict[@"primaryAccountIdentifier"] = primaryAccountIdentifier;
++    }
+     dispatch_async(dispatch_get_main_queue(), ^{
+       [self->walletManager IOSPresentAddPaymentPassViewWithCardData:cardDataDict completion:^(OperationResult result, NSDictionary* data) {
+         [self handleWalletResponse:result data:data completedBlock:resolve errorPrefix:@"present_payment_pass_view_failed" defaultErrorMessage:@"Failed to present the payment pass view" rejecter:reject];
+diff --git a/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift b/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift
+--- a/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift
+@@ -5,6 +5,7 @@
+   let cardHolderName: String
+   let lastDigits: String
+   let cardDescription: String
++  let primaryAccountIdentifier: String?
+ 
+   init(cardData: NSDictionary) throws {
+     guard let networkString = cardData["network"] as? String, !networkString.isEmpty,
+@@ -19,6 +20,11 @@
+     self.cardHolderName = cardHolderName
+     self.lastDigits = lastDigits
+     self.cardDescription = cardDescription
++    if let identifier = cardData["primaryAccountIdentifier"] as? String, !identifier.isEmpty {
++      self.primaryAccountIdentifier = identifier
++    } else {
++      self.primaryAccountIdentifier = nil
++    }
+   }
+ 
+   private static func getNetwork(from identifier: String) -> PKPaymentNetwork? {
+diff --git a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+--- a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+@@ -111,6 +111,9 @@
+     configuration.cardholderName = card.cardHolderName
+     configuration.primaryAccountSuffix = card.lastDigits
+     configuration.localizedDescription = String(card.cardDescription)
++    if let primaryAccountIdentifier = card.primaryAccountIdentifier {
++      configuration.primaryAccountIdentifier = primaryAccountIdentifier
++    }
+ 
+     guard let enrollViewController = PKAddPaymentPassViewController(requestConfiguration: configuration, delegate: self) else {
+       completion(.error, [
