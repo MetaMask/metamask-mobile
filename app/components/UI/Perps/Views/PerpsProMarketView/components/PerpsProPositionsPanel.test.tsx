@@ -25,6 +25,7 @@ import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
 import {
   getPerpsProChaseSideFilterOptionSelector,
+  getPerpsProActivityViewSelector,
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   getPerpsProTwapRowSelector,
@@ -409,7 +410,7 @@ describe('PerpsProPositionsPanel', () => {
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY),
     ).toHaveStyle({ paddingTop: 12 });
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
@@ -433,7 +434,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
   });
 
@@ -461,7 +462,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
   });
 
@@ -496,7 +497,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert: the selected tab remains mounted while the new identity loads.
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
 
     // Act: the next account's active schedule arrives.
@@ -511,7 +512,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
   });
 
@@ -1078,7 +1079,14 @@ describe('PerpsProPositionsPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_HISTORY),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector(
+          'history',
+        )}`,
+      ),
     );
 
     // Assert

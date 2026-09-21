@@ -1,7 +1,9 @@
 import React from 'react';
 import { screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import SocialFeedPositionCard from './SocialFeedPositionCard';
+import SocialFeedPositionCard, {
+  PositionCardBody,
+} from './SocialFeedPositionCard';
 import {
   mockClosedPerpsFeedItem,
   mockClosedSpotFeedItem,
@@ -63,31 +65,6 @@ describe('SocialFeedPositionCard', () => {
       expect(
         screen.getByTestId(getSocialFeedPostAgeTestId(item.id)),
       ).toBeOnTheScreen();
-    });
-
-    // The marker is what tells the user a value is invented, so it must appear
-    // on a mocked win rate and stay off a real one.
-    it('marks the win-rate badge when the win rate is mocked', () => {
-      const item = mockOpenPerpsFeedItem({ mockedFields: ['winRate'] });
-
-      renderWithProvider(<SocialFeedPositionCard item={item} />);
-
-      expect(
-        screen.getByText('social_leaderboard.win_rate_tag*'),
-      ).toBeOnTheScreen();
-    });
-
-    it('leaves the win-rate badge unmarked when the win rate is real', () => {
-      const item = mockOpenPerpsFeedItem({ mockedFields: [] });
-
-      renderWithProvider(<SocialFeedPositionCard item={item} />);
-
-      expect(
-        screen.getByText('social_leaderboard.win_rate_tag'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByText('social_leaderboard.win_rate_tag*'),
-      ).not.toBeOnTheScreen();
     });
 
     it('omits the win-rate badge when the author has no win rate', () => {
@@ -258,5 +235,47 @@ describe('SocialFeedPositionCard', () => {
       getSocialFeedPositionCardStatTestId(item.id, 'autoClose'),
     );
     expect(within(row).getByText('\u2014')).toBeOnTheScreen();
+  });
+
+  it('renders a share spot card with entry, hold time, and copy trade', () => {
+    const item = {
+      ...mockOpenSpotFeedItem({
+        id: 'v1-feed-eth-share',
+        comment: 'this is alpha',
+      }),
+      variant: 'spotShare' as const,
+      markPriceLabel: '$1,842',
+      entryPriceLabel: '$1,842',
+      holdTimeLabel: '2d 2h',
+      showCopyTrade: true,
+    };
+
+    renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+    expect(
+      screen.getByTestId(getSocialFeedPositionCardCommentTestId(item.id)),
+    ).toHaveTextContent('this is alpha');
+    expect(
+      screen.getByTestId(getSocialFeedPositionCardStatTestId(item.id, 'entry')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getSocialFeedPositionCardStatTestId(item.id, 'holdTime'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the position body without the post author header', () => {
+    const item = mockOpenPerpsFeedItem();
+
+    renderWithProvider(<PositionCardBody item={item} />);
+
+    expect(
+      screen.queryByTestId(getSocialFeedPostAuthorTestId(item.id)),
+    ).toBeNull();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 });

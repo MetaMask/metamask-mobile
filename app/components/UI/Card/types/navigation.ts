@@ -58,6 +58,7 @@ export type CardScreensStackParamList = {
     transactionId: string;
     transaction?: CardTransaction;
   };
+  CardContactDetails: undefined;
   CardSetPin: { cardId: string };
   CardConfirmPin: { cardId: string };
   CardAuthentication:

@@ -23,6 +23,10 @@ export interface SocialFeedPositionCardProps {
   now?: number;
 }
 
+export interface PositionCardBodyProps {
+  item: SocialV1FeedItem;
+}
+
 const statId = getSocialFeedPositionCardStatTestId;
 
 /** The closed-card stat rows, identical for perps and spot. */
@@ -74,9 +78,15 @@ const closedStats = (item: {
  * offers Copy trade, a closed one leads with a hero realized P&L and offers
  * nothing to copy. The asset class only decides which stat rows sit between --
  * perps carry leverage and the auto-close bracket, spot carries neither.
+ * Composer spot shares reuse the open layout and gate Copy trade with
+ * `showCopyTrade`.
  */
-const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
-  if (item.variant === 'perpsOpen' || item.variant === 'spotOpen') {
+export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
+  if (
+    item.variant === 'perpsOpen' ||
+    item.variant === 'spotOpen' ||
+    item.variant === 'spotShare'
+  ) {
     const stats: PositionCardStatRow[] =
       item.variant === 'perpsOpen'
         ? [
@@ -120,6 +130,9 @@ const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
             },
           ];
 
+    const showCopyTrade =
+      item.variant !== 'spotShare' || Boolean(item.showCopyTrade);
+
     return (
       <PositionCardShell>
         <PositionCardHeader
@@ -127,16 +140,18 @@ const PositionCardBody: React.FC<{ item: SocialV1FeedItem }> = ({ item }) => {
           avatar={item.asset.avatar}
           symbol={item.asset.symbol}
           direction={item.variant === 'perpsOpen' ? item.direction : undefined}
-          side={item.variant === 'spotOpen' ? item.side : undefined}
+          side={item.variant === 'perpsOpen' ? undefined : item.side}
           markPriceLabel={item.markPriceLabel}
           valueLabel={item.valueLabel}
           pnlLabel={item.pnlLabel}
           isPnlPositive={item.isPnlPositive}
         />
         <PositionCardStats rows={stats} cardId={item.id} />
-        <CopyTradeButton
-          testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
-        />
+        {showCopyTrade ? (
+          <CopyTradeButton
+            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+          />
+        ) : null}
       </PositionCardShell>
     );
   }
@@ -170,7 +185,6 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
     author={item.author}
     timestamp={item.timestamp}
     comment={item.comment}
-    isWinRateMocked={item.mockedFields.includes('winRate')}
     now={now}
   >
     <PositionCardBody item={item} />

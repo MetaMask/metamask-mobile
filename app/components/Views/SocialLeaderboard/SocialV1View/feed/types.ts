@@ -1,9 +1,9 @@
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
-import type { FeedAudience } from '../../FeedView/types';
 import type { SocialV1MockedField } from './mockMarker';
 
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
+export type SocialV1FeedTab = 'trending' | 'following';
 
 export interface SocialV1FeedAsset {
   symbol: string;
@@ -32,7 +32,7 @@ interface SocialV1FeedItemBase {
   /** Post time in seconds or milliseconds -- see `tradeTimestampToMs`. */
   timestamp: number;
   asset: SocialV1FeedAsset;
-  /** Author comment. Invented for now, so it carries the mock marker. */
+  /** Author comment. */
   comment?: string;
   valueLabel: string;
   pnlLabel: string;
@@ -41,8 +41,11 @@ interface SocialV1FeedItemBase {
    * Which of this item's values the client invented. The marked labels already
    * carry a visible `*`; this is the structural record of the same fact, so
    * tests and later cleanup do not have to match on rendered copy.
+   *
+   * Optional: absent means nothing is mocked, which keeps composer-built items
+   * from having to declare provenance they do not have.
    */
-  mockedFields: SocialV1MockedField[];
+  mockedFields?: SocialV1MockedField[];
 }
 
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
@@ -83,35 +86,68 @@ export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
 }
 
 /**
+ * Composer-shared spot position. Reuses the open card layout; Copy trade is
+ * gated by `showCopyTrade` so a closed share still has no CTA.
+ */
+export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
+  variant: 'spotShare';
+  side: SocialV1SpotSide;
+  markPriceLabel?: string;
+  entryPriceLabel?: string;
+  holdTimeLabel?: string;
+  showCopyTrade?: boolean;
+}
+
+/**
  * Two layouts -- open and closed -- crossed with the asset class. Open cards
  * lead with current value and offer Copy trade; closed cards lead with realized
  * P&L and offer nothing, because there is no longer a position to copy. The
- * asset class only decides which stat rows sit between.
+ * asset class only decides which stat rows sit between. `spotShare` is the
+ * composer insert of a spot position.
  */
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
   | SocialV1PerpsClosedFeedItem
   | SocialV1SpotOpenFeedItem
-  | SocialV1SpotClosedFeedItem;
+  | SocialV1SpotClosedFeedItem
+  | SocialV1SpotShareFeedItem;
 
-export interface UseSocialV1FeedOptions {
-  /** `all` reads the generic `leaderboard` scope, `following` the per-user one. */
-  audience?: FeedAudience;
-  /** Gate the query. Always additionally gated on unlock by `useTraderFeed`. */
-  enabled?: boolean;
+export interface SocialV1FeedPost {
+  id: string;
+  authorHandle: string;
+  authorImageUrl?: string | null;
+  winRateLabel?: string;
+  timestampMs: number;
+  likeCount: number;
+  commentCount: number;
+  gifUri?: string;
+  isPending?: boolean;
+  item: SocialV1FeedItem;
 }
 
-/**
- * Mirrors the outside of `useTraderFeed` so the V1 shell gets the same
- * pagination and error surface as V0; the V1 map and the mock overlay are the
- * only things this hook adds.
- */
 export interface UseSocialV1FeedResult {
-  items: SocialV1FeedItem[];
+  posts: SocialV1FeedPost[];
+  pendingPost: SocialV1FeedPost | null;
+  pendingStartedAtMs: number | null;
   isLoading: boolean;
-  isFetchingNextPage: boolean;
-  hasNextPage: boolean;
-  loadMore: () => void;
   error: string | null;
-  refresh: () => Promise<void>;
+}
+
+/** One chip in the feed's hot-tokens carousel. */
+export interface SocialV1HotToken {
+  /** Stable key, also used as the chip's test ID suffix. */
+  id: string;
+  /**
+   * Perps market symbol (e.g. `BTC`, `NVDA`, or a HIP-3 `dex:SYMBOL`). Drives
+   * icon resolution, which falls back to a monogram when no icon is published.
+   */
+  symbol: string;
+  /** Editorial label -- the topic's name, not the ticker (e.g. `Bitcoin perps`). */
+  label: string;
+}
+
+export interface UseSocialV1HotTokensResult {
+  tokens: SocialV1HotToken[];
+  isLoading: boolean;
+  error: string | null;
 }

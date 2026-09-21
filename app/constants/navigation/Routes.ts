@@ -434,6 +434,7 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    FOLLOW_CONNECTIONS: 'FollowConnectionsView',
     MANAGE_PROFILE: 'ManageProfileView',
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
@@ -441,6 +442,7 @@ const Routes = {
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
+    POST_COMPOSER: 'SocialPostComposerView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
@@ -576,6 +578,7 @@ const Routes = {
     TRANSACTION_HISTORY: 'CardTransactionHistory',
     TRANSACTION_DETAILS: 'CardTransactionDetails',
     REPORT_TRANSACTION: 'CardReportTransaction',
+    CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {

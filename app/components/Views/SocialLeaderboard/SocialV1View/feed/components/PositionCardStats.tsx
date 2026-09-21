@@ -53,7 +53,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             testID={row.testID}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
               {row.label}
@@ -65,7 +65,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             >
               {row.leadingValueAccessory}
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >

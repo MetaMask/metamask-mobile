@@ -30,8 +30,14 @@ describe('formatAnalyticsAppVersion', () => {
     expect(result).toBe('8.6.0');
   });
 
-  it('appends release-candidate for rc', () => {
+  it('appends rc-unofficial for rc without official attribution', () => {
     const result = formatAnalyticsAppVersion(baseVersion, 'rc');
+
+    expect(result).toBe('8.6.0-rc-unofficial');
+  });
+
+  it('appends release-candidate for rc with official attribution', () => {
+    const result = formatAnalyticsAppVersion(baseVersion, 'rc', 'official');
 
     expect(result).toBe('8.6.0-release-candidate');
   });
@@ -76,15 +82,7 @@ describe('formatAnalyticsAppVersion', () => {
     expect(result).toBe('8.6.0-nightly');
   });
 
-  // Runway and every other caller omit build attribution, so the CI env var is
-  // either an empty string or absent. Both must keep the friendly suffixes.
-  it('keeps friendly suffixes when build attribution is omitted or empty', () => {
-    expect(formatAnalyticsAppVersion(baseVersion, 'rc')).toBe(
-      '8.6.0-release-candidate',
-    );
-    expect(formatAnalyticsAppVersion(baseVersion, 'rc', '')).toBe(
-      '8.6.0-release-candidate',
-    );
+  it('keeps non-rc friendly suffixes when build attribution is omitted or empty', () => {
     expect(formatAnalyticsAppVersion(baseVersion, 'exp')).toBe(
       '8.6.0-experimental',
     );
@@ -99,10 +97,22 @@ describe('formatAnalyticsAppVersion', () => {
     );
   });
 
-  it('keeps friendly suffixes for unrecognized build attribution', () => {
+  it('appends rc-unofficial when rc attribution is omitted or empty', () => {
+    expect(formatAnalyticsAppVersion(baseVersion, 'rc')).toBe(
+      '8.6.0-rc-unofficial',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'rc', '')).toBe(
+      '8.6.0-rc-unofficial',
+    );
+    expect(formatAnalyticsAppVersion(baseVersion, 'rc', '  ')).toBe(
+      '8.6.0-rc-unofficial',
+    );
+  });
+
+  it('appends rc-unofficial for unrecognized rc attribution', () => {
     const result = formatAnalyticsAppVersion(baseVersion, 'rc', 'runway');
 
-    expect(result).toBe('8.6.0-release-candidate');
+    expect(result).toBe('8.6.0-rc-unofficial');
   });
 });
 

@@ -71,7 +71,7 @@ const TitleMeta: React.FC<{
     {/* `shrink` so a long symbol truncates instead of pushing the
       direction off the row. */}
     <Text
-      variant={TextVariant.BodyLg}
+      variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
       numberOfLines={1}
@@ -81,11 +81,11 @@ const TitleMeta: React.FC<{
     </Text>
     {direction ? (
       <>
-        <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
           {' \u00b7 '}
         </Text>
         <Text
-          variant={TextVariant.BodyLg}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           twClassName={directionClassName(direction)}
         >
@@ -100,11 +100,11 @@ const TitleMeta: React.FC<{
       information across the feed rather than two different treatments. */}
     {side ? (
       <>
-        <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
-          {' · '}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+          {' \u00b7 '}
         </Text>
         <Text
-          variant={TextVariant.BodyLg}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           twClassName={
             side === 'buy' ? 'text-success-default' : 'text-error-default'
@@ -128,7 +128,7 @@ const PnlValues: React.FC<{
   return (
     <Box alignItems={isClosedHero ? BoxAlignItems.Start : BoxAlignItems.End}>
       <Text
-        variant={isClosedHero ? TextVariant.HeadingMd : TextVariant.BodyLg}
+        variant={isClosedHero ? TextVariant.HeadingMd : TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={isClosedHero ? undefined : TextColor.TextDefault}
         twClassName={isClosedHero ? pnlClassName(isPnlPositive) : undefined}

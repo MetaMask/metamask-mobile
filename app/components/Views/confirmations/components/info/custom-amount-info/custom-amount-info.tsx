@@ -65,6 +65,7 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
+import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
@@ -133,6 +134,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
     useClearConfirmationOnBackSwipe();
+
+    // Pre-warm the Transak partner API key so the fiat fee estimate's native
+    // buy-quote lookup succeeds on first load, showing the real native fee
+    // instead of the aggregator fallback (which previously only corrected after
+    // the user entered the Transak widget flow).
+    useEnsureTransakApiKey();
 
     useAutomaticTransactionPayToken({
       autoSelectFiatPayment,
@@ -536,7 +543,7 @@ export function CustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </Box>
-      <Box>
+      <Box style={styles.bottomBlock}>
         <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
       </Box>
@@ -553,7 +560,7 @@ export function PrefillCustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <Skeleton height={20} width={200} />
       </View>
-      <View>
+      <View style={styles.bottomBlock}>
         <View style={styles.skeletonRow}>
           <Skeleton height={18} width={100} />
           <View style={styles.skeletonRowRight}>
@@ -602,7 +609,7 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </View>
-      <View>
+      <View style={styles.bottomBlock}>
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />
