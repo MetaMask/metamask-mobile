@@ -8,6 +8,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { CaipAccountId } from '@metamask/utils';
+import type { OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { MINUTE } from '../../../../constants/time';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -30,6 +31,11 @@ import {
 
 interface PerpsActivityPage {
   transactions: PerpsTransaction[];
+  /**
+   * Raw fills are carried on the page so the Aggregated control can re-render the list
+   * without refetching; they are turned into transactions when the list is assembled.
+   */
+  fills: OrderFill[];
   nextCursor?: number;
 }
 
@@ -66,7 +72,7 @@ async function fetchPerpsActivityPage({
 
   if (cursor !== undefined) {
     if (cursor <= maxStartTime) {
-      return { transactions: [] };
+      return { transactions: [], fills: [] };
     }
 
     const startTime = Math.max(cursor - PAGE_WINDOW_MS, maxStartTime);
@@ -79,6 +85,7 @@ async function fetchPerpsActivityPage({
 
     return {
       transactions: transformFundingToTransactions(olderFunding),
+      fills: [],
       nextCursor: nextCursor > maxStartTime ? nextCursor : undefined,
     };
   }
@@ -103,13 +110,13 @@ async function fetchPerpsActivityPage({
     fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
   }
 
+  // Attaching detailedOrderType keeps the TP/SL pill on the trade rows.
+  const enrichedFills = fills.map((fill) => ({
+    ...fill,
+    detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
+  }));
+
   const transactions = dedupeById([
-    ...transformFillsToTransactions(
-      fills.map((fill) => ({
-        ...fill,
-        detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
-      })),
-    ),
     ...transformOrdersToTransactions(orders, fillSizeByOrderId),
     ...transformFundingToTransactions(funding),
     ...transformUserHistoryToTransactions(userHistory),
@@ -118,6 +125,7 @@ async function fetchPerpsActivityPage({
   const nextCursor = now - PAGE_WINDOW_MS;
   return {
     transactions,
+    fills: enrichedFills,
     nextCursor: nextCursor > maxStartTime ? nextCursor : undefined,
   };
 }
@@ -142,9 +150,35 @@ function flattenPages(data?: InfiniteData<PerpsActivityPage>) {
   return transactions.sort((left, right) => right.timestamp - left.timestamp);
 }
 
+/**
+ * Collects the raw fills across loaded pages. Every execution is kept: the provider does not
+ * expose an id that identifies one, and two legitimate fills of the same order can share
+ * timestamp, size and price, so any content-derived key would drop real executions.
+ */
+function flattenFills(data?: InfiniteData<PerpsActivityPage>) {
+  if (!data) {
+    return [];
+  }
+
+  return data.pages.flatMap((page) => page.fills ?? []);
+}
+
+/**
+ * How the trade rows present an order that HyperLiquid filled in several pieces:
+ * `aggregated` collapses them into the one trade the user placed, `individual` lists every
+ * execution on its own row.
+ */
+export type PerpsFillDisplay = 'aggregated' | 'individual';
+
+export interface UsePerpsActivityQueryOptions {
+  /** Defaults to `aggregated`. */
+  fillDisplay?: PerpsFillDisplay;
+}
+
 export function usePerpsActivityQuery(
   accountId: CaipAccountId | undefined,
   enabled: boolean,
+  { fillDisplay = 'aggregated' }: UsePerpsActivityQueryOptions = {},
 ) {
   const query = useInfiniteQuery({
     queryKey: ['perpsActivity', accountId ?? null],
@@ -205,6 +239,12 @@ export function usePerpsActivityQuery(
   }, [selectedAddress, walletTransactions]);
 
   const transactions = useMemo(() => {
+    // Transforming here rather than in the query keeps the Aggregated control instant:
+    // flipping it re-renders from cached fills instead of refetching.
+    const fillTransactions = transformFillsToTransactions(
+      flattenFills(query.data),
+      { aggregate: fillDisplay === 'aggregated' },
+    );
     const rest = flattenPages(query.data);
     const restHashes = new Set(
       rest
@@ -215,10 +255,10 @@ export function usePerpsActivityQuery(
       const hash = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
       return hash === '' || !restHashes.has(hash);
     });
-    return [...rest, ...extra].sort(
+    return [...fillTransactions, ...rest, ...extra].sort(
       (left, right) => right.timestamp - left.timestamp,
     );
-  }, [query.data, walletDeposits, walletWithdrawals]);
+  }, [query.data, walletDeposits, walletWithdrawals, fillDisplay]);
 
   return {
     ...query,
