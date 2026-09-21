@@ -48,9 +48,9 @@ const FeatureRow = ({ iconName, title, subtitle, testID }: FeatureRowProps) => (
     <Icon
       name={iconName}
       size={IconSize.Md}
-      twClassName="mt-[2px] text-icon-default"
+      twClassName="mt-0.5 text-icon-default"
     />
-    <Box twClassName="min-w-0 flex-1 gap-[2px]">
+    <Box twClassName="min-w-0 flex-1 gap-0.5">
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {title}
       </Text>
@@ -70,7 +70,7 @@ const FeatureRow = ({ iconName, title, subtitle, testID }: FeatureRowProps) => (
  * `handlePerpsOutreachUrl`) — the mobile client wires the sheet to
  * `Routes.PERPS.MODALS.OUTREACH_DETAILS` inside the Perps modal stack, and
  * the banner's `banner.linkUrl` from `/v1/outreach` routes here through
- * `handleDeeplink`.
+ * `SharedDeeplinkManager`.
  *
  * The copy and illustration are static for this design-specific sheet. Contact
  * destinations come from the campaign response so Terminal can update them

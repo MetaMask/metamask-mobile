@@ -9,7 +9,6 @@ import { SlideInUp } from 'react-native-reanimated';
 import bannersReducer from '../../../../../reducers/banners';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AppConstants from '../../../../../core/AppConstants';
-import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsOutreachBanner } from '../../hooks/usePerpsOutreachBanner';
 import { getPerpsOutreachDismissalKey } from '../../hooks/usePerpsOutreachCampaign';
@@ -18,11 +17,15 @@ import PerpsOutreachBanner, {
 } from './PerpsOutreachBanner';
 import { PerpsOutreachBannerSelectorsIDs } from './PerpsOutreachBanner.testIds';
 
-jest.mock('../../../../../core/DeeplinkManager', () => ({
-  handleDeeplink: jest.fn(),
+const mockParseDeeplink = jest.fn().mockResolvedValue(true);
+
+jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({ parse: mockParseDeeplink }),
+  },
 }));
 
-const mockHandleDeeplink = jest.mocked(handleDeeplink);
 const mockTrack = jest.fn();
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -184,14 +187,16 @@ describe('PerpsOutreachBanner', () => {
     );
   });
 
-  it('routes the campaign linkUrl through handleDeeplink on tap', () => {
+  it('parses every campaign tap without duplicate suppression', () => {
     const { getByTestId } = renderBanner();
+    const content = getByTestId(PerpsOutreachBannerSelectorsIDs.CONTENT);
 
-    fireEvent.press(getByTestId(PerpsOutreachBannerSelectorsIDs.CONTENT));
+    fireEvent.press(content);
+    fireEvent.press(content);
 
-    expect(mockHandleDeeplink).toHaveBeenCalledWith({
-      uri: BANNER.linkUrl,
-      source: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+    expect(mockParseDeeplink).toHaveBeenCalledTimes(2);
+    expect(mockParseDeeplink).toHaveBeenNthCalledWith(2, BANNER.linkUrl, {
+      origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
     });
   });
 
@@ -235,7 +240,7 @@ describe('PerpsOutreachBanner', () => {
 
     fireEvent.press(getByTestId(PerpsOutreachBannerSelectorsIDs.CONTENT));
 
-    expect(mockHandleDeeplink).not.toHaveBeenCalled();
+    expect(mockParseDeeplink).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
       expect.objectContaining({

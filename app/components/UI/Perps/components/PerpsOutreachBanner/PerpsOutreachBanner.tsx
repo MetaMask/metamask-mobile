@@ -24,7 +24,7 @@ import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AppConstants from '../../../../../core/AppConstants';
-import { handleDeeplink } from '../../../../../core/DeeplinkManager';
+import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -91,17 +91,13 @@ const PerpsOutreachBannerContent = ({
       [PERPS_EVENT_PROPERTY.LOCATION]: location,
       campaign_id: campaignId,
     });
-    try {
-      handleDeeplink({
-        uri: linkUrl,
-        // Route through the trusted in-app source so the deeplink interstitial
-        // is skipped (matches the treatment of other in-app CTAs like the
-        // wallet-home carousel).
-        source: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+    SharedDeeplinkManager.getInstance()
+      .parse(linkUrl, {
+        origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+      })
+      .catch((error) => {
+        DevLogger.log('[PerpsOutreachBanner] deeplink parsing failed:', error);
       });
-    } catch (error) {
-      DevLogger.log('[PerpsOutreachBanner] handleDeeplink failed:', error);
-    }
   }, [campaignId, linkUrl, location, track]);
 
   const handleDismiss = useCallback(() => {
@@ -162,7 +158,7 @@ const PerpsOutreachBannerContent = ({
             </Box>
           ) : null}
 
-          <Box twClassName="min-w-0 flex-1 gap-[2px]">
+          <Box twClassName="min-w-0 flex-1 gap-0.5">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
