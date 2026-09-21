@@ -690,21 +690,27 @@ const PriceAdvanced = ({
   const showChartIndicators =
     isTechnicalIndicatorsEnabled && chartType === ChartType.Candles;
 
+  // Determine interval for realtime hook based on chart type and feature flag
+  const realtimeInterval =
+    chartType === ChartType.Line
+      ? wsInterval
+      : isTechnicalIndicatorsEnabled
+        ? chartInterval
+        : wsInterval;
+
+  // Determine time period for realtime hook based on chart type and feature flag
+  const realtimeTimePeriod =
+    chartType === ChartType.Line
+      ? timeRange.toLowerCase()
+      : isTechnicalIndicatorsEnabled
+        ? effectiveTimePeriod
+        : timeRange.toLowerCase();
+
   const { latestBar } = useOHLCVRealtime({
     assetId,
-    interval:
-      chartType === ChartType.Line
-        ? wsInterval
-        : isTechnicalIndicatorsEnabled
-          ? chartInterval
-          : wsInterval,
+    interval: realtimeInterval,
     currency: currentCurrency,
-    timePeriod:
-      chartType === ChartType.Line
-        ? timeRange.toLowerCase()
-        : isTechnicalIndicatorsEnabled
-          ? effectiveTimePeriod
-          : timeRange.toLowerCase(),
+    timePeriod: realtimeTimePeriod,
     enabled: wsEnabled,
   });
 
@@ -1089,40 +1095,51 @@ const PriceAdvanced = ({
     <>
       {/* ── Title ──────────────────────────────────────────────────────── */}
       {!Number.isNaN(currentPrice) &&
-        (isLineMode ? (
-          <TokenPriceTitleHub
-            price={lineTitlePrice}
-            displayDiff={lineTitleDiff}
-            comparePrice={comparePrice}
-            periodLabel={lineTitleDate}
-            currentCurrency={currentCurrency}
-            isLoading={isLoading}
-            ambientColor={lineAmbientColor}
-            getPriceDiffStyle={getLinePriceDiffStyle}
-          />
-        ) : isCrosshairActive && crosshairData ? (
-          <OHLCVBar
-            data={crosshairData}
-            currency={currentCurrency}
-            changePercent={changePercent}
-            changePercentColor={changePercentColor}
-          />
-        ) : (
-          <TokenPriceTitleHub
-            price={displayPrice}
-            displayDiff={displayDiff}
-            comparePrice={dynamicComparePrice}
-            periodLabel={displayDate}
-            currentCurrency={currentCurrency}
-            isLoading={isLoading}
-            isChangeLoading={
-              isTechnicalIndicatorsEnabled ? chartLoading : isLoading
-            }
-            ambientColor={ambientColor}
-            getPriceDiffStyle={getPriceDiffStyle}
-            changeFormat="signedCurrency"
-          />
-        ))}
+        (() => {
+          if (isLineMode) {
+            return (
+              <TokenPriceTitleHub
+                price={lineTitlePrice}
+                displayDiff={lineTitleDiff}
+                comparePrice={comparePrice}
+                periodLabel={lineTitleDate}
+                currentCurrency={currentCurrency}
+                isLoading={isLoading}
+                ambientColor={lineAmbientColor}
+                getPriceDiffStyle={getLinePriceDiffStyle}
+              />
+            );
+          }
+
+          if (isCrosshairActive && crosshairData) {
+            return (
+              <OHLCVBar
+                data={crosshairData}
+                currency={currentCurrency}
+                changePercent={changePercent}
+                changePercentColor={changePercentColor}
+              />
+            );
+          }
+
+          const isChangeLoadingValue = isTechnicalIndicatorsEnabled
+            ? chartLoading
+            : isLoading;
+          return (
+            <TokenPriceTitleHub
+              price={displayPrice}
+              displayDiff={displayDiff}
+              comparePrice={dynamicComparePrice}
+              periodLabel={displayDate}
+              currentCurrency={currentCurrency}
+              isLoading={isLoading}
+              isChangeLoading={isChangeLoadingValue}
+              ambientColor={ambientColor}
+              getPriceDiffStyle={getPriceDiffStyle}
+              changeFormat="signedCurrency"
+            />
+          );
+        })()}
 
       {/* ── Skeleton bar (flag ON, candle mode only) ───────────────────── */}
       {isTechnicalIndicatorsEnabled && !isLineMode && isInitialChartPending && (
@@ -1137,25 +1154,34 @@ const PriceAdvanced = ({
 
       {/* ── IntervalBar (flag ON) ──────────────────────────────────────── */}
       {isTechnicalIndicatorsEnabled &&
-        (isLineMode || shouldShowTechnicalIndicators) && (
-          <View style={styles.intervalBarContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full">
-                <IntervalBar
-                  intervals={isLineMode ? LINE_CHART_TIME_RANGES : undefined}
-                  selectedInterval={isLineMode ? timeRange : displayInterval}
-                  onIntervalSelect={
-                    isLineMode
-                      ? handleLineTimeRangeSelect
-                      : handleInlineIntervalSelect
-                  }
-                  chartType={chartType}
-                  onChartTypeSelect={handleChartTypeSelect}
-                />
-              </Box>
+        (isLineMode || shouldShowTechnicalIndicators) &&
+        (() => {
+          const intervalsValue = isLineMode
+            ? LINE_CHART_TIME_RANGES
+            : undefined;
+          const selectedIntervalValue = isLineMode
+            ? timeRange
+            : displayInterval;
+          const onIntervalSelectHandler = isLineMode
+            ? handleLineTimeRangeSelect
+            : handleInlineIntervalSelect;
+
+          return (
+            <View style={styles.intervalBarContainer}>
+              <View style={styles.timeRangeSelectorWrap}>
+                <Box twClassName="w-full">
+                  <IntervalBar
+                    intervals={intervalsValue}
+                    selectedInterval={selectedIntervalValue}
+                    onIntervalSelect={onIntervalSelectHandler}
+                    chartType={chartType}
+                    onChartTypeSelect={handleChartTypeSelect}
+                  />
+                </Box>
+              </View>
             </View>
-          </View>
-        )}
+          );
+        })()}
 
       {/* ── Chart area ─────────────────────────────────────────────────── */}
       {isLineMode ? (
@@ -1199,12 +1225,15 @@ const PriceAdvanced = ({
               }
               realtimeBar={realtimeBar}
               height={chartHeight}
-              showVolume={
-                isTechnicalIndicatorsEnabled
-                  ? chartType === ChartType.Candles &&
+              showVolume={(() => {
+                if (isTechnicalIndicatorsEnabled) {
+                  return (
+                    chartType === ChartType.Candles &&
                     activeIndicators.has('Volume')
-                  : chartType === ChartType.Candles
-              }
+                  );
+                }
+                return chartType === ChartType.Candles;
+              })()}
               volumeOverlay
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
@@ -1249,54 +1278,71 @@ const PriceAdvanced = ({
       )}
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
-      {isLineMode ? (
-        isTechnicalIndicatorsEnabled ? (
-          <Box twClassName="pb-4" />
-        ) : (
-          <View style={styles.timeRangeContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <TimeRangeSelector
-                isChartLoading={isLoading}
-                selected={timeRange}
-                onSelect={handleLineTimeRangeSelect}
-                chartType={chartType}
-                onChartTypeToggle={toggleChartType}
-                selectedColor={initialAmbientColor}
-              />
+      {(() => {
+        if (isLineMode) {
+          if (isTechnicalIndicatorsEnabled) {
+            return <Box twClassName="pb-4" />;
+          }
+          return (
+            <View style={styles.timeRangeContainer}>
+              <View style={styles.timeRangeSelectorWrap}>
+                <TimeRangeSelector
+                  isChartLoading={isLoading}
+                  selected={timeRange}
+                  onSelect={handleLineTimeRangeSelect}
+                  chartType={chartType}
+                  onChartTypeToggle={toggleChartType}
+                  selectedColor={initialAmbientColor}
+                />
+              </View>
             </View>
-          </View>
-        )
-      ) : shouldShowTechnicalIndicators && chartType === ChartType.Candles ? (
-        <Box twClassName="w-full mt-4 mb-6">
-          <IndicatorBar
-            maLabel={maLabel}
-            onMAPress={handleMAPress}
-            activeIndicators={activeIndicators}
-            onIndicatorToggle={handleIndicatorToggle}
-          />
-        </Box>
-      ) : isTechnicalIndicatorsEnabled &&
-        chartType === ChartType.Candles &&
-        !shouldShowTechnicalIndicators ? (
-        <Box twClassName="w-full px-4 mt-4 mb-6">
-          <Skeleton height={37} width="100%" />
-        </Box>
-      ) : !shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled ? (
-        <View style={styles.timeRangeContainer}>
-          <View style={styles.timeRangeSelectorWrap}>
-            <TimeRangeSelector
-              isChartLoading={isInitialChartPending}
-              selected={timeRange}
-              onSelect={handleTimeRangeSelect}
-              chartType={chartType}
-              onChartTypeToggle={toggleChartType}
-              selectedColor={initialAmbientColor}
-            />
-          </View>
-        </View>
-      ) : (
-        <Box twClassName="pb-4" />
-      )}
+          );
+        }
+
+        if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {
+          return (
+            <Box twClassName="w-full mt-4 mb-6">
+              <IndicatorBar
+                maLabel={maLabel}
+                onMAPress={handleMAPress}
+                activeIndicators={activeIndicators}
+                onIndicatorToggle={handleIndicatorToggle}
+              />
+            </Box>
+          );
+        }
+
+        if (
+          isTechnicalIndicatorsEnabled &&
+          chartType === ChartType.Candles &&
+          !shouldShowTechnicalIndicators
+        ) {
+          return (
+            <Box twClassName="w-full px-4 mt-4 mb-6">
+              <Skeleton height={37} width="100%" />
+            </Box>
+          );
+        }
+
+        if (!shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled) {
+          return (
+            <View style={styles.timeRangeContainer}>
+              <View style={styles.timeRangeSelectorWrap}>
+                <TimeRangeSelector
+                  isChartLoading={isInitialChartPending}
+                  selected={timeRange}
+                  onSelect={handleTimeRangeSelect}
+                  chartType={chartType}
+                  onChartTypeToggle={toggleChartType}
+                  selectedColor={initialAmbientColor}
+                />
+              </View>
+            </View>
+          );
+        }
+
+        return <Box twClassName="pb-4" />;
+      })()}
     </>
   );
 };
