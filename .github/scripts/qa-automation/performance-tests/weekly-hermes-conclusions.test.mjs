@@ -254,6 +254,60 @@ test('one slow run is reported once, not as a regression per scenario', () => {
   assert.doesNotMatch(cards[0], /subteam/);
 });
 
+test('two scenarios peaking on the same run are one slow run', () => {
+  const cards = classifyWeeklyScenarios(
+    {
+      scenarios: [
+        scenarioFixture('Account creation after fresh install', {
+          maxJsWorkMs: 4000,
+          spikeRatio: 1.94,
+          peakRunId: '34878474622',
+        }),
+        scenarioFixture('Seedless Onboarding: Google Login New User', {
+          maxJsWorkMs: 4000,
+          spikeRatio: 3.44,
+          peakRunId: '34878474622',
+        }),
+      ],
+    },
+    { scenarios: [] },
+  );
+
+  const collapsed = collapseSharedSpikes(cards);
+
+  assert.equal(collapsed.cards.length, 0);
+  assert.equal(collapsed.sharedSpikes.length, 1);
+  assert.equal(collapsed.sharedSpikes[0].scenarios.length, 2);
+});
+
+test('a lone scenario spiking on its own run keeps its owner', () => {
+  const cards = classifyWeeklyScenarios(
+    {
+      scenarios: [
+        scenarioFixture('Perps add funds', {
+          maxJsWorkMs: 4000,
+          spikeRatio: 2,
+          peakRunId: 'run-a',
+        }),
+        scenarioFixture('Money Home', { spikeRatio: 1.1 }),
+      ],
+    },
+    { scenarios: [] },
+  );
+
+  const collapsed = collapseSharedSpikes(cards);
+
+  assert.equal(collapsed.sharedSpikes.length, 0);
+  assert.deepEqual(
+    collapsed.cards.map((card) => card.scenario),
+    ['Perps add funds'],
+  );
+  assert.match(
+    buildWeeklyScenarioCard(collapsed.cards[0]),
+    /subteam\^S094DMAQNCV/,
+  );
+});
+
 test('spikes on different runs stay per scenario', () => {
   const cards = classifyWeeklyScenarios(
     {

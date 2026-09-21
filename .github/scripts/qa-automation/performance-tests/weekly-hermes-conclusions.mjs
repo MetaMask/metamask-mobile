@@ -12,10 +12,12 @@ export const SPIKE_RATIO = 1.5;
 export const RELATIVE_WARN_RATIO = 1.1;
 export const MIN_CONTRIBUTOR_SHARE_PCT = 5;
 export const MIN_RUNS_FOR_CONCLUSION = 3;
-// When the same run is the peak of this many scenarios, the run was slow, not
-// the scenarios. Reporting it once keeps a bad device or a noisy agent from
-// arriving as a dozen unrelated per-team regressions.
-export const MIN_SCENARIOS_FOR_SHARED_SPIKE = 3;
+// A scenario is sampled once per run, so a spike belongs to the scenario only
+// when no other scenario peaked on the same run. As soon as two do, the run is
+// the common factor: with ~20 runs a week, two independent spikes landing on
+// the same one is far less likely than one slow run. Keeping the bar at two
+// stops a bad device or a noisy agent from paging several teams at once.
+export const MIN_SCENARIOS_FOR_SHARED_SPIKE = 2;
 export const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export const STATUS = {
