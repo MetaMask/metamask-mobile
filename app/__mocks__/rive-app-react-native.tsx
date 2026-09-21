@@ -49,7 +49,6 @@ export interface RiveError {
 export const __mockRiveTriggerInput = jest.fn();
 
 interface RiveViewMethodsMock {
-  awaitViewReady: jest.Mock;
   play: jest.Mock;
   pause: jest.Mock;
   playIfNeeded: jest.Mock;
@@ -58,7 +57,6 @@ interface RiveViewMethodsMock {
 }
 
 const createRiveViewMethods = (): RiveViewMethodsMock => ({
-  awaitViewReady: jest.fn().mockResolvedValue(true),
   play: jest.fn().mockResolvedValue(undefined),
   pause: jest.fn().mockResolvedValue(undefined),
   playIfNeeded: jest.fn(),
@@ -67,7 +65,6 @@ const createRiveViewMethods = (): RiveViewMethodsMock => ({
 });
 
 let lastRiveViewMethods: RiveViewMethodsMock | undefined;
-let lastUseRiveMethods: RiveViewMethodsMock | undefined;
 const propertySetters = new Map<string, jest.Mock>();
 const propertyValues = new Map<string, unknown>();
 const propertyListeners = new Map<string, Set<(value: unknown) => void>>();
@@ -75,14 +72,6 @@ const triggerCallbacks = new Map<string, Set<() => void>>();
 
 export const __getLastRiveViewMethods = (): RiveViewMethodsMock | undefined =>
   lastRiveViewMethods;
-
-/**
- * Methods handed out by `useRive`, which are a separate object from the ones
- * the `RiveView` element receives — call sites driving the view through
- * `riveRef`/`riveViewRef` assert against these.
- */
-export const __getLastUseRiveMethods = (): RiveViewMethodsMock | undefined =>
-  lastUseRiveMethods;
 
 export const __getRivePropertySetter = (path: string): jest.Mock => {
   let setter = propertySetters.get(path);
@@ -105,7 +94,6 @@ export const __fireRiveTrigger = (path: string): void => {
 export const __resetRiveMocks = (): void => {
   __mockRiveTriggerInput.mockClear();
   lastRiveViewMethods = undefined;
-  lastUseRiveMethods = undefined;
   propertySetters.clear();
   propertyValues.clear();
   propertyListeners.clear();
@@ -164,10 +152,6 @@ export const useRiveFile = (_input?: unknown, _options?: unknown) => ({
 
 export const useRive = () => {
   const methods = useMemo(() => createRiveViewMethods(), []);
-
-  useEffect(() => {
-    lastUseRiveMethods = methods;
-  }, [methods]);
 
   // Stable ref object across renders, mirroring the real useRive's useRef —
   // call sites listing riveRef in deps must not tear down effects each render.

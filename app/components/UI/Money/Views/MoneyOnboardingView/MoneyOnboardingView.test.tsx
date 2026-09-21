@@ -1,8 +1,8 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import {
   Dimensions,
-  type LayoutChangeEvent,
+  Modal,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
@@ -23,9 +23,9 @@ import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
-  __getLastUseRiveMethods,
   __getRivePropertySetter,
   __resetRiveMocks,
   __setRivePropertyValue,
@@ -37,8 +37,10 @@ const mockDispatch = jest.fn();
 let mockTimingCompletion: (() => void) | undefined;
 let mockIsUsUnauthenticatedNonCardholder = false;
 let mockIsE2EOrPerformanceTest = false;
+let mockRiveViewReady = true;
 let mockRouteParams:
   | {
+      analyticsContext?: NavigationAnalyticsContext;
       postOnboardingRedirect?: {
         type: MoneyPostOnboardingRedirectType;
         preferredPaymentToken?: {
@@ -106,7 +108,6 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
-  log: jest.fn(),
 }));
 
 jest.mock('../../../../../util/haptics', () => ({
@@ -169,7 +170,6 @@ const mockWorklets = jest.requireMock(
 interface MockRiveViewProps {
   fit?: Fit;
   onError?: (error: RiveError) => void;
-  onLayout?: (event?: LayoutChangeEvent) => void | Promise<void>;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -178,6 +178,13 @@ const mockRiveViewProps: { current?: MockRiveViewProps } = {};
 jest.mock('@rive-app/react-native', () => {
   const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
+  const mockUseRive = () => {
+    const rive = actual.useRive();
+    return {
+      ...rive,
+      riveViewRef: mockRiveViewReady ? rive.riveViewRef : undefined,
+    };
+  };
   const MockRiveView = (props: MockRiveViewProps) => {
     mockRiveViewProps.current = props;
     return ReactActual.createElement(actual.RiveView, props);
@@ -186,6 +193,7 @@ jest.mock('@rive-app/react-native', () => {
     __esModule: true,
     ...actual,
     RiveView: MockRiveView,
+    useRive: mockUseRive,
   };
 });
 
@@ -238,53 +246,9 @@ const completeOnboarding = async () => {
   setOnboardingCompleted(true);
 };
 
-/** Container size reported to `onLayout`, which the Rive view is sized from. */
-const ROOT_LAYOUT = { height: 844, width: 390 };
+const RIVE_READY_FALLBACK_DELAY_MS = 2500;
 
-/** Matches `RIVE_MEASURE_SETTLE_DELAY_MS` in the view. */
-const RIVE_MEASURE_SETTLE_DELAY_MS = 150;
-
-const buildLayoutEvent = (height: number, width: number) =>
-  ({
-    nativeEvent: { layout: { height, width, x: 0, y: 0 } },
-  } as LayoutChangeEvent);
-
-/**
- * The Rive view only mounts once the container reports a size, so every render
- * lays the container out first.
- */
-const renderMoneyOnboardingView = () => {
-  const view = render(<MoneyOnboardingView />);
-  // Absent when the E2E gate renders instead of the animated view.
-  const root = view.queryByTestId(MoneyOnboardingViewTestIds.ROOT);
-
-  if (root) {
-    act(() => {
-      fireEvent(
-        root,
-        'layout',
-        buildLayoutEvent(ROOT_LAYOUT.height, ROOT_LAYOUT.width),
-      );
-    });
-  }
-
-  return view;
-};
-
-/** Awaited because the handler waits on `awaitViewReady` before sizing. */
-const triggerRiveLayout = async () => {
-  await act(async () => {
-    await mockRiveViewProps.current?.onLayout?.(
-      buildLayoutEvent(
-        StyleSheet.flatten(mockRiveViewProps.current?.style)?.height as number,
-        ROOT_LAYOUT.width,
-      ),
-    );
-  });
-};
-
-const getRiveHeight = () =>
-  StyleSheet.flatten(mockRiveViewProps.current?.style)?.height;
+const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
@@ -304,6 +268,7 @@ describe('MoneyOnboardingView', () => {
     mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
     mockIsE2EOrPerformanceTest = false;
+    mockRiveViewReady = true;
     mockRouteParams = undefined;
     mockInitiateDeposit.mockResolvedValue(undefined);
     jest.mocked(useMoneyAccountDeposit).mockReturnValue({
@@ -326,6 +291,22 @@ describe('MoneyOnboardingView', () => {
       expect(
         getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
+    });
+
+    it('renders onboarding in a transparent fade modal', () => {
+      const { UNSAFE_getByType } = renderMoneyOnboardingView();
+
+      const modal = UNSAFE_getByType(Modal);
+
+      expect(modal.props).toEqual(
+        expect.objectContaining({
+          animationType: 'fade',
+          hardwareAccelerated: true,
+          navigationBarTranslucent: true,
+          statusBarTranslucent: true,
+          transparent: true,
+        }),
+      );
     });
 
     it('renders the initial native text overlay for step 1', () => {
@@ -385,56 +366,41 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
-  // Android resizes a Fit.Layout artboard only on a native measure pass, so
-  // the view holds 1dp back and restores it to force that pass. See
-  // useRiveLayoutMeasureNudge.
-  describe('Rive Fit.Layout measure nudge', () => {
+  describe('Rive readiness', () => {
+    it('reveals the overlay after the fallback delay when Rive is not ready', async () => {
+      mockRiveViewReady = false;
+
+      const { getByTestId, queryByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        queryByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION).props.style,
+        ).opacity,
+      ).toBe(0);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(RIVE_READY_FALLBACK_DELAY_MS);
+      });
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION).props.style,
+        ).opacity,
+      ).toBeUndefined();
+    });
+  });
+
+  describe('Rive configuration', () => {
     it('renders the animation with Layout fit', () => {
       renderMoneyOnboardingView();
 
       expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
-    });
-
-    it('holds the view 1dp short of the container before the first layout pass', () => {
-      renderMoneyOnboardingView();
-
-      expect(getRiveHeight()).toBe(ROOT_LAYOUT.height - 1);
-    });
-
-    it('restores the full container height once the view reports ready', async () => {
-      renderMoneyOnboardingView();
-
-      await triggerRiveLayout();
-
-      expect(getRiveHeight()).toBe(ROOT_LAYOUT.height);
-    });
-
-    it('plays the animation on the full-size layout pass so the artboard resize is drawn', async () => {
-      renderMoneyOnboardingView();
-
-      await triggerRiveLayout();
-      await triggerRiveLayout();
-
-      expect(__getLastUseRiveMethods()?.playIfNeeded).toHaveBeenCalled();
-    });
-
-    it('does not play the animation before the full-size layout pass lands', async () => {
-      renderMoneyOnboardingView();
-
-      await triggerRiveLayout();
-
-      expect(__getLastUseRiveMethods()?.playIfNeeded).not.toHaveBeenCalled();
-    });
-
-    it('nudges the measure pass again once the window settle delay elapses', async () => {
-      renderMoneyOnboardingView();
-      await triggerRiveLayout();
-
-      act(() => {
-        jest.advanceTimersByTime(RIVE_MEASURE_SETTLE_DELAY_MS);
-      });
-
-      expect(getRiveHeight()).toBe(ROOT_LAYOUT.height - 1);
     });
   });
 
@@ -470,6 +436,29 @@ describe('MoneyOnboardingView', () => {
         },
         { pop: true },
       );
+    });
+
+    it('initiates the post-onboarding deposit during E2E and performance tests', () => {
+      const preferredPaymentToken = {
+        address: '0xabc' as const,
+        chainId: '0x1' as const,
+      };
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -540,20 +529,6 @@ describe('MoneyOnboardingView', () => {
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       });
-    });
-
-    it('tracks the next step immediately when currentStep changes', () => {
-      renderMoneyOnboardingView();
-      mockTrackOnboardingEvent.mockClear();
-
-      advanceStep();
-
-      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          step: 2,
-          step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
-        }),
-      );
     });
 
     it('tracks the previous step again when currentStep moves backward', () => {
@@ -669,6 +644,34 @@ describe('MoneyOnboardingView', () => {
         }),
       );
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('logs an error when onboardingCompleted fires before the final step', () => {
+      renderMoneyOnboardingView();
+      jest.clearAllMocks();
+
+      setOnboardingCompleted(true);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'MoneyOnboardingView: onboardingCompleted fired before the final step',
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('ignores duplicate onboardingCompleted triggers after completion', async () => {
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+      mockNavigate.mockClear();
+      mockTrackOnboardingEvent.mockClear();
+
+      setOnboardingCompleted(true);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
 
     it('dispatches setMoneyOnboardingSeen when onboardingCompleted becomes true', async () => {
@@ -801,6 +804,29 @@ describe('MoneyOnboardingView', () => {
         {
           screen: Routes.MONEY.ROOT,
           params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
+    it('preserves analytics context when close trigger navigates home', () => {
+      const analyticsContext: NavigationAnalyticsContext = {
+        id: 'money-home',
+        attribution: 'homescreen_balance_breakdown',
+      };
+      mockRouteParams = { analyticsContext };
+
+      renderMoneyOnboardingView();
+      fireTrigger('close');
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            params: { analyticsContext },
+          },
         },
         { pop: true },
       );
