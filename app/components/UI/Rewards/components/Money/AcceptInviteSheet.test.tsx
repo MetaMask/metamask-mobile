@@ -734,12 +734,14 @@ describe('AcceptInviteSheet', () => {
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({});
     });
 
-    it('tracks accepted when the Accept button is pressed', async () => {
+    it('tracks accepted after registration succeeds', async () => {
       const { getByTestId } = await renderSheet('KOL1');
       mockTrackEvent.mockClear();
       mockCreateEventBuilder.mockClear();
 
-      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
@@ -750,6 +752,63 @@ describe('AcceptInviteSheet', () => {
         action: 'accepted',
       });
       expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+    });
+
+    it('does not record accepted until registration resolves', async () => {
+      let resolveAccept: (didAccept: boolean) => void = () => undefined;
+      mockAcceptReferralCode.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveAccept = resolve;
+          }),
+      );
+
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+      );
+
+      await act(async () => {
+        resolveAccept(true);
+      });
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        action: 'accepted',
+      });
+    });
+
+    it.each([
+      ['declined', TEST_IDS.DECLINE],
+      ['dismissed', TEST_IDS.CLOSE],
+    ])('records %s after a refused registration', async (action, testId) => {
+      mockAcceptReferralCode.mockResolvedValue(false);
+
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+      );
+
+      fireEvent.press(getByTestId(testId));
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        action,
+      });
     });
 
     it('tracks declined only from the decline button', async () => {
@@ -809,7 +868,9 @@ describe('AcceptInviteSheet', () => {
         mockTrackEvent.mockClear();
         mockCreateEventBuilder.mockClear();
 
-        fireEvent.press(getByTestId(testId));
+        await act(async () => {
+          fireEvent.press(getByTestId(testId));
+        });
         getByTestId(TEST_IDS.CONTAINER).props.goBack();
 
         expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);

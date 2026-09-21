@@ -260,6 +260,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const initialReferralCode = route.params?.referralCode ?? '';
   const hasTrackedOfferViewedRef = useRef(false);
   const hasRespondedRef = useRef(false);
+  const acceptInFlightRef = useRef(false);
 
   const { profileId, isResolved: isProfileResolved } = useSessionProfileId();
   const referralMeEntry = useSelector((state: RootState) =>
@@ -392,7 +393,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const handleDecline = useCallback(() => {
     // Dismissing mid-registration would leave the write unattended, and it is
     // about to dismiss the sheet itself.
-    if (isAccepting) {
+    if (isAccepting || acceptInFlightRef.current) {
       return;
     }
     trackResponded('declined');
@@ -400,7 +401,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   }, [isAccepting, trackResponded]);
 
   const handleClose = useCallback(() => {
-    if (isAccepting) {
+    if (isAccepting || acceptInFlightRef.current) {
       return;
     }
     trackResponded('dismissed');
@@ -408,25 +409,37 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   }, [isAccepting, trackResponded]);
 
   const handleAccept = useCallback(() => {
-    if (!canAccept) {
+    if (!canAccept || acceptInFlightRef.current) {
       return;
     }
     // Accept is about to refresh me to a non-NONE variant. Record that this
     // sheet was the invite, so that write cannot be read as a stale deeplink.
     hasSeenEligibleInviteRef.current = true;
-    trackResponded('accepted');
-    // The hook owns the outcome: it reports a refusal and dismisses the sheet
-    // only once the registration has landed.
-    acceptReferralCode(referralCode).catch(() => undefined);
+    // Registration is the accept. A refused write leaves the sheet open, so
+    // `accepted` must not lock the funnel until the hook returns true.
+    acceptInFlightRef.current = true;
+    acceptReferralCode(referralCode)
+      .then((didAccept) => {
+        if (didAccept) {
+          trackResponded('accepted');
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        acceptInFlightRef.current = false;
+      });
   }, [acceptReferralCode, canAccept, referralCode, trackResponded]);
 
   const handleGoBack = useCallback(() => {
+    if (isAccepting || acceptInFlightRef.current) {
+      return;
+    }
     // Reached by a swipe, the overlay and hardware back, and also by the sheet
     // finishing a close this screen asked for — which the one-answer guard
     // above is what keeps from overwriting that answer.
     trackResponded('dismissed');
     navigation.goBack();
-  }, [navigation, trackResponded]);
+  }, [isAccepting, navigation, trackResponded]);
 
   useEffect(() => {
     if (shouldDismissForReferralVariant) {
