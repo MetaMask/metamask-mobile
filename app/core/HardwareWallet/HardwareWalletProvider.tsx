@@ -10,6 +10,7 @@ import { FullWindowOverlay } from 'react-native-screens';
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
 import { getHardwareWalletTypeForAddress } from './helpers';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 import {
   HardwareWalletAnalyticsFlow,
   useHardwareWalletAnalytics,
@@ -176,6 +177,18 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [updateConnectionState]);
 
   const handleCloseFlow = useCallback(() => {
+    // A pinned signing operation owns the sheet: only an explicit user
+    // cancel (handleAwaitingConfirmationCancel) or the consumer's
+    // hideAwaitingConfirmation may end it.
+    if (
+      operationTypeRef.current !== null &&
+      awaitingConfirmationRejectRef.current !== null
+    ) {
+      DevLogger.log(
+        '[HardwareWallet] Ignoring flow close during pinned awaiting-confirmation operation',
+      );
+      return;
+    }
     awaitingConfirmationRejectRef.current = null;
     operationTypeRef.current = null;
     setAnalyticsFlow(HardwareWalletAnalyticsFlow.Connection);
@@ -183,6 +196,18 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [closeFlow]);
 
   const handleBottomSheetConnectionSuccess = useCallback(() => {
+    // Same pin guard as handleCloseFlow: a pinned signing operation owns the
+    // sheet, so a success-dismiss must not tear down the awaiting-confirmation
+    // UI.
+    if (
+      operationTypeRef.current !== null &&
+      awaitingConfirmationRejectRef.current !== null
+    ) {
+      DevLogger.log(
+        '[HardwareWallet] Ignoring success-dismiss during pinned awaiting-confirmation operation',
+      );
+      return;
+    }
     awaitingConfirmationRejectRef.current = null;
     operationTypeRef.current = null;
     setAnalyticsFlow(HardwareWalletAnalyticsFlow.Connection);

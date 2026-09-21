@@ -19,6 +19,7 @@ import {
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
 } from '../types';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 import {
   connectLedgerDmkHardware,
   connectLedgerDmkDevice,
@@ -575,7 +576,13 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     }
 
     if (!this.#sessionId) {
-      return false;
+      // A silent `false` here leaves useDeviceConnectionFlow's blocking
+      // promise unresolved forever (silent request drop). Throwing routes
+      // the failure through handleError → ErrorState with Retry.
+      DevLogger.log(
+        '[LedgerBluetoothDMKAdapter] No session after connect — failing loudly',
+      );
+      throw new Error('Transport lost immediately after connect');
     }
 
     try {

@@ -787,6 +787,25 @@ describe('LedgerBluetoothDMKAdapter', () => {
           'No cached DiscoveredDevice for deviceId: not-cached',
         );
       });
+
+      it('rejects when the session is lost immediately after connect', async () => {
+        const { promise, resolve } = deferredSession();
+        mockConnectLedgerDmkDevice.mockReset().mockReturnValue(promise);
+
+        const pending = adapter.ensureDeviceReady(DEVICE_ID);
+        pending.catch(() => undefined);
+        await flushPromises();
+
+        // Destroying mid-connect aborts the in-flight session open, so
+        // connect() resolves without a session — the readiness check must
+        // fail loudly instead of silently returning false.
+        adapter.destroy();
+        resolve('session-lost');
+
+        await expect(pending).rejects.toThrow(
+          'Transport lost immediately after connect',
+        );
+      });
     });
 
     describe('transient-error retries (#isTransientBleError / #isSessionLost)', () => {

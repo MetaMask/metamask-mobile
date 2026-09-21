@@ -1278,6 +1278,96 @@ describe('HardwareWalletProvider', () => {
     });
   });
 
+  describe('pinned awaiting-confirmation guards (internal, via bottom sheet props)', () => {
+    const useTestActions = () => {
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: { connectionState: hw.connectionState },
+      };
+    };
+
+    const renderWithActions = () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      return renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+    };
+
+    it('ignores bottom-sheet close while an awaiting-confirmation operation is pinned', async () => {
+      const { result } = renderWithActions();
+      const onReject = jest.fn();
+
+      // Pin a signing operation the way consumers do: with a rejection
+      // callback registered.
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      await act(async () => {
+        (capturedBottomSheetProps.onClose as () => void)();
+      });
+
+      // The pinned operation owns the sheet — the close is ignored and the
+      // sheet stays on AwaitingConfirmation.
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+      expect(onReject).not.toHaveBeenCalled();
+    });
+
+    it('ignores success-dismiss while pinned, but dismisses normally otherwise', async () => {
+      const { result } = renderWithActions();
+      const onReject = jest.fn();
+
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      // Success-dismiss is ignored while pinned.
+      await act(async () => {
+        (capturedBottomSheetProps.onConnectionSuccess as () => void)();
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+      expect(onReject).not.toHaveBeenCalled();
+
+      // The explicit user cancel (untouched path) ends the pinned operation.
+      await act(async () => {
+        (capturedBottomSheetProps.onAwaitingConfirmationCancel as () => void)();
+      });
+      expect(onReject).toHaveBeenCalled();
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+
+      // Not pinned anymore: success-dismiss dismisses normally.
+      await act(async () => {
+        (capturedBottomSheetProps.onConnectionSuccess as () => void)();
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+  });
+
   describe('handleAwaitingConfirmationCancel (internal, via bottom sheet props)', () => {
     it('invokes rejection callback and hides confirmation without disconnecting the adapter', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });

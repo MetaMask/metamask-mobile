@@ -367,8 +367,13 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
 
     if (!this.#transport) {
-      DevLogger.log('[LedgerBluetoothAdapter] No transport after connect');
-      return false;
+      // A silent `false` here leaves useDeviceConnectionFlow's blocking
+      // promise unresolved forever (silent request drop). Throwing routes
+      // the failure through handleError → ErrorState with Retry.
+      DevLogger.log(
+        '[LedgerBluetoothAdapter] No transport after connect — failing loudly',
+      );
+      throw new Error('Transport lost immediately after connect');
     }
 
     try {
@@ -456,7 +461,11 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           error: toError(verifyError),
         });
       }
-      return false;
+      DevLogger.log(
+        '[LedgerBluetoothAdapter] Unlock verification failed (non-transient)',
+        verifyError,
+      );
+      throw new Error('Device verification failed after connect');
     }
   }
 

@@ -215,6 +215,252 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
+    it('settles the first blocking promise with false when a second flow overwrites it mid-flight', async () => {
+      const mockAdapter = createMockAdapter({
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const releaseTransportChecks: ((value: boolean) => void)[] = [];
+      const parkedTransportCheck = jest.fn().mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            releaseTransportChecks.push(resolve);
+          }),
+      );
+      const options = createDefaultOptions({
+        refs,
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+        checkTransportEnabledOrShowError: parkedTransportCheck,
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      // Start flow 1 and park it at the async transport check — before any
+      // blocking-promise resolver has been registered.
+      let firstPromise!: Promise<boolean>;
+      await act(async () => {
+        firstPromise = result.current.ensureDeviceReady('device-123');
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(parkedTransportCheck).toHaveBeenCalledTimes(1);
+
+      // Start flow 2 while flow 1 is parked. The entry-time cancellation in
+      // ensureDeviceReady sees no pending resolver (flow 1 has not registered
+      // one yet), so flow 2 proceeds to the same parked transport check.
+      let secondPromise!: Promise<boolean>;
+      await act(async () => {
+        secondPromise = result.current.ensureDeviceReady('device-123');
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(parkedTransportCheck).toHaveBeenCalledTimes(2);
+
+      // Release both flows (in start order): flow 1 registers its resolver,
+      // then flow 2 overwrites it — flow 1's awaiter must be settled with
+      // false instead of being orphaned forever.
+      await act(async () => {
+        releaseTransportChecks[0](false);
+        releaseTransportChecks[1](false);
+        await expect(firstPromise).resolves.toBe(false);
+      });
+
+      await act(async () => {
+        result.current.closeFlow();
+        await expect(secondPromise).resolves.toBe(false);
+      });
+    });
+
+    it('surfaces an error when auto-path readiness returns false with a pending flow and no guided state', async () => {
+      const mockAdapter = createMockAdapter({
+        isConnected: jest.fn().mockReturnValue(false),
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({
+        refs,
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      // Start the flow: not connected, so it falls to the auto path inside
+      // createBlockingPromise's afterSetup (device ID present).
+      const { readyPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady('device-123'),
+        { flushMicrotaskInAct: false },
+      );
+      await flushPromises();
+
+      expect(options.handleError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Device did not become ready after connecting',
+        }),
+      );
+
+      // handleError does not settle the consumer's promise; closeFlow does.
+      await act(async () => {
+        result.current.closeFlow();
+        await expect(readyPromise).resolves.toBe(false);
+      });
+    });
+
+    it('resolves the pending promise when the auto path reconnects and verifies successfully', async () => {
+      const mockAdapter = createMockAdapter({
+        isConnected: jest.fn().mockReturnValue(false),
+        ensureDeviceReady: jest.fn().mockResolvedValue(true),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({
+        refs,
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady('device-123'),
+        { flushMicrotaskInAct: false },
+      );
+
+      const resolved = await readyPromise;
+      expect(resolved).toBe(true);
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Ready,
+        deviceId: 'device-123',
+      });
+      expect(options.handleError).not.toHaveBeenCalled();
+    });
+
+    it('routes adapter readiness throws from the auto path to handleError and stays settle-capable', async () => {
+      const mockAdapter = createMockAdapter({
+        isConnected: jest.fn().mockReturnValue(false),
+        ensureDeviceReady: jest
+          .fn()
+          .mockRejectedValue(new Error('auto path failure')),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({
+        refs,
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady('device-123'),
+        { flushMicrotaskInAct: false },
+      );
+      await flushPromises();
+
+      expect(options.handleError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'auto path failure' }),
+      );
+
+      await act(async () => {
+        result.current.closeFlow();
+        await expect(readyPromise).resolves.toBe(false);
+      });
+    });
+
+    it('does not double-handle when a newer flow already cancelled the pending promise', async () => {
+      let resolveAdapterReadiness!: (value: boolean) => void;
+      let adapterCallCount = 0;
+      const mockAdapter = createMockAdapter({
+        isConnected: jest.fn().mockReturnValue(false),
+        ensureDeviceReady: jest.fn().mockImplementation(() => {
+          adapterCallCount += 1;
+          if (adapterCallCount === 1) {
+            return new Promise<boolean>((resolve) => {
+              resolveAdapterReadiness = resolve;
+            });
+          }
+          return Promise.resolve(false);
+        }),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      let releaseSecondTransportCheck!: (value: boolean) => void;
+      let transportCheckCalls = 0;
+      const options = createDefaultOptions({
+        refs,
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+        checkTransportEnabledOrShowError: jest.fn().mockImplementation(() => {
+          transportCheckCalls += 1;
+          if (transportCheckCalls === 1) {
+            return Promise.resolve(false);
+          }
+          return new Promise<boolean>((resolve) => {
+            releaseSecondTransportCheck = resolve;
+          });
+        }),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      // Flow 1: drain microtasks (bounded) until its readiness check is
+      // parked on the deferred adapter promise.
+      const { readyPromise: firstPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady('device-123'),
+        { flushMicrotaskInAct: false },
+      );
+      let flow1Parked = false;
+      await act(async () => {
+        for (let i = 0; i < 200 && !flow1Parked; i++) {
+          await Promise.resolve();
+          flow1Parked = Boolean(resolveAdapterReadiness);
+        }
+      });
+      if (!flow1Parked) {
+        throw new Error('flow 1 never reached the adapter readiness check');
+      }
+
+      // Flow 2 cancels flow 1's pending promise, then parks at its own
+      // transport check before registering a new resolver.
+      let secondPromise!: Promise<boolean>;
+      let flow2Parked = false;
+      await act(async () => {
+        secondPromise = result.current.ensureDeviceReady('device-456');
+        for (let i = 0; i < 200 && !flow2Parked; i++) {
+          await Promise.resolve();
+          flow2Parked = transportCheckCalls >= 2;
+        }
+      });
+      if (!flow2Parked) {
+        throw new Error('flow 2 never reached its transport check');
+      }
+
+      // Flow 1's readiness lands false while the pending promise is already
+      // cancelled and not yet re-registered — handleError must not fire.
+      await act(async () => {
+        resolveAdapterReadiness(false);
+        for (let i = 0; i < 200; i++) {
+          await Promise.resolve();
+        }
+      });
+      expect(options.handleError).not.toHaveBeenCalled();
+
+      await act(async () => {
+        releaseSecondTransportCheck(true);
+        // Drain so flow 2's continuation re-registers its resolver BEFORE
+        // closeFlow runs — otherwise closeFlow finds no pending resolver and
+        // flow 2's promise would never settle.
+        await Promise.resolve();
+        await Promise.resolve();
+        result.current.closeFlow();
+        await expect(firstPromise).resolves.toBe(false);
+        await expect(secondPromise).resolves.toBe(false);
+      });
+    });
+
     it('sets deviceId to null when no targetDeviceId provided', async () => {
       const mockAdapter = createMockAdapter();
       const options = createDefaultOptions({
@@ -619,9 +865,14 @@ describe('useDeviceConnectionFlow', () => {
 
       await flushPromises();
 
-      // Not-ready must not be treated as a terminal handleError — fall through
-      // so the bottom sheet can guide the user (open app / unlock).
-      expect(options.handleError).not.toHaveBeenCalled();
+      // The fast path falls through to the guided flow (Connecting entered,
+      // Ready never emitted). The auto path surfaces the bare not-ready as an
+      // error so the consumer is never stranded without guided UI.
+      expect(options.handleError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Device did not become ready after connecting',
+        }),
+      );
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Connecting,
       });
@@ -720,8 +971,8 @@ describe('useDeviceConnectionFlow', () => {
     });
 
     it('connects and runs readiness check', async () => {
-      // Report "not ready" so the pending promise stays unresolved; otherwise
-      // connect() treats the already-resolved flow as cancelled and bails early.
+      // Report "not ready" so the pending promise stays pending; connect()
+      // then surfaces the error to the consumer instead of stranding it.
       const mockAdapter = createMockAdapter({
         ensureDeviceReady: jest.fn().mockResolvedValue(false),
       });
@@ -742,10 +993,48 @@ describe('useDeviceConnectionFlow', () => {
 
       expect(mockAdapter.connect).toHaveBeenCalledWith('device-123');
       expect(options.setters.setDeviceId).toHaveBeenCalledWith('device-123');
+      expect(options.handleError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Device did not become ready after connecting',
+        }),
+      );
 
       await act(async () => {
         result.current.closeFlow();
         await readyPromise;
+      });
+    });
+
+    it('surfaces an error when connect completes but the device is not ready', async () => {
+      const mockAdapter = createMockAdapter({
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      // Register a pending blocking promise so connect() proceeds past its
+      // cancellation guard.
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(options.handleError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Device did not become ready after connecting',
+        }),
+      );
+
+      // handleError does not settle the consumer's promise; closeFlow does.
+      await act(async () => {
+        result.current.closeFlow();
+        await expect(readyPromise).resolves.toBe(false);
       });
     });
 

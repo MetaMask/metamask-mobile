@@ -101,6 +101,16 @@ export const useDeviceConnectionFlow = ({
   const createBlockingPromise = useCallback(
     (afterSetup?: () => void): Promise<boolean> =>
       new Promise<boolean>((resolve) => {
+        // Overlapping flows can interleave at the async transport check: an
+        // overwritten resolver would orphan its awaiter forever, so settle
+        // any stale resolver with `false` before registering this one.
+        const staleResolve = pendingReadyResolveRef.current;
+        if (staleResolve) {
+          pendingReadyResolveRef.current = null;
+          connectionSuccessCallbackRef.current = null;
+          staleResolve(false);
+        }
+
         pendingReadyResolveRef.current = resolve;
 
         connectionSuccessCallbackRef.current = () => {
@@ -193,7 +203,18 @@ export const useDeviceConnectionFlow = ({
         );
 
         try {
-          await tryEnsureReady(adapter, targetDeviceId);
+          const isReady = await tryEnsureReady(adapter, targetDeviceId);
+          // `!== null` (not a truthiness check): tryEnsureReady can null the
+          // ref at runtime even though the early-return guard above narrowed
+          // it for the type checker.
+          if (!isReady && pendingReadyResolveRef.current !== null) {
+            DevLogger.log(
+              '[HardwareWallet] Device not ready after connect, no guided UI — surfacing error',
+            );
+            handleError(
+              new Error('Device did not become ready after connecting'),
+            );
+          }
         } catch (error) {
           DevLogger.log('[HardwareWallet] Readiness check failed:', error);
           handleError(error);
@@ -348,7 +369,18 @@ export const useDeviceConnectionFlow = ({
         (async () => {
           try {
             refs.abortControllerRef.current = new AbortController();
-            await tryEnsureReady(adapter, targetDeviceId);
+            const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            // `!== null` (not a truthiness check): tryEnsureReady can null
+            // the ref at runtime even though earlier guards narrowed it for
+            // the type checker.
+            if (!isReady && pendingReadyResolveRef.current !== null) {
+              DevLogger.log(
+                '[HardwareWallet] Device not ready (auto path), no guided UI — surfacing error',
+              );
+              handleError(
+                new Error('Device did not become ready after connecting'),
+              );
+            }
           } catch (error) {
             DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
             handleError(error);

@@ -455,16 +455,16 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('emits DeviceLocked when device is locked', async () => {
+    it('emits DeviceLocked and rejects when device is locked during verification', async () => {
       const lockedError = new Error('Device locked');
       (lockedError as { statusCode?: number }).statusCode = 0x6b0c;
       (lockedError as { name?: string }).name = 'TransportStatusError';
       mockGetAddress.mockRejectedValueOnce(lockedError);
       jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
 
-      const result = await adapter.ensureDeviceReady('device-123');
-
-      expect(result).toBe(false);
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
+        'Device verification failed after connect',
+      );
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           event: DeviceEvent.DeviceLocked,
@@ -472,13 +472,31 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('returns false when no transport after connect', async () => {
+    it('rejects when no transport after connect', async () => {
       mockedTransportBLE.open.mockResolvedValueOnce(
         null as unknown as TransportBLE,
       );
 
-      const result = await adapter.ensureDeviceReady('device-123');
-      expect(result).toBe(false);
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
+        'Transport lost immediately after connect',
+      );
+    });
+
+    it('rejects when the transport is lost immediately after connect', async () => {
+      // Simulate the device dropping the BLE link the instant the transport
+      // is opened: firing the disconnect handler as soon as it is registered
+      // clears the transport right after connect() resolves.
+      mockTransportInstance.on.mockImplementationOnce(
+        (event: string, handler: (error?: Error) => void) => {
+          if (event === 'disconnect') {
+            handler();
+          }
+        },
+      );
+
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
+        'Transport lost immediately after connect',
+      );
     });
 
     it('retries on disconnect during check and eventually succeeds', async () => {
@@ -617,13 +635,13 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('returns false when verification fails with non-disconnect non-locked error', async () => {
+    it('rejects when verification fails with non-disconnect non-locked error', async () => {
       jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockRejectedValueOnce(new Error('User cancelled'));
 
-      const result = await adapter.ensureDeviceReady('device-123');
-
-      expect(result).toBe(false);
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
+        'Device verification failed after connect',
+      );
       expect(onDeviceEvent).not.toHaveBeenCalledWith(
         expect.objectContaining({ event: DeviceEvent.DeviceLocked }),
       );
@@ -661,15 +679,15 @@ describe('LedgerBluetoothAdapter', () => {
       expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
     });
 
-    it('emits DeviceLocked when getAddress fails with Locked device message', async () => {
+    it('emits DeviceLocked and rejects when getAddress fails with Locked device message', async () => {
       jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockRejectedValueOnce(
         Object.assign(new Error('Locked device'), { name: 'Other' }),
       );
 
-      const result = await adapter.ensureDeviceReady('device-123');
-
-      expect(result).toBe(false);
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
+        'Device verification failed after connect',
+      );
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           event: DeviceEvent.DeviceLocked,
@@ -704,7 +722,7 @@ describe('LedgerBluetoothAdapter', () => {
       jest.useRealTimers();
     });
 
-    it('closes transport when device verification times out', async () => {
+    it('closes transport and rejects when device verification times out', async () => {
       jest.useFakeTimers();
       jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockImplementation(
@@ -713,9 +731,12 @@ describe('LedgerBluetoothAdapter', () => {
       );
 
       const resultPromise = adapter.ensureDeviceReady('device-123');
+      resultPromise.catch(() => undefined);
       await jest.advanceTimersByTimeAsync(11000);
 
-      await expect(resultPromise).resolves.toBe(false);
+      await expect(resultPromise).rejects.toThrow(
+        'Device verification failed after connect',
+      );
       expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
         'device-123',
       );
