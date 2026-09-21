@@ -100,11 +100,11 @@ const TitleMeta: React.FC<{
       information across the feed rather than two different treatments. */}
     {side ? (
       <>
-        <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
-          {' · '}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+          {' \u00b7 '}
         </Text>
         <Text
-          variant={TextVariant.BodyLg}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           twClassName={
             side === 'buy' ? 'text-success-default' : 'text-error-default'
