@@ -74,9 +74,10 @@ const PerpsMarketDetailsRouter: React.FC = () => {
     'idle' | 'pending' | 'ready' | 'failed'
   >('idle');
   const isVenueReady =
-    !requiresVenueSwitch &&
-    venueSwitch !== 'pending' &&
-    venueSwitch !== 'failed';
+    !isProModeEnabled ||
+    (!requiresVenueSwitch &&
+      venueSwitch !== 'pending' &&
+      venueSwitch !== 'failed');
   const requestedProviderRef = useRef<typeof providerId>(undefined);
   const selectVenue = useCallback(() => {
     if (!providerId) return;
@@ -89,6 +90,7 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   }, [providerId, switchProvider]);
   useEffect(() => {
     if (
+      (!isProModeEnabled && venueSwitch === 'failed') ||
       (venueSwitch === 'ready' && !requiresVenueSwitch) ||
       ((venueSwitch === 'ready' || venueSwitch === 'failed') &&
         requestedProviderRef.current !== providerId)
@@ -97,7 +99,14 @@ const PerpsMarketDetailsRouter: React.FC = () => {
     } else if (requiresVenueSwitch && isFocused && venueSwitch === 'idle') {
       selectVenue();
     }
-  }, [isFocused, providerId, requiresVenueSwitch, selectVenue, venueSwitch]);
+  }, [
+    isFocused,
+    isProModeEnabled,
+    providerId,
+    requiresVenueSwitch,
+    selectVenue,
+    venueSwitch,
+  ]);
   const mode = isProModeEnabled ? 'pro' : 'lite';
   const previousIdentityRef = useRef<
     { symbol?: string; mode: string } | undefined
@@ -125,7 +134,7 @@ const PerpsMarketDetailsRouter: React.FC = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')} edges={SAFE_AREA_EDGES}>
-      {venueSwitch === 'failed' ? (
+      {isProModeEnabled && venueSwitch === 'failed' ? (
         <PerpsConnectionErrorView
           error="Unable to select the market's trading provider"
           onRetry={selectVenue}

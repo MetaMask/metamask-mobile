@@ -1,4 +1,3 @@
-import type { SwitchProviderResult } from '@metamask/perps-controller';
 /**
  * Component view tests for PerpsMarketDetailsRouter.
  * Verifies that the router renders the lite layout (PerpsMarketDetailsView)
@@ -6,6 +5,11 @@ import type { SwitchProviderResult } from '@metamask/perps-controller';
  * State-driven via Redux and stream overrides; no hook mocks.
  */
 import '../../../../../../tests/component-view/mocks';
+
+import {
+  PerpsMode,
+  type SwitchProviderResult,
+} from '@metamask/perps-controller';
 
 import { act, screen, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
@@ -202,4 +206,45 @@ describe('PerpsMarketDetailsRouter', () => {
       ).toHaveBeenCalledTimes(1);
     },
   );
+  it('renders Lite after a failed Pro venue switch on the same route', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.switchProvider)
+      .mockResolvedValueOnce({
+        success: false,
+        providerId: 'lighter',
+        error: 'Provider unavailable',
+      });
+    const { store } = renderPerpsView(
+      PerpsMarketDetailsRouter,
+      Routes.PERPS.MARKET_DETAILS,
+      aggregatedLighterOptions,
+    );
+    expect(
+      await screen.findByText(strings('perps.errors.connectionFailed.retry')),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      const engineWithState = Engine as unknown as {
+        state: Record<string, unknown>;
+      };
+      engineWithState.state = {
+        ...engineWithState.state,
+        PerpsController: {
+          ...store.getState().engine.backgroundState.PerpsController,
+          mode: PerpsMode.Lite,
+        },
+      };
+      store.dispatch(updateBgState({ key: 'PerpsController' }));
+    });
+
+    expect(
+      await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.errors.connectionFailed.retry')),
+    ).not.toBeOnTheScreen();
+    expect(Engine.context.PerpsController.switchProvider).toHaveBeenCalledTimes(
+      1,
+    );
+  });
 });
