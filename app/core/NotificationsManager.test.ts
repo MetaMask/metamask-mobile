@@ -616,6 +616,64 @@ describe('NotificationManager', () => {
       );
     });
 
+    it('refreshes the sender and recipient for a native token transfer', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const recipientAccount = { id: 'recipient-account-id' };
+
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          if (address === '0xRecipient') {
+            return recipientAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x124',
+        txParams: {
+          nonce: '0x2',
+          from: '0xSender',
+          to: '0xRecipient',
+        },
+        chainId: '0x1',
+        time: 124,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x124',
+        txParams: {
+          nonce: '0x2',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x124',
+        assetType: 'ETH',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount, recipientAccount],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
     it('shows a confirm notification for EIP-7702 transaction without nonce', async () => {
       const eip7702TransactionMeta = {
         id: '0x456',

@@ -322,4 +322,97 @@ describe('wallet_watchAsset', () => {
       }),
     );
   });
+
+  it('rejects non-ERC20 assets even when the address is valid and on network', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: {
+              ...correctWBTC,
+              decimals: '18',
+            },
+            type: 'ERC721',
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: '',
+      }),
+    ).rejects.toThrow('Asset of type ERC721 not supported');
+
+    expect(
+      MockEngine.context.ApprovalController.addAndShowApprovalRequest,
+    ).not.toHaveBeenCalled();
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('persists the watched asset with the resolved token metadata and a numeric decimals value', async () => {
+    jest
+      .spyOn(transactionsUtils, 'isSmartContractAddress')
+      .mockResolvedValue(true);
+    MockEngine.context.AssetsContractController.getERC20TokenDecimals.mockResolvedValue(
+      '18',
+    );
+    MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
+      'TST',
+    );
+
+    await wallet_watchAsset({
+      req: {
+        params: {
+          options: {
+            address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            symbol: 'WRONG',
+            decimals: '8',
+            image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
+          },
+          type: ERC20,
+        },
+        jsonrpc: '2.0',
+        method: '',
+        id: '',
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      checkTabActive: () => null as any,
+      hostname: '',
+    });
+
+    expect(
+      MockEngine.context.ApprovalController.addAndShowApprovalRequest,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestData: expect.objectContaining({
+          asset: expect.objectContaining({
+            symbol: 'TST',
+            decimals: '18',
+          }),
+        }),
+      }),
+    );
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      expect.objectContaining({
+        address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+        symbol: 'TST',
+        decimals: 18,
+      }),
+    );
+  });
 });

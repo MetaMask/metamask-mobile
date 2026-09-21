@@ -16,6 +16,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 const mockedQuery = jest.mocked(query);
 
 describe('useAccountsBalance', () => {
@@ -33,6 +37,9 @@ describe('useAccountsBalance', () => {
         '0x123': '100',
         '0x456': '200',
       };
+      if (address === '0x789') {
+        throw new Error('RPC failed');
+      }
       return balances[address] ?? '0x0';
     });
   });
@@ -51,7 +58,6 @@ describe('useAccountsBalance', () => {
       expect(result.current).toEqual({
         '0x123': { balance: '100' },
         '0x456': { balance: '200' },
-        '0x789': { balance: '0x0' },
       });
     });
 
@@ -64,5 +70,18 @@ describe('useAccountsBalance', () => {
     expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
       '0x789',
     ]);
+  });
+
+  it('keeps successful balances when one account balance request fails', async () => {
+    const { result } = renderHook(() => useAccountsBalance(mockAccounts));
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        '0x123': { balance: '100' },
+        '0x456': { balance: '200' },
+      });
+    });
+
+    expect(mockedQuery).toHaveBeenCalledTimes(3);
   });
 });
