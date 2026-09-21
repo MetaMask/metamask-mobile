@@ -351,6 +351,48 @@ describe('useCustomAmountStage', () => {
       expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
     });
 
+    it('holds the Loading override when a previous quote error is still present', () => {
+      // The override exists to cover the commit→fetch window. A leftover
+      // quoteError from the prior amount is not proof this fetch settled.
+      const previousError = { message: '400 - Amount must be greater than 0' };
+      setupState({ quoteError: previousError });
+
+      const { result, setOptions } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+
+      setupState({ quoteError: previousError });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+    });
+
+    it('leaves the Loading override when a new quote error replaces the previous one', () => {
+      const previousError = { message: 'previous quote failed' };
+      setupState({ quoteError: previousError });
+
+      const { result, setOptions } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      setupState({
+        quoteError: { message: '400 - Amount must be greater than 0' },
+      });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
+    });
+
     it('leaves the Loading override once the quote fetch takes over', () => {
       const { result, setOptions } = runHook();
 
