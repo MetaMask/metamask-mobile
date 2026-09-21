@@ -110,7 +110,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     );
     const cancelSheetScope = within(cancelSheet);
     expect(
-      cancelSheetScope.getByText(strings('bridge.recurring.cancel_order')),
+      cancelSheetScope.getByText(
+        strings('bridge.recurring.cancel_confirmation_title'),
+      ),
     ).toBeOnTheScreen();
     expect(
       cancelSheetScope.getByText(
