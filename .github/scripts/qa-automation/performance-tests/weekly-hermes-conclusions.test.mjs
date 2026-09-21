@@ -8,6 +8,8 @@ import {
   buildWeeklyReport,
   classifyScenario,
   classifyWeeklyScenarios,
+  collapseSharedSpikes,
+  weeklySlackCards,
   isIsolatedSpike,
   isNewHotFrame,
   isWorseThanLastWeek,
@@ -203,6 +205,78 @@ test('a card without a previous week says so instead of printing n/a', () => {
 
   assert.match(rendered, /no comparable run in the previous week/);
   assert.doesNotMatch(rendered, /n\/a/);
+});
+
+function spikeWindow(names, peakRunId) {
+  return {
+    meta: { profileCount: 10, symbolicatedProfileCount: 10 },
+    scenarios: names.map((name) =>
+      scenarioFixture(name, {
+        medianJsWorkMs: 2000,
+        maxJsWorkMs: 4000,
+        spikeRatio: 2,
+        peakRunId,
+        peakRunUrl: `https://example.com/${peakRunId}`,
+      }),
+    ),
+  };
+}
+
+test('one slow run is reported once, not as a regression per scenario', () => {
+  const report = buildWeeklyReport({
+    thisWindow: spikeWindow(
+      ['Perps add funds', 'Money Home', 'Asset View', 'Cold Start Login'],
+      '34935384411',
+    ),
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 9,
+    lastWeekRunCount: 0,
+    thisWeekRunsAvailable: 22,
+    lastWeekRunsAvailable: 24,
+  });
+
+  assert.equal(report.cards.length, 0);
+  assert.equal(report.sharedSpikes.length, 1);
+  assert.equal(report.sharedSpikes[0].runId, '34935384411');
+  assert.equal(report.sharedSpikes[0].scenarios.length, 4);
+
+  const parent = buildWeeklyParentSlack(report);
+  assert.match(parent, /was the peak of 4 scenarios/);
+  assert.match(parent, /0 isolated spike/);
+  // With nothing analyzable from the previous week, no card may claim a trend.
+  assert.match(parent, /nothing here is a week-over-week comparison yet/);
+
+  const cards = weeklySlackCards(report);
+  assert.equal(cards.length, 1);
+  assert.match(cards[0], /\*Slow run\*/);
+  assert.match(cards[0], /No team is tagged/);
+  assert.doesNotMatch(cards[0], /subteam/);
+});
+
+test('spikes on different runs stay per scenario', () => {
+  const cards = classifyWeeklyScenarios(
+    {
+      scenarios: [
+        scenarioFixture('Perps add funds', {
+          maxJsWorkMs: 4000,
+          spikeRatio: 2,
+          peakRunId: 'run-a',
+        }),
+        scenarioFixture('Money Home', {
+          maxJsWorkMs: 4000,
+          spikeRatio: 2,
+          peakRunId: 'run-b',
+        }),
+      ],
+    },
+    { scenarios: [] },
+  );
+
+  const collapsed = collapseSharedSpikes(cards);
+
+  assert.equal(collapsed.sharedSpikes.length, 0);
+  assert.equal(collapsed.cards.length, 2);
 });
 
 test('weekly Slack states when medians come from sampled runs', () => {

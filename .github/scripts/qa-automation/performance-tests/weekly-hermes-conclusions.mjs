@@ -12,6 +12,10 @@ export const SPIKE_RATIO = 1.5;
 export const RELATIVE_WARN_RATIO = 1.1;
 export const MIN_CONTRIBUTOR_SHARE_PCT = 5;
 export const MIN_RUNS_FOR_CONCLUSION = 3;
+// When the same run is the peak of this many scenarios, the run was slow, not
+// the scenarios. Reporting it once keeps a bad device or a noisy agent from
+// arriving as a dozen unrelated per-team regressions.
+export const MIN_SCENARIOS_FOR_SHARED_SPIKE = 3;
 export const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export const STATUS = {
@@ -194,6 +198,50 @@ export function classifyScenario(current, previous) {
   return STATUS.SPIKE;
 }
 
+/**
+ * Splits spike cards that all peak on the same run out of the per-scenario
+ * list. One slow run is one finding.
+ */
+export function collapseSharedSpikes(cards) {
+  const byRun = new Map();
+  for (const card of cards) {
+    if (card.status !== STATUS.SPIKE || !card.current.peakRunId) {
+      continue;
+    }
+    const runId = String(card.current.peakRunId);
+    byRun.set(runId, [...(byRun.get(runId) || []), card]);
+  }
+
+  const sharedRuns = [...byRun.entries()].filter(
+    ([, grouped]) => grouped.length >= MIN_SCENARIOS_FOR_SHARED_SPIKE,
+  );
+  if (sharedRuns.length === 0) {
+    return { cards, sharedSpikes: [] };
+  }
+
+  const collapsed = new Set(sharedRuns.flatMap(([, grouped]) => grouped));
+  return {
+    cards: cards.filter((card) => !collapsed.has(card)),
+    sharedSpikes: sharedRuns
+      .map(([runId, grouped]) => ({
+        runId,
+        runUrl: grouped[0].current.peakRunUrl,
+        maxRatio: Math.max(
+          ...grouped.map((card) => card.current.spikeRatio || 0),
+        ),
+        scenarios: grouped
+          .map((card) => ({
+            scenario: card.scenario,
+            spikeRatio: card.current.spikeRatio,
+            maxJsWorkMs: card.current.maxJsWorkMs,
+            medianJsWorkMs: card.current.medianJsWorkMs,
+          }))
+          .sort((left, right) => right.spikeRatio - left.spikeRatio),
+      }))
+      .sort((left, right) => right.scenarios.length - left.scenarios.length),
+  };
+}
+
 export function classifyWeeklyScenarios(thisWindow, lastWindow) {
   const previousByKey = new Map(
     (lastWindow.scenarios || []).map((scenario) => [
@@ -278,8 +326,35 @@ export function buildWeeklyScenarioCard(card) {
   return lines.join('\n');
 }
 
+export function buildSharedSpikeCard(sharedSpike) {
+  const lines = [
+    `*Slow run* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
+    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. No team is tagged.`,
+    '_Scenarios and how far that run sat above their weekly median:_',
+  ];
+  for (const scenario of sharedSpike.scenarios) {
+    lines.push(
+      `  *${displayName(scenario.scenario)}* — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×)`,
+    );
+  }
+  lines.push(
+    '_Conclusion:_ check that run before opening any per-scenario work; the rest of the week sits on the median.',
+  );
+  return lines.join('\n');
+}
+
+export function weeklySlackCards(report) {
+  return [
+    ...(report.sharedSpikes || []).map((sharedSpike) =>
+      buildSharedSpikeCard(sharedSpike),
+    ),
+    ...report.cards.map((card) => buildWeeklyScenarioCard(card)),
+  ];
+}
+
 export function buildWeeklyParentSlack(report) {
   const counts = countByStatus(report.cards);
+  const sharedSpikes = report.sharedSpikes || [];
   const lines = [
     '*Hermes CPU-profile weekly conclusions*',
     ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
@@ -289,7 +364,7 @@ export function buildWeeklyParentSlack(report) {
     `_Runs analyzed:_ ${report.meta.thisWeekRunCount} this week · ${report.meta.lastWeekRunCount} previous week (scheduled \`main\` only)`,
     `_Profiles:_ ${report.meta.thisWeekProfileCount} this week · sourcemaps ${report.meta.thisWeekSymbolicatedProfileCount}/${report.meta.thisWeekProfileCount}`,
   ];
-  if (report.cards.length === 0) {
+  if (report.cards.length === 0 && sharedSpikes.length === 0) {
     lines.push(
       '',
       'No Hermes JS regressions were detected versus the previous week.',
@@ -298,13 +373,25 @@ export function buildWeeklyParentSlack(report) {
     lines.push(
       '',
       `_Regressions:_ ${counts.worse} worse than last week · ${counts.spike} isolated spike · ${counts.newFrame} new hot frame · ${counts.insufficient} insufficient data`,
-      '_Stable scenarios omitted. One card per flagged scenario follows in the thread._',
+    );
+    for (const sharedSpike of sharedSpikes) {
+      lines.push(
+        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their medians), reported once instead of per scenario.`,
+      );
+    }
+    lines.push(
+      '_Stable scenarios omitted. One card per finding follows in the thread._',
     );
   }
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
   );
+  if (!report.meta.comparable) {
+    lines.push(
+      '_Caveat:_ no run from the previous week is still analyzable, so nothing here is a week-over-week comparison yet; only in-week spikes can be reported.',
+    );
+  }
   if (report.meta.sampled) {
     lines.push(
       `_Coverage:_ sampled ${report.meta.thisWeekRunCount}/${report.meta.thisWeekRunsAvailable} and ${report.meta.lastWeekRunCount}/${report.meta.lastWeekRunsAvailable} scheduled runs; medians come from those samples.`,
@@ -323,12 +410,27 @@ export function buildWeeklyMarkdown(report) {
     `Runs analyzed: ${report.meta.thisWeekRunCount}/${report.meta.thisWeekRunsAvailable} this week · ${report.meta.lastWeekRunCount}/${report.meta.lastWeekRunsAvailable} previous week`,
     '',
   ];
-  if (report.cards.length === 0) {
+  const sharedSpikes = report.sharedSpikes || [];
+  if (report.cards.length === 0 && sharedSpikes.length === 0) {
     lines.push(
       'No Hermes JS regressions were detected versus the previous week.',
       '',
     );
     return lines.join('\n');
+  }
+  for (const sharedSpike of sharedSpikes) {
+    lines.push(
+      `## Slow run — [${sharedSpike.runId}](${sharedSpike.runUrl}) peaked in ${sharedSpike.scenarios.length} scenarios`,
+      '',
+      'One run-level anomaly, not one regression per scenario.',
+      '',
+    );
+    for (const scenario of sharedSpike.scenarios) {
+      lines.push(
+        `- ${displayName(scenario.scenario)} — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×)`,
+      );
+    }
+    lines.push('');
   }
   for (const card of report.cards) {
     lines.push(`## ${card.statusLabel} — ${displayName(card.scenario)}`);
@@ -356,7 +458,9 @@ export function buildWeeklyReport({
   thisWeekRunsAvailable = thisWeekRunCount,
   lastWeekRunsAvailable = lastWeekRunCount,
 }) {
-  const cards = classifyWeeklyScenarios(thisWindow, lastWindow);
+  const { cards, sharedSpikes } = collapseSharedSpikes(
+    classifyWeeklyScenarios(thisWindow, lastWindow),
+  );
   return {
     meta: {
       mode: 'weekly-conclusions',
@@ -371,10 +475,12 @@ export function buildWeeklyReport({
       sampled:
         thisWeekRunCount < thisWeekRunsAvailable ||
         lastWeekRunCount < lastWeekRunsAvailable,
+      comparable: lastWeekRunCount > 0,
       thisWeekProfileCount: thisWindow.meta?.profileCount || 0,
       thisWeekSymbolicatedProfileCount:
         thisWindow.meta?.symbolicatedProfileCount || 0,
     },
     cards,
+    sharedSpikes,
   };
 }

@@ -41,9 +41,9 @@ import {
   buildWeeklyMarkdown,
   buildWeeklyParentSlack,
   buildWeeklyReport,
-  buildWeeklyScenarioCard,
   inHalfOpenRange,
   weekBounds,
+  weeklySlackCards,
 } from './weekly-hermes-conclusions.mjs';
 
 const transformHermesProfile =
@@ -1988,11 +1988,7 @@ function writeWeeklyOutputs(outputDirectory, weekly) {
   );
   fs.writeFileSync(
     path.join(outputDirectory, 'slack-cards.json'),
-    `${JSON.stringify(
-      weekly.cards.map((card) => buildWeeklyScenarioCard(card)),
-      null,
-      2,
-    )}\n`,
+    `${JSON.stringify(weeklySlackCards(weekly), null, 2)}\n`,
   );
 }
 
