@@ -330,6 +330,12 @@ export default function useCrossmintWalletPayOverlay(
 
       const unpurchasable = getCrossmintUnpurchasableMessage(message);
       if (unpurchasable) {
+        // A message from a checkout that is no longer active (the amount
+        // changed and the WebView is on its way out) must not fail the
+        // preparation that replaced it.
+        if (!activePreparedRef.current) {
+          return;
+        }
         // The order never got a quote, so the button Crossmint is about to
         // render (and report ready) cannot be paid. Drop the overlay and hand
         // the slot back to Continue with the reason; a new amount re-prepares.

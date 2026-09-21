@@ -441,7 +441,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     );
   });
 
-  it('logs Crossmint failure events from WebView messages', () => {
+  it('logs Crossmint failure events from WebView messages', async () => {
     const loggerSpy = jest
       .spyOn(Logger, 'error')
       .mockImplementation(() => undefined);
@@ -449,6 +449,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     const { result } = renderHook(() =>
       useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
+    await settle();
 
     act(() => {
       result.current.onMessage({
@@ -564,6 +565,25 @@ describe('useCrossmintWalletPayOverlay', () => {
       expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(2);
       expect(result.current.checkoutError).toBeNull();
       expect(result.current.checkoutUrl).not.toBeNull();
+    });
+
+    it('ignores an unpurchasable report from a checkout superseded by a new amount', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result, rerender } = renderHook(
+        ({ amount }: { amount: number }) =>
+          useCrossmintWalletPayOverlay(crossmintQuote, amount),
+        { initialProps: { amount: 25 } },
+      );
+      await settle();
+
+      const stale = { current: { onMessage: result.current.onMessage } };
+      rerender({ amount: 50 });
+      reportUnavailable(stale);
+      await settle();
+
+      expect(result.current.checkoutError).toBeNull();
+      expect(result.current.checkoutUrl).not.toBeNull();
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('keeps a payment decline as a retry inside the checkout', async () => {
