@@ -97,7 +97,6 @@ import {
   CHASE_METAMETRICS_PROPERTY,
 } from '../../../constants/chaseAnalytics';
 import usePerpsToasts from '../../../hooks/usePerpsToasts';
-import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import PerpsProActivityFilterSheet from './PerpsProActivityFilterSheet';
@@ -441,16 +440,6 @@ const PerpsProPositionsPanel = ({
         : historicalTwapOrders,
     [historicalTwapOrders, isFilledOnly, twapView],
   );
-
-  useEffect(() => {
-    if (!terminatingTwapOrder) {
-      return;
-    }
-    DevLogger.log(
-      '[PR-TAT-3979] BUG_MARKER: TWAP terminate sheet opened inline inside the scrollable positions panel; activeTwapOrders=' +
-        activeTwapOrders.length,
-    );
-  }, [activeTwapOrders.length, terminatingTwapOrder]);
 
   useEffect(() => {
     if (
