@@ -3,6 +3,8 @@ import {
   assembleFlakyCommentMarkdown,
   combineFileSignals,
   combineSignalsByFile,
+  fitCommentBody,
+  FLAKY_TABLE_HEADER,
   patternSeverityLight,
   renderFlakyFindingsTable,
   renderFlakyPatternsCell,
@@ -185,6 +187,22 @@ describe('renderFlakyPatternsCell', () => {
       }),
     ).toBe(`${TRAFFIC_LIGHT.red} [J6 — real timers](${blobUrl})`);
   });
+
+  it('says which commit a finding was reviewed at when it predates this push', () => {
+    expect(
+      renderFlakyPatternsCell(
+        {
+          patternId: 'J6',
+          patternName: 'real timers',
+          severity: 'high',
+          blobUrl,
+        },
+        'abc1234567890',
+      ),
+    ).toBe(
+      `${TRAFFIC_LIGHT.red} [J6 — real timers](${blobUrl}) _(reviewed at abc1234)_`,
+    );
+  });
 });
 
 describe('renderFlakyFindingsTable', () => {
@@ -344,6 +362,12 @@ describe('renderUnreviewedPatternsCell', () => {
     expect(renderUnreviewedPatternsCell({ reason: 'not_run' })).toBe(
       'not reviewed — analyzer did not run',
     );
+    expect(
+      renderUnreviewedPatternsCell({
+        reason: 'stage_failed',
+        logUrl: 'https://example/run',
+      }),
+    ).toBe('not reviewed — the AI stage failed ([log](https://example/run))');
   });
 });
 
@@ -373,23 +397,40 @@ describe('resolveUnreviewedReason', () => {
     ).toEqual({ reason: 'skipped_cap', cap: 10 });
   });
 
-  it('uses the AI step outcome when the file has no run record', () => {
+  it('blames a fork only when the workflow said the fork caused the skip', () => {
     expect(
       resolveUnreviewedReason({
         file: 'a.test.ts',
         patternsReviewed: false,
         runs: undefined,
         aiStepOutcome: 'skipped',
+        aiSkipReason: 'fork',
       }),
     ).toEqual({ reason: 'skipped_fork' });
+  });
+
+  it('does not claim a fork when the step was skipped for want of files', () => {
+    expect(
+      resolveUnreviewedReason({
+        file: 'a.test.ts',
+        patternsReviewed: false,
+        runs: undefined,
+        aiStepOutcome: 'skipped',
+        aiSkipReason: 'no_files',
+      }),
+    ).toEqual({ reason: 'not_run' });
+  });
+
+  it('points at the run log when the AI stage failed outright', () => {
     expect(
       resolveUnreviewedReason({
         file: 'a.test.ts',
         patternsReviewed: false,
         runs: undefined,
         aiStepOutcome: 'failure',
+        logUrl: 'https://example/run',
       }),
-    ).toEqual({ reason: 'not_run' });
+    ).toEqual({ reason: 'stage_failed', logUrl: 'https://example/run' });
   });
 });
 
@@ -433,5 +474,64 @@ describe('renderNoFindingsLine', () => {
       'No same-SHA fail-then-pass history and no flaky pattern found for the 8 modified unit test files in the inspected range.',
     );
     expect(renderNoFindingsLine(1)).toContain('the modified unit test file in');
+  });
+});
+
+describe('fitCommentBody', () => {
+  const base = {
+    marker: '<!-- marker -->',
+    table: `${FLAKY_TABLE_HEADER}\n| \`a.test.ts\` | new | J1 |\n| \`b.test.ts\` | new | J2 |`,
+    diffs: '',
+    coverageLine: '_coverage_',
+    skillLink: 'https://example/skill',
+    stateBlock: '<!-- metamask-flaky-test-detection-metadata=abc -->',
+    runUrl: 'https://example/run',
+  };
+
+  it('leaves a body that already fits untouched', () => {
+    expect(fitCommentBody(base)).toBe(assembleFlakyCommentMarkdown(base));
+  });
+
+  it('drops the suggested fixes first and says where they went', () => {
+    const body = fitCommentBody({
+      ...base,
+      diffs: 'x'.repeat(2000),
+      budget: 1500,
+    });
+
+    expect(body.length).toBeLessThanOrEqual(1500);
+    expect(body).not.toContain('x'.repeat(100));
+    expect(body).toContain('| `b.test.ts` | new | J2 |');
+    expect(body).toContain('Suggested fixes omitted');
+    expect(body).toContain('https://example/run');
+  });
+
+  it('truncates rows when dropping the fixes is not enough', () => {
+    const manyRows = [
+      FLAKY_TABLE_HEADER,
+      ...Array.from(
+        { length: 50 },
+        (_, index) => `| \`file${index}.test.ts\` | new | ${'p'.repeat(100)} |`,
+      ),
+    ].join('\n');
+
+    const body = fitCommentBody({ ...base, table: manyRows, budget: 1500 });
+
+    expect(body.length).toBeLessThanOrEqual(1500);
+    expect(body).toContain(FLAKY_TABLE_HEADER.split('\n')[0]);
+    expect(body).toContain('more row(s)');
+  });
+
+  // Losing the state block makes the next run re-analyze everything and
+  // re-post findings the reader already dismissed.
+  it('keeps the state block even when nothing else fits', () => {
+    const body = fitCommentBody({
+      ...base,
+      table: `${FLAKY_TABLE_HEADER}\n| \`a.test.ts\` | new | ${'p'.repeat(5000)} |`,
+      budget: 400,
+    });
+
+    expect(body).toContain(base.stateBlock);
+    expect(body).toContain('All findings were omitted');
   });
 });

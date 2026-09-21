@@ -2,6 +2,7 @@ import {
   githubErrorStatus,
   isMissingLogBlobError,
   isRetriableGithubError,
+  retryDelayMs,
   unitTestLogsReadable,
   withRetryOnce,
 } from './flaky-github-request';
@@ -15,14 +16,27 @@ const makeError = ({
   status,
   message,
   data,
+  headers,
 }: {
   status?: number;
   message?: string;
   data?: ArrayBuffer | ArrayBufferView | string;
-}): { status?: number; message?: string; response?: { data?: unknown } } => ({
+  headers?: Record<string, string>;
+}): {
+  status?: number;
+  message?: string;
+  response?: { data?: unknown; headers?: Record<string, string> };
+} => ({
   status,
   message,
-  ...(data === undefined ? {} : { response: { data } }),
+  ...(data === undefined && headers === undefined
+    ? {}
+    : {
+        response: {
+          ...(data === undefined ? {} : { data }),
+          ...(headers === undefined ? {} : { headers }),
+        },
+      }),
 });
 
 describe('githubErrorStatus', () => {
@@ -97,23 +111,85 @@ describe('isRetriableGithubError', () => {
   });
 });
 
+describe('retryDelayMs', () => {
+  it('honors the seconds named by retry-after', () => {
+    const error = makeError({ status: 429, headers: { 'retry-after': '5' } });
+
+    expect(retryDelayMs(error)).toBe(5000);
+  });
+
+  it('waits until x-ratelimit-reset when there is no retry-after', () => {
+    const now = 1_000_000_000_000;
+    const error = makeError({
+      status: 429,
+      headers: { 'x-ratelimit-reset': String(now / 1000 + 7) },
+    });
+
+    expect(retryDelayMs(error, now)).toBe(7000);
+  });
+
+  it('caps a long wait so the job does not stall on it', () => {
+    const error = makeError({ status: 429, headers: { 'retry-after': '600' } });
+
+    expect(retryDelayMs(error)).toBe(30_000);
+  });
+
+  it('falls back to a fixed delay when the server named none', () => {
+    expect(retryDelayMs(makeError({ status: 503 }))).toBe(2000);
+  });
+
+  it('falls back when the reset time has already passed', () => {
+    const now = 1_000_000_000_000;
+    const error = makeError({
+      status: 429,
+      headers: { 'x-ratelimit-reset': String(now / 1000 - 30) },
+    });
+
+    expect(retryDelayMs(error, now)).toBe(2000);
+  });
+});
+
 describe('withRetryOnce', () => {
+  // Injected so the retry path is exercised without real timers.
+  const noWait = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    noWait.mockClear();
+  });
+
   it('does not retry a 404 missing-blob error', async () => {
     const error = makeError({ status: 404, message: unknownEmptyMessage });
     const fn = jest.fn().mockRejectedValue(error);
 
-    await expect(withRetryOnce(fn)).rejects.toBe(error);
+    await expect(withRetryOnce(fn, noWait)).rejects.toBe(error);
 
     expect(fn).toHaveBeenCalledTimes(1);
+    expect(noWait).not.toHaveBeenCalled();
   });
 
   it('retries a 503 Unknown error: {} once then surfaces the second failure', async () => {
     const error = makeError({ status: 503, message: unknownEmptyMessage });
     const fn = jest.fn().mockRejectedValue(error);
 
-    await expect(withRetryOnce(fn)).rejects.toBe(error);
+    await expect(withRetryOnce(fn, noWait)).rejects.toBe(error);
 
     expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('waits the delay the server asked for before retrying', async () => {
+    const error = makeError({
+      status: 429,
+      message: 'API rate limit exceeded',
+      headers: { 'retry-after': '3' },
+    });
+    const fn = jest
+      .fn()
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce('ok');
+
+    await expect(withRetryOnce(fn, noWait)).resolves.toBe('ok');
+
+    expect(noWait).toHaveBeenCalledWith(3000);
   });
 
   it('retries a 500 network error and returns the second attempt', async () => {
@@ -123,7 +199,7 @@ describe('withRetryOnce', () => {
       .mockRejectedValueOnce(error)
       .mockResolvedValueOnce('ok');
 
-    const result = await withRetryOnce(fn);
+    const result = await withRetryOnce(fn, noWait);
 
     expect(result).toBe('ok');
     expect(fn).toHaveBeenCalledTimes(2);
@@ -136,7 +212,7 @@ describe('withRetryOnce', () => {
     });
     const fn = jest.fn().mockRejectedValue(error);
 
-    await expect(withRetryOnce(fn)).rejects.toBe(error);
+    await expect(withRetryOnce(fn, noWait)).rejects.toBe(error);
 
     expect(fn).toHaveBeenCalledTimes(1);
   });

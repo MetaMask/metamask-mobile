@@ -60,6 +60,9 @@ jobs:
   detect-flaky-tests:
     name: Detect flaky unit tests
     runs-on: ubuntu-latest
+    # Stage 2 has its own 15-minute budget; this bounds the day-bucketed
+    # history walk and the rest of the job around it.
+    timeout-minutes: 45
     steps:
       # Checkout the PR head, not GitHub's merge commit, so Stage 3 snippet
       # validation and sticky blob links refer to the same tree. fetch-depth: 0
@@ -166,12 +169,28 @@ jobs:
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
+      # Keyed off the analyzer's own lockfile, checked out at the pinned ref
+      # just above, so the key follows the ref without repeating it. npm ci
+      # wipes node_modules before installing, so a hit has to skip the install
+      # step to be worth anything.
+      - name: Cache AI Analyzer dependencies
+        id: ai-cache
+        if: >-
+          steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
+          !github.event.pull_request.head.repo.fork
+        uses: actions/cache@v4
+        with:
+          path: .ai-analyzer-action/node_modules
+          key: ai-analyzer-node-modules-${{ runner.os }}-${{ hashFiles('.ai-analyzer-action/package-lock.json') }}
+
       - name: Install AI Analyzer dependencies
         id: ai-install
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           steps.detect-history.outputs.files_to_analyze_count != '0' &&
-          !github.event.pull_request.head.repo.fork
+          !github.event.pull_request.head.repo.fork &&
+          steps.ai-cache.outputs.cache-hit != 'true'
         continue-on-error: true
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -206,6 +225,24 @@ jobs:
           FLAKY_AI_CONCURRENCY: '3'
         run: yarn --cwd .github/scripts flaky-ai-analysis
 
+      # Stage 3 renders "not reviewed — skipped on fork PRs" only when a fork
+      # is really why Stage 2 did not run. A skipped step alone is also how "no
+      # file needed a review" looks, so the reason is stated rather than guessed.
+      - name: Resolve why the AI stage was skipped
+        id: ai-skip-reason
+        if: always()
+        env:
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+          FILES_TO_ANALYZE_COUNT: ${{ steps.detect-history.outputs.files_to_analyze_count }}
+        run: |
+          if [ "$IS_FORK" = "true" ]; then
+            echo "reason=fork" >> "$GITHUB_OUTPUT"
+          elif [ "${FILES_TO_ANALYZE_COUNT:-0}" = "0" ]; then
+            echo "reason=no_files" >> "$GITHUB_OUTPUT"
+          else
+            echo "reason=" >> "$GITHUB_OUTPUT"
+          fi
+
       # Stage 3: unified sticky PR comment combining Stage 1 + Stage 2
       # output. Runs when should_analyze is true, or when the PR no longer
       # modifies any unit test file — the latter lets the 4-state matrix flip
@@ -226,7 +263,21 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           FLAKY_AI_STEP_OUTCOME: ${{ steps.ai.outcome }}
+          FLAKY_AI_SKIP_REASON: ${{ steps.ai-skip-reason.outputs.reason }}
         run: yarn flaky-sticky-comment
+
+      # Uploaded on every outcome: when Stage 2 is killed at its timeout, the
+      # partial artifact it left behind is the only record of what it reviewed.
+      - name: Upload flaky detection artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-unit-test-detection-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .ai-pr-analyzer/*.json
+            .ai-pr-analyzer/flaky-ai-analysis-runs/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Job summary
         if: always()
@@ -240,6 +291,9 @@ jobs:
           FLAKY_HISTORICALLY_FLAKY_COUNT: ${{ steps.detect-history.outputs.historically_flaky_count }}
           FLAKY_UNREAD_FAILED_RUNS: ${{ steps.detect-history.outputs.unread_failed_runs }}
           FLAKY_MISSING_LOG_BLOBS: ${{ steps.detect-history.outputs.missing_log_blobs }}
+          FLAKY_INFRASTRUCTURE_FAILURES: ${{ steps.detect-history.outputs.infrastructure_failures }}
+          FLAKY_UNATTRIBUTED_RERUNS: ${{ steps.detect-history.outputs.unattributed_reruns }}
+          FLAKY_HISTORY_WINDOW: ${{ steps.detect-history.outputs.history_window }}
           FLAKY_MISSING_PRIOR_SHA_COUNT: ${{ steps.detect-history.outputs.missing_prior_sha_count }}
           FLAKY_CANDIDATES_INSPECTED: ${{ steps.detect-history.outputs.candidates_inspected }}
           FLAKY_CANDIDATE_SHA_COUNT: ${{ steps.detect-history.outputs.candidate_sha_count }}

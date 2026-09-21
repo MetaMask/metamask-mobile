@@ -10,6 +10,9 @@ const baseInput = {
   historicallyFlakyCount: '0',
   unreadFailedRuns: '0',
   missingLogBlobs: '0',
+  infrastructureFailures: '0',
+  unattributedReruns: '0',
+  historyWindow: '2026-09-08 → 2026-09-21, 1204 runs',
   missingPriorShaCount: '0',
   candidatesInspected: '0',
   candidateShaCount: '0',
@@ -70,7 +73,8 @@ describe('renderFlakyJobSummary', () => {
 
     expect(markdown).toContain('**Posted sticky comment** (created).');
     expect(markdown).toContain('| Comment | created |');
-    expect(markdown).toContain('| AI findings | 2 |');
+    expect(markdown).toContain('| Pattern findings (merged) | 2 |');
+    expect(markdown).toContain('| History hits | 1 of 1 modified file(s) |');
     expect(markdown).toContain('| AI analysis | reviewed 1/1 files |');
   });
 
@@ -88,21 +92,47 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain(
       '| AI analysis | skipped (fork PR or secrets unavailable) |',
     );
-    expect(markdown).toContain('**Analyzed.** Check the comment step below.');
+    expect(markdown).toContain(
+      '**Analyzed.** Nothing to report and no comment to clear.',
+    );
   });
 
-  it('reports unread failed runs and missing log blobs in the table', () => {
+  it('does not claim success when Stage 3 never reported back', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      commentPosted: 'false',
+      commentAction: '',
+      stage3SkipReason: '',
+      stage3Outcome: 'cancelled',
+    });
+
+    expect(markdown).toContain('**Analyzed; comment step cancelled.**');
+  });
+
+  it('reports the gaps the walk disclosed in the table', () => {
     const markdown = renderFlakyJobSummary({
       ...baseInput,
       unreadFailedRuns: '1',
       missingLogBlobs: '3',
+      infrastructureFailures: '2',
+      unattributedReruns: '4',
       missingPriorShaCount: '2',
     });
 
     expect(markdown).toContain('| Unread failed CI runs | 1 |');
     expect(markdown).toContain('| Missing log blobs | 3 |');
+    expect(markdown).toContain('| Lost runners | 2 |');
+    expect(markdown).toContain('| Unattributed re-runs | 4 |');
     expect(markdown).toContain('| Missing prior SHAs | 2 |');
     expect(markdown).toContain('| SHA | `f758dbb` |');
+  });
+
+  it('reports the window the history walk actually covered', () => {
+    const markdown = renderFlakyJobSummary(baseInput);
+
+    expect(markdown).toContain(
+      '| History window | 2026-09-08 → 2026-09-21, 1204 runs |',
+    );
   });
 
   it('reports capped history coverage', () => {

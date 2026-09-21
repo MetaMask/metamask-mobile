@@ -3,6 +3,7 @@ import {
   buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
   chunkArray,
+  classifyLoglessJob,
   confirmedFailThenPassJobs,
   groupRunsByHeadSha,
   historyCoverageComplete,
@@ -12,13 +13,17 @@ import {
   jobIdFromDetailsUrl,
   jobLogUrl,
   listedWorkflowRunFromApi,
+  lookbackDayBuckets,
   parseJestFailPaths,
   parseShaBatchResponse,
-  renderIncompleteCoverageLine,
-  renderMissingLogBlobsLine,
+  renderCoverageWindowLine,
+  renderInfrastructureFailuresLine,
   renderSameShaHistoryTable,
+  renderUnattributedRerunsLine,
   shouldPostAllClear,
+  summarizeCoverageWindow,
   unansweredModifiedFiles,
+  type CoverageWindow,
   type ListedWorkflowRun,
   type ShaCheckResult,
 } from './flaky-same-sha-history';
@@ -64,12 +69,31 @@ describe('groupRunsByHeadSha', () => {
 });
 
 describe('isCandidateShaGroup', () => {
-  it('treats a rerun as a candidate even without a listed failure', () => {
+  it('treats a re-run of a failed commit as a candidate', () => {
     expect(
       isCandidateShaGroup([
+        run({ id: 1, runAttempt: 1, conclusion: 'failure' }),
         run({ id: 1, runAttempt: 2, conclusion: 'success' }),
       ]),
     ).toBe(true);
+  });
+
+  it('keeps a re-run that stayed red, where only the unit job recovered', () => {
+    expect(
+      isCandidateShaGroup([
+        run({ id: 1, runAttempt: 1, conclusion: 'failure' }),
+        run({ id: 1, runAttempt: 2, conclusion: 'failure' }),
+      ]),
+    ).toBe(true);
+  });
+
+  it('skips a re-run of an already green commit', () => {
+    expect(
+      isCandidateShaGroup([
+        run({ id: 1, runAttempt: 1, conclusion: 'success' }),
+        run({ id: 1, runAttempt: 2, conclusion: 'success' }),
+      ]),
+    ).toBe(false);
   });
 
   it('treats two run ids with a failure and a success as a candidate', () => {
@@ -90,7 +114,7 @@ describe('isCandidateShaGroup', () => {
     ).toBe(false);
   });
 
-  it('skips two failed run ids with no success', () => {
+  it('skips two failed run ids with no success and no re-run', () => {
     expect(
       isCandidateShaGroup([
         run({ id: 1, conclusion: 'failure' }),
@@ -155,6 +179,17 @@ describe('buildShaBatchQuery', () => {
     expect(query).toContain('c1: object(oid: $sha1)');
     expect(query).toContain('checkType: ALL, conclusions: [FAILURE]');
     expect(query).toContain('checkType: LATEST, conclusions: [SUCCESS]');
+  });
+
+  it('asks only for GitHub Actions suites and for totalCount on every page', () => {
+    const { query } = buildShaBatchQuery(
+      ['aaa'],
+      'MetaMask',
+      'metamask-mobile',
+    );
+
+    expect(query).toContain('filterBy: { appId: 15368 }');
+    expect(query.match(/totalCount/g)).toHaveLength(3);
   });
 });
 
@@ -244,13 +279,87 @@ describe('parseShaBatchResponse', () => {
   it('returns an empty suite list when the commit object is missing', () => {
     const [sha] = parseShaBatchResponse({ repository: { c0: null } }, ['dead']);
 
-    expect(sha).toEqual({ headSha: 'dead', suites: [] });
+    expect(sha).toEqual({ headSha: 'dead', suites: [], truncated: false });
+  });
+
+  it('reports no truncation when every connection returned all its nodes', () => {
+    const [sha] = parseShaBatchResponse(rerunFixture, [
+      '4c386e4f037e0a5adfd69a0e7666840af2253bb9',
+    ]);
+
+    expect(sha.truncated).toBe(false);
+  });
+
+  it('flags a ci suite whose check runs were clipped', () => {
+    const clipped = {
+      repository: {
+        c0: {
+          oid: 'abc',
+          checkSuites: {
+            totalCount: 1,
+            nodes: [
+              {
+                workflowRun: {
+                  databaseId: 1,
+                  runAttempt: 1,
+                  workflow: { name: 'ci' },
+                },
+                failed: { totalCount: 80, nodes: [] },
+                passed: { totalCount: 0, nodes: [] },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    expect(parseShaBatchResponse(clipped, ['abc'])[0].truncated).toBe(true);
+  });
+
+  it('flags a commit whose suite page was clipped', () => {
+    const clipped = {
+      repository: {
+        c0: {
+          oid: 'abc',
+          checkSuites: { totalCount: 60, nodes: [] },
+        },
+      },
+    };
+
+    expect(parseShaBatchResponse(clipped, ['abc'])[0].truncated).toBe(true);
+  });
+
+  it('ignores a clipped check-run page outside a ci suite', () => {
+    const clipped = {
+      repository: {
+        c0: {
+          oid: 'abc',
+          checkSuites: {
+            totalCount: 1,
+            nodes: [
+              {
+                workflowRun: {
+                  databaseId: 1,
+                  runAttempt: 1,
+                  workflow: { name: 'Flaky unit test detection' },
+                },
+                failed: { totalCount: 80, nodes: [] },
+                passed: { totalCount: 0, nodes: [] },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    expect(parseShaBatchResponse(clipped, ['abc'])[0].truncated).toBe(false);
   });
 });
 
 const shaResult = (suites: ShaCheckResult['suites']): ShaCheckResult => ({
   headSha: 'abc',
   suites,
+  truncated: false,
 });
 
 describe('confirmedFailThenPassJobs', () => {
@@ -523,53 +632,220 @@ describe('renderSameShaHistoryTable', () => {
   });
 });
 
-describe('renderIncompleteCoverageLine', () => {
-  it('states how many candidate SHAs were inspected', () => {
-    expect(
-      renderIncompleteCoverageLine({
-        candidatesInspected: 200,
-        candidateShaCount: 230,
-      }),
-    ).toContain('inspected 200 of 230 candidate SHA(s)');
+describe('lookbackDayBuckets', () => {
+  it('returns one day per lookback day, newest first', () => {
+    const days = lookbackDayBuckets(new Date('2026-09-21T10:00:00Z'), 3);
+
+    expect(days).toEqual(['2026-09-21', '2026-09-20', '2026-09-19']);
+  });
+
+  it('returns nothing for a zero-day window', () => {
+    expect(lookbackDayBuckets(new Date('2026-09-21T10:00:00Z'), 0)).toEqual([]);
+  });
+});
+
+describe('summarizeCoverageWindow', () => {
+  it('reports the dates actually sampled rather than the dates requested', () => {
+    const window = summarizeCoverageWindow({
+      runs: [
+        run({ id: 1, createdAt: '2026-09-19T08:00:00Z' }),
+        run({ id: 2, createdAt: '2026-09-21T08:00:00Z' }),
+        run({ id: 3, createdAt: '2026-09-20T08:00:00Z' }),
+      ],
+      lookbackDays: 14,
+      cappedDays: ['2026-09-20'],
+    });
+
+    expect(window).toEqual({
+      lookbackDays: 14,
+      runsListed: 3,
+      oldestRunSampled: '2026-09-19',
+      newestRunSampled: '2026-09-21',
+      cappedDays: ['2026-09-20'],
+    });
+  });
+
+  it('leaves the dates empty when nothing was listed', () => {
+    const window = summarizeCoverageWindow({
+      runs: [],
+      lookbackDays: 14,
+      cappedDays: [],
+    });
+
+    expect(window.oldestRunSampled).toBe('');
+    expect(window.newestRunSampled).toBe('');
+  });
+});
+
+const coverageWindow: CoverageWindow = {
+  lookbackDays: 14,
+  runsListed: 1204,
+  oldestRunSampled: '2026-09-08',
+  newestRunSampled: '2026-09-21',
+  cappedDays: [],
+};
+
+describe('renderCoverageWindowLine', () => {
+  it('states the dates and commits a complete walk covered', () => {
+    const line = renderCoverageWindowLine({
+      window: coverageWindow,
+      candidatesInspected: 489,
+      candidateShaCount: 489,
+      complete: true,
+    });
+
+    expect(line).toBe(
+      '_History coverage: 2026-09-08 to 2026-09-21, 1204 ci run(s), 489 candidate commit(s) inspected._',
+    );
+  });
+
+  it('quotes inspected out of found when the walk was cut short', () => {
+    const line = renderCoverageWindowLine({
+      window: coverageWindow,
+      candidatesInspected: 412,
+      candidateShaCount: 489,
+      complete: false,
+    });
+
+    expect(line).toContain('412 of 489 candidate commit(s) inspected');
+    expect(line).toContain('History coverage incomplete');
   });
 
   it('names unread fail-then-pass logs when they blocked coverage', () => {
     expect(
-      renderIncompleteCoverageLine({
+      renderCoverageWindowLine({
+        window: coverageWindow,
         candidatesInspected: 5,
         candidateShaCount: 5,
         unreadFailedRuns: 2,
+        complete: false,
       }),
     ).toContain('2 confirmed fail-then-pass log(s) could not be read');
   });
 
   it('points at the findings table only when it rendered rows', () => {
     expect(
-      renderIncompleteCoverageLine({
+      renderCoverageWindowLine({
+        window: coverageWindow,
         candidatesInspected: 1,
         candidateShaCount: 2,
+        complete: false,
         hasFindings: true,
       }),
     ).toContain('Findings above are a lower bound');
 
-    const empty = renderIncompleteCoverageLine({
+    const empty = renderCoverageWindowLine({
+      window: coverageWindow,
       candidatesInspected: 1,
       candidateShaCount: 2,
+      complete: false,
       hasFindings: false,
     });
     expect(empty).not.toContain('Findings above');
     expect(empty).toContain('this is not an all-clear');
   });
+
+  it('falls back to the requested window when nothing was sampled', () => {
+    expect(
+      renderCoverageWindowLine({
+        window: {
+          ...coverageWindow,
+          oldestRunSampled: '',
+          newestRunSampled: '',
+        },
+        candidatesInspected: 0,
+        candidateShaCount: 0,
+        complete: true,
+      }),
+    ).toContain('last 14 day(s)');
+  });
 });
 
-describe('renderMissingLogBlobsLine', () => {
-  it('renders nothing when every log was readable', () => {
-    expect(renderMissingLogBlobsLine(0)).toBe('');
+describe('classifyLoglessJob', () => {
+  it('reads a step still in progress as a lost runner', () => {
+    expect(
+      classifyLoglessJob({
+        steps: [
+          { status: 'completed', conclusion: 'success' },
+          { status: 'in_progress', conclusion: null },
+        ],
+      }),
+    ).toBe('infrastructure');
   });
 
-  it('discloses how many logs GitHub no longer has', () => {
-    expect(renderMissingLogBlobsLine(1)).toBe(
-      '_1 fail-then-pass log(s) in the window are missing on GitHub and could not be attributed to a file._',
+  it('reads a job with no steps as a lost runner', () => {
+    expect(classifyLoglessJob({ steps: [] })).toBe('infrastructure');
+    expect(classifyLoglessJob({})).toBe('infrastructure');
+  });
+
+  it('reads completed steps with no failure as a lost runner', () => {
+    expect(
+      classifyLoglessJob({
+        steps: [{ status: 'completed', conclusion: 'cancelled' }],
+      }),
+    ).toBe('infrastructure');
+  });
+
+  it('reads a completed failing step as a real failure with a lost log', () => {
+    expect(
+      classifyLoglessJob({
+        steps: [
+          { status: 'completed', conclusion: 'success' },
+          { status: 'completed', conclusion: 'failure' },
+        ],
+      }),
+    ).toBe('missing_log');
+  });
+});
+
+describe('renderUnattributedRerunsLine', () => {
+  it('renders nothing when every re-run was attributed', () => {
+    expect(renderUnattributedRerunsLine([], 'https://github.com', 'o/r')).toBe(
+      '',
+    );
+  });
+
+  it('names the shard and links its job log', () => {
+    const line = renderUnattributedRerunsLine(
+      [
+        {
+          jobName: 'Unit tests (8)',
+          runId: 10,
+          jobId: 99,
+          reason: 'missing_log',
+        },
+      ],
+      'https://github.com',
+      'o/r',
+    );
+
+    expect(line).toContain(
+      '[Unit tests (8)](https://github.com/o/r/actions/runs/10/job/99) (log missing)',
+    );
+    expect(line).toContain('Low signal');
+  });
+
+  it('counts the re-runs it did not name', () => {
+    const line = renderUnattributedRerunsLine(
+      [{ jobName: 'Unit tests (1)', runId: 1, jobId: 2, reason: 'unread' }],
+      'https://github.com',
+      'o/r',
+      4,
+    );
+
+    expect(line).toContain('4 unit-test re-run(s)');
+    expect(line).toContain('and 3 more');
+  });
+});
+
+describe('renderInfrastructureFailuresLine', () => {
+  it('renders nothing when no runner was lost', () => {
+    expect(renderInfrastructureFailuresLine(0)).toBe('');
+  });
+
+  it('says lost runners carry no test signal', () => {
+    expect(renderInfrastructureFailuresLine(2)).toContain(
+      'they carry no test signal',
     );
   });
 });

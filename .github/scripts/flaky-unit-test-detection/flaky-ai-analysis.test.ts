@@ -1,4 +1,10 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
@@ -12,6 +18,7 @@ import {
   runWithConcurrency,
   stepOutputsFromArtifact,
   type AnalyzerOutput,
+  type MergedAiAnalysis,
   type RunAnalyzer,
 } from './flaky-ai-analysis';
 
@@ -53,9 +60,7 @@ describe('orderFilesForAnalysis', () => {
 
 describe('partitionByCap', () => {
   it('keeps the first maxFiles and marks the rest skipped', () => {
-    expect(
-      partitionByCap(['a.test.ts', 'b.test.ts', 'c.test.ts'], 2),
-    ).toEqual({
+    expect(partitionByCap(['a.test.ts', 'b.test.ts', 'c.test.ts'], 2)).toEqual({
       toRun: ['a.test.ts', 'b.test.ts'],
       skipped: ['c.test.ts'],
     });
@@ -67,11 +72,15 @@ describe('classifyRun', () => {
 
   it('returns error on non-zero exit or missing output', () => {
     expect(
-      classifyRun(file, { exitCode: 1, output: reviewedOutput(file) }, conservative),
+      classifyRun(
+        file,
+        { exitCode: 1, output: reviewedOutput(file) },
+        conservative,
+      ),
     ).toBe('error');
-    expect(
-      classifyRun(file, { exitCode: 0, output: null }, conservative),
-    ).toBe('error');
+    expect(classifyRun(file, { exitCode: 0, output: null }, conservative)).toBe(
+      'error',
+    );
   });
 
   it('returns fallback when the output matches the conservative fallback', () => {
@@ -212,7 +221,10 @@ describe('prepareRunConfigDir', () => {
         'id: flaky-unit-test-analysis\noutputFile: .ai-pr-analyzer/flaky-ai-analysis.json\n',
       );
       writeFileSync(join(modeSrc, 'task-prompt.md'), 'prompt');
-      writeFileSync(join(source, 'skills/mms-flaky-test-detection.md'), 'skill');
+      writeFileSync(
+        join(source, 'skills/mms-flaky-test-detection.md'),
+        'skill',
+      );
 
       const outputPath = join(root, 'runs/0.json');
       const configDir = prepareRunConfigDir({
@@ -290,6 +302,60 @@ describe('runFlakyAiAnalysis', () => {
         durationMs: 5,
       },
     ]);
+  });
+
+  it('writes a complete artifact before the first analyzer starts', async () => {
+    const snapshots: MergedAiAnalysis[] = [];
+
+    await runFlakyAiAnalysis({
+      ...baseInput,
+      filesToAnalyze: ['a.test.ts', 'b.test.ts'],
+      maxAttempts: 1,
+      concurrency: 1,
+      runAnalyzer: async (file) => ({
+        exitCode: 0,
+        output: reviewedOutput(file),
+      }),
+      writeArtifact: (artifact) => snapshots.push(artifact),
+    });
+
+    // A timeout kill before any file finished must still leave Stage 3 an
+    // artifact that says "not reviewed" rather than nothing at all.
+    expect(snapshots[0].runs).toEqual([
+      {
+        file: 'a.test.ts',
+        status: 'did_not_complete',
+        attempts: 0,
+        durationMs: 0,
+      },
+      {
+        file: 'b.test.ts',
+        status: 'did_not_complete',
+        attempts: 0,
+        durationMs: 0,
+      },
+    ]);
+  });
+
+  it('rewrites the artifact after every file so a kill keeps finished work', async () => {
+    const snapshots: MergedAiAnalysis[] = [];
+
+    await runFlakyAiAnalysis({
+      ...baseInput,
+      filesToAnalyze: ['a.test.ts', 'b.test.ts'],
+      maxAttempts: 1,
+      concurrency: 1,
+      runAnalyzer: async (file) => ({
+        exitCode: 0,
+        output: reviewedOutput(file),
+      }),
+      writeArtifact: (artifact) => snapshots.push(artifact),
+    });
+
+    expect(snapshots).toHaveLength(3);
+    expect(snapshots[1].analyzedFiles).toEqual(['a.test.ts']);
+    expect(snapshots[1].runs[1].status).toBe('did_not_complete');
+    expect(snapshots[2].analyzedFiles).toEqual(['a.test.ts', 'b.test.ts']);
   });
 
   it('records skipped_cap after the file cap and fails when nothing was reviewed', async () => {

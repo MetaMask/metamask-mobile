@@ -14,39 +14,24 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  renameSync,
   symlinkSync,
   writeFileSync,
 } from 'fs';
 import { join } from 'path';
+import type {
+  AnalyzerRunRecord,
+  AnalyzerRunStatus,
+  Finding as AiFinding,
+  HistoryFile,
+} from './flaky-types';
 
 export const DEFAULT_MAX_FILES = 10;
 export const DEFAULT_MAX_ATTEMPTS = 2;
 export const DEFAULT_CONCURRENCY = 3;
 export const MODE_ID = 'flaky-unit-test-analysis';
 
-export type AnalyzerRunStatus =
-  | 'reviewed'
-  | 'did_not_complete'
-  | 'skipped_cap';
-
-export type AnalyzerRunRecord = {
-  file: string;
-  status: AnalyzerRunStatus;
-  attempts: number;
-  durationMs: number;
-};
-
-export type AiFinding = {
-  file: string;
-  line?: number;
-  patternId: string;
-  patternName: string;
-  severity: string;
-  snippet?: string;
-  explanation: string;
-  suggestedFix: string;
-  historicalHintUsed: boolean;
-};
+export type { AnalyzerRunRecord, AnalyzerRunStatus, AiFinding };
 
 export type AnalyzerOutput = {
   analyzedFiles?: string[];
@@ -88,10 +73,7 @@ export type PrepareRunConfigDirInput = {
   outputPath: string;
 };
 
-export type HistoryFlakyFile = {
-  path: string;
-  flaky: boolean;
-};
+export type HistoryFlakyFile = Pick<HistoryFile, 'path' | 'flaky'>;
 
 export function historicallyFlakyPaths(
   files: HistoryFlakyFile[] | undefined,
@@ -248,7 +230,10 @@ export function prepareRunConfigDir(input: PrepareRunConfigDirInput): string {
 
   const modeYamlPath = join(modeDest, 'mode.yaml');
   const modeYaml = readFileSync(modeYamlPath, 'utf8');
-  writeFileSync(modeYamlPath, rewriteModeOutputFile(modeYaml, input.outputPath));
+  writeFileSync(
+    modeYamlPath,
+    rewriteModeOutputFile(modeYaml, input.outputPath),
+  );
 
   const skillsSrc = join(input.sourceConfigDir, 'skills');
   const skillsDest = join(configDir, 'skills');
@@ -283,6 +268,8 @@ export type RunFlakyAiAnalysisInput = {
   runAnalyzer: RunAnalyzer;
   prepareConfigDir?: (input: PrepareRunConfigDirInput) => string;
   now?: () => number;
+  /** Called before the first run and after every file, so a timeout kill still leaves an artifact. */
+  writeArtifact?: (artifact: MergedAiAnalysis) => void;
 };
 
 export type RunFlakyAiAnalysisResult = {
@@ -311,6 +298,29 @@ export async function runFlakyAiAnalysis(
   const prepare = input.prepareConfigDir ?? prepareRunConfigDir;
   const now = input.now ?? Date.now;
   const maxAttempts = Math.max(1, input.maxAttempts);
+
+  // Stage 3 must find an artifact even if this process is killed at its
+  // timeout, so a complete one exists before the first analyzer starts and is
+  // rewritten as each file lands. Pending files read as did_not_complete,
+  // which is what Stage 3 already renders as "not reviewed".
+  const pending = new Map<string, FileRunResult>(
+    toRun.map((file) => [
+      file,
+      {
+        file,
+        status: 'did_not_complete',
+        attempts: 0,
+        durationMs: 0,
+        output: null,
+      },
+    ]),
+  );
+  const publish = (): void => {
+    input.writeArtifact?.(
+      mergeRuns([...pending.values(), ...skippedResults], input.maxFiles),
+    );
+  };
+  publish();
 
   const ran = await runWithConcurrency(
     toRun,
@@ -344,6 +354,8 @@ export async function runFlakyAiAnalysis(
         durationMs: now() - started,
         output: last.output,
       };
+      pending.set(file, result);
+      publish();
       return result;
     },
   );
@@ -489,6 +501,16 @@ async function main(): Promise<void> {
     process.env.RUNNER_TEMP ?? join(workspaceRoot, '.ai-pr-analyzer/tmp');
   mkdirSync(tempRoot, { recursive: true });
   const runsDir = join(sourceConfigDir, 'flaky-ai-analysis-runs');
+  const artifactPath = join(sourceConfigDir, 'flaky-ai-analysis.json');
+  mkdirSync(sourceConfigDir, { recursive: true });
+
+  // Written through a temp file: a kill in the middle of a plain write would
+  // leave Stage 3 parsing half a JSON document.
+  const writeArtifact = (artifact: MergedAiAnalysis): void => {
+    const tmp = `${artifactPath}.tmp`;
+    writeFileSync(tmp, `${JSON.stringify(artifact, null, 2)}\n`);
+    renameSync(tmp, artifactPath);
+  };
 
   const result = await runFlakyAiAnalysis({
     filesToAnalyze,
@@ -500,6 +522,7 @@ async function main(): Promise<void> {
     sourceConfigDir,
     runsDir,
     conservativeFallback,
+    writeArtifact,
     runAnalyzer: (file, configDir, outputPath) =>
       spawnAnalyzer({
         file,
@@ -515,11 +538,7 @@ async function main(): Promise<void> {
       }),
   });
 
-  mkdirSync(sourceConfigDir, { recursive: true });
-  writeFileSync(
-    join(sourceConfigDir, 'flaky-ai-analysis.json'),
-    `${JSON.stringify(result.artifact, null, 2)}\n`,
-  );
+  writeArtifact(result.artifact);
 
   const outputs = stepOutputsFromArtifact(result.artifact);
   core.setOutput('reviewed_count', outputs.reviewed_count);

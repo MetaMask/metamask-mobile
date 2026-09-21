@@ -68,7 +68,9 @@ export function locateSnippetInSource(
   const sourceLines = source.split(/\r?\n/);
   const lastStart = sourceLines.length - snippetLines.length;
   const targetLine =
-    reportedLine !== undefined && Number.isInteger(reportedLine) && reportedLine >= 1
+    reportedLine !== undefined &&
+    Number.isInteger(reportedLine) &&
+    reportedLine >= 1
       ? reportedLine
       : undefined;
 
@@ -122,7 +124,11 @@ export function sourceSliceAtLine(
   reportedLine: number,
   snippetLineCount: number,
 ): string {
-  if (!Number.isInteger(reportedLine) || reportedLine < 1 || snippetLineCount < 1) {
+  if (
+    !Number.isInteger(reportedLine) ||
+    reportedLine < 1 ||
+    snippetLineCount < 1
+  ) {
     return '';
   }
   const sourceLines = source.split(/\r?\n/);

@@ -13,6 +13,9 @@ export type FlakyJobSummaryInput = {
   historicallyFlakyCount: string;
   unreadFailedRuns: string;
   missingLogBlobs: string;
+  infrastructureFailures: string;
+  unattributedReruns: string;
+  historyWindow: string;
   missingPriorShaCount: string;
   candidatesInspected: string;
   candidateShaCount: string;
@@ -162,8 +165,12 @@ export const renderFlakyJobSummary = (input: FlakyJobSummaryInput): string => {
     headline = `**Skipped.** ${skipReasonLabel(input.skipReason) || 'Analyzer and comment were not run.'}`;
   } else if (input.stage3SkipReason) {
     headline = `**Analyzed; comment not posted.** ${skipReasonLabel(input.stage3SkipReason)}`;
+  } else if (input.commentAction === 'none') {
+    headline = '**Analyzed.** Nothing to report and no comment to clear.';
   } else {
-    headline = '**Analyzed.** Check the comment step below.';
+    // Stage 3 neither posted nor named a reason, which means it never
+    // reported back — saying "analyzed" would hide that.
+    headline = `**Analyzed; comment step ${outcomeLabel(input.stage3Outcome)}.**`;
   }
 
   const aiLine = describeAiAnalysis(input);
@@ -188,12 +195,15 @@ ${headline}
 | Has unit test files | ${input.hasTestFiles || 'unknown'} |
 | Modified unit test files | ${input.modifiedFileCount || '0'} |
 | Files re-analyzed | ${input.filesToAnalyzeCount || '0'} |
-| Historically flaky files | ${input.historicallyFlakyCount || '0'} |
+| History hits | ${input.historicallyFlakyCount || '0'} of ${input.modifiedFileCount || '0'} modified file(s) |
+| History window | ${input.historyWindow || 'not walked'} |
 | History coverage | ${input.candidatesInspected || '0'} / ${input.candidateShaCount || '0'} candidate SHA(s)${input.historyComplete === 'true' ? ', complete' : input.historyComplete === 'false' ? ', capped' : ''} |
 | Unread failed CI runs | ${input.unreadFailedRuns || '0'} |
 | Missing log blobs | ${input.missingLogBlobs || '0'} |
+| Lost runners | ${input.infrastructureFailures || '0'} |
+| Unattributed re-runs | ${input.unattributedReruns || '0'} |
 | Missing prior SHAs | ${input.missingPriorShaCount || '0'} |
-| AI findings | ${input.findingCount || '0'} |
+| Pattern findings (merged) | ${input.findingCount || '0'} |
 | AI analysis | ${aiLine} |
 | Comment | ${commentLine} |
 | Checkout | ${outcomeLabel(input.checkoutOutcome)} |
@@ -202,7 +212,7 @@ ${headline}
 | Skill sync | ${outcomeLabel(input.skillSyncOutcome)} |
 | AI checkout | ${outcomeLabel(input.aiCheckoutOutcome)} |
 | AI install | ${outcomeLabel(input.aiInstallOutcome)} |
-| AI analysis | ${outcomeLabel(input.aiOutcome)} |
+| AI analysis step | ${outcomeLabel(input.aiOutcome)} |
 | Sticky comment | ${outcomeLabel(input.stage3Outcome)} |
 `;
 };
@@ -220,6 +230,9 @@ export const writeFlakyJobSummaryFromEnv = (): void => {
     historicallyFlakyCount: env('FLAKY_HISTORICALLY_FLAKY_COUNT'),
     unreadFailedRuns: env('FLAKY_UNREAD_FAILED_RUNS'),
     missingLogBlobs: env('FLAKY_MISSING_LOG_BLOBS'),
+    infrastructureFailures: env('FLAKY_INFRASTRUCTURE_FAILURES'),
+    unattributedReruns: env('FLAKY_UNATTRIBUTED_RERUNS'),
+    historyWindow: env('FLAKY_HISTORY_WINDOW'),
     missingPriorShaCount: env('FLAKY_MISSING_PRIOR_SHA_COUNT'),
     candidatesInspected: env('FLAKY_CANDIDATES_INSPECTED'),
     candidateShaCount: env('FLAKY_CANDIDATE_SHA_COUNT'),

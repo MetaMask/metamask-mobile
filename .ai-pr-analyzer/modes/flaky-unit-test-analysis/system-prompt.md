@@ -36,9 +36,10 @@ J5 — incomplete mock store:
 
 Severity:
 
+- Use `critical` only for a leak or race you can show already fails the suite on re-run order alone.
 - Use `high` only for a concrete cross-test leak or timing race with the affected state and path identified.
 - Use `medium` only for a strongly plausible mechanism with incomplete proof.
-- Do not manufacture a finding when neither threshold is met.
+- Do not manufacture a finding when neither threshold is met. `critical`, `high` and `medium` are the only values the finalize schema accepts.
 
 {{reasoning_section}}
 

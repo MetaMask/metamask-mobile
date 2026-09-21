@@ -38,29 +38,38 @@ import {
 } from './flaky-sticky-snippet';
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
 import {
-  renderIncompleteCoverageLine,
-  renderMissingLogBlobsLine,
-  shouldPostAllClear,
+  renderCoverageWindowLine,
+  renderInfrastructureFailuresLine,
+  renderUnattributedRerunsLine,
 } from './flaky-same-sha-history';
 import {
   assembleAllClearMarkdown,
-  assembleFlakyCommentMarkdown,
+  fitCommentBody,
   renderFlakyFindingsTable,
   renderNoFindingsLine,
   resolveUnreviewedReason,
+  type AiSkipReason,
   type AnalyzerRunHint,
   type FlakyTableFile,
 } from './flaky-signal-combination';
+import {
+  COMMENT_MARKER as MARKER,
+  buildStateBlock,
+} from './flaky-comment-state';
+import {
+  decideCommentAction,
+  mergePriorState,
+  type CommentAction,
+} from './flaky-comment-merge';
+import type {
+  CommentState,
+  CoverageWindow,
+  Finding,
+  HistoryArtifact,
+  HistoryFile,
+  StoredFinding,
+} from './flaky-types';
 
-// Stable HTML comment on the first line — used to identify and update this
-// script's own comment across runs. Any change breaks stickiness (a new
-// comment will be created and the old one will be orphaned).
-const MARKER = '<!-- metamask-flaky-test-detection -->';
-// Prefix of the hidden state block appended to the comment body. Stage 1 reads
-// this on the next push to determine which files changed since last analysis.
-// The state payload is base64-encoded (see buildStateBlock below),
-// so base64 alphabet can never contain the `-->` sequence that closes the HTML comment.
-const STATE_MARKER = '<!-- metamask-flaky-test-detection-metadata=';
 // Canonical source of the flaky-test-detection skill. The synced copy at
 // .agents/skills/mms-flaky-test-detection/SKILL.md is .gitignore'd, so we link
 // to the real source repo (MetaMask/skills) instead of a 404 blob path.
@@ -81,54 +90,9 @@ const PRIOR_STATE_PATH = join(
   '.ai-pr-analyzer/flaky-prior-state.json',
 );
 
-interface HistoryFile {
-  path: string;
-  flaky: boolean;
-  sameShaFailThenPass?: number;
-  exampleRunUrl?: string;
-  runHistoryUrl: string;
-}
-
-interface HistoryArtifact {
-  windows?: number[];
-  analyzedFiles?: string[];
-  headSha?: string;
-  files?: HistoryFile[];
-  historyComplete?: boolean;
-  candidatesInspected?: number;
-  candidateShaCount?: number;
-  unreadFailedRuns?: number;
-  missingLogBlobs?: number;
-}
-
-interface Finding {
-  file: string;
-  line?: number;
-  patternId: string;
-  patternName: string;
-  severity: string;
-  snippet?: string;
-  explanation: string;
-  suggestedFix: string;
-  historicalHintUsed: boolean;
-}
-
-// Per-file state embedded in the sticky comment body so Stage 1 can determine
-// which files changed since they were last analyzed.
-interface PerFileState {
-  analyzedSha: string;
-  findings: Finding[];
-  // Whether Stage 2 reviewed the file at analyzedSha. Absent in comments
-  // written before this field existed, which reads as "not reviewed" until
-  // the file is analyzed again — the safe direction for the Flaky patterns cell.
-  patternsReviewed?: boolean;
-}
-
-interface CommentState {
-  version: number;
-  windows: number[];
-  files: Record<string, PerFileState>;
-}
+// Stage 1 writes every field, but a Stage 1 that failed mid-way still writes
+// what it had, so every read here is defensive.
+type ReadHistoryArtifact = Partial<HistoryArtifact> & { windows?: number[] };
 
 interface AiAnalysisArtifact {
   // Files the AI actually reviewed this run. Distinguishes "reviewed, no
@@ -147,7 +111,6 @@ interface Comment {
   body?: string;
 }
 
-type CommentAction = 'created' | 'updated' | 'all_clear' | 'none';
 type Stage3SkipReason =
   | 'missing_token_or_pr'
   | 'history_artifact_missing'
@@ -179,6 +142,7 @@ const env = {
   serverUrl: process.env.GITHUB_SERVER_URL ?? 'https://github.com',
   headSha: process.env.HEAD_SHA ?? '',
   aiStepOutcome: process.env.FLAKY_AI_STEP_OUTCOME ?? '',
+  aiSkipReason: (process.env.FLAKY_AI_SKIP_REASON ?? '') as AiSkipReason,
   runId: process.env.GITHUB_RUN_ID ?? '',
 };
 
@@ -214,9 +178,11 @@ function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
   }
 }
 
-function readHistoryArtifact(): HistoryArtifact | null {
+function readHistoryArtifact(): ReadHistoryArtifact | null {
   try {
-    return JSON.parse(readFileSync(HISTORY_PATH, 'utf8')) as HistoryArtifact;
+    return JSON.parse(
+      readFileSync(HISTORY_PATH, 'utf8'),
+    ) as ReadHistoryArtifact;
   } catch (error) {
     core.setFailed(
       `Failed to parse history artifact: ${(error as Error).message}`,
@@ -227,23 +193,13 @@ function readHistoryArtifact(): HistoryArtifact | null {
 
 const DEFAULT_WINDOWS = [14];
 
-// Serializes per-file state into a hidden HTML comment appended to the comment
-// body. Stage 1 reads this on the next push to decide which files need
-// re-analysis vs. which can be preserved verbatim. The JSON is base64-encoded
-// so an AI finding's snippet/explanation/suggestedFix containing a literal
-// `-->` cannot truncate the payload before the real closing delimiter.
-function buildStateBlock(state: CommentState): string {
-  const encoded = Buffer.from(JSON.stringify(state), 'utf8').toString('base64');
-  return `${STATE_MARKER}${encoded} -->`;
-}
-
 // Renders the fix as a ```diff fence (snippet lines as `-`, suggestedFix
 // lines as `+`) so reviewers see a before/after instead of only the new
 // code. This is a whole-block replace rather than a computed line diff:
 // the AI's `snippet` isn't guaranteed to line up 1:1 with `suggestedFix`,
 // and a mismatched line-level diff would look more broken than helpful.
 // Falls back to a plain `ts` block when no snippet was captured.
-function buildFixBlock(f: Finding): string {
+function buildFixBlock(f: StoredFinding): string {
   if (!f.snippet) {
     return `\`\`\`ts\n${f.suggestedFix}\n\`\`\``;
   }
@@ -283,7 +239,7 @@ function buildLocationLink(
 }
 
 function buildSuggestedFixesSection(
-  findings: Finding[],
+  findings: StoredFinding[],
   headSha: string,
 ): string {
   if (findings.length === 0) {
@@ -304,8 +260,10 @@ function workflowRunUrl(): string {
   return `${env.serverUrl}/${env.repo}/actions/runs/${env.runId}`;
 }
 
-function findingsByFile(findings: Finding[]): Map<string, Finding[]> {
-  const byFile = new Map<string, Finding[]>();
+function findingsByFile(
+  findings: StoredFinding[],
+): Map<string, StoredFinding[]> {
+  const byFile = new Map<string, StoredFinding[]>();
   for (const finding of findings) {
     const list = byFile.get(finding.file) ?? [];
     list.push(finding);
@@ -318,6 +276,7 @@ function buildTableFiles({
   historyFiles,
   findings,
   patternsReviewedFiles,
+  staleReviewShaByFile,
   headSha,
   runs,
   maxFiles,
@@ -325,8 +284,9 @@ function buildTableFiles({
   logUrl,
 }: {
   historyFiles: HistoryFile[];
-  findings: Finding[];
+  findings: StoredFinding[];
   patternsReviewedFiles: Set<string>;
+  staleReviewShaByFile: Map<string, string>;
   headSha: string;
   runs: AnalyzerRunHint[] | undefined;
   maxFiles: number | undefined;
@@ -343,19 +303,21 @@ function buildTableFiles({
         path: file.path,
         hasHistoryHit: file.flaky,
         patternsReviewed,
-        sameShaFailThenPass: file.sameShaFailThenPass ?? 0,
-        exampleRunUrl: file.exampleRunUrl ?? '',
+        sameShaFailThenPass: file.sameShaFailThenPass,
+        exampleRunUrl: file.exampleRunUrl,
         findings: (byFile.get(file.path) ?? []).map((finding) => ({
           patternId: finding.patternId,
           patternName: finding.patternName,
           severity: finding.severity,
           blobUrl: blobUrl(finding.file, finding.line, headSha),
         })),
+        reviewedAtSha: staleReviewShaByFile.get(file.path),
         unreviewed: resolveUnreviewedReason({
           file: file.path,
           patternsReviewed,
           runs,
           aiStepOutcome,
+          aiSkipReason: env.aiSkipReason,
           maxFiles,
           logUrl,
         }),
@@ -367,6 +329,7 @@ function buildCommentBody({
   historyFiles,
   findings,
   patternsReviewedFiles,
+  staleReviewShaByFile,
   stateBlock,
   headSha,
   coverageLine,
@@ -374,8 +337,9 @@ function buildCommentBody({
   maxFiles,
 }: {
   historyFiles: HistoryFile[];
-  findings: Finding[];
+  findings: StoredFinding[];
   patternsReviewedFiles: Set<string>;
+  staleReviewShaByFile: Map<string, string>;
   stateBlock: string;
   headSha: string;
   coverageLine: string;
@@ -387,6 +351,7 @@ function buildCommentBody({
       historyFiles,
       findings,
       patternsReviewedFiles,
+      staleReviewShaByFile,
       headSha,
       runs,
       maxFiles,
@@ -394,24 +359,60 @@ function buildCommentBody({
       logUrl: workflowRunUrl(),
     }),
   );
-  return assembleFlakyCommentMarkdown({
+  return fitCommentBody({
     marker: MARKER,
     table: table.length > 0 ? table : renderNoFindingsLine(historyFiles.length),
     diffs: buildSuggestedFixesSection(findings, headSha),
     coverageLine,
     skillLink: SKILL_LINK,
     stateBlock,
+    runUrl: workflowRunUrl(),
   });
 }
 
-function buildAllClearBody(
-  stateBlock: string,
-  missingLogBlobs: number,
+const EMPTY_COVERAGE_WINDOW: CoverageWindow = {
+  lookbackDays: 14,
+  runsListed: 0,
+  oldestRunSampled: '',
+  newestRunSampled: '',
+  cappedDays: [],
+};
+
+/**
+ * What the walk could and could not see. Missing logs and lost runners are
+ * stated here rather than withheld as a reason to refuse all-clear: neither
+ * comes back on a re-run, so blocking on them would keep green out of reach.
+ */
+function buildCoverageDisclosure(
+  history: ReadHistoryArtifact,
+  hasFindings: boolean,
 ): string {
+  return [
+    renderCoverageWindowLine({
+      window: history.coverageWindow ?? EMPTY_COVERAGE_WINDOW,
+      candidatesInspected: history.candidatesInspected ?? 0,
+      candidateShaCount: history.candidateShaCount ?? 0,
+      unreadFailedRuns: history.unreadFailedRuns ?? 0,
+      complete: history.historyComplete === true,
+      hasFindings,
+    }),
+    renderUnattributedRerunsLine(
+      history.unattributedReruns ?? [],
+      env.serverUrl,
+      env.repo,
+      history.unattributedRerunCount ?? 0,
+    ),
+    renderInfrastructureFailuresLine(history.infrastructureFailures ?? 0),
+  ]
+    .filter((line) => line.length > 0)
+    .join('\n\n');
+}
+
+function buildAllClearBody(stateBlock: string, disclosure: string): string {
   return assembleAllClearMarkdown({
     marker: MARKER,
     stateBlock,
-    note: renderMissingLogBlobsLine(missingLogBlobs),
+    note: disclosure,
   });
 }
 
@@ -576,55 +577,26 @@ async function main(): Promise<void> {
     freshFindingsByFile.set(finding.file, list);
   }
 
-  // Merge per file (files no longer in modifiedFiles are dropped automatically
-  // because historyFiles already represents exactly the current modified set):
-  //   - history re-ran AND AI reviewed the file → adopt fresh AI findings even
-  //     when empty ("reviewed, all clear" clears previous findings).
-  //   - history re-ran but AI did NOT complete for the file (Stage 2 failed /
-  //     skipped / conservative fallback) → preserve prior findings so a broken
-  //     AI run can't erase them and produce a false "all fixed" comment.
-  //   - history did not re-run the file (untouched by this push) → preserve
-  //     prior findings verbatim.
-  const mergedFindings: Finding[] = [];
-  const mergedStateFiles: Record<string, PerFileState> = {};
-  // Files whose current content Stage 2 actually reviewed. A file re-analyzed
-  // by Stage 1 but missed by Stage 2 loses its prior reviewed state: that
-  // review covered an older version of the file.
-  const patternsReviewedFiles = new Set<string>();
-
-  for (const histFile of historyFiles) {
-    const { path } = histFile;
-    const prior = priorState.files[path];
-    const priorFindings = (prior?.findings ?? []) as Finding[];
-
-    if (analyzedFiles.has(path) && aiAnalyzedFiles.has(path)) {
-      const fresh = freshFindingsByFile.get(path) ?? [];
-      mergedFindings.push(...fresh);
-      mergedStateFiles[path] = {
-        analyzedSha: headSha,
-        findings: fresh,
-        patternsReviewed: true,
-      };
-      patternsReviewedFiles.add(path);
-    } else {
-      const patternsReviewed = analyzedFiles.has(path)
-        ? false
-        : (prior?.patternsReviewed ?? false);
-      mergedFindings.push(...priorFindings);
-      mergedStateFiles[path] = {
-        analyzedSha: prior?.analyzedSha ?? headSha,
-        findings: priorFindings,
-        patternsReviewed,
-      };
-      if (patternsReviewed) patternsReviewedFiles.add(path);
-    }
-  }
+  // Files no longer modified by the PR drop out on their own: historyFiles is
+  // exactly the current modified set.
+  const merged = mergePriorState({
+    historyFiles,
+    priorState,
+    analyzedFiles,
+    aiAnalyzedFiles,
+    freshFindingsByFile,
+    headSha,
+    readFileAtHead: (path) => readFileAtHead(path, headSha),
+    onDroppedFinding: (message) => core.info(message),
+  });
+  const mergedFindings = merged.findings;
+  const patternsReviewedFiles = merged.patternsReviewedFiles;
 
   // Build the state block to embed in the comment for the next run to read.
   const newState: CommentState = {
     version: 1,
     windows,
-    files: mergedStateFiles,
+    files: merged.stateFiles,
   };
   const stateBlock = buildStateBlock(newState);
 
@@ -634,25 +606,13 @@ async function main(): Promise<void> {
   const hasFindings =
     historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
   const historyComplete = history.historyComplete === true;
-  const missingLogBlobs = history.missingLogBlobs ?? 0;
-  const coverageLine = [
-    historyComplete
-      ? ''
-      : renderIncompleteCoverageLine({
-          candidatesInspected: history.candidatesInspected ?? 0,
-          candidateShaCount: history.candidateShaCount ?? 0,
-          unreadFailedRuns: history.unreadFailedRuns ?? 0,
-          hasFindings,
-        }),
-    renderMissingLogBlobsLine(missingLogBlobs),
-  ]
-    .filter((line) => line.length > 0)
-    .join('\n\n');
+  const coverageLine = buildCoverageDisclosure(history, hasFindings);
 
   const commentBody = buildCommentBody({
     historyFiles,
     findings: mergedFindings,
     patternsReviewedFiles,
+    staleReviewShaByFile: merged.staleReviewShaByFile,
     stateBlock,
     headSha,
     coverageLine,
@@ -668,8 +628,13 @@ async function main(): Promise<void> {
       repo,
     );
 
-    // 4-state matrix — order matters because each branch returns early.
-    if (!hasFindings && !existingComment) {
+    const action = decideCommentAction({
+      hasFindings,
+      hasExistingComment: existingComment !== null,
+      historyComplete,
+    });
+
+    if (action === 'none') {
       console.log(
         '✅ No findings and no existing sticky comment — nothing to do',
       );
@@ -682,7 +647,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    if (hasFindings && !existingComment) {
+    if (action === 'created') {
       await octokit.rest.issues.createComment({
         owner,
         repo,
@@ -699,28 +664,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    if (hasFindings && existingComment) {
-      await octokit.rest.issues.updateComment({
-        owner,
-        repo,
-        comment_id: existingComment.id,
-        body: commentBody,
-      });
-      console.log(
-        '🔄 Updated sticky flaky-test-detection comment with latest findings',
-      );
-      setStage3Outputs({
-        commentPosted: true,
-        commentAction: 'updated',
-        findingCount: mergedFindings.length,
-        skipReason: '',
-      });
-      return;
-    }
-
-    // !hasFindings && existingComment. All-clear only when Stage 1 finished
-    // its walk; a truncated history must not look like "all fixed".
-    if (!shouldPostAllClear(hasFindings, historyComplete)) {
+    if (action === 'updated') {
       await octokit.rest.issues.updateComment({
         owner,
         repo,
@@ -728,7 +672,9 @@ async function main(): Promise<void> {
         body: commentBody,
       });
       console.log(
-        '⚠️  Updated sticky comment — history coverage incomplete; not all-clear',
+        hasFindings
+          ? '🔄 Updated sticky flaky-test-detection comment with latest findings'
+          : '⚠️  Updated sticky comment — history coverage incomplete; not all-clear',
       );
       setStage3Outputs({
         commentPosted: true,
@@ -743,7 +689,7 @@ async function main(): Promise<void> {
       owner,
       repo,
       comment_id: existingComment!.id,
-      body: buildAllClearBody(stateBlock, missingLogBlobs),
+      body: buildAllClearBody(stateBlock, coverageLine),
     });
     console.log(
       '🎉 Updated sticky comment — all previously flagged issues are fixed',

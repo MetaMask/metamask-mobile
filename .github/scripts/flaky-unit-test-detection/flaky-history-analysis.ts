@@ -39,6 +39,7 @@ import { execFileSync } from 'child_process';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import {
+  githubErrorStatus,
   isMissingLogBlobError,
   isRetriableGithubError,
   withRetryOnce,
@@ -48,44 +49,55 @@ import {
   buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
   chunkArray,
+  classifyLoglessJob,
   collectListedRunsFromPages,
   confirmedFailThenPassJobs,
   groupRunsByHeadSha,
   historyCoverageComplete,
   hitsFromConfirmedLogs,
   jobLogUrl,
+  lookbackDayBuckets,
   parseJestFailPaths,
   parseShaBatchResponse,
+  summarizeCoverageWindow,
   unansweredModifiedFiles,
+  type ConfirmedFailThenPassJob,
+  type CoverageWindow,
   type ListedWorkflowRun,
+  type UnattributedRerun,
 } from './flaky-same-sha-history';
 import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
 import {
   commentFileSetChanged,
   computeNeedsAnalysis,
 } from './flaky-needs-analysis';
+import { COMMENT_MARKER, parseStateFromComment } from './flaky-comment-state';
+import type { CommentState, HistoryArtifact, HistoryFile } from './flaky-types';
 
 type Octokit = ReturnType<typeof getOctokit>;
-
-// Prefix of the hidden state block embedded in the sticky comment body.
-// Stage 1 reads this to determine which files need re-analysis. The state
-// payload is base64-encoded (see flaky-sticky-comment.ts buildStateBlock), so
-// the marker name says so and the base64 alphabet can never contain the `-->`
-// sequence that closes the HTML comment.
-const STATE_MARKER = '<!-- metamask-flaky-test-detection-metadata=';
-// Marker used by Stage 3 to identify the sticky comment (must stay in sync).
-const COMMENT_MARKER = '<!-- metamask-flaky-test-detection -->';
 
 const WORKFLOW = 'ci.yml';
 const JOB_NAME = 'Unit tests';
 // All-branch volume is much higher than main-only sampling, so the window is
 // shorter than the old 30d main walk.
 const LOOKBACK_DAYS = 14;
-const MAX_RUNS_LISTED = 2000;
-const GRAPHQL_BATCH_SIZE = 6;
-const MAX_GRAPHQL_QUERIES = 60;
+// listWorkflowRuns serves at most 1000 results per query; one query per day
+// keeps each bucket clear of that ceiling at this repo's run volume.
+const MAX_RUNS_PER_DAY = 1000;
+const MAX_RUNS_LISTED = 8000;
+// Measured against the live API: a 20-SHA batch costs 20 GraphQL points and
+// 151k nodes (the per-query node limit is 500k), so points scale with commits
+// inspected, not with queries. GITHUB_TOKEN gets 1000 points per hour per
+// repository, and this workflow can run several times an hour, so the walk
+// stops at 500 commits and leaves half the budget to everything else.
+const GRAPHQL_BATCH_SIZE = 20;
+const MAX_GRAPHQL_QUERIES = 25;
+export const MAX_GRAPHQL_POINTS_PER_RUN =
+  GRAPHQL_BATCH_SIZE * MAX_GRAPHQL_QUERIES;
 const MAX_FAILED_LOG_FETCHES = 50;
 const DOWNLOAD_CONCURRENCY = 8;
+// The comment names a few shards rather than every one of them.
+const MAX_DISCLOSED_RERUNS = 5;
 
 const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const OUTPUT_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
@@ -93,43 +105,6 @@ const PRIOR_STATE_PATH = join(
   WORKSPACE_ROOT,
   '.ai-pr-analyzer/flaky-prior-state.json',
 );
-
-interface PerFileState {
-  analyzedSha: string;
-  findings: unknown[];
-  patternsReviewed?: boolean;
-}
-
-interface CommentState {
-  version: number;
-  windows: number[];
-  files: Record<string, PerFileState>;
-}
-
-interface HistoryFile {
-  path: string;
-  flaky: boolean;
-  sameShaFailThenPass: number;
-  exampleRunUrl: string;
-  runHistoryUrl: string;
-}
-
-interface HistoryResult {
-  generatedAt: string;
-  workflow: string;
-  job: string;
-  lookbackDays: number;
-  sampledRunCount: number;
-  candidateShaCount: number;
-  candidatesInspected: number;
-  historyComplete: boolean;
-  graphqlQueries: number;
-  unreadFailedRuns: number;
-  missingLogBlobs: number;
-  analyzedFiles: string[];
-  headSha: string;
-  files: HistoryFile[];
-}
 
 const env = {
   baseRef: process.env.BASE_REF ?? 'main',
@@ -202,6 +177,9 @@ function setStage1Outputs({
   historicallyFlakyCount,
   unreadFailedRuns,
   missingLogBlobs,
+  infrastructureFailures = 0,
+  unattributedReruns = 0,
+  coverageWindow = EMPTY_COVERAGE_WINDOW,
   missingPriorShaCount,
   candidatesInspected,
   candidateShaCount,
@@ -215,6 +193,9 @@ function setStage1Outputs({
   historicallyFlakyCount: number;
   unreadFailedRuns: number;
   missingLogBlobs: number;
+  infrastructureFailures?: number;
+  unattributedReruns?: number;
+  coverageWindow?: CoverageWindow;
   missingPriorShaCount: number;
   candidatesInspected: number;
   candidateShaCount: number;
@@ -229,10 +210,25 @@ function setStage1Outputs({
   core.setOutput('historically_flaky_count', String(historicallyFlakyCount));
   core.setOutput('unread_failed_runs', String(unreadFailedRuns));
   core.setOutput('missing_log_blobs', String(missingLogBlobs));
+  core.setOutput('infrastructure_failures', String(infrastructureFailures));
+  core.setOutput('unattributed_reruns', String(unattributedReruns));
   core.setOutput('missing_prior_sha_count', String(missingPriorShaCount));
   core.setOutput('candidates_inspected', String(candidatesInspected));
   core.setOutput('candidate_sha_count', String(candidateShaCount));
   core.setOutput('history_complete', historyComplete ? 'true' : 'false');
+  core.setOutput('history_window', describeCoverageWindow(coverageWindow));
+}
+
+/** One cell for the Summary table: the range the walk actually covered. */
+export function describeCoverageWindow(window: CoverageWindow): string {
+  if (!window.oldestRunSampled || !window.newestRunSampled) {
+    return `last ${window.lookbackDays}d, 0 runs`;
+  }
+  const capped =
+    window.cappedDays.length > 0
+      ? `, ${window.cappedDays.length} day(s) clipped`
+      : '';
+  return `${window.oldestRunSampled} → ${window.newestRunSampled}, ${window.runsListed} runs${capped}`;
 }
 
 // setFailed + Summary outputs; deliberately omit has_test_files so Stage 3
@@ -255,6 +251,12 @@ function failStage1(
   core.setOutput('modified_file_count', String(counts?.modifiedFileCount ?? 0));
   core.setOutput('unread_failed_runs', String(counts?.unreadFailedRuns ?? 0));
   core.setOutput('missing_log_blobs', '0');
+  core.setOutput('infrastructure_failures', '0');
+  core.setOutput('unattributed_reruns', '0');
+  core.setOutput(
+    'history_window',
+    describeCoverageWindow(EMPTY_COVERAGE_WINDOW),
+  );
   core.setOutput(
     'missing_prior_sha_count',
     String(counts?.missingPriorShaCount ?? 0),
@@ -283,21 +285,6 @@ async function mapWithConcurrency<T, R>(
     Array.from({ length: Math.min(limit, items.length) }, worker),
   );
   return results;
-}
-
-function parseStateFromComment(body: string): CommentState | null {
-  const idx = body.indexOf(STATE_MARKER);
-  if (idx === -1) return null;
-  const after = body.slice(idx + STATE_MARKER.length).trimStart();
-  const closeIdx = after.indexOf(' -->');
-  if (closeIdx === -1) return null;
-  const encoded = after.slice(0, closeIdx).trim();
-  try {
-    const json = Buffer.from(encoded, 'base64').toString('utf8');
-    return JSON.parse(json) as CommentState;
-  } catch {
-    return null;
-  }
 }
 
 type PriorStateResult =
@@ -371,6 +358,9 @@ function getModifiedUnitTestFiles(): ModifiedFilesResult {
     diffOutput = sh('git', [
       'diff',
       '--name-only',
+      // A deleted test file cannot be reviewed or linked to, and history for a
+      // path the PR removed is not something the author can act on.
+      '--diff-filter=d',
       `origin/${env.baseRef}...${env.headSha || 'HEAD'}`,
     ]);
   } catch (error) {
@@ -390,13 +380,11 @@ function getModifiedUnitTestFiles(): ModifiedFilesResult {
   };
 }
 
-async function collectCompletedRuns(
+async function collectRunsForDay(
   octokit: Octokit,
-): Promise<ListedWorkflowRun[]> {
+  day: string,
+): Promise<{ runs: ListedWorkflowRun[]; capped: boolean }> {
   const [owner, repo] = env.repo.split('/');
-  const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
   const iterator = octokit.paginate.iterator(
     octokit.rest.actions.listWorkflowRuns,
     {
@@ -404,57 +392,119 @@ async function collectCompletedRuns(
       repo,
       workflow_id: WORKFLOW,
       status: 'completed',
-      created: `>=${since}`,
+      created: day,
       per_page: 100,
     },
   );
   const { runs, pageErrorMessage } = await collectListedRunsFromPages(
     iterator,
-    MAX_RUNS_LISTED,
+    MAX_RUNS_PER_DAY,
   );
   if (pageErrorMessage) {
     core.warning(
-      `listWorkflowRuns pagination stopped after ${runs.length} run(s): ${pageErrorMessage}`,
+      `listWorkflowRuns ${day} stopped after ${runs.length} run(s): ${pageErrorMessage}`,
     );
   }
-  return runs;
+  return { runs, capped: runs.length >= MAX_RUNS_PER_DAY };
 }
 
 type ListedRunsResult =
-  | { ok: true; runs: ListedWorkflowRun[] }
+  | { ok: true; runs: ListedWorkflowRun[]; cappedDays: string[] }
   | { ok: false; message: string };
 
+/**
+ * One query per day: a single `created: >=<date>` query is served from the
+ * same 1000-result ceiling as any other listing, so at this repo's volume it
+ * silently returns only the newest days of the requested window.
+ */
 async function getCompletedRunsInLookback(
   octokit: Octokit,
 ): Promise<ListedRunsResult> {
-  try {
-    return {
-      ok: true,
-      runs: await withRetryOnce(() => collectCompletedRuns(octokit)),
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      message: `listWorkflowRuns failed: ${(error as Error).message}`,
-    };
+  const runs: ListedWorkflowRun[] = [];
+  const cappedDays: string[] = [];
+  for (const day of lookbackDayBuckets(new Date(), LOOKBACK_DAYS)) {
+    if (runs.length >= MAX_RUNS_LISTED) {
+      core.warning(
+        `listWorkflowRuns stopped at ${MAX_RUNS_LISTED} run(s); window shortened before ${day}`,
+      );
+      break;
+    }
+    let listed: { runs: ListedWorkflowRun[]; capped: boolean };
+    try {
+      listed = await withRetryOnce(() => collectRunsForDay(octokit, day));
+    } catch (error) {
+      // Days already listed are still a usable window; failing the stage would
+      // throw away a walk that only lost its oldest end.
+      if (runs.length === 0) {
+        return {
+          ok: false,
+          message: `listWorkflowRuns failed: ${(error as Error).message}`,
+        };
+      }
+      core.warning(
+        `listWorkflowRuns ${day} failed: ${(error as Error).message}`,
+      );
+      cappedDays.push(day);
+      break;
+    }
+    if (listed.capped) {
+      core.warning(
+        `listWorkflowRuns ${day} hit the ${MAX_RUNS_PER_DAY}-result ceiling; older runs that day were not listed`,
+      );
+      cappedDays.push(day);
+    }
+    runs.push(...listed.runs);
   }
+  return { ok: true, runs, cappedDays };
 }
 
-// A 404 means GitHub no longer has the blob, so it is a permanent gap; every
-// other failure is something a re-run could still read.
-type LogFetchFailure = 'missing_blob' | 'unread';
+// A 404 means GitHub no longer has the blob. Which kind of gap that is depends
+// on the job itself: a runner that died mid-step never had a log to lose and
+// never failed a test, while a job whose steps all completed really did fail.
+type LogFetchFailure = 'missing_blob' | 'infrastructure' | 'unread';
 
 type FailedLogFetch = {
   filesByJobId: Map<number, string[]>;
   unreadCount: number;
   missingBlobCount: number;
+  infrastructureCount: number;
+  unattributed: UnattributedRerun[];
 };
+
+/**
+ * GitHub serves the log from Azure behind a redirect, so a 404 alone does not
+ * say whether a test failed. The job record does: its steps are still there
+ * after the log is gone.
+ */
+async function classifyMissingLog(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  jobId: number,
+): Promise<'infrastructure' | 'missing_blob'> {
+  try {
+    const { data } = await withRetryOnce(() =>
+      octokit.rest.actions.getJobForWorkflowRun({
+        owner,
+        repo,
+        job_id: jobId,
+      }),
+    );
+    return classifyLoglessJob({ steps: data.steps }) === 'infrastructure'
+      ? 'infrastructure'
+      : 'missing_blob';
+  } catch {
+    // Without the job record there is no evidence of a lost runner, so the
+    // conservative reading is a real failure whose log is gone.
+    return 'missing_blob';
+  }
+}
 
 async function downloadFailedUnitLogs(
   octokit: Octokit,
   owner: string,
   repo: string,
-  failedUnitJobs: { id: number }[],
+  failedUnitJobs: ConfirmedFailThenPassJob[],
 ): Promise<FailedLogFetch> {
   const logParts = await mapWithConcurrency(
     failedUnitJobs,
@@ -462,49 +512,79 @@ async function downloadFailedUnitLogs(
     async (
       job,
     ): Promise<
-      | { jobId: number; ok: true; text: string }
-      | { jobId: number; ok: false; failure: LogFetchFailure }
+      | { job: ConfirmedFailThenPassJob; ok: true; text: string }
+      | { job: ConfirmedFailThenPassJob; ok: false; failure: LogFetchFailure }
     > => {
       try {
         const res = await withRetryOnce(() =>
           octokit.rest.actions.downloadJobLogsForWorkflowRun({
             owner,
             repo,
-            job_id: job.id,
+            job_id: job.jobId,
           }),
         );
-        return { jobId: job.id, ok: true, text: String(res.data) };
+        return { job, ok: true, text: String(res.data) };
       } catch (error) {
         if (isMissingLogBlobError(error)) {
-          core.info(
-            `downloadJobLogsForWorkflowRun ${job.id} failed: missing log blob`,
+          const failure = await classifyMissingLog(
+            octokit,
+            owner,
+            repo,
+            job.jobId,
           );
-          return { jobId: job.id, ok: false, failure: 'missing_blob' };
+          core.info(
+            `downloadJobLogsForWorkflowRun ${job.jobId} failed: ${
+              failure === 'infrastructure'
+                ? 'runner did not finish its steps'
+                : 'missing log blob'
+            }`,
+          );
+          return { job, ok: false, failure };
         }
         const reason = isRetriableGithubError(error)
           ? 'GitHub API error after retry'
           : (error as Error).message;
-        core.info(`downloadJobLogsForWorkflowRun ${job.id} failed: ${reason}`);
-        return { jobId: job.id, ok: false, failure: 'unread' };
+        core.info(
+          `downloadJobLogsForWorkflowRun ${job.jobId} failed: ${reason}`,
+        );
+        return { job, ok: false, failure: 'unread' };
       }
     },
   );
 
   const filesByJobId = new Map<number, string[]>();
+  const unattributed: UnattributedRerun[] = [];
   let unreadCount = 0;
   let missingBlobCount = 0;
+  let infrastructureCount = 0;
   for (const part of logParts) {
-    if (!part.ok) {
-      if (part.failure === 'missing_blob') {
-        missingBlobCount += 1;
-      } else {
-        unreadCount += 1;
-      }
+    if (part.ok) {
+      filesByJobId.set(part.job.jobId, parseJestFailPaths(part.text));
       continue;
     }
-    filesByJobId.set(part.jobId, parseJestFailPaths(part.text));
+    if (part.failure === 'infrastructure') {
+      infrastructureCount += 1;
+      continue;
+    }
+    if (part.failure === 'missing_blob') {
+      missingBlobCount += 1;
+    } else {
+      unreadCount += 1;
+    }
+    unattributed.push({
+      jobName: part.job.name,
+      runId: part.job.runId,
+      jobId: part.job.jobId,
+      reason: part.failure === 'missing_blob' ? 'missing_log' : 'unread',
+    });
   }
-  return { filesByJobId, unreadCount, missingBlobCount };
+  return {
+    filesByJobId,
+    unreadCount,
+    missingBlobCount,
+    infrastructureCount,
+    unattributed,
+  };
 }
 
 async function fetchShaBatch(
@@ -518,21 +598,25 @@ async function fetchShaBatch(
   return parseShaBatchResponse(response, shas);
 }
 
+type BuildHistoryResult = {
+  files: HistoryFile[];
+  unreadFailedRuns: number;
+  missingLogBlobs: number;
+  infrastructureFailures: number;
+  unattributedReruns: UnattributedRerun[];
+  candidateShaCount: number;
+  candidatesInspected: number;
+  historyComplete: boolean;
+  graphqlQueries: number;
+};
+
 async function buildHistory(
   octokit: Octokit,
   owner: string,
   repo: string,
   modifiedFiles: string[],
   runs: ListedWorkflowRun[],
-): Promise<{
-  files: HistoryFile[];
-  unreadFailedRuns: number;
-  missingLogBlobs: number;
-  candidateShaCount: number;
-  candidatesInspected: number;
-  historyComplete: boolean;
-  graphqlQueries: number;
-}> {
+): Promise<BuildHistoryResult> {
   const groups = groupRunsByHeadSha(runs);
   const candidates = candidateShaGroupsNewestFirst(groups);
   const batches = chunkArray(
@@ -545,8 +629,10 @@ async function buildHistory(
     failRunId: number;
     jobId: number;
   }[] = [];
+  const unattributedReruns: UnattributedRerun[] = [];
   let unreadFailedRuns = 0;
   let missingLogBlobs = 0;
+  let infrastructureFailures = 0;
   let logFetches = 0;
   let graphqlQueries = 0;
   let candidatesInspected = 0;
@@ -566,8 +652,9 @@ async function buildHistory(
     try {
       shaResults = await fetchShaBatch(octokit, owner, repo, batch);
     } catch (error) {
+      const rateLimited = githubErrorStatus(error) === 403;
       core.warning(
-        `GraphQL SHA batch failed after retry: ${(error as Error).message}`,
+        `GraphQL SHA batch ${rateLimited ? 'hit the API rate limit' : 'failed after retry'}: ${(error as Error).message}`,
       );
       capped = true;
       break;
@@ -577,6 +664,14 @@ async function buildHistory(
     for (const shaResult of shaResults) {
       if (unansweredModifiedFiles(modifiedFiles, allHits).length === 0) {
         break;
+      }
+      // A commit whose check-run pages were clipped may hide a confirmation,
+      // so it is a gap in the walk rather than an inspected commit.
+      if (shaResult.truncated) {
+        core.warning(
+          `Check runs for ${shaResult.headSha} were truncated; coverage is incomplete`,
+        );
+        capped = true;
       }
       const confirmed = confirmedFailThenPassJobs(shaResult);
       if (confirmed.length === 0) {
@@ -597,14 +692,11 @@ async function buildHistory(
       }
       logFetches += toFetch.length;
 
-      const logs = await downloadFailedUnitLogs(
-        octokit,
-        owner,
-        repo,
-        toFetch.map((job) => ({ id: job.jobId })),
-      );
+      const logs = await downloadFailedUnitLogs(octokit, owner, repo, toFetch);
       unreadFailedRuns += logs.unreadCount;
       missingLogBlobs += logs.missingBlobCount;
+      infrastructureFailures += logs.infrastructureCount;
+      unattributedReruns.push(...logs.unattributed);
       allHits.push(
         ...hitsFromConfirmedLogs(toFetch, logs.filesByJobId, modifiedFiles),
       );
@@ -644,6 +736,8 @@ async function buildHistory(
     files,
     unreadFailedRuns,
     missingLogBlobs,
+    infrastructureFailures,
+    unattributedReruns,
     candidateShaCount: candidates.length,
     candidatesInspected,
     historyComplete,
@@ -651,11 +745,20 @@ async function buildHistory(
   };
 }
 
+const EMPTY_COVERAGE_WINDOW: CoverageWindow = {
+  lookbackDays: LOOKBACK_DAYS,
+  runsListed: 0,
+  oldestRunSampled: '',
+  newestRunSampled: '',
+  cappedDays: [],
+};
+
 function writeHistoryFile(
   files: HistoryFile[],
   analyzedFiles: string[],
   headSha: string,
   meta: {
+    coverageWindow: CoverageWindow;
     sampledRunCount: number;
     candidateShaCount: number;
     candidatesInspected: number;
@@ -663,14 +766,18 @@ function writeHistoryFile(
     graphqlQueries: number;
     unreadFailedRuns: number;
     missingLogBlobs: number;
+    infrastructureFailures: number;
+    unattributedReruns: UnattributedRerun[];
+    unattributedRerunCount: number;
   },
-): HistoryResult {
+): HistoryArtifact {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  const result: HistoryResult = {
+  const result: HistoryArtifact = {
     generatedAt: new Date().toISOString(),
     workflow: WORKFLOW,
     job: JOB_NAME,
     lookbackDays: LOOKBACK_DAYS,
+    coverageWindow: meta.coverageWindow,
     sampledRunCount: meta.sampledRunCount,
     candidateShaCount: meta.candidateShaCount,
     candidatesInspected: meta.candidatesInspected,
@@ -678,6 +785,9 @@ function writeHistoryFile(
     graphqlQueries: meta.graphqlQueries,
     unreadFailedRuns: meta.unreadFailedRuns,
     missingLogBlobs: meta.missingLogBlobs,
+    infrastructureFailures: meta.infrastructureFailures,
+    unattributedReruns: meta.unattributedReruns,
+    unattributedRerunCount: meta.unattributedRerunCount,
     analyzedFiles,
     headSha,
     files,
@@ -709,6 +819,7 @@ async function main(): Promise<void> {
 
   if (modifiedFiles.length === 0) {
     writeHistoryFile([], [], env.headSha, {
+      coverageWindow: EMPTY_COVERAGE_WINDOW,
       sampledRunCount: 0,
       candidateShaCount: 0,
       candidatesInspected: 0,
@@ -716,6 +827,9 @@ async function main(): Promise<void> {
       graphqlQueries: 0,
       unreadFailedRuns: 0,
       missingLogBlobs: 0,
+      infrastructureFailures: 0,
+      unattributedReruns: [],
+      unattributedRerunCount: 0,
     });
     writePriorStateFile(null);
     setStage1Outputs({
@@ -794,18 +908,26 @@ async function main(): Promise<void> {
     return;
   }
   const runs = runsResult.runs;
+  const coverageWindow = summarizeCoverageWindow({
+    runs,
+    lookbackDays: LOOKBACK_DAYS,
+    cappedDays: runsResult.cappedDays,
+  });
   const {
     files,
     unreadFailedRuns,
     missingLogBlobs,
+    infrastructureFailures,
+    unattributedReruns,
     candidateShaCount,
     candidatesInspected,
     historyComplete,
     graphqlQueries,
   } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
-    `🔍 Sampled ${runs.length} completed ci.yml run(s) on any branch over the last ${LOOKBACK_DAYS}d ` +
-      `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'}; ${unreadFailedRuns} unread, ${missingLogBlobs} missing log(s))`,
+    `🔍 Sampled ${describeCoverageWindow(coverageWindow)} ` +
+      `(inspected ${candidatesInspected}/${candidateShaCount} candidate SHA(s) in ${graphqlQueries} GraphQL quer${graphqlQueries === 1 ? 'y' : 'ies'}; coverage ${historyComplete ? 'complete' : 'incomplete'}; ` +
+      `${unreadFailedRuns} unread, ${missingLogBlobs} missing log(s), ${infrastructureFailures} lost runner(s))`,
   );
 
   // Stage 2 only re-runs files that still need a review. Historically flaky
@@ -813,6 +935,7 @@ async function main(): Promise<void> {
   // per-run cap and starve files waiting for retry.
   const filesToAnalyze = needsAnalysis;
   const result = writeHistoryFile(files, filesToAnalyze, env.headSha, {
+    coverageWindow,
     sampledRunCount: runs.length,
     candidateShaCount,
     candidatesInspected,
@@ -820,6 +943,9 @@ async function main(): Promise<void> {
     graphqlQueries,
     unreadFailedRuns,
     missingLogBlobs,
+    infrastructureFailures,
+    unattributedReruns: unattributedReruns.slice(0, MAX_DISCLOSED_RERUNS),
+    unattributedRerunCount: unattributedReruns.length,
   });
 
   const flakyCount = files.filter((f) => f.flaky).length;
@@ -832,6 +958,9 @@ async function main(): Promise<void> {
     historicallyFlakyCount: flakyCount,
     unreadFailedRuns,
     missingLogBlobs,
+    infrastructureFailures,
+    unattributedReruns: unattributedReruns.length,
+    coverageWindow,
     missingPriorShaCount,
     candidatesInspected,
     candidateShaCount,
@@ -843,6 +972,9 @@ async function main(): Promise<void> {
   console.log(JSON.stringify(result, null, 2));
 }
 
-main().catch((error: Error) => {
-  failStage1(`Stage 1 failed: ${error.message}`, 'stage1_crash');
-});
+// Guarded so tests can import the pure helpers above without running the walk.
+if (require.main === module) {
+  main().catch((error: Error) => {
+    failStage1(`Stage 1 failed: ${error.message}`, 'stage1_crash');
+  });
+}

@@ -10,6 +10,9 @@
  * retry, GraphQL-batch failed Unit tests check runs, confirm the same job
  * name later succeeded, then download logs only for those jobs.
  */
+import type { CoverageWindow, UnattributedRerun } from './flaky-types';
+
+export type { CoverageWindow, UnattributedRerun };
 
 export const UNIT_TEST_JOB_PREFIX = 'Unit tests';
 export const CI_WORKFLOW_NAME = 'ci';
@@ -46,6 +49,43 @@ export function listedWorkflowRunFromApi(
 export type ListedRunsPage = {
   data: WorkflowRunListItem[];
 };
+
+/**
+ * `listWorkflowRuns` stops returning results past 1000 per query whatever
+ * `per_page` and `page` say, so a single 14-day query silently collapses to
+ * the newest ~3 days on a repo at this run volume. One query per day keeps
+ * each bucket under that ceiling.
+ */
+export function lookbackDayBuckets(now: Date, lookbackDays: number): string[] {
+  const days: string[] = [];
+  for (let offset = 0; offset < Math.max(0, lookbackDays); offset += 1) {
+    const day = new Date(now.getTime() - offset * 24 * 60 * 60 * 1000);
+    days.push(day.toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+export function summarizeCoverageWindow({
+  runs,
+  lookbackDays,
+  cappedDays,
+}: {
+  runs: ListedWorkflowRun[];
+  lookbackDays: number;
+  cappedDays: string[];
+}): CoverageWindow {
+  const timestamps = runs
+    .map((run) => run.createdAt)
+    .filter((createdAt) => createdAt.length > 0)
+    .sort();
+  return {
+    lookbackDays,
+    runsListed: runs.length,
+    oldestRunSampled: timestamps[0]?.slice(0, 10) ?? '',
+    newestRunSampled: timestamps[timestamps.length - 1]?.slice(0, 10) ?? '',
+    cappedDays,
+  };
+}
 
 export type CollectListedRunsFromPagesResult = {
   runs: ListedWorkflowRun[];
@@ -123,6 +163,8 @@ export type CiSuite = {
 export type ShaCheckResult = {
   headSha: string;
   suites: CiSuite[];
+  /** A connection returned fewer nodes than its totalCount, so a suite or check run is missing. */
+  truncated: boolean;
 };
 
 export type ConfirmedFailThenPassJob = {
@@ -151,7 +193,21 @@ export function groupRunsByHeadSha(
   return groups;
 }
 
+/**
+ * A fail-then-pass needs both a failed Unit tests job and a second execution
+ * on the identical commit. The failed job always fails its run, so a SHA with
+ * no failed run cannot hold the signal — that drops re-runs of already-green
+ * commits before they cost a GraphQL point each.
+ *
+ * A re-run that stayed red is deliberately kept: GitHub concludes the whole
+ * run on every job, so "Unit tests passed, lint still failed" looks identical
+ * to "nothing passed", and pruning on a missing success conclusion would drop
+ * exactly the flakes this walk exists to find.
+ */
 export function isCandidateShaGroup(runsForSha: ListedWorkflowRun[]): boolean {
+  if (!runsForSha.some((run) => run.conclusion === 'failure')) {
+    return false;
+  }
   if (runsForSha.some((run) => run.runAttempt > 1)) {
     return true;
   }
@@ -159,8 +215,7 @@ export function isCandidateShaGroup(runsForSha: ListedWorkflowRun[]): boolean {
   if (uniqueRunIds.size < 2) {
     return false;
   }
-  const conclusions = new Set(runsForSha.map((run) => run.conclusion));
-  return conclusions.has('failure') && conclusions.has('success');
+  return runsForSha.some((run) => run.conclusion === 'success');
 }
 
 export function candidateShaGroupsNewestFirst(
@@ -188,19 +243,30 @@ export function chunkArray<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
+/**
+ * `appId: 15368` is the GitHub Actions app: it drops the third-party suites
+ * (measured: 27 suites on a PR head, 16 of them Actions) that can never hold a
+ * Unit tests job. `totalCount` next to every connection is what proves the
+ * page was not truncated — guessing `first` sizes silently loses confirmations.
+ */
+export const GITHUB_ACTIONS_APP_ID = 15368;
+
 const COMMIT_FIELDS = `{
   oid
-  checkSuites(first: 40) {
+  checkSuites(first: 50, filterBy: { appId: ${GITHUB_ACTIONS_APP_ID} }) {
+    totalCount
     nodes {
       workflowRun {
         databaseId
         runAttempt
         workflow { name }
       }
-      failed: checkRuns(first: 20, filterBy: { checkType: ALL, conclusions: [FAILURE] }) {
+      failed: checkRuns(first: 50, filterBy: { checkType: ALL, conclusions: [FAILURE] }) {
+        totalCount
         nodes { name detailsUrl }
       }
-      passed: checkRuns(first: 50, filterBy: { checkType: LATEST, conclusions: [SUCCESS] }) {
+      passed: checkRuns(first: 100, filterBy: { checkType: LATEST, conclusions: [SUCCESS] }) {
+        totalCount
         nodes { name }
       }
     }
@@ -258,6 +324,18 @@ function asNumber(value: unknown): number | null {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+/** True when a connection returned fewer nodes than it says exist. */
+function connectionTruncated(connection: unknown): boolean {
+  if (!isRecord(connection)) {
+    return false;
+  }
+  const total = asNumber(connection.totalCount);
+  if (total === null) {
+    return false;
+  }
+  return asArray(connection.nodes).length < total;
 }
 
 function parseSuite(node: unknown): CiSuite | null {
@@ -328,18 +406,33 @@ function parseCommitObject(
   requestedSha: string,
 ): ShaCheckResult {
   if (!isRecord(value)) {
-    return { headSha: requestedSha, suites: [] };
+    return { headSha: requestedSha, suites: [], truncated: false };
   }
-  const checkSuites = isRecord(value.checkSuites)
+  const suiteNodes = isRecord(value.checkSuites)
     ? asArray(value.checkSuites.nodes)
     : [];
-  const suites = checkSuites
-    .map(parseSuite)
+  const parsed = suiteNodes.map((node) => ({ node, suite: parseSuite(node) }));
+  const suites = parsed
+    .map(({ suite }) => suite)
     .filter((suite): suite is CiSuite => suite !== null)
     .sort((a, b) => a.suiteOrder - b.suiteOrder);
+
+  // A hidden suite could be the ci one, so a truncated suite page is always a
+  // gap. Truncated check-run pages only matter inside a ci suite — no other
+  // workflow can hold a Unit tests job.
+  const truncated =
+    connectionTruncated(value.checkSuites) ||
+    parsed.some(
+      ({ node, suite }) =>
+        suite !== null &&
+        isRecord(node) &&
+        (connectionTruncated(node.failed) || connectionTruncated(node.passed)),
+    );
+
   return {
     headSha: asString(value.oid) || requestedSha,
     suites,
+    truncated,
   };
 }
 
@@ -388,6 +481,39 @@ export function confirmedFailThenPassJobs(
   return confirmed;
 }
 
+export type JobStep = {
+  conclusion?: string | null;
+  status?: string | null;
+};
+
+export type LoglessJobClassification = 'infrastructure' | 'missing_log';
+
+/**
+ * Tells a lost runner apart from a lost log for a job that failed with no
+ * readable log.
+ *
+ * A runner that dies mid-step leaves the step `in_progress` forever and
+ * uploads nothing: no test ever failed, so counting it as a fail-then-pass
+ * invents a flake. A job whose steps all completed with a failure really did
+ * fail — its log is simply gone, which is a hole in the history worth saying
+ * out loud.
+ */
+export function classifyLoglessJob(job: {
+  steps?: JobStep[] | null;
+}): LoglessJobClassification {
+  const steps = job.steps ?? [];
+  if (steps.length === 0) {
+    return 'infrastructure';
+  }
+  if (steps.some((step) => step.status !== 'completed')) {
+    return 'infrastructure';
+  }
+  if (!steps.some((step) => step.conclusion === 'failure')) {
+    return 'infrastructure';
+  }
+  return 'missing_log';
+}
+
 export function parseJestFailPaths(logText: string): string[] {
   const matches = logText.matchAll(
     /FAIL\s+(\S+\.(?:test|spec)\.(?:tsx|ts|js))(?=\s|$)/gm,
@@ -428,9 +554,11 @@ export function unansweredModifiedFiles(
 
 /**
  * `unreadFailedRuns` counts fail-then-pass logs a re-run could still read
- * (fetch budget cap, GitHub API error after retry). Logs GitHub reports as
- * missing are excluded on purpose: they never come back, so treating them as
- * a gap would block all-clear on every PR until the run leaves the window.
+ * (fetch budget cap, GitHub API error after retry). Two other gaps are
+ * deliberately excluded because no re-run brings them back: logs GitHub
+ * reports as missing, and jobs whose runner died before uploading anything.
+ * Counting either would block all-clear on every PR until the run ages out of
+ * the window; both are disclosed in the comment instead.
  */
 export function historyCoverageComplete({
   everyFileHasHit,
@@ -497,17 +625,40 @@ export function renderSameShaHistoryTable(
   return `Same-SHA unit-test fail then pass (identical commit; Re-run jobs or a second ci.yml run):\n\n${header}\n${divider}\n${rows}\n`;
 }
 
-export function renderIncompleteCoverageLine({
+/**
+ * States the range actually walked, so "nothing found" can be read against
+ * the dates and commit count it is true of. The old wording quoted candidates
+ * inspected out of candidates found, which read as full coverage even when a
+ * one-query listing had already clipped the window to its newest days.
+ */
+export function renderCoverageWindowLine({
+  window,
   candidatesInspected,
   candidateShaCount,
   unreadFailedRuns = 0,
+  complete,
   hasFindings = true,
 }: {
+  window: CoverageWindow;
   candidatesInspected: number;
   candidateShaCount: number;
   unreadFailedRuns?: number;
+  complete: boolean;
   hasFindings?: boolean;
 }): string {
+  const dates =
+    window.oldestRunSampled && window.newestRunSampled
+      ? `${window.oldestRunSampled} to ${window.newestRunSampled}`
+      : `last ${window.lookbackDays} day(s)`;
+  const commits = complete
+    ? `${candidateShaCount} candidate commit(s)`
+    : `${candidatesInspected} of ${candidateShaCount} candidate commit(s)`;
+  const scope = `${dates}, ${window.runsListed} ci run(s), ${commits} inspected`;
+
+  if (complete) {
+    return `_History coverage: ${scope}._`;
+  }
+
   const unread =
     unreadFailedRuns > 0
       ? ` ${unreadFailedRuns} confirmed fail-then-pass log(s) could not be read.`
@@ -516,17 +667,45 @@ export function renderIncompleteCoverageLine({
   const verdict = hasFindings
     ? 'Findings above are a lower bound; this is not an all-clear.'
     : 'Nothing was found in the inspected range, but this is not an all-clear.';
-  return `_History coverage incomplete: inspected ${candidatesInspected} of ${candidateShaCount} candidate SHA(s).${unread} ${verdict}_`;
+  return `_History coverage incomplete: ${scope}.${unread} ${verdict}_`;
 }
 
 /**
- * Disclosed rather than blocking: a missing blob is a permanent gap GitHub
- * itself reports, so the reader should know the history has a hole without
- * the comment refusing all-clear over it.
+ * Disclosed rather than blocking. A fail-then-pass we could not attribute to a
+ * file is still the one lead the reader has — the shard name and job link say
+ * where to look, and the AI patterns stay the other signal. Refusing all-clear
+ * over it would make green unreachable on a repo that loses a runner most days.
  */
-export function renderMissingLogBlobsLine(missingLogBlobs: number): string {
-  if (missingLogBlobs <= 0) {
+export function renderUnattributedRerunsLine(
+  reruns: UnattributedRerun[],
+  serverUrl: string,
+  repo: string,
+  totalCount = reruns.length,
+): string {
+  if (totalCount <= 0) {
     return '';
   }
-  return `_${missingLogBlobs} fail-then-pass log(s) in the window are missing on GitHub and could not be attributed to a file._`;
+  const shards = reruns
+    .map((rerun) => {
+      const url = jobLogUrl(serverUrl, repo, rerun.runId, rerun.jobId);
+      const reason =
+        rerun.reason === 'missing_log' ? 'log missing' : 'log unread';
+      return `[${rerun.jobName}](${url}) (${reason})`;
+    })
+    .join(', ');
+  const more =
+    totalCount > reruns.length ? ` and ${totalCount - reruns.length} more` : '';
+  const count = `${totalCount} unit-test re-run(s)`;
+  return `_${count} in this window passed on retry but could not be attributed to a file: ${shards}${more}. Low signal — check the flaky patterns column._`;
+}
+
+/**
+ * A runner that died before uploading anything never failed a test, so it is
+ * reported as infrastructure rather than counted as history or as a gap.
+ */
+export function renderInfrastructureFailuresLine(count: number): string {
+  if (count <= 0) {
+    return '';
+  }
+  return `_${count} unit-test job(s) in this window ended without finishing their steps (lost runner); they carry no test signal._`;
 }

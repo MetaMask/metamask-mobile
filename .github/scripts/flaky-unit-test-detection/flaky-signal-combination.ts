@@ -5,6 +5,7 @@
  * Stage 1 reports same-SHA unit-test fail-then-pass; Stage 2 reports J1-J10
  * patterns still present in the file. Neither suppresses the other.
  */
+import type { AnalyzerRunRecord } from './flaky-types';
 
 export type SignalCombination =
   | 'history_only'
@@ -51,7 +52,11 @@ export type UnreviewedReason =
   | 'did_not_complete'
   | 'skipped_cap'
   | 'skipped_fork'
+  | 'stage_failed'
   | 'not_run';
+
+/** Why the workflow skipped Stage 2, as reported by Stage 1's outputs. */
+export type AiSkipReason = 'fork' | 'no_files' | '';
 
 export type UnreviewedDetails = {
   reason: UnreviewedReason;
@@ -60,16 +65,11 @@ export type UnreviewedDetails = {
   logUrl?: string;
 };
 
-export type AnalyzerRunStatusHint =
-  | 'reviewed'
-  | 'did_not_complete'
-  | 'skipped_cap';
-
-export type AnalyzerRunHint = {
-  file: string;
-  status: AnalyzerRunStatusHint;
-  attempts: number;
-};
+/** Only what the table needs from Stage 2's per-file run records. */
+export type AnalyzerRunHint = Pick<
+  AnalyzerRunRecord,
+  'file' | 'status' | 'attempts'
+>;
 
 export type FlakyTableFile = {
   path: string;
@@ -79,6 +79,11 @@ export type FlakyTableFile = {
   exampleRunUrl: string;
   findings: FlakyTableFinding[];
   unreviewed?: UnreviewedDetails;
+  /**
+   * Commit the findings were reviewed at, when Stage 2 skipped the file this
+   * run. Keeps a real warning on screen while saying it predates this push.
+   */
+  reviewedAtSha?: string;
 };
 
 export function combineFileSignals(
@@ -145,6 +150,13 @@ export function renderUnreviewedPatternsCell(
   if (details.reason === 'skipped_fork') {
     return 'not reviewed — AI stage skipped on fork PRs';
   }
+  if (details.reason === 'stage_failed') {
+    const log =
+      details.logUrl && details.logUrl.length > 0
+        ? ` ([log](${details.logUrl}))`
+        : '';
+    return `not reviewed — the AI stage failed${log}`;
+  }
   return 'not reviewed — analyzer did not run';
 }
 
@@ -153,6 +165,7 @@ export function resolveUnreviewedReason({
   patternsReviewed,
   runs,
   aiStepOutcome,
+  aiSkipReason = '',
   maxFiles,
   logUrl,
 }: {
@@ -160,6 +173,7 @@ export function resolveUnreviewedReason({
   patternsReviewed: boolean;
   runs: AnalyzerRunHint[] | undefined;
   aiStepOutcome: string;
+  aiSkipReason?: AiSkipReason;
   maxFiles?: number;
   logUrl?: string;
 }): UnreviewedDetails | undefined {
@@ -180,18 +194,31 @@ export function resolveUnreviewedReason({
       cap: maxFiles,
     };
   }
-  if (aiStepOutcome === 'skipped') {
+  // A skipped step is only a fork when the workflow says so. It is also how a
+  // run with nothing to analyze looks, and "skipped on fork PRs" would be a
+  // wrong explanation on a branch PR.
+  if (aiStepOutcome === 'skipped' && aiSkipReason === 'fork') {
     return { reason: 'skipped_fork' };
+  }
+  if (aiStepOutcome === 'failure') {
+    return { reason: 'stage_failed', logUrl };
   }
   return { reason: 'not_run' };
 }
 
-export function renderFlakyPatternsCell(finding: FlakyTableFinding): string {
+export function renderFlakyPatternsCell(
+  finding: FlakyTableFinding,
+  reviewedAtSha?: string,
+): string {
   const light = patternSeverityLight(finding.severity);
   const label = `${finding.patternId} — ${finding.patternName}`;
   const linked =
     finding.blobUrl.length > 0 ? `[${label}](${finding.blobUrl})` : label;
-  return `${light} ${linked}`;
+  const stale =
+    reviewedAtSha && reviewedAtSha.length > 0
+      ? ` _(reviewed at ${reviewedAtSha.slice(0, 7)})_`
+      : '';
+  return `${light} ${linked}${stale}`;
 }
 
 function tableRow(
@@ -220,16 +247,23 @@ function rowsForFile(file: FlakyTableFile): string[] {
     return [tableRow(file.path, pastFlakyness, pattern)];
   }
   return file.findings.map((finding) =>
-    tableRow(file.path, pastFlakyness, renderFlakyPatternsCell(finding)),
+    tableRow(
+      file.path,
+      pastFlakyness,
+      renderFlakyPatternsCell(finding, file.reviewedAtSha),
+    ),
   );
 }
+
+export const FLAKY_TABLE_HEADER =
+  '| File | Past flakyness | Flaky patterns |\n| --- | --- | --- |';
 
 export function renderFlakyFindingsTable(files: FlakyTableFile[]): string {
   const rows = files.flatMap(rowsForFile);
   if (rows.length === 0) {
     return '';
   }
-  return `| File | Past flakyness | Flaky patterns |\n| --- | --- | --- |\n${rows.join('\n')}`;
+  return `${FLAKY_TABLE_HEADER}\n${rows.join('\n')}`;
 }
 
 /**
@@ -274,6 +308,85 @@ export function assembleFlakyCommentMarkdown({
     stateBlock,
   );
   return `${parts.join('\n')}\n`;
+}
+
+/** GitHub rejects an issue comment body past 65536 characters. */
+export const COMMENT_BODY_BUDGET = 60000;
+
+export type FitCommentBodyInput = {
+  marker: string;
+  table: string;
+  diffs: string;
+  coverageLine: string;
+  skillLink: string;
+  stateBlock: string;
+  runUrl: string;
+  budget?: number;
+};
+
+function rowsOf(table: string): { header: string; rows: string[] } {
+  const lines = table.split('\n');
+  return { header: lines.slice(0, 2).join('\n'), rows: lines.slice(2) };
+}
+
+/**
+ * Builds the comment so it always fits, dropping the least load-bearing parts
+ * first. The state block is reserved before anything else: losing it makes the
+ * next run re-analyze every file and re-post findings the reader already saw,
+ * which is worse than losing a suggested fix.
+ */
+export function fitCommentBody(input: FitCommentBodyInput): string {
+  const budget = input.budget ?? COMMENT_BODY_BUDGET;
+  const full = assembleFlakyCommentMarkdown(input);
+  if (full.length <= budget) {
+    return full;
+  }
+
+  const seeRun =
+    input.runUrl.length > 0
+      ? `[the Summary tab](${input.runUrl})`
+      : 'the Summary tab';
+
+  const withoutDiffs = assembleFlakyCommentMarkdown({
+    ...input,
+    diffs: '',
+    coverageLine: [
+      input.coverageLine,
+      `_Suggested fixes omitted to fit the comment size limit; see ${seeRun}._`,
+    ]
+      .filter((line) => line.trim().length > 0)
+      .join('\n\n'),
+  });
+  if (withoutDiffs.length <= budget) {
+    return withoutDiffs;
+  }
+
+  const { header, rows } = rowsOf(input.table);
+  for (let keep = rows.length - 1; keep >= 1; keep -= 1) {
+    const truncated = assembleFlakyCommentMarkdown({
+      ...input,
+      diffs: '',
+      table: `${header}\n${rows.slice(0, keep).join('\n')}`,
+      coverageLine: [
+        input.coverageLine,
+        `_${rows.length - keep} more row(s) and the suggested fixes were omitted to fit the comment size limit; see ${seeRun}._`,
+      ]
+        .filter((line) => line.trim().length > 0)
+        .join('\n\n'),
+    });
+    if (truncated.length <= budget) {
+      return truncated;
+    }
+  }
+
+  // Every row is gone and it still does not fit, so only the state block and
+  // a pointer at the run are left to keep.
+  return assembleFlakyCommentMarkdown({
+    ...input,
+    diffs: '',
+    table: `All findings were omitted to fit the comment size limit; see ${seeRun}.`,
+    coverageLine: '',
+  });
 }
 
 export function assembleAllClearMarkdown({
