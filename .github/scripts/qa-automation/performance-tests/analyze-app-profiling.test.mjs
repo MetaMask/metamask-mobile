@@ -9,7 +9,7 @@ import {
   resolveLatestRun,
   resolveRunsInWindow,
   resolveRunsInRange,
-  sampleRunsEvenly,
+  sampleRunsAcrossNewestDays,
   planWeeklyRuns,
   reportsForRuns,
   isReusableCollectedReport,
@@ -121,17 +121,49 @@ test('resolveRunsInRange keeps a half-open scheduled window', () => {
   );
 });
 
-test('sampleRunsEvenly spreads samples across the week', () => {
-  const runs = Array.from({ length: 24 }, (_, index) => ({
+test('sampleRunsAcrossNewestDays covers the newest days instead of expired early-week runs', () => {
+  const monday = Array.from({ length: 4 }, (_, index) => ({
     databaseId: index + 1,
+    createdAt: `2026-09-14T0${index}:00:00Z`,
   }));
+  const sunday = Array.from({ length: 4 }, (_, index) => ({
+    databaseId: index + 11,
+    createdAt: `2026-09-20T0${index}:00:00Z`,
+  }));
+  // Newest first, as GitHub run lists are sorted.
+  const runs = [...sunday, ...monday];
 
-  const sampled = sampleRunsEvenly(runs, 6);
+  const sampled = sampleRunsAcrossNewestDays(runs, 4);
 
-  assert.equal(sampled.length, 6);
-  assert.equal(sampled[0].databaseId, 1);
-  assert.equal(sampled.at(-1).databaseId, 24);
-  assert.deepEqual(sampleRunsEvenly(runs.slice(0, 4), 6).length, 4);
+  assert.deepEqual(
+    sampled.map((run) => run.databaseId),
+    [11, 12, 1, 2],
+  );
+  assert.equal(sampleRunsAcrossNewestDays(runs.slice(0, 3), 6).length, 3);
+});
+
+test('sampleRunsAcrossNewestDays still returns one run when the limit is one', () => {
+  const runs = [
+    { databaseId: 3, createdAt: '2026-09-20T00:00:00Z' },
+    { databaseId: 2, createdAt: '2026-09-19T00:00:00Z' },
+    { databaseId: 1, createdAt: '2026-09-14T00:00:00Z' },
+  ];
+
+  assert.deepEqual(sampleRunsAcrossNewestDays(runs, 1), [runs[0]]);
+});
+
+test('sampleRunsAcrossNewestDays round-robins two days instead of draining one', () => {
+  const runs = [
+    { databaseId: 20, createdAt: '2026-09-20T12:00:00Z' },
+    { databaseId: 19, createdAt: '2026-09-20T06:00:00Z' },
+    { databaseId: 18, createdAt: '2026-09-19T12:00:00Z' },
+    { databaseId: 17, createdAt: '2026-09-19T06:00:00Z' },
+  ];
+
+  assert.deepEqual(
+    sampleRunsAcrossNewestDays(runs, 2).map((run) => run.databaseId),
+    [20, 18],
+  );
 });
 
 test('planWeeklyRuns keeps every collected run and samples the rest', () => {
@@ -185,12 +217,6 @@ test('collected reports from an older schema are not reused', () => {
     false,
   );
   assert.equal(isReusableCollectedReport({ scenarios: [scenario] }), false);
-});
-
-test('sampleRunsEvenly still returns one run when the limit is one', () => {
-  const runs = [{ databaseId: 1 }, { databaseId: 2 }, { databaseId: 3 }];
-
-  assert.deepEqual(sampleRunsEvenly(runs, 1), [{ databaseId: 1 }]);
 });
 
 test('reportsForRuns keeps the week when one run lost its artifacts', async () => {

@@ -79,6 +79,71 @@ export function inHalfOpenRange(isoDate, sinceIso, untilIso) {
   return timestamp >= Date.parse(sinceIso) && timestamp < Date.parse(untilIso);
 }
 
+/**
+ * UTC calendar day of an ISO timestamp. Invalid values are ignored so a
+ * missing `createdAt` cannot invent a comparison day.
+ */
+export function utcDateKey(isoDate) {
+  if (!isoDate) {
+    return null;
+  }
+  const timestamp = Date.parse(isoDate);
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+export function shiftUtcDateKey(dateKey, dayDelta) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + dayDelta);
+  return date.toISOString().slice(0, 10);
+}
+
+export function utcDateKeysFromTimestamps(timestamps) {
+  return [
+    ...new Set(
+      timestamps.map((timestamp) => utcDateKey(timestamp)).filter(Boolean),
+    ),
+  ].sort();
+}
+
+export function matchingPreviousWeekdays(dateKeys) {
+  return dateKeys.map((dateKey) => shiftUtcDateKey(dateKey, -7));
+}
+
+/**
+ * An incomplete week is still a valid comparison: only the UTC days that
+ * produced this-week reports are kept, and last week is the same weekdays.
+ */
+export function lastWeekRunsMatchingThisWeekDays(thisWeekReports, lastWeekRuns) {
+  const thisWeekDays = utcDateKeysFromTimestamps(
+    thisWeekReports.map((report) => report.meta?.createdAt),
+  );
+  if (thisWeekDays.length === 0) {
+    return {
+      thisWeekDays,
+      lastWeekDays: utcDateKeysFromTimestamps(
+        lastWeekRuns.map((run) => run.createdAt),
+      ),
+      runs: lastWeekRuns,
+    };
+  }
+  const lastWeekDays = matchingPreviousWeekdays(thisWeekDays);
+  const allowed = new Set(lastWeekDays);
+  return {
+    thisWeekDays,
+    lastWeekDays,
+    runs: lastWeekRuns.filter((run) => allowed.has(utcDateKey(run.createdAt))),
+  };
+}
+
+export function runsOnUtcDates(runs, dateKeys) {
+  const allowed = new Set(dateKeys);
+  return runs.filter((run) => allowed.has(utcDateKey(run.createdAt)));
+}
+
 function displayName(scenario) {
   return String(scenario || '')
     .replace(/__/g, ': ')
@@ -278,6 +343,38 @@ export function classifyWeeklyScenarios(thisWindow, lastWindow) {
     });
 }
 
+function formatDateList(dateKeys) {
+  return (dateKeys || []).join(', ');
+}
+
+function weeklyDaysWithDataLines(report) {
+  const thisWeekDays = report.meta.thisWeekDays || [];
+  if (thisWeekDays.length === 0) {
+    return [];
+  }
+  const lastWeekDays = report.meta.lastWeekDays || [];
+  const suffix =
+    lastWeekDays.length > 0
+      ? ` (same weekdays last week: ${formatDateList(lastWeekDays)})`
+      : '';
+  return [
+    `_Days with data:_ ${formatDateList(thisWeekDays)}${suffix}`,
+  ];
+}
+
+function weeklyDaysWithDataMarkdown(report) {
+  const thisWeekDays = report.meta.thisWeekDays || [];
+  if (thisWeekDays.length === 0) {
+    return [];
+  }
+  const lastWeekDays = report.meta.lastWeekDays || [];
+  const suffix =
+    lastWeekDays.length > 0
+      ? ` (same weekdays last week: ${formatDateList(lastWeekDays)})`
+      : '';
+  return [`Days with data: ${formatDateList(thisWeekDays)}${suffix}`];
+}
+
 function countByStatus(cards) {
   return {
     worse: cards.filter((card) => card.status === STATUS.WORSE).length,
@@ -363,6 +460,7 @@ export function buildWeeklyParentSlack(report) {
     '',
     `_This week:_ ${report.meta.thisWeek.since.slice(0, 16)}Z → ${report.meta.thisWeek.until.slice(0, 16)}Z`,
     `_Previous week:_ ${report.meta.lastWeek.since.slice(0, 16)}Z → ${report.meta.lastWeek.until.slice(0, 16)}Z`,
+    ...weeklyDaysWithDataLines(report),
     `_Runs analyzed:_ ${report.meta.thisWeekRunCount} this week · ${report.meta.lastWeekRunCount} previous week (scheduled \`main\` only)`,
     `_Profiles:_ ${report.meta.thisWeekProfileCount} this week · sourcemaps ${report.meta.thisWeekSymbolicatedProfileCount}/${report.meta.thisWeekProfileCount}`,
   ];
@@ -416,6 +514,7 @@ export function buildWeeklyMarkdown(report) {
     '',
     `This week: ${report.meta.thisWeek.since} → ${report.meta.thisWeek.until}`,
     `Previous week: ${report.meta.lastWeek.since} → ${report.meta.lastWeek.until}`,
+    ...weeklyDaysWithDataMarkdown(report),
     `Runs analyzed: ${report.meta.thisWeekRunCount}/${report.meta.thisWeekRunsAvailable} this week · ${report.meta.lastWeekRunCount}/${report.meta.lastWeekRunsAvailable} previous week`,
     '',
   ];
@@ -466,6 +565,8 @@ export function buildWeeklyReport({
   lastWeekRunCount,
   thisWeekRunsAvailable = thisWeekRunCount,
   lastWeekRunsAvailable = lastWeekRunCount,
+  thisWeekDays = [],
+  lastWeekDays = [],
 }) {
   const { cards, sharedSpikes } = collapseSharedSpikes(
     classifyWeeklyScenarios(thisWindow, lastWindow),
@@ -475,6 +576,8 @@ export function buildWeeklyReport({
       mode: 'weekly-conclusions',
       thisWeek: bounds.thisWeek,
       lastWeek: bounds.lastWeek,
+      thisWeekDays,
+      lastWeekDays,
       generatedAt: new Date().toISOString(),
       source: 'Hermes CPU sampling profiles only',
       thisWeekRunCount,

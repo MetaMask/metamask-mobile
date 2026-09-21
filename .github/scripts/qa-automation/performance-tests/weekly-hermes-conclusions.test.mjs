@@ -15,6 +15,10 @@ import {
   isWorseThanLastWeek,
   utcMondayStart,
   weekBounds,
+  lastWeekRunsMatchingThisWeekDays,
+  matchingPreviousWeekdays,
+  utcDateKey,
+  utcDateKeysFromTimestamps,
 } from './weekly-hermes-conclusions.mjs';
 
 function scenarioFixture(name, overrides = {}) {
@@ -53,6 +57,45 @@ test('weekBounds uses completed UTC weeks ending this Monday 00:00', () => {
   assert.equal(bounds.thisWeek.until, '2026-09-21T00:00:00.000Z');
   assert.equal(bounds.lastWeek.since, '2026-09-07T00:00:00.000Z');
   assert.equal(bounds.lastWeek.until, '2026-09-14T00:00:00.000Z');
+});
+
+test('two days with data compare only those weekdays last week', () => {
+  assert.equal(utcDateKey('2026-09-20T18:00:00.000Z'), '2026-09-20');
+  assert.deepEqual(
+    utcDateKeysFromTimestamps([
+      '2026-09-20T18:00:00.000Z',
+      '2026-09-19T06:00:00.000Z',
+      '2026-09-20T00:00:00.000Z',
+    ]),
+    ['2026-09-19', '2026-09-20'],
+  );
+  assert.deepEqual(matchingPreviousWeekdays(['2026-09-19', '2026-09-20']), [
+    '2026-09-12',
+    '2026-09-13',
+  ]);
+
+  const thisWeekReports = [
+    { meta: { createdAt: '2026-09-19T12:00:00.000Z' } },
+    { meta: { createdAt: '2026-09-20T12:00:00.000Z' } },
+  ];
+  const lastWeekRuns = [
+    { databaseId: 1, createdAt: '2026-09-08T12:00:00.000Z' },
+    { databaseId: 12, createdAt: '2026-09-12T12:00:00.000Z' },
+    { databaseId: 13, createdAt: '2026-09-13T12:00:00.000Z' },
+    { databaseId: 14, createdAt: '2026-09-14T00:00:00.000Z' },
+  ];
+
+  const comparable = lastWeekRunsMatchingThisWeekDays(
+    thisWeekReports,
+    lastWeekRuns,
+  );
+
+  assert.deepEqual(comparable.thisWeekDays, ['2026-09-19', '2026-09-20']);
+  assert.deepEqual(comparable.lastWeekDays, ['2026-09-12', '2026-09-13']);
+  assert.deepEqual(
+    comparable.runs.map((run) => run.databaseId),
+    [12, 13],
+  );
 });
 
 test('stable scenarios are not classified', () => {
@@ -333,6 +376,27 @@ test('spikes on different runs stay per scenario', () => {
 
   assert.equal(collapsed.sharedSpikes.length, 0);
   assert.equal(collapsed.cards.length, 2);
+});
+
+test('weekly Slack names the days that actually had profiles', () => {
+  const report = buildWeeklyReport({
+    thisWindow: { meta: { profileCount: 4, symbolicatedProfileCount: 4 }, scenarios: [] },
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 4,
+    lastWeekRunCount: 3,
+    thisWeekRunsAvailable: 4,
+    lastWeekRunsAvailable: 3,
+    thisWeekDays: ['2026-09-19', '2026-09-20'],
+    lastWeekDays: ['2026-09-12', '2026-09-13'],
+  });
+
+  const parent = buildWeeklyParentSlack(report);
+  assert.match(
+    parent,
+    /_Days with data:_ 2026-09-19, 2026-09-20 \(same weekdays last week: 2026-09-12, 2026-09-13\)/,
+  );
+  assert.equal(report.meta.comparable, true);
 });
 
 test('weekly Slack states when medians come from sampled runs', () => {

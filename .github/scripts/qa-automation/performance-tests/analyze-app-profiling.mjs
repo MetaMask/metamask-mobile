@@ -42,6 +42,9 @@ import {
   buildWeeklyParentSlack,
   buildWeeklyReport,
   inHalfOpenRange,
+  lastWeekRunsMatchingThisWeekDays,
+  runsOnUtcDates,
+  utcDateKey,
   weekBounds,
   weeklySlackCards,
 } from './weekly-hermes-conclusions.mjs';
@@ -68,7 +71,8 @@ const SPIKE_RATIO = 1.5;
 // Re-analyzing a run means downloading ~140 MB and symbolicating every
 // scenario, so a full week of 6-hourly runs cannot be rebuilt inside one job.
 // Collected reports are always reused in full; only runs that were never
-// collected are sampled, evenly across the week to avoid favouring one day.
+// collected are sampled, newest days first so expired early-week artifacts
+// are not preferred over days that still have profiles.
 const DEFAULT_MAX_RUNS_PER_WEEK = 6;
 const KNOWN_PROJECTS = [
   'android-onboarding-seedless',
@@ -2449,22 +2453,54 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
 }
 
 /**
- * Picks `limit` runs spread across the list instead of the newest ones, so a
- * sampled week still covers every day it ran.
+ * Picks `limit` uncollected runs across the newest UTC days that still have
+ * runs, instead of spreading into expired early-week artifacts. One run is
+ * taken from each newest day before a second run is taken from any day.
  */
-function sampleRunsEvenly(runs, limit) {
+function sampleRunsAcrossNewestDays(runs, limit) {
+  if (!Number.isFinite(limit) || limit <= 0) {
+    return [];
+  }
   if (runs.length <= limit) {
     return [...runs];
   }
-  if (limit === 1) {
-    return [runs[0]];
+  const byDay = new Map();
+  for (const run of runs) {
+    const day = utcDateKey(run.createdAt) || 'unknown';
+    if (!byDay.has(day)) {
+      byDay.set(day, []);
+    }
+    byDay.get(day).push(run);
   }
-  const step = (runs.length - 1) / (limit - 1);
-  const indexes = new Set();
-  for (let position = 0; position < limit; position += 1) {
-    indexes.add(Math.round(position * step));
+  const days = [...byDay.keys()].sort((left, right) => {
+    if (left === 'unknown') {
+      return 1;
+    }
+    if (right === 'unknown') {
+      return -1;
+    }
+    return right.localeCompare(left);
+  });
+  const selected = [];
+  while (selected.length < limit) {
+    let added = false;
+    for (const day of days) {
+      const bucket = byDay.get(day);
+      if (!bucket?.length) {
+        continue;
+      }
+      selected.push(bucket.shift());
+      added = true;
+      if (selected.length >= limit) {
+        break;
+      }
+    }
+    if (!added) {
+      break;
+    }
   }
-  return [...indexes].sort((left, right) => left - right).map((index) => runs[index]);
+  const selectedIds = new Set(selected.map((run) => String(run.databaseId)));
+  return runs.filter((run) => selectedIds.has(String(run.databaseId)));
 }
 
 function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek) {
@@ -2474,7 +2510,7 @@ function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek) {
   const uncollected = runs.filter(
     (run) => !collectedByRunId.has(String(run.databaseId)),
   );
-  const sampled = sampleRunsEvenly(uncollected, maxRunsPerWeek);
+  const sampled = sampleRunsAcrossNewestDays(uncollected, maxRunsPerWeek);
   const selectedIds = new Set(
     [...collected, ...sampled].map((run) => String(run.databaseId)),
   );
@@ -2588,14 +2624,9 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     collectedByRunId,
     args.maxRunsPerWeek,
   );
-  const lastWeekPlan = planWeeklyRuns(
-    lastWeekRuns,
-    collectedByRunId,
-    args.maxRunsPerWeek,
-  );
-  if (thisWeekPlan.skipped > 0 || lastWeekPlan.skipped > 0) {
+  if (thisWeekPlan.skipped > 0) {
     console.log(
-      `ℹ️ Sampling uncollected runs: ${thisWeekPlan.selected.length}/${thisWeekRuns.length} this week, ${lastWeekPlan.selected.length}/${lastWeekRuns.length} previous week`,
+      `ℹ️ Sampling uncollected this-week runs: ${thisWeekPlan.selected.length}/${thisWeekRuns.length}`,
     );
   }
   const thisWeek = await reportsForRuns({
@@ -2606,6 +2637,33 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     skillAnalyzerPath,
     label: 'this-week',
   });
+  const thisWeekReports = thisWeek.reports;
+  if (thisWeekReports.length === 0) {
+    fail(
+      'No scheduled run in the last completed week still has Hermes profiles to analyze',
+    );
+  }
+
+  const lastWeekComparable = lastWeekRunsMatchingThisWeekDays(
+    thisWeekReports,
+    lastWeekRuns,
+  );
+  console.log(
+    `🗓️ Days with data this week: ${lastWeekComparable.thisWeekDays.join(', ') || 'unknown'}`,
+  );
+  console.log(
+    `🗓️ Matching weekdays last week: ${lastWeekComparable.lastWeekDays.join(', ') || 'none'} → ${lastWeekComparable.runs.map((run) => run.databaseId).join(', ') || 'none'}`,
+  );
+  const lastWeekPlan = planWeeklyRuns(
+    lastWeekComparable.runs,
+    collectedByRunId,
+    args.maxRunsPerWeek,
+  );
+  if (lastWeekPlan.skipped > 0) {
+    console.log(
+      `ℹ️ Sampling uncollected last-week runs: ${lastWeekPlan.selected.length}/${lastWeekComparable.runs.length}`,
+    );
+  }
   const lastWeek = await reportsForRuns({
     args,
     runs: lastWeekPlan.selected,
@@ -2614,13 +2672,7 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     skillAnalyzerPath,
     label: 'last-week',
   });
-  const thisWeekReports = thisWeek.reports;
   const lastWeekReports = lastWeek.reports;
-  if (thisWeekReports.length === 0) {
-    fail(
-      'No scheduled run in the last completed week still has Hermes profiles to analyze',
-    );
-  }
 
   const thisWindow = aggregateWindow(thisWeekReports, {
     lookbackHours: 168,
@@ -2636,14 +2688,19 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     repo: args.repo,
     reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
   });
+  const thisWeekRunsAvailable = lastWeekComparable.thisWeekDays.length
+    ? runsOnUtcDates(thisWeekRuns, lastWeekComparable.thisWeekDays).length
+    : thisWeekRuns.length;
   const weekly = buildWeeklyReport({
     thisWindow,
     lastWindow,
     bounds,
     thisWeekRunCount: thisWeekReports.length,
     lastWeekRunCount: lastWeekReports.length,
-    thisWeekRunsAvailable: thisWeekRuns.length,
-    lastWeekRunsAvailable: lastWeekRuns.length,
+    thisWeekRunsAvailable,
+    lastWeekRunsAvailable: lastWeekComparable.runs.length,
+    thisWeekDays: lastWeekComparable.thisWeekDays,
+    lastWeekDays: lastWeekComparable.lastWeekDays,
   });
   writeWeeklyOutputs(outputDirectory, weekly);
   console.log(
@@ -2665,7 +2722,7 @@ export {
   resolveLatestRun,
   resolveRunsInWindow,
   resolveRunsInRange,
-  sampleRunsEvenly,
+  sampleRunsAcrossNewestDays,
   planWeeklyRuns,
   reportsForRuns,
   isReusableCollectedReport,
