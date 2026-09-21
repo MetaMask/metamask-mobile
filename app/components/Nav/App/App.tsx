@@ -1150,16 +1150,21 @@ const AppFlow = () => {
   // an error boundary, a concurrent interruption) opens a span the effect below
   // never closes, which the tracing layer then finishes at its cleanup cap with
   // `trace.timed_out: true`. Filter that attribute when dashboarding this span.
+  //
+  // `NavigationProvider` starts its `NavInit` span the same way for the same
+  // reason, so this is the established shape here rather than a new one.
+  // NOSONAR: the discarded return value and its constant result are inherent to
+  // using the initialiser purely as a run-once hook, as that precedent does.
   useState(() => {
     if (hasMeasuredRootNavigatorRender) {
-      return null;
+      return true;
     }
     trace({
       name: TraceName.RootNavigatorFirstRender,
       op: TraceOperation.UIStartup,
       parentContext: getUIStartupSpan(),
     });
-    return null;
+    return true;
   });
 
   useEffect(() => {
