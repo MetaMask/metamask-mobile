@@ -1,7 +1,8 @@
 # Flaky unit test detection — MCWP-474
 #
 # Three sequential stages in one job, sharing files under .ai-pr-analyzer/
-# on the runner (no artifact upload/download):
+# on the runner (no artifact upload/download). Every stage script lives in
+# .github/scripts/flaky-unit-test-detection/:
 #
 #   1. Deterministic history — flaky-history-analysis.ts lists 14d of ci.yml
 #      runs, keeps only SHAs that can be a retry, GraphQL-batches failed Unit

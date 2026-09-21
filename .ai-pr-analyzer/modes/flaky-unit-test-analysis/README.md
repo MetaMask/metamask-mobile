@@ -2,7 +2,7 @@
 
 Custom [`MetaMask/ai-analyzer`](https://github.com/MetaMask/ai-analyzer) mode that reviews **one Jest unit test file per invocation** for known flaky-test patterns (J1–J10 from the [`flaky-test-detection`](https://github.com/MetaMask/skills/blob/main/domains/coding/skills/flaky-test-detection/skill.md) skill) and emits structured findings with educational fix suggestions.
 
-Consumed by [`.github/workflows/flaky-unit-test-detection.yml`](../../../.github/workflows/flaky-unit-test-detection.yml) through [`.github/scripts/flaky-ai-analysis.ts`](../../../.github/scripts/flaky-ai-analysis.ts), which runs this mode once per file (parallel, capped) and merges the results. Not a shipped built-in — this is a Tier 3 fully-custom mode defined entirely in this repo.
+Consumed by [`.github/workflows/flaky-unit-test-detection.yml`](../../../.github/workflows/flaky-unit-test-detection.yml) through [`.github/scripts/flaky-unit-test-detection/flaky-ai-analysis.ts`](../../../.github/scripts/flaky-unit-test-detection/flaky-ai-analysis.ts), which runs this mode once per file (parallel, capped) and merges the results. Not a shipped built-in — this is a Tier 3 fully-custom mode defined entirely in this repo.
 
 ## Additive signals
 
@@ -17,7 +17,7 @@ Pattern findings and the deterministic same-SHA history written to `.ai-pr-analy
 
 "History, not reviewed" is explicit about why: analysis did not complete, the file was over the per-run cap, the AI stage was skipped on a fork PR, or the analyzer did not run. Stage 3 will not claim a file is pattern-free in those cases.
 
-A `"flaky": true` history entry widens the AI's scope for that one file from the PR diff to the whole current file — a same-SHA failure means no fix landed, so a pre-existing pattern is the answer. Files without a history entry stay diff-scoped so PRs touching old test files are not buried in legacy findings. `historicalHintUsed` carries the distinction into [`flaky-sticky-comment.ts`](../../../.github/scripts/flaky-sticky-comment.ts).
+A `"flaky": true` history entry widens the AI's scope for that one file from the PR diff to the whole current file — a same-SHA failure means no fix landed, so a pre-existing pattern is the answer. Files without a history entry stay diff-scoped so PRs touching old test files are not buried in legacy findings. `historicalHintUsed` carries the distinction into [`flaky-sticky-comment.ts`](../../../.github/scripts/flaky-unit-test-detection/flaky-sticky-comment.ts).
 
 ## Per-file invocation
 
@@ -44,7 +44,7 @@ The J1–J10 pattern reference is **not** duplicated here. It is loaded on deman
 
 ## Output artifact
 
-Each per-file run writes its own JSON. The Stage 2 runner merges those into `.ai-pr-analyzer/flaky-ai-analysis.json` (consumed by `.github/scripts/flaky-sticky-comment.ts`).
+Each per-file run writes its own JSON. The Stage 2 runner merges those into `.ai-pr-analyzer/flaky-ai-analysis.json` (consumed by `.github/scripts/flaky-unit-test-detection/flaky-sticky-comment.ts`).
 
 Shape (per-file finalize matches `finalize-schema.json`; the merged artifact adds `runs` and `maxFiles`):
 
