@@ -488,6 +488,8 @@ runs:
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
+          # Homebrew 6+ refuses third-party taps unless they are explicitly trusted.
+          brew trust --formula wix/brew/applesimutils
           brew install applesimutils
         else
           echo "applesimutils is already installed, skipping..."
