@@ -1,6 +1,7 @@
 export { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 export {
   useTokenWatchlist,
+  useTokenWatchlistAssetIds,
   type UseTokenWatchlistResult,
 } from './useTokenWatchlist';
 export {

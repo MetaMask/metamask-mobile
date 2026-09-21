@@ -7,9 +7,8 @@ import type { BridgeToken } from '../../types';
 export interface PriceRangeSheetProps {
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
-  sourceFiatRate?: number;
-  destFiatRate?: number;
-  currentCurrency: string;
+  sourceUsdRate?: number;
+  destUsdRate?: number;
   initialTokenSide?: PriceRangeTokenSide;
   initialMin?: string;
   initialMax?: string;

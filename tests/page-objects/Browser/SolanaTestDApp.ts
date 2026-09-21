@@ -15,7 +15,17 @@ import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTes
 import { dataTestIds } from '@metamask/test-dapp-solana';
 
 export const SOLANA_DAPP_PORT = 8095;
-const getBaseUrl = (): string => localDappBrowserUrl(SOLANA_DAPP_PORT);
+
+/**
+ * Browser URL for the Solana test dapp on this worker.
+ * Resolves at call time so iOS N=2 workers hit the shifted host listen port
+ * (worker 1 → devicePort + 100), matching {@link startLocalDappServerOnWorker}.
+ */
+function getSolanaTestDappBaseUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  return localDappBrowserUrl(SOLANA_DAPP_PORT, env);
+}
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
@@ -51,12 +61,15 @@ class SolanaTestDApp {
     await navigateToBrowserView();
     await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(getBaseUrl());
+    await BrowserView.navigateToURL(getSolanaTestDappBaseUrl());
     await this.waitForDappLoaded();
   }
 
   private async evaluate<T>(expression: string): Promise<T | null> {
-    return ChromeCdpHelpers.evaluateInWebView<T>(getBaseUrl(), expression);
+    return ChromeCdpHelpers.evaluateInWebView<T>(
+      getSolanaTestDappBaseUrl(),
+      expression,
+    );
   }
 
   /** Waits until the dapp header has rendered (connection status is readable). */
