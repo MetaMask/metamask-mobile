@@ -261,6 +261,10 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     selectReferralMeEntry(state, profileId),
   );
   const referralMe = referralMeEntry?.data;
+  const shouldDismissForReferralVariant =
+    referralMe !== null &&
+    referralMe !== undefined &&
+    referralMe.variant !== 'NONE';
   const copy = useInviteCopy(referralMe?.localized_text);
 
   // The copy is read under a profile id that resolves asynchronously, so an
@@ -350,6 +354,19 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // only once the registration has landed.
     acceptReferralCode(referralCode).catch(() => undefined);
   }, [acceptReferralCode, canAccept, referralCode]);
+
+  useEffect(() => {
+    if (shouldDismissForReferralVariant) {
+      navigation.goBack();
+    }
+  }, [navigation, shouldDismissForReferralVariant]);
+
+  // `variant` is the server's product decision for whether this profile may
+  // accept an invite. Do not flash an unusable invite while closing a stale
+  // deeplink for an existing referrer or referee.
+  if (shouldDismissForReferralVariant) {
+    return null;
+  }
 
   return (
     <BottomSheet

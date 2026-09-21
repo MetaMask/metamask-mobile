@@ -246,6 +246,28 @@ describe('AcceptInviteSheet', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ['REFEREE', 'REFEREE'],
+    ['REFERRER', 'REFERRER'],
+    ['BOTH', 'REFERRER'],
+  ] as const)(
+    'closes without rendering the invite for role %s using variant %s',
+    (role, variant) => {
+      referralMeEntries = {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: buildReferralMe({ role, variant }),
+        },
+      };
+
+      const { queryByTestId } = renderSheetSync('KOL1');
+
+      expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('prefills the normalized route code', async () => {
     const { getByTestId } = await renderSheet('kol1');
 
