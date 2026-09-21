@@ -303,6 +303,19 @@ export const PRICE_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
+        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/ohlcv\/eip155:\d+\/[^/]+\/latest\?.*$/,
+      responseCode: 200,
+      response: {
+        timestamp: Date.now(),
+        open: 24.5,
+        high: 24.8,
+        low: 24.3,
+        close: 24.6,
+        volume: 1000000,
+      },
+    },
+    {
+      urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/chains\/\d+\/historical-prices\/0x[a-fA-F0-9]{40}\?.*$/,
       responseCode: 200,
       response: {
