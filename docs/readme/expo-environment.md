@@ -62,13 +62,14 @@ yarn --version
 
 Development builds embed an Expo native fingerprint. The standard
 `yarn watch:clean` command generates the fingerprint for the current checkout
-and includes it in the Metro bundle. App startup fails with rebuild instructions
+and includes it in the Metro bundle. App startup fails with install instructions
 when that fingerprint does not match the installed binary.
 
-After pulling or making native changes:
+The recommended development flow installs GitHub Actions artifacts rather than
+building native binaries locally:
 
 ```bash
-yarn start:ios # or yarn start:android
+yarn install:ios:dev # or yarn install:android:dev
 yarn watch:clean
 ```
 

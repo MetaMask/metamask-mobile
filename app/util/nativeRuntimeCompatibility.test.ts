@@ -20,6 +20,7 @@ describe('assertNativeRuntimeCompatibility', () => {
     expect(validate).toThrow(
       'The installed development binary is incompatible with this JavaScript checkout.',
     );
+    expect(validate).toThrow('yarn install:ios:dev');
   });
 
   it('rejects a binary without a native fingerprint', () => {

@@ -26,7 +26,7 @@ export function assertNativeRuntimeCompatibility(
       'The installed development binary is incompatible with this JavaScript checkout.',
       `Expected native fingerprint: ${expectedFingerprint}`,
       `Installed binary fingerprint: ${binaryRuntimeVersion ?? 'missing'}`,
-      'Build and install a new development binary, then restart Metro.',
+      'Install a matching GitHub artifact with `yarn install:ios:dev` or `yarn install:android:dev`, then restart Metro.',
     ].join('\n'),
   );
 }
