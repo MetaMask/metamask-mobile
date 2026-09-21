@@ -778,7 +778,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="h-8 rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -787,7 +787,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
