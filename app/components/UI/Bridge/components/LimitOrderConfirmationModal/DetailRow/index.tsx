@@ -13,6 +13,7 @@ import type { DetailRowProps } from './types';
 
 export const DetailRow = ({
   label,
+  labelAccessory,
   children,
   testID = DetailRowSelectorsIDs.CONTAINER,
   hidden,
@@ -32,13 +33,20 @@ export const DetailRow = ({
       paddingVertical={1}
       testID={testID}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={error ? TextColor.ErrorAlternative : TextColor.TextAlternative}
-        testID={DetailRowSelectorsIDs.LABEL}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
       >
-        {label}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={error ? TextColor.ErrorAlternative : TextColor.TextAlternative}
+          testID={DetailRowSelectorsIDs.LABEL}
+        >
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
       {children}
     </Box>
   );

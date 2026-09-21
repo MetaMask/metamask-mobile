@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayPrimaryRequiredToken,
+  useTransactionPayQuoteError,
   useTransactionPayQuotesLastUpdated,
   useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
@@ -69,6 +70,7 @@ export function useCustomAmountStage({
   const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const quotes = useTransactionPayQuotesRaw();
+  const quoteError = useTransactionPayQuoteError();
   const hasQuotes = Boolean(quotes?.length);
   const requiredToken = useTransactionPayPrimaryRequiredToken();
   const hasAmount = Boolean(
@@ -79,6 +81,9 @@ export function useCustomAmountStage({
   // quote, not a stale one predating the amount update.
   const loadingBaselineRef = useRef<number | undefined>(undefined);
   const wasLoadingRef = useRef(false);
+  // Quote error present when this Loading cycle armed. A leftover error from
+  // the previous amount must not count as this fetch settling.
+  const quoteErrorAtArmRef = useRef<typeof quoteError>(undefined);
   // `amountFiat` from the previous commit, to recognise a no-op re-commit.
   const lastCommittedFiatRef = useRef<string | undefined>(undefined);
 
@@ -99,6 +104,7 @@ export function useCustomAmountStage({
   useEffect(() => {
     if (stageOverride !== CustomAmountStage.Loading) {
       wasLoadingRef.current = false;
+      quoteErrorAtArmRef.current = undefined;
       return;
     }
 
@@ -108,6 +114,7 @@ export function useCustomAmountStage({
       wasLoadingRef.current = true;
       loadingBaselineRef.current = quotesLastUpdated;
       lastCommittedFiatRef.current = amountFiat;
+      quoteErrorAtArmRef.current = quoteError;
 
       // `disablePay` flows are direct transfers: no pay token, no quote, and the
       // required-token amount may never resolve. There is nothing to await once
@@ -116,6 +123,20 @@ export function useCustomAmountStage({
       if (isNoOpRecommit || disablePay || hasPrefetchedQuote) {
         setStage(null);
       }
+      return;
+    }
+
+    // A failed quote fetch carries no quotes, so `hasFreshQuote` can never
+    // fire and the override would hold the loader forever. Only an error that
+    // appeared after this cycle armed is that failure — a leftover error from
+    // the previous amount would otherwise clear during the commit→fetch window
+    // before `isQuotesLoading` is true.
+    if (
+      quoteError &&
+      quoteError !== quoteErrorAtArmRef.current &&
+      !isQuotesLoading
+    ) {
+      setStage(null);
       return;
     }
 
@@ -138,6 +159,7 @@ export function useCustomAmountStage({
     hasPrefetchedQuote,
     hasQuotes,
     isQuotesLoading,
+    quoteError,
     quotesLastUpdated,
   ]);
 
