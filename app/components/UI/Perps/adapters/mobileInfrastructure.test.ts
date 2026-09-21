@@ -25,7 +25,8 @@ import {
 } from './mobileInfrastructure';
 import {
   resolveTerminalGlobalSnapshotUrl,
-  TERMINAL_API_URLS,
+  TERMINAL_API_HOSTS,
+  TERMINAL_API_PATHS,
 } from '../constants/terminalApi';
 import Engine from '../../../../core/Engine';
 
@@ -540,67 +541,89 @@ describe('getTerminalApiUrl', () => {
   it('returns dev URL for dev environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL for test environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'test';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL for e2e environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'e2e';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for beta build type', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns prd URL for production environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns prd URL for rc environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'rc';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for exp environment (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for non-beta build type in non-prod env (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'flask';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL when METAMASK_ENVIRONMENT is undefined', () => {
     delete process.env.METAMASK_ENVIRONMENT;
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for local environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'local';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL when env is dev even if build type is beta', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 });
 
@@ -631,8 +654,8 @@ describe('createMobileInfrastructure - terminalApi', () => {
     process.env.METAMASK_BUILD_TYPE = 'main';
     const infra = createMobileInfrastructure();
     expect(infra.terminalApi).toEqual({
-      marketDataUrl: TERMINAL_API_URLS.PRD,
-      globalSnapshotUrl: 'https://terminal.api.cx.metamask.io/v2/perpetuals',
+      marketDataUrl: `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+      globalSnapshotUrl: `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     });
   });
 
@@ -641,18 +664,17 @@ describe('createMobileInfrastructure - terminalApi', () => {
     delete process.env.METAMASK_BUILD_TYPE;
     const infra = createMobileInfrastructure();
     expect(infra.terminalApi?.marketDataUrl).toBe(
-      'https://terminal.dev-api.cx.metamask.io/v1/perpetuals',
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
     );
     expect(infra.terminalApi?.globalSnapshotUrl).toBe(
-      'https://terminal.dev-api.cx.metamask.io/v2/perpetuals',
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     );
 
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'beta';
     expect(createMobileInfrastructure().terminalApi).toEqual({
-      marketDataUrl: TERMINAL_API_URLS.UAT,
-      globalSnapshotUrl:
-        'https://terminal.uat-api.cx.metamask.io/v2/perpetuals',
+      marketDataUrl: `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+      globalSnapshotUrl: `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     });
   });
 });
@@ -664,7 +686,7 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'dev',
         endpoint: '  http://127.0.0.1:9332/v2/perpetuals/global-snapshot  ',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
     ).toBe('http://127.0.0.1:9332/v2/perpetuals/global-snapshot');
 
@@ -673,17 +695,17 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'production',
         endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
-        marketDataUrl: TERMINAL_API_URLS.PRD,
+        host: TERMINAL_API_HOSTS.PRD,
       }),
-    ).toBe('https://terminal.api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
     expect(
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: false,
         environment: 'dev',
         endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
   });
 
   it('derives the deployed endpoint when the dev override is blank', () => {
@@ -692,8 +714,8 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'dev',
         endpoint: '   ',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
   });
 });
