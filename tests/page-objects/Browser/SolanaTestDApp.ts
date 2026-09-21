@@ -15,7 +15,7 @@ import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTes
 import { dataTestIds } from '@metamask/test-dapp-solana';
 
 export const SOLANA_DAPP_PORT = 8095;
-const BASE_URL = localDappBrowserUrl(SOLANA_DAPP_PORT);
+const getBaseUrl = (): string => localDappBrowserUrl(SOLANA_DAPP_PORT);
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
@@ -51,12 +51,12 @@ class SolanaTestDApp {
     await navigateToBrowserView();
     await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(BASE_URL);
+    await BrowserView.navigateToURL(getBaseUrl());
     await this.waitForDappLoaded();
   }
 
   private async evaluate<T>(expression: string): Promise<T | null> {
-    return ChromeCdpHelpers.evaluateInWebView<T>(BASE_URL, expression);
+    return ChromeCdpHelpers.evaluateInWebView<T>(getBaseUrl(), expression);
   }
 
   /** Waits until the dapp header has rendered (connection status is readable). */
