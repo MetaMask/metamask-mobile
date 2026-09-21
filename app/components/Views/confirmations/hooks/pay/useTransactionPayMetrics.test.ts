@@ -42,6 +42,13 @@ import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedAct
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { getAddressAccountType } from '../../../../../util/address';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { PayWithOption } from '../../components/confirm/confirm-component';
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
+}));
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -148,6 +155,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayingAccount,
   );
   const getAddressAccountTypeMock = jest.mocked(getAddressAccountType);
+  const useParamsMock = jest.mocked(useParams);
   const useIsTransactionPayQuoteLoadingMock = jest.mocked(
     useIsTransactionPayQuoteLoading,
   );
@@ -202,6 +210,7 @@ describe('useTransactionPayMetrics', () => {
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
     useTransactionPayQuoteErrorMock.mockReturnValue(undefined);
+    useParamsMock.mockReturnValue({});
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -1342,6 +1351,34 @@ describe('useTransactionPayMetrics', () => {
         },
       });
     });
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])(
+      'is money_account for %s started from the Money account UI',
+      async (type) => {
+        useParamsMock.mockReturnValue({
+          payWithOption: PayWithOption.MoneyAccount,
+        });
+
+        runHook({ type });
+
+        await act(async () => noop());
+
+        expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+          id: transactionIdMock,
+          params: {
+            properties: expect.objectContaining({
+              mm_pay_entry_point: 'money_account',
+            }),
+            sensitiveProperties: {},
+          },
+        });
+      },
+    );
 
     it('is null for unrecognized transaction types', async () => {
       runHook({ type: TransactionType.simpleSend });

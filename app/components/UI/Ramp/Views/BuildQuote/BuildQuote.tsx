@@ -677,7 +677,10 @@ function BuildQuote() {
   }, [hasNoQuotes, quotesResponse?.error]);
 
   const inlineQuoteError =
-    displayedAmountLimitError ?? providerQuoteError ?? null;
+    displayedAmountLimitError ??
+    providerQuoteError ??
+    embeddedCheckout.error ??
+    null;
   const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,

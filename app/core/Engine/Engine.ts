@@ -135,6 +135,7 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
+  predictOrderPreviewServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
@@ -394,6 +395,7 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
+        PredictOrderPreviewService: predictOrderPreviewServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
@@ -699,6 +701,8 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      PredictOrderPreviewService:
+        messengerClientsByName.PredictOrderPreviewService,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       RewardsController: rewardsController,
@@ -1422,6 +1426,7 @@ export class Engine {
       SubscriptionController,
       ShieldController,
       ClaimsController,
+      KycController,
     } = this.context;
 
     // Remove all permissions.
@@ -1466,6 +1471,9 @@ export class Engine {
 
     // Claims:
     ClaimsController.clearState();
+
+    // KYC:
+    KycController.clearState();
   };
 
   removeAllListeners() {

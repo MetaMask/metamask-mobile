@@ -26,15 +26,29 @@ export function getBridgeDestinationTxHash(
  * land on different history items. Empty for indexer-only rows, which have no
  * local transaction.
  */
+export function getKeyringTransactionByHash(
+  transactions: Transaction[] | undefined,
+  hash?: string,
+) {
+  if (!hash) {
+    return undefined;
+  }
+
+  const normalizedHash = hash.toLowerCase();
+  return transactions?.find(
+    (transaction) => transaction.id?.toLowerCase() === normalizedHash,
+  );
+}
+
 export function getBridgeExplorerSheetTx(
-  item: Extract<ActivityListItem, { type: 'bridge' }>,
   transactionMeta?: TransactionMeta,
+  keyringTransaction?: Transaction,
 ): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
   if (transactionMeta) {
     return { evmTxMeta: transactionMeta };
   }
-  if (item.raw?.type === 'keyringTransaction') {
-    return { multiChainTx: item.raw.data };
+  if (keyringTransaction) {
+    return { multiChainTx: keyringTransaction };
   }
   return {};
 }
