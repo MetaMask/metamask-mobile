@@ -2334,10 +2334,9 @@ describe('MainNavigator', () => {
 
         expect(inviteScreen).toBeDefined();
         expect(inviteScreen?.props?.component).toBe(AcceptInviteSheet);
-        expect(group?.props?.screenOptions).toEqual({
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        });
+        expect(group?.props?.screenOptions).toEqual(
+          transparentModalStackOptions,
+        );
       });
     });
 
