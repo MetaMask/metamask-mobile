@@ -8,10 +8,21 @@ import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
 export const BITCOIN_DAPP_PORT = 8094;
-const BASE_URL = `http://localhost:${BITCOIN_DAPP_PORT}`;
+
+/**
+ * Browser URL for the Bitcoin test dapp on this worker.
+ * Resolves at call time so iOS N=2 workers hit the shifted host listen port
+ * (worker 1 → devicePort + 100), matching {@link startLocalDappServerOnWorker}.
+ */
+function getBitcoinTestDappBaseUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  return localDappBrowserUrl(BITCOIN_DAPP_PORT, env);
+}
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
@@ -40,12 +51,15 @@ class BitcoinTestDapp {
     await navigateToBrowserView();
     await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(BASE_URL);
+    await BrowserView.navigateToURL(getBitcoinTestDappBaseUrl());
     await this.waitForDappLoaded();
   }
 
   private async evaluate<T>(expression: string): Promise<T | null> {
-    return ChromeCdpHelpers.evaluateInWebView<T>(BASE_URL, expression);
+    return ChromeCdpHelpers.evaluateInWebView<T>(
+      getBitcoinTestDappBaseUrl(),
+      expression,
+    );
   }
 
   /** Waits until the dapp header has rendered (connection status is readable). */
