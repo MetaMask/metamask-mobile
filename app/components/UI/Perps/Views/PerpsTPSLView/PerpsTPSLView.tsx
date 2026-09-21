@@ -32,14 +32,22 @@ import {
   Button,
   ButtonBase,
   ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   HelpText,
   HelpTextSeverity,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   KeyValueRow,
   KeyValueRowVariant,
   Label,
+  SectionDivider,
   Text,
   TextColor,
   TextField,
@@ -70,7 +78,17 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
-import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
+import {
+  LIQUIDATION_DISTANCE_DECIMALS,
+  TP_SL_VIEW_CONFIG,
+} from '../../constants/perpsConfig';
+
+/** ButtonBase resolves `textClassName` per press state, so it takes a function. */
+const getClearTextClassName = () => 'text-primary-default';
+
+/** Numeric stand-ins the sheet shows in place of descriptive placeholders. */
+const SHEET_PRICE_PLACEHOLDER = '0.00';
+const SHEET_PERCENTAGE_PLACEHOLDER = '0';
 
 const priceKeyTextProps = {
   variant: TextVariant.BodyMd,
@@ -79,6 +97,19 @@ const priceKeyTextProps = {
 
 const priceValueTextProps = {
   variant: TextVariant.BodyMd,
+  color: TextColor.TextDefault,
+} as const;
+
+/** Figma: keys are Body/Sm/Medium, values Body/Md/Medium. */
+const sheetPriceKeyTextProps = {
+  variant: TextVariant.BodySm,
+  fontWeight: FontWeight.Medium,
+  color: TextColor.TextAlternative,
+} as const;
+
+const sheetPriceValueTextProps = {
+  variant: TextVariant.BodyMd,
+  fontWeight: FontWeight.Medium,
   color: TextColor.TextDefault,
 } as const;
 
@@ -93,23 +124,52 @@ const RoeSignBadge: React.FC<{
   testID: string;
   accessibilityLabel: string;
   isDisabled: boolean;
-}> = ({ sign, onPress, testID, accessibilityLabel, isDisabled }) => (
-  <ButtonBase
-    size={ButtonBaseSize.Sm}
-    isDisabled={isDisabled}
-    onPress={onPress}
-    testID={testID}
-    accessibilityRole="button"
-    accessibilityLabel={accessibilityLabel}
-    twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
-    textProps={{
-      variant: TextVariant.BodyMd,
-      color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-    }}
-  >
-    {sign}
-  </ButtonBase>
-);
+  /** The sheet renders the sign neutrally; the screen keeps its semantic colors. */
+  isNeutral?: boolean;
+}> = ({
+  sign,
+  onPress,
+  testID,
+  accessibilityLabel,
+  isDisabled,
+  isNeutral = false,
+}) => {
+  // Figma draws this as a ButtonIcon with the add/minus glyph rather than a
+  // typed "+"/"-", which is what keeps it optically centred in the 24px
+  // circle. The screen keeps the typed sign and its semantic colours.
+  if (isNeutral) {
+    return (
+      <ButtonIcon
+        size={ButtonIconSize.Sm}
+        iconName={sign === '+' ? IconName.Add : IconName.Minus}
+        iconProps={{ size: IconSize.Sm, color: IconColor.IconDefault }}
+        isDisabled={isDisabled}
+        onPress={onPress}
+        testID={testID}
+        accessibilityLabel={accessibilityLabel}
+        twClassName="shrink-0 self-center rounded-full bg-muted"
+      />
+    );
+  }
+
+  return (
+    <ButtonBase
+      size={ButtonBaseSize.Sm}
+      isDisabled={isDisabled}
+      onPress={onPress}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
+      textProps={{
+        variant: TextVariant.BodyMd,
+        color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+      }}
+    >
+      {sign}
+    </ButtonBase>
+  );
+};
 
 /**
  * Reserves HelpText vertical space so TP/SL sections do not jump when
@@ -120,34 +180,51 @@ const SectionHelpText: React.FC<{
   errorMessage?: string;
   expectedMessage?: string;
   errorTestID?: string;
-}> = ({ errorMessage, expectedMessage, errorTestID }) => (
-  <Box>
-    <HelpText
-      severity={HelpTextSeverity.Danger}
-      showIcon
-      twClassName="opacity-0"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      {errorMessage ?? '\u00A0'}
-    </HelpText>
-    {errorMessage ? (
-      <Box twClassName="absolute inset-x-0 top-0">
-        <HelpText
-          severity={HelpTextSeverity.Danger}
-          showIcon
-          testID={errorTestID}
-        >
-          {errorMessage}
-        </HelpText>
-      </Box>
-    ) : expectedMessage ? (
-      <Box twClassName="absolute inset-x-0 top-0">
-        <HelpText>{expectedMessage}</HelpText>
-      </Box>
-    ) : null}
-  </Box>
-);
+  /**
+   * The sheet is short on vertical space and Figma leaves no gap under a
+   * section with nothing to say, so it drops the sizer when both messages
+   * are absent and accepts the shift when one appears.
+   */
+  reserveWhenEmpty?: boolean;
+}> = ({
+  errorMessage,
+  expectedMessage,
+  errorTestID,
+  reserveWhenEmpty = true,
+}) => {
+  if (!reserveWhenEmpty && !errorMessage && !expectedMessage) {
+    return null;
+  }
+
+  return (
+    <Box>
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        showIcon
+        twClassName="opacity-0"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {errorMessage ?? '\u00A0'}
+      </HelpText>
+      {errorMessage ? (
+        <Box twClassName="absolute inset-x-0 top-0">
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            showIcon
+            testID={errorTestID}
+          >
+            {errorMessage}
+          </HelpText>
+        </Box>
+      ) : expectedMessage ? (
+        <Box twClassName="absolute inset-x-0 top-0">
+          <HelpText>{expectedMessage}</HelpText>
+        </Box>
+      ) : null}
+    </Box>
+  );
+};
 
 export interface PerpsTPSLViewProps {
   /**
@@ -777,21 +854,27 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       children: strings('perps.tpsl.cancel'),
       onPress: handleBack,
       size: ButtonSize.Lg,
+      // Figma gives Cancel the input fields' 12px radius and surface, keeping
+      // the pill shape for Save alone.
+      ...(isSheet ? { twClassName: 'rounded-xl bg-muted' } : {}),
       testID: PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON,
     }),
-    [handleBack],
+    [handleBack, isSheet],
   );
 
   const setButtonProps = useMemo(
     () => ({
-      children: strings('perps.tpsl.set'),
+      // Figma labels the sheet's confirm action Save; the screen keeps Set.
+      children: isSheet
+        ? strings('perps.order.tpsl_modal.save')
+        : strings('perps.tpsl.set'),
       onPress: handleConfirm,
       size: ButtonSize.Lg,
       isDisabled: confirmDisabled,
       isLoading: isUpdating,
       testID: PerpsTPSLViewSelectorsIDs.SET_BUTTON,
     }),
-    [handleConfirm, confirmDisabled, isUpdating],
+    [handleConfirm, confirmDisabled, isSheet, isUpdating],
   );
 
   const doneButtonProps = useMemo(
@@ -803,6 +886,35 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     }),
     [dismissKeypad],
   );
+
+  // The sheet moves the RoE presets out of the sections and into a row above
+  // the keypad, so they follow whichever field is being edited.
+  const keypadPresets = useMemo(() => {
+    if (!focusedInput) {
+      return [];
+    }
+
+    const isTakeProfit =
+      focusedInput === 'takeProfitPrice' ||
+      focusedInput === 'takeProfitPercentage';
+
+    if (isTakeProfit) {
+      return TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => ({
+        key: `take-profit-${percentage}`,
+        // Take profit presets are stored unsigned, stop loss presets negative.
+        label: `+${percentage}%`,
+        testID: getPerpsTPSLViewSelector.takeProfitPercentageButton(percentage),
+        onPress: () => handleTakeProfitPresetPress(percentage),
+      }));
+    }
+
+    return TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => ({
+      key: `stop-loss-${percentage}`,
+      label: `${percentage}%`,
+      testID: getPerpsTPSLViewSelector.stopLossPercentageButton(percentage),
+      onPress: () => handleStopLossPresetPress(percentage),
+    }));
+  }, [focusedInput, handleStopLossPresetPress, handleTakeProfitPresetPress]);
 
   const entryPriceDisplay =
     position &&
@@ -822,15 +934,39 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         })
       : PERPS_CONSTANTS.FallbackPriceDisplay;
 
-  const liquidationPriceDisplay =
+  const hasLiquidationPrice =
     displayLiquidationPrice !== undefined &&
     displayLiquidationPrice !== null &&
     displayLiquidationPrice !== 'null' &&
-    displayLiquidationPrice !== '0.00'
-      ? formatPerpsFiat(displayLiquidationPrice, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        })
-      : PERPS_CONSTANTS.FallbackPriceDisplay;
+    displayLiquidationPrice !== '0.00';
+
+  const liquidationPriceDisplay = hasLiquidationPrice
+    ? formatPerpsFiat(displayLiquidationPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      })
+    : PERPS_CONSTANTS.FallbackPriceDisplay;
+
+  // How far price can move before liquidation, same calculation the leverage
+  // sheet shows next to its liquidation price.
+  const liquidationDistanceDisplay = useMemo(() => {
+    if (!hasLiquidationPrice || !currentPrice) {
+      return undefined;
+    }
+
+    const parsedLiquidationPrice = Number.parseFloat(
+      String(displayLiquidationPrice),
+    );
+    if (!Number.isFinite(parsedLiquidationPrice)) {
+      return undefined;
+    }
+
+    const distance =
+      (Math.abs(currentPrice - parsedLiquidationPrice) / currentPrice) * 100;
+
+    return `${(distance >= 99.9 ? 100 : distance).toFixed(
+      LIQUIDATION_DISTANCE_DECIMALS,
+    )}%`;
+  }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice]);
 
   const takeProfitHasError = !isValid && Boolean(takeProfitError);
   const stopLossHasError = !isValid && Boolean(stopLossError);
@@ -852,31 +988,150 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
           }),
         });
 
+  // ButtonTertiary hardcodes `text-default` through `textClassName`, which
+  // beats `textProps.color`, so the blue has to come through that same prop.
+  // Only spread it for the sheet: passing `undefined` would clobber the
+  // variant's own resolver rather than fall back to it.
+  const clearColorProps = isSheet
+    ? { textClassName: getClearTextClassName }
+    : {};
+
+  // Figma: section titles are Body/Sm/Medium in grey. Spread rather than pass
+  // `undefined`, which would wipe out Label's own BodyMd default.
+  const sectionLabelProps = isSheet
+    ? {
+        color: TextColor.TextAlternative,
+        variant: TextVariant.BodySm,
+        fontWeight: FontWeight.Medium,
+      }
+    : { color: TextColor.TextDefault };
+
+  const keyTextProps = isSheet ? sheetPriceKeyTextProps : priceKeyTextProps;
+  const valueTextProps = isSheet
+    ? sheetPriceValueTextProps
+    : priceValueTextProps;
+
+  // The sheet shows numeric zeros rather than the screen's descriptive
+  // placeholders, so each field reads as an amount waiting to be typed.
+  const pricePlaceholder = isSheet
+    ? SHEET_PRICE_PLACEHOLDER
+    : strings('perps.tpsl.trigger_price_placeholder');
+  const takeProfitPercentagePlaceholder = isSheet
+    ? SHEET_PERCENTAGE_PLACEHOLDER
+    : takeProfitSign === '-'
+      ? strings('perps.tpsl.loss_roe_placeholder')
+      : strings('perps.tpsl.profit_roe_placeholder');
+  const stopLossPercentagePlaceholder = isSheet
+    ? SHEET_PERCENTAGE_PLACEHOLDER
+    : stopLossSign === '+'
+      ? strings('perps.tpsl.gain_roe_placeholder')
+      : strings('perps.tpsl.loss_roe_placeholder');
+
+  const reviewFooter = (
+    <BottomSheetFooter
+      buttonsAlignment={ButtonsAlignment.Horizontal}
+      secondaryButtonProps={cancelButtonProps}
+      primaryButtonProps={setButtonProps}
+    />
+  );
+
+  const keypad = (
+    <Box twClassName="px-4 pt-2 bg-default">
+      <Keypad
+        value={(() => {
+          if (focusedInput === 'takeProfitPrice') return takeProfitPrice;
+          if (focusedInput === 'takeProfitPercentage')
+            return formattedTakeProfitPercentage;
+          if (focusedInput === 'stopLossPrice') return stopLossPrice;
+          return formattedStopLossPercentage;
+        })()}
+        onChange={handleKeypadChange}
+        currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
+        decimals={
+          focusedInput === 'takeProfitPercentage' ||
+          focusedInput === 'stopLossPercentage'
+            ? TP_SL_VIEW_CONFIG.KeypadDecimals
+            : keypadDecimals
+        }
+      />
+    </Box>
+  );
+
+  let footerContent: React.ReactNode = reviewFooter;
+  if (focusedInput && isSheet) {
+    // Figma keeps Cancel and Save in place and moves Done into the preset row.
+    footerContent = (
+      <>
+        {reviewFooter}
+        <Box twClassName="flex-row gap-2 px-4 pt-3">
+          {keypadPresets.map((preset) => (
+            <Button
+              key={preset.key}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={preset.onPress}
+              testID={preset.testID}
+              isDisabled={inputsDisabled}
+            >
+              {preset.label}
+            </Button>
+          ))}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={dismissKeypad}
+            testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
+          >
+            {strings('perps.tpsl.done')}
+          </Button>
+        </Box>
+        {keypad}
+      </>
+    );
+  } else if (focusedInput) {
+    footerContent = (
+      <>
+        <BottomSheetFooter primaryButtonProps={doneButtonProps} />
+        {keypad}
+      </>
+    );
+  }
+
   const body = (
     <>
+      {/* The screen fills a bounded SafeAreaView, so the scroller claims the
+          leftover height. A bottom sheet sizes to its content instead, and
+          `flex-1` against an unbounded parent collapses the body to zero, so
+          the sheet lets the same content set the height. */}
       <ScrollView
         ref={scrollViewRef}
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('grow')}
+        style={isSheet ? undefined : tw.style('flex-1')}
+        contentContainerStyle={isSheet ? undefined : tw.style('grow')}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="flex-1" testID="scroll-content">
+        <Box
+          twClassName={isSheet ? undefined : 'flex-1'}
+          testID="scroll-content"
+        >
           {/* Current price and liquidation price info */}
-          <Box twClassName="mb-6 gap-2">
+          <Box twClassName={isSheet ? undefined : 'mb-6 gap-2'}>
             {position && (
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
+                twClassName={isSheet ? 'h-8' : undefined}
                 keyLabel={strings('perps.tpsl.entry_price')}
                 value={entryPriceDisplay}
-                keyTextProps={priceKeyTextProps}
-                valueTextProps={priceValueTextProps}
+                keyTextProps={keyTextProps}
+                valueTextProps={valueTextProps}
               />
             )}
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
+              twClassName={isSheet ? 'h-8' : undefined}
               keyLabel={
                 orderType === 'limit' &&
                 limitPrice &&
@@ -885,38 +1140,74 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   : strings('perps.tpsl.current_price')
               }
               value={currentPriceDisplay}
-              keyTextProps={priceKeyTextProps}
-              valueTextProps={priceValueTextProps}
+              keyTextProps={keyTextProps}
+              valueTextProps={valueTextProps}
             />
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
+              twClassName={isSheet ? 'h-8' : undefined}
               keyLabel={strings('perps.tpsl.liquidation_price')}
-              value={liquidationPriceDisplay}
-              keyTextProps={priceKeyTextProps}
-              valueTextProps={priceValueTextProps}
+              value={
+                liquidationDistanceDisplay ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
+                    accessible={false}
+                  >
+                    <Text {...valueTextProps}>{liquidationPriceDisplay}</Text>
+                    <Icon
+                      name={
+                        actualDirection === 'long'
+                          ? IconName.TrendDown
+                          : IconName.TrendUp
+                      }
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                    >
+                      {liquidationDistanceDisplay}
+                    </Text>
+                  </Box>
+                ) : (
+                  liquidationPriceDisplay
+                )
+              }
+              keyTextProps={keyTextProps}
+              valueTextProps={valueTextProps}
             />
           </Box>
 
+          {/* Full bleed, with the spacing carried entirely by the divider so
+              it sits the same distance from the liquidation row above and the
+              Take profit label below. */}
+          {isSheet ? <SectionDivider twClassName="my-4" /> : null}
+
           {/* Take Profit Section */}
           <View ref={takeProfitSectionRef} collapsable={false}>
-            <Box twClassName="mb-6 px-4">
+            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
                 twClassName="mb-2 -mr-3 min-h-8"
               >
-                <Label>
+                <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
                     ? strings('perps.tpsl.take_profit_short')
                     : strings('perps.tpsl.take_profit_long')}
                 </Label>
-                {Boolean(takeProfitPrice) && (
+                {(isSheet || Boolean(takeProfitPrice)) && (
                   <Button
                     variant={ButtonVariant.Tertiary}
                     size={ButtonSize.Sm}
                     onPress={handleTakeProfitClear}
                     isDisabled={inputsDisabled}
+                    {...clearColorProps}
                     testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON}
                   >
                     {strings('perps.tpsl.clear')}
@@ -924,26 +1215,30 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 )}
               </Box>
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="mb-3 gap-2"
-              >
-                {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
-                  <Button
-                    key={percentage}
-                    variant={ButtonVariant.Secondary}
-                    size={ButtonSize.Md}
-                    twClassName="flex-1"
-                    onPress={() => handleTakeProfitPresetPress(percentage)}
-                    testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
-                      percentage,
-                    )}
-                    isDisabled={inputsDisabled}
-                  >
-                    {`+${percentage}%`}
-                  </Button>
-                ))}
-              </Box>
+              {/* The sheet shows these above the keypad instead, scoped to the
+                  focused field. */}
+              {isSheet ? null : (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="mb-3 gap-2"
+                >
+                  {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
+                    <Button
+                      key={percentage}
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Md}
+                      twClassName="flex-1"
+                      onPress={() => handleTakeProfitPresetPress(percentage)}
+                      testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
+                        percentage,
+                      )}
+                      isDisabled={inputsDisabled}
+                    >
+                      {`+${percentage}%`}
+                    </Button>
+                  ))}
+                </Box>
+              )}
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -959,7 +1254,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPriceChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
+                  placeholder={pricePlaceholder}
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPrice');
@@ -988,11 +1283,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPercentageChange(text);
                   }}
-                  placeholder={
-                    takeProfitSign === '-'
-                      ? strings('perps.tpsl.loss_roe_placeholder')
-                      : strings('perps.tpsl.profit_roe_placeholder')
-                  }
+                  placeholder={takeProfitPercentagePlaceholder}
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
@@ -1009,6 +1300,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                         'perps.tpsl.toggle_take_profit_sign',
                       )}
                       isDisabled={inputsDisabled}
+                      isNeutral={isSheet}
                     />
                   }
                   endAccessory={
@@ -1028,6 +1320,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               </Box>
 
               <SectionHelpText
+                reserveWhenEmpty={!isSheet}
                 errorTestID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR}
                 errorMessage={
                   takeProfitHasError ? takeProfitError || undefined : undefined
@@ -1045,24 +1338,25 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
           {/* Stop Loss Section */}
           <View ref={stopLossSectionRef} collapsable={false}>
-            <Box twClassName="mb-6 px-4">
+            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
                 twClassName="mb-2 -mr-3 min-h-8"
               >
-                <Label>
+                <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
                     ? strings('perps.tpsl.stop_loss_short')
                     : strings('perps.tpsl.stop_loss_long')}
                 </Label>
-                {Boolean(stopLossPrice) && (
+                {(isSheet || Boolean(stopLossPrice)) && (
                   <Button
                     variant={ButtonVariant.Tertiary}
                     size={ButtonSize.Sm}
                     onPress={handleStopLossClear}
                     isDisabled={inputsDisabled}
+                    {...clearColorProps}
                     testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON}
                   >
                     {strings('perps.tpsl.clear')}
@@ -1070,26 +1364,28 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 )}
               </Box>
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="mb-3 gap-2"
-              >
-                {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
-                  <Button
-                    key={percentage}
-                    variant={ButtonVariant.Secondary}
-                    size={ButtonSize.Md}
-                    twClassName="flex-1"
-                    onPress={() => handleStopLossPresetPress(percentage)}
-                    testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
-                      percentage,
-                    )}
-                    isDisabled={inputsDisabled}
-                  >
-                    {`${percentage}%`}
-                  </Button>
-                ))}
-              </Box>
+              {isSheet ? null : (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="mb-3 gap-2"
+                >
+                  {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
+                    <Button
+                      key={percentage}
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Md}
+                      twClassName="flex-1"
+                      onPress={() => handleStopLossPresetPress(percentage)}
+                      testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
+                        percentage,
+                      )}
+                      isDisabled={inputsDisabled}
+                    >
+                      {`${percentage}%`}
+                    </Button>
+                  ))}
+                </Box>
+              )}
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -1105,7 +1401,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPriceChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
+                  placeholder={pricePlaceholder}
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPrice');
@@ -1134,11 +1430,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPercentageChange(text);
                   }}
-                  placeholder={
-                    stopLossSign === '+'
-                      ? strings('perps.tpsl.gain_roe_placeholder')
-                      : strings('perps.tpsl.loss_roe_placeholder')
-                  }
+                  placeholder={stopLossPercentagePlaceholder}
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
@@ -1155,6 +1447,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                         'perps.tpsl.toggle_stop_loss_sign',
                       )}
                       isDisabled={inputsDisabled}
+                      isNeutral={isSheet}
                     />
                   }
                   endAccessory={
@@ -1174,6 +1467,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               </Box>
 
               <SectionHelpText
+                reserveWhenEmpty={!isSheet}
                 errorTestID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR}
                 errorMessage={stopLossErrorMessage || undefined}
                 expectedMessage={
@@ -1190,37 +1484,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       </ScrollView>
 
       <Box twClassName="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
-        {focusedInput ? (
-          <>
-            <BottomSheetFooter primaryButtonProps={doneButtonProps} />
-            <Box twClassName="px-4 pt-2 bg-default">
-              <Keypad
-                value={(() => {
-                  if (focusedInput === 'takeProfitPrice')
-                    return takeProfitPrice;
-                  if (focusedInput === 'takeProfitPercentage')
-                    return formattedTakeProfitPercentage;
-                  if (focusedInput === 'stopLossPrice') return stopLossPrice;
-                  return formattedStopLossPercentage;
-                })()}
-                onChange={handleKeypadChange}
-                currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={
-                  focusedInput === 'takeProfitPercentage' ||
-                  focusedInput === 'stopLossPercentage'
-                    ? TP_SL_VIEW_CONFIG.KeypadDecimals
-                    : keypadDecimals
-                }
-              />
-            </Box>
-          </>
-        ) : (
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            secondaryButtonProps={cancelButtonProps}
-            primaryButtonProps={setButtonProps}
-          />
-        )}
+        {footerContent}
       </Box>
     </>
   );
@@ -1230,6 +1494,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       <BottomSheet
         ref={sheetRef}
         goBack={navigation.goBack}
+        // The dialog surface defaults to `bg-elevated1`; Figma puts this sheet
+        // on the pure black `background.default`.
+        twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
         <BottomSheetHeader onBack={handleBack}>

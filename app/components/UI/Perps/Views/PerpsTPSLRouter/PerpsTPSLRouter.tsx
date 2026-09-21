@@ -2,7 +2,7 @@ import React from 'react';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
-import PerpsTPSLView from '../PerpsTPSLView';
+import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 /**
  * Reading the experiment records exposure, so it is isolated in its own

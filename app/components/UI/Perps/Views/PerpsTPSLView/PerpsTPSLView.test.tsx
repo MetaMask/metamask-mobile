@@ -6,6 +6,7 @@ import {
   getPerpsTPSLViewSelector,
   PerpsTPSLViewSelectorsIDs,
 } from '../../Perps.testIds';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import {
   ImpactMoment,
   playImpact,
@@ -201,6 +202,14 @@ describe('PerpsTPSLView', () => {
       ...overrides,
     });
     return render(<PerpsTPSLView />);
+  };
+
+  const renderSheet = (overrides = {}) => {
+    mockUsePerpsTPSLForm.mockReturnValue({
+      ...defaultMockReturn,
+      ...overrides,
+    });
+    return render(<PerpsTPSLView variant="sheet" />);
   };
 
   const getTakeProfitPriceInput = () =>
@@ -992,6 +1001,88 @@ describe('PerpsTPSLView', () => {
       expect(
         screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Sheet variant', () => {
+    const takeProfitPresetId =
+      getPerpsTPSLViewSelector.takeProfitPercentageButton(
+        TP_SL_VIEW_CONFIG.TakeProfitRoePresets[0],
+      );
+    const stopLossPresetId = getPerpsTPSLViewSelector.stopLossPercentageButton(
+      TP_SL_VIEW_CONFIG.StopLossRoePresets[0],
+    );
+
+    it('hides the inline RoE presets that the screen shows in its sections', () => {
+      renderSheet();
+
+      expect(screen.queryByTestId(takeProfitPresetId)).toBeNull();
+      expect(screen.queryByTestId(stopLossPresetId)).toBeNull();
+    });
+
+    it('reveals take profit presets above the keypad when that field is focused', () => {
+      renderSheet();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(screen.getByTestId(takeProfitPresetId)).toBeOnTheScreen();
+      expect(screen.queryByTestId(stopLossPresetId)).toBeNull();
+    });
+
+    it('swaps to stop loss presets when that field is focused', () => {
+      renderSheet();
+
+      fireEvent(getStopLossPercentageInput(), 'focus');
+
+      expect(screen.getByTestId(stopLossPresetId)).toBeOnTheScreen();
+      expect(screen.queryByTestId(takeProfitPresetId)).toBeNull();
+    });
+
+    it('keeps Cancel and Save visible while the keypad is open', () => {
+      renderSheet();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    // `strings` is mocked to echo the key, so these assert the key the
+    // variant resolves rather than the rendered copy.
+    it('labels the confirm action Save rather than Set', () => {
+      renderSheet();
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toHaveTextContent('perps.order.tpsl_modal.save');
+    });
+
+    it('keeps the Set label on the screen variant', () => {
+      renderView();
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toHaveTextContent('perps.tpsl.set');
+    });
+
+    it('replaces the footer with Done on the screen variant instead', () => {
+      renderView();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).toBeNull();
     });
   });
 });
