@@ -338,7 +338,12 @@ export const useEventsWithLiveData = (
     marketIdsToWatch,
     presentMarketIds,
   );
-  const previousLiveRef = useRef({
+  const previousLiveRef = useRef<{
+    events: readonly PredictEvent[];
+    gameUpdates: ReadonlyMap<PredictEntityId, PredictGameLive>;
+    quoteUpdates: ReadonlyMap<PredictEntityId, PredictQuote>;
+    result: readonly PredictEvent[];
+  }>({
     events,
     gameUpdates: new Map<PredictEntityId, PredictGameLive>(),
     quoteUpdates: new Map<PredictEntityId, PredictQuote>(),
