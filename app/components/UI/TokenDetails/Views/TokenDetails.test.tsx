@@ -688,9 +688,7 @@ describe('TokenDetails', () => {
 
       const { getByTestId } = render(<TokenDetails />);
 
-      expect(
-        getByTestId('money-asset-overview-footer-cta'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
     });
 
     it('shows sticky buttons when token is loaded', () => {

@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 999,
   },
-  earnButton: {
+  moneyDepositButton: {
     flex: 1,
     paddingLeft: 0,
     paddingRight: 0,
@@ -322,7 +322,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     <Button
       testID="money-asset-overview-footer-cta"
       variant={ButtonVariant.Primary}
-      style={styles.earnButton}
+      style={styles.moneyDepositButton}
       twClassName={successBg}
       textProps={SUCCESS_TEXT_PROPS}
       isLoading={moneyDepositCta?.isLoading}

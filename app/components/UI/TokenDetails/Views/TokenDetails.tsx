@@ -715,13 +715,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    | 'both'
-    | 'buy'
-    | 'swap'
-    | 'money_swap'
-    | 'money'
-    | null
-    | undefined
+    'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null | undefined
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
