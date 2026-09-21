@@ -7,6 +7,7 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
 import { selectNftByIdentity } from '../../../selectors/nftController';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { useNftActivityImage } from './useNftActivityImage';
+import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 jest.mock('@metamask/assets-controllers', () => ({
   getFormattedIpfsUrl: jest.fn(),
@@ -18,6 +19,13 @@ jest.mock('../../../selectors/nftController', () => ({
   selectNftByIdentity: jest.fn(),
 }));
 
+jest.mock(
+  '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
+  () => ({
+    useCachedEvmTransaction: jest.fn(),
+  }),
+);
+
 const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.MockedFunction<
   typeof getFormattedIpfsUrl
 >;
@@ -27,6 +35,10 @@ const mockUseIpfsGateway = useIpfsGateway as jest.MockedFunction<
 const mockSelectNftByIdentity = selectNftByIdentity as jest.MockedFunction<
   typeof selectNftByIdentity
 >;
+const mockUseCachedEvmTransaction =
+  useCachedEvmTransaction as jest.MockedFunction<
+    typeof useCachedEvmTransaction
+  >;
 
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
@@ -48,29 +60,30 @@ const makeNftBuyItem = (
       transferType: 'erc721',
     },
   ],
-): ActivityListItem =>
-  ({
+): ActivityListItem => {
+  mockUseCachedEvmTransaction.mockReturnValue({
+    valueTransfers,
+  } as ReturnType<typeof useCachedEvmTransaction>);
+  return {
     type: 'nftBuy',
     chainId: 'eip155:1',
     status: 'success',
     timestamp: 1,
     hash: '0xhash',
-    raw: {
-      type: 'apiEvmTransaction',
-      data: { valueTransfers },
-    },
     data: {
       from: '0xseller',
       to: '0xbuyer',
       token: { direction: 'in', symbol: 'FLUF World' },
     },
-  }) as unknown as ActivityListItem;
+  } as unknown as ActivityListItem;
+};
 
 describe('useNftActivityImage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseIpfsGateway.mockReturnValue(IPFS_GATEWAY);
     mockSelectNftByIdentity.mockReturnValue(undefined);
+    mockUseCachedEvmTransaction.mockReturnValue(undefined);
   });
 
   it('returns undefined and skips the lookup for non-NFT kinds', () => {

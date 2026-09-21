@@ -166,7 +166,10 @@ const PredictFeedContent = ({
     () => getFeedWatchEventIds(feedEvents, visibleEventIds),
     [feedEvents, visibleEventIds],
   );
-  const events = useEventsWithLiveData(venueId, feedEvents, watchEventIds);
+  const events = useEventsWithLiveData(venueId, feedEvents, {
+    watchEventIds,
+    marketScope: 'card',
+  });
   const hasInitialError = isError && events.length === 0;
 
   usePredictNextMeasurement({
