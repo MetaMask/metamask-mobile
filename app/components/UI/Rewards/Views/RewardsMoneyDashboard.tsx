@@ -23,21 +23,16 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import {
-  selectEarningsSummaryEntry,
-  selectReferralMeEntry,
-} from '../../../../reducers/rewardsMoney/selectors';
+import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview';
-import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RefererHeroCard from '../components/Money/RefererHeroCard';
 import RefereeHeroCard from '../components/Money/RefereeHeroCard';
 import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useSessionProfileId } from '../hooks/useReferralMe';
-import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { navigateToRewardsRoute } from '../utils';
 
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
@@ -50,7 +45,6 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  ERROR_BANNER: 'rewards-money-dashboard-error-banner',
   CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
   BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
 } as const;
@@ -68,21 +62,10 @@ const RewardsMoneyDashboard: React.FC = () => {
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
-  const earningsSummaryEntry = useSelector((state: RootState) =>
-    selectEarningsSummaryEntry(state, profileId),
-  );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
-
-  useEarningsSummary(profileId);
 
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
-  const earningsSummary = earningsSummaryEntry?.data ?? null;
-  // A summary that failed is not an error on this screen: the hero still reads
-  // without its totals, so the cards drop the amount rather than the tab
-  // showing a banner about money the user did not ask for yet.
-  const isEarningsLoading =
-    !earningsSummary && Boolean(earningsSummaryEntry?.loading);
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
 
   const tabs = useMemo<TabItem[]>(
@@ -127,39 +110,11 @@ const RewardsMoneyDashboard: React.FC = () => {
     </Box>
   );
 
-  if (
-    !isProfileResolved ||
-    (!referralMe && Boolean(referralMeEntry?.loading))
-  ) {
+  if (!isProfileResolved || !profileId || !referralMe) {
     // The same surface the tab shows while the persona resolves, so the two
     // waits read as one screen rather than a skeleton swapping for another.
     return (
       <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
-    );
-  }
-
-  if (!profileId || !referralMeEntry || !referralMe) {
-    return (
-      <ErrorBoundary navigation={navigation} view="RewardsMoneyDashboard">
-        <SafeAreaView
-          edges={{ top: 'additive' }}
-          style={tw.style('flex-1 bg-default')}
-          testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER}
-        >
-          <HeaderStandard title={strings('rewards.main_title')} />
-          <Box twClassName="p-4">
-            <RewardsErrorBanner
-              title={strings(
-                'rewards.referral_details_error.error_fetching_title',
-              )}
-              description={strings(
-                'rewards.referral_details_error.error_fetching_description',
-              )}
-              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR_BANNER}
-            />
-          </Box>
-        </SafeAreaView>
-      </ErrorBoundary>
     );
   }
 
@@ -195,33 +150,18 @@ const RewardsMoneyDashboard: React.FC = () => {
             </Box>
             {activeTab === 'waysToEarn' ? (
               <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}>
-                {referralMeEntry.error ? (
-                  <Box twClassName="px-4 pt-4">
-                    <RewardsErrorBanner
-                      title={strings(
-                        'rewards.referral_details_error.error_fetching_title',
-                      )}
-                      description={strings(
-                        'rewards.referral_details_error.error_fetching_description',
-                      )}
-                      testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR_BANNER}
-                    />
-                  </Box>
-                ) : null}
                 {referralMe?.variant === 'REFERRER' ? (
                   <RefererHeroCard
+                    profileId={profileId}
                     referralCode={referralMe.referral_code}
                     localizedText={referralMe.localized_text}
-                    earningsSummary={earningsSummary}
-                    isEarningsLoading={isEarningsLoading}
                   />
                 ) : null}
                 {referralMe?.variant === 'REFEREE' ? (
                   <RefereeHeroCard
+                    profileId={profileId}
                     referredBy={referralMe.referred_by}
                     localizedText={referralMe.localized_text}
-                    earningsSummary={earningsSummary}
-                    isEarningsLoading={isEarningsLoading}
                   />
                 ) : null}
                 {referralMe ? (

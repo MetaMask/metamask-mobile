@@ -65,6 +65,7 @@ describe('shouldHideRewardsTabBar', () => {
   it.each([
     [undefined, false],
     [Routes.REWARDS_DASHBOARD, false],
+    [Routes.REWARDS_MONEY_DASHBOARD, false],
     [Routes.REWARDS_ONBOARDING_FLOW, false],
     ['OndoCampaignDetails', true],
   ])('with active route %s hides: %s', (activeRouteName, expected) => {
