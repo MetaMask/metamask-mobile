@@ -37,7 +37,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BlurView } from 'expo-blur';
-import { GlassView } from 'expo-glass-effect';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
@@ -52,6 +51,7 @@ import {
   BLUR_INTENSITY,
   useBlurMaterial,
 } from '../../../component-library/hooks/useBlurMaterial';
+import { getNativeGlassView } from '../../../component-library/hooks/getNativeGlassView';
 import { useLiquidGlass } from '../../../component-library/hooks/useLiquidGlass';
 import {
   TAB_BAR_FLOATING_HEIGHT,
@@ -162,7 +162,11 @@ function TradeWalletActions() {
   const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
   // Glass needs one rounded surface; the notched edge is an SVG shape that
   // cannot be glass, so only the plain sheet gets the material.
-  const isGlassSheet = isGlassEnabled && !hasBottomNotch;
+  // Load GlassView lazily: a static import crashes stale iOS Expo
+  // dev clients that do not contain ExpoGlassEffect.
+  const NativeGlassView =
+    isGlassEnabled && !hasBottomNotch ? getNativeGlassView() : null;
+  const isGlassSheet = NativeGlassView != null;
   const isTranslucentSheet =
     !isGlassSheet && isTradeFocusedArm && isBlurAvailable;
 
@@ -422,9 +426,9 @@ function TradeWalletActions() {
   const sheetContent = (
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
-        {isGlassSheet ? (
+        {NativeGlassView ? (
           <View style={[tw.style('mb-4'), glassBorderStyle]}>
-            <GlassView
+            <NativeGlassView
               glassEffectStyle="regular"
               colorScheme={glassColorScheme}
               testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
@@ -442,7 +446,7 @@ function TradeWalletActions() {
                 ]}
               />
               {actionList}
-            </GlassView>
+            </NativeGlassView>
           </View>
         ) : isTranslucentSheet && !hasBottomNotch ? (
           <BlurView

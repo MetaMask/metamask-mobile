@@ -60,4 +60,14 @@ describe('useLiquidGlass', () => {
 
     expect(result.current.glassColorScheme).toBe('light');
   });
+
+  it('disables glass when the native ExpoGlassEffect module is missing', () => {
+    mockIsLiquidGlassAvailable.mockImplementation(() => {
+      throw new Error("Cannot find native module 'ExpoGlassEffect'");
+    });
+
+    const { result } = renderHook(() => useLiquidGlass());
+
+    expect(result.current.isGlassEnabled).toBe(false);
+  });
 });
