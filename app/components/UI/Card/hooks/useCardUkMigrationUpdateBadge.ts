@@ -1,14 +1,15 @@
 import { useSelector } from 'react-redux';
+import { useCardUkMigrationState } from './useCardUkMigrationState';
 import {
   selectCardActiveProviderId,
   selectCardCountryOfResidence,
+  selectHasCompletedCardMigration,
 } from '../../../../selectors/cardController';
 import {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   type CardUkMigrationUpdateBadgeSeverity,
 } from '../../../../selectors/featureFlagController/card';
-import { useCardUkMigrationState } from './useCardUkMigrationState';
 
 /**
  * Resolves the Accounts menu update badge for eligible Baanx UK users.
@@ -19,11 +20,13 @@ import { useCardUkMigrationState } from './useCardUkMigrationState';
 export function useCardUkMigrationUpdateBadge(): CardUkMigrationUpdateBadgeSeverity | null {
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const countryOfResidence = useSelector(selectCardCountryOfResidence);
+  const hasCompletedMigration = useSelector(selectHasCompletedCardMigration);
   const { state } = useCardUkMigrationState();
 
   const isEligible = isCardUkMigrationEligible(state, {
     providerId: activeProviderId,
     regionCode: countryOfResidence,
+    hasCompletedMigration,
   });
 
   return isEligible ? getCardUkMigrationUpdateBadgeSeverity(state) : null;
