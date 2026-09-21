@@ -279,11 +279,19 @@ export function renderFlakyFindingsTable(files: FlakyTableFile[]): string {
  * neither signal fired, so the reader sees a sentence instead of an empty
  * table followed by a footer that points at it.
  */
-export function renderNoFindingsLine(modifiedFileCount: number): string {
+export function renderNoFindingsLine(
+  modifiedFileCount: number,
+  historyAvailable = true,
+): string {
   const files =
     modifiedFileCount === 1
       ? 'the modified unit test file'
       : `the ${modifiedFileCount} modified unit test files`;
+  // Claiming no history was found reads as a clean result, which is the one
+  // thing an unread index cannot support. Only the pattern signal ran.
+  if (!historyAvailable) {
+    return `No flaky pattern found for ${files}. Past flakiness could not be checked.`;
+  }
   return `No same-SHA fail-then-pass history and no flaky pattern found for ${files} in the inspected range.`;
 }
 

@@ -10,6 +10,7 @@ import {
   markGapDay,
   mergeDayHits,
   parseIndex,
+  UNKNOWN_STALE_DAYS,
   pruneToRetention,
   type DayHit,
 } from './flaky-history-index';
@@ -335,6 +336,17 @@ describe('indexCoverage', () => {
 
     expect(coverage.daysCovered).toBe(0);
     expect(coverage.complete).toBe(false);
+  });
+
+  // The coverage travels to Stage 3 through a JSON artifact, and JSON writes
+  // Infinity as null — a value the reader on the far side cannot compare.
+  it('reports unknown staleness as a number that survives JSON', () => {
+    const coverage = indexCoverage(emptyIndex(), '2026-09-21');
+
+    expect(coverage.staleDays).toBe(UNKNOWN_STALE_DAYS);
+    expect(JSON.parse(JSON.stringify(coverage)).staleDays).toBe(
+      UNKNOWN_STALE_DAYS,
+    );
   });
 });
 

@@ -45,6 +45,7 @@ import {
   indexTotals,
   parseIndex,
   toDayKey,
+  UNKNOWN_STALE_DAYS,
   type IndexCoverage,
 } from './flaky-history-index';
 import {
@@ -160,7 +161,7 @@ type Stage1SkipReason =
   | '';
 
 const NO_COVERAGE: IndexCoverage = {
-  staleDays: Infinity,
+  staleDays: UNKNOWN_STALE_DAYS,
   daysCovered: 0,
   gapDays: [],
   oldestDay: '',

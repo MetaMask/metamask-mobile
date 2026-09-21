@@ -502,6 +502,17 @@ describe('renderNoFindingsLine', () => {
     );
     expect(renderNoFindingsLine(1)).toContain('the modified unit test file in');
   });
+
+  // "No history found" reads as a clean result, which an unread index cannot
+  // support — only the pattern signal actually ran.
+  it('does not claim a clean history when the index could not be read', () => {
+    const line = renderNoFindingsLine(8, false);
+
+    expect(line).toBe(
+      'No flaky pattern found for the 8 modified unit test files. Past flakiness could not be checked.',
+    );
+    expect(line).not.toContain('No same-SHA fail-then-pass history');
+  });
 });
 
 describe('fitCommentBody', () => {

@@ -37,6 +37,7 @@ import {
   sourceSliceAtLine,
 } from './flaky-sticky-snippet';
 import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
+import { UNKNOWN_STALE_DAYS } from './flaky-history-index';
 import {
   renderCoverageWindowLine,
   renderInfrastructureFailuresLine,
@@ -334,6 +335,7 @@ function buildCommentBody({
   stateBlock,
   headSha,
   coverageLine,
+  historyAvailable,
   runs,
   maxFiles,
 }: {
@@ -344,6 +346,7 @@ function buildCommentBody({
   stateBlock: string;
   headSha: string;
   coverageLine: string;
+  historyAvailable: boolean;
   runs: AnalyzerRunHint[] | undefined;
   maxFiles: number | undefined;
 }): string {
@@ -362,7 +365,10 @@ function buildCommentBody({
   );
   return fitCommentBody({
     marker: MARKER,
-    table: table.length > 0 ? table : renderNoFindingsLine(historyFiles.length),
+    table:
+      table.length > 0
+        ? table
+        : renderNoFindingsLine(historyFiles.length, historyAvailable),
     diffs: buildSuggestedFixesSection(findings, headSha),
     coverageLine,
     skillLink: SKILL_LINK,
@@ -372,7 +378,7 @@ function buildCommentBody({
 }
 
 const NO_COVERAGE: CoverageWindow = {
-  staleDays: Infinity,
+  staleDays: UNKNOWN_STALE_DAYS,
   daysCovered: 0,
   gapDays: [],
   oldestDay: '',
@@ -615,6 +621,7 @@ async function main(): Promise<void> {
     stateBlock,
     headSha,
     coverageLine,
+    historyAvailable: (history.coverage ?? NO_COVERAGE).daysCovered > 0,
     runs: Array.isArray(aiAnalysis.runs) ? aiAnalysis.runs : undefined,
     maxFiles:
       typeof aiAnalysis.maxFiles === 'number' ? aiAnalysis.maxFiles : undefined,

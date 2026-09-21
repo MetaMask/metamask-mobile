@@ -331,6 +331,14 @@ export function parseIndex(raw: string): HistoryIndex | null {
 export type IndexCoverage = CoverageWindow;
 
 /**
+ * Staleness of an index that was never built. A finite sentinel rather than
+ * `Infinity`, which JSON writes as `null` — the artifact crosses a process
+ * boundary, so a value that cannot survive the round trip is a value the
+ * reader on the far side cannot compare against.
+ */
+export const UNKNOWN_STALE_DAYS = 99_999;
+
+/**
  * A nightly build that runs after midnight covers up to yesterday, so one day
  * of staleness is the steady state rather than a problem. Two means a night
  * was missed.
@@ -343,7 +351,7 @@ export function indexCoverage(
 ): IndexCoverage {
   if (index.newestDay === '') {
     return {
-      staleDays: Infinity,
+      staleDays: UNKNOWN_STALE_DAYS,
       daysCovered: 0,
       gapDays: [],
       oldestDay: '',
