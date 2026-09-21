@@ -1,10 +1,14 @@
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxFlexWrap,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -15,13 +19,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import {
@@ -34,13 +33,9 @@ import {
 } from '../../utils/projections';
 import { tokenFiatValue } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
-
-const styles = StyleSheet.create({
-  rowPressable: { flex: 1 },
-});
 
 const PotentialEarningsTokenRow = ({
   token,
@@ -51,7 +46,7 @@ const PotentialEarningsTokenRow = ({
   testID,
   privacyMode = false,
 }: {
-  token: AssetType;
+  token: MoneyDepositAsset;
   hasSubsidizedFee: boolean;
   /** APY as a decimal (e.g. 0.04 for 4%). */
   apyDecimal: number;
@@ -61,6 +56,7 @@ const PotentialEarningsTokenRow = ({
   /** Whether the balance/projected values should be masked. */
   privacyMode?: boolean;
 }) => {
+  const tw = useTailwind();
   const fiatCurrency = moneySafeTokenFiatCurrency(token);
 
   const networkBadgeSource = useMemo(
@@ -85,40 +81,56 @@ const PotentialEarningsTokenRow = ({
   );
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3 gap-4"
+    <Pressable
+      onPress={onCardPress}
+      style={({ pressed }) =>
+        tw.style(
+          'w-full flex-row items-center gap-4 px-4 py-3',
+          pressed && 'bg-pressed',
+        )
+      }
+      testID={testID}
     >
-      <Pressable
-        onPress={onCardPress}
-        style={styles.rowPressable}
-        testID={testID}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="flex-1 gap-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-4"
+          twClassName="flex-1 gap-4"
         >
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              networkBadgeSource ? (
+                <BadgeNetwork
+                  src={
+                    networkBadgeSource as React.ComponentProps<
+                      typeof BadgeNetwork
+                    >['src']
+                  }
                 />
-              )
+              ) : null
             }
           >
-            <AssetLogo asset={token} />
+            <AssetLogo
+              asset={{
+                ...token,
+                logo: token.image,
+                isETH: token.isNative && token.symbol === 'ETH',
+              }}
+            />
           </BadgeWrapper>
 
           <Box twClassName="flex-1">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
+              flexWrap={BoxFlexWrap.Wrap}
               twClassName="gap-1"
+              testID={PotentialEarningsTokenRowTestIds.NAME_ROW}
             >
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {token.name || token.symbol}
@@ -164,16 +176,16 @@ const PotentialEarningsTokenRow = ({
             </Box>
           </Box>
         </Box>
-      </Pressable>
 
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Md}
-        onPress={onButtonPress}
-      >
-        {strings('money.potential_earnings.add')}
-      </Button>
-    </Box>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={onButtonPress}
+        >
+          {strings('money.potential_earnings.add')}
+        </Button>
+      </Box>
+    </Pressable>
   );
 };
 

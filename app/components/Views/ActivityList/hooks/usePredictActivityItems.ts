@@ -8,8 +8,7 @@
  * fetch or merge.
  *
  * `usePredictActivity` triggers a Polygon-network-ensure side effect on mount,
- * so this hook must only be mounted when Predict is enabled — see
- * `PredictActivitySource`.
+ * so pass `enabled: false` when Predict is off.
  */
 import { useCallback, useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
@@ -39,7 +38,9 @@ export interface UsePredictActivityItemsResult {
   isFetchingMore: boolean;
 }
 
-export function usePredictActivityItems(): UsePredictActivityItemsResult {
+export function usePredictActivityItems({
+  enabled = true,
+}: { enabled?: boolean } = {}): UsePredictActivityItemsResult {
   const {
     activity,
     isLoading,
@@ -48,7 +49,7 @@ export function usePredictActivityItems(): UsePredictActivityItemsResult {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = usePredictActivity();
+  } = usePredictActivity({ enabled });
 
   const items = useMemo(() => {
     const result: ActivityListItem[] = [];

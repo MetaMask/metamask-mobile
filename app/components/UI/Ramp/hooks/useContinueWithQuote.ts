@@ -22,6 +22,11 @@ import {
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
+import { isMonadMusdAssetId } from '../utils/fiatDepositAsset';
+import {
+  acceptedAmountMatchesRequest,
+  logTransakQuoteMismatch,
+} from '../utils/transakQuoteParity';
 import {
   type Quote,
   isNativeProvider,
@@ -37,6 +42,17 @@ import { useRampsController } from './useRampsController';
 import { useTransakController } from './useTransakController';
 import { useTransakRouting } from './useTransakRouting';
 import useRampAccountAddress from './useRampAccountAddress';
+import {
+  endOpenRampsBuyCufChildrenByName,
+  endRampsBuyCufChildTrace,
+  startRampsBuyCufChildTrace,
+} from '../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_PATH,
+  RAMPS_BUY_CUF_TAG,
+} from '../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../util/trace';
 
 export interface ContinueWithQuoteContext {
   amount: number;
@@ -141,11 +157,11 @@ export function useContinueWithQuote(
     [navigation],
   );
 
-  // The aggregator-format `_quote` is used only by the caller to dispatch
+  // The aggregator-format quote is used only by the caller to dispatch
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
   // its own `TransakBuyQuote` via `transakGetBuyQuote` below.
   const continueNative = useCallback(
-    async (_quote: Quote, ctx: ContinueWithQuoteContext) => {
+    async (quote: Quote, ctx: ContinueWithQuoteContext) => {
       const { amount, assetId } = ctx;
       // Resolve every controller-coupled value through the override-first
       // ladder so headless callers (Phase 5) can drive this hook without
@@ -172,17 +188,28 @@ export function useContinueWithQuote(
           ),
         );
       }
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+      });
+      const nativeCufOpId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeToOrderCreated,
+        tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.NATIVE },
+      });
       try {
         const hasToken = await transakCheckExistingToken();
 
         if (hasToken) {
-          const transakQuote = await transakGetBuyQuote(
+          const quoteArguments = [
             effectiveCurrency,
             assetId,
             effectiveChainId,
             effectivePaymentMethodId,
             String(amount),
-          );
+          ] as const;
+          // Fee-on-top: request the native quote with the default fee mode
+          // (the fee is added on top of the amount).
+          const transakQuote = await transakGetBuyQuote(...quoteArguments);
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
           }
@@ -209,6 +236,15 @@ export function useContinueWithQuote(
           );
         }
       } catch (error) {
+        if (nativeCufOpId) {
+          endRampsBuyCufChildTrace({
+            id: nativeCufOpId,
+            data: {
+              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+            },
+          });
+        }
         throw new Error(
           reportRampsError(
             error,
@@ -249,8 +285,35 @@ export function useContinueWithQuote(
       let useExternalBrowser: boolean;
       let redirectUrl: string;
       let buyWidget: Awaited<ReturnType<typeof getBuyWidgetData>>;
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyContinueToCheckout, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+      });
+      const checkoutCufOpId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyContinueToCheckout,
+        tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.WIDGET },
+      });
+      const endCheckoutCuf = (success: boolean, reason?: string) => {
+        if (!checkoutCufOpId) {
+          return;
+        }
+        endRampsBuyCufChildTrace({
+          id: checkoutCufOpId,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: success,
+            ...(reason ? { [RAMPS_BUY_CUF_TAG.REASON]: reason } : {}),
+          },
+        });
+      };
       try {
         providerCode = quote.provider;
+        if (
+          ctx.headlessSessionId &&
+          isMonadMusdAssetId(ctx.assetId) &&
+          !acceptedAmountMatchesRequest(quote, ctx.amount)
+        ) {
+          logTransakQuoteMismatch(['fiat_amount']);
+        }
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
           quote,
@@ -262,6 +325,7 @@ export function useContinueWithQuote(
         const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
+        endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
         throw new Error(
           reportRampsError(
             error,
@@ -275,6 +339,7 @@ export function useContinueWithQuote(
       }
 
       if (!buyWidget?.url) {
+        endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
         throw new Error(
           reportRampsError(
             new Error('No widget URL available for provider'),
@@ -283,6 +348,8 @@ export function useContinueWithQuote(
           ),
         );
       }
+
+      endCheckoutCuf(true);
 
       try {
         const { network, effectiveWallet, effectiveOrderId } =
@@ -293,12 +360,12 @@ export function useContinueWithQuote(
           );
 
         if (useExternalBrowser) {
-          if (effectiveOrderId && effectiveWallet) {
+          if (effectiveOrderId && effectiveWallet && network) {
             addPrecreatedOrder({
               orderId: effectiveOrderId,
               providerCode,
               walletAddress: effectiveWallet,
-              chainId: network || undefined,
+              chainId: network,
             });
           }
 

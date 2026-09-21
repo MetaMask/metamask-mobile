@@ -89,12 +89,12 @@ describe('trackEvent', () => {
     it('enriches allowlisted events before calling the analytics controller', () => {
       jest.mocked(store.getState).mockReturnValue(
         createStateWithFeatureFlags({
-          cardCARD338AbtestAttentionBadge: 'withBadge',
+          assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
         }),
       );
 
       const event = {
-        name: 'Card Button Viewed',
+        name: 'Token Details Opened',
         properties: {
           source: 'wallet',
         },
@@ -106,14 +106,15 @@ describe('trackEvent', () => {
       expect(mockCall).toHaveBeenCalledWith(
         'AnalyticsController:trackEvent',
         expect.objectContaining({
-          name: 'Card Button Viewed',
+          name: 'Token Details Opened',
           properties: {
             source: 'wallet',
             active_ab_tests: [
               {
-                key: 'cardCARD338AbtestAttentionBadge',
-                value: 'withBadge',
-                key_value_pair: 'cardCARD338AbtestAttentionBadge=withBadge',
+                key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                value: 'treatment',
+                key_value_pair:
+                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
               },
             ],
           },
@@ -208,12 +209,12 @@ describe('trackEvent', () => {
       it('inherits A/B enrichment when buildAndTrackEvent forwards a matching event', () => {
         jest.mocked(store.getState).mockReturnValue(
           createStateWithFeatureFlags({
-            cardCARD338AbtestAttentionBadge: 'control',
+            assetsASSETS3205AbtestAmbientPriceColor: 'control',
           }),
         );
 
         const mockEvent = {
-          name: 'Card Button Viewed',
+          name: 'Token Details Opened',
           properties: { source: 'wallet' },
           sensitiveProperties: {},
           get isAnonymous(): boolean {
@@ -228,7 +229,7 @@ describe('trackEvent', () => {
 
         buildAndTrackEvent(
           buildAndTrackEventInitMessenger,
-          'Card Button Viewed',
+          'Token Details Opened',
           {
             source: 'wallet',
           },
@@ -237,14 +238,15 @@ describe('trackEvent', () => {
         expect(buildAndTrackEventCall).toHaveBeenCalledWith(
           'AnalyticsController:trackEvent',
           expect.objectContaining({
-            name: 'Card Button Viewed',
+            name: 'Token Details Opened',
             properties: {
               source: 'wallet',
               active_ab_tests: [
                 {
-                  key: 'cardCARD338AbtestAttentionBadge',
+                  key: 'assetsASSETS3205AbtestAmbientPriceColor',
                   value: 'control',
-                  key_value_pair: 'cardCARD338AbtestAttentionBadge=control',
+                  key_value_pair:
+                    'assetsASSETS3205AbtestAmbientPriceColor=control',
                 },
               ],
             },

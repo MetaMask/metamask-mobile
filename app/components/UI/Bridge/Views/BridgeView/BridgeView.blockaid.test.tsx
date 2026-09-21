@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react-hooks';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import { QuoteResponse } from '@metamask/bridge-controller';
 
 /**
  * Unit tests for the blockaid validation logic.
@@ -7,9 +7,7 @@ import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
  */
 
 // Type definitions for the test function
-type ValidateBridgeTx = (params: {
-  quoteResponse: QuoteResponse & QuoteMetadata;
-}) => Promise<{
+type ValidateBridgeTx = (params: { quoteResponse: QuoteResponse }) => Promise<{
   error?: string;
   result?: {
     validation?: {
@@ -43,7 +41,7 @@ describe('Blockaid Validation Logic', () => {
 
   // Simulate the handleContinue logic extracted for testing
   const handleContinueLogic = async (
-    activeQuote: (QuoteResponse & QuoteMetadata) | null,
+    activeQuote: QuoteResponse | null,
     validateBridgeTx: ValidateBridgeTx,
     navigate: NavigateFunction,
     dispatch: DispatchFunction,
@@ -89,12 +87,12 @@ describe('Blockaid Validation Logic', () => {
   const createMockQuote = (id: string) =>
     ({
       id,
-      quote: {} as QuoteResponse['quote'],
+      quote: {},
       approval: null,
-      trade: {} as QuoteResponse['trade'],
+      trade: {},
       estimatedProcessingTimeInSeconds: 60,
       // Add other required properties as needed
-    }) as unknown as QuoteResponse & QuoteMetadata;
+    }) as unknown as QuoteResponse;
 
   it('should navigate to blockaid modal with validation error', async () => {
     const mockQuote = createMockQuote('test-quote');

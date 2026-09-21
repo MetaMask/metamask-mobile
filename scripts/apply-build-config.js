@@ -127,12 +127,15 @@ function writeBuildEnvJson(buildName) {
     'DECODING_API_URL',
     'PRICE_ALERTS_API_URL',
     'COMPLIANCE_API_URL',
+    'KYC_API_URL',
+    'IDOS_ENCLAVE_URL',
+    'IDOS_RELAY_URL',
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',
     'SOCIAL_API_URL',
     'BAANX_API_URL',
     'RAMP_DEV_BUILD',
-    'BRIDGE_USE_DEV_APIS',
+    'BRIDGE_USE_CUSTOM_BASE_URL',
     'RAMP_INTERNAL_BUILD',
   ];
 

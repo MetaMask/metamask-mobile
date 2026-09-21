@@ -11,10 +11,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
-import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
+import AccountHub from '../../Views/AccountHub';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -57,11 +57,12 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import ActivityView from '../../Views/ActivityView';
+import ActivityScreen from '../../Views/ActivityScreen';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
+import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
@@ -69,7 +70,6 @@ import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import OptinMetrics from '../../UI/OptinMetrics';
 
 import RampRoutes from '../../UI/Ramp/Aggregator/routes';
@@ -80,6 +80,9 @@ import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
+import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
+import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
+import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -88,6 +91,21 @@ import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDe
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
+import TabBarFloating, {
+  FloatingTabBarInsetContext,
+} from '../../../component-library/components/Navigation/TabBarFloating';
+import {
+  HEADER_NAV_BAR_AB_KEY,
+  HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
+  HEADER_NAV_BAR_VARIANTS,
+} from '../../Views/Homepage/abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
+import { useABTest } from '../../../hooks';
+import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
+import { toJsTabOptions } from './HomeTabs/homeTabs.mappers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -105,13 +123,8 @@ import {
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
-import { getDecimalChainId } from '../../../util/networks';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
@@ -131,7 +144,7 @@ import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -146,13 +159,22 @@ import {
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  SocialTradersView,
+  SocialV0View,
+  SocialV1View,
+  SocialPostComposerView,
+  MyProfileView,
+  FollowConnectionsView,
+  ManageProfileView,
+  ManageProfileTextEditorView,
+  ManageProfileTradingActivityView,
+  ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -163,7 +185,7 @@ import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactions
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
@@ -174,6 +196,7 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -186,11 +209,32 @@ import ManagePriceAlertsView from '../../UI/Assets/PriceAlerts/Views/ManagePrice
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
-import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
+import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
+import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
+import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const JsTab = createBottomTabNavigator();
+const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
+
+const WalletWithMessenger = withRouteMessenger(Wallet, {
+  capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
+  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
+  capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
+  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
+});
 
 const styles = StyleSheet.create({
   headerLogo: {
@@ -235,18 +279,6 @@ const AssetStackFlow = (props) => (
   </NativeStack.Navigator>
 );
 
-const AssetNavigator = (props) => (
-  <NativeStack.Navigator
-    initialRouteName={'AssetStackFlow'}
-    screenOptions={clearNativeStackNavigatorOptions}
-  >
-    <NativeStack.Screen
-      name={'AssetStackFlow'}
-      component={AssetStackFlow}
-      initialParams={props.route.params}
-    />
-  </NativeStack.Navigator>
-);
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => {
@@ -260,7 +292,7 @@ const WalletTabStackFlow = () => {
     >
       <NativeStack.Screen
         name="WalletView"
-        component={Wallet}
+        component={WalletWithMessenger}
         options={{
           headerShown: false,
           animation: 'none',
@@ -286,7 +318,7 @@ const TransactionsHome = () => {
     >
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
-        component={ActivityView}
+        component={ActivityScreen}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -332,6 +364,8 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
+  // Tab time-to-content: tap Rewards → onboarding content or dashboard shell.
+  useRewardsTabPerformance({ isVersionBlocked });
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -397,23 +431,8 @@ const BrowserFlow = (props) => {
   );
 };
 
-const ExploreHome = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.TRENDING_FEED}
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
-        headerShown: false,
-      }}
-    >
-      <NativeStack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
-    </NativeStack.Navigator>
-  );
-};
-
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
 
@@ -576,140 +595,57 @@ const SettingsFlow = () => {
   );
 };
 
-const UnmountOnBlurComponent = (children) => (
-  <UnmountOnBlur>{children}</UnmountOnBlur>
-);
+// Replaces `unmountOnBlur` (removed in React Navigation v7).
+const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
+const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
+const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
+
+const HOME_TAB_COMPONENTS = {
+  home: WalletTabStackFlow,
+  explore: ExploreFeed,
+  browser: BrowserFlowUnmountOnTabBlur,
+  activity: TransactionsHomeUnmountOnTabBlur,
+  money: MoneyTabScreenStack,
+  rewards: RewardsHomeUnmountOnTabBlur,
+  social: SocialV0View,
+};
 
 const HomeTabs = () => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+
+  const { variant: headerNavBarVariant } = useABTest(
+    HEADER_NAV_BAR_AB_KEY,
+    HEADER_NAV_BAR_VARIANTS,
+    HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
+  const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
+
+  const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
 
   const trackMoneyTabPressRef = useRef(null);
 
   const registerMoneyTabPressTracker = useCallback((fn) => {
     trackMoneyTabPressRef.current = fn;
   }, []);
+  const trackMoneyTabPress = useCallback(() => {
+    trackMoneyTabPressRef.current?.();
+  }, []);
 
-  const accountsLength = useSelector(selectAccountsLength);
-
-  const chainId = useSelector((state) => {
-    const providerConfig = selectProviderConfig(state);
-    return ChainId[providerConfig.type];
+  const { tabs, trackBottomNavPress } = useHomeTabDefinitions({
+    isMoneyAccountVisible,
+    showSocialTab,
+    trackMoneyTabPress,
   });
 
-  const amountOfBrowserOpenTabs = useSelector(
-    (state) => state.browser.tabs.length,
-  );
-
-  const options = {
-    home: {
-      tabBarIconKey: TabBarIconKey.Wallet,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
-            .addProperties({
-              number_of_accounts: accountsLength,
-              chain_id: getDecimalChainId(chainId),
-            })
-            .build(),
-        );
-      },
-      rootScreenName: Routes.WALLET_VIEW,
-    },
-    trade: {
-      tabBarIconKey: TabBarIconKey.Trade,
-      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
-    },
-    browser: {
-      tabBarIconKey: TabBarIconKey.Browser,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
-            .addProperties({
-              number_of_accounts: accountsLength,
-              chain_id: getDecimalChainId(chainId),
-              source: 'Navigation Tab',
-              number_of_open_tabs: amountOfBrowserOpenTabs,
-            })
-            .build(),
-        );
-      },
-      rootScreenName: Routes.BROWSER_VIEW,
-      unmountOnBlur: true,
-    },
-    activity: {
-      tabBarIconKey: TabBarIconKey.Activity,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
-        );
-      },
-      rootScreenName: Routes.TRANSACTIONS_VIEW,
-      unmountOnBlur: true,
-    },
-    money: {
-      tabBarIconKey: TabBarIconKey.Money,
-      callback: () => {
-        trackMoneyTabPressRef.current?.();
-      },
-      rootScreenName: Routes.MONEY.HOME,
-    },
-    rewards: {
-      tabBarIconKey: TabBarIconKey.Rewards,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
-        );
-      },
-      rootScreenName: Routes.REWARDS_VIEW,
-      unmountOnBlur: true,
-    },
-    trending: {
-      tabBarIconKey: TabBarIconKey.Trending,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-          ).build(),
-        );
-        // Re-enable AppState listener when returning to trending tab
-        // (it was disabled when leaving to prevent phantom sessions)
-        TrendingFeedSessionManager.getInstance().enableAppStateListener();
-        // Start a new session when returning to trending tab
-        // The session manager will ignore if a session is already active
-        TrendingFeedSessionManager.getInstance().startSession('tab_press');
-      },
-      onLeave: () => {
-        // End trending session when user switches to another tab
-        TrendingFeedSessionManager.getInstance().endSession();
-        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
-        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
-        TrendingFeedSessionManager.getInstance().disableAppStateListener();
-      },
-      rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: false,
-    },
-    settings: {
-      tabBarIconKey: TabBarIconKey.Setting,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
-      rootScreenName: Routes.SETTINGS_VIEW,
-      unmountOnBlur: true,
-    },
+  // Control only: a modal trigger the bar handles itself.
+  const tradeOptions = {
+    tabBarIconKey: TabBarIconKey.Trade,
+    rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
   };
 
   useEffect(() => {
@@ -743,26 +679,21 @@ const HomeTabs = () => {
       return null;
     }
 
-    // Hide tab bar when on rewards sub-pages (only show on home + onboarding)
-    if (currentRoute.name === Routes.REWARDS_VIEW) {
-      const rewardsHomeState = currentRoute?.state;
-      const rewardsViewRoute = rewardsHomeState?.routes?.find(
-        (r) => r.name === Routes.REWARDS_VIEW,
-      );
-      const rewardsNavState = rewardsViewRoute?.state;
-      const activeRewardsRouteName =
-        rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
-      const isRewardsHomePage =
-        !activeRewardsRouteName ||
-        activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
-        activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW;
-      if (!isRewardsHomePage) {
-        return null;
-      }
+    const currentTab = tabs.find((tab) => tab.name === currentRoute.name);
+    if (currentTab?.hidesTabBarFor?.(currentRoute)) {
+      return null;
     }
 
     if (isKeyboardHidden) {
-      return (
+      return isFloatingTabBar ? (
+        <TabBarFloating
+          state={state}
+          descriptors={descriptors}
+          navigation={navigation}
+          onHeightChange={setFloatingTabBarHeight}
+          trailingAction={headerNavBarVariant.trailingNavBarAction}
+        />
+      ) : (
         <TabBar
           state={state}
           descriptors={descriptors}
@@ -773,90 +704,58 @@ const HomeTabs = () => {
     return null;
   };
 
+  const renderJsTabScreen = (tab) => (
+    <JsTab.Screen
+      key={tab.name}
+      name={tab.name}
+      options={toJsTabOptions(
+        tab,
+        // `TabBar` fires the Navigation Drawer event itself.
+        isFloatingTabBar ? { trackBottomNavPress } : undefined,
+      )}
+      component={HOME_TAB_COMPONENTS[tab.key]}
+    />
+  );
+
+  /*
+   * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
+   * mounted here (above Tab.Navigator) so their BottomSheets render inside
+   * the full-viewport Home screen card.
+   * BottomSheet uses `absolute inset-0` (see
+   * @metamask/design-system-react-native) and would be clipped by an
+   * individual tab's content area if mounted lower in the tree.
+   *
+   * A nested provider in PredictScreenStack still shadows this one for
+   * usage; the registration stack in PredictPreviewSheetContext keeps only
+   * the innermost (most recently mounted) provider active for state-based
+   * Retry toasts so we don't double-fire when both are mounted.
+   */
   return (
-    /*
-     * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
-     * BottomSheet renders inside the full-viewport Home screen card.
-     * BottomSheet uses `absolute inset-0` (see
-     * @metamask/design-system-react-native) and would be clipped by an
-     * individual tab's content area if mounted lower in the tree.
-     *
-     * A nested provider in PredictScreenStack still shadows this one for
-     * usage; the registration stack in PredictPreviewSheetContext keeps only
-     * the innermost (most recently mounted) provider active for state-based
-     * Retry toasts so we don't double-fire when both are mounted.
-     */
     <PredictPreviewSheetProvider>
-      {isMoneyAccountEnabled ? (
-        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-      ) : null}
-      <Tab.Navigator
-        initialRouteName={Routes.WALLET.HOME}
-        tabBar={renderTabBar}
-        screenOptions={{ headerShown: false }}
-      >
-        {/* Home Tab */}
-        <Tab.Screen
-          name={Routes.WALLET.HOME}
-          options={options.home}
-          component={WalletTabStackFlow}
-        />
+      <TrendingQuickBuySheetProvider>
+        {isMoneyAccountEnabled ? (
+          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+        ) : null}
+        <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
+          <JsTab.Navigator
+            initialRouteName={Routes.WALLET.HOME}
+            tabBar={renderTabBar}
+            screenOptions={{ headerShown: false }}
+          >
+            {tabs.slice(0, 3).map(renderJsTabScreen)}
 
-        {/* Explore Tab (w/ hidden browser) */}
-        <>
-          <Tab.Screen
-            name={Routes.TRENDING_VIEW}
-            options={{
-              ...options.trending,
-              isSelected: (rootScreenName) =>
-                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                  rootScreenName,
-                ),
-            }}
-            component={ExploreHome}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={{
-              ...options.browser,
-              isHidden: true,
-            }}
-            component={BrowserFlow}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-          />
-        </>
+            {isFloatingTabBar ? null : (
+              <JsTab.Screen
+                name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+                options={tradeOptions}
+                component={WalletTabStackFlow}
+              />
+            )}
 
-        {/* Trade Tab */}
-        <Tab.Screen
-          name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-          options={options.trade}
-          component={WalletTabStackFlow}
-        />
-
-        {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
-        {isMoneyAccountVisible ? (
-          <Tab.Screen
-            name={Routes.MONEY.ROOT}
-            options={options.money}
-            component={MoneyTabScreenStack}
-          />
-        ) : (
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHome}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-          />
-        )}
-
-        {/* Rewards Tab */}
-        <Tab.Screen
-          name={Routes.REWARDS_VIEW}
-          options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
-      </Tab.Navigator>
+            {tabs.slice(3).map(renderJsTabScreen)}
+          </JsTab.Navigator>
+        </FloatingTabBarInsetContext.Provider>
+      </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );
 };
@@ -864,48 +763,6 @@ const HomeTabs = () => {
 const Webview = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
     <NativeStack.Screen name="SimpleWebview" component={SimpleWebview} />
-  </NativeStack.Navigator>
-);
-
-/* eslint-disable react/prop-types */
-const NftDetailsModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetails}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
-/* eslint-disable react/prop-types */
-const NftDetailsFullImageModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetailsFullImage}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
-const AddBookmarkView = () => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="AddBookmark" component={AddBookmark} />
-  </NativeStack.Navigator>
-);
-
-const OfflineModeView = () => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name="OfflineMode"
-      component={OfflineMode}
-      options={OfflineMode.navigationOptions}
-    />
   </NativeStack.Navigator>
 );
 
@@ -934,7 +791,10 @@ const NotificationsModeView = (props) => (
 
 const SetPasswordFlow = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="ChoosePassword" component={ChoosePassword} />
+    <NativeStack.Screen
+      name="ChoosePassword"
+      component={ChoosePasswordWithMessenger}
+    />
     <NativeStack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
@@ -959,17 +819,6 @@ const SetPasswordFlow = () => (
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>
 );
-
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-const SampleFeatureFlow = () => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name={Routes.SAMPLE_FEATURE}
-      component={SampleFeature}
-    />
-  </NativeStack.Navigator>
-);
-///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
   const dispatch = useDispatch();
@@ -1003,7 +852,13 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_ASSIGNMENT_OPTIONS,
+  );
+  const isSocialV1Enabled =
+    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -1013,6 +868,19 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <NativeStack.Screen name="Home" component={HomeTabs} />
+      {/*
+       * Fallback home for Rewards. Treatment gives the tab slot to Social, so
+       * `navigate(REWARDS_VIEW)` from the header has no tab to land on and
+       * bubbles up to here. Control registers the tab too, and the tab
+       * navigator is nearer to the caller, so it wins and this is never
+       * reached. Registered unconditionally so the route always resolves
+       * regardless of how the arms are configured.
+       */}
+      <NativeStack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsHome}
+        options={{ headerShown: false }}
+      />
       {/*
        * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
        * is its own native stack pushed onto the root native stack; nesting a native
@@ -1025,31 +893,32 @@ const MainNavigator = () => {
         component={RewardsNavigator}
         options={{ headerShown: false }}
       />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
-      />
+      <NativeStack.Group screenOptions={rewardsModalScreenOptions}>
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+          component={RewardsBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+          component={RewardsInfoSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+          component={RewardsClaimBottomSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+          component={RewardOptInAccountGroupModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+          component={EndOfSeasonClaimBottomSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_SELECT_SHEET}
+          component={RewardsSelectSheet}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
@@ -1091,8 +960,13 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
+        name={Routes.ACCOUNT_HUB_VIEW}
+        component={AccountHub}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
         name="Asset"
-        component={AssetNavigator}
+        component={AssetStackFlow}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
@@ -1126,15 +1000,19 @@ const MainNavigator = () => {
           ...slideFromRightNativeOptions,
         }}
       />
-      <NativeStack.Screen name="AddBookmarkView" component={AddBookmarkView} />
-      <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
+      <NativeStack.Screen
+        name="OfflineModeView"
+        component={OfflineMode}
+        options={OfflineMode.navigationOptions}
+      />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
       />
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcher}
+        component={QRTabSwitcherWithMessenger}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
@@ -1143,17 +1021,17 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="NftDetails"
-        component={NftDetailsModeView}
+        component={NftDetails}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
         name="NftDetailsFullImage"
-        component={NftDetailsFullImageModeView}
+        component={NftDetailsFullImage}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
@@ -1199,10 +1077,26 @@ const MainNavigator = () => {
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
+      {/* Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak. */}
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_KYC_EMAIL}
+        component={KycEmail}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.GET_PIX_KEY}
+        component={GetPixKey}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_VERIFY_IDENTITY}
+        component={VbaVerifyIdentity}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={slideFromRightNativeOptions}
+        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1388,35 +1282,87 @@ const MainNavigator = () => {
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={SocialTradersView}
+          name={Routes.SOCIAL.V0}
+          component={SocialV0View}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
+      {isSocialV1Enabled && (
+        <>
+          <NativeStack.Screen
+            name={Routes.SOCIAL.V1}
+            component={SocialV1View}
+            options={{
+              headerShown: false,
+              // `enableFreeze(true)` is global (index.js). The feed must keep
+              // reacting to the composed-post store while the composer sits on
+              // top, otherwise the posting banner and the committed post are
+              // both swallowed by the frozen subtree.
+              freezeOnBlur: false,
+              ...slideFromRightNativeOptions,
+            }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POST_COMPOSER}
+            component={SocialPostComposerView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MY_PROFILE}
+            component={MyProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
+            component={FollowConnectionsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE}
+            component={ManageProfileView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
+            component={ManageProfileTextEditorView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY}
+            component={ManageProfileTradingActivityView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
+            component={ManageProfileLinkedAccountView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+        </>
+      )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.PROFILE}
+          name={Routes.SOCIAL.PROFILE}
           component={TraderProfileView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.POSITION}
+          name={Routes.SOCIAL.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.ONBOARDING}
+          name={Routes.SOCIAL.ONBOARDING}
           component={SocialLeaderboardOnboarding}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
+          name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
           component={TradingSignalsSetupBottomSheet}
           options={{
             ...clearNativeStackNavigatorOptions,
@@ -1483,7 +1429,7 @@ const MainNavigator = () => {
       }
       <NativeStack.Screen
         name={Routes.SAMPLE_FEATURE}
-        component={SampleFeatureFlow}
+        component={SampleFeature}
       />
       {
         ///: END:ONLY_INCLUDE_IF

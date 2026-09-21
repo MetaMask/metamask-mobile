@@ -10,21 +10,29 @@ import {
   PredictDismissalMethodValue,
   PredictEventProperties,
   PredictEventValues,
+  PredictFailureCategoryValue,
+  PredictFailureStageValue,
+  PredictPaymentMethodValue,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PlaceOrderParams, PredictOrderType } from '../types';
+import {
+  PlaceOrderParams,
+  PredictEligibility,
+  PredictOrderType,
+} from '../types';
 import { PREDICT_ANALYTICS_EVENTS } from './utils/predictAnalyticsEvents';
 
 export interface PredictAnalyticsContext {
-  getEligibility(): { eligible: boolean; country?: string };
+  getEligibility(): PredictEligibility;
 }
 
 export interface TrackPredictOrderEventArgs {
   status: PredictTradeStatusValue;
   amountUsd?: number;
+  tradeCompletedAmountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   completionDuration?: number;
   failureReason?: string;
@@ -33,6 +41,10 @@ export interface TrackPredictOrderEventArgs {
   orderType?: PredictOrderType;
   paymentTokenAddress?: string;
   paymentTokenSymbol?: string;
+  attemptId?: string;
+  paymentMethod?: PredictPaymentMethodValue;
+  failureStage?: PredictFailureStageValue;
+  failureCategory?: PredictFailureCategoryValue;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -213,6 +225,7 @@ export class PredictAnalytics {
   public async trackPredictOrderEvent({
     status,
     amountUsd,
+    tradeCompletedAmountUsd,
     analyticsProperties,
     completionDuration,
     failureReason,
@@ -221,6 +234,10 @@ export class PredictAnalytics {
     orderType,
     paymentTokenAddress,
     paymentTokenSymbol,
+    attemptId,
+    paymentMethod,
+    failureStage,
+    failureCategory,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -314,6 +331,18 @@ export class PredictAnalytics {
       ...(paymentTokenSymbol && {
         [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,
       }),
+      ...(attemptId && {
+        [PredictEventProperties.ATTEMPT_ID]: attemptId,
+      }),
+      ...(paymentMethod && {
+        [PredictEventProperties.PAYMENT_METHOD]: paymentMethod,
+      }),
+      ...(failureStage && {
+        [PredictEventProperties.FAILURE_STAGE]: failureStage,
+      }),
+      ...(failureCategory && {
+        [PredictEventProperties.FAILURE_CATEGORY]: failureCategory,
+      }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {
           [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
@@ -341,6 +370,57 @@ export class PredictAnalytics {
       )
         .addProperties(regularProperties)
         .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+
+    if (
+      status === PredictTradeStatus.INITIATED &&
+      analyticsProperties.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+    ) {
+      this.trackTradeConsidered();
+    }
+
+    const completedAmountUsd = tradeCompletedAmountUsd ?? amountUsd;
+    if (
+      status === PredictTradeStatus.SUCCEEDED &&
+      completedAmountUsd !== undefined &&
+      (analyticsProperties.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY ||
+        analyticsProperties.transactionType ===
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL)
+    ) {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TRADE_COMPLETED,
+        )
+          .addProperties({
+            ...regularProperties,
+            [PredictEventProperties.TRADE_TYPE]:
+              PredictEventValues.TRADE_TYPE.PREDICT,
+            [PredictEventProperties.IMPLEMENTATION_TYPE]:
+              PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+          })
+          .addSensitiveProperties({
+            ...sensitiveProperties,
+            [PredictEventProperties.USD_TRADE_VALUE]: completedAmountUsd,
+          })
+          .build(),
+      );
+    }
+  }
+
+  public trackTradeConsidered(): void {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRADE_CONSIDERED,
+      )
+        .addProperties({
+          [PredictEventProperties.TRADE_TYPE]:
+            PredictEventValues.TRADE_TYPE.PREDICT,
+          [PredictEventProperties.IMPLEMENTATION_TYPE]:
+            PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+        })
         .build(),
     );
   }
@@ -465,7 +545,11 @@ export class PredictAnalytics {
     const eligibilityData = this.context.getEligibility();
 
     this.trackConfiguredEvent('geoBlockTriggered', {
-      country: eligibilityData?.country,
+      country:
+        eligibilityData.status === 'eligible' ||
+        eligibilityData.status === 'ineligible'
+          ? eligibilityData.country
+          : undefined,
       attemptedAction,
     });
   }

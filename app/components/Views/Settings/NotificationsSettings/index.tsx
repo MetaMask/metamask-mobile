@@ -12,7 +12,6 @@ import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -39,7 +38,9 @@ import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
-  status: string;
+  /** Channels summary shown under the title. Omitted for wallet activity,
+   * whose per-account settings have no channel toggles to summarize. */
+  status?: string;
   iconName: IconName;
   onPress: () => void;
 }
@@ -54,7 +55,10 @@ const NotificationRow = ({
   const { styles } = useStyles(styleSheet, { theme });
 
   return (
-    <TouchableOpacity style={styles.switchElement} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.switchElement, styles.notificationRow]}
+      onPress={onPress}
+    >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -68,9 +72,11 @@ const NotificationRow = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {status}
-          </Text>
+          {status ? (
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {status}
+            </Text>
+          ) : null}
         </Box>
       </Box>
       <Icon name={IconName.ArrowRight} color={IconColor.IconAlternative} />
@@ -104,7 +110,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
 
   const { preferences } = useNotificationStoragePreferences();
 
@@ -135,7 +140,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
               title={strings(
                 'app_settings.notifications_opts.wallet_activity_title',
               )}
-              status={getStatusText(preferences?.walletActivity)}
               iconName={IconName.Clock}
               onPress={() =>
                 navigateToSection(
@@ -163,21 +167,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.agentic_cli_title',
-              )}
-              status={getStatusText(preferences?.agenticCli)}
-              iconName={IconName.Code}
-              onPress={() =>
-                navigateToSection(
-                  'agenticCli',
-                  strings('app_settings.notifications_opts.agentic_cli_title'),
-                  strings('app_settings.notifications_opts.agentic_cli_desc'),
-                )
-              }
-            />
-
             {isSocialLeaderboardEnabled && (
               <NotificationRow
                 title={strings(
@@ -196,6 +185,21 @@ const NotificationsSettings = ({ navigation }: Props) => {
             )}
 
             <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.agentic_cli_title',
+              )}
+              status={getStatusText(preferences?.agenticCli)}
+              iconName={IconName.Code}
+              onPress={() =>
+                navigateToSection(
+                  'agenticCli',
+                  strings('app_settings.notifications_opts.agentic_cli_title'),
+                  strings('app_settings.notifications_opts.agentic_cli_desc'),
+                )
+              }
+            />
+
+            <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}
               status={getStatusText(preferences?.marketing)}
               iconName={IconName.Campaign}
@@ -208,26 +212,20 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-            {isPriceAlertsEnabled && (
-              <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.price_alerts_title',
-                )}
-                status={getStatusText(preferences?.priceAlerts)}
-                iconName={IconName.Notification}
-                onPress={() =>
-                  navigateToSection(
-                    'priceAlerts',
-                    strings(
-                      'app_settings.notifications_opts.price_alerts_title',
-                    ),
-                    strings(
-                      'app_settings.notifications_opts.price_alerts_desc',
-                    ),
-                  )
-                }
-              />
-            )}
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.price_alerts_title',
+              )}
+              status={getStatusText(preferences?.priceAlerts)}
+              iconName={IconName.Notification}
+              onPress={() =>
+                navigateToSection(
+                  'priceAlerts',
+                  strings('app_settings.notifications_opts.price_alerts_title'),
+                  strings('app_settings.notifications_opts.price_alerts_desc'),
+                )
+              }
+            />
           </>
         )}
       </ScrollView>

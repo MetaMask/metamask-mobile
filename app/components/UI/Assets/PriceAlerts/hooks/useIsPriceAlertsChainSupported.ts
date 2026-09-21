@@ -29,16 +29,14 @@ async function fetchSupportedChainsData(): Promise<string[]> {
  */
 export function useIsPriceAlertsChainSupported(
   assetId: string | null | undefined,
-  options?: { enabled?: boolean },
 ): boolean {
   const { data: supportedChains } = useQuery({
     queryKey: PRICE_ALERTS_SUPPORTED_CHAINS_QUERY_KEY,
     queryFn: fetchSupportedChainsData,
     staleTime: TWENTY_FOUR_HOURS_MS,
-    cacheTime: TWENTY_FOUR_HOURS_MS,
+    gcTime: TWENTY_FOUR_HOURS_MS,
     retry: SUPPORTED_CHAINS_MAX_RETRIES,
     retryDelay: (attempt) => SUPPORTED_CHAINS_RETRY_DELAYS_MS[attempt],
-    enabled: options?.enabled,
   });
 
   return useMemo(() => {

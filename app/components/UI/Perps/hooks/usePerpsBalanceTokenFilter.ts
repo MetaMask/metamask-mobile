@@ -1,4 +1,7 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
 import { useCallback } from 'react';
 import { Image } from 'react-native';
@@ -8,7 +11,6 @@ import {
   AssetType,
   type TokenListItem,
 } from '../../../Views/confirmations/types/token';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 

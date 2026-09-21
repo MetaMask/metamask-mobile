@@ -179,10 +179,15 @@ const V2BasicInfo = (): React.JSX.Element => {
     navigation.goBack();
   }, [navigation]);
 
+  const hasClearedSsnRef = useRef(false);
+
   useEffect(() => {
+    if (hasClearedSsnRef.current) {
+      return;
+    }
+    hasClearedSsnRef.current = true;
     handleFormDataChange('ssn')('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleFormDataChange]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;

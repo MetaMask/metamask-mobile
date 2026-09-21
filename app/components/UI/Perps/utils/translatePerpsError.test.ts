@@ -48,6 +48,7 @@ import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import {
   translatePerpsError,
   isPerpsErrorCode,
+  isNoPositionFoundError,
   handlePerpsError,
 } from './translatePerpsError';
 
@@ -319,6 +320,52 @@ describe('isPerpsErrorCode', () => {
         PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
       ),
     ).toBe(false);
+  });
+});
+
+describe('isNoPositionFoundError', () => {
+  it('returns true for a No position found string', () => {
+    // Arrange
+    const error = 'No position found for BTC';
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('returns true for an Error wrapping No position found', () => {
+    // Arrange
+    const error = new Error('No position found for ETH');
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it('returns false for unrelated close errors', () => {
+    // Arrange
+    const error = 'Insufficient margin';
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('returns false for null', () => {
+    // Arrange
+    const error = null;
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(false);
   });
 });
 

@@ -5,20 +5,16 @@ import { strings } from '../../../../../locales/i18n';
 import {
   selectPredictHotTabFlag,
   selectPredictWimbledonTabFlag,
-  selectPredictWorldCupConfig,
-  selectPredictWorldCupMainFeedTabEnabledFlag,
 } from '../selectors/featureFlags';
 import {
   PREDICT_BASE_TABS,
   PREDICT_HOT_TAB,
   PREDICT_WIMBLEDON_TAB,
-  PREDICT_WORLD_CUP_TAB,
   isPredictTabKey,
   type PredictTabKey,
 } from '../constants/feedTabs';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../constants/flags';
 import type { PredictNavigationParamList } from '../types/navigation';
-import { buildPredictWorldCupAllQuery } from '../utils/worldCup';
 
 export interface FeedTab {
   key: PredictTabKey;
@@ -38,10 +34,6 @@ export const usePredictTabs = (): UsePredictTabsResult => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const hotTabFlag = useSelector(selectPredictHotTabFlag);
   const wimbledonTabFlag = useSelector(selectPredictWimbledonTabFlag);
-  const isWorldCupMainFeedTabEnabled = useSelector(
-    selectPredictWorldCupMainFeedTabEnabledFlag,
-  );
-  const worldCupConfig = useSelector(selectPredictWorldCupConfig);
 
   const tabs: FeedTab[] = useMemo(() => {
     const baseTabs: FeedTab[] = PREDICT_BASE_TABS.map((tab) => ({
@@ -50,14 +42,6 @@ export const usePredictTabs = (): UsePredictTabsResult => {
     }));
 
     const optionalTabs: FeedTab[] = [];
-
-    if (isWorldCupMainFeedTabEnabled) {
-      optionalTabs.push({
-        key: PREDICT_WORLD_CUP_TAB.key,
-        label: strings(PREDICT_WORLD_CUP_TAB.labelKey),
-        customQueryParams: buildPredictWorldCupAllQuery(worldCupConfig),
-      });
-    }
 
     if (wimbledonTabFlag.enabled) {
       optionalTabs.push({
@@ -81,10 +65,8 @@ export const usePredictTabs = (): UsePredictTabsResult => {
   }, [
     hotTabFlag.enabled,
     hotTabFlag.queryParams,
-    isWorldCupMainFeedTabEnabled,
     wimbledonTabFlag.enabled,
     wimbledonTabFlag.queryParams,
-    worldCupConfig,
   ]);
 
   const requestedValidTabKey = isPredictTabKey(route.params?.tab)

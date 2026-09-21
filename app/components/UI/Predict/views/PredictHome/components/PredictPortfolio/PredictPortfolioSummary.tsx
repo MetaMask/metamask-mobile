@@ -28,8 +28,10 @@ const SECONDARY_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 export interface PredictPortfolioSummaryProps {
   availableBalance: number;
+  hasBalanceError?: boolean;
   isHidden?: boolean;
   isLoading?: boolean;
+  hasError?: boolean;
   portfolioValue: number;
   showPnlLine: boolean;
   totalUnrealizedPnlAmount: number;
@@ -38,22 +40,28 @@ export interface PredictPortfolioSummaryProps {
 
 const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
   availableBalance,
+  hasBalanceError = false,
   isHidden = false,
   isLoading = false,
+  hasError = false,
   portfolioValue,
   showPnlLine,
   totalUnrealizedPnlAmount,
   totalUnrealizedPnlPercent,
 }) => {
   const tw = useTailwind();
-  const portfolioValueDisplay = formatPrice(portfolioValue, {
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-  });
-  const availableBalanceDisplay = formatPrice(availableBalance, {
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-  });
+  const portfolioValueDisplay = hasError
+    ? '—'
+    : formatPrice(portfolioValue, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+  const availableBalanceDisplay = hasBalanceError
+    ? '—'
+    : formatPrice(availableBalance, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
   const pnlDisplayParts = useMemo(
     () =>
       formatPredictUnrealizedPnLStringParts({
@@ -93,16 +101,18 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
     <Box testID={PREDICT_PORTFOLIO_TEST_IDS.SUMMARY} twClassName="gap-1">
       <Box
         accessibilityLabel={
-          isHidden
-            ? strings('predict.portfolio.value_hidden_accessibility')
-            : strings('predict.portfolio.value_accessibility', {
-                value: portfolioValueDisplay,
-              })
+          hasError
+            ? strings('predict.portfolio.value_unavailable_accessibility')
+            : isHidden
+              ? strings('predict.portfolio.value_hidden_accessibility')
+              : strings('predict.portfolio.value_accessibility', {
+                  value: portfolioValueDisplay,
+                })
         }
         accessible
       >
         <SensitiveText
-          isHidden={isHidden}
+          isHidden={isHidden && !hasError}
           length={SensitiveTextLength.Long}
           testID={PREDICT_PORTFOLIO_TEST_IDS.PRIMARY_VALUE}
           variant={ComponentTextVariant.DisplayLG}
@@ -111,7 +121,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         </SensitiveText>
       </Box>
 
-      {showPnlLine && (
+      {(showPnlLine || hasError) && (
         <Box
           alignItems={BoxAlignItems.Center}
           testID={PREDICT_PORTFOLIO_TEST_IDS.SECONDARY_LINE}
@@ -119,22 +129,24 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         >
           <SensitiveText
             color={
-              totalUnrealizedPnlAmount >= 0
-                ? ComponentTextColor.Success
-                : ComponentTextColor.Error
+              hasError
+                ? ComponentTextColor.Alternative
+                : totalUnrealizedPnlAmount >= 0
+                  ? ComponentTextColor.Success
+                  : ComponentTextColor.Error
             }
-            isHidden={isHidden}
+            isHidden={isHidden && !hasError}
             length={SensitiveTextLength.Long}
             variant={ComponentTextVariant.BodySM}
           >
-            {pnlDisplay}
+            {hasError ? '—' : pnlDisplay}
           </SensitiveText>
           <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
             {' · '}
           </Text>
           <SensitiveText
             color={ComponentTextColor.Alternative}
-            isHidden={isHidden}
+            isHidden={isHidden && !hasBalanceError}
             length={SensitiveTextLength.Medium}
             variant={ComponentTextVariant.BodySM}
           >

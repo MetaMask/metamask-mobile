@@ -1,0 +1,610 @@
+import { renderHook } from '@testing-library/react-native';
+import type { CaipChainId } from '@metamask/utils';
+import { useLimitOrderSwapInputs } from '.';
+import {
+  selectDestToken,
+  selectSourceAmount,
+  selectSourceToken,
+  setDestToken,
+  setSourceAmount,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bridge/featureFlags';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
+import { createMockToken } from '../../testUtils/fixtures';
+import { TokenSelectorType, type BridgeToken } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+  useSelector: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../useIsNetworkEnabled', () => ({
+  useIsNetworkEnabled: () => true,
+}));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+const mockSyncFiatAmountToTokenAmount = jest.fn();
+const mockResetToTokenMode = jest.fn();
+jest.mock('../useSourceAmountInput', () => ({
+  useSourceAmountInput: () => ({
+    amount: '',
+    selection: undefined,
+    handleFocus: jest.fn(),
+    handleSelectionChange: jest.fn(),
+    canToggle: false,
+    handleToggle: jest.fn(),
+    inputPrefix: undefined,
+    secondaryValue: undefined,
+    balanceCheckAmount: undefined,
+    keypadValue: '',
+    keypadCurrency: undefined,
+    keypadDecimals: 18,
+    handleKeypadChange: jest.fn(),
+    resetToTokenMode: mockResetToTokenMode,
+    syncFiatAmountToTokenAmount: mockSyncFiatAmountToTokenAmount,
+    isFiatMode: false,
+  }),
+}));
+
+const mockSwitchTokens = jest.fn(() => Promise.resolve());
+const mockHandleSwitchTokens = jest.fn(() => mockSwitchTokens);
+jest.mock('../useSwitchTokens', () => ({
+  useSwitchTokens: () => ({ handleSwitchTokens: mockHandleSwitchTokens }),
+}));
+
+import { useSelector } from 'react-redux';
+import { useBridgeSession } from '../useBridgeSession';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
+
+const mockUseSelector = useSelector as jest.Mock;
+const mockUseBridgeSession = jest.mocked(useBridgeSession);
+
+const ENABLED_CHAIN_IDS: CaipChainId[] = [
+  'eip155:1',
+  'eip155:56',
+  'eip155:8453',
+];
+
+interface SelectorState {
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+  sourceAmount: string | undefined;
+}
+
+const renderLimitOrderSwapInputsHook = (
+  selectorState: SelectorState,
+  enabledChainIds: CaipChainId[] | undefined,
+  gasSponsoredChainIds: string[] = [],
+) => {
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectSourceToken) {
+      return selectorState.sourceToken;
+    }
+    if (selector === selectDestToken) {
+      return selectorState.destToken;
+    }
+    if (selector === selectSourceAmount) {
+      return selectorState.sourceAmount;
+    }
+    if (selector === selectBridgeLimitOrderFeatureFlags) {
+      return enabledChainIds ? { enabled: true, enabledChainIds } : undefined;
+    }
+    if (selector === getGasFeesSponsoredNetworkEnabled) {
+      return (chainId: string) => gasSponsoredChainIds.includes(chainId);
+    }
+    return undefined;
+  });
+
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: undefined,
+    quoteParams: {
+      srcToken: selectorState.sourceToken,
+      destToken: selectorState.destToken,
+      srcAmount: selectorState.sourceAmount,
+    },
+  });
+
+  return renderHook(() => useLimitOrderSwapInputs());
+};
+
+describe('useLimitOrderSwapInputs', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHandleSwitchTokens.mockReturnValue(mockSwitchTokens);
+  });
+
+  it('always resets source/dest to ETH/mUSD on mount when Ethereum is enabled', () => {
+    // Simulates a token selected on another tab (e.g. Market order) whose
+    // chain isn't part of this flow's allowed chains. The view mounting fresh
+    // (tab switch) is what triggers the reset.
+    const staleSourceToken = createMockToken({
+      chainId: '0xa4b1', // Arbitrum, not in ENABLED_CHAIN_IDS
+      symbol: 'ARB-TOKEN',
+    });
+    const staleDestToken = createMockToken({
+      chainId: '0xa4b1',
+      symbol: 'ARB-DEST',
+      address: '0xdest',
+    });
+
+    renderLimitOrderSwapInputsHook(
+      {
+        sourceToken: staleSourceToken,
+        destToken: staleDestToken,
+        sourceAmount: undefined,
+      },
+      ENABLED_CHAIN_IDS,
+    );
+
+    const expectedDefaultSourceToken = getNativeSourceToken('eip155:1');
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setSourceToken(expectedDefaultSourceToken),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
+    );
+  });
+
+  it('falls back to the first enabled chain default pair when Ethereum is not enabled', () => {
+    const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
+
+    renderLimitOrderSwapInputsHook(
+      {
+        sourceToken: staleSourceToken,
+        destToken: undefined,
+        sourceAmount: undefined,
+      },
+      ['eip155:56', 'eip155:8453'],
+    );
+
+    const expectedDefaultSourceToken = getNativeSourceToken('eip155:56');
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setSourceToken(expectedDefaultSourceToken),
+    );
+  });
+
+  it('resets to the default pair even when the current selection is already within the enabled chains', () => {
+    // Intentional: the reset always fires on mount (tab entry), so the
+    // picker starts from a predictable default every time rather than
+    // depending on whatever was left selected from a prior visit.
+    const validSourceToken = getNativeSourceToken('eip155:1');
+
+    renderLimitOrderSwapInputsHook(
+      {
+        sourceToken: validSourceToken,
+        destToken: undefined,
+        sourceAmount: undefined,
+      },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setSourceToken(getNativeSourceToken('eip155:1')),
+    );
+  });
+
+  describe('handleSourcePresetAmountSelect', () => {
+    it('sets the source amount to the preset value and keeps the fiat amount in sync', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleSourcePresetAmountSelect('1.500');
+
+      expect(mockSyncFiatAmountToTokenAmount).toHaveBeenCalledWith('1.5');
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount('1.5'));
+    });
+
+    it('clears the source amount when the preset normalizes to an empty value', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: undefined,
+          sourceAmount: '1',
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleSourcePresetAmountSelect('');
+
+      expect(mockSyncFiatAmountToTokenAmount).toHaveBeenCalledWith(undefined);
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
+    });
+  });
+
+  describe('isSourceNetworkGasSponsored', () => {
+    it('is true when the source token chain is gas sponsored', () => {
+      const sourceToken = createMockToken({ chainId: '0x279f' });
+      const destToken = createMockToken({
+        chainId: '0x279f',
+        address: '0xdest',
+      });
+
+      const { result } = renderLimitOrderSwapInputsHook(
+        { sourceToken, destToken, sourceAmount: undefined },
+        ENABLED_CHAIN_IDS,
+        ['0x279f'],
+      );
+
+      expect(result.current.isSourceNetworkGasSponsored).toBe(true);
+    });
+
+    it('is true when only the source chain is sponsored and the destination is on the same chain', () => {
+      // Sponsorship is read from the source chain alone: limit orders no longer
+      // request a quote, so there is no single-chain quote to qualify.
+      const sourceToken = createMockToken({ chainId: '0x279f' });
+      const destToken = createMockToken({
+        chainId: '0x279f',
+        address: '0xdest',
+      });
+
+      const { result } = renderLimitOrderSwapInputsHook(
+        { sourceToken, destToken, sourceAmount: undefined },
+        ENABLED_CHAIN_IDS,
+        ['0x279f'],
+      );
+
+      expect(result.current.isSourceNetworkGasSponsored).toBe(true);
+    });
+
+    it('is false when the source chain is not gas sponsored', () => {
+      const sourceToken = createMockToken({ chainId: '0x1' });
+      const destToken = createMockToken({ chainId: '0x1', address: '0xdest' });
+
+      const { result } = renderLimitOrderSwapInputsHook(
+        { sourceToken, destToken, sourceAmount: undefined },
+        ENABLED_CHAIN_IDS,
+        [],
+      );
+
+      expect(result.current.isSourceNetworkGasSponsored).toBe(false);
+    });
+
+    it('is false when there is no source token', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+        ['0x279f'],
+      );
+
+      expect(result.current.isSourceNetworkGasSponsored).toBe(false);
+    });
+  });
+
+  describe('handleFlipTokensPress', () => {
+    it('switches the tokens with the destination amount so it becomes the source amount', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: createMockToken({ address: '0xdest', symbol: 'mUSD' }),
+          sourceAmount: '1',
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleFlipTokensPress('3000');
+
+      expect(mockResetToTokenMode).toHaveBeenCalledTimes(1);
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith('3000');
+      expect(mockSwitchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    it('switches the tokens without an amount so the source input is cleared', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: createMockToken({ address: '0xdest', symbol: 'mUSD' }),
+          sourceAmount: '1',
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleFlipTokensPress();
+
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith(undefined);
+      expect(mockSwitchTokens).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('token selector navigation', () => {
+    it('opens the source picker scoped to the enabled chains and without RWAs', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleSourceTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Source,
+          enabledChainIds: ENABLED_CHAIN_IDS,
+          excludeRwaTokens: true,
+        }),
+      );
+    });
+
+    it("opens the destination picker scoped to the source token's chain and without RWAs", () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: ['eip155:1'],
+          excludeRwaTokens: true,
+        }),
+      );
+    });
+
+    it('scopes the destination picker to the CAIP form of a hex source chain id', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: createMockToken({ chainId: '0x38' }),
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: ['eip155:56'],
+          excludeRwaTokens: true,
+        }),
+      );
+    });
+
+    it('opens the destination picker with no enabled chains when there is no source token', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: [],
+          excludeRwaTokens: true,
+        }),
+      );
+    });
+  });
+
+  it('does not reset tokens when the limit order feature flag is missing', () => {
+    const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
+
+    renderLimitOrderSwapInputsHook(
+      {
+        sourceToken: staleSourceToken,
+        destToken: undefined,
+        sourceAmount: undefined,
+      },
+      undefined,
+    );
+
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setSourceToken(expect.anything()),
+    );
+  });
+
+  describe('cross-chain destination token correction', () => {
+    const mUsdToken = createMockToken({
+      chainId: '0x1',
+      symbol: 'mUSD',
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    });
+
+    it('resets dest token to the source chain default when source and dest chains differ', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'mUSD',
+            chainId: '0x1',
+          }),
+        ),
+      );
+    });
+
+    it('never collapses source and dest to the same asset on mount from a cross-chain market pair', () => {
+      // Regression test: entering Limit from a Market order pair whose
+      // source token happens to equal the source chain's default dest token
+      // (mUSD) previously raced with the mount-reset effect. Both effects
+      // fire in the same pass; the correction effect used to read the
+      // pre-reset closure values and dispatch a *second*, stale setDestToken
+      // call after the reset's own dispatch, landing on the same native
+      // token the reset had just set as the source - i.e. source === dest.
+      const selectorState: SelectorState = {
+        sourceToken: mUsdToken,
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      // The mount reset always re-anchors the source to native ETH...
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSourceToken(getNativeSourceToken('eip155:1')),
+      );
+      // ...and the dest must land on that chain's default (mUSD), never on
+      // the same native ETH token the source was just reset to.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
+      );
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setDestToken(getNativeSourceToken('eip155:1')),
+      );
+    });
+
+    it('resets dest token when source network changes to a different chain than dest', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:56');
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'USDT',
+            chainId: '0x38',
+          }),
+        ),
+      );
+    });
+
+    it('does not dispatch dest correction when source and dest remain on the same chain', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      selectorState.sourceToken = createMockToken({
+        chainId: '0x1',
+        symbol: 'USDC',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      });
+
+      rerender(undefined);
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setDestToken(expect.anything()),
+      );
+    });
+
+    it('falls back to native token when the new source token matches the source chain default dest token', () => {
+      // The mount-reset effect always re-anchors both tokens on the first
+      // render, so exercise the correction effect in isolation via a
+      // post-mount source change (mirroring the other tests here) rather
+      // than asserting on the mount render, where the reset effect's own
+      // dispatch would otherwise mask what this effect actually did.
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      // User picks mUSD as the new source token, which is itself the
+      // configured default dest token for chain 1, so the correction can't
+      // route the stale cross-chain dest to it and must fall back to native.
+      selectorState.sourceToken = mUsdToken;
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(getNativeSourceToken('eip155:1')),
+      );
+    });
+
+    it('uses the new source chain default after a source network change between two non-Ethereum chains', () => {
+      const bnbDestToken = getDefaultDestToken('0x38');
+      const baseDestToken = getDefaultDestToken('0x2105');
+      if (!bnbDestToken || !baseDestToken) {
+        throw new Error('expected default dest tokens for BNB and Base');
+      }
+
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:56'),
+        destToken: bnbDestToken,
+        sourceAmount: undefined,
+      };
+
+      const { rerender } = renderLimitOrderSwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:8453');
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(setDestToken(baseDestToken));
+    });
+  });
+});

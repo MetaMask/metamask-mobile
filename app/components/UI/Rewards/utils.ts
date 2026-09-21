@@ -110,8 +110,6 @@ export enum RewardsMetricsButtons {
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
-  BUY_MUSD = 'buy_musd',
-  SWAP_TO_MUSD = 'swap_to_musd',
   COPY_WINNER_VERIFICATION_CODE = 'copy_winner_verification_code',
 }
 
@@ -221,6 +219,8 @@ export const exitRewardsFlow = (
     screen: Routes.REWARDS_VIEW,
   });
 };
+
+export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';
 
 // Referral URL builder
 export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';

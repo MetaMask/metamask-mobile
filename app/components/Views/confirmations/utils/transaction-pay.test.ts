@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import {
   applyMoneyAccountOverride,
+  formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
   getRequiredBalance,
@@ -886,43 +887,144 @@ describe('Transaction Pay Utils', () => {
       Engine.context.TransactionPayController.updateFiatPayment,
     );
 
-    it('sets PaymentOverride.MoneyAccount with refundTo for deposit', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, false);
+    function buildTransactionMeta(
+      type: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta {
+      return {
+        id: TRANSACTION_ID,
+        type,
+        ...overrides,
+      } as TransactionMeta;
+    }
 
-      expect(setTransactionConfigMock).toHaveBeenCalledWith(
-        TRANSACTION_ID,
-        expect.any(Function),
-      );
-
+    function runConfigCallback(): Record<string, unknown> {
       const config: Record<string, unknown> = {};
       setTransactionConfigMock.mock.calls[0][1](config as never);
+      return config;
+    }
+
+    it('sets paymentOverride and atomic:false for perpsWithdraw', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.perpsWithdraw),
+      );
+
+      const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride and atomic:false for predictWithdraw', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.predictWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride and refundTo but leaves atomic unset for moneyAccountDeposit', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
       expect(config.refundTo).toBe(MONEY_ADDRESS);
     });
 
-    it('sets PaymentOverride.MoneyAccount without refundTo for withdraw', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, true);
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ] as const)(
+      'sets refundTo but leaves atomic unset for %s',
+      (transactionType) => {
+        applyMoneyAccountOverride(
+          TRANSACTION_ID,
+          MONEY_ADDRESS,
+          buildTransactionMeta(transactionType),
+        );
 
-      const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+        const config = runConfigCallback();
+
+        expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+        expect(config.atomic).toBeUndefined();
+        expect(config.refundTo).toBe(MONEY_ADDRESS);
+      },
+    );
+
+    it('sets only paymentOverride for moneyAccountWithdraw (no atomic or refundTo)', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets atomic:false when moneyAccountAddress is undefined for perps/predict withdraws', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        undefined,
+        buildTransactionMeta(TransactionType.perpsWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('omits refundTo when moneyAccountAddress is undefined for moneyAccountDeposit', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        undefined,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('omits refundTo when moneyAccountAddress is undefined', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, undefined, false);
+    it('sets paymentOverride and refundTo when transactionMeta is undefined', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, undefined);
 
-      const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+      const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
-      expect(config.refundTo).toBeUndefined();
+      expect(config.atomic).toBeUndefined();
+      expect(config.refundTo).toBe(MONEY_ADDRESS);
     });
 
     it('clears selectedPaymentMethodId via updateFiatPayment', () => {
-      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, false);
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
 
       expect(updateFiatPaymentMock).toHaveBeenCalledWith({
         transactionId: TRANSACTION_ID,
@@ -936,6 +1038,41 @@ describe('Transaction Pay Utils', () => {
       updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
+    });
+  });
+
+  describe('formatAmountForDisplay', () => {
+    it('returns whole numbers unchanged', () => {
+      expect(formatAmountForDisplay('500')).toBe('500');
+    });
+
+    it.each(['12.', '12.3', '12.34', '0.05'])(
+      'returns %s unchanged when already within two decimals',
+      (amount) => {
+        expect(formatAmountForDisplay(amount)).toBe(amount);
+      },
+    );
+
+    it('truncates rather than rounds so the result never exceeds the balance', () => {
+      // The displayed value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      expect(formatAmountForDisplay('50.389')).toBe('50.38');
+    });
+
+    it('never carries into the whole part', () => {
+      expect(formatAmountForDisplay('1.999')).toBe('1.99');
+    });
+
+    it('truncates a long exact balance to cents', () => {
+      expect(formatAmountForDisplay('2160.6159999')).toBe('2160.61');
+    });
+
+    it('truncates an amount using a comma separator', () => {
+      expect(formatAmountForDisplay('50,389')).toBe('50.38');
+    });
+
+    it('returns the input unchanged when it is not a parseable number', () => {
+      expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
     });
   });
 });

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -16,14 +15,21 @@ import {
 } from '../pay/useTransactionPayData';
 import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
-import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
+import {
+  CHAIN_IDS,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -39,8 +45,12 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMax = useTransactionPayIsMaxAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
   const transactionMeta = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
 
   // In post-quote (withdrawal) flows, payToken is the *destination* token,
   // so payToken.chainId is the destination chain. The source chain (where gas
@@ -52,22 +62,15 @@ export function useInsufficientPayTokenBalanceAlert({
   const nativeToken = useTokenWithBalance(
     getNativeTokenAddress(sourceChainId),
     sourceChainId,
+    payingAccount,
   );
 
-  const transactionId = transactionMeta?.id ?? '';
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionId),
-  );
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
-  const { withdrawableFiatRaw } = useMoneyAccountBalance();
-  const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
-    usePayTokenAccountBalance();
-
-  const balanceUsd = isMoneyPaymentOverride
-    ? (withdrawableFiatRaw ?? '0')
-    : accountBalanceUsd;
-  const balanceRaw = accountBalanceRaw;
+  // Single source of truth for the spendable balance across every Pay flow
+  // (wallet, perps/predict/money withdraw, money-account override), already
+  // resolved to the correct per-flow balance in both USD display units and raw
+  // on-chain units.
+  const { balanceUsd: payBalanceUsd, balanceRaw } = useTransactionPayBalance();
+  const balanceUsd = String(payBalanceUsd);
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -82,6 +85,8 @@ export function useInsufficientPayTokenBalanceAlert({
     payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase() &&
     payToken?.chainId === sourceChainId;
 
+  // For Max, treat the spend amount as the available balance so fiat rounding
+  // between a Max snapshot and the live balance cannot false-positive.
   const totalAmountUsd = useMemo(
     () =>
       isMax
@@ -117,72 +122,53 @@ export function useInsufficientPayTokenBalanceAlert({
     return new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0');
   }, [isLoading, totals]);
 
-  // For post-quote (withdrawal) flows, the source funds come from the withdrawal
-  // transaction itself, not from the user's existing balance. Skip input/fees checks.
   const isInsufficientForInput = useMemo(
-    () =>
-      !isPostQuote &&
-      payToken &&
-      totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isPostQuote, payToken, totalAmountUsd],
+    () => totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
+    [balanceUsd, totalAmountUsd],
   );
 
+  // Skip for Max: source amount is the full pay-token balance (or already
+  // reduced to leave room for gas). Quote rounding and adding source-network
+  // fees on top of that amount can make source+fees > live balance even
+  // though Max is valid — same class of false positive as money-account Max.
   const isInsufficientForFees = useMemo(
     () =>
-      !isMoneyPaymentOverride &&
-      !isPostQuote &&
+      !isMax &&
       !isPendingAlert &&
-      payToken &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [
-      balanceRaw,
-      isMoneyPaymentOverride,
-      isPendingAlert,
-      isPostQuote,
-      payToken,
-      totalSourceAmountRaw,
-    ],
+    [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
-  // For money account payments, both the deposit amount and fees are drawn
-  // from the same money account balance. The input-only check above may pass
-  // while the total (input + fees) still exceeds the available balance.
-  // Only checked once quotes have resolved (not during pending keyboard input).
-  const isInsufficientForMoneyAccountTotal = useMemo(
-    () =>
-      isMoneyPaymentOverride &&
-      !isPostQuote &&
-      !isPendingAlert &&
-      totals?.total?.usd !== undefined &&
-      new BigNumber(totals.total.usd).isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isMoneyPaymentOverride, isPendingAlert, isPostQuote, totals],
+  // Parent sponsorship does not cover hardware funding transactions.
+  const isHardwarePayer = isHardwareAccount(payingAccount ?? '');
+  const isGaslessSourceChain =
+    !isHardwarePayer &&
+    (sourceChainId === CHAIN_IDS.MONAD ||
+      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
+      (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
+
+  // A plain ERC-20 send also yields a required token, but it is not funded
+  // through MetaMask Pay, so the pay balance check does not apply.
+  const isMMPayTransaction = hasTransactionType(
+    transactionMeta,
+    MM_PAY_TRANSACTION_TYPES,
   );
 
-  // For post-quote flows, we still need to check if the user has enough native
-  // token to pay for gas on the source network (e.g., POL for Polygon)
-  // In post-quote (withdrawal) flows payToken may be unset when the user keeps
-  // the default receive token (auto-selection is intentionally skipped). The
-  // source-network gas check only needs the native token balance vs. the fee,
-  // both of which are independent of payToken, so allow it to run when
-  // payToken is absent as long as we're in a post-quote flow.
+  // For non-gasless source chains we still need to check the user has enough
+  // native token to pay for gas on the source network (e.g., POL for Polygon).
   const isInsufficientForSourceNetwork = useMemo(
     () =>
-      sourceChainId !== CHAIN_IDS.MONAD &&
-      !isMoneyPaymentOverride &&
-      (payToken || isPostQuote) &&
+      !isGaslessSourceChain &&
       !isPayTokenNative &&
       !isPendingAlert &&
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
-      sourceChainId,
-      isMoneyPaymentOverride,
+      isGaslessSourceChain,
       isPayTokenNative,
       isPendingAlert,
-      isPostQuote,
       isSourceGasFeeToken,
       nativeToken?.balanceRaw,
-      payToken,
       totalSourceNetworkFeeRaw,
     ],
   );
@@ -194,8 +180,12 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
-    if (selectedFiatPaymentMethod) {
-      return [];
+    if (
+      selectedFiatPaymentMethod ||
+      !isMMPayTransaction ||
+      (!isPendingAlert && isLoading)
+    ) {
+      return NO_ALERTS;
     }
 
     if (isInsufficientForInput) {
@@ -205,19 +195,6 @@ export function useInsufficientPayTokenBalanceAlert({
           key: AlertKeys.InsufficientPayTokenBalance,
           message: strings(
             'alert_system.insufficient_pay_token_balance.message',
-          ),
-        },
-      ];
-    }
-
-    if (isInsufficientForMoneyAccountTotal) {
-      return [
-        {
-          ...baseAlert,
-          key: AlertKeys.InsufficientPayTokenBalance,
-          title: strings('alert_system.insufficient_pay_token_balance.message'),
-          message: strings(
-            'alert_system.insufficient_pay_method_balance.message',
           ),
         },
       ];
@@ -252,10 +229,12 @@ export function useInsufficientPayTokenBalanceAlert({
       ];
     }
 
-    return [];
+    return NO_ALERTS;
   }, [
+    isLoading,
+    isPendingAlert,
+    isMMPayTransaction,
     isInsufficientForInput,
-    isInsufficientForMoneyAccountTotal,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
     isPostQuote,

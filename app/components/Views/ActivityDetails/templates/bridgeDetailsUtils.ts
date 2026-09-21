@@ -1,4 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import type { Transaction } from '@metamask/keyring-api';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import type {
   ActivityListItem,
   TokenAmount,
@@ -18,15 +20,44 @@ export function getBridgeDestinationTxHash(
   return bridgeHistoryItem?.status.destChain?.txHash;
 }
 
+/**
+ * The transaction the block-explorer sheet resolves both legs from. Uses
+ * `initialTransaction`, matching {@link getBridgeHistoryItem}, so the two can't
+ * land on different history items. Empty for indexer-only rows, which have no
+ * local transaction.
+ */
+export function getKeyringTransactionByHash(
+  transactions: Transaction[] | undefined,
+  hash?: string,
+) {
+  if (!hash) {
+    return undefined;
+  }
+
+  const normalizedHash = hash.toLowerCase();
+  return transactions?.find(
+    (transaction) => transaction.id?.toLowerCase() === normalizedHash,
+  );
+}
+
+export function getBridgeExplorerSheetTx(
+  transactionMeta?: TransactionMeta,
+  keyringTransaction?: Transaction,
+): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
+  if (transactionMeta) {
+    return { evmTxMeta: transactionMeta };
+  }
+  if (keyringTransaction) {
+    return { multiChainTx: keyringTransaction };
+  }
+  return {};
+}
+
 export function getBridgeHistoryItem(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
   bridgeHistory: Record<string, BridgeHistoryItem>,
+  transactionMeta?: TransactionMeta,
 ) {
-  const transactionMeta =
-    item.raw?.type === 'localTransaction'
-      ? item.raw.data.initialTransaction
-      : undefined;
-
   return findBridgeHistoryItem({
     bridgeHistory,
     transactionMetaId: transactionMeta?.id,

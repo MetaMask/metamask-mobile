@@ -65,6 +65,11 @@ export interface DeeplinkUrlParams {
   // Home-specific parameters
   previewToken?: string;
 
+  // Privacy-specific parameters
+  // Which privacy settings section to scroll to (e.g. 'metametrics',
+  // 'data-collection')
+  setting?: string;
+
   // What's Happening-specific parameters
   // Id of a market overview front-page item to render as the first, "outdated"
   // card of the What's Happening expanded view.
@@ -148,6 +153,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.NFT,
   ACTIONS.AGENTIC_CLI,
   ACTIONS.ON_RAMP,
+  ACTIONS.PRIVACY,
   // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer, a.k.a.
   // "SDKv1"; the `connect`/`mmsdk`/`bind` actions). Listed here so they resolve
   // to a SupportedAction and get a DeepLinkRoute (SDK_CONNECT / SDK_MMSDK) for

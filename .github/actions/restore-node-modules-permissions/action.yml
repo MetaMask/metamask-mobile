@@ -19,4 +19,11 @@ runs:
         find node_modules -type f -name "*.node" -exec chmod +x {} \; 2>/dev/null || true
         find node_modules -path "*/bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
         find node_modules -path "*/sdks/*" -type f -exec chmod +x {} \; 2>/dev/null || true
+        # Platform-suffixed binary dirs (linux64-bin, osx-bin, win64-bin) are not matched by
+        # "*/bin/*" since there is no exact "bin" path segment. hermes-compiler ships hermesc
+        # this way, and Metro spawns it directly during bundling.
+        find node_modules -path "*-bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
+        # Scripts spawned directly rather than through an interpreter (Xcode build phases,
+        # packager helpers) also need the bit back.
+        find node_modules -type f -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
         echo "✅ Permissions restored"

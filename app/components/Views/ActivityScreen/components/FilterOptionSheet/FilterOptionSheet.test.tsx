@@ -5,8 +5,6 @@ import {
   type FilterOptionSheetProps,
 } from './FilterOptionSheet';
 
-// Capture the latest BottomSheet ref's close call so we can assert the sheet
-// closes itself after a selection.
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -36,23 +34,43 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           onClose,
+          onOpen,
+          goBack,
+          isInteractable,
           testID,
         }: {
           children?: React.ReactNode;
-          onClose?: () => void;
+          onClose?: (hasCallback?: boolean) => void;
+          onOpen?: () => void;
+          goBack?: () => void;
+          isInteractable?: boolean;
           testID?: string;
         },
-        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+        }>,
       ) => {
+        React.useEffect(() => {
+          onOpen?.();
+        }, [onOpen]);
         React.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onCloseBottomSheet: (callback?: () => void) => {
+            mockOnCloseBottomSheet(callback);
+            goBack?.();
+            onClose?.(Boolean(callback));
+            callback?.();
+          },
         }));
         return (
           <ReactNative.View testID={testID}>
             {children}
             <ReactNative.TouchableOpacity
               testID="mock-bottom-sheet-close"
-              onPress={onClose}
+              disabled={isInteractable === false}
+              onPress={() => {
+                goBack?.();
+                onClose?.(false);
+              }}
             />
           </ReactNative.View>
         );
@@ -123,24 +141,26 @@ describe('FilterOptionSheet', () => {
     );
   });
 
-  it('calls onSelect and closes the sheet without a post-callback (avoids double onClose)', () => {
+  it('calls onSelect then closes the sheet (OptionsSheet pattern)', () => {
     const onSelect = jest.fn();
-    const onClose = jest.fn();
-    renderSheet({ onSelect, onClose });
+    const goBack = jest.fn();
+    renderSheet({ onSelect, goBack });
 
     fireEvent.press(screen.getByTestId(optionTestId('gamma')));
 
     expect(onSelect).toHaveBeenCalledWith('gamma');
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith();
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
-  it('invokes onClose when the sheet dispatches its close event', () => {
+  it('invokes goBack and onClose when the sheet dispatches its close event', () => {
     const onClose = jest.fn();
-    renderSheet({ onClose });
+    const goBack = jest.fn();
+    renderSheet({ onClose, goBack });
 
     fireEvent.press(screen.getByTestId('mock-bottom-sheet-close'));
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(goBack).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(false);
   });
 });

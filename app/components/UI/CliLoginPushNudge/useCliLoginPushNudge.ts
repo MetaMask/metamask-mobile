@@ -1,11 +1,7 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
-import { ToastContext } from '../../../component-library/components/Toast';
-import {
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useCallback, useEffect, useRef, useState } from 'react';
+// PermissionsAndroid usage below is gated behind `Platform.OS === 'android'`.
+// eslint-disable-next-line react-native/split-platform-components
+import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications/constants';
 import { useEnableNotifications } from '../../../util/notifications/hooks/useNotifications';
@@ -13,87 +9,62 @@ import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
 } from '../../../util/notifications/services/NotificationService';
+import { subscribeCliLoginPushNudge } from '../../../core/AgenticCli/cliLoginPushNudgeSignal';
+import logger from '../../../core/SDKConnectV2/services/logger';
 
-const NUDGE_LABELS = () => [
-  { label: strings('sdk_connect_v2.push_nudge.title'), isBold: true },
-];
-
-const LOADING_LABELS = () => [
-  { label: strings('sdk_connect_v2.push_nudge.loading_title'), isBold: true },
-];
-
-const ERROR_LABELS = () => [
-  { label: strings('sdk_connect_v2.push_nudge.enable_error') },
-];
+/** Android API level (13) that introduced the POST_NOTIFICATIONS runtime permission. */
+const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
 /**
- * Shared toast-based push-permission nudge shown after a successful Agentic CLI
- * QR login (MMAI-925). On "Turn on": when the OS can still show its permission
- * dialog it calls enableNotifications() (in-app notifications + OS prompt).
- * Denying that dialog closes the toast without opening Settings. When the OS can
- * no longer show its dialog (e.g. iOS after a prior denial), it deep-links to
+ * Drives the post-CLI-login push-permission bottom sheet (MMAI-925). Subscribes
+ * to the module-level nudge signal to become visible after a successful login.
+ * On "Enable notifications": requests OS permission when needed, opens device
+ * notification settings when the OS dialog can no longer be shown, and enables
+ * MetaMask in-app notifications once native push is granted.
+ *
+ * iOS: when the OS can still show its permission dialog, enableNotifications()
+ * requests permission; denying that dialog does not open Settings. When the OS
+ * can no longer show its dialog (e.g. after a prior denial), it deep-links to
  * device notification settings and retries once the app returns to foreground.
+ *
+ * Android: Notifee reports DENIED for both "never asked" and "permanently
+ * denied", so we use PermissionsAndroid.request(POST_NOTIFICATIONS). Because the
+ * user already signaled intent by tapping "Enable notifications", any deny opens
+ * notification settings.
  */
 export function useCliLoginPushNudge(): {
-  showNudge: () => boolean;
+  isVisible: boolean;
+  onYes: () => Promise<void>;
+  onNotNow: () => void;
+  onClose: (hasPendingAction?: boolean) => void;
 } {
-  const { toastRef } = useContext(ToastContext);
+  const [isVisible, setIsVisible] = useState(false);
   const { enableNotifications } = useEnableNotifications({
     nudgeEnablePush: true,
+    throwOnError: true,
   });
 
   const inFlightRef = useRef(false);
   // Bumped each time a new nudge is shown so a fresh CLI login supersedes any
-  // in-progress Turn on flow: async continuations compare their captured epoch
+  // in-progress enable flow: async continuations compare their captured epoch
   // and skip their side effects once superseded, preventing overlapping enable
-  // calls, settings opens, and toast updates.
+  // calls and settings opens.
   const flowEpochRef = useRef(0);
   const appStateSubscriptionRef = useRef<ReturnType<
     typeof AppState.addEventListener
   > | null>(null);
-
-  const showLoadingToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Loading,
-      hasNoTimeout: true,
-      labelOptions: LOADING_LABELS(),
-      descriptionOptions: {
-        description: strings('sdk_connect_v2.push_nudge.loading_description'),
-      },
-    });
-  }, [toastRef]);
-
-  const showErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Danger,
-      hasNoTimeout: false,
-      labelOptions: ERROR_LABELS(),
-    });
-  }, [toastRef]);
 
   const clearForegroundRetry = useCallback(() => {
     appStateSubscriptionRef.current?.remove();
     appStateSubscriptionRef.current = null;
   }, []);
 
-  const runEnableFlow = useCallback(
-    async (isCurrent: () => boolean) => {
-      try {
-        await enableNotifications();
-        if (isCurrent()) {
-          toastRef?.current?.closeToast();
-        }
-      } catch {
-        if (isCurrent()) {
-          toastRef?.current?.closeToast();
-          showErrorToast();
-        }
-      }
-    },
-    [enableNotifications, toastRef, showErrorToast],
-  );
+  const showEnableNotificationsError = useCallback(() => {
+    Alert.alert(
+      strings('notifications.notifications_enabled_error_title'),
+      strings('notifications.notifications_enabled_error_desc'),
+    );
+  }, []);
 
   const scheduleForegroundRetry = useCallback(
     (retry: () => Promise<void>) => {
@@ -105,14 +76,107 @@ export function useCliLoginPushNudge(): {
             return;
           }
           clearForegroundRetry();
-          void retry();
+          retry().catch((error) => {
+            logger.warn(
+              'Failed to enable notifications after returning from settings',
+              error,
+            );
+            showEnableNotificationsError();
+          });
         },
       );
     },
-    [clearForegroundRetry],
+    [clearForegroundRetry, showEnableNotificationsError],
   );
 
-  const onTapTurnOn = useCallback(async () => {
+  const runEnableNotifications = useCallback(async () => {
+    await enableNotifications();
+  }, [enableNotifications]);
+
+  const openSettingsAndScheduleRetry = useCallback(
+    (isCurrent: () => boolean) => {
+      // Release the in-flight guard before opening system settings so that a
+      // throw from openSystemSettings() can't leave "Enable notifications"
+      // permanently locked. The scheduled foreground retry owns its own guard.
+      inFlightRef.current = false;
+      NotificationService.openSystemSettings();
+      scheduleForegroundRetry(async () => {
+        if (!isCurrent()) {
+          return;
+        }
+        inFlightRef.current = true;
+        try {
+          if (!(await isPushPermissionGranted())) {
+            return;
+          }
+          if (!isCurrent()) {
+            return;
+          }
+          await runEnableNotifications();
+        } finally {
+          inFlightRef.current = false;
+        }
+      });
+    },
+    [runEnableNotifications, scheduleForegroundRetry],
+  );
+
+  const runGrantedFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      if (!isCurrent()) {
+        return;
+      }
+      await runEnableNotifications();
+    },
+    [runEnableNotifications],
+  );
+
+  const runAndroidPermissionFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      // Android < 13 has no runtime dialog; when notifications are not already
+      // granted they can only be enabled from system settings.
+      if (Number(Platform.Version) < ANDROID_POST_NOTIFICATIONS_API_LEVEL) {
+        openSettingsAndScheduleRetry(isCurrent);
+        return;
+      }
+      // Android 13+ requires the POST_NOTIFICATIONS runtime permission.
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      if (!isCurrent()) {
+        return;
+      }
+      if (result === PermissionsAndroid.RESULTS.GRANTED) {
+        await runEnableNotifications();
+        return;
+      }
+      // The user tapped "Enable notifications", so any deny (dismissed dialog or
+      // permanent denial) opens notification settings — the intent to enable is
+      // unambiguous.
+      openSettingsAndScheduleRetry(isCurrent);
+    },
+    [openSettingsAndScheduleRetry, runEnableNotifications],
+  );
+
+  const runIosPermissionFlow = useCallback(
+    async (isCurrent: () => boolean) => {
+      const promptable = await isPushPermissionPromptable();
+      if (!isCurrent()) {
+        return;
+      }
+      if (!promptable) {
+        openSettingsAndScheduleRetry(isCurrent);
+        return;
+      }
+      // OS can still show its dialog — request permission via
+      // enableNotifications(). If the user denies, do not open Settings (matches
+      // PushNotificationOnboarding).
+      await runEnableNotifications();
+    },
+    [openSettingsAndScheduleRetry, runEnableNotifications],
+  );
+
+  const runPermissionFlow = useCallback(async () => {
     if (inFlightRef.current) {
       return;
     }
@@ -123,117 +187,66 @@ export function useCliLoginPushNudge(): {
 
     try {
       if (await isPushPermissionGranted()) {
-        if (!isCurrent()) {
-          return;
-        }
-        showLoadingToast();
-        await enableNotifications();
-        if (isCurrent()) {
-          toastRef?.current?.closeToast();
-        }
+        await runGrantedFlow(isCurrent);
         return;
       }
       if (!isCurrent()) {
         return;
       }
 
-      const promptable = await isPushPermissionPromptable();
-      if (!isCurrent()) {
+      if (Platform.OS === 'android') {
+        await runAndroidPermissionFlow(isCurrent);
         return;
       }
 
-      if (!promptable) {
-        // OS dialog cannot be shown again (e.g. iOS after a prior denial).
-        // Deep-link to device settings and retry on return to foreground.
-        toastRef?.current?.closeToast();
-        NotificationService.openSystemSettings();
-        scheduleForegroundRetry(async () => {
-          if (!isCurrent()) {
-            return;
-          }
-          inFlightRef.current = true;
-          try {
-            if (!(await isPushPermissionGranted())) {
-              if (isCurrent()) {
-                toastRef?.current?.closeToast();
-              }
-              return;
-            }
-            if (!isCurrent()) {
-              return;
-            }
-            showLoadingToast();
-            await runEnableFlow(isCurrent);
-          } finally {
-            inFlightRef.current = false;
-          }
-        });
-        // The enable work is deferred to the foreground retry, which manages
-        // its own in-flight guard. Release the guard now so a later tap is not
-        // permanently blocked if the user never returns from device settings.
-        inFlightRef.current = false;
-        return;
-      }
-
-      // OS can still show its dialog — request permission via enableNotifications().
-      // If the user denies, dismiss the toast without opening Settings (matches
-      // PushNotificationOnboarding).
-      showLoadingToast();
-      await enableNotifications();
-      if (isCurrent()) {
-        toastRef?.current?.closeToast();
-      }
-    } catch {
-      if (isCurrent()) {
-        toastRef?.current?.closeToast();
-        showErrorToast();
-      }
+      await runIosPermissionFlow(isCurrent);
+    } catch (error) {
+      logger.warn('Failed to run CLI login push permission flow', error);
+      showEnableNotificationsError();
     } finally {
       if (!appStateSubscriptionRef.current) {
         inFlightRef.current = false;
       }
     }
   }, [
-    enableNotifications,
-    runEnableFlow,
-    scheduleForegroundRetry,
-    showErrorToast,
-    showLoadingToast,
-    toastRef,
+    runGrantedFlow,
+    runAndroidPermissionFlow,
+    runIosPermissionFlow,
+    showEnableNotificationsError,
   ]);
 
-  const showNudge = useCallback((): boolean => {
-    if (!isNotificationsFeatureEnabled()) {
-      return false;
+  const onYes = useCallback(() => {
+    setIsVisible(false);
+    return runPermissionFlow();
+  }, [runPermissionFlow]);
+
+  const onNotNow = useCallback(() => {
+    setIsVisible(false);
+  }, []);
+
+  // BottomSheet passes hasPendingAction=true when a button (Yes/Not now) drove
+  // the close; those are handled by onYes/onNotNow, so only react to genuine
+  // dismissals (backdrop, close icon, hardware back).
+  const onClose = useCallback((hasPendingAction?: boolean) => {
+    if (hasPendingAction) {
+      return;
     }
-    // A new nudge supersedes any in-progress Turn on flow: cancel a pending
-    // foreground retry, invalidate in-flight async continuations via the epoch,
-    // and release the guard so this toast's Turn on is not blocked.
-    clearForegroundRetry();
-    flowEpochRef.current += 1;
-    inFlightRef.current = false;
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Notification,
-      hasNoTimeout: true,
-      labelOptions: NUDGE_LABELS(),
-      descriptionOptions: {
-        description: strings('sdk_connect_v2.push_nudge.description'),
-      },
-      linkButtonOptions: {
-        label: strings('sdk_connect_v2.push_nudge.turn_on_button'),
-        onPress: onTapTurnOn,
-      },
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: () => {
-          toastRef?.current?.closeToast();
-        },
-      },
-    });
-    return true;
-  }, [onTapTurnOn, toastRef, clearForegroundRetry]);
+    setIsVisible(false);
+  }, []);
+
+  useEffect(
+    () =>
+      subscribeCliLoginPushNudge(() => {
+        if (!isNotificationsFeatureEnabled()) {
+          return;
+        }
+        clearForegroundRetry();
+        flowEpochRef.current += 1;
+        inFlightRef.current = false;
+        setIsVisible(true);
+      }),
+    [clearForegroundRetry],
+  );
 
   useEffect(
     () => () => {
@@ -242,5 +255,5 @@ export function useCliLoginPushNudge(): {
     [clearForegroundRetry],
   );
 
-  return { showNudge };
+  return { isVisible, onYes, onNotNow, onClose };
 }

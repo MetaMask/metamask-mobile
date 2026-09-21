@@ -8,11 +8,14 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   FilterButton,
   HeaderSubpage,
   IconColor,
   IconName,
   ListItemSelect,
+  ListItemVariant,
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
@@ -39,16 +42,13 @@ import {
   PerpsOrderBookViewSelectorsIDs,
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
@@ -72,6 +72,7 @@ import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
@@ -93,6 +94,7 @@ import {
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type {
   OrderBookRouteParams,
   PerpsOrderBookViewProps,
@@ -108,6 +110,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
 
@@ -378,10 +381,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
     if (market) {
       return (
-        <PerpsMarketHeader
+        <PerpsMarketInlineHeader
           market={market}
-          onBackPress={handleBack}
           currentPrice={currentPrice}
+          onBackPress={handleBack}
           endAccessory={groupingSelectButton}
         />
       );
@@ -519,9 +522,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           direction: 'long',
           asset: symbol || '',
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
+          ...(useBottomSheet ? { useBottomSheet: true } : {}),
         });
       }),
-    [gate, isEligible, symbol, navigateToOrder, track],
+    [gate, isEligible, symbol, navigateToOrder, track, useBottomSheet],
   );
 
   // Handle Short button press
@@ -553,9 +557,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           direction: 'short',
           asset: symbol || '',
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
+          ...(useBottomSheet ? { useBottomSheet: true } : {}),
         });
       }),
-    [gate, isEligible, symbol, navigateToOrder, track],
+    [gate, isEligible, symbol, navigateToOrder, track, useBottomSheet],
   );
 
   // Handle Close position button press
@@ -806,6 +811,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <ListItemSelect
               key={value}
               title={formatGroupingLabel(value)}
+              variant={ListItemVariant.OneLine}
               isSelected={currentGrouping === value}
               showSelectedIcon
               onPress={() => handleGroupingSelect(value)}
@@ -819,13 +825,15 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       {selectedTooltip && (
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={handleTooltipClose}
-              contentKey={selectedTooltip}
-              testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-              buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={handleTooltipClose}
+                contentKey={selectedTooltip}
+                testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+                buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}
@@ -838,6 +846,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
           testID={PerpsOrderBookViewSelectorsIDs.MODIFY_ACTION_SHEET}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

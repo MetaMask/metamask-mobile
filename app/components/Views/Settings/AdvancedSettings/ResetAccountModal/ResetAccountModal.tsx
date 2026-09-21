@@ -9,6 +9,7 @@ import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -25,7 +26,7 @@ export const ResetAccountModal = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );

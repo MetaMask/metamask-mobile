@@ -5,13 +5,11 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import ToastService from '../../../../../core/ToastService/ToastService';
-import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
-import { IconName as LegacyIconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
 import { useTokenWatchlist } from '../hooks/useTokenWatchlist';
@@ -40,7 +38,6 @@ const WatchlistStarButton = ({
   hasBalance,
   source,
 }: WatchlistStarButtonProps) => {
-  const theme = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { isWatched, toggle } = useTokenWatchlist(assetId);
@@ -49,19 +46,13 @@ const WatchlistStarButton = ({
     const wasWatched = isWatched;
     toggle();
 
-    ToastService.showToast({
-      variant: ToastVariants.Icon,
-      iconName: LegacyIconName.Confirmation,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.section,
-      labelOptions: [
-        {
-          label: wasWatched
-            ? strings('token_watchlist.removed_from_watchlist')
-            : strings('token_watchlist.added_to_watchlist'),
-        },
-      ],
+    toast({
+      title: wasWatched
+        ? strings('token_watchlist.removed_from_watchlist')
+        : strings('token_watchlist.added_to_watchlist'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
 
     const eventName = wasWatched
@@ -72,6 +63,7 @@ const WatchlistStarButton = ({
       createEventBuilder(eventName)
         .addProperties({
           source,
+          asset_id: assetId,
           asset_type: assetType,
           ...(wasWatched ? {} : { has_balance: hasBalance }),
         })
@@ -83,10 +75,9 @@ const WatchlistStarButton = ({
     trackEvent,
     createEventBuilder,
     source,
+    assetId,
     assetType,
     hasBalance,
-    theme.colors.success.default,
-    theme.colors.background.section,
   ]);
 
   if (!isWatchlistEnabled || !assetId) {

@@ -1,11 +1,8 @@
 import React from 'react';
-import Svg, { Circle } from 'react-native-svg';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   Text,
   TextColor,
@@ -13,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { formatCompactValue } from '../../utils/formatUtils';
 import type { VipEquityAllocation } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { VIP_GOLD_TEXT_DEFAULT } from './Vip.constants';
+import VipCircularProgress from './VipCircularProgress';
 
 export const VIP_POINTS_SECTION_TEST_IDS = {
   CONTAINER: 'vip-points-section',
@@ -21,7 +18,12 @@ export const VIP_POINTS_SECTION_TEST_IDS = {
   RADIAL: 'vip-points-section-radial',
   RADIAL_PROGRESS: 'vip-points-section-radial-progress',
   RADIAL_LABEL: 'vip-points-section-radial-label',
+  LIFETIME_POINTS: 'vip-points-section-lifetime-points',
 } as const;
+
+/** Replaced client-side with the formatted lifetime figure — the server owns
+ * the copy, the client owns number formatting for this card. */
+const POINTS_PLACEHOLDER = '{points}';
 
 interface VipPointsSectionProps {
   pointsAllocation: VipEquityAllocation;
@@ -30,15 +32,8 @@ interface VipPointsSectionProps {
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  equityLifetimePointsDescription: string;
 }
-
-const RADIAL_SIZE = 96;
-const STROKE_WIDTH = 8;
-const RADIUS = (RADIAL_SIZE - STROKE_WIDTH) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-const clampPercent = (value: number): number =>
-  Math.max(0, Math.min(100, value));
 
 const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   pointsAllocation,
@@ -47,19 +42,31 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   equityLockedDescription,
   equityUnlockedTitle,
   equityUnlockedDescription,
+  equityLifetimePointsDescription,
 }) => {
-  const tw = useTailwind();
-  const trackColor = tw.color('background-muted') ?? 'transparent';
-  const fillColor = VIP_GOLD_TEXT_DEFAULT ?? 'transparent';
-
   const isEquityUnlocked =
     pointsAllocation.earned >= pointsAllocation.threshold;
   const subtitle = isEquityUnlocked ? equityUnlockedTitle : equityLockedTitle;
-  const description = isEquityUnlocked
+
+  // Lifetime total is never clamped and never shrinks once accrued — a VIP
+  // who has since dropped below the equity tier still keeps it, so this is
+  // NOT gated on `isEquityUnlocked`. Only worth showing when the VIP has
+  // actually accrued something — a "lifetime total of 0" would read as a bug
+  // rather than as reassurance.
+  const lifetimeQualifyingPoints = pointsAllocation.lifetimeQualifyingPoints;
+  const lifetimePointsText =
+    lifetimeQualifyingPoints !== null && lifetimeQualifyingPoints > 0
+      ? equityLifetimePointsDescription
+          .split(POINTS_PLACEHOLDER)
+          .join(formatCompactValue(lifetimeQualifyingPoints))
+      : null;
+
+  const baseDescription = isEquityUnlocked
     ? equityUnlockedDescription
     : equityLockedDescription;
-  const filledPercent = clampPercent(pointsAllocation.percent);
-  const dashOffset = CIRCUMFERENCE * (1 - filledPercent / 100);
+  const description = lifetimePointsText
+    ? `${baseDescription} ${lifetimePointsText}`
+    : baseDescription;
 
   return (
     <Box
@@ -82,59 +89,31 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
           <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
             {subtitle}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={
+              lifetimePointsText
+                ? VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS
+                : undefined
+            }
+          >
             {description}
           </Text>
         </Box>
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          style={{ width: RADIAL_SIZE, height: RADIAL_SIZE }}
+        <VipCircularProgress
+          percent={pointsAllocation.percent}
           testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL}
+          progressTestID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_PROGRESS}
+          labelTestID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL}
         >
-          <Svg
-            width={RADIAL_SIZE}
-            height={RADIAL_SIZE}
-            viewBox={`0 0 ${RADIAL_SIZE} ${RADIAL_SIZE}`}
-          >
-            <Circle
-              cx={RADIAL_SIZE / 2}
-              cy={RADIAL_SIZE / 2}
-              r={RADIUS}
-              stroke={trackColor}
-              strokeWidth={STROKE_WIDTH}
-              fill="none"
-            />
-            <Circle
-              cx={RADIAL_SIZE / 2}
-              cy={RADIAL_SIZE / 2}
-              r={RADIUS}
-              stroke={fillColor}
-              strokeWidth={STROKE_WIDTH}
-              fill="none"
-              strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-              strokeDashoffset={dashOffset}
-              strokeLinecap="round"
-              transform={`rotate(-90 ${RADIAL_SIZE / 2} ${RADIAL_SIZE / 2})`}
-              testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_PROGRESS}
-            />
-          </Svg>
-          <Box
-            twClassName="absolute"
-            alignItems={BoxAlignItems.Center}
-            testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {formatCompactValue(pointsAllocation.earned)}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {`/${formatCompactValue(pointsAllocation.threshold)}`}
-            </Text>
-          </Box>
-        </Box>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+            {formatCompactValue(pointsAllocation.earned)}
+          </Text>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {`/${formatCompactValue(pointsAllocation.threshold)}`}
+          </Text>
+        </VipCircularProgress>
       </Box>
     </Box>
   );

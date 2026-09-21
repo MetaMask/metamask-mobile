@@ -13,6 +13,7 @@ import {
   getRampsContext,
 } from './ramps-service-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { getBaseSemVerVersion } from '../../../../util/version';
 
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
@@ -24,6 +25,10 @@ jest.mock('@metamask/ramps-controller', () => {
     RampsService: jest.fn(),
   };
 });
+
+jest.mock('../../../../util/version', () => ({
+  getBaseSemVerVersion: jest.fn(() => '8.9.0'),
+}));
 
 describe('getRampsEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
@@ -48,8 +53,18 @@ describe('getRampsEnvironment', () => {
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
     });
 
-    it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
+    it('returns Development when RAMPS_ENVIRONMENT is development', () => {
+      process.env.RAMPS_ENVIRONMENT = 'development';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Development);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is staging', () => {
       process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is an unknown value', () => {
+      process.env.RAMPS_ENVIRONMENT = 'not-a-real-env';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
     });
 
@@ -77,12 +92,14 @@ describe('getRampsEnvironment', () => {
     });
   });
 
-  describe('Staging Environment', () => {
-    it('returns Staging for dev environment', () => {
+  describe('Development Environment', () => {
+    it('returns Development for dev environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Development);
     });
+  });
 
+  describe('Staging Environment', () => {
     it('returns Staging for exp environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'exp';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
@@ -141,6 +158,7 @@ describe('rampsServiceInit', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(getBaseSemVerVersion).mockReturnValue('8.9.0');
     delete process.env.RAMPS_ENVIRONMENT;
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -174,6 +192,8 @@ describe('rampsServiceInit', () => {
       environment: expect.any(String),
       context: expect.any(String),
       fetch,
+      clientProduct: 'metamask-mobile',
+      clientVersion: '8.9.0',
     });
   });
 
@@ -231,13 +251,13 @@ describe('rampsServiceInit', () => {
       );
     });
 
-    it('passes Staging environment for dev environment', () => {
+    it('passes Development environment for dev environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          environment: RampsEnvironment.Staging,
+          environment: RampsEnvironment.Development,
         }),
       );
     });
@@ -281,7 +301,18 @@ describe('rampsServiceInit', () => {
       );
     });
 
-    it('passes Staging environment when RAMPS_ENVIRONMENT is not production', () => {
+    it('passes Development environment when RAMPS_ENVIRONMENT is development', () => {
+      process.env.RAMPS_ENVIRONMENT = 'development';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: RampsEnvironment.Development,
+        }),
+      );
+    });
+
+    it('passes Staging environment when RAMPS_ENVIRONMENT is staging', () => {
       process.env.RAMPS_ENVIRONMENT = 'staging';
       rampsServiceInit(initRequestMock);
 
@@ -358,19 +389,23 @@ describe('rampsServiceInit', () => {
         environment: RampsEnvironment.Production,
         context: 'mobile-ios',
         fetch,
+        clientProduct: 'metamask-mobile',
+        clientVersion: '8.9.0',
       });
     });
 
-    it('passes correct environment and context for Android in staging', () => {
+    it('passes correct environment and context for Android in development', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
       Platform.OS = 'android';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith({
         messenger: initRequestMock.controllerMessenger,
-        environment: RampsEnvironment.Staging,
+        environment: RampsEnvironment.Development,
         context: 'mobile-android',
         fetch,
+        clientProduct: 'metamask-mobile',
+        clientVersion: '8.9.0',
       });
     });
   });

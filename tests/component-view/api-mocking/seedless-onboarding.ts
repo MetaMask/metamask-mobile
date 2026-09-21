@@ -10,7 +10,11 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
 
 /** Auth server origins used across dev / UAT / prod OAuth config. */
 export const SEEDLESS_AUTH_SERVER_ORIGINS = [
@@ -49,5 +53,5 @@ export function setupSeedlessAuthServerMocks(
 }
 
 export function clearSeedlessAuthServerMocks(): void {
-  clearAllNockMocks();
+  teardownNock();
 }

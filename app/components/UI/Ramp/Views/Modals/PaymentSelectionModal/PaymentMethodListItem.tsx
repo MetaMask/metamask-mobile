@@ -18,6 +18,7 @@ import { useFormatters } from '../../../../../hooks/useFormatters';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
+import { paymentMethodTestId } from './PaymentSelectionModal.testIds';
 
 const ICON_CIRCLE_SIZE = 44;
 
@@ -87,6 +88,7 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
 
   return (
     <ListItemSelect
+      testID={paymentMethodTestId(paymentMethod.id)}
       isSelected={isSelected}
       isDisabled={quoteError}
       onPress={quoteError ? undefined : onPress}

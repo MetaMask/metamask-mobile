@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -25,7 +26,7 @@ interface TronStakingButtonsProps {
 }
 
 const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { isEligible } = useStakingEligibility();
 

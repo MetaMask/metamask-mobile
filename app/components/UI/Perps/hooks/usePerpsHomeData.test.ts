@@ -641,6 +641,69 @@ describe('usePerpsHomeData', () => {
         result.current.perpsMarkets.find((m) => m.symbol === 'xyz:BRENTOIL'),
       ).toBeUndefined();
     });
+
+    it('keeps crypto markets tagged with an explicit crypto marketType in perpsMarkets', () => {
+      // Arrange - the Terminal backend tags every market, crypto included
+      const taggedCryptoMarkets = [
+        createMockMarket({ symbol: 'BTC', marketType: 'crypto' }),
+        createMockMarket({ symbol: 'ETH', marketType: 'crypto' }),
+        createMockMarket({
+          symbol: 'xyz:GOLD',
+          marketType: 'commodity',
+          isHip3: true,
+        }),
+      ];
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: taggedCryptoMarkets,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: mockRefreshMarkets,
+      });
+      mockSortMarkets.mockImplementation(({ markets }) => markets);
+
+      // Act
+      const { result } = renderHook(() => usePerpsHomeData());
+
+      // Assert
+      expect(result.current.perpsMarkets.map((m) => m.symbol)).toEqual([
+        'BTC',
+        'ETH',
+      ]);
+    });
+
+    it('keeps crypto markets tagged with an explicit crypto marketType in search results', () => {
+      // Arrange
+      const taggedCryptoMarkets = [
+        createMockMarket({
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          marketType: 'crypto',
+        }),
+        createMockMarket({
+          symbol: 'xyz:GOLD',
+          name: 'Gold',
+          marketType: 'commodity',
+          isHip3: true,
+        }),
+      ];
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: taggedCryptoMarkets,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: mockRefreshMarkets,
+      });
+      mockSortMarkets.mockImplementation(({ markets }) => markets);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsHomeData({ searchQuery: 'BTC' }),
+      );
+
+      // Assert
+      expect(result.current.perpsMarkets.map((m) => m.symbol)).toEqual(['BTC']);
+    });
   });
 
   describe('Trending markets sorting', () => {

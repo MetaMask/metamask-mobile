@@ -1,14 +1,9 @@
 import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-} from '../../framework';
+import { AppiumAssertions, AppiumGestures } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
-  dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
+  closePredictModal,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import {
@@ -21,9 +16,13 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import {
+  captureOnboardingTtc,
+  trackTimer,
+} from './helpers/captureOnboardingTtc';
+import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -41,61 +40,60 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Google Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(240000);
+  test.setTimeout(360000);
 
   test(
     'Seedless Onboarding: Google Login New User',
     { tag: '@metamask-onboarding-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      const platform = currentDeviceDetails.platform;
       const timer1 = new TimerHelper(
         'Google: Tap "Create new wallet" → OnboardingSheet visible',
         { ios: 1500, android: 2000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer2 = new TimerHelper(
         'Google: Tap Google login → post-OAuth screen visible',
         { ios: 15000, android: 5000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer3 = new TimerHelper(
         'Google: Post-OAuth action → Password fields visible',
         { ios: 4000, android: 4000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer4 = new TimerHelper(
         'Google: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 6000 },
-        currentDeviceDetails.platform,
+        { ios: 5000, android: 4000 },
+        platform,
       );
       const timer5 = new TimerHelper(
-        'Google: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 5000 },
-        currentDeviceDetails.platform,
-      );
-      const timer6 = new TimerHelper(
-        'Google: Dismiss feature sheet → wallet main screen visible',
+        'Google: Tap "Done" → wallet main screen visible',
         { ios: 30000, android: 5000 },
-        currentDeviceDetails.platform,
+        platform,
       );
 
       const password = getPasswordForScenario('onboarding') ?? '';
 
       await OnboardingView.tapCreateNewWalletButton();
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(OnboardingSheet.googleLoginButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          OnboardingSheet.googleLoginButton,
           {
             description: 'Google login button should be visible',
           },
         );
       });
+      // Track immediately — do not Appium-poll TTC before OAuth tap.
+      trackTimer(performanceTracker, timer1);
 
       await OnboardingSheet.tapGoogleLoginButton();
       await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
+      let postOauthScreen: OnboardingScreenId = 'choose_pw';
 
-      if (currentDeviceDetails.platform === 'ios') {
+      if (platform === 'ios') {
         await timer2.measure(async () => {
           const result = await waitForFirstSuccessful([
             SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
@@ -104,13 +102,25 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             ),
           ]);
           isNewUser = result === 'new_user';
+          postOauthScreen =
+            result === 'new_user'
+              ? 'social_login_success_new_user'
+              : 'account_already_exists';
         });
+        trackTimer(performanceTracker, timer2);
+        await captureOnboardingTtc(
+          performanceTracker,
+          postOauthScreen,
+          platform,
+        );
 
         if (isNewUser) {
           await SocialLoginView.tapIosNewUserSetPinButton();
           await timer3.measure(async () => {
             await CreatePasswordView.isVisible();
           });
+          trackTimer(performanceTracker, timer3);
+          await captureOnboardingTtc(performanceTracker, 'choose_pw', platform);
         }
       } else {
         await timer2.measure(async () => {
@@ -121,76 +131,86 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             ),
           ]);
           isNewUser = result === 'new_user';
+          postOauthScreen =
+            result === 'new_user' ? 'choose_pw' : 'account_already_exists';
         });
+        trackTimer(performanceTracker, timer2);
+        await captureOnboardingTtc(
+          performanceTracker,
+          postOauthScreen,
+          platform,
+        );
       }
 
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
-        await PlaywrightGestures.hideKeyboard();
+        await AppiumGestures.hideKeyboard();
         try {
           await CreatePasswordView.ensureMarketingOptInChecked();
         } catch (error) {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-
         await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-            {
-              description: 'Onboarding success done button should be visible',
-            },
+          await AppiumAssertions.expectElementToBeVisible(
+            OnboardingSuccessView.doneButton,
           );
         });
+        trackTimer(performanceTracker, timer4);
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_success',
+          platform,
+        );
+        // Sheet probe was recorded in-app earlier; read it only after OAuth.
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_sheet',
+          platform,
+        );
 
-        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
+        await closePredictModal();
         await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
-
-        await dismisspredictionsModalPlaywright();
-        await timer6.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
+          await AppiumAssertions.expectElementToBeVisible(
+            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
             },
           );
         });
-
-        const timers = [timer1, timer2, timer4, timer5, timer6];
-        if (currentDeviceDetails.platform === 'ios') {
-          timers.splice(2, 0, timer3);
-        }
-        performanceTracker.addTimers(...timers);
+        trackTimer(performanceTracker, timer5);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
         await timer3.measure(async () => {
           await LoginView.waitForScreenToDisplay();
         });
+        trackTimer(performanceTracker, timer3);
+        await captureOnboardingTtc(
+          performanceTracker,
+          'social_rehydrate',
+          platform,
+        );
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_sheet',
+          platform,
+        );
 
         await LoginView.enterPassword(password);
         await LoginView.tapLoginButton();
 
         await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+          await AppiumAssertions.expectElementToBeVisible(
+            WalletView.container,
             {
               description: 'Wallet main screen should be visible',
             },
           );
         });
-
-        performanceTracker.addTimers(timer1, timer2, timer3, timer4);
+        trackTimer(performanceTracker, timer4);
       }
     },
   );

@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
@@ -58,6 +58,8 @@ import { getProviderWebviewColors } from '../../utils/getProviderWebviewColors';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
+import { needsLegacyApplePay } from '../../utils/needsLegacyApplePay';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
   buildBaseProps,
@@ -178,6 +180,9 @@ async function handleHeadlessCheckoutCallback({
 }
 
 const Checkout = () => {
+  // Must match redirectUrl from getRampCallbackBaseUrl() on quote fetch
+  // (including Dev → on-ramp.dev-api), not Aggregator/sdk's content host.
+  const callbackBaseUrl = getRampCallbackBaseUrl();
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
@@ -343,22 +348,27 @@ const Checkout = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
             .addProperties({
-              ramp_type: 'HEADLESS',
-              ramp_surface: session.params?.rampSurface,
-              amount_source: Number(
-                quoteRecord?.amountIn ?? session.params?.amount ?? 0,
-              ),
-              amount_destination: Number(quoteRecord?.amountOut ?? 0),
-              payment_method_id: quoteRecord?.paymentMethod ?? '',
-              region: regionCode ?? '',
-              chain_id: network ?? '',
-              currency_destination: params?.cryptocurrency ?? '',
-              currency_source: params?.currency ?? '',
-              error_message:
-                checkoutError instanceof Error
-                  ? checkoutError.message
-                  : String(checkoutError),
-              is_authenticated: true,
+              ...buildHeadlessOrderFailedProps({
+                rampSurface: session.params?.rampSurface,
+                // Additive vs the previous inline payload: both fields are
+                // optional in segment-schema and the native flow already
+                // sends them.
+                providerOrderId: effectiveOrderId ?? undefined,
+                amountSource: Number(
+                  quoteRecord?.amountIn ?? session.params?.amount ?? 0,
+                ),
+                amountDestination: Number(quoteRecord?.amountOut ?? 0),
+                paymentMethodId: quoteRecord?.paymentMethod ?? '',
+                region: regionCode ?? '',
+                chainId: network ?? '',
+                currencyDestination: params?.cryptocurrency ?? '',
+                currencyDestinationSymbol: params?.cryptocurrency,
+                currencySource: params?.currency ?? '',
+                errorMessage:
+                  checkoutError instanceof Error
+                    ? checkoutError.message
+                    : String(checkoutError),
+              }),
             })
             .build(),
         );
@@ -374,6 +384,7 @@ const Checkout = () => {
       createEventBuilder,
       regionCode,
       network,
+      effectiveOrderId,
       params?.cryptocurrency,
       params?.currency,
     ],
@@ -385,13 +396,14 @@ const Checkout = () => {
     // providerCode and walletAddress are passed, so hasCallbackFlow is true
     // and we can register. hasCallbackFlow being false means we lack the data
     // required for addPrecreatedOrder anyway.
-    // Note: network/chainId is optional in addPrecreatedOrder; do not require it
-    // in the guard, otherwise orders with unusual chain ID formats (e.g. empty
-    // string from chainId.split(':')[1]) would silently skip registration here
-    // while external-browser flows would still register (BuildQuote passes
-    // chainId: network || undefined without requiring network).
+    // RampsController requires a non-empty chainId (see Core #9777); skip
+    // registration when network is missing rather than seeding an empty stub.
     const canRegister =
-      hasCallbackFlow && effectiveOrderId && providerCode && walletAddress;
+      hasCallbackFlow &&
+      effectiveOrderId &&
+      providerCode &&
+      walletAddress &&
+      network;
     if (!canRegister) return;
     if (registeredOrderIdsRef.current.has(effectiveOrderId)) return;
     registeredOrderIdsRef.current.add(effectiveOrderId);
@@ -399,7 +411,7 @@ const Checkout = () => {
       orderId: effectiveOrderId,
       providerCode,
       walletAddress,
-      chainId: network || undefined,
+      chainId: network,
     });
   }, [
     hasCallbackFlow,
@@ -444,6 +456,7 @@ const Checkout = () => {
       providerName,
       effectiveOrderId,
       headlessBaseOverrides,
+      callbackBaseUrl,
     ],
   );
 
@@ -576,6 +589,7 @@ const Checkout = () => {
       headlessBaseOverrides,
       headlessRampSurface,
       regionCode,
+      callbackBaseUrl,
     ],
   );
 
@@ -824,9 +838,15 @@ const Checkout = () => {
             }
           }}
           allowsInlineMediaPlayback
-          enableApplePay
+          enableApplePay={needsLegacyApplePay()}
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
+          originWhitelist={[
+            'https://*',
+            'http://*', // NOSONAR - RN WebView default; omitting it sends HTTP redirects to the system browser
+            'about:blank',
+            'about:srcdoc',
+          ]}
           onLoadStart={handleLoadStart}
           onLoadEnd={handleLoadEnd}
           onNavigationStateChange={

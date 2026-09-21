@@ -107,6 +107,7 @@ describe('ActivityEmptyState', () => {
     fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
+      params: {},
     });
 
     cleanup();

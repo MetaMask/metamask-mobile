@@ -1,8 +1,10 @@
 import { ethers } from 'ethers';
 import {
+  buildImmersveApproveWrite,
   encodeSmartContractWrite,
   immersveNetworkToCaipChainId,
   immersveNetworkToFundingToken,
+  withApproveAmount,
 } from './immersveFunding';
 import {
   BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
@@ -58,6 +60,68 @@ describe('immersveNetworkToFundingToken', () => {
   it('throws for an unknown or missing network', () => {
     expect(() => immersveNetworkToFundingToken('polygon')).toThrow();
     expect(() => immersveNetworkToFundingToken(undefined)).toThrow();
+  });
+});
+
+describe('buildImmersveApproveWrite', () => {
+  const tokenAddress = BASE_USDC_TOKEN_ADDRESS;
+  const spenderAddress = '0x2222222222222222222222222222222222222222';
+
+  it('builds an approve write that round-trips through encodeSmartContractWrite', () => {
+    const write = buildImmersveApproveWrite({
+      tokenAddress,
+      spenderAddress,
+      amountBaseUnits: '0',
+    });
+
+    expect(write).toStrictEqual({
+      abi: expect.any(Array),
+      contractAddress: tokenAddress,
+      method: 'approve',
+      params: {
+        _spender: spenderAddress,
+        _value: '0',
+      },
+    });
+
+    const expected = new ethers.utils.Interface(
+      write.abi as ethers.utils.Fragment[],
+    ).encodeFunctionData('approve', [spenderAddress, '0']);
+    expect(encodeSmartContractWrite(write)).toBe(expected);
+  });
+});
+
+describe('withApproveAmount', () => {
+  const spender = '0x1111111111111111111111111111111111111111';
+
+  it('overrides the uint256 approve amount by name and position', () => {
+    const write: CardSmartContractWriteParams = {
+      abi: APPROVE_ABI,
+      contractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      method: 'approve',
+      params: { _spender: spender, _value: '1000000' },
+    };
+
+    expect(withApproveAmount(write, '5000000')).toStrictEqual({
+      ...write,
+      params: {
+        _spender: spender,
+        _value: '5000000',
+        '1': '5000000',
+      },
+    });
+  });
+
+  it('does not mutate the original write params', () => {
+    const write: CardSmartContractWriteParams = {
+      abi: APPROVE_ABI,
+      contractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      method: 'approve',
+      params: { _spender: spender, _value: '1000000' },
+    };
+
+    withApproveAmount(write, '9');
+    expect(write.params._value).toBe('1000000');
   });
 });
 

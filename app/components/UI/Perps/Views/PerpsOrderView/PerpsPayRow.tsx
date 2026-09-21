@@ -10,7 +10,9 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
@@ -19,6 +21,9 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Routes from '../../../../../constants/navigation/Routes';
+import MoneyIcon from '../../../../../images/money.png';
+import { RootState } from '../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
@@ -68,6 +73,15 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
+
+  // Paying from the Money Account repoints the pay token to mUSD on Monad, so
+  // the override is the only signal that distinguishes it from the user having
+  // picked mUSD directly.
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
 
   const {
     txParams: { from },
@@ -151,35 +165,66 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
     [displayToken.networkBadgeChainId],
   );
 
-  const valueLabel = matchesPerpsBalance
-    ? strings('perps.adjust_margin.perps_balance')
-    : displayToken.symbol;
+  const getValueLabel = () => {
+    if (isMoneyAccountSelected) {
+      return strings('confirm.pay_with_bottom_sheet.money_account');
+    }
 
-  const valueStartAccessory = matchesPerpsBalance ? (
-    <BaseTokenIcon
-      testID="perps-pay-row-token-icon"
-      icon={PERPS_BALANCE_ICON_URI}
-      symbol={strings('perps.adjust_margin.perps_balance')}
-      style={tokenIconStyles.iconSmall}
-    />
-  ) : token ? (
-    <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
+    if (matchesPerpsBalance) {
+      return strings('perps.adjust_margin.perps_balance');
+    }
+
+    return displayToken.symbol;
+  };
+
+  const getValueStartAccessory = () => {
+    if (isMoneyAccountSelected) {
+      return (
+        <Image
+          testID="perps-pay-row-token-icon"
+          source={MoneyIcon}
+          style={tokenIconStyles.iconSmall}
         />
-      }
-    >
-      <BaseTokenIcon
-        testID="perps-pay-row-token-icon"
-        icon={token.image}
-        symbol={token.symbol}
-        style={tokenIconStyles.iconSmall}
-      />
-    </BadgeWrapper>
-  ) : null;
+      );
+    }
+
+    if (matchesPerpsBalance) {
+      return (
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={PERPS_BALANCE_ICON_URI}
+          symbol={strings('perps.adjust_margin.perps_balance')}
+          style={tokenIconStyles.iconSmall}
+        />
+      );
+    }
+
+    if (!token) {
+      return null;
+    }
+
+    return (
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+          />
+        }
+      >
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={token.image}
+          symbol={token.symbol}
+          style={tokenIconStyles.iconSmall}
+        />
+      </BadgeWrapper>
+    );
+  };
+
+  const valueLabel = getValueLabel();
+  const valueStartAccessory = getValueStartAccessory();
 
   return (
     <TouchableOpacity

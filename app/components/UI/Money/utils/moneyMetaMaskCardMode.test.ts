@@ -9,6 +9,7 @@ const baseInput = {
   isMoneyAccountVisible: true,
   hasMoneyAccountBaseRequirements: true,
   hasMoneyAccountRequirements: true,
+  isCardStateResolved: true,
 };
 
 describe('deriveMoneyMetaMaskCardMode', () => {
@@ -170,5 +171,36 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         hasMoneyAccountBaseRequirements: true,
       }),
     ).toBe('link');
+  });
+
+  it('returns loading when card state is unresolved and Money account is visible', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardAuthenticated: true,
+      }),
+    ).toBe('loading');
+  });
+
+  it('returns null when card state is unresolved and Money account is not visible', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardAuthenticated: true,
+        isMoneyAccountVisible: false,
+      }),
+    ).toBeNull();
+  });
+
+  it('prefers loading over manage while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardLinkedToMoneyAccount: true,
+      }),
+    ).toBe('loading');
   });
 });

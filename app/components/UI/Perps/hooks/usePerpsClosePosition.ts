@@ -2,13 +2,19 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
   type OrderResult,
+  type OrdinaryOrderType,
   type Position,
   type TrackingData,
 } from '@metamask/perps-controller';
-import { handlePerpsError } from '../utils/translatePerpsError';
+import {
+  handlePerpsError,
+  isNoPositionFoundError,
+} from '../utils/translatePerpsError';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
@@ -36,7 +42,7 @@ interface ClosePositionParams {
 
   // Core parameters
   size?: string;
-  orderType?: 'market' | 'limit';
+  orderType?: OrdinaryOrderType;
   limitPrice?: string;
 
   // Tracking data
@@ -123,6 +129,29 @@ export const usePerpsClosePosition = (
           PERPS_CUF_STREAM_TIMEOUT_MS,
         );
       }
+
+      // The venue filled, closed or liquidated the position before this
+      // request landed. Nothing failed on the user's side, so reconcile the
+      // stale local state and say so instead of raising a close failure.
+      const reconcileAlreadyClosed = () => {
+        if (closeCufOpId) {
+          endPerpsCufTrace({
+            id: closeCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+            },
+          });
+        }
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed,
+        );
+        // Closing a position moves margin and balance, so account state is
+        // stale too — the controller pairs these two everywhere it closes.
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
+      };
 
       try {
         setIsClosing(true);
@@ -213,6 +242,15 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
+        if (result.success || isNoPositionFoundError(result.error)) {
+          recordPerpsAction();
+        }
+
+        if (!result.success && isNoPositionFoundError(result.error)) {
+          reconcileAlreadyClosed();
+          return result;
+        }
+
         if (result.success) {
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
@@ -272,6 +310,14 @@ export const usePerpsClosePosition = (
 
         return result;
       } catch (err) {
+        if (isNoPositionFoundError(err)) {
+          reconcileAlreadyClosed();
+          return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          };
+        }
+
         // A rejected promise (e.g. thrown by the controller/provider) skips the
         // { success: false } branch, so surface the failure toast here unless it
         // was already shown for a returned failure.

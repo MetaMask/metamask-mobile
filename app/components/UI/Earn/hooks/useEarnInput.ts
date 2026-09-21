@@ -87,6 +87,7 @@ const useEarnInputHandlers = ({
     amountTokenMinimalUnit,
     earnToken.experience,
   );
+
   const isNativeETH = earnToken.isETH;
   const estimatedGasFeeWei = useMemo(
     () => (isNativeETH ? earnGasFee.estimatedEarnGasFeeWei : new BN4(0)),

@@ -160,6 +160,10 @@ describe('OnboardingSuccessComponent', () => {
     setupSelectorMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders correctly when successFlow is BACKED_UP_SRP', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -309,27 +313,30 @@ describe('OnboardingSuccessComponent', () => {
     const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
       // Do nothing
     });
-    mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
-    const onDone = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <OnboardingSuccessComponent
-        onDone={onDone}
-        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
-      />,
-    );
-    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
-
-    await waitFor(() => {
-      expect(onDone).toHaveBeenCalled();
-    });
-    await waitFor(() => {
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.any(Error),
-        'OnboardingSuccess: discoverAccounts failed',
+    try {
+      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+      const onDone = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={onDone}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
       );
-    });
-    loggerSpy.mockRestore();
-    mockDiscoverAccounts.mockResolvedValue(0);
+      fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+      await waitFor(() => {
+        expect(onDone).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(loggerSpy).toHaveBeenCalledWith(
+          expect.any(Error),
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      });
+    } finally {
+      loggerSpy.mockRestore();
+      mockDiscoverAccounts.mockResolvedValue(0);
+    }
   });
 
   it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
@@ -452,15 +459,21 @@ describe('OnboardingSuccess', () => {
     mockRouteParams = {};
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     it('renders correctly with route params backedUpSRP false and noSRP false', () => {
       mockRouteParams = {
         successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('fails to add networks to the network controller but renders the component', () => {
@@ -468,9 +481,11 @@ describe('OnboardingSuccess', () => {
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
   });
 
@@ -480,10 +495,11 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-
-      expect(
-        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      ).toBeOnTheScreen();
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
@@ -491,7 +507,9 @@ describe('OnboardingSuccess', () => {
         successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       };
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
-      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
@@ -500,6 +518,27 @@ describe('OnboardingSuccess', () => {
           skipInitialBalanceWait: true,
         }),
       );
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
+    });
+  });
+
+  describe('first predict on us splash flow', () => {
+    it('resets to HomeNav when Done is pressed after the gate completes', async () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      };
+
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
+
+      fireEvent.press(button);
+
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           ResetNavigationToHome,

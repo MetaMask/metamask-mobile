@@ -1,12 +1,14 @@
 import React, { useMemo } from 'react';
 import {
   Box,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   SelectButton,
   SelectButtonVariant,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,6 +25,7 @@ import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
 const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
   selectedOptionId,
   onSortPress,
+  sortDirection = MARKET_SORTING_CONFIG.DefaultDirection,
   testID = 'perps-market-sort-dropdowns',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -43,11 +46,18 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         value={sortLabel}
         onPress={onSortPress}
         hideEndArrow
+        textProps={{
+          variant: TextVariant.BodyMd,
+          fontWeight: FontWeight.Medium,
+        }}
         endAccessory={
           <Icon
-            name={IconName.SwapVertical}
+            name={
+              sortDirection === 'asc' ? IconName.Arrow2Up : IconName.Arrow2Down
+            }
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
+            testID={`${testID}-sort-direction`}
           />
         }
       />

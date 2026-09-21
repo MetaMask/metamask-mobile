@@ -20,7 +20,7 @@ interface PerpsCandlestickChartIntervalSelectorProps {
 const PerpsCandlestickChartIntervalSelector: React.FC<
   PerpsCandlestickChartIntervalSelectorProps
 > = ({ selectedInterval, onIntervalChange, testID, style }) => {
-  const { styles } = useStyles(selectorStyleSheet, {});
+  const { styles } = useStyles(selectorStyleSheet);
 
   return (
     <ScrollView
@@ -50,12 +50,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
                 ? TextColor.TextDefault
                 : TextColor.TextMuted
             }
-            style={[
-              styles.intervalTabText,
-              selectedInterval === interval.value
-                ? styles.intervalTabTextActive
-                : styles.intervalTabTextInactive,
-            ]}
+            style={styles.intervalTabText}
           >
             {interval.label}
           </Text>

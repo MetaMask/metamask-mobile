@@ -1,792 +1,561 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
+import { View } from 'react-native';
+import type { ReactTestRendererJSON } from 'react-test-renderer';
+import { Slider } from '@metamask/design-system-react-native';
 import PerpsSlider from './PerpsSlider';
-import styleSheet from './PerpsSlider.styles';
-import { mockTheme } from '../../../../../util/theme';
+import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 
-// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+jest.mock('@metamask/design-system-react-native', () => ({
+  Slider: jest.fn(() => null),
+}));
 
-jest.mock('react-native-gesture-handler', () => ({
-  GestureHandlerRootView: jest.requireActual('react-native').View,
-  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
-  Gesture: {
-    Pan: jest.fn().mockReturnValue({
-      enabled: jest.fn().mockReturnThis(),
-      onBegin: jest.fn().mockReturnThis(),
-      onUpdate: jest.fn().mockReturnThis(),
-      onEnd: jest.fn().mockReturnThis(),
-      onFinalize: jest.fn().mockReturnThis(),
-      withSpring: jest.fn().mockReturnThis(),
-      runOnJS: jest.fn().mockReturnThis(),
-    }),
-    Tap: jest.fn().mockReturnValue({
-      enabled: jest.fn().mockReturnThis(),
-      onEnd: jest.fn().mockReturnThis(),
-    }),
-    Simultaneous: jest.fn((tap, pan) => ({ tap, pan })),
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: {
+    SliderGrip: 'slider-grip',
+    SliderTick: 'slider-tick',
   },
 }));
 
-jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+const MockedSlider = jest.mocked(Slider);
 
-jest.mock('../../../../../util/haptics');
-
-// Mock component library hooks
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(),
-}));
-
-// Mock component library Text component
 describe('PerpsSlider', () => {
   const defaultProps = {
     value: 50,
     onValueChange: jest.fn(),
-    minimumValue: 0,
-    maximumValue: 100,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const { useStyles } = jest.requireMock(
-      '../../../../../component-library/hooks',
+  });
+
+  const getSliderProps = () =>
+    MockedSlider.mock.calls[MockedSlider.mock.calls.length - 1][0];
+
+  /** `step` is optional on the Slider's props but PerpsSlider always sets it. */
+  const getSliderStep = () => {
+    const { step } = getSliderProps();
+    if (step === undefined) {
+      throw new Error('PerpsSlider must always pass step');
+    }
+    return step;
+  };
+
+  it('renders the design-system Slider in the percent domain', () => {
+    render(<PerpsSlider {...defaultProps} />);
+
+    // The default caller range is 0..100, so the percent value coincides with
+    // the caller value here; the range props are always the percent domain.
+    expect(getSliderProps()).toMatchObject({
+      value: 50,
+      minimumValue: 0,
+      maximumValue: 100,
+      isDisabled: false,
+    });
+  });
+
+  it('converts a custom caller range into the percent domain', () => {
+    render(
+      <PerpsSlider
+        {...defaultProps}
+        minimumValue={10}
+        maximumValue={200}
+        step={5}
+      />,
     );
-    useStyles.mockImplementation(
-      (
-        createStyles: (params: {
-          theme: typeof mockTheme;
-          vars: Record<string, unknown>;
-        }) => Record<string, unknown>,
-        vars: Record<string, unknown>,
-      ) => ({
-        styles: createStyles({ theme: mockTheme, vars }),
-      }),
+
+    // The caller's range and step stay on this side of the boundary; the
+    // design system Slider always sees 0..100 so that a range change moves the
+    // `value` prop its thumb reaction watches.
+    expect(getSliderProps()).toMatchObject({
+      minimumValue: 0,
+      maximumValue: 100,
+    });
+    // 50 in a 10..200 range is (50-10)/190 = ~21.05%.
+    expect(getSliderProps().value).toBeCloseTo(21.05, 1);
+  });
+
+  it('maps disabled to isDisabled', () => {
+    render(<PerpsSlider {...defaultProps} disabled />);
+
+    expect(getSliderProps().isDisabled).toBe(true);
+  });
+
+  it('defaults showRangeLabels/showRangeDots to true when omitted', () => {
+    render(<PerpsSlider {...defaultProps} />);
+
+    expect(getSliderProps()).toMatchObject({
+      showRangeLabels: true,
+      showRangeDots: true,
+    });
+  });
+
+  it('maps showPercentageLabels={false} to showRangeLabels being false without affecting showRangeDots', () => {
+    render(<PerpsSlider {...defaultProps} showPercentageLabels={false} />);
+
+    expect(getSliderProps()).toMatchObject({
+      showRangeLabels: false,
+      showRangeDots: true,
+    });
+  });
+
+  it('maps showPercentageMarkers={false} to showRangeDots being false without affecting showRangeLabels', () => {
+    render(<PerpsSlider {...defaultProps} showPercentageMarkers={false} />);
+
+    expect(getSliderProps()).toMatchObject({
+      showRangeLabels: true,
+      showRangeDots: false,
+    });
+  });
+
+  it('supports hiding both labels and dots independently', () => {
+    render(
+      <PerpsSlider
+        {...defaultProps}
+        showPercentageLabels={false}
+        showPercentageMarkers={false}
+      />,
     );
+
+    expect(getSliderProps()).toMatchObject({
+      showRangeLabels: false,
+      showRangeDots: false,
+    });
   });
 
-  describe('Component Rendering', () => {
-    it('renders slider with default props', () => {
-      // Act
+  it('forwards onValueChange as-is', () => {
+    const onValueChange = jest.fn();
+    render(<PerpsSlider {...defaultProps} onValueChange={onValueChange} />);
+
+    getSliderProps().onValueChange(75);
+
+    expect(onValueChange).toHaveBeenCalledWith(75);
+  });
+
+  it('forwards onDragEnd when provided', () => {
+    const onDragEnd = jest.fn();
+    render(<PerpsSlider {...defaultProps} onDragEnd={onDragEnd} />);
+
+    getSliderProps().onDragEnd?.(90);
+
+    expect(onDragEnd).toHaveBeenCalledWith(90);
+  });
+
+  it('leaves onDragEnd undefined when not provided', () => {
+    render(<PerpsSlider {...defaultProps} />);
+
+    expect(getSliderProps().onDragEnd).toBeUndefined();
+  });
+
+  it('plays grip haptic feedback via onGrip', () => {
+    render(<PerpsSlider {...defaultProps} />);
+
+    getSliderProps().onGrip?.();
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderGrip);
+  });
+
+  it('plays tick haptic feedback via onMark', () => {
+    render(<PerpsSlider {...defaultProps} />);
+
+    getSliderProps().onMark?.();
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
+  });
+
+  describe('variant', () => {
+    it('defaults to the default variant (no track inset override)', () => {
       render(<PerpsSlider {...defaultProps} />);
 
-      // Assert - Check that basic slider elements are rendered
-      expect(screen.getByText('0%')).toBeOnTheScreen();
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-      expect(screen.getByText('75%')).toBeOnTheScreen();
-      expect(screen.getByText('100%')).toBeOnTheScreen();
-    });
-
-    it('renders without percentage labels when showPercentageLabels is false', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} showPercentageLabels={false} />);
-
-      // Assert
-      expect(screen.queryByText('0%')).toBeNull();
-      expect(screen.queryByText('25%')).toBeNull();
-      expect(screen.queryByText('50%')).toBeNull();
-      expect(screen.queryByText('75%')).toBeNull();
-      expect(screen.queryByText('100%')).toBeNull();
-      expect(screen.getByTestId('perps-slider-marker-25')).toBeOnTheScreen();
-    });
-
-    it('uses the compact Figma geometry', () => {
-      const styles = styleSheet({
-        theme: mockTheme,
-        vars: { showPercentageLabels: false, variant: 'compact' },
+      expect(getSliderProps()).toMatchObject({
+        trackInset: undefined,
       });
+    });
 
-      expect(styles.track).toMatchObject({ height: 4 });
-      expect(styles.progress).toMatchObject({
-        backgroundColor: mockTheme.colors.icon.default,
+    it('removes the track inset for the compact variant', () => {
+      render(<PerpsSlider {...defaultProps} variant="compact" />);
+
+      expect(getSliderProps()).toMatchObject({
+        trackInset: 0,
       });
-      expect(styles.thumb).toMatchObject({
-        width: 16,
-        height: 16,
-        left: 0,
-        backgroundColor: mockTheme.colors.icon.default,
-      });
-      expect(styles.interactionArea).toMatchObject({ minHeight: 44 });
-      expect(styles.sliderContainer).toMatchObject({ marginHorizontal: 0 });
     });
 
-    it('hides markers without hiding percentage labels', () => {
-      render(<PerpsSlider {...defaultProps} showPercentageMarkers={false} />);
-
-      expect(
-        screen.queryByTestId('perps-slider-marker-25'),
-      ).not.toBeOnTheScreen();
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-    });
-
-    it('renders quick values when provided', () => {
-      // Arrange
-      const quickValues = [1, 2, 5, 10];
-
-      // Act
-      render(<PerpsSlider {...defaultProps} quickValues={quickValues} />);
-
-      // Assert
-      expect(screen.getByText('1x')).toBeOnTheScreen();
-      expect(screen.getByText('2x')).toBeOnTheScreen();
-      expect(screen.getByText('5x')).toBeOnTheScreen();
-      expect(screen.getByText('10x')).toBeOnTheScreen();
-    });
-
-    it('does not render quick values when not provided', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // Assert
-      expect(screen.queryByText('1x')).toBeNull();
-      expect(screen.queryByText('2x')).toBeNull();
-    });
-
-    it('renders with custom min/max values', () => {
-      // Act
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          minimumValue={10}
-          maximumValue={200}
-          value={100}
-        />,
+    it('wraps the compact variant in a single double-width, scaled-down container so the track still spans the full row', () => {
+      const { toJSON } = render(
+        <PerpsSlider {...defaultProps} variant="compact" />,
       );
 
-      // Assert - Percentage labels should still show 0-100%
-      expect(screen.getByText('0%')).toBeOnTheScreen();
-      expect(screen.getByText('100%')).toBeOnTheScreen();
+      const wrapper = toJSON() as ReactTestRendererJSON;
+      // A single View declares the post-scale height/width; the Slider child
+      // renders at its natural (pre-scale) size and overflows it by exactly
+      // 2x, which `transform: scale(0.5)` (anchored top-left) shrinks back
+      // down to precisely fit — no separate clipping container needed.
+      expect(wrapper.props.style).toMatchObject({
+        height: 17.5,
+        width: '200%',
+        transform: [{ scale: 0.5 }],
+        transformOrigin: 'left top',
+      });
     });
 
-    it('renders with gradient progress color', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} progressColor="gradient" />);
+    it('does not wrap the default variant in a scaling container', () => {
+      const { toJSON } = render(<PerpsSlider {...defaultProps} />);
 
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('renders with default progress color', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} progressColor="default" />);
-
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+      // The mocked Slider renders null, so an unwrapped render produces no tree.
+      expect(toJSON()).toBeNull();
     });
   });
 
-  describe('Percentage Button Functionality', () => {
-    it('calls onValueChange when percentage button is pressed', async () => {
-      // Arrange
-      const mockOnValueChange = jest.fn();
+  describe('range changes', () => {
+    // A range change must move the thumb without remounting: the range streams
+    // from live feeds, and a remount would kill an in-flight drag.
 
-      // Act
-      render(
-        <PerpsSlider {...defaultProps} onValueChange={mockOnValueChange} />,
+    /** Records one entry per mount, so a remount is distinguishable from an update. */
+    const renderWithMountTracking = () => {
+      const mounts: number[] = [];
+      let latestPercent: number | undefined;
+      const trackMount = (instance: unknown) => {
+        if (instance) {
+          mounts.push(latestPercent ?? NaN);
+        }
+      };
+
+      MockedSlider.mockImplementation((({ value }: { value?: number }) => {
+        latestPercent = value;
+        return <View ref={trackMount} />;
+      }) as unknown as typeof Slider);
+
+      return mounts;
+    };
+
+    it('repositions the thumb when the maximum collapses, without remounting', () => {
+      const mounts = renderWithMountTracking();
+
+      const { rerender } = render(
+        <PerpsSlider {...defaultProps} value={10} maximumValue={1866} />,
       );
+      rerender(<PerpsSlider {...defaultProps} value={10} maximumValue={34} />);
 
-      const button25 = screen.getByText('25%');
-      fireEvent.press(button25);
-
-      // Assert - 25% of range (0-100) = 25
-      expect(mockOnValueChange).toHaveBeenCalledWith(25);
+      // $10 is ~0.5% of a $1866 range but ~29.4% of a $34 one.
+      expect(getSliderProps().value).toBeCloseTo(29.41, 1);
+      // Exactly one mount: a remount here would reset sliderWidth/translateX
+      // and rebuild the pan gesture, interrupting any drag in progress.
+      expect(mounts).toHaveLength(1);
     });
 
-    it('calculates correct values for custom range', async () => {
-      // Arrange
-      const mockOnValueChange = jest.fn();
+    it('repositions the thumb when the minimum changes, without remounting', () => {
+      const mounts = renderWithMountTracking();
 
-      // Act
-      render(
+      const { rerender } = render(
         <PerpsSlider
           {...defaultProps}
-          onValueChange={mockOnValueChange}
-          minimumValue={20}
-          maximumValue={80}
-        />,
-      );
-
-      const button50 = screen.getByText('50%');
-      fireEvent.press(button50);
-
-      // Assert - 50% of range (20-80) = 50
-      expect(mockOnValueChange).toHaveBeenCalledWith(50);
-    });
-
-    it('does not call onValueChange when disabled', async () => {
-      // Arrange
-      const mockOnValueChange = jest.fn();
-
-      // Act
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          onValueChange={mockOnValueChange}
-          disabled
-        />,
-      );
-
-      const button25 = screen.getByText('25%');
-      fireEvent.press(button25);
-
-      // Assert
-      expect(mockOnValueChange).not.toHaveBeenCalled();
-    });
-
-    it.each([
-      [0, 0],
-      [25, 25],
-      [50, 50],
-      [75, 75],
-      [100, 100],
-    ] as const)(
-      'handles %s%% button press correctly',
-      async (percent, expectedValue) => {
-        // Arrange
-        const mockOnValueChange = jest.fn();
-
-        // Act
-        render(
-          <PerpsSlider {...defaultProps} onValueChange={mockOnValueChange} />,
-        );
-
-        const button = screen.getByText(`${percent}%`);
-        fireEvent.press(button);
-
-        // Assert
-        expect(mockOnValueChange).toHaveBeenCalledWith(expectedValue);
-      },
-    );
-  });
-
-  describe('Quick Values Functionality', () => {
-    it('calls onValueChange when quick value button is pressed', async () => {
-      // Arrange
-      const mockOnValueChange = jest.fn();
-      const quickValues = [1, 2, 5, 10];
-
-      // Act
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          onValueChange={mockOnValueChange}
-          quickValues={quickValues}
-        />,
-      );
-
-      const button5x = screen.getByText('5x');
-      fireEvent.press(button5x);
-
-      // Assert
-      expect(mockOnValueChange).toHaveBeenCalledWith(5);
-    });
-
-    it('handles multiple quick value presses', async () => {
-      // Arrange
-      const mockOnValueChange = jest.fn();
-      const quickValues = [1, 2, 5, 10];
-
-      // Act
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          onValueChange={mockOnValueChange}
-          quickValues={quickValues}
-        />,
-      );
-
-      await act(async () => {
-        fireEvent.press(screen.getByText('1x'));
-      });
-      await act(async () => {
-        fireEvent.press(screen.getByText('10x'));
-      });
-
-      // Assert
-      expect(mockOnValueChange).toHaveBeenCalledWith(1);
-      expect(mockOnValueChange).toHaveBeenCalledWith(10);
-      expect(mockOnValueChange).toHaveBeenCalledTimes(2);
-    });
-
-    it('renders custom quick values correctly', () => {
-      // Arrange
-      const customQuickValues = [0.5, 1.5, 3.7, 25];
-
-      // Act
-      render(<PerpsSlider {...defaultProps} quickValues={customQuickValues} />);
-
-      // Assert
-      expect(screen.getByText('0.5x')).toBeOnTheScreen();
-      expect(screen.getByText('1.5x')).toBeOnTheScreen();
-      expect(screen.getByText('3.7x')).toBeOnTheScreen();
-      expect(screen.getByText('25x')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Props and Configuration', () => {
-    it('handles step prop correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} step={5} />);
-
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('handles custom spring configuration', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('uses default spring config when not provided', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('handles disabled state correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} disabled />);
-
-      // Assert - Component should render without crashing when disabled
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('handles enabled state correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} disabled={false} />);
-
-      // Assert - Component should render without crashing when enabled
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Layout and Animation', () => {
-    it('handles layout events', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // We can't easily test the layout event in unit tests,
-      // but we can verify the component renders without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('handles layout with zero width gracefully', () => {
-      // Act & Assert - Should not crash
-      expect(() => render(<PerpsSlider {...defaultProps} />)).not.toThrow();
-    });
-
-    it('updates position when value changes', () => {
-      // Arrange
-      const { rerender } = render(<PerpsSlider {...defaultProps} value={25} />);
-
-      // Act
-      rerender(<PerpsSlider {...defaultProps} value={75} />);
-
-      // Assert - Component should handle value change without crashing
-      expect(screen.getByText('75%')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles equal minimum and maximum values', () => {
-      // Act
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          minimumValue={50}
-          maximumValue={50}
           value={50}
+          minimumValue={0}
+          maximumValue={100}
+        />,
+      );
+      rerender(
+        <PerpsSlider
+          {...defaultProps}
+          value={50}
+          minimumValue={25}
+          maximumValue={100}
         />,
       );
 
-      // Assert - Should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+      // 50 sits at 50% of 0..100 but at 33.3% of 25..100.
+      expect(getSliderProps().value).toBeCloseTo(33.33, 1);
+      expect(mounts).toHaveLength(1);
     });
 
-    it('handles value outside range gracefully', () => {
-      // Act & Assert - Should not crash with value outside range
-      expect(() =>
+    it('never remounts across a burst of streamed range updates', () => {
+      const mounts = renderWithMountTracking();
+
+      const { rerender } = render(
+        <PerpsSlider {...defaultProps} value={10} maximumValue={1867} />,
+      );
+      // `maximumValue` is derived from live price and balance feeds. Measured
+      // against the real sizing math, ten 5-cent balance moves at leverage 20
+      // produce ten distinct maxima, so this is the realistic streaming case.
+      for (let maximumValue = 1866; maximumValue > 1856; maximumValue -= 1) {
+        rerender(
+          <PerpsSlider
+            {...defaultProps}
+            value={10}
+            maximumValue={maximumValue}
+          />,
+        );
+      }
+
+      // A drag spanning these ticks must survive all of them.
+      expect(mounts).toHaveLength(1);
+    });
+
+    it('keeps the emitted domain value stable when only the range churns mid-drag', () => {
+      const onValueChange = jest.fn();
+      const { rerender } = render(
+        <PerpsSlider
+          {...defaultProps}
+          onValueChange={onValueChange}
+          value={10}
+          maximumValue={1000}
+        />,
+      );
+
+      // The user is holding the thumb at the halfway point; the slider reports
+      // percent, and PerpsSlider converts back into the caller's domain.
+      getSliderProps().onValueChange(50);
+      expect(onValueChange).toHaveBeenLastCalledWith(500);
+
+      // A feed tick changes the range underneath the drag.
+      rerender(
+        <PerpsSlider
+          {...defaultProps}
+          onValueChange={onValueChange}
+          value={10}
+          maximumValue={800}
+        />,
+      );
+
+      // The same gesture position now maps to the new range rather than
+      // replaying a stale domain value.
+      getSliderProps().onValueChange(50);
+      expect(onValueChange).toHaveBeenLastCalledWith(400);
+    });
+  });
+
+  describe('accessibility stepping', () => {
+    // VoiceOver increments by the slider's own step, so one step in percent
+    // must still resolve to exactly one caller step.
+    it.each([
+      [34, 1],
+      [1866, 1],
+      [100, 5],
+    ])(
+      'resolves one design-system step to one caller step for range 0..%i step %i',
+      (maximumValue, step) => {
         render(
           <PerpsSlider
             {...defaultProps}
             minimumValue={0}
-            maximumValue={100}
-            value={150}
+            maximumValue={maximumValue}
+            step={step}
           />,
-        ),
-      ).not.toThrow();
-    });
+        );
 
-    it('handles negative values', () => {
-      // Act
+        const percentStep = getSliderStep();
+        const { onValueChange } = getSliderProps();
+        const midpoint = 50;
+        onValueChange(midpoint);
+        const before = defaultProps.onValueChange.mock.calls.at(-1)?.[0];
+        onValueChange(midpoint + percentStep);
+        const after = defaultProps.onValueChange.mock.calls.at(-1)?.[0];
+
+        expect(after - before).toBeCloseTo(step, 6);
+      },
+    );
+
+    it('falls back to a fine grid when the range is degenerate', () => {
       render(
-        <PerpsSlider
-          {...defaultProps}
-          minimumValue={-50}
-          maximumValue={50}
-          value={-25}
-        />,
+        <PerpsSlider {...defaultProps} minimumValue={7} maximumValue={7} />,
       );
 
-      // Assert - Should render without crashing
-      expect(screen.getByText('25%')).toBeOnTheScreen();
+      // No caller grid to mirror; the step must still be finite and positive.
+      expect(getSliderProps().step).toBeGreaterThan(0);
+      expect(Number.isFinite(getSliderProps().step)).toBe(true);
     });
+  });
 
-    it('handles fractional values', () => {
-      // Act
+  describe('percent domain bounds', () => {
+    // `maximumValue` is a live float from price/balance feeds and is rarely a
+    // whole multiple of `step`, so the last index lands past the end of the
+    // track unless the percent is clamped.
+    it.each([
+      [34.7, 1],
+      [33.5, 1],
+      [11.88, 1],
+      [22.9, 1],
+      [143.61, 1],
+    ])(
+      'keeps the thumb within 0-100 for the fractional maximum %p step %i',
+      (maximumValue, step) => {
+        const { rerender } = render(
+          <PerpsSlider
+            {...defaultProps}
+            value={0}
+            minimumValue={0}
+            maximumValue={maximumValue}
+            step={step}
+          />,
+        );
+
+        for (let index = 0; index <= 40; index += 1) {
+          const value = (index / 40) * maximumValue;
+          rerender(
+            <PerpsSlider
+              {...defaultProps}
+              value={value}
+              minimumValue={0}
+              maximumValue={maximumValue}
+              step={step}
+            />,
+          );
+
+          const percent = getSliderProps().value;
+          expect(percent).toBeGreaterThanOrEqual(0);
+          expect(percent).toBeLessThanOrEqual(100);
+        }
+      },
+    );
+
+    it('clamps a value past the caller maximum to the end of the track', () => {
       render(
         <PerpsSlider
           {...defaultProps}
+          value={1000}
           minimumValue={0}
-          maximumValue={1}
-          value={0.5}
-          step={0.1}
+          maximumValue={33.5}
+          step={1}
         />,
       );
 
-      // Assert - Should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+      expect(getSliderProps().value).toBeLessThanOrEqual(100);
     });
+  });
 
-    it('handles large value ranges', () => {
-      // Act
+  describe('echo suppression', () => {
+    // The slider matches echoes against its own emits with ===, so the percent
+    // fed back must equal the percent emitted, not merely round to it.
+    it.each([
+      [34, 1],
+      [1866, 1],
+      [19800, 1],
+      [33.5, 1],
+      [11.88, 1],
+    ])(
+      'feeds back the exact percent it emitted for range 0..%p step %i',
+      (maximumValue, step) => {
+        const onValueChange = jest.fn();
+        const { rerender } = render(
+          <PerpsSlider
+            {...defaultProps}
+            onValueChange={onValueChange}
+            minimumValue={0}
+            maximumValue={maximumValue}
+            step={step}
+          />,
+        );
+
+        const percentStep = getSliderStep();
+
+        for (let index = 0; index * percentStep <= 100; index += 1) {
+          const emitted = index * percentStep;
+          getSliderProps().onValueChange(emitted);
+          const committed = onValueChange.mock.calls.at(-1)?.[0];
+
+          // The parent stores the domain value and re-renders with it; what
+          // comes back must equal what the gesture emitted.
+          rerender(
+            <PerpsSlider
+              {...defaultProps}
+              onValueChange={onValueChange}
+              value={committed}
+              minimumValue={0}
+              maximumValue={maximumValue}
+              step={step}
+            />,
+          );
+
+          // Strict equality on purpose: the slider matches echoes with ===,
+          // so a near-miss of a few ULPs still defeats the guard.
+          expect(getSliderProps().value).toBe(emitted);
+        }
+      },
+    );
+  });
+
+  describe('domain conversion', () => {
+    it('converts percent back into the caller domain on drag end', () => {
+      const onDragEnd = jest.fn();
       render(
         <PerpsSlider
           {...defaultProps}
+          onDragEnd={onDragEnd}
           minimumValue={0}
-          maximumValue={1000000}
-          value={500000}
+          maximumValue={34}
         />,
       );
 
-      // Assert - Should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+      getSliderProps().onDragEnd?.(100);
+
+      expect(onDragEnd).toHaveBeenCalledWith(34);
     });
 
-    it('handles zero value in positive range', () => {
-      // Act
+    it('applies the caller step in the caller domain, not in percent', () => {
+      const onValueChange = jest.fn();
       render(
         <PerpsSlider
           {...defaultProps}
+          onValueChange={onValueChange}
           minimumValue={0}
           maximumValue={100}
-          value={0}
-        />,
-      );
-
-      // Assert - Should render without crashing
-      expect(screen.getByText('0%')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Logger & Haptics Integration', () => {
-    it('configures reanimated logger on first render (if available)', () => {
-      // configureReanimatedLogger is called at module scope, not per render.
-      // After jest.clearAllMocks() the call count is reset, so we just
-      // verify the component renders without crashing.
-      render(<PerpsSlider {...defaultProps} />);
-      expect(screen.getByText('0%')).toBeOnTheScreen();
-    });
-
-    it('triggers haptic feedback when crossing thresholds upward', async () => {
-      const { playImpact } = jest.requireMock('../../../../../util/haptics');
-      // Start below thresholds
-      render(<PerpsSlider {...defaultProps} value={0} />);
-      // Press 50% (crosses 25 and 50)
-      await act(async () => {
-        fireEvent.press(screen.getByText('50%'));
-      });
-      expect(playImpact).toHaveBeenCalled();
-    });
-
-    it('triggers haptic feedback when crossing thresholds downward', async () => {
-      const { playImpact } = jest.requireMock('../../../../../util/haptics');
-      playImpact.mockClear();
-      // Start above thresholds
-      render(<PerpsSlider {...defaultProps} value={75} />);
-      // Press 25% (crosses 50 & 25 downward)
-      await act(async () => {
-        fireEvent.press(screen.getByText('25%'));
-      });
-      expect(playImpact).toHaveBeenCalled();
-    });
-
-    it('triggers haptic feedback via quick value buttons threshold crossing', async () => {
-      const { playImpact } = jest.requireMock('../../../../../util/haptics');
-      playImpact.mockClear();
-      render(
-        <PerpsSlider {...defaultProps} value={10} quickValues={[5, 30]} />,
-      );
-      // 30 crosses 25 threshold
-      await act(async () => {
-        fireEvent.press(screen.getByText('30x'));
-      });
-      expect(playImpact).toHaveBeenCalled();
-    });
-  });
-
-  describe('Gesture Integration', () => {
-    it('sets up pan gesture correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // Assert - Component should render without gesture handler errors
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('sets up tap gesture correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // Assert - Component should render without gesture handler errors
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('disables gestures when disabled prop is true', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} disabled />);
-
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('enables gestures when disabled prop is false', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} disabled={false} />);
-
-      // Assert - Component should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Progress Color Variants', () => {
-    it('renders default progress color correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} progressColor="default" />);
-
-      // Assert - Should render without LinearGradient
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('renders gradient progress color correctly', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} progressColor="gradient" />);
-
-      // Assert - Should render with LinearGradient (mocked)
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-
-    it('defaults to default progress color when not specified', () => {
-      // Act
-      render(<PerpsSlider value={50} onValueChange={jest.fn()} />);
-
-      // Assert - Should render without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('exposes compact slider value with adjustable semantics', () => {
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          value={42}
-          variant="compact"
-          showPercentageLabels={false}
-          testID="perps-slider"
-          accessibilityLabel="Order size percentage"
-        />,
-      );
-
-      const slider = screen.getByTestId('perps-slider');
-
-      expect(slider).toHaveProp('accessibilityRole', 'adjustable');
-      expect(slider).toHaveProp('accessibilityLabel', 'Order size percentage');
-      expect(slider).toHaveProp('accessibilityValue', {
-        min: 0,
-        max: 100,
-        now: 42,
-        text: '42%',
-      });
-    });
-
-    it('increments the value by the configured step', () => {
-      const onValueChange = jest.fn();
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          value={50}
           step={5}
-          onValueChange={onValueChange}
-          testID="perps-slider"
         />,
       );
 
-      const slider = screen.getByTestId('perps-slider');
-      act(() =>
-        slider.props.onAccessibilityAction({
-          nativeEvent: { actionName: 'increment' },
-        }),
-      );
+      // 33% of 0..100 is 33, which must snap to the nearest multiple of 5. The
+      // slider's own step is expressed in percent now, so PerpsSlider owns this.
+      getSliderProps().onValueChange(33);
 
-      expect(onValueChange).toHaveBeenCalledWith(55);
+      expect(onValueChange).toHaveBeenCalledWith(35);
     });
 
-    it('decrements the value by the configured step', () => {
-      const onValueChange = jest.fn();
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          value={50}
-          step={5}
-          onValueChange={onValueChange}
-          testID="perps-slider"
-        />,
-      );
-
-      const slider = screen.getByTestId('perps-slider');
-      act(() =>
-        slider.props.onAccessibilityAction({
-          nativeEvent: { actionName: 'decrement' },
-        }),
-      );
-
-      expect(onValueChange).toHaveBeenCalledWith(45);
-    });
-
-    it('does not decrement below the minimum value', () => {
-      const onValueChange = jest.fn();
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          value={0}
-          onValueChange={onValueChange}
-          testID="perps-slider"
-        />,
-      );
-
-      const slider = screen.getByTestId('perps-slider');
-      act(() =>
-        slider.props.onAccessibilityAction({
-          nativeEvent: { actionName: 'decrement' },
-        }),
-      );
-
-      expect(onValueChange).not.toHaveBeenCalled();
-    });
-
-    it('does not increment above the maximum value', () => {
-      const onValueChange = jest.fn();
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          value={100}
-          onValueChange={onValueChange}
-          testID="perps-slider"
-        />,
-      );
-
-      const slider = screen.getByTestId('perps-slider');
-      act(() =>
-        slider.props.onAccessibilityAction({
-          nativeEvent: { actionName: 'increment' },
-        }),
-      );
-
-      expect(onValueChange).not.toHaveBeenCalled();
-    });
-
-    it('ignores accessibility actions while disabled', () => {
+    it('clamps to the caller range and does not emit NaN for a zero-width range', () => {
       const onValueChange = jest.fn();
       render(
         <PerpsSlider
           {...defaultProps}
           onValueChange={onValueChange}
-          disabled
-          testID="perps-slider"
+          minimumValue={7}
+          maximumValue={7}
         />,
       );
 
-      const slider = screen.getByTestId('perps-slider');
-      act(() =>
-        slider.props.onAccessibilityAction({
-          nativeEvent: { actionName: 'increment' },
-        }),
+      // A zero balance collapses the range to a point; the thumb pins to 0%.
+      expect(getSliderProps().value).toBe(0);
+
+      getSliderProps().onValueChange(75);
+
+      expect(onValueChange).toHaveBeenCalledWith(7);
+    });
+
+    it('drives the design system Slider in a fixed 0-100 domain', () => {
+      render(
+        <PerpsSlider {...defaultProps} minimumValue={0} maximumValue={34} />,
       );
 
-      expect(slider).toHaveProp('accessibilityState', { disabled: true });
-      expect(onValueChange).not.toHaveBeenCalled();
-    });
-
-    it('provides accessible touch targets for percentage buttons', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} />);
-
-      // Assert - All percentage button labels should be rendered and accessible
-      for (const percent of [0, 25, 50, 75, 100]) {
-        expect(screen.getByLabelText(`${percent}%`)).toHaveProp(
-          'accessibilityRole',
-          'button',
-        );
-      }
-    });
-
-    it('provides accessible touch targets for quick value buttons', () => {
-      // Arrange
-      const quickValues = [1, 2, 5];
-
-      // Act
-      render(<PerpsSlider {...defaultProps} quickValues={quickValues} />);
-
-      // Assert - All quick value button labels should be rendered and accessible
-      expect(screen.getByText('1x')).toBeOnTheScreen();
-      expect(screen.getByText('2x')).toBeOnTheScreen();
-      expect(screen.getByText('5x')).toBeOnTheScreen();
-    });
-
-    it('disables touch targets when slider is disabled', () => {
-      // Act
-      render(<PerpsSlider {...defaultProps} disabled />);
-
-      // Assert - Component should render all percentage labels when disabled
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.getByText('50%')).toBeOnTheScreen();
-      expect(screen.getByText('75%')).toBeOnTheScreen();
+      // The percent domain is what keeps the range out of the thumb-position
+      // computation, so pin it explicitly.
+      expect(getSliderProps()).toMatchObject({
+        minimumValue: 0,
+        maximumValue: 100,
+      });
     });
   });
 
-  describe('Component Memoization and Performance', () => {
-    it('handles rapid value changes without crashing', () => {
-      // Arrange
-      const { rerender } = render(<PerpsSlider {...defaultProps} value={0} />);
+  it('forwards testID and accessibilityLabel', () => {
+    render(
+      <PerpsSlider
+        {...defaultProps}
+        testID="perps-slider"
+        accessibilityLabel="Order size percentage"
+      />,
+    );
 
-      // Act - Rapidly change values
-      for (let i = 0; i <= 100; i += 10) {
-        rerender(<PerpsSlider {...defaultProps} value={i} />);
-      }
-
-      // Assert - Should not crash
-      expect(screen.getByText('100%')).toBeOnTheScreen();
-    });
-
-    it('handles prop changes efficiently', () => {
-      // Arrange
-      const { rerender } = render(<PerpsSlider {...defaultProps} />);
-
-      // Act - Change various props
-      rerender(<PerpsSlider {...defaultProps} minimumValue={10} />);
-      rerender(<PerpsSlider {...defaultProps} maximumValue={200} />);
-      rerender(<PerpsSlider {...defaultProps} step={5} />);
-      rerender(<PerpsSlider {...defaultProps} />);
-
-      // Assert - Should handle all changes without crashing
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+    expect(getSliderProps()).toMatchObject({
+      testID: 'perps-slider',
+      accessibilityLabel: 'Order size percentage',
     });
   });
 });

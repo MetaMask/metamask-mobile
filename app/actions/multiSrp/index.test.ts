@@ -7,7 +7,7 @@ import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
-import { EntropySourceId } from '@metamask/keyring-api';
+import { EntropySourceId, EthAccountType } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
@@ -143,18 +143,20 @@ jest.mock('../../core/Engine', () => ({
 
 jest.mocked(Engine);
 
+const mockEvmAccount = {
+  address: mockAddress,
+  type: EthAccountType.Eoa,
+};
+
 const mockMultichainAccountGroup = {
-  getAccounts: jest.fn().mockReturnValue([
-    {
-      address: mockAddress,
-    },
-  ]),
+  getAccounts: jest.fn().mockReturnValue([mockEvmAccount]),
+  get: jest.fn().mockReturnValue(mockEvmAccount),
 };
 
 const mockMultichainAccountWallet = {
   id: toMultichainAccountWalletId(mockEntropySource),
   entropySource: mockEntropySource,
-  getAccountGroup: () => mockMultichainAccountGroup,
+  getMultichainAccountGroup: () => mockMultichainAccountGroup,
 };
 
 describe('MultiSRP Actions', () => {
@@ -191,6 +193,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Assert async operations and callback receive the actual discovered accounts count
@@ -200,6 +203,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 5,
+          entropySource: mockEntropySource,
         });
       });
     });
@@ -221,6 +225,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Assert async operations and callback receives 0 when discovery fails
@@ -230,6 +235,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
+          entropySource: mockEntropySource,
           error: expect.any(Error),
         });
       });
@@ -260,7 +266,36 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0,
+        entropySource: mockEntropySource,
       });
+    });
+
+    it('skips background discovery when skipDiscovery is true', async () => {
+      // Arrange
+      mockDiscoverAccounts.mockResolvedValue(5);
+      const mockCallback = jest.fn();
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(
+        mockSeed,
+        { shouldSelectAccount: true, skipDiscovery: true },
+        mockCallback,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        address: mockAddress,
+        discoveredAccountsCount: 0,
+        entropySource: mockEntropySource,
+      });
+      expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
+        type: 'import',
+        mnemonic: mnemonicPhraseToBytes(mockSeed),
+      });
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
+      expect(mockSyncAccountTreeWithUserStorage).not.toHaveBeenCalled();
+      expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+      expect(mockCallback).not.toHaveBeenCalled();
     });
 
     describe('seedless onboarding login flow', () => {
@@ -387,6 +422,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Verify callback receives the actual discovered count
@@ -394,6 +430,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 3,
+          entropySource: mockEntropySource,
         });
       });
     });
@@ -441,6 +478,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Verify callback receives the actual discovered count
@@ -448,6 +486,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 2,
+          entropySource: mockEntropySource,
         });
       });
     });
@@ -473,6 +512,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Verify callback receives the actual discovered count
@@ -480,6 +520,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 3,
+          entropySource: mockEntropySource,
         });
       });
     });

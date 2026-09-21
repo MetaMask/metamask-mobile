@@ -1,16 +1,12 @@
 import { strings } from '../../../../../locales/i18n';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
-  asPerpsActivityItem,
   formatPerpsOrderFee,
   formatSignedPerpsFiat,
   getPerpsCompletedStepCount,
   getPerpsFundsCtaLabel,
   getPerpsPositionSize,
-  getPerpsPriceLabel,
   getPerpsPriceValue,
   getPerpsStepLabels,
-  getPerpsTransaction,
   shouldShowPerpsPnl,
   type PerpsTransaction,
 } from './ActivityDetailsPerps.utils';
@@ -21,25 +17,6 @@ const fill = (overrides: Partial<Fill>): PerpsTransaction['fill'] =>
   overrides as Fill;
 
 describe('ActivityDetailsPerps.utils', () => {
-  describe('getPerpsTransaction', () => {
-    it('returns the perps data when raw is a perps transaction', () => {
-      const data = { id: 'x' } as PerpsTransaction;
-      const item = {
-        raw: { type: 'perpsTransaction', data },
-      } as ActivityListItem;
-      expect(getPerpsTransaction(item)).toBe(data);
-    });
-
-    it('returns undefined for non-perps raw or missing raw', () => {
-      expect(
-        getPerpsTransaction({
-          raw: { type: 'predictActivity', data: {} },
-        } as unknown as ActivityListItem),
-      ).toBeUndefined();
-      expect(getPerpsTransaction({} as ActivityListItem)).toBeUndefined();
-    });
-  });
-
   describe('formatSignedPerpsFiat', () => {
     it('returns $0 for zero regardless of sign', () => {
       expect(formatSignedPerpsFiat(0, true)).toBe('$0');
@@ -72,23 +49,6 @@ describe('ActivityDetailsPerps.utils', () => {
     });
   });
 
-  describe('getPerpsPriceLabel', () => {
-    it('uses close price for closed/flipped, entry price otherwise', () => {
-      expect(getPerpsPriceLabel(fill({ action: 'Closed' }))).toBe(
-        strings('perps.transactions.position.close_price'),
-      );
-      expect(getPerpsPriceLabel(fill({ action: 'Flipped' }))).toBe(
-        strings('perps.transactions.position.close_price'),
-      );
-      expect(getPerpsPriceLabel(fill({ action: 'Opened' }))).toBe(
-        strings('perps.transactions.position.entry_price'),
-      );
-      expect(getPerpsPriceLabel(undefined)).toBe(
-        strings('perps.transactions.position.entry_price'),
-      );
-    });
-  });
-
   describe('getPerpsPriceValue', () => {
     it('formats a present price (universal ranges) and passes through undefined', () => {
       expect(getPerpsPriceValue('92113')).toBe('$92,113');
@@ -113,9 +73,9 @@ describe('ActivityDetailsPerps.utils', () => {
   });
 
   describe('formatPerpsOrderFee', () => {
-    it('formats the fee when filled and $0 when not', () => {
-      expect(formatPerpsOrderFee(2, true)).toBe('$2');
-      expect(formatPerpsOrderFee(2, false)).toBe('$0');
+    it('formats the recorded fee with universal price ranges', () => {
+      expect(formatPerpsOrderFee(2)).toBe('$2');
+      expect(formatPerpsOrderFee(0.005)).toBe('$0.005');
     });
   });
 
@@ -155,12 +115,5 @@ describe('ActivityDetailsPerps.utils', () => {
         );
       },
     );
-  });
-
-  describe('asPerpsActivityItem', () => {
-    it('returns the same reference (type cast)', () => {
-      const item = { type: 'perpsAddFunds' } as ActivityListItem;
-      expect(asPerpsActivityItem(item)).toBe(item);
-    });
   });
 });

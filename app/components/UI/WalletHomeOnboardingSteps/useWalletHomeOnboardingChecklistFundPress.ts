@@ -5,6 +5,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
 import { walletHomeOnboardingPrimaryLabelForStep } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingFundRampIntent } from './useWalletHomeOnboardingFundRampIntent';
 
@@ -39,7 +40,7 @@ export function useWalletHomeOnboardingChecklistFundPress(
         .build(),
     );
 
-    goToBuy(rampIntent);
+    goToBuy(rampIntent, { surface: RAMPS_BUY_CUF_SURFACE.HOME });
   }, [
     buttonClickData.is_authenticated,
     buttonClickData.order_count,

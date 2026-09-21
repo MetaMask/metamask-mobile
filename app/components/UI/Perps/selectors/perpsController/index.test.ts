@@ -3,8 +3,11 @@ import {
   InitializationState,
   PerpsMode,
   DEFAULT_PERPS_MODE,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
   type AccountState,
 } from '@metamask/perps-controller';
+import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -16,7 +19,18 @@ import {
   selectPerpsPayWithToken,
   selectIsPerpsBalanceSelected,
   selectPerpsRecentlyViewedMarkets,
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsVisibleCandleCount,
   selectPerpsMode,
+  selectPerpsProLayoutPreferences,
+  selectPerpsProChartExpanded,
+  selectPerpsProOrderBookExpanded,
+  selectPerpsProOrderBookPosition,
+  selectPerpsOrderBookPreferences,
+  selectPerpsProPositionsSideFilter,
+  selectPerpsProPositionsSortConfig,
+  selectPerpsProOrdersSideFilter,
+  selectPerpsProOrdersSortConfig,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -895,6 +909,56 @@ describe('PerpsController Selectors', () => {
     });
   });
 
+  describe('selectPerpsLastViewedMarketSymbol', () => {
+    it('returns the most recently viewed market symbol', () => {
+      const mockState = createMockState({
+        isTestnet: false,
+        recentlyViewedMarkets: {
+          mainnet: [
+            { symbol: 'ETH', viewedAt: Date.now() },
+            { symbol: 'BTC', viewedAt: Date.now() - 1000 },
+          ],
+          testnet: [],
+        },
+      });
+
+      const result = selectPerpsLastViewedMarketSymbol(mockState);
+
+      expect(result).toBe('ETH');
+    });
+
+    it('falls back to BTC when no markets have been viewed', () => {
+      const mockState = createMockState({
+        isTestnet: false,
+        recentlyViewedMarkets: { mainnet: [], testnet: [] },
+      });
+
+      const result = selectPerpsLastViewedMarketSymbol(mockState);
+
+      expect(result).toBe('BTC');
+    });
+  });
+
+  describe('selectPerpsVisibleCandleCount', () => {
+    it('returns the persisted visible candle count', () => {
+      const mockState = createMockState({
+        visibleCandleCount: 80,
+      });
+
+      const result = selectPerpsVisibleCandleCount(mockState);
+
+      expect(result).toBe(80);
+    });
+
+    it('falls back to the default when visibleCandleCount is missing', () => {
+      const mockState = createMockState();
+
+      const result = selectPerpsVisibleCandleCount(mockState);
+
+      expect(result).toBe(30);
+    });
+  });
+
   describe('selectPerpsPayWithToken', () => {
     it('returns selectedPaymentToken from PerpsController state', () => {
       const token = {
@@ -945,6 +1009,259 @@ describe('PerpsController Selectors', () => {
       const result = selectPerpsMode(mockState);
 
       expect(result).toBe(DEFAULT_PERPS_MODE);
+    });
+  });
+
+  describe('selectPerpsProLayoutPreferences', () => {
+    it('returns the persisted Pro layout preferences merged over defaults', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { chartExpanded: true },
+      });
+
+      const result = selectPerpsProLayoutPreferences(mockState);
+
+      expect(result).toEqual({
+        ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+        ...MOBILE_PRO_LAYOUT_DEFAULTS,
+        chartExpanded: true,
+      });
+    });
+
+    it('keeps a persisted choice over the mobile defaults', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: {
+          orderBookExpanded: false,
+          orderBookPosition: 'left',
+        },
+      });
+
+      const result = selectPerpsProLayoutPreferences(mockState);
+
+      expect(result.orderBookExpanded).toBe(false);
+      expect(result.orderBookPosition).toBe('left');
+    });
+
+    it('falls back to the mobile defaults when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      const result = selectPerpsProLayoutPreferences(mockState);
+
+      expect(result).toEqual({
+        ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+        ...MOBILE_PRO_LAYOUT_DEFAULTS,
+      });
+    });
+
+    it('keeps a stable reference when unrelated controller state changes', () => {
+      // Children that build objects from this (the sort configs) re-render
+      // their panels on every new identity, so live ticks must not invalidate.
+      const proLayoutPreferences = { orderBookPosition: 'left' };
+
+      const first = selectPerpsProLayoutPreferences(
+        createMockState({ proLayoutPreferences, lastUpdateTimestamp: 1 }),
+      );
+      const second = selectPerpsProLayoutPreferences(
+        createMockState({ proLayoutPreferences, lastUpdateTimestamp: 2 }),
+      );
+
+      expect(second).toBe(first);
+    });
+  });
+
+  describe('selectPerpsProChartExpanded', () => {
+    it('returns true when the chart is expanded', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { chartExpanded: true },
+      });
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(true);
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(true);
+    });
+
+    it('falls back to the default when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+      );
+    });
+  });
+
+  describe('selectPerpsProOrderBookExpanded', () => {
+    it('returns the persisted visibility', () => {
+      // `false` is the non-default, so this fails if the selector ignores
+      // stored state and always answers with the mobile default.
+      const mockState = createMockState({
+        proLayoutPreferences: { orderBookExpanded: false },
+      });
+
+      expect(selectPerpsProOrderBookExpanded(mockState)).toBe(false);
+    });
+
+    it('returns the mobile default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrderBookExpanded(mockState)).toBe(
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookExpanded,
+      );
+    });
+
+    it('falls back to the mobile default when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsProOrderBookExpanded(mockState)).toBe(
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookExpanded,
+      );
+    });
+  });
+
+  describe('selectPerpsProOrderBookPosition', () => {
+    it('returns the persisted order book side', () => {
+      // 'left' is the non-default side, so this fails if the selector ignores
+      // stored state and always answers with the mobile default.
+      const mockState = createMockState({
+        proLayoutPreferences: { orderBookPosition: 'left' },
+      });
+
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe('left');
+    });
+
+    it('returns the mobile default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe(
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookPosition,
+      );
+    });
+
+    it('falls back to the mobile default when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsProOrderBookPosition(mockState)).toBe(
+        MOBILE_PRO_LAYOUT_DEFAULTS.orderBookPosition,
+      );
+    });
+  });
+
+  describe('selectPerpsProPositionsSideFilter', () => {
+    it('returns the persisted positions side filter', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { positionsSideFilter: 'long' },
+      });
+
+      expect(selectPerpsProPositionsSideFilter(mockState)).toBe('long');
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProPositionsSideFilter(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter,
+      );
+    });
+  });
+
+  describe('selectPerpsProPositionsSortConfig', () => {
+    it('composes nested sort config from flat persisted fields', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: {
+          positionsSortField: 'fundingRate',
+          positionsSortDirection: 'asc',
+        },
+      });
+
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual({
+        field: 'fundingRate',
+        direction: 'asc',
+      });
+    });
+
+    it('returns the controller defaults when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortDirection,
+      });
+    });
+  });
+
+  describe('selectPerpsProOrdersSideFilter', () => {
+    it('returns the persisted orders side filter', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { ordersSideFilter: 'short' },
+      });
+
+      expect(selectPerpsProOrdersSideFilter(mockState)).toBe('short');
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrdersSideFilter(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSideFilter,
+      );
+    });
+  });
+
+  describe('selectPerpsProOrdersSortConfig', () => {
+    it('composes nested sort config from flat persisted fields', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: {
+          ordersSortField: 'price',
+          ordersSortDirection: 'asc',
+        },
+      });
+
+      expect(selectPerpsProOrdersSortConfig(mockState)).toEqual({
+        field: 'price',
+        direction: 'asc',
+      });
+    });
+
+    it('returns the controller defaults when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProOrdersSortConfig(mockState)).toEqual({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
+      });
+    });
+  });
+
+  describe('selectPerpsOrderBookPreferences', () => {
+    it('returns persisted listed-by preferences merged over defaults', () => {
+      const mockState = createMockState({
+        orderBookPreferences: { currency: 'base', metric: 'size' },
+      });
+
+      expect(selectPerpsOrderBookPreferences(mockState)).toEqual({
+        currency: 'base',
+        metric: 'size',
+      });
+    });
+
+    it('falls back to the defaults when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsOrderBookPreferences(mockState)).toEqual(
+        DEFAULT_ORDER_BOOK_PREFERENCES,
+      );
     });
   });
 });

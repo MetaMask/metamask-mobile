@@ -46,7 +46,7 @@ export function PendingActivityListItemRow({
     onPress?.(item);
   }, [onPress, item]);
 
-  const testIdSuffix = item.hash ?? index;
+  const testIdSuffix = item.hash ?? index ?? 0;
   const isQueued = item.isEarliestNonce === false;
   const subtitle = content.subtitle
     ? isQueued
@@ -68,7 +68,10 @@ export function PendingActivityListItemRow({
       : subtitleAccountParts;
 
   const titleAccessory = isQueued ? undefined : (
-    <View style={styles.titleSpinner}>
+    <View
+      style={styles.titleSpinner}
+      testID={`activity-pending-spinner-container-${testIdSuffix}`}
+    >
       <PendingSpinner testID={`activity-pending-spinner-${testIdSuffix}`} />
     </View>
   );
@@ -90,6 +93,7 @@ export function PendingActivityListItemRow({
           fallbackIconName={fallbackIconName}
           networkImageSource={networkImageSource}
           styles={styles}
+          testIdSuffix={testIdSuffix}
           tokens={content.avatarTokens}
         />
       }

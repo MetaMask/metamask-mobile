@@ -3,6 +3,7 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
   Icon,
@@ -24,14 +25,15 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
+import { useQRScanner } from '../../hooks/useQRScanner';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   getMetamaskNotificationsReadCount,
@@ -39,12 +41,24 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { getBetaSupportUrl } from './AccountsMenu.utils';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
+import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
+import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
+import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import {
+  CardFlow,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../UI/Card/util/metrics';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
+  const { openQRScanner } = useQRScanner();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
@@ -55,6 +69,11 @@ const AccountsMenu = () => {
     getMetamaskNotificationsUnreadCount,
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const {
+    state: { phase: ukMigrationPhase },
+  } = useCardUkMigrationState();
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -71,7 +90,7 @@ const AccountsMenu = () => {
         })
         .build(),
     );
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACCOUNTS_MENU });
   }, [
     goToBuy,
     createEventBuilder,
@@ -115,9 +134,36 @@ const AccountsMenu = () => {
   }, [navigation]);
 
   const onPressManageWallet = useCallback(() => {
-    trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
+    const updateLabelVisible = Boolean(cardUpdateBadgeSeverity);
+    const migrationPhase = updateLabelVisible
+      ? mapUkMigrationPhaseToAnalytics(ukMigrationPhase)
+      : undefined;
+    trackEvent(
+      createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            update_label_visible: updateLabelVisible,
+            ...(updateLabelVisible
+              ? {
+                  flow: CardFlow.MIGRATION,
+                  ...(migrationPhase
+                    ? { migration_phase: migrationPhase }
+                    : {}),
+                }
+              : {}),
+          }),
+        )
+        .build(),
+    );
     navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [
+    activeProviderId,
+    cardUpdateBadgeSeverity,
+    createEventBuilder,
+    navigation,
+    trackEvent,
+    ukMigrationPhase,
+  ]);
 
   const onPressNetworks = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.NETWORKS_MANAGEMENT);
@@ -157,17 +203,27 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl;
+    const betaSupportUrl = getBetaSupportUrl();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    if (betaSupportUrl) {
+      trackEvent(
+        createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+      goToBrowserUrl(betaSupportUrl, strings('app_settings.contact_support'));
+      return;
+    }
 
-    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
-
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
-    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
-  }, [goToBrowserUrl, trackEvent, createEventBuilder]);
+    // Defer tracking to when support actually opens (consent confirm/reject),
+    // not the mere press that only shows the consent sheet.
+    openSupportWithConsent(
+      (url) => goToBrowserUrl(url, strings('app_settings.contact_support')),
+      METAMASK_SUPPORT_URL,
+      () =>
+        trackEvent(
+          createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+        ),
+    );
+  }, [goToBrowserUrl, trackEvent, createEventBuilder, openSupportWithConsent]);
 
   const onPressLock = useCallback(async () => {
     await Authentication.lockApp({ reset: false, locked: false });
@@ -235,61 +291,6 @@ const AccountsMenu = () => {
     return title;
   }, []);
 
-  const onScanSuccess = useCallback(
-    (data: { private_key?: string; seed?: string }, content: string) => {
-      if (data.private_key) {
-        const privateKey = data.private_key;
-        Alert.alert(
-          strings('wallet.private_key_detected'),
-          strings('wallet.do_you_want_to_import_this_account'),
-          [
-            {
-              text: strings('wallet.cancel'),
-              onPress: () => false,
-              style: 'cancel',
-            },
-            {
-              text: strings('wallet.yes'),
-              onPress: async () => {
-                try {
-                  await Authentication.importAccountFromPrivateKey(privateKey);
-                  navigation.navigate('ImportPrivateKeyView', {
-                    screen: 'ImportPrivateKeySuccess',
-                  });
-                } catch {
-                  Alert.alert(
-                    strings('import_private_key.error_title'),
-                    strings('import_private_key.error_message'),
-                  );
-                }
-              },
-            },
-          ],
-          { cancelable: false },
-        );
-      } else if (data.seed) {
-        Alert.alert(
-          strings('wallet.error'),
-          strings('wallet.logout_to_import_seed'),
-        );
-      } else {
-        setTimeout(() => {
-          DeeplinkManager.parse(content, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          });
-        }, 500);
-      }
-    },
-    [navigation],
-  );
-
-  const openQRScanner = useCallback(() => {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
-    trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
-  }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
-
   const isNotificationsEnabled = useMemo(
     () => isNotificationsFeatureEnabled() && isNotificationEnabled,
     [isNotificationEnabled],
@@ -333,6 +334,22 @@ const AccountsMenu = () => {
     colors.error.default,
     tw,
   ]);
+
+  const cardUpdateBadge = cardUpdateBadgeSeverity ? (
+    <CardUkMigrationUpdateBadge
+      severity={cardUpdateBadgeSeverity}
+      testID={AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE}
+    />
+  ) : null;
+
+  const cardRowEndAccessory = cardUpdateBadge ? (
+    <Box twClassName="flex-row items-center gap-2">
+      {cardUpdateBadge}
+      {arrowRightIcon}
+    </Box>
+  ) : (
+    arrowRightIcon
+  );
 
   return (
     <SafeAreaView
@@ -388,7 +405,7 @@ const AccountsMenu = () => {
           startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
           label={strings('accounts_menu.card_title')}
           onPress={onPressManageWallet}
-          endAccessory={arrowRightIcon}
+          endAccessory={cardRowEndAccessory}
           testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
         />
 

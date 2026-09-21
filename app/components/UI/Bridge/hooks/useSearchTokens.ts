@@ -1,11 +1,23 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 import { CaipChainId } from '@metamask/utils';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  FeatureId,
+  getClientHeaders,
+} from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -18,6 +30,8 @@ interface SearchTokensResponse {
     endCursor?: string;
   };
 }
+
+type SearchTraceResult = 'success' | 'error';
 
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
@@ -35,6 +49,21 @@ interface UseSearchTokensResult {
   resetSearch: () => void;
 }
 
+const getBucket = (
+  value: number,
+  thresholds: readonly number[],
+  labels: readonly string[],
+): string => {
+  const index = thresholds.findIndex((threshold) => value <= threshold);
+  return labels[index === -1 ? labels.length - 1 : index];
+};
+
+const getQueryLengthBucket = (length: number): string =>
+  getBucket(length, [2, 5, 10], ['0-2', '3-5', '6-10', '11+']);
+
+const getResultCountBucket = (count: number): string =>
+  getBucket(count, [0, 5, 20], ['0', '1-5', '6-20', '21+']);
+
 /**
  * Custom hook to search tokens via the Bridge API
  * @param params - Configuration object containing chainIds and includeAssets
@@ -44,6 +73,7 @@ export const useSearchTokens = ({
   chainIds,
   includeAssets,
 }: UseSearchTokensParams): UseSearchTokensResult => {
+  const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
@@ -56,6 +86,7 @@ export const useSearchTokens = ({
   // Use refs to store the latest values without causing re-renders or callback recreation
   const chainIdsRef = useRef(chainIds);
   const includeAssetsRef = useRef(includeAssets);
+  const featureIdRef = useRef(featureId);
 
   // Update refs when values change
   useEffect(() => {
@@ -65,6 +96,10 @@ export const useSearchTokens = ({
   useEffect(() => {
     includeAssetsRef.current = includeAssets;
   }, [includeAssets]);
+
+  useEffect(() => {
+    featureIdRef.current = featureId;
+  }, [featureId]);
 
   useEffect(() => {
     Engine.context.AuthenticationController.getBearerToken()
@@ -104,15 +139,21 @@ export const useSearchTokens = ({
         setSearchResults([]);
       }
 
+      let traceId: string | undefined;
+      let traceResult: SearchTraceResult = 'success';
+      let resultCount = 0;
+
       try {
         const requestBody: {
           chainIds: CaipChainId[];
           query: string;
           after?: string;
           includeAssets?: IncludeAsset[];
+          featureId: FeatureId;
         } = {
           chainIds: chainIdsRef.current,
           query: query.trim(),
+          featureId: featureIdRef.current,
         };
 
         if (cursor) {
@@ -121,6 +162,21 @@ export const useSearchTokens = ({
 
         if (includeAssetsRef.current && !isPagination) {
           requestBody.includeAssets = includeAssetsRef.current;
+        }
+
+        if (!isPagination) {
+          traceId = uuidv4();
+          trace({
+            name: TraceName.SwapTokenSearch,
+            op: TraceOperation.BridgeDataFetch,
+            id: traceId,
+            data: {
+              chain_scope:
+                chainIdsRef.current.length > 1 ? 'multi_chain' : 'single_chain',
+              query_length_bucket: getQueryLengthBucket(query.trim().length),
+            },
+            startTime: Date.now(),
+          });
         }
 
         const response = await fetch(
@@ -148,6 +204,7 @@ export const useSearchTokens = ({
         const searchResultData: PopularToken[] = Array.isArray(searchData.data)
           ? searchData.data
           : [];
+        resultCount = searchResultData.length;
 
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
@@ -167,12 +224,25 @@ export const useSearchTokens = ({
           setSearchResults(searchResultData);
         }
       } catch (error) {
+        traceResult = 'error';
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
           setSearchCursor(undefined);
         }
       } finally {
+        if (traceId) {
+          endTrace({
+            name: TraceName.SwapTokenSearch,
+            id: traceId,
+            timestamp: Date.now(),
+            data: {
+              result: traceResult,
+              result_count_bucket: getResultCountBucket(resultCount),
+            },
+          });
+        }
+
         if (isPagination) {
           setIsLoadingMore(false);
         } else {
@@ -180,7 +250,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [resetSearch, bearerToken],
+    [bearerToken, resetSearch],
   );
 
   // Create debounced search function

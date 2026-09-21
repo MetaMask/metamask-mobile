@@ -11,9 +11,11 @@ import {
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../AccountSelector';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { strings } from '../../../../../locales/i18n';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { useStyles } from '../../../../component-library/hooks';
@@ -32,7 +34,7 @@ export const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
 
 const MultichainAccountsIntroModal = () => {
   const { styles, theme } = useStyles(styleSheet, { theme: useTheme() });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const [isAligning, setIsAligning] = useState(false);
   const [isInitialAlignmentRunning, setIsInitialAlignmentRunning] =
@@ -107,7 +109,7 @@ const MultichainAccountsIntroModal = () => {
       dispatch(setMultichainAccountsIntroModalSeen(true));
       setIsAligning(false);
       navigation.goBack();
-      navigation.navigate(...createAccountSelectorNavDetails({}));
+      navigateWithDetails(navigation, createAccountSelectorNavDetails({}));
     }
   }, [navigation, dispatch, isAligning, alignWalletsPromise]);
 

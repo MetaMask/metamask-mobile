@@ -19,12 +19,14 @@ export const inputStepperStyles = ({
     },
     inputRow: {
       flexDirection: 'row',
-      width: 100,
+      flex: 1,
+      alignItems: 'center',
       justifyContent: 'center',
     },
     input: {
       backgroundColor: importedColors.transparent,
       borderWidth: 0,
+      paddingHorizontal: 0,
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
@@ -40,11 +42,16 @@ export const inputStepperStyles = ({
 export const inputStepperDescriptionRow = StyleSheet.create({
   descriptionRow: {
     flexDirection: 'row',
-    width: '75%',
-    marginHorizontal: 'auto',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    // Matches the design requirement: 8px gap between the warning icon and text.
+    marginRight: 8,
   },
   descriptionTextWrapper: {
-    flex: 1,
+    flexShrink: 1,
   },
   descriptionText: {
     textAlign: 'center',

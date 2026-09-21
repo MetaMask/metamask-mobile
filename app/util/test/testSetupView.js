@@ -117,6 +117,41 @@ jest.mock('expo/fetch', () => ({
   fetch,
 }));
 
+// Mock expo-modules-core: globalThis.expo is installed by the native runtime,
+// which doesn't run in Jest, so importing it unmocked throws. SecureContentView
+// pulls it in and is reachable from most views via ErrorBoundary.
+jest.mock('expo-modules-core', () => ({
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    emit: jest.fn(),
+  })),
+  NativeModule: jest.fn(),
+  NativeModulesProxy: {},
+  requireNativeModule: jest.fn(() => ({})),
+  requireOptionalNativeModule: jest.fn(() => null),
+  // Native view managers resolve to a host component name so that children
+  // (and their testIDs) still render in tests.
+  requireNativeViewManager: jest.fn((name) => name),
+  Platform: { OS: 'ios' },
+  CodedError: class CodedError extends Error {},
+  UnavailabilityError: class UnavailabilityError extends Error {},
+  LegacyEventEmitter: jest.fn(),
+}));
+
+// Mock expo-screen-capture: it reaches for a native module at import time, so
+// importing it unmocked throws.
+jest.mock('expo-screen-capture', () => ({
+  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeScreenshotListener: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  usePreventScreenCapture: jest.fn(),
+  useScreenshotListener: jest.fn(),
+}));
+
 // @metamask/perps-controller no longer exports MarketCategory / MARKET_CATEGORIES on
 // this branch, but Perps UI (pulled in via TransactionElement → Balance) still reads
 // them at module load. Stub the enum so component-view tests can import Activity views.
@@ -345,6 +380,29 @@ jest.mock('react-native-quick-crypto', () => {
   };
 });
 
+// Mock react-native-quick-base64. v3's `index.ts` calls
+// `TurboModuleRegistry.getEnforcing('QuickBase64')` at import time, which
+// throws in Jest since no native binary is registered. This module is a
+// transitive dependency of `Engine` (via the OAuth login handlers used for
+// seedless onboarding), so it must be mocked globally rather than per-file.
+jest.mock('react-native-quick-base64', () => {
+  // eslint-disable-next-line import-x/no-nodejs-modules
+  const { Buffer: NodeBuffer } = require('buffer');
+  return {
+    byteLength: (b64) => NodeBuffer.from(b64, 'base64').length,
+    toByteArray: (b64) => new Uint8Array(NodeBuffer.from(b64, 'base64')),
+    fromByteArray: (uint8) => NodeBuffer.from(uint8).toString('base64'),
+    btoa: (str) => NodeBuffer.from(str, 'binary').toString('base64'),
+    atob: (b64) => NodeBuffer.from(b64, 'base64').toString('binary'),
+    shim: jest.fn(),
+    getNative: () => ({
+      base64FromArrayBuffer: global.base64FromArrayBuffer,
+      base64ToArrayBuffer: global.base64ToArrayBuffer,
+    }),
+    trimBase64Padding: (str) => str.replace(/[.=]{1,2}$/, ''),
+  };
+});
+
 // Mock global crypto
 global.crypto = {
   getRandomValues: (arr) => getRandomValuesCompat(arr),
@@ -484,6 +542,7 @@ jest.mock('react-native-keychain', () => ({
   resetGenericPassword: jest.fn().mockResolvedValue(true),
   getAllGenericPasswordServices: jest.fn().mockResolvedValue([]),
   getSupportedBiometryType: jest.fn().mockResolvedValue(null),
+  isPasscodeAuthAvailable: jest.fn().mockResolvedValue(true),
 }));
 
 // Mock Async Storage
@@ -553,6 +612,11 @@ NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
+NativeModules.BrazePushModule = {
+  registerPush: jest.fn().mockResolvedValue(undefined),
+  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
+};
+
 // Mock @notifee/react-native
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
@@ -564,7 +628,9 @@ jest.mock('@sentry/react-native', () => ({
   wrap: (component) => component,
   captureException: jest.fn(),
   captureMessage: jest.fn(),
-  captureUserFeedback: jest.fn(),
+  captureFeedback: jest.fn(),
+  dedupeIntegration: jest.fn(() => ({ name: 'Dedupe' })),
+  extraErrorDataIntegration: jest.fn(() => ({ name: 'ExtraErrorData' })),
   addBreadcrumb: jest.fn(),
   configureScope: jest.fn(),
   setContext: jest.fn(),
@@ -578,6 +644,13 @@ jest.mock('@sentry/react-native', () => ({
   lastEventId: jest.fn(),
   getGlobalScope: jest.fn(() => ({
     setTag: jest.fn(),
+  })),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
   })),
 }));
 
@@ -786,6 +859,8 @@ jest.mock('../../components/Base/RemoteImage', () => {
 });
 
 // Mock MMDS BottomSheet so open/close callbacks run synchronously in view tests.
+// toast() throws unless <Toaster /> is mounted; view tests do not mount App's
+// Toaster, so stub the imperative API (same package is already mocked here).
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
   const PropTypes = require('prop-types');
@@ -845,9 +920,65 @@ jest.mock('@metamask/design-system-react-native', () => {
     accessibilityLabel: PropTypes.string,
   };
 
+  // QuickBuyRoot (and similar sheets) register onOpenDialog after mount and
+  // keep a skeleton until that callback fires. Invoke it synchronously so
+  // content is reachable without Reanimated sheet animations.
+  const BottomSheetDialog = React.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      },
+      ref,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenDialog: (callback) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseDialog: (callback) => {
+          onClose?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-dialog-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheetDialog.displayName = 'BottomSheetDialog';
+  BottomSheetDialog.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
   return {
     ...actual,
     BottomSheet,
+    BottomSheetDialog,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
@@ -856,6 +987,8 @@ jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
   default: {
     changeUser: jest.fn(),
+    enableSDK: jest.fn(),
+    wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)
       if (typeof callback === 'function') {

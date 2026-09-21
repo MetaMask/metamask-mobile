@@ -22,6 +22,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    })),
+  }),
+}));
+
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockShowToast = jest.fn();
@@ -43,7 +52,7 @@ describe('useImmersveOnboardingRouter', () => {
     });
   });
 
-  it('routes contact to SET_PHONE_NUMBER with email + countryKey', () => {
+  it('routes contact to SIGN_UP', () => {
     const action: ImmersveNextAction = {
       type: 'contact',
       needsEmail: true,
@@ -52,8 +61,8 @@ describe('useImmersveOnboardingRouter', () => {
     getRoute()(action, { email: 'a@b.co', countryKey: 'GB' });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-      { countryKey: 'GB', immersve: true, email: 'a@b.co' },
+      Routes.CARD.ONBOARDING.SIGN_UP,
+      {},
     );
   });
 
@@ -92,13 +101,35 @@ describe('useImmersveOnboardingRouter', () => {
           params: {},
         },
       },
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
+  });
+
+  it('resets to Card Home for funding when the user already has a card', () => {
+    getRoute()(
+      {
+        type: 'funding',
+        write: {
+          abi: [],
+          contractAddress: '0x',
+          method: 'approve',
+          params: {},
+        },
+      },
+      { countryKey: 'GB', hasExistingCard: true, fundingAddress: '0xFunding' },
+    );
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('resets to KYC_FAILED when rejected', () => {
@@ -145,6 +176,7 @@ describe('useImmersveOnboardingRouter', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        params: {},
       });
     });
 
@@ -171,13 +203,43 @@ describe('useImmersveOnboardingRouter', () => {
             params: {},
           },
         },
-        { countryKey: 'GB', navigateFromRoot: true },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          fundingAddress: '0xFunding',
+        },
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-        params: { countryKey: 'GB' },
+        params: { countryKey: 'GB', fundingAddress: '0xFunding' },
       });
+    });
+
+    it('still resets to Card Home for funding when the user already has a card', () => {
+      getRoute()(
+        {
+          type: 'funding',
+          write: {
+            abi: [],
+            contractAddress: '0x',
+            method: 'approve',
+            params: {},
+          },
+        },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          hasExistingCard: true,
+          fundingAddress: '0xFunding',
+        },
+      );
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates into ONBOARDING.ROOT KYC_FAILED for rejected (no parent reset)', () => {

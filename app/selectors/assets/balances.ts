@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  calculateBalanceForAllWallets,
   type TokenBalancesControllerState,
   type TokenRatesControllerState,
   type MultichainBalancesControllerState,
@@ -9,12 +8,20 @@ import {
   type CurrencyRateState,
   type BalanceChangeResult,
   calculateBalanceChangeForAllWallets,
-  calculateBalanceChangeForAccountGroup,
   type BalanceChangePeriod,
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
+import {
+  calculateBalanceForAllWallets as calculateBalanceForAllWalletsFromUnified,
+  calculateBalanceChangeForAccountGroup as calculateBalanceChangeForAccountGroupFromUnified,
+  getAggregatedBalanceForAccount,
+  type AccountGroupBalance,
+  type AssetsControllerState,
+  type EnabledNetworkMap,
+} from '@metamask/assets-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import {
   parseCaipChainId,
@@ -22,11 +29,8 @@ import {
   KnownCaipNamespace,
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-  TEST_NETWORK_IDS,
-} from '../../constants/network';
+import { TEST_NETWORK_IDS } from '../../constants/network';
+import { createDeepEqualSelector } from '../util';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
@@ -57,6 +61,88 @@ import {
   selectSelectedInternalAccountId,
 } from '../accountsController';
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
+import { selectAssetsControllerStateForBalances } from './assets-controller';
+import { augmentArcExcludedAssets } from '../../enablement/assets/arc';
+import { filterExcludedTokenBalances } from '../../enablement/assets/networks-customization';
+
+/**
+ * State transforms applied before unified fiat aggregation.
+ *
+ * Balances without matching `assetsInfo` are excluded by AssetsController
+ * 15+ itself (see `balances.missing-assets-info.test.ts` + anonymised
+ * `__fixtures__/assets-controller-state-log` for regression coverage).
+ * Only the Arc/Stable duplicate-token exclusion remains here.
+ */
+export const augmentAssetsControllerStateForBalances = augmentArcExcludedAssets;
+
+/**
+ * Account ids that belong to a group, read from the account tree.
+ *
+ * @param accountTreeState - AccountTreeController state.
+ * @param groupId - Account group id.
+ * @returns Account ids in the group.
+ */
+function getAccountIdsForGroup(
+  accountTreeState: AccountTreeControllerState,
+  groupId: string,
+): string[] {
+  const wallets = accountTreeState.accountTree?.wallets ?? {};
+  for (const wallet of Object.values(wallets)) {
+    const group = wallet?.groups?.[groupId as keyof typeof wallet.groups];
+    if (group?.accounts) {
+      return [...group.accounts];
+    }
+  }
+  return [];
+}
+
+/**
+ * Calculate aggregated fiat balance for a single account group from unified
+ * AssetsController state.
+ *
+ * @param assetsControllerState - AssetsController state slice.
+ * @param accountTreeState - AccountTreeController state.
+ * @param groupId - Account group id.
+ * @param enabledNetworkMap - Enabled networks map.
+ * @returns Account group balance entry.
+ */
+export function getUnifiedBalanceForAccountGroup(
+  assetsControllerState: AssetsControllerState,
+  accountTreeState: AccountTreeControllerState,
+  groupId: string,
+  enabledNetworkMap: EnabledNetworkMap,
+): AccountGroupBalance {
+  const userCurrency = assetsControllerState.selectedCurrency ?? 'usd';
+  const walletId = groupId.split('/')[0];
+  const accountIds = getAccountIdsForGroup(accountTreeState, groupId);
+
+  if (accountIds.length === 0) {
+    return {
+      walletId,
+      groupId,
+      totalBalanceInUserCurrency: 0,
+      userCurrency,
+    };
+  }
+
+  // `getAggregatedBalanceForAccount` resolves accounts from `accountIds`; the
+  // selected-account argument is only a placeholder.
+  const placeholderAccount = { id: accountIds[0] } as InternalAccount;
+  const { totalBalanceInFiat = 0 } = getAggregatedBalanceForAccount(
+    augmentAssetsControllerStateForBalances(assetsControllerState),
+    placeholderAccount,
+    enabledNetworkMap,
+    undefined,
+    accountIds,
+  );
+
+  return {
+    walletId,
+    groupId,
+    totalBalanceInUserCurrency: totalBalanceInFiat,
+    userCurrency,
+  };
+}
 
 // Narrow controller-state shapes using existing selectors
 const selectAccountTreeStateForBalances = createSelector(
@@ -96,29 +182,9 @@ const selectAccountsStateForBalances = createSelector(
 
 export const selectTokenBalancesStateForBalances = createSelector(
   [selectAllTokenBalances],
-  (tokenBalances): TokenBalancesControllerState => {
-    // Strip the Arc USDC ERC-20 (0x3600…) so it is excluded from the
-    // aggregated balance — the native token already reflects the USDC balance
-    // on Arc and is the source of truth, so counting both would double it.
-    const filteredTokenBalances = Object.fromEntries(
-      Object.entries(tokenBalances).map(([account, chainMap]) => [
-        account,
-        Object.fromEntries(
-          Object.entries(chainMap).map(([chainId, addressMap]) => [
-            chainId,
-            chainId === NETWORKS_CHAIN_ID.ARC
-              ? Object.fromEntries(
-                  Object.entries(addressMap).filter(
-                    ([address]) => address !== ARC_USDC_TOKEN_ADDRESS,
-                  ),
-                )
-              : addressMap,
-          ]),
-        ),
-      ]),
-    );
-    return { tokenBalances: filteredTokenBalances };
-  },
+  (tokenBalances): TokenBalancesControllerState => ({
+    tokenBalances: filterExcludedTokenBalances(tokenBalances),
+  }),
 );
 
 const selectTokenRatesStateForBalances = createSelector(
@@ -209,79 +275,28 @@ const selectNetworksMapForBalances = (
 export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
   createSelector(
     [
+      selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
-      selectAccountsStateForBalances,
-      selectTokenBalancesStateForBalances,
-      selectTokenRatesStateForBalances,
-      selectMultichainAssetsRatesStateForBalances,
-      selectMultichainBalancesStateForBalances,
-      selectMultichainAssetsControllerStateForBalances,
-      selectTokensStateForBalances,
-      selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
-      selectNetworkConfigurations,
     ],
     (
+      assetsControllerState: AssetsControllerState,
       accountTreeState: AccountTreeControllerState,
-      accountsState: AccountsControllerState,
-      tokenBalancesState: TokenBalancesControllerState,
-      tokenRatesState: TokenRatesControllerState,
-      multichainRatesState: MultichainAssetsRatesControllerState,
-      multichainBalancesState: MultichainBalancesControllerState,
-      multichainAssetsControllerState: MultichainAssetsControllerState,
-      tokensState: TokensControllerState,
-      currencyRateState: CurrencyRateState,
       enabledNetworkMap: Record<string, Record<string, boolean>> | undefined,
-      networkConfigurationsByChainId: Record<string, NetworkConfig>,
     ) =>
-      calculateBalanceForAllWallets(
+      calculateBalanceForAllWalletsFromUnified(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
-        accountsState,
-        tokenBalancesState,
-        tokenRatesState,
-        multichainRatesState,
-        multichainBalancesState,
-        multichainAssetsControllerState,
-        tokensState,
-        currencyRateState,
         enabledNetworkMap,
-        networkConfigurationsByChainId,
       ),
   );
 
 export const selectBalanceForAllWalletsAndChains = createSelector(
-  [
-    selectAccountTreeStateForBalances,
-    selectAccountsStateForBalances,
-    selectTokenBalancesStateForBalances,
-    selectTokenRatesStateForBalances,
-    selectMultichainAssetsRatesStateForBalances,
-    selectMultichainBalancesStateForBalances,
-    selectMultichainAssetsControllerStateForBalances,
-    selectTokensStateForBalances,
-    selectCurrencyRateStateForBalances,
-  ],
-  (
-    accountTreeState,
-    accountsState,
-    tokenBalancesState,
-    tokenRatesState,
-    multichainRatesState,
-    multichainBalancesState,
-    multichainAssetsControllerState,
-    tokensState,
-    currencyRateState,
-  ) =>
-    calculateBalanceForAllWallets(
+  [selectAssetsControllerStateForBalances, selectAccountTreeStateForBalances],
+  (assetsControllerState, accountTreeState) =>
+    calculateBalanceForAllWalletsFromUnified(
+      augmentAssetsControllerStateForBalances(assetsControllerState),
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       undefined,
     ),
 );
@@ -326,8 +341,8 @@ export const selectBalanceByWallet = (walletId: string) =>
 
 export const selectBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
-) =>
-  createSelector(
+) => {
+  const selectRawBalance = createSelector(
     [selectSelectedAccountGroupId, selectBalanceForAllWallets(popularChainIds)],
     (selectedGroupId, allBalances) => {
       if (!selectedGroupId) {
@@ -348,36 +363,70 @@ export const selectBalanceBySelectedAccountGroup = (
     },
   );
 
+  // Deep-equal on the small result, not the wide inputs, so unrelated
+  // controller churn (e.g. post-unlock) doesn't change the reference.
+  return createDeepEqualSelector([selectRawBalance], (balance) => balance);
+};
+
+/**
+ * Aggregated fiat balance for the selected account group from unified
+ * AssetsController state. Callers should only consume this when
+ * assets-unify-state is enabled.
+ *
+ * @param popularChainIds - Optional popular CAIP chain ids for network filtering.
+ */
+export const selectUnifiedBalanceBySelectedAccountGroup = (
+  popularChainIds?: CaipChainId[],
+) => {
+  const selectRawUnifiedBalance = createSelector(
+    [
+      selectAssetsControllerStateForBalances,
+      selectAccountTreeStateForBalances,
+      selectSelectedAccountGroupId,
+      selectNetworksMapForBalances(popularChainIds),
+    ],
+    (
+      assetsControllerState,
+      accountTreeState,
+      selectedGroupId,
+      enabledNetworkMap,
+    ) => {
+      if (!selectedGroupId) {
+        return null;
+      }
+
+      return getUnifiedBalanceForAccountGroup(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
+        accountTreeState,
+        selectedGroupId,
+        enabledNetworkMap,
+      );
+    },
+  );
+
+  // Same as selectBalanceBySelectedAccountGroup above (assets-unify-state variant).
+  return createDeepEqualSelector(
+    [selectRawUnifiedBalance],
+    (balance) => balance,
+  );
+};
+
 /**
  * Returns the selected account group's balance
  * across mainnet networks for balance empty state display
  */
-export const selectAccountGroupBalanceForEmptyState = createSelector(
+const selectRawAccountGroupBalanceForEmptyState = createSelector(
   [
+    selectAssetsControllerStateForBalances,
     selectSelectedAccountGroupId,
     selectNetworkConfigurationsByCaipChainId,
     selectAccountTreeStateForBalances,
-    selectAccountsStateForBalances,
-    selectTokenBalancesStateForBalances,
-    selectTokenRatesStateForBalances,
-    selectMultichainAssetsRatesStateForBalances,
-    selectMultichainBalancesStateForBalances,
-    selectMultichainAssetsControllerStateForBalances,
-    selectTokensStateForBalances,
-    selectCurrencyRateStateForBalances,
   ],
   (
+    assetsControllerState,
     selectedGroupId,
     networkConfigurationsByChainId,
     accountTreeState,
-    accountsState,
-    tokenBalancesState,
-    tokenRatesState,
-    multichainRatesState,
-    multichainBalancesState,
-    multichainAssetsControllerState,
-    tokensState,
-    currencyRateState,
   ) => {
     if (!selectedGroupId) {
       return null;
@@ -429,16 +478,9 @@ export const selectAccountGroupBalanceForEmptyState = createSelector(
     });
 
     // Calculate balance using the mainnet-only network map
-    const allBalances = calculateBalanceForAllWallets(
+    const allBalances = calculateBalanceForAllWalletsFromUnified(
+      augmentAssetsControllerStateForBalances(assetsControllerState),
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       enabledNetworkMap,
     );
 
@@ -467,6 +509,17 @@ export const selectAccountGroupBalanceForEmptyState = createSelector(
       userCurrency,
     };
   },
+);
+
+/**
+ * Returns the selected account group's balance across mainnet networks for
+ * balance empty state display. Deep-equal memoized on the result (see
+ * selectBalanceBySelectedAccountGroup above) to avoid re-renders from
+ * unrelated controller churn.
+ */
+export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
+  [selectRawAccountGroupBalanceForEmptyState],
+  (balance) => balance,
 );
 
 // Balance change selectors (period: '1d' | '7d' | '30d')
@@ -522,42 +575,21 @@ export const selectBalanceChangeByAccountGroup = (
 ) =>
   createSelector(
     [
+      selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
-      selectAccountsStateForBalances,
-      selectTokenBalancesStateForBalances,
-      selectTokenRatesStateForBalances,
-      selectMultichainAssetsRatesStateForBalances,
-      selectMultichainBalancesStateForBalances,
-      selectMultichainAssetsControllerStateForBalances,
-      selectTokensStateForBalances,
-      selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
     ],
     (
+      assetsControllerState,
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       enabledNetworkMap,
     ): BalanceChangeResult =>
-      calculateBalanceChangeForAccountGroup(
+      calculateBalanceChangeForAccountGroupFromUnified(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
-        accountsState,
-        tokenBalancesState,
-        tokenRatesState,
-        multichainRatesState,
-        multichainBalancesState,
-        multichainAssetsControllerState,
-        tokensState,
-        currencyRateState,
-        enabledNetworkMap,
         groupId,
         period,
+        enabledNetworkMap,
       ),
   );
 
@@ -574,50 +606,33 @@ export const selectBalancePercentChangeByAccountGroup = (
 export const selectBalanceChangeBySelectedAccountGroup = (
   period: BalanceChangePeriod,
   popularChainIds?: CaipChainId[],
-) =>
-  createSelector(
+) => {
+  const selectRawBalanceChange = createSelector(
     [
+      selectAssetsControllerStateForBalances,
       selectSelectedAccountGroupId,
       selectAccountTreeStateForBalances,
-      selectAccountsStateForBalances,
-      selectTokenBalancesStateForBalances,
-      selectTokenRatesStateForBalances,
-      selectMultichainAssetsRatesStateForBalances,
-      selectMultichainBalancesStateForBalances,
-      selectMultichainAssetsControllerStateForBalances,
-      selectTokensStateForBalances,
-      selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
     ],
     (
+      assetsControllerState,
       selectedGroupId,
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       enabledNetworkMap,
     ): BalanceChangeResult | null => {
       if (!selectedGroupId) {
         return null;
       }
-      return calculateBalanceChangeForAccountGroup(
+      return calculateBalanceChangeForAccountGroupFromUnified(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
-        accountsState,
-        tokenBalancesState,
-        tokenRatesState,
-        multichainRatesState,
-        multichainBalancesState,
-        multichainAssetsControllerState,
-        tokensState,
-        currencyRateState,
-        enabledNetworkMap,
         selectedGroupId,
         period,
+        enabledNetworkMap,
       );
     },
   );
+
+  // Same pattern as selectBalanceBySelectedAccountGroup above.
+  return createDeepEqualSelector([selectRawBalanceChange], (change) => change);
+};

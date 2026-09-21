@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -75,7 +76,7 @@ type NetworkDetailsRouteParams = RouteProp<
 
 const NetworkDetailsView = () => {
   const route = useRoute<NetworkDetailsRouteParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = route.params;
   const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
@@ -270,6 +271,7 @@ const NetworkDetailsView = () => {
           canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
+              testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
               style={({ pressed }) =>
                 tw.style(
                   'w-9 h-9 mr-2 items-center justify-center',

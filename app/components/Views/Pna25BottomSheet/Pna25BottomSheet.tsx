@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   Box,
   Icon,
@@ -36,7 +37,7 @@ export enum Pna25BottomSheetAction {
 
 const Pna25BottomSheet = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasSkippedDelay = useRef(false);

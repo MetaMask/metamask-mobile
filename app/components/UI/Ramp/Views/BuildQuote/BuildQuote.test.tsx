@@ -250,7 +250,7 @@ const USER_REGION = {
 };
 
 const CIRCUIT_BREAKER_MESSAGE =
-  'This service is temporarily unavailable. Please try again in about 30 minutes.';
+  'This service is temporarily unavailable. Try again in about 30 minutes.';
 
 const buildProviderWithLimits = (limits: {
   minAmount: number;
@@ -327,12 +327,14 @@ describe('createBuildQuoteNavDetails', () => {
 });
 
 const mockSetSelectedProvider = jest.fn();
+const mockSetSelectedProviderForAsset = jest.fn();
 
 const buildRampsControllerResult = (overrides = {}) => ({
   userRegion: USER_REGION,
   providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
   selectedProvider: WIDGET_PROVIDER,
   setSelectedProvider: mockSetSelectedProvider,
+  setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
   selectedToken: SELECTED_TOKEN,
   paymentMethods: [SELECTED_PAYMENT_METHOD],
   getBuyWidgetData: mockGetBuyWidgetData,
@@ -346,9 +348,37 @@ const buildRampsControllerResult = (overrides = {}) => ({
   ...overrides,
 });
 
+const EMBEDDED_CHECKOUT_OVERLAY_TEST_ID = 'mock-embedded-checkout-overlay';
+const mockRenderEmbeddedCheckoutOverlay = jest.fn(
+  ({ interactive }: { interactive: boolean }) => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: EMBEDDED_CHECKOUT_OVERLAY_TEST_ID,
+      accessibilityState: { disabled: !interactive },
+    });
+  },
+);
+const mockEmbeddedCheckoutDefaults: {
+  phase: 'inactive' | 'preparing' | 'ready' | 'settling';
+  renderOverlay: typeof mockRenderEmbeddedCheckoutOverlay | null;
+  error: string | null;
+} = {
+  phase: 'inactive',
+  renderOverlay: null,
+  error: null,
+};
+let mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
+
+jest.mock('../../hooks/useEmbeddedCheckout', () => ({
+  __esModule: true,
+  default: () => mockEmbeddedCheckout,
+}));
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: unknown) => value);
@@ -1525,6 +1555,7 @@ describe('BuildQuote', () => {
         providers: [transakProvider, WIDGET_PROVIDER],
         selectedProvider: transakProvider,
         setSelectedProvider: mockSetSelectedProvider,
+        setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
         selectedToken: SELECTED_TOKEN,
         paymentMethods: [],
         getBuyWidgetData: mockGetBuyWidgetData,
@@ -1542,6 +1573,7 @@ describe('BuildQuote', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       mockUseParams.mockReturnValue({ assetId: TOKEN_ASSET });
+      mockSetSelectedProviderForAsset.mockReset();
     });
 
     afterEach(() => {
@@ -1630,7 +1662,7 @@ describe('BuildQuote', () => {
     });
 
     it('does not open payment selection when token unavailable disables pill', () => {
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
@@ -1643,6 +1675,28 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampPaymentSelectionModal',
+        }),
+      );
+    });
+
+    it('switches to another supporting provider when current has empty payment methods', () => {
+      mockSetSelectedProviderForAsset.mockReturnValue(false);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET);
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
+        autoSelected: true,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
         }),
       );
     });
@@ -1756,15 +1810,14 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockSetSelectedProviderForAsset.mockReturnValue(true);
 
         renderWithProvider(<BuildQuote />, { state: autoSelectedState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
-          autoSelected: true,
-        });
+        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1790,7 +1843,7 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
         expect(mockNavigate).toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1810,15 +1863,14 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockSetSelectedProviderForAsset.mockReturnValue(true);
 
         renderWithProvider(<BuildQuote />, { state: initialRootState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
-          autoSelected: true,
-        });
+        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -2140,6 +2192,117 @@ describe('BuildQuote', () => {
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
       expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('embedded checkout', () => {
+    it('replaces Continue with the embedded checkout once it is ready', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON)).toBeNull();
+      expect(queryByText('Powered by MoonPay')).toBeNull();
+    });
+
+    it('lets the embedded checkout take taps only when the quote can continue', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockRenderEmbeddedCheckoutOverlay).toHaveBeenCalledWith({
+        interactive: true,
+      });
+    });
+
+    it('shows Continue in a loading state while the checkout is preparing', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: null,
+        error: null,
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+    });
+
+    it('mounts the checkout behind a loading Continue while it is preparing with a URL', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('covers the checkout with a processing state while payment settles', () => {
+      mockEmbeddedCheckout = {
+        phase: 'settling',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // The checkout stays mounted for order events, hidden behind our own
+      // state, so the provider's post-authorization repaint is never visible.
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      // The spinner is mocked in Jest, so the loading label is asserted
+      // through the accessibility label the button derives from it.
+      expect(continueButton.props.accessibilityLabel).toBe('Processing');
+    });
+
+    it('shows the provider reason and restores Continue when the checkout is unpurchasable', () => {
+      mockEmbeddedCheckout = {
+        phase: 'inactive',
+        renderOverlay: null,
+        error:
+          'This item is not available for purchase with Crossmint at this moment',
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      expect(
+        getByText(
+          'This item is not available for purchase with Crossmint at this moment',
+        ),
+      ).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(false);
     });
   });
 });

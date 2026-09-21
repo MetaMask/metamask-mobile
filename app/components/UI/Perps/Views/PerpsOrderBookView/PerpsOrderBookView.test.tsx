@@ -253,8 +253,8 @@ jest.mock('../../components/PerpsOrderBookDepthChart', () => {
   );
 });
 
-// Mock PerpsMarketHeader to avoid PerpsStreamProvider dependency
-jest.mock('../../components/PerpsMarketHeader', () => {
+// Mock PerpsMarketInlineHeader to avoid PerpsStreamProvider dependency
+jest.mock('../../components/PerpsMarketInlineHeader', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   const selectors = jest.requireActual<typeof import('../../Perps.testIds')>(
     '../../Perps.testIds',

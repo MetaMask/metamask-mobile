@@ -60,7 +60,7 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
     );
   }, [data?.account?.shippingAddress, cardholderName]);
 
-  const { initiateProvisioning, isProvisioning, canAddToWallet } =
+  const { initiateProvisioning, isProvisioning, isLoading, canAddToWallet } =
     usePushProvisioning({
       cardDetails: cardDetailsForProvisioning,
       userAddress: userAddressForProvisioning,
@@ -92,11 +92,15 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
           ],
           iconName: IconName.Danger,
           iconColor: theme.colors.error.default,
-          backgroundColor: theme.colors.error.muted,
           hasNoTimeout: false,
         });
       },
     });
 
-  return { initiateProvisioning, isProvisioning, canAddToWallet };
+  return {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading,
+    canAddToWallet,
+  };
 }

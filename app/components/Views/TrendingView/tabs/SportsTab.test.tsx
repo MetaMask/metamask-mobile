@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
@@ -86,7 +87,7 @@ const renderSportsTab = () =>
     </NavigationContainer>,
   );
 
-describe('SportsTab — Predictions carousel', () => {
+describe('SportsTab', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
@@ -117,5 +118,17 @@ describe('SportsTab — Predictions carousel', () => {
         tab: 'sports',
       },
     });
+  });
+
+  it('keeps the same market key when its list position changes', () => {
+    const market = { id: 'sports-market-1' };
+    const { UNSAFE_getByType } = renderSportsTab();
+    const { keyExtractor } = UNSAFE_getByType(FlashList).props;
+
+    const initialKey = keyExtractor(market, 0);
+    const reorderedKey = keyExtractor(market, 1);
+
+    expect(initialKey).toBe('all_sports-soccer-sports-market-1');
+    expect(reorderedKey).toBe(initialKey);
   });
 });

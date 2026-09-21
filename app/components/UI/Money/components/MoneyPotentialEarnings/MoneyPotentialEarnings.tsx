@@ -20,15 +20,16 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
+import { Platform } from 'react-native';
 
 const VISIBLE_TOKENS_COUNT = 5;
 
 interface MoneyPotentialEarningsProps {
-  tokens: AssetType[];
+  tokens: MoneyDepositAsset[];
   /**
    * APY expressed as a decimal (e.g. 0.03 for 3%) used together with the
    * shared projection horizon to compute the projected earnings displayed
@@ -40,19 +41,18 @@ interface MoneyPotentialEarningsProps {
    * deposit into the Money account. Used to render the "No fee" badge on
    * each token row.
    */
-  isNoFeeToken?: (token: AssetType) => boolean;
+  isNoFeeToken?: (token: MoneyDepositAsset) => boolean;
   onTokenCardPress?: (
-    token: AssetType,
+    token: MoneyDepositAsset,
     index: number,
     tokensCount: number,
   ) => void;
   onTokenButtonPress?: (
-    token: AssetType,
+    token: MoneyDepositAsset,
     index: number,
     tokensCount: number,
   ) => void;
   onViewAllPress?: () => void;
-  onHeaderPress?: () => void;
   /**
    * Called when the inline info button next to the section title is pressed.
    * Typically navigates to the Earn-on-your-crypto info bottom sheet.
@@ -69,7 +69,6 @@ const MoneyPotentialEarnings = ({
   onTokenCardPress,
   onTokenButtonPress,
   onViewAllPress,
-  onHeaderPress,
   onInfoPress,
   privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
@@ -86,14 +85,14 @@ const MoneyPotentialEarnings = ({
   const hasMoreTokens = eligibleTokens.length > VISIBLE_TOKENS_COUNT;
 
   const handleTokenCardPress = useCallback(
-    (token: AssetType, index: number) => () => {
+    (token: MoneyDepositAsset, index: number) => () => {
       onTokenCardPress?.(token, index, eligibleTokens.length);
     },
     [onTokenCardPress, eligibleTokens.length],
   );
 
   const handleTokenButtonPress = useCallback(
-    (token: AssetType, index: number) => () => {
+    (token: MoneyDepositAsset, index: number) => () => {
       onTokenButtonPress?.(token, index, eligibleTokens.length);
     },
     [onTokenButtonPress, eligibleTokens.length],
@@ -113,6 +112,7 @@ const MoneyPotentialEarnings = ({
           size={IconSize.Sm}
           color={IconColor.IconAlternative}
           onPress={onInfoPress}
+          twClassName={Platform.OS === 'android' ? 'translate-y-0.5' : ''}
         />
       </Text>
     </>
@@ -121,10 +121,7 @@ const MoneyPotentialEarnings = ({
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
-        <MoneySectionHeader
-          title={strings('money.potential_earnings.title')}
-          onPress={hasMoreTokens ? onHeaderPress : undefined}
-        />
+        <MoneySectionHeader title={strings('money.potential_earnings.title')} />
 
         {isPositiveNumber(projectedAmount) &&
         isPositiveNumber(totalAssetsFiat) ? (

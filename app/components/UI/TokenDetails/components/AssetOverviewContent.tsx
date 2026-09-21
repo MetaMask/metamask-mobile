@@ -14,12 +14,14 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import {
   TimePeriod,
@@ -42,18 +44,9 @@ import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
+import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
-import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
-import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
-import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import { isMusdToken } from '../../Earn/constants/musd';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMerklCampaignClaimingEnabledFlag,
-} from '../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -61,9 +54,12 @@ import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
   useMarketInsights,
+  useMarketInsightsEntryTrace,
+  getMarketInsightsTraceId,
+  getMarketInsightsTraceTags,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -75,29 +71,29 @@ import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTra
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
-  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
+import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
+import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
+import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
+import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -118,6 +114,8 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
+    // Owns token-details placement. No marginBottom — Balance already
+    // provides paddingTop, and extra card margin was stacking under it.
     marketInsightsWrapper: {
       paddingTop: 16,
     } as ViewStyle,
@@ -141,6 +139,10 @@ export interface AssetOverviewContentProps {
 
   // Balance data
   balance: string | number | undefined;
+  balanceCta?: React.ReactNode;
+  balanceDescription?: React.ReactNode;
+  balancePriceChangeOverride?: string;
+  balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
   secondaryBalance: string | undefined;
 
@@ -155,9 +157,6 @@ export interface AssetOverviewContentProps {
   timePeriod: TimePeriod;
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
-
-  // Feature flags
-  isPerpsEnabled: boolean;
 
   // Currency
   currentCurrency: string;
@@ -198,6 +197,11 @@ export interface AssetOverviewContentProps {
   onExitAction?: () => void;
   /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
   isPricePositive?: boolean | null;
+  /** Called whenever the perps market loading state settles. Lets the parent avoid a duplicate hook call. */
+  onPerpsMarketResolved?: (result: {
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }) => void;
 }
 
 /**
@@ -207,13 +211,16 @@ export interface AssetOverviewContentProps {
  * - Chart navigation buttons
  * - Action buttons (Buy, Swap, Send, Receive)
  * - Balance display
- * - Merkl rewards section
  * - Perps discovery banner
  * - Token details (contract, decimals, etc.)
  */
 const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   token,
   balance,
+  balanceCta,
+  balanceDescription,
+  balancePriceChangeOverride,
+  balancePriceChangeOverrideColor,
   mainBalance,
   secondaryBalance,
   currentPrice,
@@ -225,7 +232,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
-  isPerpsEnabled,
   currentCurrency,
   onBuy,
   onSend,
@@ -242,11 +248,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   useAmbientColor,
   onExitAction,
   isPricePositive,
+  onPerpsMarketResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradable } = useRWAToken();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -256,6 +263,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  const isAssetInactive = useSelector((state) =>
+    getIsAssetRequireActivate(state, {
+      assetId: token.address,
+    }),
+  );
+  const spendableBalanceData = useSpendableBalance({
+    assetId: token.address,
+  });
+  const showSpendableBalance = spendableBalanceData.hasSpendableBalance;
 
   const {
     hasPerpsMarket,
@@ -263,10 +279,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isLoading: isPerpsLoading,
     handlePerpsAction,
   } = usePerpsActions({
-    symbol: isPerpsEnabled ? token.symbol : null,
+    symbol: token.symbol,
     fromTokenDetails: true,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
+
+  useEffect(() => {
+    onPerpsMarketResolved?.({ hasPerpsMarket, isLoading: isPerpsLoading });
+  }, [hasPerpsMarket, isPerpsLoading, onPerpsMarketResolved]);
 
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -332,44 +352,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
-  // Check if user has a position for this asset (only if perps is enabled and market exists)
+  // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
-    usePerpsPositionForAsset(
-      isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
-    );
+    usePerpsPositionForAsset(hasPerpsMarket ? token.symbol : null);
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const showPerpsSection =
-    isPerpsEnabled &&
     hasPerpsMarket &&
     Boolean(marketData) &&
     isTokenTrustworthy &&
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
-
-  const isMerklClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
-  const isTokenEligibleForMerklClaim = useMemo(
-    () =>
-      isMerklClaimingEnabled &&
-      isTokenEligibleForMerklRewards(
-        token.chainId as Hex,
-        token.address as Hex | undefined,
-      ),
-    [isMerklClaimingEnabled, token.chainId, token.address],
-  );
-
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-  const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-  const showMusdConvertSection =
-    isMusdToken(token.address) &&
-    isMusdConversionFlowEnabled &&
-    isMusdGeoEligible;
 
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
@@ -397,7 +392,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     report: marketInsightsReport,
     timeAgo: marketInsightsTimeAgo,
     isLoading: isMarketInsightsLoading,
-  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
+    error: marketInsightsError,
+    cacheState: marketInsightsCacheState,
+  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled, {
+    source: 'token_details',
+    stage: 'entry_card',
+    assetType: 'token',
+  });
+  const marketInsightsEntryTraceId = useMarketInsightsEntryTrace({
+    assetIdentifier: marketInsightsCaip19Id,
+    assetType: 'token',
+    cacheState: marketInsightsCacheState,
+    enabled: isMarketInsightsEnabled,
+    error: marketInsightsError,
+    isLoading: isMarketInsightsLoading,
+    report: marketInsightsReport,
+    source: 'token_details',
+  });
 
   useEffect(() => {
     const severity = securityData?.resultType;
@@ -407,13 +418,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
     if (isMarketInsightsLoading) {
       return;
-    }
-    if (!marketInsightsReport && marketInsightsCaip19Id) {
-      // No report available — cancel the orphaned trace that was started during render
-      endTrace({
-        name: TraceName.MarketInsightsEntryCardLoad,
-        id: marketInsightsCaip19Id,
-      });
     }
     onMarketInsightsDisplayResolved?.({
       isDisplayed: Boolean(marketInsightsReport),
@@ -428,35 +432,29 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     securityData?.resultType,
   ]);
 
-  // Start the entry card trace synchronously during render so it is registered
-  // in the trace map before any child useEffect (where endTrace fires) runs.
-  // Using a ref guard ensures we only start one trace per unique asset.
-  const entryCardTraceStartedRef = useRef<string | null>(null);
-  if (
-    isMarketInsightsEnabled &&
-    marketInsightsCaip19Id &&
-    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
-  ) {
-    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
-    trace({
-      name: TraceName.MarketInsightsEntryCardLoad,
-      op: TraceOperation.MarketInsightsLoad,
-      id: marketInsightsCaip19Id,
-    });
-  }
-
   const goToBrowserUrl = (url: string) => {
-    const [screen, params] = createWebviewNavDetails({
-      url,
-    });
-    navigation.navigate(screen, params as Record<string, unknown>);
+    navigateWithDetails(navigation, createWebviewNavDetails({ url }));
   };
 
   const handleMarketInsightsPress = useCallback(() => {
     if (marketInsightsCaip19Id) {
+      const traceId = getMarketInsightsTraceId(
+        marketInsightsCaip19Id,
+        'token_details',
+        'full_view',
+      );
       trace({
         name: TraceName.MarketInsightsViewLoad,
         op: TraceOperation.MarketInsightsLoad,
+        id: traceId,
+        tags: getMarketInsightsTraceTags(
+          {
+            source: 'token_details',
+            stage: 'full_view',
+            assetType: 'token',
+          },
+          'warm',
+        ),
       });
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
@@ -477,7 +475,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: token.symbol,
-      assetIdentifier: marketInsightsCaip19Id,
+      // Handler only fires from the market-insights entry card, which renders
+      // when the id is present; cast preserves the existing runtime value.
+      assetIdentifier: marketInsightsCaip19Id as string,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
       token,
@@ -592,6 +592,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             )}
 
+          {isAssetInactive ? (
+            <AssetActivateCard token={token} chainName="Stellar" />
+          ) : null}
+
           <Price
             asset={token}
             prices={prices}
@@ -607,7 +611,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
           />
-          {!isTokenTradingOpen(token as BridgeToken) && (
+          {!isTokenTradable(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
                 iconName={ComponentLibraryIconName.Info}
@@ -641,6 +645,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   onPress={handleMarketInsightsPress}
                   onDisclaimerPress={onMarketInsightsDisclaimerPress}
                   caip19Id={marketInsightsCaip19Id ?? undefined}
+                  traceId={marketInsightsEntryTraceId}
                   source="token_details"
                   testID="market-insights-entry-card"
                 />
@@ -654,20 +659,28 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          {balance != null && (
-            <Balance
-              asset={token}
-              mainBalance={mainBalance}
-              secondaryBalance={secondaryBalance}
+          {balance != null && spendableBalanceData.hasSpendableBalance && (
+            <SpendableBalanceSection
+              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
+              spendableBalance={spendableBalanceData.spendableBalance}
+              totalBalance={String(balance)}
+              symbol={token.symbol}
+              fiatValue={mainBalance}
             />
           )}
-          {isTokenEligibleForMerklClaim && (
-            <AssetOverviewClaimBonus asset={token} />
-          )}
-          {showMusdConvertSection && (
-            <MoneyConvertStablecoins
-              location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
-            />
+          {balance != null && !spendableBalanceData.hasSpendableBalance && (
+            <>
+              <Balance
+                asset={token}
+                balanceCta={balanceCta}
+                balanceDescription={balanceDescription}
+                mainBalance={mainBalance}
+                priceChangeOverride={balancePriceChangeOverride}
+                priceChangeOverrideColor={balancePriceChangeOverrideColor}
+                secondaryBalance={secondaryBalance}
+              />
+              <EarnBalance asset={token} />
+            </>
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -728,12 +741,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 animationType="none"
                 statusBarTranslucent
               >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={closeEligibilityModal}
-                  contentKey="geo_block"
-                  testID="token-details-geo-block-tooltip"
-                />
+                <ModalSafeAreaProvider>
+                  <PerpsBottomSheetTooltip
+                    isVisible
+                    onClose={closeEligibilityModal}
+                    contentKey="geo_block"
+                    testID="token-details-geo-block-tooltip"
+                  />
+                </ModalSafeAreaProvider>
               </Modal>
             </View>
           )}

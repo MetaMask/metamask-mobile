@@ -1,4 +1,5 @@
-import { Hex } from '@metamask/utils';
+import { Hex, parseCaipAssetType } from '@metamask/utils';
+import { getAssetId } from '@metamask/assets-controllers';
 import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 import { TraceName, endTrace, trace } from '../../util/trace';
@@ -76,6 +77,7 @@ const useTokenHistoricalPrices = ({
   isLoading: boolean;
   error: Error | undefined;
   hasInsufficientCoverage: boolean;
+  apiDurationMs: number | undefined;
 } => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
@@ -83,11 +85,14 @@ const useTokenHistoricalPrices = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
   const [insufficientCoverage, setInsufficientCoverage] = useState(false);
+  const [apiDurationMs, setApiDurationMs] = useState<number>();
 
   useEffect(() => {
     const fetchPrices = async () => {
       setIsLoading(true);
       setInsufficientCoverage(false);
+      setApiDurationMs(undefined);
+      const fetchStart = Date.now();
 
       try {
         const baseUri = 'https://price.api.cx.metamask.io/v3';
@@ -99,8 +104,20 @@ const useTokenHistoricalPrices = ({
           caipChainId = asset.chainId as string;
           assetIdentifier = asset.address.split('/')[1];
         } else {
-          caipChainId = `eip155:${getDecimalChainId(chainId)}`;
-          assetIdentifier = `erc20:${address}`;
+          // Trying to use same getAssetId logic as for spot-prices
+          const caipAssetType = getAssetId({
+            chainId,
+            tokenAddress: asset.address,
+          });
+          if (caipAssetType) {
+            const parsedCaipAsset = parseCaipAssetType(caipAssetType);
+            caipChainId = parsedCaipAsset.chainId;
+            assetIdentifier = `${parsedCaipAsset.assetNamespace}:${parsedCaipAsset.assetReference}`;
+          } else {
+            // Fallback into legacy way of building URL params
+            caipChainId = `eip155:${getDecimalChainId(chainId)}`;
+            assetIdentifier = `erc20:${address}`;
+          }
         }
 
         const uri = new URL(
@@ -152,6 +169,7 @@ const useTokenHistoricalPrices = ({
       } catch (e: unknown) {
         setError(e as Error);
       } finally {
+        setApiDurationMs(Date.now() - fetchStart);
         setIsLoading(false);
       }
     };
@@ -173,6 +191,7 @@ const useTokenHistoricalPrices = ({
     isLoading,
     error,
     hasInsufficientCoverage: insufficientCoverage,
+    apiDurationMs,
   };
 };
 

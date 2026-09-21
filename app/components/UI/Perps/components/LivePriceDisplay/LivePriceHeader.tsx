@@ -41,9 +41,12 @@ interface LivePriceHeaderProps {
   /**
    * Visual size of the price/change row.
    * - `default`: compact, muted price (used inside the market header).
-   * - `large`: prominent price shown below the market header.
+   * - `large`: prominent price shown below the market header (Lite).
+   * - `prominent`: smaller prominent price used by the Pro market header
+   * (Figma Heading/Lg, 24px) — same stacked layout as `large`, but a step
+   * down in scale to fit Pro's denser summary row.
    */
-  size?: 'default' | 'large';
+  size?: 'default' | 'large' | 'prominent';
 }
 
 const styleSheet = () =>
@@ -86,8 +89,13 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   percentChange24h: percentChange24hOverride,
   size = 'default',
 }) => {
-  const isLarge = size === 'large';
-  const priceVariant = isLarge ? TextVariant.DisplayLg : TextVariant.BodySm;
+  const isLarge = size === 'large' || size === 'prominent';
+  const priceVariant =
+    size === 'large'
+      ? TextVariant.DisplayLg
+      : size === 'prominent'
+        ? TextVariant.HeadingLg
+        : TextVariant.BodySm;
   const priceColor = isLarge
     ? TextColor.TextDefault
     : TextColor.TextAlternative;

@@ -33,8 +33,8 @@ jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
-  // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
-  selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  // Factory: selectUnifiedBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
+  selectUnifiedBalanceBySelectedAccountGroup: jest.fn(() => () => null),
   // Factory: selectBalanceChangeBySelectedAccountGroup(period, popularChainIds?) -> (state) => value
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
   // This selector is used to display the BalanceEmptyState
@@ -106,13 +106,13 @@ describe('AccountGroupBalance', () => {
     jest.clearAllMocks();
     // Reset mock implementations to default (null) before each test
     const {
-      selectBalanceBySelectedAccountGroup,
+      selectUnifiedBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
       selectBalanceChangeBySelectedAccountGroup,
     } = jest.requireMock('../../../../../selectors/assets/balances');
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => null,
-    );
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => null);
     (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
       () => null,
     );
@@ -132,18 +132,18 @@ describe('AccountGroupBalance', () => {
   });
 
   it('renders formatted balance when balance data is fetched', () => {
-    const { selectBalanceBySelectedAccountGroup } = jest.requireMock(
+    const { selectUnifiedBalanceBySelectedAccountGroup } = jest.requireMock(
       '../../../../../selectors/assets/balances',
     );
     jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(true);
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => ({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 123.45,
-        userCurrency: 'usd',
-      }),
-    );
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => ({
+      walletId: 'wallet-1',
+      groupId: 'wallet-1/group-1',
+      totalBalanceInUserCurrency: 123.45,
+      userCurrency: 'usd',
+    }));
 
     const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
       state: testState,
@@ -156,19 +156,19 @@ describe('AccountGroupBalance', () => {
   it('renders empty state when fetched account group balance is zero', () => {
     const {
       selectAccountGroupBalanceForEmptyState,
-      selectBalanceBySelectedAccountGroup,
+      selectUnifiedBalanceBySelectedAccountGroup,
     } = jest.requireMock('../../../../../selectors/assets/balances');
     jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(true);
 
     // Mock the regular balance selector to return zero balance data
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => ({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 0, // Zero on current network
-        userCurrency: 'usd',
-      }),
-    );
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => ({
+      walletId: 'wallet-1',
+      groupId: 'wallet-1/group-1',
+      totalBalanceInUserCurrency: 0, // Zero on current network
+      userCurrency: 'usd',
+    }));
 
     // Mock the empty state selector to return zero balance across all mainnet networks
     (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
@@ -186,5 +186,25 @@ describe('AccountGroupBalance', () => {
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
     );
     expect(el).toBeOnTheScreen();
+  });
+
+  it('does not recreate the balance selector on re-render when popularNetworks content is unchanged', () => {
+    // `useNetworkEnablement` is mocked to return a brand new `popularNetworks` array
+    // literal on every call (as the real hook does). If `chainIdsForBalance` were not
+    // stabilized by content, `groupBalanceSelector`'s useMemo would treat every render
+    // as a change and call this factory again on every render, discarding the
+    // selector's internal reselect cache each time (the root cause of the max update
+    // depth / infinite loop this hook was written to avoid).
+    const { selectUnifiedBalanceBySelectedAccountGroup } = jest.requireMock(
+      '../../../../../selectors/assets/balances',
+    );
+
+    const { rerender } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
+    });
+    rerender(<AccountGroupBalance suspendRiveForCurtain={false} />);
+    rerender(<AccountGroupBalance suspendRiveForCurtain />);
+
+    expect(selectUnifiedBalanceBySelectedAccountGroup).toHaveBeenCalledTimes(1);
   });
 });

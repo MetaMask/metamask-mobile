@@ -45,7 +45,20 @@ export enum CardMessageBoxType {
   CreditMoneyAccountRequired = 'credit_money_account_required',
   CreditAvailable = 'credit_available',
   CreditAvailableNoMoneyAccount = 'credit_available_no_money_account',
+  UkMigrationSoft = 'uk_migration_soft',
+  UkMigrationRequired = 'uk_migration_required',
 }
+
+/**
+ * How the `card_provisioning` alert should render. Providers that reconcile
+ * provisioning state client-side narrow this; the rest keep the default
+ * `provisioning` banner.
+ */
+export type CardProvisioningView =
+  | 'reconciling'
+  | 'hidden'
+  | 'kyc_under_review'
+  | 'provisioning';
 
 export type CardUserPhase =
   | 'ACCOUNT'

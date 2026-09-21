@@ -1,3 +1,5 @@
+import { ActionTypes, type QuoteResponseV1 } from '@metamask/bridge-controller';
+
 interface QuoteStreamCompleteMock {
   quoteCount?: number;
   hasQuotes?: boolean;
@@ -911,7 +913,7 @@ export const GET_TOKENS_BASE_RESPONSE = [
   {
     address: '0x0000000000000000000000000000000000000000',
     chainId: 8453,
-    assetId: 'eip155:8453/slip44:8453',
+    assetId: 'eip155:8453/slip44:60',
     symbol: 'ETH',
     decimals: 18,
     name: 'Ether',
@@ -964,7 +966,7 @@ export const GET_TOKENS_BASE_RESPONSE = [
   },
 ];
 
-export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
+export const GET_QUOTE_ETH_SOLANA_RESPONSE: QuoteResponseV1[] = [
   {
     quote: {
       bridgeId: 'lifi',
@@ -980,13 +982,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
         symbol: 'ETH',
         decimals: 18,
         name: 'Ethereum',
-        coingeckoId: 'ethereum',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-        metadata: {},
-        price: '4631.438250855256',
       },
       destChainId: 1151111081099710,
       destTokenAmount: '22051125394',
@@ -998,12 +995,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
         symbol: 'SOL',
         decimals: 9,
         name: 'SOL',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
-        metadata: {},
-        price: '207.23731131530545',
       },
       feeData: {
         metabridge: {
@@ -1015,13 +1008,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
-            price: '4631.438250855256',
           },
         },
       },
@@ -1029,14 +1017,9 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
       protocols: ['mayan (via LiFi)'],
       steps: [
         {
-          action: 'bridge',
+          action: ActionTypes.BRIDGE,
           srcChainId: 1,
           destChainId: 1151111081099710,
-          protocol: {
-            name: 'mayan',
-            displayName: 'Mayan (Swift)',
-            icon: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/mayan.svg',
-          },
           srcAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 1,
@@ -1044,12 +1027,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
           },
           destAsset: {
             address: '0x0000000000000000000000000000000000000000',
@@ -1058,14 +1037,9 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
             symbol: 'SOL',
             decimals: 9,
             name: 'SOL',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
-            metadata: {},
           },
-          srcAmount: '991250000000000000',
-          destAmount: '22051125394',
         },
       ],
       priceData: {
@@ -1086,7 +1060,7 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
   },
 ];
 
-export const GET_QUOTE_ETH_BASE_RESPONSE = [
+export const GET_QUOTE_ETH_BASE_RESPONSE: QuoteResponseV1[] = [
   {
     quote: {
       bridgeId: 'lifi',
@@ -1102,13 +1076,8 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
         symbol: 'ETH',
         decimals: 18,
         name: 'Ethereum',
-        coingeckoId: 'ethereum',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-        metadata: {},
-        price: '4636.383365133272',
       },
       destChainId: 8453,
       destTokenAmount: '990753945481277500',
@@ -1116,17 +1085,12 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
       destAsset: {
         address: '0x0000000000000000000000000000000000000000',
         chainId: 8453,
-        assetId: 'eip155:8453/slip44:8453',
+        assetId: 'eip155:8453/slip44:60',
         symbol: 'ETH',
         decimals: 18,
         name: 'Ether',
-        coingeckoId: 'base',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
-        metadata: {},
-        price: '4636.383365133272',
       },
       feeData: {
         metabridge: {
@@ -1138,13 +1102,8 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
-            price: '4636.383365133272',
           },
         },
       },
@@ -1152,14 +1111,9 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
       protocols: ['mayan (via LiFi)'],
       steps: [
         {
-          action: 'bridge',
+          action: ActionTypes.BRIDGE,
           srcChainId: 1,
           destChainId: 8453,
-          protocol: {
-            name: 'mayan',
-            displayName: 'Mayan (Swift)',
-            icon: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/mayan.svg',
-          },
           srcAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 1,
@@ -1167,29 +1121,19 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
           },
           destAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 8453,
-            assetId: 'eip155:8453/slip44:8453',
+            assetId: 'eip155:8453/slip44:60',
             symbol: 'ETH',
             decimals: 18,
             name: 'Ether',
-            coingeckoId: 'base',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
-            metadata: {},
           },
-          srcAmount: '991250000000000000',
-          destAmount: '990753945481277500',
         },
       ],
       priceData: {
@@ -1219,7 +1163,7 @@ export const GET_TOP_ASSETS_BASE_RESPONSE = [
 // This matches the PopularToken interface used by usePopularTokens hook
 export const GET_POPULAR_TOKENS_BASE_RESPONSE = [
   {
-    assetId: 'eip155:8453/slip44:8453',
+    assetId: 'eip155:8453/slip44:60',
     decimals: 18,
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',

@@ -1,10 +1,11 @@
-import { text } from './text';
+import { TextElement } from '@metamask/snaps-sdk/jsx';
 import {
+  FontWeight,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text/Text.types';
-import { TextElement } from '@metamask/snaps-sdk/jsx';
+} from '@metamask/design-system-react-native';
 import { mockTheme } from '../../../../util/theme';
+import { text } from './text';
 
 describe('text component', () => {
   const defaultParams = {
@@ -35,19 +36,19 @@ describe('text component', () => {
           children: 'Hello World',
           props: {
             color: undefined,
-            variant: 'sBodyMD',
+            variant: TextVariant.BodyMd,
+            fontWeight: FontWeight.Regular,
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
           },
         },
       ],
       props: {
-        variant: TextVariant.BodyMD,
+        variant: TextVariant.BodyMd,
         color: undefined,
+        fontWeight: FontWeight.Regular,
         style: {
-          fontWeight: '400',
           textAlign: 'left',
         },
       },
@@ -55,18 +56,21 @@ describe('text component', () => {
   });
 
   it('should handle different text colors', () => {
-    const colors: TextElement['props']['color'][] = [
-      'default',
-      'alternative',
-      'muted',
-      'error',
-      'success',
-      'warning',
-    ];
+    const colorMap: Record<
+      NonNullable<TextElement['props']['color']>,
+      string
+    > = {
+      default: TextColor.TextDefault,
+      alternative: TextColor.TextAlternative,
+      muted: TextColor.TextMuted,
+      error: TextColor.ErrorDefault,
+      success: TextColor.SuccessDefault,
+      warning: TextColor.WarningDefault,
+    };
 
-    colors.forEach((color) => {
-      if (!color) return;
-
+    (
+      Object.keys(colorMap) as NonNullable<TextElement['props']['color']>[]
+    ).forEach((color) => {
       const el: TextElement = {
         type: 'Text',
         props: { color, children: ['Test'] },
@@ -74,10 +78,7 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      const capitalizedColor = color.charAt(0).toUpperCase() + color.slice(1);
-      expect(result.props?.color).toBe(
-        TextColor[capitalizedColor as keyof typeof TextColor],
-      );
+      expect(result.props?.color).toBe(colorMap[color]);
     });
   });
 
@@ -85,9 +86,9 @@ describe('text component', () => {
     const weights = ['bold', 'medium', 'regular'] as const;
 
     const expectedWeights = {
-      bold: '600',
-      medium: '500',
-      regular: '400',
+      bold: FontWeight.Bold,
+      medium: FontWeight.Medium,
+      regular: FontWeight.Regular,
     };
 
     weights.forEach((weight) => {
@@ -98,10 +99,7 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((result.props as any)?.style?.fontWeight).toBe(
-        expectedWeights[weight],
-      );
+      expect(result.props?.fontWeight).toBe(expectedWeights[weight]);
     });
   });
 
@@ -137,6 +135,6 @@ describe('text component', () => {
     };
 
     const result = text({ element: el, ...defaultParams });
-    expect(result.props?.variant).toBe(TextVariant.BodySM);
+    expect(result.props?.variant).toBe(TextVariant.BodySm);
   });
 });

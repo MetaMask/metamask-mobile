@@ -96,22 +96,24 @@ const WatchlistDefaultTokenCard: React.FC<WatchlistDefaultTokenCardProps> = ({
           />
         </View>
       </View>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Bold}
-        testID={`${WatchlistDefaultTokenCardTestIds.SYMBOL}-${assetId}`}
-      >
-        {token.symbol}
-      </Text>
-      {changeLabel ? (
+      <View>
         <Text
-          variant={TextVariant.BodySm}
-          color={changeTextColor}
-          testID={`${WatchlistDefaultTokenCardTestIds.PRICE_CHANGE}-${assetId}`}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          testID={`${WatchlistDefaultTokenCardTestIds.SYMBOL}-${assetId}`}
         >
-          {changeLabel}
+          {token.symbol}
         </Text>
-      ) : null}
+        {changeLabel ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={changeTextColor}
+            testID={`${WatchlistDefaultTokenCardTestIds.PRICE_CHANGE}-${assetId}`}
+          >
+            {changeLabel}
+          </Text>
+        ) : null}
+      </View>
     </Pressable>
   );
 };

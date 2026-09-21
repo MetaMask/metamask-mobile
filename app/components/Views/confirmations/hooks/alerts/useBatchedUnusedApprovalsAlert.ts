@@ -3,6 +3,7 @@ import {
   NestedTransactionMetadata,
   SimulationTokenBalanceChange,
   SimulationErrorCode,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -14,13 +15,12 @@ import { APPROVAL_TYPES } from '../../constants/approvals';
 import { AlertKeys } from '../../constants/alerts';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
 import {
   parseApprovalTransactionData,
   ParsedApprovalTransactionData,
 } from '../../utils/approvals';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { selectNonZeroUnusedApprovalsAllowList } from '../../../../../selectors/featureFlagController/confirmations';
@@ -234,7 +234,7 @@ export const useBatchedUnusedApprovalsAlert = () => {
 
   return useMemo(() => {
     if (!shouldShowAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

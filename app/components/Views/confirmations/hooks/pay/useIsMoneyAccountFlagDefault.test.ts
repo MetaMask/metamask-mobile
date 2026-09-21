@@ -2,7 +2,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { usePayMoneyAccountAvailable } from './usePayMoneyAccountAvailable';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { PayWithOption } from '../../components/confirm/confirm-component';
@@ -12,8 +12,8 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
+jest.mock('./usePayMoneyAccountAvailable', () => ({
+  usePayMoneyAccountAvailable: jest.fn(),
 }));
 
 jest.mock(
@@ -27,11 +27,11 @@ jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
-const MONEY_ACCOUNT_ADDRESS = '0xabc1111111111111111111111111111111111111';
-
 const MONEY_ACCOUNT_FLAG = {
   defaultPaySelectedSection: {
+    perpsDepositAndOrder: 'money-account',
     perpsWithdraw: 'money-account',
+    predictDepositAndOrder: 'money-account',
     predictWithdraw: 'money-account',
   },
 };
@@ -47,8 +47,9 @@ describe('useIsMoneyAccountFlagDefault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({});
-    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
-      address: MONEY_ACCOUNT_ADDRESS,
+    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue({
+      isAvailable: true,
+      isPending: false,
     });
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
       DEFAULT_FLAGS,
@@ -65,7 +66,12 @@ describe('useIsMoneyAccountFlagDefault', () => {
     expect(result.current).toBe(false);
   });
 
-  it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+  it.each([
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictDepositAndOrder,
+    TransactionType.predictWithdraw,
+  ])(
     'returns true for %s when flag maps type to "money-account" and money account exists',
     (type) => {
       (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
@@ -91,10 +97,11 @@ describe('useIsMoneyAccountFlagDefault', () => {
     },
   );
 
-  it('returns false when flag is "money-account" but no money account', () => {
-    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
-      undefined,
-    );
+  it('returns false when the money account is unavailable (missing or unfunded)', () => {
+    (usePayMoneyAccountAvailable as jest.Mock).mockReturnValue({
+      isAvailable: false,
+      isPending: false,
+    });
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
       MONEY_ACCOUNT_FLAG,
     );
@@ -138,7 +145,6 @@ describe('useIsMoneyAccountFlagDefault', () => {
     TransactionType.swap,
     TransactionType.bridge,
     TransactionType.moneyAccountDeposit,
-    TransactionType.predictDepositAndOrder,
   ])(
     'returns false for non-perps/predict type %s even when flag is enabled',
     (type) => {

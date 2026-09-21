@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -6,9 +9,8 @@ import { selectInternalAccounts } from '../../../../../selectors/accountsControl
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { TrustSignalDisplayState } from '../../types/trustSignals';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { useAddressTrustSignal } from '../useAddressTrustSignals';
@@ -56,7 +58,7 @@ export function useFirstTimeInteractionAlert(): Alert[] {
 
   return useMemo(() => {
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

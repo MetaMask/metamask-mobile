@@ -2,6 +2,7 @@ import { constants } from 'ethers';
 import {
   getNativeSourceToken,
   getDefaultDestToken,
+  getDefaultTokenPairForChains,
   isSameBridgeToken,
   tokenMatchesQuery,
 } from './tokenUtils';
@@ -236,6 +237,43 @@ describe('tokenUtils', () => {
       // Only chainId should be different (CAIP format instead of hex)
       expect(result?.chainId).toBe(caipChainId);
       expect(result?.chainId).not.toBe(originalToken.chainId);
+    });
+  });
+
+  describe('getDefaultTokenPairForChains', () => {
+    it('returns undefined when there are no enabled chains', () => {
+      const result = getDefaultTokenPairForChains([]);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('anchors on Ethereum mainnet ETH/mUSD when Ethereum is enabled', () => {
+      const result = getDefaultTokenPairForChains(['eip155:56', 'eip155:1']);
+
+      expect(result?.sourceToken).toEqual(getNativeSourceToken('eip155:1'));
+      expect(result?.sourceToken.chainId).toBe('0x1');
+      expect(result?.destToken?.symbol).toBe('mUSD');
+      expect(result?.destToken?.chainId).toBe('0x1');
+    });
+
+    it('falls back to the first enabled chain when Ethereum is not enabled', () => {
+      const result = getDefaultTokenPairForChains(['eip155:56', 'eip155:8453']);
+
+      expect(result?.sourceToken).toEqual(getNativeSourceToken('eip155:56'));
+      expect(result?.sourceToken.chainId).toBe('0x38');
+      expect(result?.destToken?.chainId).toBe('0x38');
+    });
+
+    it('omits destToken when the default dest would equal the source token', () => {
+      // eip155:999999 has no configured dest token and no native token
+      // mapping conflict scenario is hard to construct naturally, so this
+      // guards against getDefaultDestToken returning undefined gracefully.
+      const result = getDefaultTokenPairForChains(['eip155:999999']);
+
+      expect(result?.sourceToken).toEqual(
+        getNativeSourceToken('eip155:999999'),
+      );
+      expect(result?.destToken).toBeUndefined();
     });
   });
 

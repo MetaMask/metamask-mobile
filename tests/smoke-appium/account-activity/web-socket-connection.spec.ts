@@ -7,7 +7,7 @@ import {
   waitForAccountActivitySubscription,
   waitForAccountActivityDisconnection,
 } from '../../websocket/account-activity-mocks.js';
-import PlaywrightGestures from '../../framework/PlaywrightGestures.js';
+import Gestures from '../../framework/Gestures.js';
 import {
   assertSubscriptionCountAtLeast,
   assertSubscriptionCountIncreased,
@@ -71,7 +71,7 @@ appiumTest.describe(
             const resubPromise = waitForAccountActivitySubscription(
               LOGIN_SUBSCRIPTION_TIMEOUT_MS,
             );
-            await PlaywrightGestures.activateApp(currentDeviceDetails);
+            await Gestures.activateApp(currentDeviceDetails);
             await resubPromise;
             assertSubscriptionCountIncreased(
               countAfterLogin,
@@ -82,8 +82,7 @@ appiumTest.describe(
       },
     );
 
-    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
-    appiumTest.skip(
+    appiumTest(
       'resubscribes after lock and unlock',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(

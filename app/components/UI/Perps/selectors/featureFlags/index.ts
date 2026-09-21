@@ -64,6 +64,24 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for Chase orders.
+ * LaunchDarkly key (kebab-case): `perps-mobile-chase`.
+ */
+export const PERPS_MOBILE_CHASE_FLAG_KEY = 'perpsMobileChase' as const;
+
+/** Chase is default-off and may only be exposed to supported app versions. */
+export const selectPerpsMobileChaseEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_CHASE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Client-config / Redux key for the Perps advanced chart feature flag.
  * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
  */
@@ -277,43 +295,6 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
 );
 
 /**
- * Resolve whether the MYX provider is enabled.
- * Pure utility so that both the Redux selector and the controller
- * (which reads RemoteFeatureFlagController state directly) share
- * the same logic.
- *
- * Local env var takes priority — if set to "true", MYX is always enabled
- * regardless of remote flag. Remote flag only used as fallback when
- * local is not explicitly enabled.
- */
-export function resolvePerpsMyxProviderEnabled(
-  remoteFeatureFlags: Record<string, unknown> | undefined,
-): boolean {
-  const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
-
-  // Local override always wins
-  if (localFlag) {
-    return true;
-  }
-
-  const remoteFlag =
-    remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
-
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-}
-
-/**
- * Selector for MYX Provider enabled flag
- * Controls whether MYX is available as a provider option
- *
- * @returns boolean - true if MYX provider should be available, false otherwise
- */
-export const selectPerpsMYXProviderEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
-);
-
-/**
  * Selector for Perps Products section feature flag
  * Controls visibility of the category pills grid on Perps home screen
  *
@@ -415,6 +396,93 @@ export const selectPerpsProModeEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for triggered order types in the Perps Pro order form.
+ * Defaults to false so triggered types can be rolled out independently.
+ *
+ * @returns boolean - true if triggered order types can be shown, false otherwise
+ */
+export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProTriggeredOrdersEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Pro open-position margin preview.
+ * LaunchDarkly key (kebab-case): `perps-position-modify-preview-enabled`.
+ */
+export const PERPS_POSITION_MODIFY_PREVIEW_ENABLED_FLAG_KEY =
+  'perpsPositionModifyPreviewEnabled' as const;
+
+/**
+ * Selector for before→after margin (and liquidation) on the Pro order form
+ * when an isolated position is already open, including leverage changes.
+ * Defaults to false so the preview can be rolled out and rolled back
+ * independently of Pro mode.
+ *
+ * @returns boolean - true if the position-modify preview should be shown
+ */
+export const selectPerpsPositionModifyPreviewEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_POSITION_MODIFY_PREVIEW_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Pro Scale order feature flag.
+ * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
+ */
+export const PERPS_MOBILE_SCALE_FLAG_KEY = 'perpsMobileScale' as const;
+
+/**
+ * Selector for Scale orders in the Perps Pro order form.
+ * Defaults to false so entry and placement can be rolled back without hiding
+ * already-resting child limit orders from either Lite or Pro order lists.
+ *
+ * @returns boolean - true if Scale order entry and placement are enabled
+ */
+export const selectPerpsMobileScaleEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_SCALE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Hyperliquid TWAP placement in the Perps Pro order form.
+ * Defaults to false so strategy placement can be rolled out independently.
+ *
+ * LaunchDarkly key: `perps-mobile-twap`
+ *
+ * @returns boolean - true if TWAP placement can be shown, false otherwise
+ */
+export const PERPS_MOBILE_TWAP_FLAG_KEY = 'perpsMobileTwap' as const;
+
+export const selectPerpsProTwapEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_TWAP_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Terminal Backend feature flag.
  * Controls whether market-data calls route through the MetaMask Terminal API
  * (with HyperLiquid fallback) or go directly to HyperLiquid.
@@ -447,3 +515,30 @@ export const selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag =
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
   });
+
+/**
+ * Client-config / Redux key for the Cross margin feature flag.
+ * LaunchDarkly key (kebab-case): `perps-cross-margin-enabled`.
+ */
+export const PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY =
+  'perpsCrossMarginEnabled' as const;
+
+/**
+ * Selector for Cross margin support on existing positions.
+ * When enabled: Cross positions show the Cross badge, the shared-collateral
+ * liquidation explanation and a non-editable "Position margin used" label.
+ * When disabled: Cross positions fall back to the isolated presentation.
+ * Defaults to false so Cross margin can be rolled out and rolled back
+ * independently of Pro mode.
+ *
+ * @returns boolean - true if Cross margin display is enabled, false otherwise
+ */
+export const selectPerpsCrossMarginEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.[PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY];
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);

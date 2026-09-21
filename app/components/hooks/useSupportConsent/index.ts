@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   navigateToSupportConsent,
   OpenSupportUrl,
@@ -23,7 +24,7 @@ export type { OpenSupportUrl };
  * actually opened rather than when the user merely taps confirm/reject.
  */
 export const useSupportConsent = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const openSupportWithConsent = useCallback(
     (open: OpenSupportUrl, baseUrl?: string, onOpenSupport?: () => void) => {

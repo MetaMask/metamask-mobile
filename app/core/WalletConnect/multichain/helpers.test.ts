@@ -30,6 +30,11 @@ const mockedGetAdapter = getAdapter as jest.Mock;
 
 const mockedGetAllAdapters = getAllAdapters as jest.Mock;
 
+const MOCK_ORIGIN_METADATA = {
+  transport: 'WalletConnect',
+  selfReportedOrigin: 'https://metamask.io',
+};
+
 function createFakeAdapter(
   overrides: Partial<ChainAdapter> = {},
 ): ChainAdapter {
@@ -332,6 +337,8 @@ describe('handleRequestByAdapter', () => {
     mockedGetAdapter.mockReturnValue(fakeAdapter);
 
     const args = {
+      origin: 'channelId',
+      originMetadata: MOCK_ORIGIN_METADATA,
       connectedAddresses: ['tron:0x2b6653dc:TAddr' as CaipAccountId],
       scope: 'tron:0x2b6653dc' as CaipChainId,
       requestId: 1,
@@ -351,6 +358,8 @@ describe('handleRequestByAdapter', () => {
 
     await expect(
       handleRequestByAdapter({
+        origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: [],
         scope: 'tron:0x2b6653dc',
         requestId: 1,

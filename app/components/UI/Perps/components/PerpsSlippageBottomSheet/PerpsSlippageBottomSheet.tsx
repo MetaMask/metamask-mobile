@@ -37,6 +37,9 @@ interface PerpsSlippageBottomSheetProps {
   isVisible: boolean;
   currentValueBps: number;
   onClose: () => void;
+  onBack?: () => void;
+  onSaveComplete?: () => void;
+  presentation?: 'bottomSheet' | 'screen';
   onSave: (valueBps: number) => void;
 }
 
@@ -48,6 +51,9 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   isVisible,
   currentValueBps,
   onClose,
+  onBack,
+  onSaveComplete,
+  presentation = 'bottomSheet',
   onSave,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -94,9 +100,11 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   }, []);
 
   const handleSet = useCallback(() => {
-    onSave(selectedBps);
-    onClose();
-  }, [onSave, onClose, selectedBps]);
+    if (selectedBps !== currentValueBps) {
+      onSave(selectedBps);
+    }
+    (onSaveComplete ?? onClose)();
+  }, [currentValueBps, onSave, onClose, onSaveComplete, selectedBps]);
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -115,7 +123,9 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
       <PerpsCustomSlippageBottomSheet
         isVisible
         currentValueBps={selectedBps}
-        onClose={handleCustomClose}
+        presentation={presentation}
+        onBack={presentation === 'screen' ? handleCustomClose : undefined}
+        onClose={presentation === 'screen' ? onClose : handleCustomClose}
         onSave={handleCustomSave}
       />
     );
@@ -123,13 +133,12 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
 
   const customLabel = isCustom ? `${bpsToPercent(selectedBps)}%` : null;
 
-  return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      testID={PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET}
-    >
-      <BottomSheetHeader onClose={onClose}>
+  const content = (
+    <>
+      <BottomSheetHeader
+        onBack={presentation === 'screen' ? onBack : undefined}
+        onClose={onClose}
+      >
         {strings('perps.slippage.config_title')}
       </BottomSheetHeader>
 
@@ -174,6 +183,20 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
       </Box>
 
       <BottomSheetFooter primaryButtonProps={primaryButtonProps} />
+    </>
+  );
+
+  if (presentation === 'screen') {
+    return <Box twClassName="flex-1">{content}</Box>;
+  }
+
+  return (
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={onClose}
+      testID={PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET}
+    >
+      {content}
     </BottomSheet>
   );
 };

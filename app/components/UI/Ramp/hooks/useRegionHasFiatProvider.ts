@@ -18,7 +18,20 @@ import { useHeadlessAllProvidersEnabled } from './useHeadlessAllProvidersEnabled
  */
 export function useRegionHasFiatProvider(assetId: string): boolean {
   const allProvidersEnabled = useHeadlessAllProvidersEnabled();
-  const { providers } = useRampsProviders();
+  const { providers, isLoading } = useRampsProviders();
+
+  // Providers are not persisted: every region switch clears the list to `[]`
+  // and refetches, a window that can last several seconds on a cold switch.
+  // Asserting "no provider" during that window hides the deposit entry even in
+  // regions that do offer fiat (the reported New York "nothing shows when
+  // adding funds" case, where providers only populated ~24s after the switch).
+  // While widening is on, treat "still loading with nothing fetched yet" as
+  // available so the entry survives the fetch, then let it resolve to the real
+  // asset-aware answer once providers arrive. Gated on the flag so the
+  // production native-only default keeps its exact current behavior.
+  if (allProvidersEnabled && isLoading && providers.length === 0) {
+    return true;
+  }
 
   return regionHasProviderForAsset({ providers, assetId, allProvidersEnabled });
 }

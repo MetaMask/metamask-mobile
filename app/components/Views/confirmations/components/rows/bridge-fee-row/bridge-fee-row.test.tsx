@@ -173,6 +173,34 @@ describe('BridgeFeeRow', () => {
     expect(getByText('$1.23')).toBeOnTheScreen();
   });
 
+  it('shows direct mUSD provider and network fees in separate tooltip rows', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { fiat: '0.5', usd: '0.5' },
+        providerFiat: { fiat: '0.7', usd: '0.7' },
+        sourceNetwork: {
+          estimate: { fiat: '0.2', usd: '0.2', raw: '0', human: '0' },
+          max: { fiat: '0.2', usd: '0.2', raw: '0', human: '0' },
+        },
+        targetNetwork: { fiat: '0', usd: '0' },
+        metaMask: { fiat: '0', usd: '0' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByTestId, getByText } = render({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByText('$0.70')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('$0.20')).toBeOnTheScreen();
+    expect(getByText('$0.50')).toBeOnTheScreen();
+  });
+
   it('renders tooltip for perps withdraw', async () => {
     const { getByTestId } = render({
       type: TransactionType.perpsWithdraw,
@@ -237,12 +265,12 @@ describe('BridgeFeeRow', () => {
       },
     } as TransactionPayTotals;
 
-    it('renders paid by MetaMask label for musd conversion with all-zero fees and quotes', () => {
+    it('renders paid by MetaMask label for perps deposit with all-zero fees and quotes', () => {
       useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
       useIsPaidByMetaMaskMock.mockReturnValue(true);
 
       const { getByText, queryByTestId } = render({
-        type: TransactionType.musdConversion,
+        type: TransactionType.perpsDeposit,
       });
 
       expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
@@ -266,7 +294,7 @@ describe('BridgeFeeRow', () => {
       useIsPaidByMetaMaskMock.mockReturnValue(true);
 
       const { queryByTestId } = render({
-        type: TransactionType.musdConversion,
+        type: TransactionType.perpsDeposit,
       });
 
       expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
@@ -295,9 +323,9 @@ describe('BridgeFeeRow', () => {
       expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
     });
 
-    it('renders fee value (not paid by MetaMask) for musd conversion with non-zero fees', () => {
+    it('renders fee value (not paid by MetaMask) for perps deposit with non-zero fees', () => {
       const { getByText, getByTestId, queryByText } = render({
-        type: TransactionType.musdConversion,
+        type: TransactionType.perpsDeposit,
       });
 
       expect(getByText('$1.23')).toBeOnTheScreen();
@@ -310,7 +338,7 @@ describe('BridgeFeeRow', () => {
       useIsTransactionPayLoadingMock.mockReturnValue(true);
 
       const { getByTestId, queryByText, queryByTestId } = render({
-        type: TransactionType.musdConversion,
+        type: TransactionType.perpsDeposit,
       });
 
       expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
@@ -323,7 +351,7 @@ describe('BridgeFeeRow', () => {
       useTransactionPayQuotesMock.mockReturnValue([]);
 
       const { queryByText, queryByTestId } = render({
-        type: TransactionType.musdConversion,
+        type: TransactionType.perpsDeposit,
       });
 
       expect(queryByText('Paid by MetaMask')).toBeNull();
@@ -344,7 +372,7 @@ describe('BridgeFeeRow', () => {
       useIsPaidByMetaMaskMock.mockReturnValue(true);
 
       const { getByText, queryByTestId } = render({
-        type: TransactionType.musdConversion,
+        type: TransactionType.perpsDeposit,
       });
 
       expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
@@ -356,7 +384,6 @@ describe('BridgeFeeRow', () => {
     it.each([
       [TransactionType.predictDeposit],
       [TransactionType.predictWithdraw],
-      [TransactionType.musdConversion],
       [TransactionType.moneyAccountDeposit],
       [TransactionType.moneyAccountWithdraw],
     ])('renders tooltip with $ value for %s', async (type) => {

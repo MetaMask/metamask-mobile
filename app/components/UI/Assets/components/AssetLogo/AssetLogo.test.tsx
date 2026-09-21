@@ -127,6 +127,24 @@ describe('AssetLogo', () => {
     );
   });
 
+  it('applies the size and testID overrides callers pass', () => {
+    const { UNSAFE_getByType } = renderWithProvider(
+      <AssetLogo
+        asset={arrangeToken()}
+        size={AvatarTokenSize.Md}
+        testID="earn-token-avatar-TEST"
+      />,
+      { state: mockState },
+    );
+
+    expect(UNSAFE_getByType(AvatarToken).props).toStrictEqual(
+      expect.objectContaining({
+        size: AvatarTokenSize.Md,
+        testID: 'earn-token-avatar-TEST',
+      }),
+    );
+  });
+
   it('renders empty image source when fallback utility returns undefined for unsupported chainId', () => {
     const asset = arrangeToken({
       chainId: '1',

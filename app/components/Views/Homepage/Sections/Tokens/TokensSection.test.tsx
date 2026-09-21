@@ -49,10 +49,9 @@ jest.mock(
 );
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance: (
-    state: unknown,
-    chainIds: string[],
-  ) => mockSortedTokenKeys(state, chainIds),
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance:
+    (chainIds: string[]) => (state: unknown) =>
+      mockSortedTokenKeys(state, chainIds),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -81,17 +80,8 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
 
-jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-}));
-
 jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(() => false),
-}));
-
-const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
-jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -244,7 +234,10 @@ jest.mock('./components/PopularTokenRow', () => {
               jest
                 .requireMock('../../../../UI/Ramp/hooks/useRampNavigation')
                 .useRampNavigation()
-                .goToBuy({ assetId: token.assetId }),
+                .goToBuy(
+                  { assetId: token.assetId },
+                  { buyFlowOrigin: 'homeTokenList' },
+                ),
           },
           ReactActual.createElement(Text, null, 'Buy'),
         ),
@@ -368,14 +361,10 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
-    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
-    jest
-      .requireMock('../../../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    // Money hub disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(false);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
@@ -429,9 +418,12 @@ describe('TokensSection', () => {
     const buyButtons = screen.getAllByText('Buy');
     fireEvent.press(buyButtons[0]);
 
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      },
+      { buyFlowOrigin: 'homeTokenList' },
+    );
   });
 
   it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance)', () => {
@@ -522,15 +514,11 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
-  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
+  it('filters out mUSD from displayed tokens when the Money hub is enabled', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-    jest
-      .requireMock('../../../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(true);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },

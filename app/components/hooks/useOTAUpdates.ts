@@ -3,10 +3,12 @@ import { useSelector } from 'react-redux';
 import { checkForUpdateAsync, fetchUpdateAsync } from 'expo-updates';
 import { InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 import Logger from '../../util/Logger';
 import { createOTAUpdatesModalNavDetails } from '../UI/OTAUpdatesModal/OTAUpdatesModal';
 import { selectOtaUpdatesEnabledFlag } from '../../selectors/featureFlagController/otaUpdates';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import { navigateWithDetails } from '../../util/navigation/navUtils';
 /**
  * Hook to manage OTA updates based on a feature flag.
  *
@@ -21,7 +23,7 @@ import { selectCompletedOnboarding } from '../../selectors/onboarding';
 export const useOTAUpdates = () => {
   const otaUpdatesEnabled = useSelector(selectOtaUpdatesEnabledFlag);
   const completedOnboarding = useSelector(selectCompletedOnboarding);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useEffect(() => {
     const hadCompletedOnboarding = completedOnboarding;
@@ -40,7 +42,10 @@ export const useOTAUpdates = () => {
           if (fetchResult.isNew) {
             InteractionManager.runAfterInteractions(() => {
               if (hadCompletedOnboarding) {
-                navigation.navigate(...createOTAUpdatesModalNavDetails());
+                navigateWithDetails(
+                  navigation,
+                  createOTAUpdatesModalNavDetails(),
+                );
               } else {
                 Logger.log(
                   'OTA Updates: New update available on onboarding, will apply on next launch',

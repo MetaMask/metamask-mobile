@@ -2,18 +2,18 @@ import { useMemo } from 'react';
 import {
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 
 import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
 import { isHardwareAccount } from '../../../../../util/address';
-import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -29,9 +29,7 @@ const PENDING_STATUSES = [...INCOMPLETE_STATUSES, TransactionStatus.submitted];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
-  const { enabled: isHardwarePayEnabled } = useSelector(
-    selectMetaMaskPayHardwareFlags,
-  );
+  const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
   const transactionMetadata = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
 
@@ -74,16 +72,10 @@ export const useSignedOrSubmittedAlert = () => {
   );
 
   const isHardwareWallet = isHardwareAccount(from ?? '');
-  const isMusdConversion = hasTransactionType(transactionMetadata, [
-    TransactionType.musdConversion,
-  ]);
 
   return useMemo(() => {
-    if (
-      !showAlert ||
-      (isHardwarePayEnabled && isHardwareWallet && isMusdConversion)
-    ) {
-      return [];
+    if (!showAlert || (isHardwarePayEnabled && isHardwareWallet)) {
+      return NO_ALERTS;
     }
 
     return [
@@ -107,7 +99,6 @@ export const useSignedOrSubmittedAlert = () => {
     hasExistingTransactionOnPayChain,
     isHardwarePayEnabled,
     isHardwareWallet,
-    isMusdConversion,
     isTransactionPay,
     showAlert,
   ]);

@@ -27,6 +27,14 @@ on:
         description: 'Build name from builds.yml (e.g. main-exp)'
         type: string
         required: true
+      build_attribution:
+        description: >-
+          Optional analytics build attribution, exported as METAMASK_BUILD_ATTRIBUTION and inlined
+          into the rebuilt JS bundle. Nightly OTA passes 'nightly'. Official RC OTA passes
+          'official'. Other rc values report `-rc-unofficial`.
+        type: string
+        required: false
+        default: ''
       github_environment:
         description: 'GitHub environment name for secrets/approvals'
         type: string
@@ -35,13 +43,30 @@ on:
         description: 'JSON mapping of secret aliases from builds.yml'
         type: string
         required: true
+      runner_provider:
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
+        required: false
+        type: string
+        default: ''
 
 jobs:
   push-update:
     name: Push EAS Update (${{ inputs.platform }})
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
     environment: ${{ inputs.github_environment }}
     env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       # OTA-specific vars only — build config + secrets come from builds.yml via steps below
       TARGET_COMMIT_HASH: ${{ inputs.commit_sha }}
       ARTIFACT_NAME: ${{ inputs.artifact_name }}
@@ -50,15 +75,27 @@ jobs:
       TARGET_CHANNEL: ${{ inputs.channel }}
       OTA_PUSH_PLATFORM: ${{ inputs.platform }}
       GIT_BRANCH: ${{ github.ref_name }}
+      # Job-level so both bundling steps (the isolated expo export diagnostic and the
+      # build.sh push) inline the same value. Deliberately absent from builds.yml, so the
+      # "Apply build config" step cannot overwrite it via GITHUB_ENV.
+      METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
     steps:
+      - name: Checkout repository (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          ref: ${{ env.TARGET_COMMIT_HASH }}
+          fetch-depth: 1
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -70,7 +107,7 @@ jobs:
           validation-context: artifact
 
       - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
 
@@ -170,6 +207,7 @@ jobs:
           echo "🔬 Running expo export in isolation (platform: ${{ inputs.platform }}) ..."
           echo "   METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-<not set>}"
           echo "   METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-<not set>}"
+          echo "   METAMASK_BUILD_ATTRIBUTION=${METAMASK_BUILD_ATTRIBUTION:-<not set>}"
           echo "   EXPO_PROJECT_ID is set: $([[ -n "${EXPO_PROJECT_ID}" ]] && echo yes || echo NO)"
           echo "   EXPO_TOKEN is set:      $([[ -n "${EXPO_TOKEN}" ]] && echo yes || echo NO)"
           yarn expo export \

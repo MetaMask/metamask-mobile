@@ -4,7 +4,6 @@ import { Platform, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
-import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
@@ -34,9 +33,9 @@ const styleSheet = (params: {
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {
-        backgroundColor: getElevatedSurfaceColor(theme),
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        backgroundColor: theme.colors.background.elevated1,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
         maxHeight: maxSheetHeight,
         overflow: 'hidden',
         paddingBottom: Platform.select({
@@ -45,7 +44,8 @@ const styleSheet = (params: {
           default: screenBottomPadding + 16,
         }),
         borderWidth: 1,
-        borderColor: colors.border.muted,
+        borderBottomWidth: 0,
+        borderColor: colors.border.alternative,
         ...(isFullscreen && { height: maxSheetHeight }),
         ...shadows.size.lg,
       },

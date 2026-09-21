@@ -3,33 +3,20 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   resetBrazePluginForTesting,
-  refreshBrazeBanners,
   logBrazeBannerImpression,
   logBrazeBannerClick,
   dismissBrazeBanner,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
-import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from './constants';
 import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
 
-const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();
 const mockSetLanguage = jest.fn();
-
-jest.mock('../Engine/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      AuthenticationController: {
-        getSessionProfile: () => mockGetSessionProfile(),
-      },
-    },
-  },
-}));
+const mockHasPendingBrazePushUnregistrationSync = jest.fn();
 
 jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
   BrazePlugin: jest.fn().mockImplementation(() => ({
@@ -40,11 +27,27 @@ jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
   })),
 }));
 
+jest.mock('./pushRegistrationState', () => ({
+  hasPendingBrazePushUnregistrationSync: () =>
+    mockHasPendingBrazePushUnregistrationSync(),
+}));
+
 const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
 
 describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    MockBrazePlugin.mockImplementation(
+      () =>
+        ({
+          type: 'destination',
+          key: 'Appboy',
+          setBrazeProfileId: mockSetBrazeProfileId,
+          setLanguage: mockSetLanguage,
+        }) as unknown as BrazePlugin,
+    );
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     resetBrazePluginForTesting();
   });
 
@@ -59,43 +62,41 @@ describe('Braze service', () => {
   });
 
   describe('setBrazeUser', () => {
-    it('forwards profileId to the Braze Segment plugin', async () => {
-      mockGetSessionProfile.mockResolvedValue({
-        profileId: 'test-profile-id-123',
-        identifierId: 'id',
-        metaMetricsId: 'mm-id',
-      });
+    it('forwards the provided canonicalProfileId to the Braze Segment plugin', () => {
+      setBrazeUser('canonical-profile-id-123');
 
-      await setBrazeUser();
-
-      expect(mockSetBrazeProfileId).toHaveBeenCalledWith('test-profile-id-123');
-    });
-
-    it('does nothing when session profile has no profileId', async () => {
-      mockGetSessionProfile.mockResolvedValue({
-        profileId: '',
-        identifierId: 'id',
-        metaMetricsId: 'mm-id',
-      });
-
-      await setBrazeUser();
-
-      expect(mockSetBrazeProfileId).not.toHaveBeenCalled();
-    });
-
-    it('handles errors gracefully', async () => {
-      mockGetSessionProfile.mockRejectedValue(new Error('Session error'));
-
-      await expect(setBrazeUser()).resolves.toBeUndefined();
-      expect(mockSetBrazeProfileId).not.toHaveBeenCalled();
+      expect(mockSetBrazeProfileId).toHaveBeenCalledWith(
+        'canonical-profile-id-123',
+      );
     });
   });
 
   describe('clearBrazeUser', () => {
-    it('clears the profile ID on the Braze Segment plugin', () => {
-      clearBrazeUser();
+    it('clears the profile ID on the Braze Segment plugin', async () => {
+      await clearBrazeUser();
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(undefined);
+    });
+
+    it('wipes local Braze SDK data and re-enables the SDK', async () => {
+      await clearBrazeUser();
+
+      expect(Braze.wipeData).toHaveBeenCalledTimes(1);
+      expect(Braze.enableSDK).toHaveBeenCalledTimes(1);
+      expect(
+        (Braze.wipeData as jest.Mock).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (Braze.enableSDK as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
+    it('defers wiping local data while push unregistration is pending', async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+
+      await expect(clearBrazeUser()).resolves.toBe(false);
+
+      expect(Braze.wipeData).not.toHaveBeenCalled();
+      expect(Braze.enableSDK).not.toHaveBeenCalled();
     });
   });
 

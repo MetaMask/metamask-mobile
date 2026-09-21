@@ -6,7 +6,13 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 
-export function usePredictBalance(): UseQueryResult<number, Error> {
+interface UsePredictBalanceOptions {
+  enabled?: boolean;
+}
+
+export function usePredictBalance({
+  enabled = true,
+}: UsePredictBalanceOptions = {}): UseQueryResult<number, Error> {
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
@@ -14,13 +20,15 @@ export function usePredictBalance(): UseQueryResult<number, Error> {
   const address = evmAccount?.address;
 
   useEffect(() => {
+    if (!enabled) return;
+
     ensurePolygonNetworkExists().catch(() => {
       // Network may already exist — swallow so the query can still proceed.
     });
-  }, [ensurePolygonNetworkExists]);
+  }, [enabled, ensurePolygonNetworkExists]);
 
   return useQuery({
     ...predictQueries.balance.options({ address: address ?? '' }),
-    enabled: Boolean(address),
+    enabled: enabled && Boolean(address),
   });
 }

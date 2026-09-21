@@ -69,8 +69,6 @@ export interface PerpsCloseSummaryProps {
   rewardsAccount?: InternalAccount | null;
   /** Optional styling for container */
   style?: ViewStyle;
-  /** Whether input is focused (for padding adjustment) */
-  isInputFocused?: boolean;
 
   /** Whether to enable tooltips (default: true) */
   enableTooltips?: boolean;
@@ -117,7 +115,6 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   accountOptedIn = null,
   rewardsAccount = undefined,
   style,
-  isInputFocused = false,
   enableTooltips = true,
   testIDs,
 }) => {
@@ -180,13 +177,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   );
 
   return (
-    <View
-      style={[
-        styles.summaryContainer,
-        isInputFocused && styles.paddingHorizontal,
-        style,
-      ]}
-    >
+    <View style={[styles.summaryContainer, style]}>
       {/* Margin with P&L breakdown — custom row to support nested includes P&L */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryLabel}>
@@ -247,7 +238,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         value={feesValue}
       />
 
-      <SectionDivider marginVertical={1} />
+      <SectionDivider marginVertical={1} twClassName="mx-4" />
 
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}

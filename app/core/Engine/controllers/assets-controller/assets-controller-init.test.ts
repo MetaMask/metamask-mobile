@@ -17,7 +17,9 @@ import {
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { store } from '../../../../store';
+import { trace } from '../../../../util/trace';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
+import { createApiPlatformClient } from '@metamask/core-backend';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -30,6 +32,10 @@ jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn((_req, fn) => (fn ? fn('traced-context') : undefined)),
 }));
 
 const mockRemoteFeatureFlagController = {
@@ -51,6 +57,7 @@ interface RemoteFeatureFlagState {
       enabled: boolean;
       featureVersion: string | null;
       minimumVersion: string | null;
+      tracesEnabled?: boolean;
     }
   >;
 }
@@ -139,6 +146,46 @@ function getInitRequestMock(overrides?: {
   >;
 }
 
+describe('API platform client bearer token retrieval', () => {
+  // Placed before the `assetsControllerInit` suite so the module-level
+  // `apiClient` singleton is created with this block's init messenger, which
+  // resolves a known bearer token via its registered action handler.
+  const BEARER_TOKEN = 'mock-bearer-token';
+  const ORIGINAL_DISABLE_AUTH = process.env.MM_BACKEND_DISABLE_AUTH;
+
+  let getBearerToken: () => Promise<string | undefined>;
+
+  beforeAll(() => {
+    assetsControllerInit(getInitRequestMock());
+    getBearerToken = jest.mocked(createApiPlatformClient).mock.calls[0][0]
+      .getBearerToken as () => Promise<string | undefined>;
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_DISABLE_AUTH === undefined) {
+      delete process.env.MM_BACKEND_DISABLE_AUTH;
+    } else {
+      process.env.MM_BACKEND_DISABLE_AUTH = ORIGINAL_DISABLE_AUTH;
+    }
+  });
+
+  describe('when backend auth is enabled', () => {
+    it('returns the AuthenticationController bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'false';
+
+      await expect(getBearerToken()).resolves.toBe(BEARER_TOKEN);
+    });
+  });
+
+  describe('when backend auth is disabled', () => {
+    it('omits the bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'true';
+
+      await expect(getBearerToken()).resolves.toBeUndefined();
+    });
+  });
+});
+
 describe('assetsControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -182,6 +229,7 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
+        trace: expect.any(Function),
         tempMigrateAssetsInfoMetadataAssets3346: expect.any(Function),
       }),
     );
@@ -545,6 +593,57 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isBasicFunctionality).toBeDefined();
       expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('trace feature flag (assetsUnifyState.tracesEnabled)', () => {
+    it('skips Sentry tracing when tracesEnabled is absent / off', async () => {
+      assetsControllerInit(getInitRequestMock());
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
+      if (!traceCallback) {
+        throw new Error('Expected trace callback to be defined');
+      }
+
+      const fn = jest.fn(() => 'result');
+      await expect(
+        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
+      ).resolves.toBe('result');
+
+      expect(fn).toHaveBeenCalledWith();
+      expect(trace).not.toHaveBeenCalled();
+    });
+
+    it('forwards to util/trace when assetsUnifyState.tracesEnabled is on', async () => {
+      assetsControllerInit(
+        getInitRequestMock({
+          remoteFeatureFlagState: {
+            remoteFeatureFlags: {
+              [ASSETS_UNIFY_STATE_FLAG]: {
+                enabled: true,
+                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+                minimumVersion: '7.60.0',
+                tracesEnabled: true,
+              },
+            },
+          },
+        }),
+      );
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
+      if (!traceCallback) {
+        throw new Error('Expected trace callback to be defined');
+      }
+
+      const fn = jest.fn(() => 'result');
+      await expect(
+        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
+      ).resolves.toBe('result');
+
+      expect(trace).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalledWith('traced-context');
     });
   });
 });

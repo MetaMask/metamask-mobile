@@ -79,7 +79,12 @@ export function getHardwareWalletTypeForAddress(
   if (isHardwareAccount(address, [ExtendedKeyringTypes.ledger])) {
     return HardwareWalletType.Ledger;
   }
-  if (isHardwareAccount(address, [ExtendedKeyringTypes.qr])) {
+  if (
+    isHardwareAccount(address, [
+      ExtendedKeyringTypes.qr,
+      ExtendedKeyringTypes.oneKey,
+    ])
+  ) {
     return HardwareWalletType.Qr;
   }
   return undefined;

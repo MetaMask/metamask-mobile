@@ -9,6 +9,7 @@ import React, {
 import { Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -23,11 +24,13 @@ import {
   BoxFlexDirection,
   Button,
   ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
   IconName,
   IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -48,13 +51,18 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
+import {
+  getTrimmedSeedPhraseWords,
+  isSRPLengthValid,
+  SPACE_CHAR,
+} from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
   validateCompleteness,
@@ -95,7 +103,7 @@ function showImportSrpErrorAlert(errorMessage: string): void {
  * View that's displayed when the user is trying to import a new secret recovery phrase
  */
 const ImportNewSecretRecoveryPhrase = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const footerStyle = useMemo(
@@ -103,6 +111,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     [insets, tw],
   );
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
@@ -188,16 +197,14 @@ const ImportNewSecretRecoveryPhrase = () => {
   );
 
   const onSubmit = useCallback(async () => {
-    const phrase = seedPhrase
-      .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
+    const trimmedWords = getTrimmedSeedPhraseWords(seedPhrase);
+    const phrase = trimmedWords.join(SPACE_CHAR);
 
     setError('');
 
-    const invalidWords = Array(seedPhrase.length).fill(false);
-    let validationResult = validateSRP(seedPhrase, invalidWords);
-    validationResult = validateCompleteness(validationResult, seedPhrase);
+    const invalidWords = Array(trimmedWords.length).fill(false);
+    let validationResult = validateSRP(trimmedWords, invalidWords);
+    validationResult = validateCompleteness(validationResult, trimmedWords);
     validationResult = validateCase(validationResult, phrase);
     validationResult = validateWords(validationResult);
     validationResult = validateMnemonic(validationResult, phrase);
@@ -250,7 +257,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           } ${strings('import_new_secret_recovery_phrase.success_2')}`,
         },
       ],
-      iconName: ComponentIconName.Check,
+      iconName: ComponentIconName.Confirmation,
+      iconColor: colors.success.default,
       hasNoTimeout: false,
     });
 
@@ -261,6 +269,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     seedPhrase,
     trackDiscoveryEvent,
     toastRef,
+    colors.success.default,
     hdKeyrings.length,
     fetchAccountsWithActivity,
     navigation,
@@ -289,7 +298,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            twClassName="gap-0.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -299,8 +308,10 @@ const ImportNewSecretRecoveryPhrase = () => {
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
               iconProps={{
                 color: IconColor.IconAlternative,
+                size: IconSize.Sm,
               }}
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"

@@ -44,6 +44,10 @@ jest.mock('./deepLinkAnalytics', () => {
 });
 
 describe('deepLinkAnalytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('determineAppInstallationStatus', () => {
     it('detects deferred deep link when user installs app via Branch link', () => {
       const params = {
@@ -493,6 +497,11 @@ describe('deepLinkAnalytics', () => {
       const result = mapSupportedActionToRoute(ACTIONS.MONEY);
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
+
+    it('maps PRIVACY action to PRIVACY route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.PRIVACY);
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -588,6 +597,13 @@ describe('deepLinkAnalytics', () => {
     it('extract money route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/money');
       expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
+    it('extract privacy route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/privacy?setting=metametrics',
+      );
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
     });
 
     it('return INVALID for unknown routes', () => {

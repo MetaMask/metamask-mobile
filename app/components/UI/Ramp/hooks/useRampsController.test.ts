@@ -30,6 +30,7 @@ jest.mock('./useRampsProviders', () => ({
     providers: [],
     selectedProvider: null,
     setSelectedProvider: jest.fn(),
+    setSelectedProviderForAsset: jest.fn(),
     isLoading: false,
     error: null,
   })),
@@ -148,6 +149,7 @@ describe('useRampsController', () => {
 
     expect(typeof result.current.setUserRegion).toBe('function');
     expect(typeof result.current.setSelectedProvider).toBe('function');
+    expect(typeof result.current.setSelectedProviderForAsset).toBe('function');
     expect(typeof result.current.setSelectedToken).toBe('function');
     expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
     expect(typeof result.current.getQuotes).toBe('function');

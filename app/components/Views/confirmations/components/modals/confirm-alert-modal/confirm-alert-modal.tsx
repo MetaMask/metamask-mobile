@@ -1,31 +1,29 @@
-import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
-import BottomModal from '../../../components/UI/bottom-modal';
 import {
+  BottomSheet,
+  BottomSheetRef,
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
   Button,
   ButtonSize,
   ButtonVariant,
   IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
-import {
-  ButtonSize as ButtonLinkSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAlerts } from '../../../context/alert-system-context';
-import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import styleSheet from './confirm-alert-modal.styles';
 import { AlertKeys } from '../../../constants/alerts';
+import { ConfirmAlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 
 export interface ConfirmAlertModalProps {
   /** Callback function that is called when the reject button is clicked. */
@@ -40,6 +38,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const {
     showAlertModal,
     fieldAlerts,
@@ -65,7 +64,11 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
     onConfirm();
   }, [onConfirm]);
 
-  const handleReject = useCallback(() => {
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
     onReject();
   }, [onReject]);
 
@@ -75,80 +78,102 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
   }
 
   return (
-    <BottomModal onClose={handleReject}>
-      <View style={styles.modalContainer} testID="confirm-alert-modal">
-        <View>
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Xl}
-            color={colors.error.default}
-          />
-        </View>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
-            {onlyBlockaidAlert
-              ? strings('alert_system.confirm_modal.title_blockaid')
-              : strings('alert_system.confirm_modal.title')}
-          </Text>
-        </View>
-        <Text style={styles.message}>
-          {onlyBlockaidAlert
-            ? blockaidAlert.message
-            : strings('alert_system.confirm_modal.message')}
-        </Text>
-        {hasFieldAlerts && (
-          <ButtonLink
-            style={styles.reviewAlertsLink}
-            onPress={showAlertModal}
-            label={strings('alert_system.confirm_modal.review_alerts')}
-            startIconName={IconName.SecuritySearch}
-            width={ButtonWidthTypes.Auto}
-            size={ButtonLinkSize.Lg}
-            labelTextVariant={TextVariant.BodyMD}
-          />
-        )}
-        <TouchableOpacity
-          style={styles.checkboxContainer}
-          onPress={handleConfirmCheckbox}
-          activeOpacity={1}
-        >
-          <Checkbox
-            onPress={handleConfirmCheckbox}
-            isChecked={confirmCheckbox}
-            testID="confirm-alert-checkbox"
-          />
-          <Text style={styles.checkboxText}>
-            {strings('alert_system.confirm_modal.checkbox_label')}
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.buttonsContainer}>
-          <Button
-            onPress={handleReject}
-            style={styles.footerButton}
-            size={ButtonSize.Lg}
-            variant={ButtonVariant.Secondary}
-            isFullWidth
-            testID="confirm-alert-cancel-button"
+    <Modal
+      visible
+      animationType="none"
+      transparent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleRequestClose}
+    >
+      <BottomSheet
+        ref={bottomSheetRef}
+        keyboardAvoidingViewEnabled={false}
+        onClose={handleSheetClosed}
+      >
+        <Box twClassName="flex flex-col items-center px-4 pt-4">
+          <View
+            style={styles.modalContainer}
+            testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL}
           >
-            {strings('confirm.cancel')}
-          </Button>
-          <View style={styles.buttonDivider} />
-          <Button
-            onPress={handleConfirm}
-            style={styles.footerButton}
-            size={ButtonSize.Lg}
-            variant={ButtonVariant.Primary}
-            isFullWidth
-            isDisabled={!confirmCheckbox}
-            startIconName={DesignSystemIconName.Danger}
-            isDanger
-            testID="confirm-alert-confirm-button"
-          >
-            {strings('confirm.confirm')}
-          </Button>
-        </View>
-      </View>
-    </BottomModal>
+            <View>
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Xl}
+                color={colors.error.default}
+              />
+            </View>
+            <View style={styles.headerContainer}>
+              <Text
+                style={styles.headerText}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('alert_system.confirm_modal.title')}
+              </Text>
+            </View>
+            <Text style={styles.message}>
+              {onlyBlockaidAlert
+                ? blockaidAlert.message
+                : strings('alert_system.confirm_modal.message')}
+            </Text>
+            {hasFieldAlerts && (
+              <Button
+                style={styles.reviewAlertsLink}
+                onPress={showAlertModal}
+                startIconName={DesignSystemIconName.SecuritySearch}
+                size={ButtonSize.Lg}
+                variant={ButtonVariant.Tertiary}
+                testID={ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON}
+              >
+                {strings('alert_system.confirm_modal.review_alerts')}
+              </Button>
+            )}
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={handleConfirmCheckbox}
+              activeOpacity={1}
+            >
+              <Checkbox
+                onPress={handleConfirmCheckbox}
+                isChecked={confirmCheckbox}
+                testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX}
+              />
+              <Text style={styles.checkboxText}>
+                {strings('alert_system.confirm_modal.checkbox_label')}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.buttonsContainer}>
+              <Button
+                onPress={handleRequestClose}
+                style={styles.footerButton}
+                size={ButtonSize.Lg}
+                variant={ButtonVariant.Secondary}
+                isFullWidth
+                testID={
+                  ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON
+                }
+              >
+                {strings('confirm.cancel')}
+              </Button>
+              <View style={styles.buttonDivider} />
+              <Button
+                onPress={handleConfirm}
+                style={styles.footerButton}
+                size={ButtonSize.Lg}
+                variant={ButtonVariant.Primary}
+                isFullWidth
+                isDisabled={!confirmCheckbox}
+                startIconName={DesignSystemIconName.Danger}
+                isDanger
+                testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON}
+              >
+                {strings('confirm.confirm')}
+              </Button>
+            </View>
+          </View>
+        </Box>
+      </BottomSheet>
+    </Modal>
   );
 };
 

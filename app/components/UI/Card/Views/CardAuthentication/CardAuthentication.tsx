@@ -5,7 +5,13 @@ import {
   CommonActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
   Box,
@@ -38,7 +44,13 @@ import {
   selectImmersveOnboardingEnabled,
 } from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type CardLocation } from '../../types';
-import { CardActions, CardScreens } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import SelectField from '../../components/Onboarding/SelectField';
 import NavigationService from '../../../../../core/NavigationService';
@@ -94,6 +106,7 @@ const CardAuthentication = () => {
   const isUkMode = selection === 'uk';
   const selectedLocation: CardLocation =
     selection === 'uk' ? 'international' : selection;
+  const lastTrackedAuthView = useRef<string | null>(null);
 
   const accountName = useAccountGroupName();
   const selectAccountByScope = useSelector(
@@ -200,15 +213,27 @@ const CardAuthentication = () => {
     const screenName = isOtpStep
       ? CardScreens.OTP_AUTHENTICATION
       : CardScreens.AUTHENTICATION;
+    const provider = isUkMode
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    // Fire once per screen+provider so UK toggles update attribution without
+    // spamming identical re-renders.
+    const viewKey = `${screenName}:${provider}`;
+    if (lastTrackedAuthView.current === viewKey) {
+      return;
+    }
+    lastTrackedAuthView.current = viewKey;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: screenName,
-        })
+        .addProperties(
+          withCardProvider(provider, {
+            screen: screenName,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder, isOtpStep]);
+  }, [trackEvent, createEventBuilder, isOtpStep, isUkMode]);
 
   const performLogin = useCallback(
     async (otpCode?: string) => {
@@ -218,9 +243,11 @@ const CardAuthentication = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action,
+            }),
+          )
           .build(),
       );
 
@@ -262,6 +289,7 @@ const CardAuthentication = () => {
             NavigationService.navigation?.navigate(
               postAuthRedirect.screen,
               postAuthRedirect.params,
+              { pop: true },
             );
           } else {
             navigation.dispatch(
@@ -281,7 +309,7 @@ const CardAuthentication = () => {
         });
       } catch (err) {
         Logger.log('CardAuthentication::Login failed', err);
-        // error is displayed via the derived `error` variable above
+        // errors are displayed via the derived `error` variable above
       }
     },
     [
@@ -335,9 +363,11 @@ const CardAuthentication = () => {
   const handleForgotPassword = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
+          }),
+        )
         .build(),
     );
     navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -361,9 +391,11 @@ const CardAuthentication = () => {
     if (!immersveAddress) return;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
+          }),
+        )
         .build(),
     );
     setUkError(null);
@@ -374,6 +406,7 @@ const CardAuthentication = () => {
         address: immersveAddress,
         showAccountExistsToast: false,
         navigateFromRoot: true,
+        entrypoint: CardEntryPoint.AUTHENTICATION,
       });
     } catch (err) {
       setUkError(getCardProviderErrorMessage(err));
@@ -409,6 +442,11 @@ const CardAuthentication = () => {
         : undefined,
     [maskedPhoneNumber, isOtpStep],
   );
+
+  const locationLabelVariant = immersveEnabled
+    ? TextVariant.BodyXs
+    : TextVariant.BodySm;
+  const locationBoxPadding = immersveEnabled ? 'px-2 py-3' : 'p-4';
 
   const formFields = useMemo(
     () =>
@@ -495,13 +533,13 @@ const CardAuthentication = () => {
               )}
             >
               <Box
-                twClassName="flex flex-col items-center justify-center w-full p-4"
+                twClassName={`flex flex-col items-center justify-center w-full ${locationBoxPadding}`}
                 testID={CardAuthenticationSelectors.INTERNATIONAL_LOCATION_BOX}
               >
                 <Icon name={IconName.Global} size={IconSize.Lg} />
                 <Text
-                  twClassName="text-center text-body-sm font-medium"
-                  variant={TextVariant.BodySm}
+                  twClassName="text-center font-medium"
+                  variant={locationLabelVariant}
                 >
                   {strings('card.card_authentication.location_button_text')}
                 </Text>
@@ -514,13 +552,13 @@ const CardAuthentication = () => {
               )}
             >
               <Box
-                twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
+                twClassName={`flex flex-col items-center justify-center flex-1 w-full ${locationBoxPadding}`}
                 testID={CardAuthenticationSelectors.US_LOCATION_BOX}
               >
                 <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
                 <Text
-                  twClassName="text-center text-body-sm font-medium"
-                  variant={TextVariant.BodySm}
+                  twClassName="text-center font-medium"
+                  variant={locationLabelVariant}
                 >
                   {strings('card.card_authentication.location_button_text_us')}
                 </Text>
@@ -534,15 +572,15 @@ const CardAuthentication = () => {
                 )}
               >
                 <Box
-                  twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
+                  twClassName={`flex flex-col items-center justify-center flex-1 w-full ${locationBoxPadding}`}
                   testID={CardAuthenticationSelectors.UK_LOCATION_BOX}
                 >
                   <Text twClassName="text-center">
                     {countryCodeToFlag('GB')}
                   </Text>
                   <Text
-                    twClassName="text-center text-body-sm font-medium"
-                    variant={TextVariant.BodySm}
+                    twClassName="text-center font-medium"
+                    variant={locationLabelVariant}
                   >
                     {strings(
                       'card.card_authentication.location_button_text_uk',
@@ -680,6 +718,8 @@ const CardAuthentication = () => {
       selection,
       isUkMode,
       immersveEnabled,
+      locationLabelVariant,
+      locationBoxPadding,
       accountName,
       openAccountSelector,
       ukError,

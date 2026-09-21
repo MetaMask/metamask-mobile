@@ -1,7 +1,8 @@
-import type { RefObject } from 'react';
+import { createElement, type ReactNode, type RefObject } from 'react';
 import type { View } from 'react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import useHomeViewedEvent, { HomeSectionNames } from './useHomeViewedEvent';
+import { PerpsPriorityEligibilityContext } from '../context/PerpsPriorityEligibilityContext';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // --- Analytics mock ---
@@ -99,16 +100,19 @@ describe('useHomeViewedEvent', () => {
 
   describe('null sectionRef — non-rendered sections', () => {
     it('does not fire when visitId is 0 (pre-focus; avoids duplicate on first load)', () => {
+      const onSectionViewed = jest.fn();
       mockContextValue = { ...mockContextValue, visitId: 0 };
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,
+          onSectionViewed,
         }),
       );
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(onSectionViewed).not.toHaveBeenCalled();
     });
 
     it('fires immediately when sectionRef is null and not loading', () => {
@@ -136,12 +140,14 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('fires once loading finishes', () => {
+      const onSectionViewed = jest.fn();
       const { rerender } = renderHook(
         ({ isLoading }: { isLoading: boolean }) =>
           useHomeViewedEvent({
             ...defaultParams,
             sectionRef: null,
             isLoading,
+            onSectionViewed,
           }),
         { initialProps: { isLoading: true } },
       );
@@ -151,6 +157,7 @@ describe('useHomeViewedEvent', () => {
       rerender({ isLoading: false });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
     });
 
     it('does not fire the immediate path when fireImmediateWhenNoView is false', () => {
@@ -267,11 +274,13 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('fires on scroll when section scrolls into ≥50% visibility', () => {
+      const onSectionViewed = jest.fn();
       const mockRef = createMockRef(800, 200); // starts below viewport
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
+          onSectionViewed,
         }),
       );
 
@@ -296,6 +305,7 @@ describe('useHomeViewedEvent', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
     });
 
     it('does not fire again on subsequent scrolls after already firing', () => {
@@ -412,12 +422,14 @@ describe('useHomeViewedEvent', () => {
 
   describe('visitId — re-firing on each homepage visit', () => {
     it('re-fires for null-ref sections when visitId increments', () => {
+      const onSectionViewed = jest.fn();
       let currentVisitId = 0;
       const { rerender } = renderHook(() => {
         mockContextValue = { ...mockContextValue, visitId: currentVisitId };
         return useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
+          onSectionViewed,
         });
       });
 
@@ -427,11 +439,13 @@ describe('useHomeViewedEvent', () => {
       rerender();
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
 
       currentVisitId = 2;
       rerender();
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(onSectionViewed).toHaveBeenCalledTimes(2);
     });
 
     it('re-fires for visible sections when visitId increments', () => {
@@ -459,15 +473,18 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('does not re-fire when visitId stays the same', () => {
+      const onSectionViewed = jest.fn();
       mockContextValue = { ...mockContextValue, visitId: 1 };
       const { rerender } = renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
+          onSectionViewed,
         }),
       );
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
 
       rerender();
       rerender();
@@ -565,6 +582,35 @@ describe('useHomeViewedEvent', () => {
   });
 
   describe('new analytics properties', () => {
+    it('calls onSectionViewed when the section impression fires', () => {
+      const onSectionViewed = jest.fn();
+
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          onSectionViewed,
+        }),
+      );
+
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onSectionViewed more than once for one visit', () => {
+      const onSectionViewed = jest.fn();
+      const { rerender } = renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          onSectionViewed,
+        }),
+      );
+
+      rerender();
+
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
+    });
+
     it('includes app_session_id from context', () => {
       mockContextValue = {
         ...mockContextValue,
@@ -629,6 +675,51 @@ describe('useHomeViewedEvent', () => {
   });
 
   describe('scroll subscription lifecycle', () => {
+    it('uses shared visibility without creating another scroll subscription', () => {
+      const mockRef = createMockRef(800, 200);
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: mockRef,
+          isVisible: true,
+        }),
+      );
+
+      expect(mockNotifySectionViewed).toHaveBeenCalledWith(
+        HomeSectionNames.TOKENS,
+        0,
+        true,
+      );
+      expect(mockSubscribeToScroll).not.toHaveBeenCalled();
+    });
+
+    it('does not use stale shared visibility while loading', () => {
+      const mockRef = createMockRef(800, 200);
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: mockRef,
+          isLoading: true,
+          isVisible: true,
+        }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not use stale shared visibility after the section is removed', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          isVisible: true,
+          fireImmediateWhenNoView: false,
+        }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('subscribes to scroll when a sectionRef is provided', () => {
       const mockRef = createMockRef(800, 200); // below viewport so no immediate fire
       renderHook(() =>
@@ -667,6 +758,87 @@ describe('useHomeViewedEvent', () => {
       );
 
       expect(mockSubscribeToScroll).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('perps priority eligibility', () => {
+    const withEligibility = (eligible: boolean | undefined) =>
+      function Wrapper({ children }: { children: ReactNode }) {
+        return createElement(
+          PerpsPriorityEligibilityContext.Provider,
+          { value: eligible },
+          children,
+        );
+      };
+
+    it.each([[true], [false]])(
+      'reports perps_priority_eligible=%p from context',
+      (isActivePerpsTrader) => {
+        renderHook(
+          () =>
+            useHomeViewedEvent({
+              ...defaultParams,
+              sectionName: HomeSectionNames.PERPS,
+              sectionRef: null,
+              isLoading: false,
+            }),
+          { wrapper: withEligibility(isActivePerpsTrader) },
+        );
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            perps_priority_eligible: isActivePerpsTrader,
+          }),
+        );
+      },
+    );
+
+    // The measurement contract: in control, Perps sits below Tokens, so an
+    // eligible user may never scroll to it. Eligibility must still be
+    // observable from a section they do see, otherwise the eligible control
+    // group is restricted to users who already performed the behaviour the
+    // experiment measures.
+    it('reports eligibility on a non-Perps section when Perps is never viewed', () => {
+      renderHook(
+        () =>
+          useHomeViewedEvent({
+            ...defaultParams,
+            sectionName: HomeSectionNames.TOKENS,
+            sectionRef: null,
+            isLoading: false,
+          }),
+        { wrapper: withEligibility(true) },
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          section_name: HomeSectionNames.TOKENS,
+          perps_priority_eligible: true,
+        }),
+      );
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          section_name: HomeSectionNames.PERPS,
+        }),
+      );
+    });
+
+    it('omits the property when eligibility is unresolved', () => {
+      renderHook(
+        () =>
+          useHomeViewedEvent({
+            ...defaultParams,
+            sectionRef: null,
+            isLoading: false,
+          }),
+        { wrapper: withEligibility(undefined) },
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          perps_priority_eligible: expect.anything(),
+        }),
+      );
     });
   });
 });

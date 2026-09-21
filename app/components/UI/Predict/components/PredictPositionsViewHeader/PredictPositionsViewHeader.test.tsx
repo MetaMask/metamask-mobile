@@ -272,7 +272,7 @@ describe('PredictPositionsViewHeader', () => {
     ).toBeNull();
   });
 
-  it('renders fallback text for balance and P&L errors', () => {
+  it('renders dashes instead of zero values for balance and P&L errors', () => {
     renderHeader({
       portfolio: createPortfolio({
         balanceError: new Error('Balance failed'),
@@ -280,6 +280,7 @@ describe('PredictPositionsViewHeader', () => {
       }),
     });
 
-    expect(screen.getAllByText('Unable to load')).toHaveLength(2);
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.queryByText('$0.00')).toBeNull();
   });
 });

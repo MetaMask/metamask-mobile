@@ -3,7 +3,9 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import { buildVipPrioritySupportUrl } from '../../../../constants/urls';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
+import { selectIsVipReferee } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
@@ -40,8 +42,19 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+const mockGetBetaSupportUrl = jest.fn(
+  () => 'https://intercom.help/internal-beta-testing/en/',
+);
 jest.mock('../utils', () => ({
   exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -265,7 +278,6 @@ const getRewardsSelectorState = () => ({
     appTheme: 'dark',
   },
   rewards: {
-    isVipReferee: mockIsVipReferee,
     vipRefereeSplashAccepted: mockVipRefereeSplashAccepted,
   },
 });
@@ -288,6 +300,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return mockAccountAddress;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,
@@ -483,6 +496,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return undefined;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,
@@ -497,7 +511,9 @@ describe('RewardsVipRefereeView', () => {
     ).toBeDisabled();
   });
 
-  it('opens the priority support webview tagged as VIP with the account address on press', () => {
+  // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
+  // the priority support link opens directly rather than through the consent flow.
+  it('opens the priority support webview tagged as VIP with the account address on press for a beta build', () => {
     const { getByTestId } = render(<RewardsVipRefereeView />);
 
     fireEvent.press(
@@ -507,8 +523,9 @@ describe('RewardsVipRefereeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
-        url: expect.stringContaining(
-          `priority=vip&address=${encodeURIComponent(mockAccountAddress)}`,
+        url: buildVipPrioritySupportUrl(
+          mockAccountAddress,
+          'https://intercom.help/internal-beta-testing/en/',
         ),
         title: 'Contact support',
       },
@@ -517,6 +534,59 @@ describe('RewardsVipRefereeView', () => {
       MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+  });
+
+  // On a non-beta (main) build, getBetaSupportUrl() resolves to an empty string, so
+  // priority support routes through the consent flow instead of a direct webview link.
+  it('routes the priority support link through the consent flow on a non-beta build', () => {
+    mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    const expectedUrl = buildVipPrioritySupportUrl(mockAccountAddress);
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      expectedUrl,
+      expect.any(Function),
+    );
+
+    const [, , onOpenSupport] = mockOpenSupportWithConsent.mock.calls[0];
+    onOpenSupport?.();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  // Covers only the call-site opener glue: invoking the opener passed to
+  // openSupportWithConsent navigates to the webview. The consent modal
+  // behavior itself is covered by the core support-consent tests.
+  it('navigates to the priority support webview when the provided opener is invoked', () => {
+    mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    const expectedUrl = buildVipPrioritySupportUrl(mockAccountAddress);
+    const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
+    openWebview(expectedUrl);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: expectedUrl,
+        title: 'Contact support',
+      },
+    });
   });
 
   it('does not open support when the selected account address is missing', () => {
@@ -525,6 +595,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return undefined;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,

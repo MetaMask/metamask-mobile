@@ -5,11 +5,13 @@ import React, {
   useReducer,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -18,6 +20,7 @@ import { TokenI } from '../../../Tokens/types';
 import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
@@ -50,7 +53,7 @@ import BN4 from 'bnjs4';
 import {
   sortByHighestBalance,
   sortByHighestRewards,
-  truncateNumber,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -102,7 +105,7 @@ const EarnTokenList = () => {
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const { createEventBuilder, trackEvent } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const traceEndedRef = useRef(false);
@@ -311,7 +314,8 @@ const EarnTokenList = () => {
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
     const tokenApr = getTokenApr(item);
-    const formattedApr = tokenApr > 0 ? truncateNumber(tokenApr) : tokenApr;
+    const formattedApr =
+      tokenApr > 0 ? formatEarnRatePercentage(tokenApr) : tokenApr;
 
     return (
       <View style={styles.listItemContainer}>
@@ -326,7 +330,7 @@ const EarnTokenList = () => {
             onPress={handleRedirectToInputScreen}
             primaryText={{
               value: `${formattedApr}% APR`,
-              color: TextColor.Success,
+              color: TextColor.SuccessDefault,
             }}
             {...(!isEmptyBalance(item) && {
               secondaryText: {
@@ -352,7 +356,7 @@ const EarnTokenList = () => {
         primaryText={strings('stake.you_could_earn_up_to')}
         secondaryText={
           isNoEarnableTokensWithBalance
-            ? `${highestAvailableApr.toString()}%`
+            ? `${formatEarnRatePercentage(highestAvailableApr)}%`
             : `${earnableTotalFiatFormatted}`
         }
         tertiaryText={strings('stake.per_year_on_your_tokens')}

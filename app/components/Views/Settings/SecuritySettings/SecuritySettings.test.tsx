@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import {
+  InteractionManager,
+  ScrollView,
+  View,
+  type HostInstance,
+} from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -20,6 +26,8 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import { strings } from '../../../../../locales/i18n';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../../core/redux/types';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from '../../../UI/BasicFunctionality/BasicFunctionality.constants';
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
@@ -52,7 +60,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: jest.fn((callback: () => void) => callback()),
   };
 });
 
@@ -62,9 +70,9 @@ jest.mock('@react-native-cookies/cookies', () => ({
 }));
 
 let mockUseParamsValues: {
-  scrollToDetectNFTs?: boolean;
+  scrollToSection?: 'metametrics' | 'data-collection';
 } = {
-  scrollToDetectNFTs: undefined,
+  scrollToSection: undefined,
 };
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
@@ -94,8 +102,21 @@ describe('SecuritySettings', () => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
     mockUseParamsValues = {
-      scrollToDetectNFTs: undefined,
+      scrollToSection: undefined,
     };
+
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue({} as HostInstance);
+
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        setTimeout(() => {
+          if (typeof callback === 'function') callback();
+        }, 0);
+        return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+      });
 
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       dispatch: jest.fn(),
@@ -118,6 +139,76 @@ describe('SecuritySettings', () => {
       state: initialState,
     });
     expect(getByText(strings('app_settings.security_title'))).toBeOnTheScreen();
+  });
+
+  it('renders the metametrics sections when scrollToSection param is set', () => {
+    mockUseParamsValues = {
+      scrollToSection: 'data-collection',
+    };
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    expect(getByTestId(META_METRICS_SECTION)).toBeOnTheScreen();
+    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeOnTheScreen();
+  });
+
+  it.each(['metametrics', 'data-collection'] as const)(
+    'scrolls to the %s section when scrollToSection param is set',
+    async (scrollToSection) => {
+      const measuredSectionTop = 42;
+      const measureLayoutSpy = jest
+        .spyOn(View.prototype, 'measureLayout')
+        .mockImplementationOnce((_node, onSuccess) =>
+          onSuccess(0, measuredSectionTop, 0, 0),
+        );
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+      mockUseParamsValues = { scrollToSection };
+      renderWithProvider(<SecuritySettings />, { state: initialState });
+
+      await waitFor(() =>
+        expect(scrollToSpy).toHaveBeenCalledWith({
+          y: measuredSectionTop,
+          animated: true,
+        }),
+      );
+
+      measureLayoutSpy.mockRestore();
+      scrollToSpy.mockRestore();
+    },
+  );
+
+  it('does not measure when the native scroll ref is unavailable', async () => {
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue(null);
+    const measureLayoutSpy = jest.spyOn(View.prototype, 'measureLayout');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    await waitFor(() =>
+      expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
+    );
+    expect(measureLayoutSpy).not.toHaveBeenCalled();
+
+    measureLayoutSpy.mockRestore();
+  });
+
+  it('does not scroll when the section layout cannot be measured', async () => {
+    const measureLayoutSpy = jest
+      .spyOn(View.prototype, 'measureLayout')
+      .mockImplementationOnce((_node, _onSuccess, onFail) => onFail?.());
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    await waitFor(() => expect(measureLayoutSpy).toHaveBeenCalled());
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    measureLayoutSpy.mockRestore();
+    scrollToSpy.mockRestore();
   });
 
   it('renders inline header with Security and privacy title', () => {
@@ -173,5 +264,47 @@ describe('SecuritySettings', () => {
     const toggle = getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
     expect(toggle).toBeDefined();
     expect(toggle.props.value).toBe(true);
+  });
+
+  describe('Basic Functionality switch for a consolidated social wallet', () => {
+    const socialWalletState = (basicFunctionalityEnabled: boolean) => ({
+      ...initialState,
+      settings: {
+        ...initialState.settings,
+        basicFunctionalityEnabled,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+          },
+        },
+      },
+    });
+
+    it('locks the switch while Basic Functionality is on', () => {
+      const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+        state: socialWalletState(true),
+      });
+
+      expect(
+        getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
+      ).toBe(true);
+    });
+
+    it('leaves the switch usable when Basic Functionality is off', () => {
+      // Consolidation repairs an off social wallet, but that repair writes
+      // nothing if the service call rejects and only re-runs on unlock, so
+      // Settings has to stay the way back on.
+      const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+        state: socialWalletState(false),
+      });
+
+      expect(
+        getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
+      ).toBe(false);
+    });
   });
 });

@@ -45,6 +45,7 @@ export const MULTICHAIN_ACCOUNTS_URL = `https://support.metamask.io/configure/ac
 // Tokens & Swaps
 export const MUSD_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/tokens/musd/${MOBILE_UTM}`;
 export const MONEY_LANDING_URL = `https://metamask.io/money${MOBILE_UTM}`;
+export const MONEY_DISCLAIMER_URL = 'https://metamask.io/money#disclaimer';
 export const MUSD_PRICE_URL = `https://metamask.io/price/metamask-usd${MOBILE_UTM}`;
 export const MISSING_TOKENS_URL = `https://support.metamask.io/managing-my-tokens/custom-tokens/how-to-display-tokens-in-metamask/${MOBILE_UTM}`;
 export const SWAP_ISSUES_URL = `https://support.metamask.io/token-swaps/error-fetching-quote/${MOBILE_UTM}`;
@@ -69,6 +70,33 @@ export const buildVipPrioritySupportUrl = (
 ) => {
   const separator = baseUrl.includes('?') ? '&' : '?';
   return `${baseUrl}${separator}priority=vip&address=${encodeURIComponent(account)}`;
+};
+
+export const buildCardSupportUrl = (
+  {
+    providerUserId,
+    providerName,
+  }: {
+    providerUserId?: string | null;
+    providerName?: string | null;
+  },
+  baseUrl: string = METAMASK_SUPPORT_URL,
+) => {
+  const params = [
+    ...(providerUserId
+      ? [`provider_user_id=${encodeURIComponent(providerUserId)}`]
+      : []),
+    ...(providerName
+      ? [`provider_name=${encodeURIComponent(providerName)}`]
+      : []),
+  ];
+
+  if (params.length === 0) {
+    return baseUrl;
+  }
+
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}${params.join('&')}`;
 };
 
 // Perps

@@ -5,6 +5,7 @@ import {
   BtcAccountType,
   TrxAccountType,
   TrxScope,
+  XlmAccountType,
 } from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
@@ -12,8 +13,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
 import {
   MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP,
-  TRON_SPECIAL_ASSET_SYMBOLS_SET,
-  TronSpecialAssetSymbol,
+  TRON_SPECIAL_ASSET_IDS_SET,
 } from './constants';
 import { formatAddress, isEthAddress } from '../../util/address';
 import {
@@ -202,6 +202,27 @@ export function isTronAddress(address: string): boolean {
 }
 
 /**
+ * Returns whether an account is a Stellar account.
+ *
+ * @param account - The internal account to check.
+ * @returns `true` if the account is of type Eoa, false otherwise.
+ */
+export function isStellarAccount(account: InternalAccount): boolean {
+  const { Account } = XlmAccountType;
+  return Boolean(account && account.type === Account);
+}
+
+/**
+ * Stellar account address (StrKey, starts with G).
+ *
+ * @param address - The address to check.
+ * @returns `true` if the string matches the Stellar account key format.
+ */
+export function isStellarAddress(address: string): boolean {
+  return /^G[A-Z2-7]{55}$/u.test(address);
+}
+
+/**
  * Creates a transaction URL for block explorer based on network type
  * Different networks have different URL patterns:
  * Bitcoin Mainnet: https://blockstream.info/tx/{txId}
@@ -266,18 +287,10 @@ export function shortenTransactionId(txId: string) {
  * Checks if a token is a Tron special asset (resources, staking state, etc.)
  * that should be filtered out from user-facing asset lists.
  *
- * @param chainId - The chain ID to check
- * @param symbol - The token symbol to check
- * @returns true if the token is a Tron special asset
+ * Matching is by CAIP-19 asset ID only — symbols are not stable across
+ * AssetsController migrations.
  */
 export const isTronSpecialAsset = (
-  chainId: string | undefined,
-  symbol: string | undefined,
-): boolean => {
-  if (!chainId?.startsWith('tron:') || !symbol) {
-    return false;
-  }
-  return TRON_SPECIAL_ASSET_SYMBOLS_SET.has(
-    symbol.toLowerCase() as TronSpecialAssetSymbol,
-  );
-};
+  assetId: string | undefined,
+): assetId is string =>
+  Boolean(assetId && TRON_SPECIAL_ASSET_IDS_SET.has(assetId));

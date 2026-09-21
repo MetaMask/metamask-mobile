@@ -10,7 +10,7 @@ const name = 'GeolocationController' as const;
 
 /**
  * Get the messenger for the GeolocationController. Delegates the
- * GeolocationApiService:fetchGeolocation action so the controller can
+ * GeolocationApiService:fetchGeolocationData action so the controller can
  * call the API service via the messenger.
  *
  * @param rootMessenger - The root messenger.
@@ -29,7 +29,7 @@ export function getGeolocationControllerMessenger(
 
   rootMessenger.delegate({
     messenger,
-    actions: ['GeolocationApiService:fetchGeolocation'],
+    actions: ['GeolocationApiService:fetchGeolocationData'],
     events: [],
   });
 

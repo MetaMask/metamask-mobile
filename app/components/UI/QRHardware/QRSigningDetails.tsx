@@ -14,6 +14,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
@@ -116,7 +117,7 @@ const QRSigningDetails = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { setQrScanRetryHandler } = useHardwareWallet();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shouldPause, setShouldPause] = useState(false);

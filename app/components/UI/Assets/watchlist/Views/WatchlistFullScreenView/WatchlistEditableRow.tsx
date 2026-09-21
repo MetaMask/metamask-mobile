@@ -25,6 +25,11 @@ interface WatchlistEditableRowProps {
   onRemoveFromDraft?: (assetId: string) => void;
 }
 
+/**
+ * In edit mode the whole row (except the trash control) long-presses to drag.
+ * The drag-grid icon is a visual affordance only — a small left-edge hit target
+ * conflicts with Android's system back gesture.
+ */
 const WatchlistEditableRow = ({
   token,
   position,
@@ -38,26 +43,17 @@ const WatchlistEditableRow = ({
     onRemoveFromDraft?.(String(token.assetId));
   }, [onRemoveFromDraft, token.assetId]);
 
-  return (
-    <View
-      style={styles.editableRow}
-      testID={WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW}
-    >
+  const rowBody = (
+    <>
       <View
         style={isEditMode ? styles.dragHandle : styles.editControlHidden}
-        pointerEvents={isEditMode ? 'auto' : 'none'}
+        pointerEvents="none"
       >
-        <Pressable
-          onLongPress={drag}
-          disabled={!isEditMode}
-          testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
-        >
-          <Icon
-            name={LocalIconName.DragGrid}
-            size={IconSize.Md}
-            color={IconColor.Muted}
-          />
-        </Pressable>
+        <Icon
+          name={LocalIconName.DragGrid}
+          size={IconSize.Md}
+          color={IconColor.Muted}
+        />
       </View>
 
       <View
@@ -70,6 +66,28 @@ const WatchlistEditableRow = ({
           tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
         />
       </View>
+    </>
+  );
+
+  return (
+    <View
+      style={styles.editableRow}
+      testID={WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW}
+    >
+      {isEditMode ? (
+        <Pressable
+          style={styles.dragArea}
+          onLongPress={drag}
+          delayLongPress={300}
+          testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
+          accessibilityRole="button"
+          accessibilityLabel="Drag to reorder"
+        >
+          {rowBody}
+        </Pressable>
+      ) : (
+        <View style={styles.dragArea}>{rowBody}</View>
+      )}
 
       <View
         style={isEditMode ? styles.unwatchStar : styles.editControlHidden}

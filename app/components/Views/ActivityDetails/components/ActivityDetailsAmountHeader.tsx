@@ -2,6 +2,7 @@ import React from 'react';
 import {
   AvatarTokenSize,
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -20,7 +21,7 @@ import {
 } from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAvatar } from './ActivityDetailsAvatar';
-import { formatActivityTokenAmount } from './activityTokenFormat';
+import { useFormatActivityTokenAmount } from './activityTokenFormat';
 
 /**
  * Single amount header: token avatar(s) above a large primary amount with an
@@ -74,11 +75,16 @@ export function ActivityDetailsAmountHeader({
 }
 
 function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const amount = formatActivityTokenAmount(token);
 
   return (
     <Box twClassName="gap-1">
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {label}
       </Text>
       <Box twClassName="flex-row items-center gap-3">

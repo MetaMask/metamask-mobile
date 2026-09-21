@@ -40,6 +40,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         '1st Set Total Games',
       'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
       'predict.sports_market_types.tennis_completed_match': 'Completed Match',
+      'predict.sports_market_types.round_handicap_game': 'Rounds Handicap',
+      'predict.sports_market_types.round_over_under_game': 'Total Rounds',
     };
     if (key.startsWith('predict.sports_market_types.basketball_')) {
       return translations[key] ?? `[missing "${key}" translation]`;
@@ -146,6 +148,21 @@ describe('PredictGameDetailsContent utils', () => {
       );
     });
 
+    it('returns shared base labels for numbered esports round market types', () => {
+      expect(getSportsMarketTypeLabel('round_handicap_game_1')).toBe(
+        'Rounds Handicap',
+      );
+      expect(getSportsMarketTypeLabel('round_handicap_game_7')).toBe(
+        'Rounds Handicap',
+      );
+      expect(getSportsMarketTypeLabel('round_over_under_game_2')).toBe(
+        'Total Rounds',
+      );
+      expect(getSportsMarketTypeLabel('round_over_under_game_10')).toBe(
+        'Total Rounds',
+      );
+    });
+
     it('returns title-cased fallback for unknown type', () => {
       expect(getSportsMarketTypeLabel('unknown_type')).toBe('Unknown Type');
     });
@@ -206,6 +223,25 @@ describe('PredictGameDetailsContent utils', () => {
       expect(mockLoggerLog).not.toHaveBeenCalled();
       expect(mockLoggerError).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ['team_totals-0', 'Patriots Totals'],
+      ['team_totals_home-0', 'Patriots Totals'],
+      ['team_totals_away-0', 'Broncos Totals'],
+    ])(
+      'does not warn for dynamic NFL team totals subgroup key %s',
+      (type, title) => {
+        const mockLoggerError = jest.mocked(Logger.error);
+        const mockLoggerLog = jest.mocked(Logger.log);
+
+        expect(getSportsMarketTypeLabelForGame(type, title, mockGame)).toBe(
+          title,
+        );
+
+        expect(mockLoggerLog).not.toHaveBeenCalled();
+        expect(mockLoggerError).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('getSportsMarketTypeLabelForGame', () => {

@@ -221,6 +221,15 @@ describe('useGetOndoCampaignActivity', () => {
       },
     );
     expect(result.current.activityEntries).toHaveLength(2);
+    // Policy A: Redux keeps first page only — loadMore must not dispatch merges.
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignActivity({
+        subscriptionId: SUBSCRIPTION_ID,
+        campaignId: CAMPAIGN_ID,
+        entries: MOCK_PAGE_1.results,
+      }),
+    );
   });
 
   it('does not loadMore when hasMore is false', async () => {

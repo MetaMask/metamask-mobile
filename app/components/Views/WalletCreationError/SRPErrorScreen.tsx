@@ -2,6 +2,7 @@ import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
 import { connect } from 'react-redux';
@@ -45,6 +46,7 @@ import {
   AccountType,
   WalletCreationErrorCtaType,
 } from '../../../constants/onboarding';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 
 interface SRPErrorScreenProps {
   error: Error;
@@ -57,8 +59,9 @@ const SRPErrorScreen = ({
   saveOnboardingEvent,
   accountType = AccountType.Metamask,
 }: SRPErrorScreenProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { openSupportWithConsent } = useSupportConsent();
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -164,8 +167,11 @@ const SRPErrorScreen = ({
         .build(),
       saveOnboardingEvent,
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [saveOnboardingEvent, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [saveOnboardingEvent, accountType, openSupportWithConsent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>

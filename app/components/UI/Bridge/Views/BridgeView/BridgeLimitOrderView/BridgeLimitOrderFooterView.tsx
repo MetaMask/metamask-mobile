@@ -1,0 +1,57 @@
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  selectSourceAmount,
+  selectSourceToken,
+} from '../../../../../../core/redux/slices/bridge';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
+import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton/index.tsx';
+import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+
+interface Props {
+  onCTAPress: () => void;
+  ctaDisabled?: boolean;
+  ctaLabel: string;
+}
+
+export const BridgeLimitOrderFooterView = ({
+  onCTAPress,
+  ctaLabel,
+  ctaDisabled,
+}: Props) => {
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
+
+  const isValidSourceAmount =
+    sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+
+  if (!isValidSourceAmount) {
+    return null;
+  }
+
+  return (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      gap={3}
+      paddingTop={3}
+      paddingLeft={4}
+      paddingRight={4}
+      twClassName="w-full shrink-0 bg-default"
+      style={{ paddingBottom: bottomInset }}
+    >
+      <SwapsLimitOrderConfirmButton
+        onPress={onCTAPress}
+        label={ctaLabel}
+        testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
+        disabled={ctaDisabled}
+      />
+    </Box>
+  );
+};

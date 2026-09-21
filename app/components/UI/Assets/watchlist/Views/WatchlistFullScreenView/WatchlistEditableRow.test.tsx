@@ -73,7 +73,7 @@ describe('WatchlistEditableRow', () => {
     expect(getByText('Ethereum')).toBeDefined();
   });
 
-  it('renders drag handle in edit mode', () => {
+  it('renders drag area in edit mode', () => {
     const { getByTestId } = render(
       <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
     );
@@ -83,7 +83,7 @@ describe('WatchlistEditableRow', () => {
     ).toBeDefined();
   });
 
-  it('calls reorderable drag on long press of drag handle in edit mode', () => {
+  it('calls reorderable drag on long press of the row in edit mode', () => {
     const { getByTestId } = render(
       <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
     );
@@ -94,6 +94,20 @@ describe('WatchlistEditableRow', () => {
     );
 
     expect(mockDrag).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not expose a drag area outside edit mode', () => {
+    const { queryByTestId } = render(
+      <WatchlistEditableRow
+        token={createToken()}
+        position={0}
+        isEditMode={false}
+      />,
+    );
+
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
+    ).toBeNull();
   });
 
   it('calls onRemoveFromDraft when unwatch star is pressed in edit mode', () => {

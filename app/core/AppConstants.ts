@@ -257,14 +257,33 @@ export default {
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
   },
+  // Rewards Money: GH Actions use builds.yml (env set per build). Fallback
+  // mapping for local when env not set. Point at a local backend with
+  // REWARDS_MONEY_API_URL.
+  REWARDS_MONEY_API_URL: {
+    DEV: 'https://rewards-money.dev-api.cx.metamask.io',
+    UAT: 'https://rewards-money.uat-api.cx.metamask.io',
+    PRD: 'https://rewards-money.api.cx.metamask.io',
+  },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',
     UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
   },
+  // MetaMask Card API (CX) — proxies provider endpoints (e.g. Immersve supported-regions).
+  // GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
+  CARD_API_URL: {
+    DEV: 'https://card.dev-api.cx.metamask.io',
+    UAT: 'https://card.uat-api.cx.metamask.io',
+    PRD: 'https://card.api.cx.metamask.io',
+  },
   IMMERSVE_API_URL: {
     DEV: 'https://test.immersve.com',
     PRD: 'https://api.immersve.com',
+  },
+  IMMERSVE_SECURE_API_URL: {
+    DEV: 'https://test-sec.immersve.com',
+    PRD: 'https://api-sec.immersve.com',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:

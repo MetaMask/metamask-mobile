@@ -9,6 +9,7 @@ import {
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
@@ -40,7 +41,7 @@ const helpOptions: HelpOption[] = [
 const foxImage = require('../../../images/branding/fox.png');
 
 const ReviewModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const modalRef = useRef<ReusableModalRef>(null);
   const [showHelpOptions, setShowHelpOptions] = useState(false);
   const { colors } = useTheme();

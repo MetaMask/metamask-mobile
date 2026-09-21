@@ -1,6 +1,7 @@
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
@@ -79,7 +80,11 @@ jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
 
 jest.mock('./SocialAINotificationPreferencesContent', () => () => null);
 jest.mock('./AccountsList', () => ({
-  AccountsList: () => null,
+  AccountsList: ({
+    ListHeaderComponent,
+  }: {
+    ListHeaderComponent?: React.ReactElement;
+  }) => ListHeaderComponent ?? null,
 }));
 jest.mock('./AccountsList.hooks', () => ({
   useWalletActivityAccountSelection: () => ({
@@ -126,6 +131,8 @@ describe('NotificationSettingsSection', () => {
     mockHasEnabledAccount = true;
     mockHasNotificationAccounts = true;
     mockIsUpdatingAllAccounts = false;
+    mockPreferences.walletActivity.pushNotificationsEnabled = true;
+    mockPreferences.walletActivity.inAppNotificationsEnabled = true;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -153,11 +160,11 @@ describe('NotificationSettingsSection', () => {
     expect(screen.getByText(marketingDisclaimer)).toBeOnTheScreen();
   });
 
-  it('disables both channels and tracks an ALL update when deselecting all accounts', async () => {
+  it('tracks an ALL update without touching stored preferences when deselecting all accounts', async () => {
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     const button = screen.getByTestId(
@@ -165,7 +172,9 @@ describe('NotificationSettingsSection', () => {
     );
     expect(screen.getByText('Deselect all')).toBeOnTheScreen();
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -181,24 +190,17 @@ describe('NotificationSettingsSection', () => {
           .build(),
       );
     });
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
-      'walletActivity',
-      {
-        ...mockPreferences.walletActivity,
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-    );
+    // Account subscriptions live in the Trigger API; no preferences blob write.
+    expect(mockUpdatePreferencesSection).not.toHaveBeenCalled();
   });
 
-  it('enables both channels and tracks an ALL update when selecting all accounts', async () => {
+  it('tracks an ALL update without touching stored preferences when selecting all accounts', async () => {
     mockHasEnabledAccount = false;
 
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     const button = screen.getByTestId(
@@ -206,7 +208,9 @@ describe('NotificationSettingsSection', () => {
     );
     expect(screen.getByText('Select all')).toBeOnTheScreen();
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -222,15 +226,30 @@ describe('NotificationSettingsSection', () => {
           .build(),
       );
     });
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
-      'walletActivity',
-      {
-        ...mockPreferences.walletActivity,
-        pushNotificationsEnabled: true,
-        inAppNotificationsEnabled: true,
-      },
+    expect(mockUpdatePreferencesSection).not.toHaveBeenCalled();
+  });
+
+  it('keeps the wallet activity accounts interactive when both stored channel flags are off', () => {
+    mockPreferences.walletActivity.pushNotificationsEnabled = false;
+    mockPreferences.walletActivity.inAppNotificationsEnabled = false;
+
+    renderSection({
+      type: 'walletActivity',
+      title: 'Wallet Activity',
+      description: 'Buy, sells, transfers, swaps and rewards',
+    });
+
+    const selectAll = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
     );
+    const deselectAllLabel = screen
+      .UNSAFE_getAllByType(Text)
+      .find((node) => node.props.children === 'Deselect all');
+
+    // Wallet activity has no channel toggles; stale stored flags must not
+    // grey out the only remaining settings surface.
+    expect(selectAll).not.toBeDisabled();
+    expect(deselectAllLabel?.props.color).toBe(TextColor.PrimaryDefault);
   });
 
   it('updates and tracks the push channel when toggling push notifications', async () => {
@@ -375,9 +394,9 @@ describe('NotificationSettingsSection', () => {
       }),
     );
     renderSection({
-      type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      type: 'perps',
+      title: 'Trading Activity',
+      description: 'Perps position changes',
     });
 
     const pushToggle = screen.getByTestId(
@@ -395,7 +414,7 @@ describe('NotificationSettingsSection', () => {
       expect(inAppToggle.props.disabled).not.toBe(true);
     });
     expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
-      'walletActivity',
+      'perps',
       'pushNotificationsEnabled',
       false,
     );
@@ -415,18 +434,20 @@ describe('NotificationSettingsSection', () => {
       )
       .mockResolvedValueOnce(undefined);
     renderSection({
-      type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      type: 'perps',
+      title: 'Trading Activity',
+      description: 'Perps position changes',
     });
 
-    fireEvent(
-      screen.getByTestId(
-        NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
-      ),
-      'onValueChange',
-      false,
-    );
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ),
+        'onValueChange',
+        false,
+      );
+    });
 
     await waitFor(() => {
       expect(
@@ -436,37 +457,42 @@ describe('NotificationSettingsSection', () => {
       ).toBe(false);
     });
 
-    fireEvent(
-      screen.getByTestId(
-        NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
-      ),
-      'onValueChange',
-      true,
-    );
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ),
+        'onValueChange',
+        true,
+      );
+    });
 
     await waitFor(() => {
-      expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(2);
       expect(
         screen.getByTestId(
           NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
         ).props.value,
       ).toBe(true);
     });
+
+    await act(async () => {
+      resolveFirstUpdate();
+    });
+
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(2);
+    });
     expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
       1,
-      'walletActivity',
+      'perps',
       'pushNotificationsEnabled',
       false,
     );
     expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
       2,
-      'walletActivity',
+      'perps',
       'pushNotificationsEnabled',
       true,
     );
-
-    await act(async () => {
-      resolveFirstUpdate();
-    });
   });
 });

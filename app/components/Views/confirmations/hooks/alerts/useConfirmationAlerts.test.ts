@@ -15,15 +15,13 @@ import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
-import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
-import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasLimitBelowMinimumAlert } from './useGasLimitBelowMinimumAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
@@ -34,6 +32,7 @@ import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
+jest.mock('./useGasLimitBelowMinimumAlert');
 jest.mock('./useGasSponsorshipWarningAlert');
 jest.mock('./useDomainMismatchAlerts');
 jest.mock('./useInsufficientBalanceAlert');
@@ -43,9 +42,6 @@ jest.mock('./usePendingTransactionAlert');
 jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
-jest.mock('./useInsufficientPredictBalanceAlert');
-jest.mock('./useInsufficientPerpsBalanceAlert');
-jest.mock('./useInsufficientMoneyAccountBalanceAlert');
 jest.mock('./useFiatBuyLimitAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
@@ -68,6 +64,15 @@ describe('useConfirmationAlerts', () => {
       message: ALERT_MESSAGE_MOCK,
       severity: Severity.Warning,
       alertDetails: ALERT_DETAILS_MOCK,
+    },
+  ];
+  const mockGasLimitBelowMinimumAlert: Alert[] = [
+    {
+      key: 'gasLimitBelowMinimum',
+      title: 'Low gas limit',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Warning,
+      isBlocking: true,
     },
   ];
   const mockDomainMisMatchAlerts: Alert[] = [
@@ -144,14 +149,6 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
-  const mockInsufficientPredictBalanceAlert: Alert[] = [
-    {
-      key: 'InsufficientPredictBalanceAlert',
-      title: 'Test Insufficient Predict Balance Alert',
-      message: ALERT_MESSAGE_MOCK,
-      severity: Severity.Danger,
-    },
-  ];
   const mockBurnAddressAlert: Alert[] = [
     {
       key: 'BurnAddressAlert',
@@ -208,6 +205,7 @@ describe('useConfirmationAlerts', () => {
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
     (useDomainMismatchAlerts as jest.Mock).mockReturnValue([]);
     (useGasEstimateFailedAlert as jest.Mock).mockReturnValue([]);
+    (useGasLimitBelowMinimumAlert as jest.Mock).mockReturnValue([]);
     (useGasSponsorshipWarningAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientBalanceAlert as jest.Mock).mockReturnValue([]);
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue([]);
@@ -216,9 +214,6 @@ describe('useConfirmationAlerts', () => {
     (useBatchedUnusedApprovalsAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
-    (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
-    (useInsufficientPerpsBalanceAlert as jest.Mock).mockReturnValue([]);
-    (useInsufficientMoneyAccountBalanceAlert as jest.Mock).mockReturnValue([]);
     (useFiatBuyLimitAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -243,6 +238,15 @@ describe('useConfirmationAlerts', () => {
       state: siweSignatureConfirmationState,
     });
     expect(result.current).toEqual(mockBlockaidAlerts);
+  });
+
+  it('returns gas limit below minimum alerts', () => {
+    (useGasLimitBelowMinimumAlert as jest.Mock).mockReturnValue(
+      mockGasLimitBelowMinimumAlert,
+    );
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockGasLimitBelowMinimumAlert);
   });
 
   it('returns domain mismatch alerts', () => {
@@ -291,9 +295,6 @@ describe('useConfirmationAlerts', () => {
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue(
       mockNoPayTokenQuotesAlert,
     );
-    (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue(
-      mockInsufficientPredictBalanceAlert,
-    );
     (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockTokenTrustSignalAlerts,
@@ -322,7 +323,6 @@ describe('useConfirmationAlerts', () => {
       ...mockSignedOrSubmittedAlert,
       ...mockInsufficientPayTokenBalanceAlert,
       ...mockNoPayTokenQuotesAlert,
-      ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
       ...mockAddressPoisoningAlert,

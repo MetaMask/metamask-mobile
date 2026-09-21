@@ -1,15 +1,24 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { PerpsMode, type Position } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
+import { selectPerpsMode } from '../selectors/perpsController';
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 const mockDepositWithOrder = jest.fn();
@@ -44,8 +53,11 @@ jest.mock(
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockCanGoBack = jest.fn();
   const mockGoBack = jest.fn();
+  const mockDispatch = jest.fn();
+  const mockGetState = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
@@ -57,10 +69,19 @@ describe('usePerpsNavigation', () => {
   >;
   const mockUsePerpsEventTracking =
     usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
-
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
+    // Default to Pro mode inactive, matching the existing navigateToHome
+    // assertions below which expect the Perps Home screen target.
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProModeEnabledFlag) return false;
+      if (selector === selectPerpsMode) return PerpsMode.Lite;
+      return undefined;
+    });
     mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
     mockUsePerpsTrading.mockReturnValue({
       depositWithOrder: mockDepositWithOrder,
@@ -79,10 +100,16 @@ describe('usePerpsNavigation', () => {
     mockUsePerpsEventTracking.mockReturnValue({
       track: mockTrack,
     });
+    // Default to a navigator that doesn't own the Perps screens, so
+    // navigateToMarketList takes the cross-stack `navigate(PERPS.ROOT)` path.
+    mockGetState.mockReturnValue({ routeNames: [] });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
+      dispatch: mockDispatch,
+      getState: mockGetState,
     } as Partial<ReturnType<typeof useNavigation>> as ReturnType<
       typeof useNavigation
     >);
@@ -229,7 +256,48 @@ describe('usePerpsNavigation', () => {
       });
     });
 
-    it('navigates to market list without params', () => {
+    it('resets the Perps stack to home instead of pushing it', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.resetToHome('market_list');
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.PERPS_HOME,
+            params: { source: 'market_list' },
+          },
+        ],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to the default Pro market instead of home when Pro mode is active', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsProModeEnabledFlag) return true;
+        if (selector === selectPerpsMode) return PerpsMode.Pro;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToHome('market_list');
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.MARKET_DETAILS,
+        expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'BTC' }),
+          source: 'market_list',
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.PERPS_HOME,
+        expect.anything(),
+      );
+    });
+
+    it('navigates to market list through the Perps root from outside the stack', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 
       result.current.navigateToMarketList();
@@ -238,9 +306,10 @@ describe('usePerpsNavigation', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params: undefined,
       });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('navigates to market list with params', () => {
+    it('navigates to market list with params from outside the stack', () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { source: 'test', variant: 'full' as const };
 
@@ -250,6 +319,43 @@ describe('usePerpsNavigation', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params,
       });
+    });
+
+    it('pushes the market list when already inside the Perps stack', () => {
+      // Arrange - navigate() would pop back to an existing market list entry,
+      // animating backwards when the user reached this screen through it.
+      mockGetState.mockReturnValue({
+        routeNames: [Routes.PERPS.MARKET_LIST, Routes.PERPS.MARKET_DETAILS],
+      });
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { source: 'perp_asset_screen' };
+
+      // Act
+      result.current.navigateToMarketList(params);
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push(Routes.PERPS.MARKET_LIST, params),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('pushes market list from header so details stay beneath the slide-up', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { source: 'perp_asset_screen' };
+
+      result.current.navigateToMarketListFromHeader(params);
+
+      // Must push (not ROOT navigate) so MARKET_LIST → MARKET_DETAILS keeps
+      // details under the picker; navigate() would pop back to the existing list.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
+          ...params,
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates to order screen with direction and asset', async () => {
@@ -266,6 +372,28 @@ describe('usePerpsNavigation', () => {
             ...params,
             showPerpsHeader:
               CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          },
+        );
+      });
+    });
+
+    it('opens order confirmation as a headerless bottom sheet for treatment', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'SOL',
+        useBottomSheet: true,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            useBottomSheet: true,
+            showPerpsHeader: false,
           },
         );
       });
@@ -356,6 +484,36 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToTutorial(params);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, params);
+    });
+
+    it('opens the adjust margin screen for control', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'add');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'add',
+        enableHaptics: undefined,
+      });
+    });
+
+    it('opens the adjust margin bottom sheet for treatment', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'remove', {
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'remove',
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
     });
   });
 

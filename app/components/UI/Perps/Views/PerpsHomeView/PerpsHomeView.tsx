@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -19,12 +18,14 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheetRef,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonVariant,
   ButtonSize,
   TextColor,
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandard,
   HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
@@ -45,6 +46,7 @@ import {
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  useBottomSafeAreaInset,
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
@@ -71,9 +73,17 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsNetwork,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
-import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
+import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
+import {
+  buildDefaultProMarket,
+  withHomeDroppedFromHistory,
+} from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -86,17 +96,9 @@ import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import {
-  selectIsFirstTimePerpsUser,
-  selectPerpsNetwork,
-  selectPerpsWatchlistMarkets,
-} from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
-import {
-  WhatsHappeningSource,
-  MAX_ITEMS_DISPLAYED,
-} from '../../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
   useWhatsHappening,
   isWhatsHappeningSectionVisible,
@@ -105,12 +107,18 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import Reanimated, { SharedValue } from 'react-native-reanimated';
-import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import Reanimated, { useAnimatedScrollHandler } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
+import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -131,42 +139,24 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   isPerpsTopMoversSectionVisible,
   usePerpsTopMovers,
 } from '../../hooks/usePerpsTopMovers';
 
-interface PerpsHomeViewProps {
-  hideHeader?: boolean;
-  walletHeaderTranslateY?: SharedValue<number>;
-  walletHeaderHeight?: number;
-  /** Ref populated with this tab's onTabEnter so the parent can call it on tab switch. */
-  tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
-  /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-  /**
-   * Top padding applied inside the scroll content container when embedded in
-   * HomepageDiscoveryTabs — keeps the perps background flush under the discovery
-   * tab bar and adds spacing before the screen title (32px in discovery tabs).
-   */
-  topInset?: number;
-}
-
-const PerpsHomeView = ({
-  hideHeader = false,
-  walletHeaderTranslateY,
-  walletHeaderHeight = 0,
-  tabEnterCallbackRef,
-  onHeaderHiddenChange,
-  topInset = 0,
-}: PerpsHomeViewProps) => {
+const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const analyticsContext = (
+    route.params as NavigationAnalyticsRouteParams | undefined
+  )?.analyticsContext;
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
@@ -182,29 +172,38 @@ const PerpsHomeView = ({
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      setPerpsMode(nextMode);
-      // First-time users must still go through onboarding (same as Trade sheet):
-      // routing straight into the Pro market would skip the tutorial otherwise,
-      // so no mode-switch flash is shown here.
-      if (isFirstTimePerpsUser) {
-        navigation.navigate(Routes.PERPS.TUTORIAL);
-        return;
+    async (nextMode: PerpsMode): Promise<boolean> => {
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'home',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
+      if (openedChooser) {
+        return false;
       }
-      // Flash the destination mode on top of the current screen.
-      showPerpsModeFlash(nextMode);
-      // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
+
+      // Chooser already completed — flip immediately without the sheet.
+      setPerpsMode(nextMode);
+      // Discard Perps Home while Pro is active (TAT-3612).
       if (nextMode === PerpsMode.Pro) {
-        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-          market: buildDefaultProMarket(),
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              params: withHomeDroppedFromHistory({
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
+                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+              }),
+            },
+          ],
         });
       }
+      return true;
     },
-    [isFirstTimePerpsUser, navigation, setPerpsMode],
+    [lastViewedMarketSymbol, navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
@@ -223,7 +222,12 @@ const PerpsHomeView = ({
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappeningFeed = useWhatsHappening({
+    telemetryContext: {
+      source: WhatsHappeningSource.Perps,
+      stage: 'carousel',
+    },
+  });
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({
@@ -284,6 +288,16 @@ const PerpsHomeView = ({
     },
     [handleScroll],
   );
+  // `useAnimatedScrollHandler` may retain the first worklet closure. Keep the
+  // RN callback stable while forwarding each event to the latest tracker.
+  const handleScrollEventRef = useRef(handleScrollEvent);
+  handleScrollEventRef.current = handleScrollEvent;
+  const scheduleScrollEventOnRN = useCallback(
+    (scrollY: number, viewportHeight: number) => {
+      handleScrollEventRef.current(scrollY, viewportHeight);
+    },
+    [],
+  );
 
   const {
     scrollY: headerScrollY,
@@ -293,25 +307,18 @@ const PerpsHomeView = ({
 
   const perpsScreenTitle = strings('perps.title');
 
-  const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
-    useDiscoveryScrollManager({
-      walletHeaderHeight,
-      walletHeaderTranslateY,
-      scrollY: hideHeader ? undefined : headerScrollY,
-      onScrollEvent: handleScrollEvent,
-      onHeaderHiddenChange,
-    });
-
-  // Expose onTabEnter to the parent so it can restore this tab's header state on switch.
-  useEffect(() => {
-    if (tabEnterCallbackRef) {
-      tabEnterCallbackRef.current = perpsOnTabEnter;
-      return () => {
-        tabEnterCallbackRef.current = null;
-      };
-    }
-    return undefined;
-  }, [tabEnterCallbackRef, perpsOnTabEnter]);
+  const perpsScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      'worklet';
+      // eslint-disable-next-line react-compiler/react-compiler -- Reanimated shared values are intentionally mutated from worklets.
+      headerScrollY.value = event.contentOffset.y;
+      scheduleOnRN(
+        scheduleScrollEventOnRN,
+        event.contentOffset.y,
+        event.layoutMeasurement.height,
+      );
+    },
+  });
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -512,6 +519,9 @@ const PerpsHomeView = ({
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
+    navigationAnalyticsContext: route.params?.source
+      ? undefined
+      : analyticsContext,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
@@ -611,13 +621,24 @@ const PerpsHomeView = ({
   }, [navigation, trackEvent, createEventBuilder]);
 
   const navigateToContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: SUPPORT_CONFIG.Url,
-        title: strings(SUPPORT_CONFIG.TitleKey),
+    openSupportWithConsent(
+      (url) =>
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings(SUPPORT_CONFIG.TitleKey),
+          },
+        }),
+      SUPPORT_CONFIG.Url,
+      () => {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+          ).build(),
+        );
       },
-    });
+    );
     // Track contact support interaction for Perps analytics
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
@@ -629,11 +650,7 @@ const PerpsHomeView = ({
         })
         .build(),
     );
-    // Also track the general navigation event
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
-    );
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   const handleGiveFeedback = useCallback(() => {
     // Track feedback button click
@@ -846,6 +863,7 @@ const PerpsHomeView = ({
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION}
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
             marketType="crypto"
@@ -1004,9 +1022,9 @@ const PerpsHomeView = ({
     setShowCancelAllSheet(false);
   }, []);
 
-  // Calculate actual footer dimensions
-  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
-  const footerHeight = 80 + insets.bottom;
+  // Calculate actual footer dimensions: the base footer geometry plus the
+  // system navigation-bar inset added to its bottom padding at runtime.
+  const footerHeight = FIXED_BOTTOM_CONTAINER_BASE_HEIGHT + bottomSafeAreaInset;
 
   const showsFixedFooter =
     !isBalanceEmpty &&
@@ -1017,34 +1035,34 @@ const PerpsHomeView = ({
   const bottomSpacerStyle = useMemo(
     () => ({
       // Reserve space for the fixed footer only when it is rendered.
-      height: showsFixedFooter ? footerHeight + 16 : 16,
+      height: showsFixedFooter
+        ? footerHeight + FIXED_BOTTOM_CONTAINER_PADDING
+        : FIXED_BOTTOM_CONTAINER_PADDING,
     }),
     [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
   const fixedFooterStyle = useMemo(
-    () => [styles.fixedFooter, { paddingBottom: 16 + insets.bottom }],
-    [styles.fixedFooter, insets.bottom],
+    () => [
+      styles.fixedFooter,
+      {
+        paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+      },
+    ],
+    [styles.fixedFooter, bottomSafeAreaInset],
   );
 
   const scrollContentContainerStyle = useMemo(
     () => [
       styles.scrollViewContent,
-      hideHeader && topInset > 0 ? { paddingTop: topInset } : null,
       showsFixedFooter
         ? { paddingBottom: 0 }
-        : !hideHeader
-          ? { paddingBottom: 16 + insets.bottom }
-          : null,
+        : {
+            paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+          },
     ],
-    [
-      styles.scrollViewContent,
-      topInset,
-      hideHeader,
-      showsFixedFooter,
-      insets.bottom,
-    ],
+    [styles.scrollViewContent, showsFixedFooter, bottomSafeAreaInset],
   );
 
   const titleEndAccessory = useMemo(() => {
@@ -1078,60 +1096,47 @@ const PerpsHomeView = ({
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      {!hideHeader &&
-        (isPerpsProModeEnabled ? (
-          // Pro mode: persistent centered Lite/Pro toggle in the top nav
-          // (the animated compact title would only appear on scroll).
-          // h-16 (64px) matches the Figma header so the 40px toggle keeps its
-          // 12px of breathing room above/below (HeaderBase defaults to 56px).
-          <HeaderStandard
-            includesTopInset
-            twClassName="h-16"
-            title={
+      {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
+      <HeaderStandardAnimated
+        includesTopInset
+        // h-16 (64px) matches the Figma header when the Lite pill is shown
+        // (HeaderBase defaults to 56px).
+        twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
+        scrollY={headerScrollY}
+        titleSectionHeight={titleSectionHeightSv}
+        title={perpsScreenTitle}
+        onBack={handleBackPress}
+        backButtonProps={{
+          accessibilityLabel: 'Back',
+          testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+        }}
+        endAccessory={
+          <Box
+            accessible={false}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <ButtonIcon
+              iconName={IconName.Search}
+              size={ButtonIconSize.Md}
+              onPress={handleSearchToggle}
+              accessibilityLabel="Search"
+              testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+            />
+            {isPerpsProModeEnabled ? (
               <PerpsModeToggle
                 mode={perpsMode}
                 onChange={handleModeChange}
+                variant="active"
+                enableHaptics
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
               />
-            }
-            onBack={handleBackPress}
-            backButtonProps={{
-              accessibilityLabel: 'Back',
-              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: handleSearchToggle,
-                accessibilityLabel: 'Search',
-                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-              },
-            ]}
-            testID="perps-home"
-          />
-        ) : (
-          <HeaderStandardAnimated
-            includesTopInset
-            scrollY={headerScrollY}
-            titleSectionHeight={titleSectionHeightSv}
-            title={perpsScreenTitle}
-            onBack={handleBackPress}
-            backButtonProps={{
-              accessibilityLabel: 'Back',
-              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: handleSearchToggle,
-                accessibilityLabel: 'Search',
-                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-              },
-            ]}
-            testID="perps-home"
-          />
-        ))}
+            ) : null}
+          </Box>
+        }
+        testID="perps-home"
+      />
 
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
@@ -1159,15 +1164,11 @@ const PerpsHomeView = ({
             )}
             <TitleHub
               testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-              title={hideHeader ? undefined : perpsScreenTitle}
-              titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
-              titleProps={
-                hideHeader
-                  ? undefined
-                  : {
-                      testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-                    }
-              }
+              title={perpsScreenTitle}
+              titleEndAccessory={titleEndAccessory}
+              titleProps={{
+                testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+              }}
               amount={
                 !isBalanceEmpty ? (
                   <SensitiveText
@@ -1217,7 +1218,10 @@ const PerpsHomeView = ({
         <PerpsHomeSectionList sections={homeSections} />
 
         {/* Bottom spacing for tab bar */}
-        <View style={bottomSpacerStyle} />
+        <View
+          style={bottomSpacerStyle}
+          testID={PerpsHomeViewSelectorsIDs.BOTTOM_SPACER}
+        />
       </Reanimated.ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
@@ -1238,7 +1242,10 @@ const PerpsHomeView = ({
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
       {showsFixedFooter && (
-        <View style={fixedFooterStyle}>
+        <View
+          style={fixedFooterStyle}
+          testID={PerpsHomeViewSelectorsIDs.FIXED_FOOTER}
+        >
           <View style={styles.footerButtonsContainer} accessible={false}>
             <Button
               variant={ButtonVariant.Secondary}
@@ -1267,12 +1274,14 @@ const PerpsHomeView = ({
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey={'geo_block'}
-              testID={'perps-home-geo-block-tooltip'}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey={'geo_block'}
+                testID={'perps-home-geo-block-tooltip'}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}
@@ -1281,12 +1290,14 @@ const PerpsHomeView = ({
       {isCloseAllGeoBlockVisible && (
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={() => setIsCloseAllGeoBlockVisible(false)}
-              contentKey={'geo_block'}
-              testID={'perps-home-close-all-geo-block-tooltip'}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={() => setIsCloseAllGeoBlockVisible(false)}
+                contentKey={'geo_block'}
+                testID={'perps-home-close-all-geo-block-tooltip'}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

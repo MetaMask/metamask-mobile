@@ -5,6 +5,7 @@ import type {
   PredictOutcome,
   PredictOutcomeGroup,
   PredictPosition,
+  PredictSportsLeague,
 } from '../types';
 
 jest.mock('react-redux', () => ({
@@ -58,6 +59,13 @@ const defaultParams = {
   league: 'nba' as const,
   outcomeGroups: [] as PredictOutcomeGroup[],
 };
+const ESPORTS_LEAGUES: PredictSportsLeague[] = [
+  'cs2',
+  'lol',
+  'dota2',
+  'val',
+  'r6siege',
+];
 
 describe('useGameDetailsTabs', () => {
   beforeEach(() => {
@@ -91,6 +99,68 @@ describe('useGameDetailsTabs', () => {
       );
 
       expect(result.current.enabled).toBe(false);
+    });
+
+    it.each(ESPORTS_LEAGUES)(
+      'returns enabled true for esports league %s',
+      (league) => {
+        mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+
+        const { result } = renderHook(() =>
+          useGameDetailsTabs({ ...defaultParams, league }),
+        );
+
+        expect(result.current.enabled).toBe(true);
+      },
+    );
+
+    it('exposes Outcomes and game chips for an enabled LoL match', () => {
+      mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+      const outcomeGroups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('game_1'),
+        createOpenGroup('game_7'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          league: 'lol',
+          outcomeGroups,
+        }),
+      );
+
+      expect(result.current.tabs).toEqual([
+        { label: 'predict.tabs.outcomes', key: 'outcomes' },
+      ]);
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+        { key: 'game_1', label: 'Game 1' },
+        { key: 'game_7', label: 'Game 7' },
+      ]);
+    });
+
+    it('exposes map chips for an enabled CS2 match', () => {
+      mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+      const outcomeGroups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('map_1'),
+        createOpenGroup('map_7'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          league: 'cs2',
+          outcomeGroups,
+        }),
+      );
+
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+        { key: 'map_1', label: 'Map 1' },
+        { key: 'map_7', label: 'Map 7' },
+      ]);
     });
   });
 

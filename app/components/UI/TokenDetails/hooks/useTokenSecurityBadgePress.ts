@@ -1,6 +1,7 @@
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
@@ -9,7 +10,7 @@ export const useTokenSecurityBadgePress = (
   token: TokenDetailsRouteParams,
   securityData: TokenSecurityData | null | undefined,
 ) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),

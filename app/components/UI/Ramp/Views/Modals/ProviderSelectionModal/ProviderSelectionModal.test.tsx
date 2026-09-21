@@ -43,7 +43,7 @@ const mockUseParams = jest.fn<ProviderSelectionModalParams, []>(() => ({
   amount: 100,
 }));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails: jest.fn(),
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
 }));
 
@@ -102,6 +102,7 @@ const defaultControllerReturn = {
   providers: mockProviders,
   selectedProvider: mockProviders[0],
   setSelectedProvider: mockSetSelectedProvider,
+  setSelectedProviderForAsset: jest.fn(),
   selectedPaymentMethod: {
     id: '/payments/debit-credit-card-1',
     paymentType: 'debit-credit-card',
@@ -329,6 +330,9 @@ describe('ProviderSelectionModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
       screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+      params: {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      },
     });
   });
 

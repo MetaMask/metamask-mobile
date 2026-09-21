@@ -29,12 +29,14 @@ import {
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   mockHDKeyringAddress,
+  mockOneKeyKeyringAddress,
   mockQrKeyringAddress,
   mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
   mockSolanaAddress,
 } from '../test/keyringControllerTestUtils';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import {
   internalAccount1,
   MOCK_SOLANA_ACCOUNT,
@@ -339,6 +341,25 @@ describe('isValidAddressInputViaQRCode', () => {
     });
   });
 
+  describe('Stellar addresses', () => {
+    it('should be valid for Stellar mainnet address', () => {
+      const mockInput =
+        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be invalid for invalid Stellar address (wrong length)', () => {
+      const mockInput = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQ';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+
+    it('should be invalid for invalid Stellar address (does not start with G)', () => {
+      const mockInput =
+        'HBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+  });
+
   describe('Tron addresses', () => {
     it('should be valid for Tron mainnet address', () => {
       const mockInput = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
@@ -492,6 +513,10 @@ describe('isQRHardwareAccount', () => {
   it('should return true if address is from keyring type qr', () => {
     expect(isQRHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
   });
+
+  it('returns true if address is from keyring type oneKey', () => {
+    expect(isQRHardwareAccount(mockOneKeyKeyringAddress)).toBe(true);
+  });
 });
 describe('getKeyringByAddress', () => {
   it('should return undefined if argument address is undefined', () => {
@@ -514,6 +539,27 @@ describe('getKeyringByAddress', () => {
 describe('isHardwareAccount,', () => {
   it('should return true if account is a QR keyring', () => {
     expect(isHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
+  });
+
+  it('returns true if account is a OneKey keyring', () => {
+    expect(isHardwareAccount(mockOneKeyKeyringAddress)).toBe(true);
+  });
+
+  it('returns true when OneKey is explicitly requested', () => {
+    expect(
+      isHardwareAccount(mockOneKeyKeyringAddress, [
+        ExtendedKeyringTypes.oneKey,
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false when OneKey is excluded from account types', () => {
+    expect(
+      isHardwareAccount(mockOneKeyKeyringAddress, [
+        ExtendedKeyringTypes.qr,
+        ExtendedKeyringTypes.ledger,
+      ]),
+    ).toBe(false);
   });
 
   it('should return false if account is not a hardware keyring', () => {

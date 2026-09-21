@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -18,7 +20,7 @@ interface UseScanRecipientQrCodeParams {
 export const useScanRecipientQrCode = ({
   onAddressScanned,
 }: UseScanRecipientQrCodeParams) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleScanSuccess = useCallback(
@@ -33,8 +35,11 @@ export const useScanRecipientQrCode = ({
   const openScanner = useCallback(() => {
     trackEvent(createEventBuilder(MetaMetricsEvents.QR_SCANNER_OPENED).build());
 
-    navigate(
-      ...createQRScannerNavDetails({
+    // createQRScannerNavDetails returns a [routeName: string, params] tuple, so
+    // the route name isn't a compile-time literal.
+    navigateWithDetails(
+      { navigate },
+      createQRScannerNavDetails({
         initialScreen: QRTabSwitcherScreens.Scanner,
         disableTabber: true,
         onScanSuccess: handleScanSuccess,
