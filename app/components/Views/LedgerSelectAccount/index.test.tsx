@@ -112,10 +112,16 @@ jest.mock('../../../core/Engine', () => ({
       getAccountByAddress: jest.fn(),
       setAccountName: jest.fn(),
     },
-    AccountTrackerController: {
-      syncBalanceWithAddresses: jest.fn().mockResolvedValue({}),
+    NetworkController: {
+      state: { selectedNetworkClientId: 'mainnet' },
+      getNetworkClientById: jest.fn(() => ({ provider: {} })),
     },
   },
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn().mockResolvedValue('0x0'),
 }));
 const MockEngine = jest.mocked(Engine);
 
