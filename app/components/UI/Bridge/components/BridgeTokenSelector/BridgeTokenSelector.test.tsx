@@ -13,10 +13,10 @@ import {
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 import {
   setIsSelectingToken,
-  setSourceAmount,
   setTokenSelectorNetworkFilter,
   setSourceToken,
   setDestToken,
@@ -254,6 +254,12 @@ const mockUsePopularTokens = jest.fn((_: unknown) => mockPopularTokensState);
 jest.mock('../../hooks/usePopularTokens', () => ({
   usePopularTokens: (params: unknown) => mockUsePopularTokens(params),
 }));
+
+jest.mock('../../hooks/useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 
 let mockBalancesByAssetIdState = {
   tokensWithBalance: [] as ReturnType<typeof createMockToken>[],
@@ -857,6 +863,7 @@ describe('BridgeTokenSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
   });
 
   describe('rendering', () => {
@@ -1748,7 +1755,8 @@ describe('BridgeTokenSelector', () => {
     });
 
     it('tracks the info button press with the feature id of the flow that opened the picker', async () => {
-      mockRouteParams = { type: 'source', featureId: FeatureId.LIMIT_ORDER };
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      mockRouteParams = { type: 'source' };
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
 

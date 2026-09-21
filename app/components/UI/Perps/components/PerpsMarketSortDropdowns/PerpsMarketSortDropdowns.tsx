@@ -1,12 +1,14 @@
 import React, { useMemo } from 'react';
 import {
   Box,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   SelectButton,
   SelectButtonVariant,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
@@ -44,6 +46,10 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         value={sortLabel}
         onPress={onSortPress}
         hideEndArrow
+        textProps={{
+          variant: TextVariant.BodyMd,
+          fontWeight: FontWeight.Medium,
+        }}
         endAccessory={
           <Icon
             name={
