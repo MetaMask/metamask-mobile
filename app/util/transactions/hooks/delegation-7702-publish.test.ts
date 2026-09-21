@@ -109,6 +109,9 @@ describe('Delegation 7702 Publish Hook', () => {
   const isAtomicBatchSupportedMock: jest.MockedFn<
     TransactionController['isAtomicBatchSupported']
   > = jest.fn();
+  const isSponsoredMock: jest.MockedFn<
+    (transactionMeta: TransactionMeta) => boolean
+  > = jest.fn();
   const signDelegationControllerMock: jest.MockedFn<
     DelegationControllerSignDelegationAction['handler']
   > = jest.fn();
@@ -178,11 +181,15 @@ describe('Delegation 7702 Publish Hook', () => {
 
     hookClass = new Delegation7702PublishHook({
       isAtomicBatchSupported: isAtomicBatchSupportedMock,
+      isSponsored: isSponsoredMock,
       messenger,
       getNextNonce: getNextNonceMock,
     });
 
     isAtomicBatchSupportedMock.mockResolvedValue([]);
+    isSponsoredMock.mockImplementation((transactionMeta) =>
+      Boolean(transactionMeta.isGasFeeSponsored),
+    );
     signTypedMessageMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
     signDelegationControllerMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
     submitRelayTransactionMock.mockResolvedValue({
@@ -865,7 +872,8 @@ describe('Delegation 7702 Publish Hook', () => {
     expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('submits request to relay for sponsored flow without gas fee tokens', async () => {
+  it('submits request to relay for an authoritative sponsored decision without gas fee tokens', async () => {
+    isSponsoredMock.mockReturnValue(true);
     isAtomicBatchSupportedMock.mockResolvedValueOnce([
       {
         chainId: TRANSACTION_META_MOCK.chainId,
@@ -881,7 +889,7 @@ describe('Delegation 7702 Publish Hook', () => {
       id: SPONSORED_TX_ID,
       type: TransactionType.batch,
       nestedTransactions: [{ type: TransactionType.swap }],
-      isGasFeeSponsored: true,
+      isGasFeeSponsoredAvailable: true,
     } as unknown as TransactionMeta;
 
     await hookClass.getHook()(sponsoredTxMeta, SIGNED_TX_MOCK);

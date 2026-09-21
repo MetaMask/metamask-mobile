@@ -60,11 +60,6 @@ export function useTransactionConfirm() {
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
 
-  // Signer of the confirmed transaction; gates signing-related paths.
-  const isSignerHardwareWallet = isHardwareAccount(
-    transactionMetadata?.txParams?.from ?? '',
-  );
-
   // Payer may differ from the signer (MM Pay funding account); a hardware
   // payer signs funding transactions on-device after approval, so keep the
   // confirmation waiting to drive the awaiting UI and surface errors.
@@ -234,7 +229,7 @@ export function useTransactionConfirm() {
       }
     },
     [
-        shouldDeferHwSend,
+      shouldDeferHwSend,
       deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
@@ -243,10 +238,8 @@ export function useTransactionConfirm() {
       onFiatConfirm,
       onRequestConfirm,
       orderId,
-      selectedGasFeeToken,
       transactionMetadata,
       waitForResult,
-      isSignerHardwareWallet,
     ],
   );
 
