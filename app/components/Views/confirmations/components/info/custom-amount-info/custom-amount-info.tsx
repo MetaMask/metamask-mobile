@@ -543,7 +543,7 @@ export function CustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </Box>
-      <Box>
+      <Box style={styles.bottomBlock}>
         <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
       </Box>
@@ -560,7 +560,7 @@ export function PrefillCustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <Skeleton height={20} width={200} />
       </View>
-      <View>
+      <View style={styles.bottomBlock}>
         <View style={styles.skeletonRow}>
           <Skeleton height={18} width={100} />
           <View style={styles.skeletonRowRight}>
@@ -609,7 +609,7 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </View>
-      <View>
+      <View style={styles.bottomBlock}>
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />
