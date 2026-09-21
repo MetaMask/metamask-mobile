@@ -16,6 +16,10 @@ jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
 }));
 
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
 jest.mock('../../../../../../selectors/socialController', () => ({
   selectFollowingProfileIds: jest.fn(),
 }));

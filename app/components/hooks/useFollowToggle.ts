@@ -3,6 +3,8 @@ import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
 import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
+import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
+import { selectIsUnlocked } from '../../selectors/keyringController';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
 import {
   SocialLeaderboardEventProperties,
@@ -59,6 +61,8 @@ type OptimisticFollowListener = () => void;
 let optimisticFollowState: Record<string, boolean> = {};
 const inflightIds = new Set<string>();
 const optimisticFollowListeners = new Set<OptimisticFollowListener>();
+let lastFollowToggleSessionKey: string | undefined;
+let followToggleSessionEpoch = 0;
 
 const emitOptimisticFollowState = (): void => {
   optimisticFollowListeners.forEach((listener) => listener());
@@ -87,11 +91,41 @@ const updateOptimisticFollowState = (
   emitOptimisticFollowState();
 };
 
+const getFollowToggleSessionKey = (
+  isUnlocked: boolean,
+  selectedAddress: string | undefined,
+): string => `${isUnlocked ? '1' : '0'}:${selectedAddress ?? ''}`;
+
+const clearFollowToggleSharedState = (): void => {
+  inflightIds.clear();
+  if (Object.keys(optimisticFollowState).length === 0) {
+    return;
+  }
+  optimisticFollowState = {};
+  emitOptimisticFollowState();
+};
+
+/**
+ * Drops module-scoped optimism and in-flight ids when the wallet identity
+ * changes (lock, unlock into a new vault, account switch). Same-session
+ * stacked screens share one key and are left alone.
+ */
+const syncFollowToggleSession = (sessionKey: string): void => {
+  if (lastFollowToggleSessionKey === sessionKey) {
+    return;
+  }
+  if (lastFollowToggleSessionKey !== undefined) {
+    followToggleSessionEpoch += 1;
+    clearFollowToggleSharedState();
+  }
+  lastFollowToggleSessionKey = sessionKey;
+};
+
 /** Clears shared follow-toggle state between unit tests. */
 export const resetFollowToggleSharedStateForTests = (): void => {
-  optimisticFollowState = {};
-  inflightIds.clear();
-  emitOptimisticFollowState();
+  lastFollowToggleSessionKey = undefined;
+  followToggleSessionEpoch = 0;
+  clearFollowToggleSharedState();
 };
 
 /**
@@ -118,8 +152,16 @@ const invalidateFollowingQuery = async (): Promise<void> => {
  * underlying messenger call fails.
  */
 export const useFollowToggleMany = (): UseFollowToggleManyResult => {
+  const isUnlocked = useSelector(selectIsUnlocked);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const { track } = useSocialLeaderboardAnalytics();
+  const sessionKey = getFollowToggleSessionKey(isUnlocked, selectedAddress);
+
+  useEffect(() => {
+    syncFollowToggleSession(sessionKey);
+  }, [sessionKey]);
+
   const optimisticOverrides = useSyncExternalStore(
     subscribeOptimisticFollowState,
     getOptimisticFollowState,
@@ -142,6 +184,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         optimisticFollowState[addressOrId] ??
         followingProfileIds.includes(addressOrId);
       const nextValue = !currentlyFollowing;
+      const requestEpoch = followToggleSessionEpoch;
 
       // Follow-toggle catalog moment (Light impact). Fired before the
       // inflight guard so a quick repeat tap still produces tactile feedback
@@ -166,6 +209,9 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             : 'SocialController:unfollowTrader',
           opts,
         );
+        if (requestEpoch !== followToggleSessionEpoch) {
+          return;
+        }
         await invalidateFollowingQuery();
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
@@ -184,11 +230,13 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           });
         }
       } catch (err) {
-        updateOptimisticFollowState((prev) => {
-          const next = { ...prev };
-          delete next[addressOrId];
-          return next;
-        });
+        if (requestEpoch === followToggleSessionEpoch) {
+          updateOptimisticFollowState((prev) => {
+            const next = { ...prev };
+            delete next[addressOrId];
+            return next;
+          });
+        }
         reportSocialServiceFailure(
           err,
           {
@@ -203,7 +251,9 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           { breadcrumb: false },
         );
       } finally {
-        inflightIds.delete(addressOrId);
+        if (requestEpoch === followToggleSessionEpoch) {
+          inflightIds.delete(addressOrId);
+        }
       }
     },
     [followingProfileIds, track],
