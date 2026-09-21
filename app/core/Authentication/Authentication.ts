@@ -192,19 +192,6 @@ class AuthenticationService {
         'Failed to clear deposit provider token during wallet setup',
       );
     }
-
-    // A new/restored wallet is a new customer, so no trace of the previous
-    // wallet's VBA / KYC onboarding (vendor customer id, signed terms, KYC
-    // status) may survive into it — otherwise hydration resumes the old
-    // customer's stage instead of starting at email collection.
-    try {
-      Engine.context.KycController?.clearState();
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'Failed to clear KYC onboarding state during wallet setup',
-      );
-    }
   };
 
   private dispatchLogout(): void {
