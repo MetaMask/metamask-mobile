@@ -2,11 +2,6 @@ import Engine from '../Engine';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import ReduxService from '../redux';
 
-/**
- * Client-side copy of Core `PasswordSyncInstruction` from
- * `@metamask/seedless-onboarding-controller` PR #10148.
- * Local until Mobile bumps past 10.1.1.
- */
 export const PASSWORD_SYNC_INSTRUCTION = {
   InSync: 'in-sync',
   PasswordOutdated: 'password-outdated',
@@ -17,11 +12,6 @@ export const PASSWORD_SYNC_INSTRUCTION = {
 export type PasswordSyncInstruction =
   (typeof PASSWORD_SYNC_INSTRUCTION)[keyof typeof PASSWORD_SYNC_INSTRUCTION];
 
-/**
- * Duck-typed Seedless controller surface spanning 10.1.1 and the #10148
- * lifecycle APIs. Methods missing on the installed package are omitted at
- * runtime.
- */
 export interface SeedlessPasswordChangeController {
   storeKeyringEncryptionKey: (keyringEncryptionKey: string) => Promise<void>;
   loadKeyringEncryptionKey: () => Promise<string>;
@@ -53,13 +43,6 @@ const hasPasswordChangeKeySyncApi = (
   typeof controller.markPasswordChangeKeySyncPending === 'function' &&
   typeof controller.completePasswordChange === 'function';
 
-/**
- * Export the Keyring wrapping key, persist it on Seedless, and close the
- * password-change lifecycle when Core #10148 is present.
- *
- * Core records `KEY_SYNC_PENDING` before the wrap, then the client stores
- * the key and calls `completePasswordChange` only after load verifies it.
- */
 export const completeSeedlessPasswordChangeKeySync =
   async (): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
@@ -137,21 +120,10 @@ const applyPasswordSyncInstruction = async (
   }
 };
 
-/**
- * Maps a lifecycle instruction onto the boolean outdated check used by
- * existing call sites. Any instruction other than `in-sync` keeps recovery
- * in front of a normal unlock.
- */
 export const isPasswordSyncInstructionOutdated = (
   instruction: PasswordSyncInstruction,
 ): boolean => instruction !== PASSWORD_SYNC_INSTRUCTION.InSync;
 
-/**
- * When Core #10148 is present, resolve + recover before a normal unlock.
- * Returns true when recovery ran (biometric preference should be rebuilt).
- * No-ops and returns false when the lifecycle API is absent or the device
- * is already in-sync.
- */
 export const applySeedlessUnlockRecovery = async (
   password: string,
 ): Promise<boolean> => {

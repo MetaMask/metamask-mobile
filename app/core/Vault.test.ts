@@ -316,7 +316,6 @@ describe('Vault', () => {
       mockEngine.context.KeyringController.exportEncryptionKey = jest
         .fn()
         .mockResolvedValue('enc-key');
-      // Cast while the installed controller version predates the lifecycle methods.
       const lifecycleController = mockEngine.context
         .SeedlessOnboardingController as unknown as Record<string, jest.Mock>;
       lifecycleController.markPasswordChangeKeySyncPending = jest

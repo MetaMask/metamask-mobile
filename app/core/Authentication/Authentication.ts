@@ -837,7 +837,6 @@ class AuthenticationService {
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
           } else if (await applySeedlessUnlockRecovery(passwordToUse)) {
-            // Core #10148 lifecycle: recover interrupted password change / another-device sync
             authPreference = await this.componentAuthenticationType(
               true,
               false,
@@ -849,7 +848,6 @@ class AuthenticationService {
               captureSentryError: true,
             })
           ) {
-            // 10.1.1 path: seedless password is outdated, sync then unlock
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
             authPreference = await this.componentAuthenticationType(

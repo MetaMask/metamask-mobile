@@ -34,11 +34,6 @@ const mockSeedlessState = (vault: string | undefined) => ({
   },
 });
 
-/**
- * Install a partial Seedless controller on the Engine and return it for
- * assertions. The cast is required while the installed controller version
- * predates the password-change lifecycle methods.
- */
 const setSeedlessController = <T extends Record<string, jest.Mock>>(
   controller: T,
 ): T => {

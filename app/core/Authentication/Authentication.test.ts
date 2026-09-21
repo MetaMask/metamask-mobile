@@ -3182,7 +3182,6 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
 
-      // Cast while the installed controller version predates the lifecycle methods.
       const resolvePasswordSyncState = jest
         .fn()
         .mockResolvedValue('password-outdated');
