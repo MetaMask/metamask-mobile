@@ -16,6 +16,7 @@ import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isArcTokenUSDC } from '../../../../../enablement/assets/arc';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
 type ActiveQuote = QuoteResponse | null | undefined;
@@ -26,16 +27,26 @@ const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
   [key in ChainIdHexOrCaip]?: string;
 } = {
   '0x8f': '10',
+  // Arc: USDC is the native gas token. Reserve should cover a swap round trip
+  // (return leg ~200-250k gas, paid before incoming USDC lands), not just a
+  // bare transfer (~0.00042 USDC). 0.05 gives ~10x headroom for fee spikes.
+  '0x13b2': '0.05',
   [BTC_MAINNET_CHAIN_ID]: '0.00003',
 };
 
 const getMinimumReserveBalanceForTokenChainAndAddress = ({
   chainId,
   tokenAddress,
+  token,
 }: {
   chainId: ChainIdHexOrCaip;
   tokenAddress: string;
+  token: BridgeToken;
 }): string => {
+  if (isArcTokenUSDC(token)) {
+    return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainId] ?? '0';
+  }
+
   if (!tokenAddress || !isNativeAddress(tokenAddress)) {
     return '0';
   }
@@ -114,11 +125,13 @@ export const useInsufficientNativeReserveError = ({
       isGasFeesSponsoredNetworkEnabled(chainIdHex),
   );
 
+  const isArcUSDCReserveToken = isArcTokenUSDC(token);
   const minimumNativeBalanceToBeKeptInAccount =
-    isNetworkGasSponsored || isBitcoinReserveChain
+    isNetworkGasSponsored || isBitcoinReserveChain || isArcUSDCReserveToken
       ? getMinimumReserveBalanceForTokenChainAndAddress({
           chainId: chainIdWithNativeReserve,
           tokenAddress: token.address,
+          token,
         })
       : '0';
 
