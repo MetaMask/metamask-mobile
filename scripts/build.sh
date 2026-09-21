@@ -720,6 +720,21 @@ startWatcher() {
 	fi
 }
 
+prepareDevelopmentNativeFingerprint() {
+	if [ "$METAMASK_ENVIRONMENT" != "dev" ]; then
+		return
+	fi
+
+	echo "Generating development native fingerprint..."
+	METAMASK_NATIVE_FINGERPRINT=$(node "${__DIRNAME__}/generate-fingerprint.js")
+	if [ -z "$METAMASK_NATIVE_FINGERPRINT" ]; then
+		printError "Failed to generate the development native fingerprint"
+		exit 1
+	fi
+	export METAMASK_NATIVE_FINGERPRINT
+	echo "Native fingerprint: $METAMASK_NATIVE_FINGERPRINT"
+}
+
 # TODO: Refactor this check to be environment specific
 checkAuthToken() {
 	local propertiesFileName="$1"
@@ -800,6 +815,7 @@ fi
 # Update Expo channel configuration based on environment
 # Skip when running Expo updates, as channel is managed externally in that flow
 if [ "$PLATFORM" != "expo-update" ]; then
+	prepareDevelopmentNativeFingerprint
 	echo "Updating Expo channel configuration..."
 	node "${__DIRNAME__}/update-expo-channel.js"
 fi

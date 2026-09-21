@@ -51,6 +51,27 @@ const nativePackages = getNativePackageNames();
 // Accumulates `package.json` content across streamed chunks (see fileHookTransform).
 let packageJsonBuffer = '';
 
+const GENERATED_RUNTIME_VERSION_PLACEHOLDER = '__METAMASK_NATIVE_FINGERPRINT__';
+const generatedRuntimeVersionFiles = new Set([
+  'android/app/src/main/AndroidManifest.xml',
+  'ios/Expo.plist',
+]);
+const generatedRuntimeVersionBuffers = new Map();
+
+function normalizeGeneratedRuntimeVersion(filePath, content) {
+  if (filePath === 'android/app/src/main/AndroidManifest.xml') {
+    return content.replace(
+      /(<meta-data android:name="expo\.modules\.updates\.EXPO_RUNTIME_VERSION" android:value=")[^"]*(" \/>)/g,
+      `$1${GENERATED_RUNTIME_VERSION_PLACEHOLDER}$2`,
+    );
+  }
+
+  return content.replace(
+    /(<key>EXUpdatesRuntimeVersion<\/key>\s*<string>)[^<]*(<\/string>)/g,
+    `$1${GENERATED_RUNTIME_VERSION_PLACEHOLDER}$2`,
+  );
+}
+
 const config = {
   /**
    * Track files and directories under `extraSources` if they affect native code changes.
@@ -286,6 +307,26 @@ const config = {
    * @type {import('@expo/fingerprint').FileHookTransformFunction}
    */
   fileHookTransform: (source, chunk, isEndOfFile) => {
+    if (
+      source.type === 'file' &&
+      generatedRuntimeVersionFiles.has(source.filePath)
+    ) {
+      const bufferedContent =
+        generatedRuntimeVersionBuffers.get(source.filePath) ?? '';
+      if (chunk) {
+        generatedRuntimeVersionBuffers.set(
+          source.filePath,
+          bufferedContent + chunk.toString(),
+        );
+      }
+      if (!isEndOfFile) return '';
+
+      const completeContent =
+        generatedRuntimeVersionBuffers.get(source.filePath) ?? '';
+      generatedRuntimeVersionBuffers.delete(source.filePath);
+      return normalizeGeneratedRuntimeVersion(source.filePath, completeContent);
+    }
+
     // Fall back to hashing everything if we couldn't resolve native packages.
     if (!nativePackages) return chunk;
 

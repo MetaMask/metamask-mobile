@@ -3,5 +3,7 @@
 <plist version="1.0">
   <dict>
     <!-- EAS Update configuration is injected by scripts/update-expo-channel.js during build -->
+    <key>EXUpdatesRuntimeVersion</key>
+    <string>__METAMASK_NATIVE_FINGERPRINT__</string>
   </dict>
 </plist>

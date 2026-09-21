@@ -28,11 +28,13 @@ try {
 }
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import-x/no-namespace
+import { runtimeVersion } from 'expo-updates';
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
 import { hasTestOverrides } from './app/util/test/utils.js';
+import { assertNativeRuntimeCompatibility } from './app/util/nativeRuntimeCompatibility';
 import { Performance, initializeAppProfiling } from './app/core/Performance';
 import {
   handleCustomError,
@@ -120,6 +122,13 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 /* Uncomment and comment regular registration below */
 // import Storybook from './.storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
+
+if (__DEV__) {
+  assertNativeRuntimeCompatibility(
+    process.env.METAMASK_NATIVE_FINGERPRINT,
+    runtimeVersion,
+  );
+}
 
 /**
  * Application entry point responsible for registering root component
