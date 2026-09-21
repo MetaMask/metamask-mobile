@@ -83,7 +83,7 @@ jobs:
       previous_ref: ${{ steps.out.outputs.previous_ref }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - id: out
         shell: bash
@@ -108,7 +108,7 @@ jobs:
       # OIDC works on every trigger, so no workflow_dispatch vs workflow_call token split is needed.
       - name: Get token
         id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        uses: MetaMask/github-tools/.github/actions/get-token@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
           permissions: |
@@ -121,14 +121,14 @@ jobs:
       # Kept in this job to avoid a separate runner just for the metadata read.
       - name: Checkout repository
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ needs.resolve-bases.outputs.checkout_base }}
           fetch-depth: 1
 
       - name: Setup Node.js
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
 
@@ -139,7 +139,7 @@ jobs:
 
       - name: Create Release PR (semver / native version bump)
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
+        uses: MetaMask/github-tools/.github/actions/create-release-pr@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           platform: mobile
           checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: release/${{ inputs.semver-version }}-ota
           token: ${{ steps.get-token.outputs.token }}
@@ -211,7 +211,7 @@ jobs:
       # tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a branch-name convention only.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           repository: MetaMask/github-tools
           path: github-tools
@@ -219,7 +219,7 @@ jobs:
 
       - name: Setup Node for changelog tooling
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: MetaMask/action-checkout-and-setup@v3
+        uses: MetaMask/action-checkout-and-setup@0543b5929698c71e3ccc6ed24eac87825669b5de # v3.5.0
         with:
           is-high-risk-environment: true
 

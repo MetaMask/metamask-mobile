@@ -17,7 +17,7 @@ runs:
   steps:
     - name: Configure Namespace cache
       if: ${{ inputs.runner_provider == 'namespace' }}
-      uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+      uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
       with:
         path: |
           ~/.cache/yarn
@@ -41,7 +41,7 @@ runs:
           echo "needs-install=true" >> "$GITHUB_OUTPUT"
         fi
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version-file: '.nvmrc'
         cache: ${{ inputs.runner_provider != 'namespace' && steps.check-deps.outputs.needs-install == 'true' && 'yarn' || '' }}

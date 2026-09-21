@@ -172,7 +172,7 @@ jobs:
       source-branch: ${{ steps.finalize.outputs.source-branch }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           sparse-checkout: |
             .github/actions/find-reusable-build
@@ -305,7 +305,7 @@ jobs:
         id: download-with-srp
         if: steps.candidate.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -317,7 +317,7 @@ jobs:
         id: download-without-srp
         if: steps.candidate.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -329,7 +329,7 @@ jobs:
         id: download-sourcemaps-with-srp
         if: steps.candidate.outputs.found == 'true' && inputs.main_branch_only
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: android-sourcemaps-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/sourcemaps/with-srp
@@ -341,7 +341,7 @@ jobs:
         id: download-sourcemaps-without-srp
         if: steps.candidate.outputs.found == 'true' && inputs.main_branch_only
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: android-sourcemaps-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/sourcemaps/without-srp
@@ -414,7 +414,7 @@ jobs:
         id: restage-with-srp
         if: steps.validate-downloads.outputs.valid == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -428,7 +428,7 @@ jobs:
         id: restage-without-srp
         if: steps.validate-downloads.outputs.valid == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -479,7 +479,7 @@ jobs:
         id: publish-lookup-with-srp
         if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -490,7 +490,7 @@ jobs:
         id: publish-lookup-without-srp
         if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -502,7 +502,7 @@ jobs:
       # together. Repack runs create and upload new maps later instead.
       - name: Publish with-SRP sourcemaps for future reuse
         if: steps.finalize.outputs.found == 'true' && inputs.main_branch_only
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-sourcemaps-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/sourcemaps/with-srp
@@ -511,7 +511,7 @@ jobs:
 
       - name: Publish without-SRP sourcemaps for future reuse
         if: steps.finalize.outputs.found == 'true' && inputs.main_branch_only
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-sourcemaps-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/sourcemaps/without-srp
@@ -640,7 +640,7 @@ jobs:
             needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
             inputs.main_branch_only != true
           }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Setup E2E environment for APK repack
         if: >-
@@ -667,28 +667,28 @@ jobs:
 
       - name: Download reused with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
       - name: Download reused without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
 
       - name: Download fresh with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
       - name: Download fresh without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -823,7 +823,7 @@ jobs:
         if: >-
           needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
           inputs.main_branch_only != true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-sourcemaps-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: sourcemaps/android/index.android.bundle.with-srp.map
@@ -834,7 +834,7 @@ jobs:
         if: >-
           needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
           inputs.main_branch_only != true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-sourcemaps-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: sourcemaps/android/index.android.bundle.without-srp.map

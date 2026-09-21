@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Get planning token
         id: planning-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        uses: MetaMask/github-tools/.github/actions/get-token@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
           target-repository: MetaMask/MetaMask-planning
@@ -24,7 +24,7 @@ jobs:
 
       - name: Get label token
         id: label-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        uses: MetaMask/github-tools/.github/actions/get-token@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
           permissions: |
@@ -32,7 +32,7 @@ jobs:
             pull_requests: write
 
       - name: Add team label
-        uses: MetaMask/github-tools/.github/actions/add-team-label@v1
+        uses: MetaMask/github-tools/.github/actions/add-team-label@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           planning-token: ${{ steps.planning-token.outputs.token }}
           team-label-token: ${{ steps.label-token.outputs.token }}

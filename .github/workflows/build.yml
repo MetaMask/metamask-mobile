@@ -164,14 +164,14 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
         with:
           path: |
             ~/.cache/yarn
@@ -179,7 +179,7 @@ jobs:
             node_modules
             .yarn/cache
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -282,7 +282,7 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
@@ -310,7 +310,7 @@ jobs:
 
       # Node first so we can download/extract/verify; no yarn install here.
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
 
@@ -326,7 +326,7 @@ jobs:
 
       - name: Restore node_modules cache
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             node_modules
@@ -339,7 +339,7 @@ jobs:
       # All other branches: download tarball artifact from setup-dependencies job.
       - name: Download node_modules tarball
         if: ${{ needs.prepare.outputs.should_cache != 'true' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
@@ -496,7 +496,7 @@ jobs:
 
       - name: Setup Java
         if: matrix.platform == 'android'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -631,7 +631,7 @@ jobs:
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main' &&
           env.METAMASK_ENVIRONMENT == 'production'
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/bundletool-all.jar
           key: bundletool-1.18.3-jar
@@ -653,7 +653,7 @@ jobs:
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-play-store-check-slack
           path: android-play-store-check-slack.md
@@ -669,7 +669,7 @@ jobs:
       # Upload build artifacts (only if build succeeded)
       - name: Upload iOS simulator app
         if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_simulator_path }}
@@ -677,7 +677,7 @@ jobs:
 
       - name: Upload iOS IPA
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ios-ipa-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_ipa_path }}
@@ -685,7 +685,7 @@ jobs:
 
       - name: Upload iOS xcarchive
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ios-xcarchive-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_archive_path }}
@@ -693,7 +693,7 @@ jobs:
 
       - name: Upload iOS sourcemap
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
@@ -702,7 +702,7 @@ jobs:
       # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
       - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
@@ -710,7 +710,7 @@ jobs:
 
       - name: Upload Android test APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-test-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_test_apk_path }}
@@ -719,7 +719,7 @@ jobs:
       # Release builds: APK and AAB as separate artifacts
       - name: Upload Android APK (release)
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
@@ -731,7 +731,7 @@ jobs:
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_ENVIRONMENT == 'production' &&
           steps.rename.outputs.android_aab_path != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-aab-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_aab_path }}
@@ -739,7 +739,7 @@ jobs:
 
       - name: Upload Android sourcemaps
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
@@ -747,7 +747,7 @@ jobs:
 
       - name: Upload build environment JSON
         if: success()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
           path: build-env.json
@@ -784,7 +784,7 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
@@ -805,7 +805,7 @@ jobs:
         run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
 

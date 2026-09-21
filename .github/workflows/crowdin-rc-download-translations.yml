@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Find release candidate branches
         id: find-branches
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -66,7 +66,7 @@ jobs:
       #                           actually touches workflow files.
       - name: Get token
         id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        uses: MetaMask/github-tools/.github/actions/get-token@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
           permissions: |
@@ -79,7 +79,7 @@ jobs:
         # credentials to a host-only $RUNNER_TEMP file that Docker container
         # actions cannot read (see actions/checkout#2313, #2359); v5 still
         # writes the token into .git/config, which the container can see.
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: ${{ matrix.branch }}
           # Use installation token to ensure that the commit later can trigger status check workflows

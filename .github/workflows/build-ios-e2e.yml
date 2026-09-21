@@ -102,12 +102,12 @@ jobs:
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
 
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
         with:
           cache: |
             cocoapods
@@ -149,7 +149,7 @@ jobs:
         id: download-reusable-metadata
         if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/ios
@@ -206,7 +206,7 @@ jobs:
         id: download-reusable-app
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -356,7 +356,7 @@ jobs:
       - name: Restore .metamask folder
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -375,7 +375,7 @@ jobs:
 
       - name: Setup Node.js (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24.16.0'
 
@@ -388,7 +388,7 @@ jobs:
 
       - name: Restore yarn cache (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             node_modules
@@ -409,7 +409,7 @@ jobs:
       - name: Restore .metamask folder (reuse-hit path)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -449,7 +449,7 @@ jobs:
         id: download-late-metadata
         if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/ios-late
@@ -519,7 +519,7 @@ jobs:
         id: download-late-app
         if: ${{ steps.validate-late-metadata.outputs.valid == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
