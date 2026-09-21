@@ -1,5 +1,11 @@
 import React, { ReactNode, useEffect } from 'react';
-import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  BackHandler,
+  StyleProp,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -122,32 +128,30 @@ const ConfirmWrapped = ({
 }) => {
   const isScrollDisabled = useDisableScroll();
 
-  const content = (
-    <>
-      <Title />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        nestedScrollEnabled
-        scrollEnabled={!isScrollDisabled}
-      >
-        <TouchableWithoutFeedback>
-          <>
-            <AlertBanner ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER} />
-            <Info route={route} />
-          </>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-      <Footer />
-      <MmPayDebugFloatingButton />
-    </>
-  );
-
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
         <ConfirmationAlerts>
-          <QRHardwareContextProvider>{content}</QRHardwareContextProvider>
+          <QRHardwareContextProvider>
+            <Title />
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollViewContent}
+              nestedScrollEnabled
+              scrollEnabled={!isScrollDisabled}
+            >
+              <TouchableWithoutFeedback>
+                <>
+                  <AlertBanner
+                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                  />
+                  <Info route={route} />
+                </>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+            <Footer />
+            <MmPayDebugFloatingButton />
+          </QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
@@ -158,9 +162,15 @@ interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
   /** When true, disables SafeAreaView insets when confirmation is full screen. Defaults to false. */
   disableSafeArea?: boolean;
+  /** Optional style applied to the full-screen confirmation container. */
+  fullscreenStyle?: StyleProp<ViewStyle>;
 }
 
-export const Confirm = ({ route, disableSafeArea = false }: ConfirmProps) => {
+export const Confirm = ({
+  route,
+  disableSafeArea = false,
+  fullscreenStyle,
+}: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -191,10 +201,20 @@ export const Confirm = ({ route, disableSafeArea = false }: ConfirmProps) => {
     return <Loader />;
   }
 
-  return <ConfirmInternal disableSafeArea={disableSafeArea} route={route} />;
+  return (
+    <ConfirmInternal
+      disableSafeArea={disableSafeArea}
+      fullscreenStyle={fullscreenStyle}
+      route={route}
+    />
+  );
 };
 
-function ConfirmInternal({ route, disableSafeArea = false }: ConfirmProps) {
+function ConfirmInternal({
+  route,
+  disableSafeArea = false,
+  fullscreenStyle,
+}: ConfirmProps) {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -219,7 +239,7 @@ function ConfirmInternal({ route, disableSafeArea = false }: ConfirmProps) {
     return (
       <SafeAreaView
         edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
-        style={styles.flatContainer}
+        style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
         onLayout={onFirstPaint}
       >
