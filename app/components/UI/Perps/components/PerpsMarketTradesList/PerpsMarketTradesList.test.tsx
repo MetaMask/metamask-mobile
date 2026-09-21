@@ -390,12 +390,11 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(tradeItem.parent?.parent || tradeItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      // Verify navigation to correct route with transaction param
-      // ID format: {orderId}-{symbol}-{direction}-{timestamp}
+      // An open is seeded on its order, so the id names that order.
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          txIdentifier: expect.stringContaining('fill-1'),
+          txIdentifier: 'trade-ETH-OpenLong-order-fill-1',
         }),
       );
     });
@@ -410,12 +409,12 @@ describe('PerpsMarketTradesList', () => {
       const ethTrade = screen.getByText('Closed long');
       fireEvent.press(ethTrade.parent?.parent || ethTrade);
 
-      // Verify navigation with correct transformed transaction data
-      // ID format: {orderId}-{symbol}-{direction}-{timestamp}
+      // A close is seeded on the second it landed in, not on an order: HyperLiquid can split one
+      // close across several child orders, so no single order id identifies the row.
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          txIdentifier: expect.stringContaining('fill-2'),
+          txIdentifier: 'trade-ETH-CloseLong-second-1698690000',
         }),
       );
     });
@@ -517,15 +516,15 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const logoKeys = screen.getAllByTestId('logo-key');
-      // ID format: {asset}-{orderId}-{symbol}-{direction}-{timestamp}
+      // Recycling key is `{asset}-{transaction id}`; opens name their order, closes their second.
       expect(logoKeys[0]).toHaveTextContent(
-        'ETH-fill-1-ETH-OpenLong-1698700000000',
+        'ETH-trade-ETH-OpenLong-order-fill-1',
       );
       expect(logoKeys[1]).toHaveTextContent(
-        'ETH-fill-2-ETH-CloseLong-1698690000000',
+        'ETH-trade-ETH-CloseLong-second-1698690000',
       );
       expect(logoKeys[2]).toHaveTextContent(
-        'ETH-fill-3-ETH-OpenShort-1698680000000',
+        'ETH-trade-ETH-OpenShort-order-fill-3',
       );
     });
   });
