@@ -20,11 +20,7 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import { deepEqual } from 'fast-equals';
-import {
-  createSelector,
-  createSelectorCreator,
-  lruMemoize,
-} from 'reselect';
+import { createSelector, createSelectorCreator, lruMemoize } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
