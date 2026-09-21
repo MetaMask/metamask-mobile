@@ -4,7 +4,6 @@ import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigateTo = jest.fn();
-const mockClose = jest.fn();
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
   | undefined;
@@ -14,7 +13,6 @@ jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
   usePerpsTradeSheet: () => ({
     navigateTo: mockNavigateTo,
-    close: mockClose,
     title: undefined,
     banner: undefined,
   }),
@@ -179,11 +177,6 @@ describe('PerpsTradeScreen errors', () => {
 
     fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW));
     expect(onMarginInfoPress).toHaveBeenCalledTimes(1);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-    expect(mockClose).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),

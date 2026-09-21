@@ -265,7 +265,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onMarginInfoPress,
   onSubmit,
 }) => {
-  const { navigateTo, close, title, banner } = usePerpsTradeSheet();
+  const { navigateTo, title, banner } = usePerpsTradeSheet();
   const [showAssetValue, setShowAssetValue] = useState(false);
   const directionLabel =
     direction === 'long'
@@ -358,13 +358,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             iconName={IconName.Setting}
             accessibilityLabel={strings('perps.trade_sheet.settings')}
             onPress={() => navigateTo('settings')}
-          />
-          <ButtonIcon
-            testID={PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON}
-            size={ButtonIconSize.Md}
-            iconName={IconName.Close}
-            accessibilityLabel={strings('perps.trade_sheet.close')}
-            onPress={close}
           />
         </Box>
       </Box>
