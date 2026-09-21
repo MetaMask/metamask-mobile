@@ -27,46 +27,111 @@ export interface PositionCardBodyProps {
   item: SocialV1FeedItem;
 }
 
-const compactSubHeader = (
-  marketCapLabel?: string,
-  volumeLabel?: string,
-): string | undefined => {
-  const mcSuffix = strings(
-    'social_leaderboard.feed.sub_header.market_cap_suffix',
-  );
-  const parts: string[] = [];
-  if (marketCapLabel) {
-    parts.push(`${marketCapLabel} ${mcSuffix}`);
-  }
-  if (volumeLabel) {
-    parts.push(volumeLabel);
-  }
-  return parts.length > 0 ? parts.join(' \u00b7 ') : undefined;
-};
+const statId = getSocialFeedPositionCardStatTestId;
 
-/** The position card that forms the body of a post, per feed item variant. */
+/** The closed-card stat rows, identical for perps and spot. */
+const closedStats = (item: {
+  id: string;
+  entryPriceLabel?: string;
+  exitPriceLabel?: string;
+  holdTimeLabel?: string;
+  statusLabel?: string;
+}): PositionCardStatRow[] => [
+  {
+    key: 'entry',
+    label: strings('social_leaderboard.feed.position_card.entry_price'),
+    value: item.entryPriceLabel,
+    testID: statId(item.id, 'entry'),
+  },
+  {
+    key: 'exit',
+    label: strings('social_leaderboard.feed.position_card.exit_price'),
+    value: item.exitPriceLabel,
+    testID: statId(item.id, 'exit'),
+  },
+  {
+    key: 'holdTime',
+    label: strings('social_leaderboard.feed.position_card.max_hold_time'),
+    value: item.holdTimeLabel,
+    testID: statId(item.id, 'holdTime'),
+  },
+  {
+    key: 'status',
+    label: strings('social_leaderboard.feed.position_card.status'),
+    value:
+      item.statusLabel ??
+      strings('social_leaderboard.feed.position_card.closed'),
+    testID: statId(item.id, 'status'),
+    leadingValueAccessory: (
+      <Box
+        twClassName="w-1.5 h-1.5 rounded-full bg-error-default"
+        testID={statId(item.id, 'status-dot')}
+      />
+    ),
+  },
+];
+
+/**
+ * The position card that forms the body of a post.
+ *
+ * Two shapes, not four: an open position leads with its current value and
+ * offers Copy trade, a closed one leads with a hero realized P&L and offers
+ * nothing to copy. The asset class only decides which stat rows sit between --
+ * perps carry leverage and the auto-close bracket, spot carries neither.
+ * Composer spot shares reuse the open layout and gate Copy trade with
+ * `showCopyTrade`.
+ */
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
-  if (item.variant === 'perpsOpen') {
-    const stats: PositionCardStatRow[] = [
-      {
-        key: 'leverage',
-        label: strings('social_leaderboard.feed.position_card.leverage'),
-        value: item.leverageLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'leverage'),
-      },
-      {
-        key: 'autoClose',
-        label: strings('social_leaderboard.feed.position_card.auto_close'),
-        value: item.autoCloseLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'autoClose'),
-      },
-      {
-        key: 'entry',
-        label: strings('social_leaderboard.feed.position_card.entry_price'),
-        value: item.entryPriceLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'entry'),
-      },
-    ];
+  if (
+    item.variant === 'perpsOpen' ||
+    item.variant === 'spotOpen' ||
+    item.variant === 'spotShare'
+  ) {
+    const stats: PositionCardStatRow[] =
+      item.variant === 'perpsOpen'
+        ? [
+            {
+              key: 'leverage',
+              label: strings('social_leaderboard.feed.position_card.leverage'),
+              value: item.leverageLabel,
+              testID: statId(item.id, 'leverage'),
+            },
+            {
+              key: 'autoClose',
+              label: strings(
+                'social_leaderboard.feed.position_card.auto_close',
+              ),
+              value: item.autoCloseLabel,
+              testID: statId(item.id, 'autoClose'),
+            },
+            {
+              key: 'entry',
+              label: strings(
+                'social_leaderboard.feed.position_card.entry_price',
+              ),
+              value: item.entryPriceLabel,
+              testID: statId(item.id, 'entry'),
+            },
+          ]
+        : [
+            {
+              key: 'entry',
+              label: strings(
+                'social_leaderboard.feed.position_card.entry_price',
+              ),
+              value: item.entryPriceLabel,
+              testID: statId(item.id, 'entry'),
+            },
+            {
+              key: 'holdTime',
+              label: strings('social_leaderboard.feed.position_card.hold_time'),
+              value: item.holdTimeLabel,
+              testID: statId(item.id, 'holdTime'),
+            },
+          ];
+
+    const showCopyTrade =
+      item.variant !== 'spotShare' || Boolean(item.showCopyTrade);
 
     return (
       <PositionCardShell>
@@ -74,103 +139,15 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
           layout="open"
           avatar={item.asset.avatar}
           symbol={item.asset.symbol}
-          direction={item.direction}
+          direction={item.variant === 'perpsOpen' ? item.direction : undefined}
+          side={item.variant === 'perpsOpen' ? undefined : item.side}
           markPriceLabel={item.markPriceLabel}
           valueLabel={item.valueLabel}
           pnlLabel={item.pnlLabel}
           isPnlPositive={item.isPnlPositive}
         />
         <PositionCardStats rows={stats} cardId={item.id} />
-        <CopyTradeButton
-          testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
-        />
-      </PositionCardShell>
-    );
-  }
-
-  if (item.variant === 'perpsClosed') {
-    const stats: PositionCardStatRow[] = [
-      {
-        key: 'entry',
-        label: strings('social_leaderboard.feed.position_card.entry_price'),
-        value: item.entryPriceLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'entry'),
-      },
-      {
-        key: 'exit',
-        label: strings('social_leaderboard.feed.position_card.exit_price'),
-        value: item.exitPriceLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'exit'),
-      },
-      {
-        key: 'holdTime',
-        label: strings('social_leaderboard.feed.position_card.max_hold_time'),
-        value: item.holdTimeLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'holdTime'),
-      },
-      {
-        key: 'status',
-        label: strings('social_leaderboard.feed.position_card.status'),
-        value:
-          item.statusLabel ??
-          strings('social_leaderboard.feed.position_card.closed'),
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'status'),
-        leadingValueAccessory: (
-          <Box
-            twClassName="w-1.5 h-1.5 rounded-full bg-error-default"
-            testID={getSocialFeedPositionCardStatTestId(item.id, 'status-dot')}
-          />
-        ),
-      },
-    ];
-
-    return (
-      <PositionCardShell>
-        <PositionCardHeader
-          layout="closed"
-          avatar={item.asset.avatar}
-          symbol={item.asset.symbol}
-          direction={item.direction}
-          leverageLabel={item.leverageLabel}
-          valueLabel={item.valueLabel}
-          pnlLabel={item.pnlLabel}
-          isPnlPositive={item.isPnlPositive}
-        />
-        <PositionCardStats rows={stats} cardId={item.id} />
-      </PositionCardShell>
-    );
-  }
-
-  if (item.variant === 'spotShare') {
-    const stats: PositionCardStatRow[] = [
-      {
-        key: 'entry',
-        label: strings('social_leaderboard.feed.position_card.entry_price'),
-        value: item.entryPriceLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'entry'),
-      },
-      {
-        key: 'holdTime',
-        label: strings('social_leaderboard.feed.position_card.hold_time'),
-        value: item.holdTimeLabel,
-        testID: getSocialFeedPositionCardStatTestId(item.id, 'holdTime'),
-      },
-    ];
-
-    return (
-      <PositionCardShell>
-        <PositionCardHeader
-          layout="compact"
-          avatar={item.asset.avatar}
-          symbol={item.asset.symbol}
-          side={item.side}
-          subHeaderLabel={item.markPriceLabel}
-          valueLabel={item.valueLabel}
-          pnlLabel={item.pnlLabel}
-          isPnlPositive={item.isPnlPositive}
-        />
-        <PositionCardStats rows={stats} cardId={item.id} />
-        {item.showCopyTrade ? (
+        {showCopyTrade ? (
           <CopyTradeButton
             testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
           />
@@ -182,15 +159,19 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
   return (
     <PositionCardShell>
       <PositionCardHeader
-        layout="compact"
+        layout="closed"
         avatar={item.asset.avatar}
         symbol={item.asset.symbol}
-        side={item.side}
-        subHeaderLabel={compactSubHeader(item.marketCapLabel, item.volumeLabel)}
+        direction={item.variant === 'perpsClosed' ? item.direction : undefined}
+        side={item.variant === 'spotClosed' ? item.side : undefined}
+        leverageLabel={
+          item.variant === 'perpsClosed' ? item.leverageLabel : undefined
+        }
         valueLabel={item.valueLabel}
         pnlLabel={item.pnlLabel}
         isPnlPositive={item.isPnlPositive}
       />
+      <PositionCardStats rows={closedStats(item)} cardId={item.id} />
     </PositionCardShell>
   );
 };

@@ -136,17 +136,17 @@ describe('AccountCell', () => {
   });
 
   it.each([
-    { currency: 'usd', expected: '$0.00' },
-    { currency: 'eur', expected: '€0.00' },
+    { currency: 'usd', formattedZero: '$0.00' },
+    { currency: 'eur', formattedZero: '€0.00' },
   ])(
-    'displays an explicit zero for an empty account',
-    ({ currency, expected }) => {
+    'hides a zero balance so an unloaded account is not shown as empty',
+    ({ currency, formattedZero }) => {
       mockBalance.value = 0;
       mockBalance.currency = currency;
 
-      const { getByText } = renderAccountCell();
+      const { queryByText } = renderAccountCell();
 
-      expect(getByText(expected)).toBeTruthy();
+      expect(queryByText(formattedZero)).toBeNull();
     },
   );
 
