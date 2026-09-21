@@ -303,31 +303,6 @@ const Checkout = () => {
 
   const webViewRef = useRef<WebView>(null);
 
-  // TEMP (dev builds only): simulate a Coinbase page event without having to
-  // hit a real guest limit or complete a real payment. Posts through the same
-  // native bridge the Coinbase page uses (window.ReactNativeWebView on
-  // Android, window.webkit.messageHandlers.cbOnramp on iOS where
-  // enableApplePay strips the ReactNativeWebView user script), so the whole
-  // chain is exercised: bridge -> onMessage -> origin check -> parser ->
-  // state machine -> fallback UI / OrderDetails navigation.
-  const simulateCoinbaseEvent = useCallback(
-    (eventName: string, errorCode?: string) => {
-      const message = JSON.stringify({
-        eventName: `onramp_api.${eventName}`,
-        data: errorCode
-          ? { errorCode, errorMessage: `Simulated ${errorCode}` }
-          : undefined,
-      });
-      webViewRef.current?.injectJavaScript(
-        `(function(){var m=${message};` +
-          `if(window.ReactNativeWebView){window.ReactNativeWebView.postMessage(JSON.stringify(m));}` +
-          `else if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.cbOnramp){window.webkit.messageHandlers.cbOnramp.postMessage(m);}` +
-          `})();true;`,
-      );
-    },
-    [],
-  );
-
   useEffect(() => {
     if (!headlessSessionId) {
       return;
@@ -986,39 +961,6 @@ const Checkout = () => {
         twClassName={providerBgTwClassName}
       >
         {sharedHeader}
-        {__DEV__ && checkoutEvents === 'coinbase' ? (
-          // TEMP dev-only Coinbase event simulator; remove before merging.
-          <Box twClassName="flex-row gap-2 px-4 pb-2">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonBaseSize.Sm}
-              onPress={() =>
-                simulateCoinbaseEvent(
-                  'session_error',
-                  'ERROR_CODE_GUEST_TRANSACTION_LIMIT',
-                )
-              }
-            >
-              Sim limit
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonBaseSize.Sm}
-              onPress={() => simulateCoinbaseEvent('polling_success')}
-            >
-              Sim success
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonBaseSize.Sm}
-              onPress={() =>
-                simulateCoinbaseEvent('load_error', 'expired_session_token')
-              }
-            >
-              Sim expired
-            </Button>
-          </Box>
-        ) : null}
         <WebView
           ref={webViewRef}
           key={key}
