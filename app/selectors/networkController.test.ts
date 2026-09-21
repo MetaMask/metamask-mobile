@@ -248,6 +248,24 @@ describe('networkSelectors', () => {
     expect(selectNativeCurrencyByChainId(mockState, '0x1')).toBe('ETH');
   });
 
+  it('keeps a cache entry per chainId when chainIds are interleaved', () => {
+    selectNativeCurrencyByChainId.clearCache();
+    selectNativeCurrencyByChainId.memoizedResultFunc.clearCache();
+    selectNativeCurrencyByChainId.resetRecomputations();
+
+    selectNativeCurrencyByChainId(mockState, '0x1');
+    selectNativeCurrencyByChainId(mockState, '0x89');
+    const recomputationsAfterFirstPass =
+      selectNativeCurrencyByChainId.recomputations();
+    selectNativeCurrencyByChainId(mockState, '0x1');
+    selectNativeCurrencyByChainId(mockState, '0x89');
+
+    expect(recomputationsAfterFirstPass).toBe(2);
+    expect(selectNativeCurrencyByChainId.recomputations()).toBe(
+      recomputationsAfterFirstPass,
+    );
+  });
+
   it('should return the default provider config if no matching network is found', () => {
     const noMatchState = { ...mockState };
     noMatchState.engine.backgroundState.NetworkController.selectedNetworkClientId =
