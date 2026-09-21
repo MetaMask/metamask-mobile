@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -17,6 +18,15 @@ import type {
   ReferralCodeView,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { RootState } from '../../../../../reducers';
+import {
+  selectEarningsSummaryEntry,
+  selectReferralMeEntry,
+} from '../../../../../reducers/rewardsMoney/selectors';
+import { strings } from '../../../../../../locales/i18n';
+import RewardsErrorBanner from '../RewardsErrorBanner';
+import { useEarningsSummary } from '../../hooks/useEarningsSummary';
+import { useReferralMe } from '../../hooks/useReferralMe';
 import ShareCodeSheet from './ShareCodeSheet';
 import MoneyMetricCard from './MoneyMetricCard';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
@@ -28,13 +38,15 @@ export const REFERER_HERO_CARD_TEST_IDS = {
   SHARE_BUTTON: 'referer-hero-card-share-button',
   REFERRALS_TOTAL: 'referer-hero-card-referrals-total',
   TRADE_COMMISSIONS_TOTAL: 'referer-hero-card-trade-commissions-total',
+  IDENTITY: 'referer-hero-card-identity',
+  REFERRAL_ERROR: 'referer-hero-card-referral-error',
+  EARNINGS_ERROR: 'referer-hero-card-earnings-error',
 } as const;
 
 export interface RefererHeroCardProps {
+  profileId: string;
   referralCode: ReferralCodeView | null;
   localizedText: ReferralLocalizedText;
-  earningsSummary: EarningsSummaryDto | null;
-  isEarningsLoading: boolean;
 }
 
 /**
@@ -47,12 +59,31 @@ export interface RefererHeroCardProps {
  * cashback is a different branch and is not one of these two numbers.
  */
 const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
+  profileId,
   referralCode,
   localizedText,
-  earningsSummary,
-  isEarningsLoading,
 }) => {
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const referralMeEntry = useSelector((state: RootState) =>
+    selectReferralMeEntry(state, profileId),
+  );
+  const earningsSummaryEntry = useSelector((state: RootState) =>
+    selectEarningsSummaryEntry(state, profileId),
+  );
+  const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
+  const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const earningsSummary: EarningsSummaryDto | null =
+    earningsSummaryEntry?.data ?? null;
+  const isEarningsLoading =
+    !earningsSummary &&
+    (!earningsSummaryEntry || Boolean(earningsSummaryEntry.loading));
+  const unavailableAmount =
+    Boolean(earningsSummaryEntry?.error) && !earningsSummary ? '-' : null;
+  const errorSource = referralMeEntry?.error
+    ? 'referral'
+    : earningsSummaryEntry?.error
+      ? 'earnings'
+      : null;
   const code = referralCode?.code?.trim() ?? '';
 
   return (
@@ -60,9 +91,38 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
       twClassName="mt-3 gap-3 px-4 pt-4"
       testID={REFERER_HERO_CARD_TEST_IDS.CONTAINER}
     >
+      {errorSource ? (
+        <RewardsErrorBanner
+          title={strings('rewards.referral_details_error.error_fetching_title')}
+          description={strings(
+            'rewards.referral_details_error.error_fetching_description',
+          )}
+          onConfirm={() =>
+            errorSource === 'referral'
+              ? fetchReferralMe({ forceFresh: true })
+              : fetchEarningsSummary({ forceFresh: true })
+          }
+          confirmButtonLabel={strings(
+            'rewards.referral_details_error.retry_button',
+          )}
+          onConfirmLoading={
+            errorSource === 'referral'
+              ? Boolean(referralMeEntry?.loading)
+              : Boolean(earningsSummaryEntry?.loading)
+          }
+          testID={
+            errorSource === 'referral'
+              ? REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR
+              : REFERER_HERO_CARD_TEST_IDS.EARNINGS_ERROR
+          }
+        />
+      ) : null}
       {/* Vertical padding only: the divider is full-bleed, so each row carries
           its own horizontal padding. */}
-      <Box twClassName="rounded-2xl bg-muted py-4">
+      <Box
+        twClassName="rounded-2xl bg-muted py-4"
+        testID={REFERER_HERO_CARD_TEST_IDS.IDENTITY}
+      >
         <Box twClassName="px-4 pb-4">
           <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
             {localizedText.earnEligibleFees}
@@ -111,9 +171,12 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
         <MoneyMetricCard
           iconName={IconName.UserCircleAdd}
           label={localizedText.historyReferrals}
-          amount={formatMusdBaseUnits(
-            earnedByOthersLifetime(earningsSummary, 'REFERRAL_REV_SHARE'),
-          )}
+          amount={
+            unavailableAmount ??
+            formatMusdBaseUnits(
+              earnedByOthersLifetime(earningsSummary, 'REFERRAL_REV_SHARE'),
+            )
+          }
           caption={localizedText.recordedEarnings}
           isLoading={isEarningsLoading}
           testID={REFERER_HERO_CARD_TEST_IDS.REFERRALS_TOTAL}
@@ -121,9 +184,12 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
         <MoneyMetricCard
           iconName={IconName.SwapVertical}
           label={localizedText.tradeCommissions}
-          amount={formatMusdBaseUnits(
-            earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
-          )}
+          amount={
+            unavailableAmount ??
+            formatMusdBaseUnits(
+              earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
+            )
+          }
           caption={localizedText.recordedEarnings}
           isLoading={isEarningsLoading}
           testID={REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL}

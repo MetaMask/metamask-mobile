@@ -300,24 +300,18 @@ describe('MainNavigator', () => {
       },
     );
 
-    describe('Rewards sub-page tab bar visibility', () => {
-      // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
-      // so the inner route that wraps the nested nav state must carry that name.
+    describe('Rewards tab bar visibility', () => {
+      // Only the three Rewards home screens live under the tab; every sub-page
+      // is pushed as REWARDS_FLOW on the root stack, which covers the tab
+      // shell entirely. So the tab bar stays up for the whole tab.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
         routes: [
           {
             name: Routes.REWARDS_VIEW,
             state: activeRouteName
               ? {
-                  routes: [
-                    {
-                      name: Routes.REWARDS_VIEW,
-                      state: {
-                        index: 0,
-                        routes: [{ name: activeRouteName }],
-                      },
-                    },
-                  ],
+                  index: 0,
+                  routes: [{ name: activeRouteName }],
                 }
               : undefined,
           },
@@ -325,67 +319,24 @@ describe('MainNavigator', () => {
         index: 0,
       });
 
-      it('hides tab bar when navigated to a rewards sub-page', () => {
-        // Given HomeTabs is rendered and the active route is a rewards sub-page
+      it.each([
+        Routes.REWARDS_DASHBOARD,
+        Routes.REWARDS_MONEY_DASHBOARD,
+        Routes.REWARDS_ONBOARDING_FLOW,
+        undefined,
+      ])('shows tab bar on the Rewards home screen %s', (activeRouteName) => {
+        // Given HomeTabs is rendered with the Rewards tab active
         const HomeTabs = getHomeTabsComponent();
         const renderTabBar = getTabBarFn(HomeTabs);
 
-        // When renderTabBar is called for a rewards sub-page
+        // When renderTabBar is called for that home screen
         const result = renderTabBar({
-          state: buildRewardsState('OndoCampaignDetails'),
+          state: buildRewardsState(activeRouteName),
           descriptors: {},
           navigation: {},
         });
 
-        // Then the tab bar should be hidden
-        expect(result).toBeNull();
-      });
-
-      it('shows tab bar when on the rewards dashboard', () => {
-        // Given HomeTabs is rendered and the active route is the rewards dashboard
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for the rewards dashboard
-        const result = renderTabBar({
-          state: buildRewardsState(Routes.REWARDS_DASHBOARD),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible
-        expect(result).not.toBeNull();
-      });
-
-      it('shows tab bar when on the rewards onboarding flow', () => {
-        // Given HomeTabs is rendered and the active route is the onboarding flow
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for the onboarding flow
-        const result = renderTabBar({
-          state: buildRewardsState(Routes.REWARDS_ONBOARDING_FLOW),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible
-        expect(result).not.toBeNull();
-      });
-
-      it('shows tab bar when rewards route has no nested navigation state yet', () => {
-        // Given HomeTabs is rendered and the rewards route has no nested state
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called with no nested rewards state (activeRouteName undefined)
-        const result = renderTabBar({
-          state: buildRewardsState(undefined),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible (default to home page)
+        // Then the tab bar is rendered
         expect(result).not.toBeNull();
       });
     });
