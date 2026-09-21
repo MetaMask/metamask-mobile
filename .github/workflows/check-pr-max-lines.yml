@@ -16,5 +16,4 @@ jobs:
         uses: MetaMask/github-tools/.github/actions/pr-line-check@v1
         with:
           max-lines: '1000'
-          # Tests and fixtures are required coverage, not product-scope size.
-          ignore-patterns: '(\.lock|\.snap|\.md|\.svg|\.yaml|\.test\.(ts|tsx)$|^tests/)'
+          ignore-patterns: '(\.lock|\.snap|\.md|\.svg|\.yaml)'
