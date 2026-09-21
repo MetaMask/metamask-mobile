@@ -238,6 +238,18 @@ describe('AccountSelector', () => {
     expect(getByText('Account 1')).toBeOnTheScreen();
   });
 
+  it('keeps a gap between the label and the account name', () => {
+    const { getByTestId } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL)).toHaveStyle({ gap: 8 });
+  });
+
   it('opens modal when pill is pressed', () => {
     const { getByTestId } = render(
       <AccountSelector onAccountSelected={mockOnAccountSelected} />,

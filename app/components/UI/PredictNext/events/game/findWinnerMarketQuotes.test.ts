@@ -7,7 +7,10 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { findWinnerMarketQuotes } from './findWinnerMarketQuotes';
+import {
+  findGameTradingQuote,
+  findWinnerMarketQuotes,
+} from './findWinnerMarketQuotes';
 
 const createOutcome = (
   id: string,
@@ -129,6 +132,45 @@ describe('findWinnerMarketQuotes', () => {
       away: { market: event.markets[0], outcome: awayYes },
       home: { market: event.markets[1], outcome: homeYes },
     });
+  });
+
+  it('keeps the tagged Outcome for the chart even when it is the No side', () => {
+    // The catalog may tag a Game Selection on a No Outcome; the winner quote
+    // carries that tagged Outcome for chart association, while trading-side
+    // selection is separate (findGameTradingQuote resolves the Yes side).
+    const awayYes = createOutcome('away-yes', 'yes');
+    const awayNo = createOutcome('away-no', 'no', 'away');
+    const homeYes = createOutcome('home-yes', 'yes', 'home');
+    const event = createEvent([
+      createMarket('away', [awayYes, awayNo]),
+      createMarket('home', [homeYes, createOutcome('home-no', 'no')]),
+    ]);
+
+    expect(findWinnerMarketQuotes(event)).toEqual({
+      away: { market: event.markets[0], outcome: awayNo },
+      home: { market: event.markets[1], outcome: homeYes },
+    });
+    expect(findGameTradingQuote(event, 'away')).toEqual({
+      market: event.markets[0],
+      outcome: awayYes,
+    });
+  });
+
+  it('yields no trading quote when the winner Market has no Yes Outcome', () => {
+    const event = createEvent([
+      createMarket('away', [
+        createOutcome('away-no', 'no', 'away'),
+        createOutcome('away-other', 'no'),
+      ]),
+      createMarket('home', [
+        createOutcome('home-yes', 'yes', 'home'),
+        createOutcome('home-no', 'no'),
+      ]),
+    ]);
+
+    expect(findGameTradingQuote(event, 'away')).toBeUndefined();
+    // The tagged quote itself still resolves for chart association.
+    expect(findWinnerMarketQuotes(event)?.away.outcome.id).toBe('away-no');
   });
 
   it('does not treat grouped spread Game Selections as winner quotes', () => {
