@@ -129,7 +129,7 @@ const PopularTradersCarousel: React.FC = () => {
   }
 
   return (
-    <Box testID={PopularTradersCarouselSelectorsIDs.SECTION}>
+    <Box testID={PopularTradersCarouselSelectorsIDs.SECTION} twClassName="mb-4">
       <SectionHeader
         title={title}
         isInteractive
