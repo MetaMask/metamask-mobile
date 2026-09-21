@@ -335,6 +335,7 @@ jobs:
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
       distribute_external: true
+      build_attribution: official
     secrets: inherit
 
   repack-android-rc-build:
@@ -358,6 +359,7 @@ jobs:
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
+      build_attribution: official
     secrets: inherit
 
   # A repack publishes `ios-ipa-main-rc` / `android-apk-main-rc` — the names build.yml also
@@ -453,6 +455,7 @@ jobs:
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       distribute_external: true
+      build_attribution: official
     secrets: inherit
 
   trigger-android-rc-build:
@@ -480,6 +483,7 @@ jobs:
       platform: android
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
+      build_attribution: official
     secrets: inherit
 
   post-rc-build-comment:

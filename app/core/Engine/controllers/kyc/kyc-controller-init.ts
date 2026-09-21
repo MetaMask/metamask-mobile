@@ -8,9 +8,9 @@ import { sumsubLauncher } from './sumSubLauncher';
 /**
  * Initialize the KycController.
  *
- * The controller owns the identity flow (terms, session, KYC-required check,
- * and the SumSub hand-off). Platform-specific SDK presentation is delegated
- * to the injected {@link sumsubLauncher}.
+ * The controller owns session creation, consent recording, status polling,
+ * and the SumSub hand-off. Platform-specific SDK presentation is delegated to
+ * the injected {@link sumsubLauncher}.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
