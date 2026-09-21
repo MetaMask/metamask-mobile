@@ -162,7 +162,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const handleBankAccount = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
-      redirect_target: SCREEN_NAMES.VBA_GET_PIX_KEY,
+      redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.

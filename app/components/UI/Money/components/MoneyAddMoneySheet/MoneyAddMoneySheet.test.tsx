@@ -678,6 +678,17 @@ describe('MoneyAddMoneySheet', () => {
       expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
     });
 
+    it('calls trackSurfaceClicked with BANK_ACCOUNT component when "Bank account" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
+        redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
+      });
+    });
+
     it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 

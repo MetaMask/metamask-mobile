@@ -37,6 +37,12 @@ REPO_ROOT="$(cd "${PROJECT_DIR}/.." && pwd)"
 mkdir -p "$REPO_ROOT/sourcemaps/ios"
 export SOURCEMAP_FILE="${SOURCEMAP_FILE:-$REPO_ROOT/sourcemaps/ios/index.js.map}"
 
+# react-native-xcode.sh always composes Metro + Hermes source maps when
+# SOURCEMAP_FILE is set. compose-source-maps.js holds both maps in memory and
+# OOMs Node's default ~4GB old-space on the iOS Expo dev-client archive,
+# which fails the Bundle JS phase (xcodebuild 65) and blocks ios-app-main-dev-expo.
+export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--max-old-space-size=8192"
+
 # Generate JS bundle and upload Sentry source maps
 # Note: with-environment.sh was already sourced above, so environment is set.
 # Run sentry-xcode.sh directly passing react-native-xcode.sh as the bundler.

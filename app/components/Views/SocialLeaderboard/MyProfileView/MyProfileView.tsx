@@ -49,7 +49,9 @@ const MyProfileView: React.FC = () => {
       initialTab: 'following',
     });
   }, [navigation]);
-  const handleShareFirstTrade = useCallback(() => undefined, []);
+  const handleShareFirstTrade = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
+  }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
     if (!profile) {
