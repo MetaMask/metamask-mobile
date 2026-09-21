@@ -61,7 +61,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
         height: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 4,
+        borderRadius: 10,
         borderWidth: 2,
         backgroundColor,
         borderColor,

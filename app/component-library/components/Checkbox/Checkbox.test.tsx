@@ -20,6 +20,12 @@ describe('Checkbox', () => {
     expect(wrapper.toJSON()).toBeDefined();
   });
 
+  it('should render a circular checkbox', () => {
+    const { getByRole } = render(<Checkbox />);
+
+    expect(getByRole('checkbox').props.style.borderRadius).toBe(10);
+  });
+
   it('should render the correct icon when isChecked is true', () => {
     const { getByTestId } = render(<Checkbox isChecked />);
     expect(getByTestId(CHECKBOX_ICON_TESTID).props.name).toBe(
