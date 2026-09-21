@@ -10,11 +10,12 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import type { AppiumElement } from '../../framework';
+import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors.js';
 import { dataTestIds } from '@metamask/test-dapp-solana';
 
 export const SOLANA_DAPP_PORT = 8095;
-const BASE_URL = `http://localhost:${SOLANA_DAPP_PORT}`;
+const BASE_URL = localDappBrowserUrl(SOLANA_DAPP_PORT);
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;

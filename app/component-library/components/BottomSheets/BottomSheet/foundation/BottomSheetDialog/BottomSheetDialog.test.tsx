@@ -9,6 +9,7 @@ import Text from '../../../../Texts/Text';
 import BottomSheetDialog from './BottomSheetDialog';
 import { BottomSheetDialogRef } from './BottomSheetDialog.types';
 import { Platform } from 'react-native';
+import { getBottomSheetBottomPadding } from './BottomSheetDialog.styles';
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
@@ -32,6 +33,20 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('BottomSheetDialog', () => {
+  describe('bottom safe-area padding', () => {
+    it('keeps Android actions above an overlaid navigation bar when the inset is zero', () => {
+      expect(getBottomSheetBottomPadding('android', 0)).toBe(48);
+    });
+
+    it('uses a larger Android inset when one is reported', () => {
+      expect(getBottomSheetBottomPadding('android', 40)).toBe(56);
+    });
+
+    it('uses the reported inset without extra spacing on iOS', () => {
+      expect(getBottomSheetBottomPadding('ios', 34)).toBe(34);
+    });
+  });
+
   it('should render correctly', () => {
     const wrapper = render(<BottomSheetDialog />);
     expect(wrapper.toJSON()).toBeDefined();

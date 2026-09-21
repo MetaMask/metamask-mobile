@@ -8,6 +8,23 @@ import { Theme } from '../../../../../../util/theme/models';
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
 
+export const getBottomSheetBottomPadding = (
+  platform: typeof Platform.OS,
+  screenBottomPadding: number,
+) => {
+  if (platform === 'ios' || platform === 'macos') {
+    return screenBottomPadding;
+  }
+  if (platform === 'android') {
+    // Android 16 edge-to-edge can report a zero bottom safe-area inset while
+    // the three-button navigation bar still overlays the app. Keep the
+    // existing 16dp footer spacing and reserve the remaining 32dp so actions
+    // stay above the 48dp navigation bar. A real (larger) inset still wins.
+    return Math.max(screenBottomPadding, 32) + 16;
+  }
+  return screenBottomPadding + 16;
+};
+
 /**
  * Style sheet function for BottomSheetDialog component.
  *
@@ -38,11 +55,10 @@ const styleSheet = (params: {
         borderTopRightRadius: 32,
         maxHeight: maxSheetHeight,
         overflow: 'hidden',
-        paddingBottom: Platform.select({
-          ios: screenBottomPadding,
-          macos: screenBottomPadding,
-          default: screenBottomPadding + 16,
-        }),
+        paddingBottom: getBottomSheetBottomPadding(
+          Platform.OS,
+          screenBottomPadding,
+        ),
         borderWidth: 1,
         borderBottomWidth: 0,
         borderColor: colors.border.alternative,

@@ -8,10 +8,11 @@ import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
 export const BITCOIN_DAPP_PORT = 8094;
-const BASE_URL = `http://localhost:${BITCOIN_DAPP_PORT}`;
+const BASE_URL = localDappBrowserUrl(BITCOIN_DAPP_PORT);
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
