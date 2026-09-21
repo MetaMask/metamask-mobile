@@ -432,11 +432,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
-    const canEditZeroAmount =
-      !isPrefillPending &&
-      !isDepositPrefillLoading &&
-      (amountFiat === '0' || amountFiat === '');
-
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
     // Keep payment details fixed while the amount update prepares the request.
@@ -453,15 +448,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
+              stage !== CustomAmountStage.AmountInput &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            onPress={
-              stage === CustomAmountStage.Loading &&
-              !canEditZeroAmount &&
-              hasUserCommittedAmountRef.current
-                ? undefined
-                : handleAmountPress
-            }
+            // Always pressable: tapping the amount is the escape hatch from a
+            // prefill or quote that never resolves.
+            onPress={handleAmountPress}
             disabled={!hasPaymentOption}
             showCursor={stage === CustomAmountStage.AmountInput}
           />

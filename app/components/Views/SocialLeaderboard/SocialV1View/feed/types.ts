@@ -1,4 +1,5 @@
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
+import type { SocialV1MockedField } from './mockMarker';
 
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
@@ -36,6 +37,15 @@ interface SocialV1FeedItemBase {
   valueLabel: string;
   pnlLabel: string;
   isPnlPositive: boolean;
+  /**
+   * Which of this item's values the client invented. The marked labels already
+   * carry a visible `*`; this is the structural record of the same fact, so
+   * tests and later cleanup do not have to match on rendered copy.
+   *
+   * Optional: absent means nothing is mocked, which keeps composer-built items
+   * from having to declare provenance they do not have.
+   */
+  mockedFields?: SocialV1MockedField[];
 }
 
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
@@ -120,7 +130,15 @@ export interface UseSocialV1FeedResult {
   pendingPost: SocialV1FeedPost | null;
   pendingStartedAtMs: number | null;
   isLoading: boolean;
+  /** True while a follow-up page is being fetched. */
+  isFetchingNextPage: boolean;
+  /** True when another page can be requested. */
+  hasNextPage: boolean;
+  /** Request the next page; no-op if none remain or one is in flight. */
+  loadMore: () => void;
   error: string | null;
+  /** Reset to the first page and refetch -- also the recovery path after an error. */
+  refresh: () => Promise<void>;
 }
 
 /** One chip in the feed's hot-tokens carousel. */

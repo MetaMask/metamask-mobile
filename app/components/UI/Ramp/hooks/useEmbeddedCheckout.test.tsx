@@ -39,6 +39,7 @@ function crossmintResult(
     isPaymentSettling: false,
     onCheckoutReady,
     onMessage,
+    checkoutError: null,
     ...overrides,
   };
 }
@@ -136,5 +137,35 @@ describe('useEmbeddedCheckout', () => {
       onMessage,
       onReady: onCheckoutReady,
     });
+  });
+
+  it('reports no error while the checkout is healthy', () => {
+    mockUseCrossmintWalletPayOverlay.mockReturnValue(
+      crossmintResult({
+        isEligible: true,
+        checkoutUrl: 'https://checkout.test',
+      }),
+    );
+
+    const { result } = renderHook(() => useEmbeddedCheckout(quote, 250));
+
+    expect(result.current.error).toBeNull();
+  });
+
+  it('surfaces the provider reason once the checkout is torn down as unpurchasable', () => {
+    mockUseCrossmintWalletPayOverlay.mockReturnValue(
+      crossmintResult({
+        isEligible: true,
+        checkoutError: 'This item is not available for purchase',
+      }),
+    );
+
+    const { result } = renderHook(() => useEmbeddedCheckout(quote, 250));
+
+    expect(result.current.phase).toBe('inactive');
+    expect(result.current.renderOverlay).toBeNull();
+    expect(result.current.error).toBe(
+      'This item is not available for purchase',
+    );
   });
 });

@@ -10,11 +10,22 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import type { AppiumElement } from '../../framework';
+import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors.js';
 import { dataTestIds } from '@metamask/test-dapp-solana';
 
 export const SOLANA_DAPP_PORT = 8095;
-const BASE_URL = `http://localhost:${SOLANA_DAPP_PORT}`;
+
+/**
+ * Browser URL for the Solana test dapp on this worker.
+ * Resolves at call time so iOS N=2 workers hit the shifted host listen port
+ * (worker 1 → devicePort + 100), matching {@link startLocalDappServerOnWorker}.
+ */
+function getSolanaTestDappBaseUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  return localDappBrowserUrl(SOLANA_DAPP_PORT, env);
+}
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
@@ -50,12 +61,15 @@ class SolanaTestDApp {
     await navigateToBrowserView();
     await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(BASE_URL);
+    await BrowserView.navigateToURL(getSolanaTestDappBaseUrl());
     await this.waitForDappLoaded();
   }
 
   private async evaluate<T>(expression: string): Promise<T | null> {
-    return ChromeCdpHelpers.evaluateInWebView<T>(BASE_URL, expression);
+    return ChromeCdpHelpers.evaluateInWebView<T>(
+      getSolanaTestDappBaseUrl(),
+      expression,
+    );
   }
 
   /** Waits until the dapp header has rendered (connection status is readable). */

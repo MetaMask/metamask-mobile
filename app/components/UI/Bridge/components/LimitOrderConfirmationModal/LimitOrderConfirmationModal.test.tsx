@@ -5,6 +5,15 @@ import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -122,8 +131,8 @@ describe('LimitOrderConfirmationModal', () => {
     expect(within(networkFeeRow).getByText('$1.69')).toBeOnTheScreen();
   });
 
-  it('displays a skeleton while the upgrade fee is being estimated', () => {
-    const { getByTestId } = render(
+  it('omits the network fee row while the upgrade fee is being estimated', () => {
+    const { queryByTestId } = render(
       <LimitOrderConfirmationModal
         {...buildProps({
           delegationFee: { status: 'loading', retry: jest.fn() },
@@ -132,8 +141,8 @@ describe('LimitOrderConfirmationModal', () => {
     );
 
     expect(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE_SKELETON),
-    ).toBeOnTheScreen();
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE),
+    ).toBeNull();
   });
 
   it('displays a placeholder when the upgrade fee cannot be estimated', () => {
@@ -211,6 +220,23 @@ describe('LimitOrderConfirmationModal', () => {
     );
 
     expect(getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('opens the cost tolerance tooltip when the info button is pressed', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps({ costTolerance: '2%' })} />,
+    );
+
+    fireEvent.press(
+      getByTestId(
+        LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL,
+    });
   });
 
   it('displays the fee disclaimer with the default MetaMask fee percentage', () => {
