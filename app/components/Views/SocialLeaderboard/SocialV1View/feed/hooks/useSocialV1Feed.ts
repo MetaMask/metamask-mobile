@@ -1,14 +1,26 @@
-import { useSyncExternalStore } from 'react';
-import { wrapMockFeedPosts } from '../mocks/wrapMockFeedPosts';
+import { useMemo, useSyncExternalStore } from 'react';
+import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
+import { wrapLiveFeedPosts } from '../mocks/wrapLiveFeedPosts';
 import {
   getSocialV1ComposedFeedSnapshot,
   subscribeSocialV1ComposedFeed,
 } from '../store/socialV1ComposedFeedStore';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 
+/** Trending reads the generic `leaderboard` scope, Following the per-user one. */
+const TAB_AUDIENCE = {
+  trending: 'all',
+  following: 'following',
+} as const;
+
 /**
- * Temporary V1 Feed data source until the social API exposes post/comment
- * fields. Composed posts from the plus-button composer prepend on Trending only.
+ * V1 feed data source: live trader activity from `SocialService:fetchFeed`,
+ * mapped into the V1 card model with the missing enrichment mocked and flagged.
+ *
+ * Delegates fetching to `useTraderFeed`, so V1 inherits V0's unlock gate,
+ * telemetry and error normalisation -- and shares its query keys, which means
+ * either surface warms the cache for the other. Composed posts from the
+ * plus-button composer still prepend on Trending only.
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
@@ -23,23 +35,40 @@ export const useSocialV1Feed = (
     getSocialV1ComposedFeedSnapshot,
   );
 
-  const mockPosts = wrapMockFeedPosts();
+  const {
+    rows,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh,
+  } = useTraderFeed({ audience: TAB_AUDIENCE[tab] });
+
+  const livePosts = useMemo(() => wrapLiveFeedPosts(rows), [rows]);
+
+  const pagination = {
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh,
+  };
 
   if (tab === 'following') {
     return {
-      posts: mockPosts,
+      posts: livePosts,
       pendingPost: null,
       pendingStartedAtMs: null,
-      isLoading: false,
-      error: null,
+      ...pagination,
     };
   }
 
   return {
-    posts: [...snapshot.composedPosts, ...mockPosts],
+    posts: [...snapshot.composedPosts, ...livePosts],
     pendingPost: snapshot.pendingPost,
     pendingStartedAtMs: snapshot.pendingStartedAtMs,
-    isLoading: false,
-    error: null,
+    ...pagination,
   };
 };
