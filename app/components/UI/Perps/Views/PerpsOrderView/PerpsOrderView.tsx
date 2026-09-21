@@ -90,6 +90,7 @@ import PerpsTradeBottomSheet, {
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
   PerpsTradeLeverageScreen,
+  PerpsTradeSettingsScreen,
   PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
@@ -234,6 +235,7 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
   tpsl: 1,
+  settings: 1,
 };
 
 /**
@@ -1917,8 +1919,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleSlippageEditPress = useCallback(() => {
-    setIsSlippageVisible(true);
+  const trackSlippageConfigOpened = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
@@ -1927,6 +1928,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
+
+  const handleSlippageEditPress = useCallback(() => {
+    setIsSlippageVisible(true);
+    trackSlippageConfigOpened();
+  }, [trackSlippageConfigOpened]);
 
   const handlePayWithPress = useCallback(() => {
     if (isPayWithDisabled) {
@@ -2312,6 +2318,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
                 onPayWithPress={handlePayWithPress}
                 onMarginInfoPress={() => handleTooltipPress('margin')}
+                showSlippage={isMarketOrder}
+                slippageText={
+                  estimatedSlippagePctDisplay === null
+                    ? strings('perps.slippage.row_format_pending', {
+                        value: bpsToPercent(maxSlippageBps),
+                      })
+                    : strings('perps.slippage.row_format', {
+                        est: estimatedSlippagePctDisplay,
+                        value: bpsToPercent(maxSlippageBps),
+                      })
+                }
+                exceedsMaxSlippage={exceedsMaxSlippage}
+                onSlippagePress={trackSlippageConfigOpened}
                 onSubmit={() => handlePlaceOrder()}
               />
             ),
@@ -2342,6 +2361,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
+              />
+            ),
+            settings: (
+              <PerpsTradeSettingsScreen
+                currentValueBps={maxSlippageBps}
+                onSave={handleSlippageSave}
               />
             ),
           }}

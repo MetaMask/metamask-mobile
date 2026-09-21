@@ -1033,6 +1033,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
   PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
   MARGIN_ROW: 'perps-trade-sheet-margin-row',
+  SLIPPAGE_ROW: 'perps-trade-sheet-slippage-row',
   LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
   LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
   LIMIT_PRICE_PRESET_PERCENTAGE_1:

@@ -104,6 +104,10 @@ interface PerpsTradeScreenProps {
   onLimitPriceDonePress: () => void;
   onPayWithPress: () => void;
   onMarginInfoPress: () => void;
+  showSlippage: boolean;
+  slippageText: string;
+  exceedsMaxSlippage: boolean;
+  onSlippagePress: () => void;
   onSubmit: () => void;
 }
 
@@ -263,6 +267,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onLimitPriceDonePress,
   onPayWithPress,
   onMarginInfoPress,
+  showSlippage,
+  slippageText,
+  exceedsMaxSlippage,
+  onSlippagePress,
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
@@ -547,6 +555,32 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                     }
                     isDisabled={isPayWithDisabled}
                     onPress={onPayWithPress}
+                  />
+                ) : null}
+                {showSlippage ? (
+                  <ActionRow
+                    testID={PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW}
+                    label={strings('perps.slippage.slippage')}
+                    accessibilityLabel={`${strings(
+                      'perps.slippage.slippage',
+                    )}, ${slippageText}`}
+                    value={
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                        color={
+                          exceedsMaxSlippage
+                            ? TextColor.ErrorDefault
+                            : TextColor.TextDefault
+                        }
+                      >
+                        {slippageText}
+                      </Text>
+                    }
+                    onPress={() => {
+                      onSlippagePress();
+                      navigateTo('settings');
+                    }}
                   />
                 ) : null}
                 <ActionRow

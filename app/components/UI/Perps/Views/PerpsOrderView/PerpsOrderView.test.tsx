@@ -891,6 +891,7 @@ interface MockTradeScreenProps {
   onLimitPriceDonePress: () => void;
   onPayWithPress: () => void;
   onMarginInfoPress: () => void;
+  showSlippage: boolean;
   onSubmit: () => void | Promise<void>;
 }
 
@@ -905,10 +906,16 @@ interface MockTPSLScreenProps {
   onSave: (takeProfitPrice?: string, stopLossPrice?: string) => void;
 }
 
+interface MockSettingsScreenProps {
+  currentValueBps: number;
+  onSave: (valueBps: number) => void;
+}
+
 let mockTradeScreenProps: MockTradeScreenProps | undefined;
 let mockTradeSheetOnClose: (() => void) | undefined;
 let mockLeverageScreenProps: MockLeverageScreenProps | undefined;
 let mockTPSLScreenProps: MockTPSLScreenProps | undefined;
+let mockSettingsScreenProps: MockSettingsScreenProps | undefined;
 
 const getMockTradeScreenProps = (): MockTradeScreenProps => {
   if (!mockTradeScreenProps) {
@@ -929,6 +936,13 @@ const getMockTPSLScreenProps = (): MockTPSLScreenProps => {
     throw new Error('TP/SL screen did not render');
   }
   return mockTPSLScreenProps;
+};
+
+const getMockSettingsScreenProps = (): MockSettingsScreenProps => {
+  if (!mockSettingsScreenProps) {
+    throw new Error('Settings screen did not render');
+  }
+  return mockSettingsScreenProps;
 };
 
 jest.mock(
@@ -954,6 +968,9 @@ jest.mock(
         ).props;
         mockTPSLScreenProps = (
           screens.tpsl as React.ReactElement<MockTPSLScreenProps>
+        ).props;
+        mockSettingsScreenProps = (
+          screens.settings as React.ReactElement<MockSettingsScreenProps>
         ).props;
         return ReactActual.createElement(View, {
           testID: 'perps-trade-sheet',
@@ -1277,6 +1294,7 @@ describe('PerpsOrderView', () => {
     mockTradeSheetOnClose = undefined;
     mockLeverageScreenProps = undefined;
     mockTPSLScreenProps = undefined;
+    mockSettingsScreenProps = undefined;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1432,6 +1450,25 @@ describe('PerpsOrderView', () => {
     expect(setStopLossPrice).toHaveBeenCalledWith('2750');
   });
 
+  it('wires nested slippage settings on the Trade sheet', () => {
+    const setMaxSlippage = jest.fn();
+    (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+      maxSlippageBps: 200,
+      maxSlippageSource: 'user_configured',
+      setMaxSlippage,
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().showSlippage).toBe(true);
+    expect(getMockSettingsScreenProps().currentValueBps).toBe(200);
+
+    act(() => getMockSettingsScreenProps().onSave(500));
+
+    expect(setMaxSlippage).toHaveBeenCalledWith(500);
+  });
+
   it('hides Auto close in add-to-position Trade sheets', () => {
     useTradeSheetRoute({ hideTPSL: true });
 
@@ -1453,6 +1490,8 @@ describe('PerpsOrderView', () => {
     });
     useTradeSheetRoute();
     render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().showSlippage).toBe(false);
 
     act(() =>
       getMockTradeScreenProps().onLimitPriceKeypadChange({

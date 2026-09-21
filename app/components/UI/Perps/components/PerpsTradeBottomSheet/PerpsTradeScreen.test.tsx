@@ -102,6 +102,10 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onLimitPriceDonePress: jest.fn(),
   onPayWithPress: jest.fn(),
   onMarginInfoPress: jest.fn(),
+  showSlippage: true,
+  slippageText: 'Est: 0.12% / Max: 3%',
+  exceedsMaxSlippage: false,
+  onSlippagePress: jest.fn(),
   onSubmit: jest.fn(),
 };
 
@@ -168,6 +172,11 @@ describe('PerpsTradeScreen errors', () => {
     );
     expect(mockNavigateTo).toHaveBeenCalledWith('tpsl');
 
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW),
+    );
+    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
+
     fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW));
     expect(onMarginInfoPress).toHaveBeenCalledTimes(1);
 
@@ -201,6 +210,35 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens nested slippage settings from the market order row', () => {
+    const onSlippagePress = jest.fn();
+
+    render(
+      <PerpsTradeScreen {...defaultProps} onSlippagePress={onSlippagePress} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW),
+    );
+
+    expect(onSlippagePress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
+  });
+
+  it('hides slippage for limit orders', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        showSlippage={false}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW),
     ).not.toBeOnTheScreen();
   });
 
