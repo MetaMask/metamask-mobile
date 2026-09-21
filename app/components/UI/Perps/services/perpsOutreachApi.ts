@@ -23,8 +23,8 @@ export interface PerpsOutreachBanner {
    * URL opened when the user taps the banner. `null` when the campaign leaves
    * the banner non-interactive. Typically a MetaMask universal link
    * (e.g. `https://link.metamask.io/perps-outreach`), which the mobile client
-   * forwards to `handleDeeplink` so it flows through the existing deeplink
-   * router.
+   * parses through `SharedDeeplinkManager` so it flows through the existing
+   * deeplink router.
    */
   linkUrl: string | null;
   contact: PerpsOutreachContact | null;
@@ -37,10 +37,10 @@ interface PerpsOutreachResponse {
 
 export interface PerpsOutreachRequest {
   endpoint: string;
-  profileId?: string | undefined;
-  address?: string | undefined;
-  locale?: string | undefined;
-  signal?: AbortSignal | undefined;
+  profileId?: string;
+  address?: string;
+  locale?: string;
+  signal?: AbortSignal;
 }
 
 type PerpsOutreachQuery = Omit<PerpsOutreachRequest, 'endpoint' | 'signal'>;
