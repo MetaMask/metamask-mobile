@@ -29,20 +29,16 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
 
   const backgroundColor = isReadOnly
     ? theme.colors.background.alternative
-    : isDanger
-      ? isChecked || isIndeterminate
-        ? theme.colors.error.default
-        : theme.colors.background.default
-      : isChecked || isIndeterminate
-        ? theme.colors.primary.default
-        : theme.colors.background.default;
+    : isChecked || isIndeterminate
+      ? theme.colors.icon.default
+      : 'transparent';
 
   const borderColor = isReadOnly
     ? theme.colors.background.alternative
-    : isDanger
-      ? theme.colors.error.default
-      : isChecked || isIndeterminate
-        ? theme.colors.primary.default
+    : isChecked || isIndeterminate
+      ? theme.colors.icon.default
+      : isDanger
+        ? theme.colors.error.default
         : theme.colors.border.default;
 
   return StyleSheet.create({
