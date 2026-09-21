@@ -104,4 +104,102 @@ describe('SuccessErrorSheet', () => {
       queryByTestId(SuccessErrorSheetSelectorsIDs.CLOSE_BUTTON),
     ).toBeNull();
   });
+
+  it('navigates back when the primary button is pressed with closeOnPrimaryButtonPress', () => {
+    const route = {
+      params: {
+        ...mockRoute.params,
+        closeOnPrimaryButtonPress: true,
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={route} />,
+    );
+
+    fireEvent.press(getByTestId(SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockRoute.params.onPrimaryButtonPress).toHaveBeenCalled();
+  });
+
+  it('does not navigate back when the secondary button is pressed with closeOnSecondaryButtonPress false', () => {
+    const route = {
+      params: {
+        ...mockRoute.params,
+        closeOnSecondaryButtonPress: false,
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={route} />,
+    );
+
+    fireEvent.press(
+      getByTestId(SuccessErrorSheetSelectorsIDs.SECONDARY_BUTTON),
+    );
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockRoute.params.onSecondaryButtonPress).toHaveBeenCalled();
+  });
+
+  it('renders only the primary footer button when secondaryButtonLabel is omitted', () => {
+    const route = {
+      params: {
+        ...mockRoute.params,
+        secondaryButtonLabel: undefined,
+      },
+    };
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={route} />,
+    );
+
+    expect(
+      getByTestId(SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(SuccessErrorSheetSelectorsIDs.SECONDARY_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders only the secondary footer button when primaryButtonLabel is omitted', () => {
+    const route = {
+      params: {
+        ...mockRoute.params,
+        primaryButtonLabel: undefined,
+      },
+    };
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={route} />,
+    );
+
+    expect(
+      getByTestId(SuccessErrorSheetSelectorsIDs.SECONDARY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders footer buttons in reverse order when reverseButtonOrder is true', () => {
+    const route = {
+      params: {
+        ...mockRoute.params,
+        reverseButtonOrder: true,
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SuccessErrorSheet route={route} />,
+    );
+
+    expect(
+      getByTestId(SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(SuccessErrorSheetSelectorsIDs.SECONDARY_BUTTON),
+    ).toBeOnTheScreen();
+  });
 });
