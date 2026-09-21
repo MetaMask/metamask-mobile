@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { PLACEHOLDER_FOLLOWER_COUNT } from '../../FollowConnectionsView/hooks/placeholderFollowers';
 
 export type ProfileRankingTag = 'shrimp' | 'dolphin' | 'whale';
 
@@ -13,6 +14,13 @@ export interface MySocialProfile {
   followerCount?: number | null;
   followingCount?: number | null;
   shareUrl: string;
+  /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */
+  winRatePercent?: number | null;
+  /** Realized P&L in USD. */
+  pnlUsd?: number | null;
+  /** Preformatted hold-time label until median minutes land on the API. */
+  holdTimeLabel?: string | null;
+  timesCopied?: number | null;
 }
 
 export interface UseMyProfileResult {
@@ -36,14 +44,17 @@ export const useMyProfile = (): UseMyProfileResult => {
     profile: {
       profileId: 'current-user',
       displayName: 'Giga Whale',
-      handle: 'giga-whale.metamask',
+      handle: 'giga-whale',
       bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
       imageUrl: null,
       rankingTag: 'whale',
       xHandle: 'giga-whale',
-      followerCount: 0,
-      followingCount: 0,
+      followerCount: PLACEHOLDER_FOLLOWER_COUNT,
       shareUrl: 'https://metamask.io/social/giga-whale',
+      winRatePercent: 60,
+      pnlUsd: 7100,
+      holdTimeLabel: '4d',
+      timesCopied: 981,
     },
     isLoading: false,
     error: null,

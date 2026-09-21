@@ -6,10 +6,15 @@ import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import { useKycStartSession } from './hooks/useKycStartSession';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
+const mockStartSession = jest.fn();
+
+jest.mock('./hooks/useKycStartSession');
+const mockUseKycStartSession = jest.mocked(useKycStartSession);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -47,6 +52,10 @@ describe('VbaVerifyIdentity', () => {
       isLoading: false,
       error: null,
       retry: mockRetry,
+    });
+    mockUseKycStartSession.mockReturnValue({
+      isStarting: false,
+      startSession: mockStartSession,
     });
   });
 
@@ -216,11 +225,12 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('opens email collection when continue is pressed', () => {
+  it('starts the KYC session when continue is pressed', () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
+    expect(mockStartSession).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

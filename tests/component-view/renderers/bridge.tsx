@@ -75,9 +75,8 @@ interface RenderBridgeViewOptions {
 }
 
 interface RenderRecurringOrderDetailsViewOptions
-  extends RenderBridgeViewOptions {
-  orderId: string;
-}
+  extends RenderBridgeViewOptions,
+    RecurringOrderDetailsRouteParams {}
 
 interface RenderBlockExplorersModalOptions {
   state: DeepPartial<RootState>;
@@ -167,7 +166,7 @@ export const renderBridgeViewWithTokenSelector = (
   );
 
 function RecurringOrderDetailsTestEntry({
-  orderId,
+  order,
 }: RecurringOrderDetailsRouteParams) {
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -175,7 +174,7 @@ function RecurringOrderDetailsTestEntry({
     Pressable,
     {
       onPress: () =>
-        navigation.navigate(Routes.BRIDGE.RECURRING_ORDER_DETAILS, { orderId }),
+        navigation.navigate(Routes.BRIDGE.RECURRING_ORDER_DETAILS, { order }),
       testID: RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
     },
     React.createElement(Text, null, 'Open recurring order details'),
@@ -183,7 +182,7 @@ function RecurringOrderDetailsTestEntry({
 }
 
 export function renderRecurringOrderDetailsView({
-  orderId,
+  order,
   overrides,
   deterministicFiat,
 }: RenderRecurringOrderDetailsViewOptions): ReturnType<
@@ -196,7 +195,7 @@ export function renderRecurringOrderDetailsView({
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    () => React.createElement(RecurringOrderDetailsTestEntry, { orderId }),
+    () => React.createElement(RecurringOrderDetailsTestEntry, { order }),
     { name: 'RecurringOrderDetailsTestEntry' },
     [
       {
