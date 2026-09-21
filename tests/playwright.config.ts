@@ -32,14 +32,13 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.EMULATOR,
-          name: 'Pixel_9_Pro',
-          osVersion: '16',
+          name: 'Pixel_5_Pro_API_34',
+          osVersion: '13', // 14 for local testing
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: 'build/MetaMask.apk', // downloaded from CI run 35353315010
-        },
+          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file        },
       },
     },
     {
