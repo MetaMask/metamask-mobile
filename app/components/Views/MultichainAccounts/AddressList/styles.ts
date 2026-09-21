@@ -12,6 +12,9 @@ const styleSheet = () =>
       justifyContent: 'center',
       margin: 16,
     },
+    skeletonRow: {
+      padding: 16,
+    },
   });
 
 export default styleSheet;

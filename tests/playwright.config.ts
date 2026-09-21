@@ -26,18 +26,19 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
+      testMatch:
+        'tests/performance/login/launch-times/warm-start-to-login.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.EMULATOR,
-          name: 'Pixel_5_Pro_API_34',
-          osVersion: '13', // 14 for local testing
+          name: 'Pixel_9_Pro',
+          osVersion: '16',
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+          buildPath: 'build/MetaMask.apk', // downloaded from CI run 35353315010
         },
       },
     },

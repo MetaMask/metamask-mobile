@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
@@ -199,6 +200,21 @@ describe('AddressList', () => {
       groupId: ACCOUNT_GROUP_ID,
       source: 'copy_button',
     });
+
+    // Resolve the mount deferral synchronously so the real FlashList (rather
+    // than the loading skeleton) renders in tests by default.
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((cb) => {
+        if (typeof cb === 'function') {
+          cb();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      });
   });
 
   it('renders correctly with list of addresses from a specific account group', () => {
