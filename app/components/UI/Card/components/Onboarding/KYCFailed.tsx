@@ -26,6 +26,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../../../styles/common';
+import { useOswaldSquadTitleStyle } from '../../../../../styles/oswaldDisplay';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
 const staticStyles = StyleSheet.create({
@@ -52,6 +53,7 @@ const KYCFailed = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedView = useRef(false);
@@ -109,6 +111,7 @@ const KYCFailed = () => {
             variant={TextVariant.HeadingLg}
             twClassName="text-white"
             testID="kyc-failed-title"
+            style={squadTitleStyle}
           >
             {strings('card.card_onboarding.kyc_failed.title')}
           </Text>

@@ -22,6 +22,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useOswaldSquadTitleStyle } from '../../../../../styles/oswaldDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
@@ -168,6 +169,7 @@ const MoneyOnboardingTextOverlay = ({
   opacity: SharedValue<number>;
 }) => {
   const insets = useSafeAreaInsets();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   const { height, width } = useWindowDimensions();
   const isSmallScreen =
     width <= SMALL_OVERLAY_DEVICE_MAX_WIDTH ||
@@ -205,7 +207,7 @@ const MoneyOnboardingTextOverlay = ({
               color={TextColor.OverlayInverse}
               fontWeight={FontWeight.Bold}
               numberOfLines={3}
-              style={[styles.title, overlayTextPreset.title]}
+              style={[styles.title, overlayTextPreset.title, squadTitleStyle]}
               testID={MoneyOnboardingViewTestIds.OVERLAY_TITLE}
               variant={TextVariant.HeadingLg}
             >

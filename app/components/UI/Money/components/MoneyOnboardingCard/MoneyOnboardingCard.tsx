@@ -34,6 +34,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { oswaldLinkCardHeadingStyle } from '../../../../../styles/oswaldDisplay';
 import {
   COMPONENT_NAMES,
   MONEY_ONBOARDING_STEP_ACTIONS,
@@ -307,6 +308,7 @@ const MoneyOnboardingCard = () => {
     const step2: StepperCardStep = shouldShowLinkCardAction
       ? {
           title: strings('money.onboarding.step_2.unlinked_card_account.title'),
+          titleStyle: oswaldLinkCardHeadingStyle,
           description: strings(
             'money.onboarding.step_2.unlinked_card_account.description',
           ),

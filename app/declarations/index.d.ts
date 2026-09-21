@@ -33,6 +33,11 @@ declare module '*.png' {
   export default content;
 }
 
+declare module '*.ttf' {
+  const content: number;
+  export default content;
+}
+
 declare module '@react-native-community/checkbox' {
   import { CheckBoxProps } from '@react-native-community/checkbox';
 

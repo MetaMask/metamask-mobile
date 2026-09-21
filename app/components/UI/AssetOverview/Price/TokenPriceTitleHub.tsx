@@ -14,6 +14,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { addCurrencySymbol } from '../../../../util/number/bigint';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
+import { oswaldTokenPriceStyle } from '../../../../styles/oswaldDisplay';
+import { OswaldText } from '../../../../styles/OswaldText';
 
 export type TokenPriceChangeFormat = 'absoluteSubscript' | 'signedCurrency';
 
@@ -125,13 +127,12 @@ export const TokenPriceTitleHub = ({
             <Skeleton style={tw.style('h-10 w-[100px] rounded-md')} />
           </Box>
         ) : (
-          <Text
+          <OswaldText
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
-            color={TextColor.TextDefault}
+            style={[tw.style('text-default'), oswaldTokenPriceStyle]}
           >
             {formatPriceWithSubscriptNotation(price, currentCurrency)}
-          </Text>
+          </OswaldText>
         )
       }
       bottomLabel={

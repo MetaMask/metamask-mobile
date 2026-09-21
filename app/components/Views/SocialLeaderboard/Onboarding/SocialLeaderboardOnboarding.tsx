@@ -30,6 +30,7 @@ import {
 } from '@rive-app/react-native';
 
 import { strings } from '../../../../../locales/i18n';
+import { useOswaldProfileTitleStyle } from '../../../../styles/oswaldDisplay';
 import {
   ToastContext,
   ToastVariants,
@@ -242,6 +243,7 @@ const markOnboardingSeen = () =>
 const SocialLeaderboardOnboarding: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const styles = useMemo(() => createStyles(), []);
+  const profileTitleStyle = useOswaldProfileTitleStyle();
   const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
   const { toastRef } = useContext(ToastContext);
@@ -938,7 +940,9 @@ const SocialLeaderboardOnboarding: React.FC = () => {
             <Animated.View
               style={[styles.textLayerFadingOut, { opacity: exitOpacity }]}
             >
-              <Text style={styles.title}>{fadingOutText.title}</Text>
+              <Text style={[styles.title, profileTitleStyle]}>
+                {fadingOutText.title}
+              </Text>
               <Text style={styles.description}>
                 {fadingOutText.description}
               </Text>
@@ -946,7 +950,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           )}
           <Animated.View style={[styles.textStack, { opacity: enterOpacity }]}>
             <Text
-              style={styles.title}
+              style={[styles.title, profileTitleStyle]}
               testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE}
             >
               {currentText.title}

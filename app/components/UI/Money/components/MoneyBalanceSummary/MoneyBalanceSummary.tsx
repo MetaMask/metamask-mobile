@@ -10,18 +10,19 @@ import {
   IconColor,
   IconName,
   IconSize,
-  SensitiveText,
-  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
   TitleHub,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import TextShimmer from '../TextShimmer';
+import { OswaldText } from '../../../../../styles/OswaldText';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
+import { oswaldMoneyBalanceStyle } from '../../../../../styles/oswaldDisplay';
 
 interface MoneyBalanceSummaryProps {
   displayState: MoneyBalanceDisplayState;
@@ -58,6 +59,7 @@ const MoneyBalanceSummary = ({
   onBalancePress,
   showTitle = false,
 }: MoneyBalanceSummaryProps) => {
+  const tw = useTailwind();
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
   const showApy =
@@ -118,15 +120,12 @@ const MoneyBalanceSummary = ({
     switch (displayState.kind) {
       case 'balance':
         return wrapPressable(
-          <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <OswaldText
+            style={[tw.style('text-default'), oswaldMoneyBalanceStyle]}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
           >
-            {displayState.value}
-          </SensitiveText>,
+            {privacyMode ? '•'.repeat(12) : displayState.value}
+          </OswaldText>,
         );
       case 'noAccount':
         return (
@@ -142,17 +141,15 @@ const MoneyBalanceSummary = ({
         // A previously cached balance renders as a muted "last known" figure;
         // with no cache the slot shows a dash. Both pair with the BannerAlert.
         return wrapPressable(
-          <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextAlternative}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <OswaldText
+            style={[tw.style('text-alternative'), oswaldMoneyBalanceStyle]}
             testID={MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE}
           >
-            {displayState.lastKnownValue ??
-              strings('money.balance_unavailable_value')}
-          </SensitiveText>,
+            {privacyMode
+              ? '•'.repeat(12)
+              : (displayState.lastKnownValue ??
+                strings('money.balance_unavailable_value'))}
+          </OswaldText>,
         );
       default:
         return null;

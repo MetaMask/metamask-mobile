@@ -21,7 +21,6 @@ import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
 import {
   Box,
-  FontFamily,
   FontWeight,
   Text,
   TextVariant,
@@ -30,6 +29,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useOswaldProfileTitleStyle } from '../../../../../styles/oswaldDisplay';
 
 /**
  * Route params for Complete screen
@@ -50,6 +50,7 @@ const Complete = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const profileTitleStyle = useOswaldProfileTitleStyle();
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
@@ -129,9 +130,9 @@ const Complete = () => {
         />
       </Box>
       <Text
-        fontFamily={FontFamily.Accent}
         fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
+        twClassName="text-center"
+        style={profileTitleStyle}
       >
         {strings('card.card_onboarding.complete.title')}
       </Text>

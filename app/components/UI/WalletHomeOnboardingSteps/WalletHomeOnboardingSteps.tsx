@@ -38,6 +38,7 @@ import {
 } from '../../../actions/onboarding';
 import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
+import { useOswaldProfileTitleStyle } from '../../../styles/oswaldDisplay';
 import WalletHomeOnboardingProgressBar from './WalletHomeOnboardingProgressBar';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 import Logger from '../../../util/Logger';
@@ -127,6 +128,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
+  const profileTitleStyle = useOswaldProfileTitleStyle();
   const isFocused = useIsFocused();
   const { riveFile: checklistRiveFile } = useRiveFile(
     onboardChecklistV07Animation,
@@ -789,6 +791,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
           twClassName="w-full text-left"
+          style={profileTitleStyle}
         >
           {walletHomeOnboardingTitleForStep(currentStep.kind)}
         </Text>

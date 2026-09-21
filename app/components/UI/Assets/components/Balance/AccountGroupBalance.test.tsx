@@ -151,6 +151,10 @@ describe('AccountGroupBalance', () => {
 
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeOnTheScreen();
+    expect(el).toHaveStyle({
+      fontFamily: 'Oswald-SemiBold',
+      fontSize: 44,
+    });
   });
 
   it('renders empty state when fetched account group balance is zero', () => {

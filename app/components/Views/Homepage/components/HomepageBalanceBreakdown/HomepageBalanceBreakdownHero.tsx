@@ -12,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import BalanceEmptyState from '../../../../UI/BalanceEmptyState';
@@ -20,6 +21,8 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import type { HeroData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { useHomepageBalanceBreakdownHero } from './useHomepageBalanceBreakdownHero';
+import { oswaldHomeBalanceStyle } from '../../../../../styles/oswaldDisplay';
+import { OswaldText } from '../../../../../styles/OswaldText';
 
 interface HomepageBalanceBreakdownHeroProps {
   hero: HeroData;
@@ -28,6 +31,7 @@ interface HomepageBalanceBreakdownHeroProps {
 const HomepageBalanceBreakdownHero = ({
   hero,
 }: HomepageBalanceBreakdownHeroProps) => {
+  const tw = useTailwind();
   const {
     accessibilityHint,
     accessibilityLabel,
@@ -66,19 +70,19 @@ const HomepageBalanceBreakdownHero = ({
     >
       <Skeleton hideChildren={isLoading}>
         <Animated.View style={animatedBalanceStyle}>
-          <SensitiveText
-            color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
-            }
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <OswaldText
+            style={[
+              tw.style(
+                hero.isPartiallyLoaded || hero.hasErroredSlice
+                  ? 'text-muted'
+                  : 'text-default',
+              ),
+              oswaldHomeBalanceStyle,
+            ]}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
           >
-            {displayBalance}
-          </SensitiveText>
+            {privacyMode ? '••••••••' : displayBalance}
+          </OswaldText>
         </Animated.View>
       </Skeleton>
 
