@@ -170,7 +170,7 @@ const AnimatedAmountDisplay = ({
       testID={onPress ? undefined : testID}
     >
       {renderAffix(prefix)}
-      <Animated.View layout={layout}>{amount}</Animated.View>
+      {amount}
       {cursor !== false && cursorVisible ? (
         <Animated.View layout={layout}>
           <RNAnimated.View
