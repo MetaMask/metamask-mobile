@@ -202,7 +202,6 @@ const config = {
     '.github/workflows/release-branch-sync.yml',
     '.github/workflows/stable-branch-sync.yml',
     '.github/workflows/update-release-changelog.yml',
-    '.github/workflows/changelog-check.yml',
 
     // Release bug-report issue bookkeeping.
     '.github/workflows/close-bug-report.yml',
@@ -228,7 +227,6 @@ const config = {
     '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml',
 
     // Notification-only.
-    '.github/workflows/prod-build-env-notify.yml',
     '.github/workflows/slack-rc-notification.yml',
 
     // Builds a dev CI container image, not a shipped mobile binary.
