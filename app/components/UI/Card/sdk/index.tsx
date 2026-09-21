@@ -143,15 +143,15 @@ export const CardSDKProvider = ({
   // Fetch user data ONLY on initial mount if onboardingId already exists.
   // This prevents fetching when onboardingId is newly set during email verification,
   // which could cause race conditions and navigation issues.
+  // hasInitialOnboardingId is fixed at mount, so including full deps is safe:
+  // when it is false, the effect always no-ops even if onboardingId appears later.
   useEffect(() => {
     if (!sdk || !onboardingId || !hasInitialOnboardingId) {
       return;
     }
 
     fetchUserData();
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdk]);
+  }, [sdk, onboardingId, hasInitialOnboardingId, fetchUserData]);
 
   const logoutFromProvider = useCallback(async () => {
     try {

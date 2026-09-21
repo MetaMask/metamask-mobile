@@ -50,14 +50,17 @@ export function useImmersveCardProvisioning(
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const trackEventRef = useRef(trackEvent);
-  trackEventRef.current = trackEvent;
   const createEventBuilderRef = useRef(createEventBuilder);
-  createEventBuilderRef.current = createEventBuilder;
   const handled = useRef(false);
   // Read via ref so persisting the resolved id does not re-run reconcile and
   // cancel the in-flight attempt (which previously left handled=true forever).
   const reduxFundingSourceIdRef = useRef(reduxFundingSourceId);
-  reduxFundingSourceIdRef.current = reduxFundingSourceId;
+
+  useEffect(() => {
+    trackEventRef.current = trackEvent;
+    createEventBuilderRef.current = createEventBuilder;
+    reduxFundingSourceIdRef.current = reduxFundingSourceId;
+  }, [trackEvent, createEventBuilder, reduxFundingSourceId]);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
   );
