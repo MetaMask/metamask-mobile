@@ -8,6 +8,10 @@ import {
   parseArgs,
   resolveLatestRun,
   resolveRunsInWindow,
+  resolveRunsInRange,
+  sampleRunsEvenly,
+  planWeeklyRuns,
+  reportsForRuns,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,
@@ -63,11 +67,144 @@ test('parseArgs supports weekly and collect-only modes', () => {
   assert.equal(weekly.skipScenarioArtifacts, true);
   assert.equal(weekly.now, '2026-09-21T09:00:00.000Z');
 
+  assert.equal(weekly.maxRunsPerWeek, 6);
+  assert.equal(parseArgs(['--max-runs-per-week', '4']).maxRunsPerWeek, 4);
+
   const collect = parseArgs(['--collect-only', '--run', '99']);
   assert.equal(collect.collectOnly, true);
   assert.equal(collect.skipAi, true);
   assert.equal(collect.skipScenarioArtifacts, true);
   assert.equal(collect.run, '99');
+});
+
+test('resolveRunsInRange keeps a half-open scheduled window', () => {
+  const runs = [
+    {
+      databaseId: 1,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2026-09-14T00:00:00Z',
+    },
+    {
+      databaseId: 2,
+      event: 'workflow_dispatch',
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2026-09-16T00:00:00Z',
+    },
+    {
+      databaseId: 3,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'failure',
+      createdAt: '2026-09-20T18:00:00Z',
+    },
+    {
+      databaseId: 4,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2026-09-21T00:00:00Z',
+    },
+  ];
+
+  const selected = resolveRunsInRange(runs, {
+    sinceIso: '2026-09-14T00:00:00Z',
+    untilIso: '2026-09-21T00:00:00Z',
+  });
+
+  assert.deepEqual(
+    selected.map((run) => run.databaseId),
+    [3, 1],
+  );
+});
+
+test('sampleRunsEvenly spreads samples across the week', () => {
+  const runs = Array.from({ length: 24 }, (_, index) => ({
+    databaseId: index + 1,
+  }));
+
+  const sampled = sampleRunsEvenly(runs, 6);
+
+  assert.equal(sampled.length, 6);
+  assert.equal(sampled[0].databaseId, 1);
+  assert.equal(sampled.at(-1).databaseId, 24);
+  assert.deepEqual(sampleRunsEvenly(runs.slice(0, 4), 6).length, 4);
+});
+
+test('planWeeklyRuns keeps every collected run and samples the rest', () => {
+  const runs = Array.from({ length: 10 }, (_, index) => ({
+    databaseId: index + 1,
+  }));
+  const collected = new Map([
+    ['2', {}],
+    ['7', {}],
+  ]);
+
+  const plan = planWeeklyRuns(runs, collected, 3);
+
+  const selectedIds = plan.selected.map((run) => run.databaseId);
+  assert.ok(selectedIds.includes(2));
+  assert.ok(selectedIds.includes(7));
+  assert.equal(plan.selected.length, 5);
+  assert.equal(plan.skipped, 5);
+});
+
+test('reportsForRuns keeps the week when one run lost its artifacts', async () => {
+  const outputDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'weekly-reports-'),
+  );
+  const analyze = async ({ runId }) => {
+    if (runId === '2') {
+      throw new Error('No named Hermes profiles found under hermes-cpuprofiles/');
+    }
+    return {
+      meta: { runId, profileCount: 1, symbolicatedProfileCount: 1 },
+      scenarios: [],
+    };
+  };
+
+  const { reports, skipped } = await reportsForRuns({
+    args: { repo: 'MetaMask/metamask-mobile' },
+    runs: [{ databaseId: 1 }, { databaseId: 2 }, { databaseId: 3 }],
+    collectedByRunId: new Map(),
+    outputDirectory,
+    skillAnalyzerPath: 'analyzer.cjs',
+    label: 'this-week',
+    analyze,
+  });
+
+  assert.deepEqual(
+    reports.map((report) => report.meta.runId),
+    ['1', '3'],
+  );
+  assert.equal(skipped.length, 1);
+  assert.equal(skipped[0].runId, '2');
+});
+
+test('reportsForRuns prefers a collected report over re-analysis', async () => {
+  const outputDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'weekly-collected-'),
+  );
+  let analyzed = 0;
+
+  const { reports } = await reportsForRuns({
+    args: {},
+    runs: [{ databaseId: 7, url: 'https://example.com/7', createdAt: 'x' }],
+    collectedByRunId: new Map([['7', { meta: {}, scenarios: [] }]]),
+    outputDirectory,
+    skillAnalyzerPath: 'analyzer.cjs',
+    label: 'this-week',
+    analyze: async () => {
+      analyzed += 1;
+      return { meta: {}, scenarios: [] };
+    },
+  });
+
+  assert.equal(analyzed, 0);
+  assert.equal(reports[0].meta.runId, '7');
+  assert.equal(reports[0].meta.runUrl, 'https://example.com/7');
 });
 
 test('parseArgs supports local Hermes-only analysis', () => {

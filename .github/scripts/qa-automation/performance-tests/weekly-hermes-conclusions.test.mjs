@@ -183,3 +183,21 @@ test('weekly Slack parent is an exception report', () => {
   assert.match(withCards, /1 worse than last week/);
   assert.match(withCards, /Stable scenarios omitted/);
 });
+
+test('weekly Slack states when medians come from sampled runs', () => {
+  const report = buildWeeklyReport({
+    thisWindow: { meta: { profileCount: 6, symbolicatedProfileCount: 6 }, scenarios: [] },
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 6,
+    lastWeekRunCount: 6,
+    thisWeekRunsAvailable: 22,
+    lastWeekRunsAvailable: 24,
+  });
+
+  assert.equal(report.meta.sampled, true);
+  assert.match(
+    buildWeeklyParentSlack(report),
+    /sampled 6\/22 and 6\/24 scheduled runs/,
+  );
+});

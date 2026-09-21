@@ -65,6 +65,11 @@ const WINDOW_SCENARIOS_IN_CHAT = 8;
 // A run whose JS work exceeds this multiple of the scenario median is called
 // out separately instead of being averaged into the headline number.
 const SPIKE_RATIO = 1.5;
+// Re-analyzing a run means downloading ~140 MB and symbolicating every
+// scenario, so a full week of 6-hourly runs cannot be rebuilt inside one job.
+// Collected reports are always reused in full; only runs that were never
+// collected are sampled, evenly across the week to avoid favouring one day.
+const DEFAULT_MAX_RUNS_PER_WEEK = 6;
 const KNOWN_PROJECTS = [
   'android-onboarding-seedless',
   'browserstack-android',
@@ -99,6 +104,7 @@ function parseArgs(argv) {
     collectOnly: false,
     skipScenarioArtifacts: false,
     now: null,
+    maxRunsPerWeek: DEFAULT_MAX_RUNS_PER_WEEK,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -168,6 +174,10 @@ function parseArgs(argv) {
         args.now = next;
         index += 1;
         break;
+      case '--max-runs-per-week':
+        args.maxRunsPerWeek = Number(next);
+        index += 1;
+        break;
       case '--dry-run':
         args.dryRun = true;
         break;
@@ -186,6 +196,9 @@ function parseArgs(argv) {
   ) {
     fail('--lookback-hours and --days must be positive numbers');
   }
+  if (!Number.isFinite(args.maxRunsPerWeek) || args.maxRunsPerWeek <= 0) {
+    fail('--max-runs-per-week must be a positive number');
+  }
   return args;
 }
 
@@ -198,6 +211,7 @@ Options:
   --lookback-hours <n>   Analyze every run in the window and report medians
   --days <n>             Same window expressed in days
   --weekly               Week-over-week exception report (scheduled main runs)
+  --max-runs-per-week <n>  Uncollected runs re-analyzed per week (default: ${DEFAULT_MAX_RUNS_PER_WEEK})
   --collect-only         Analyze one run without Slack-sized scenario zips
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --now <iso>            Clock used by --weekly week bounds (tests)
@@ -1460,7 +1474,7 @@ function markdownDownloadLines(meta = {}) {
   const lines = [];
   if (meta.analysisArtifactsUrl) {
     lines.push(
-      `- [app-profiling-analysis](${meta.analysisArtifactsUrl}) — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (30-day retention).`,
+      `- [app-profiling-analysis](${meta.analysisArtifactsUrl}) — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (7-day retention).`,
     );
   }
   return lines;
@@ -2178,7 +2192,9 @@ async function analyzeProfileDirectory({
 }) {
   const files = [...new Set(findHermesProfiles(sourceDirectory))];
   if (files.length === 0) {
-    fail('No named Hermes profiles found under hermes-cpuprofiles/');
+    // Thrown, not exited: a week-long window keeps going when one run's
+    // artifacts have expired. `main` turns this into the same fatal error.
+    throw new Error('No named Hermes profiles found under hermes-cpuprofiles/');
   }
   console.log(`🧠 Hermes CPU profiles: ${files.length}`);
   const sourcemaps = findAndroidSourcemaps(sourcemapDirectory);
@@ -2222,7 +2238,7 @@ async function analyzeProfileDirectory({
 
   const scenarios = groupProfiles(profiles, scenarioFilter);
   if (scenarios.length === 0) {
-    fail(
+    throw new Error(
       scenarioFilter
         ? `No Hermes scenario matched "${scenarioFilter}"`
         : 'No Hermes scenarios found',
@@ -2410,6 +2426,39 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   );
 }
 
+/**
+ * Picks `limit` runs spread across the list instead of the newest ones, so a
+ * sampled week still covers every day it ran.
+ */
+function sampleRunsEvenly(runs, limit) {
+  if (runs.length <= limit) {
+    return [...runs];
+  }
+  const step = (runs.length - 1) / (limit - 1);
+  const indexes = new Set();
+  for (let position = 0; position < limit; position += 1) {
+    indexes.add(Math.round(position * step));
+  }
+  return [...indexes].sort((left, right) => left - right).map((index) => runs[index]);
+}
+
+function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek) {
+  const collected = runs.filter((run) =>
+    collectedByRunId.has(String(run.databaseId)),
+  );
+  const uncollected = runs.filter(
+    (run) => !collectedByRunId.has(String(run.databaseId)),
+  );
+  const sampled = sampleRunsEvenly(uncollected, maxRunsPerWeek);
+  const selectedIds = new Set(
+    [...collected, ...sampled].map((run) => String(run.databaseId)),
+  );
+  return {
+    selected: runs.filter((run) => selectedIds.has(String(run.databaseId))),
+    skipped: uncollected.length - sampled.length,
+  };
+}
+
 async function reportsForRuns({
   args,
   runs,
@@ -2417,8 +2466,10 @@ async function reportsForRuns({
   outputDirectory,
   skillAnalyzerPath,
   label,
+  analyze = analyzeRun,
 }) {
   const reports = [];
+  const skipped = [];
   for (const run of runs) {
     const runId = String(run.databaseId);
     const collected = collectedByRunId.get(runId);
@@ -2437,17 +2488,37 @@ async function reportsForRuns({
     }
     console.log(`\n▶️ ${label} run ${runId} (${run.createdAt})`);
     const runDirectory = path.join(outputDirectory, 'runs', runId);
-    const report = await analyzeRun({
-      args: { ...args, skipScenarioArtifacts: true, collectOnly: true },
-      run,
-      runId,
-      workingDirectory: runDirectory,
-      skillAnalyzerPath,
-    });
-    writeOutputs(runDirectory, report);
-    reports.push(report);
+    try {
+      const report = await analyze({
+        args: { ...args, skipScenarioArtifacts: true, collectOnly: true },
+        run,
+        runId,
+        workingDirectory: runDirectory,
+        skillAnalyzerPath,
+      });
+      writeOutputs(runDirectory, report);
+      reports.push(report);
+    } catch (error) {
+      // Artifacts expire before the two-week comparison window closes, so a
+      // run with nothing left to read is one fewer sample, not a failed week.
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(`⚠️ Skipping ${label} run ${runId}: ${reason}`);
+      skipped.push({ runId, reason });
+    }
+    // A whole week of downloads and converted profiles does not fit on the
+    // runner; the report itself is all the window needs.
+    for (const directory of [
+      'source-profiles',
+      'source-sourcemaps',
+      'symbolicated',
+    ]) {
+      fs.rmSync(path.join(runDirectory, directory), {
+        recursive: true,
+        force: true,
+      });
+    }
   }
-  return reports;
+  return { reports, skipped };
 }
 
 async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
@@ -2487,22 +2558,44 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     bounds.lastWeek.since,
     bounds.thisWeek.until,
   );
-  const thisWeekReports = await reportsForRuns({
+  const thisWeekPlan = planWeeklyRuns(
+    thisWeekRuns,
+    collectedByRunId,
+    args.maxRunsPerWeek,
+  );
+  const lastWeekPlan = planWeeklyRuns(
+    lastWeekRuns,
+    collectedByRunId,
+    args.maxRunsPerWeek,
+  );
+  if (thisWeekPlan.skipped > 0 || lastWeekPlan.skipped > 0) {
+    console.log(
+      `ℹ️ Sampling uncollected runs: ${thisWeekPlan.selected.length}/${thisWeekRuns.length} this week, ${lastWeekPlan.selected.length}/${lastWeekRuns.length} previous week`,
+    );
+  }
+  const thisWeek = await reportsForRuns({
     args,
-    runs: thisWeekRuns,
+    runs: thisWeekPlan.selected,
     collectedByRunId,
     outputDirectory,
     skillAnalyzerPath,
     label: 'this-week',
   });
-  const lastWeekReports = await reportsForRuns({
+  const lastWeek = await reportsForRuns({
     args,
-    runs: lastWeekRuns,
+    runs: lastWeekPlan.selected,
     collectedByRunId,
     outputDirectory,
     skillAnalyzerPath,
     label: 'last-week',
   });
+  const thisWeekReports = thisWeek.reports;
+  const lastWeekReports = lastWeek.reports;
+  if (thisWeekReports.length === 0) {
+    fail(
+      'No scheduled run in the last completed week still has Hermes profiles to analyze',
+    );
+  }
 
   const thisWindow = aggregateWindow(thisWeekReports, {
     lookbackHours: 168,
@@ -2522,12 +2615,14 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     thisWindow,
     lastWindow,
     bounds,
-    thisWeekRunCount: thisWeekRuns.length,
-    lastWeekRunCount: lastWeekRuns.length,
+    thisWeekRunCount: thisWeekReports.length,
+    lastWeekRunCount: lastWeekReports.length,
+    thisWeekRunsAvailable: thisWeekRuns.length,
+    lastWeekRunsAvailable: lastWeekRuns.length,
   });
   writeWeeklyOutputs(outputDirectory, weekly);
   console.log(
-    `\n✅ Wrote weekly conclusions for ${weekly.cards.length} flagged scenarios (${thisWeekReports.length} this-week reports, ${lastWeekReports.length} last-week reports) to ${outputDirectory}`,
+    `\n✅ Wrote weekly conclusions for ${weekly.cards.length} flagged scenarios (${thisWeekReports.length} this-week reports, ${lastWeekReports.length} last-week reports, ${thisWeek.skipped.length + lastWeek.skipped.length} runs skipped) to ${outputDirectory}`,
   );
 }
 
@@ -2542,6 +2637,9 @@ export {
   resolveLatestRun,
   resolveRunsInWindow,
   resolveRunsInRange,
+  sampleRunsEvenly,
+  planWeeklyRuns,
+  reportsForRuns,
   writeEmptyScenarioManifest,
   findHermesProfiles,
   findAndroidSourcemaps,

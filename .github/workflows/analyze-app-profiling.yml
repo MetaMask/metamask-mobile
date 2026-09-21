@@ -49,6 +49,11 @@ on:
         required: false
         type: boolean
         default: false
+      max_runs_per_week:
+        description: 'Weekly only: uncollected runs re-analyzed per week (blank = 6)'
+        required: false
+        type: string
+        default: ''
       scenario:
         description: 'Optional exact scenario title filter (blank = all scenarios in the run)'
         required: false
@@ -155,6 +160,7 @@ jobs:
           SKIP_AI: ${{ inputs.skip_ai }}
           WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
           COLLECT_ONLY: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
@@ -165,6 +171,9 @@ jobs:
           )
           if [ "${WEEKLY}" = "true" ]; then
             ARGS+=(--weekly --skip-ai --skip-scenario-artifacts)
+            if [ -n "${MAX_RUNS_PER_WEEK}" ]; then
+              ARGS+=(--max-runs-per-week "${MAX_RUNS_PER_WEEK}")
+            fi
           elif [ -n "${LOOKBACK_HOURS}" ]; then
             ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")
           elif [ -n "${RUN_ID}" ]; then
@@ -192,7 +201,14 @@ jobs:
           if [ "${WEEKLY}" = "true" ] || [ "${COLLECT_ONLY}" = "true" ]; then
             UPLOAD_PROFILES=false
           fi
+          # Digests are read within days. A collected report is the history the
+          # Monday job compares against, so it has to outlive two whole weeks.
+          RETENTION_DAYS=7
+          if [ "${COLLECT_ONLY}" = "true" ]; then
+            RETENTION_DAYS=21
+          fi
           echo "upload-profiles=${UPLOAD_PROFILES}" >> "$GITHUB_OUTPUT"
+          echo "retention-days=${RETENTION_DAYS}" >> "$GITHUB_OUTPUT"
 
       - name: Prepare scenario artifact matrix
         id: scenario-matrix
@@ -223,7 +239,7 @@ jobs:
             /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/
           if-no-files-found: ignore
-          retention-days: 30
+          retention-days: ${{ steps.flags.outputs.retention-days || 7 }}
 
       - name: Cache scenario profile bundles
         if: success() && steps.flags.outputs.upload-profiles == 'true'
@@ -286,7 +302,7 @@ jobs:
           name: ${{ matrix.artifactName }}
           path: ${{ matrix.path }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
 
   publish-summary:
     name: Post profiling summary

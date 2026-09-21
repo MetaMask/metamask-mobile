@@ -284,7 +284,7 @@ export function buildWeeklyParentSlack(report) {
     '',
     `_This week:_ ${report.meta.thisWeek.since.slice(0, 16)}Z → ${report.meta.thisWeek.until.slice(0, 16)}Z`,
     `_Previous week:_ ${report.meta.lastWeek.since.slice(0, 16)}Z → ${report.meta.lastWeek.until.slice(0, 16)}Z`,
-    `_Runs:_ ${report.meta.thisWeekRunCount} this week · ${report.meta.lastWeekRunCount} previous week (scheduled \`main\` only)`,
+    `_Runs analyzed:_ ${report.meta.thisWeekRunCount} this week · ${report.meta.lastWeekRunCount} previous week (scheduled \`main\` only)`,
     `_Profiles:_ ${report.meta.thisWeekProfileCount} this week · sourcemaps ${report.meta.thisWeekSymbolicatedProfileCount}/${report.meta.thisWeekProfileCount}`,
   ];
   if (report.cards.length === 0) {
@@ -302,8 +302,13 @@ export function buildWeeklyParentSlack(report) {
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
-    '_Disclaimer:_ Testing experiment only — not a production alert.',
   );
+  if (report.meta.sampled) {
+    lines.push(
+      `_Coverage:_ sampled ${report.meta.thisWeekRunCount}/${report.meta.thisWeekRunsAvailable} and ${report.meta.lastWeekRunCount}/${report.meta.lastWeekRunsAvailable} scheduled runs; medians come from those samples.`,
+    );
+  }
+  lines.push('_Disclaimer:_ Testing experiment only — not a production alert.');
   return lines.join('\n');
 }
 
@@ -313,7 +318,7 @@ export function buildWeeklyMarkdown(report) {
     '',
     `This week: ${report.meta.thisWeek.since} → ${report.meta.thisWeek.until}`,
     `Previous week: ${report.meta.lastWeek.since} → ${report.meta.lastWeek.until}`,
-    `Runs: ${report.meta.thisWeekRunCount} this week · ${report.meta.lastWeekRunCount} previous week`,
+    `Runs analyzed: ${report.meta.thisWeekRunCount}/${report.meta.thisWeekRunsAvailable} this week · ${report.meta.lastWeekRunCount}/${report.meta.lastWeekRunsAvailable} previous week`,
     '',
   ];
   if (report.cards.length === 0) {
@@ -346,6 +351,8 @@ export function buildWeeklyReport({
   bounds,
   thisWeekRunCount,
   lastWeekRunCount,
+  thisWeekRunsAvailable = thisWeekRunCount,
+  lastWeekRunsAvailable = lastWeekRunCount,
 }) {
   const cards = classifyWeeklyScenarios(thisWindow, lastWindow);
   return {
@@ -357,6 +364,11 @@ export function buildWeeklyReport({
       source: 'Hermes CPU sampling profiles only',
       thisWeekRunCount,
       lastWeekRunCount,
+      thisWeekRunsAvailable,
+      lastWeekRunsAvailable,
+      sampled:
+        thisWeekRunCount < thisWeekRunsAvailable ||
+        lastWeekRunCount < lastWeekRunsAvailable,
       thisWeekProfileCount: thisWindow.meta?.profileCount || 0,
       thisWeekSymbolicatedProfileCount:
         thisWindow.meta?.symbolicatedProfileCount || 0,

@@ -111,6 +111,7 @@ describe('Analyze App Profiling triggers', () => {
     expect(inputs).toHaveProperty('run_id');
     expect(inputs).toHaveProperty('lookback_hours');
     expect(inputs).toHaveProperty('weekly');
+    expect(inputs).toHaveProperty('max_runs_per_week');
     expect(inputs).toHaveProperty('scenario');
     expect(inputs).toHaveProperty('skip_ai');
     expect(inputs).toHaveProperty('post_to_slack');
@@ -154,6 +155,28 @@ describe('Analyze App Profiling triggers', () => {
     ]);
     expect(slackStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
     expect(slackStep?.env?.GITHUB_RUN_ID).toBe('${{ github.run_id }}');
+  });
+
+  it('keeps digests for a week and collected history for two', () => {
+    const workflow = loadWorkflow();
+    const analysisUpload = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Upload analysis artifact',
+    );
+    const scenarioUpload = workflow.jobs['upload-scenario-profiles'].steps.find(
+      (step) => step.name === 'Upload scenario profile artifact',
+    );
+    const flags = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Record upload flags',
+    );
+
+    expect(scenarioUpload?.with?.['retention-days']).toBe(7);
+    expect(analysisUpload?.with?.['retention-days']).toBe(
+      "${{ steps.flags.outputs.retention-days || 7 }}",
+    );
+    // The Monday report compares two whole weeks, so a collected report has
+    // to outlive a 7-day digest.
+    expect(flags?.run).toContain('RETENTION_DAYS=7');
+    expect(flags?.run).toContain('RETENTION_DAYS=21');
   });
 
   it('publishes one artifact per scenario before posting Slack', () => {
