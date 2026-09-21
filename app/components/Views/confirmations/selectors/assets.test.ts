@@ -594,7 +594,12 @@ describe('selectConfirmationAssetsWithBalanceByAccountGroupId', () => {
         ...assetsController,
         assetsBalance: { [accountId]: { [assetId]: { amount: '3' } } },
         assetsInfo: {
-          [assetId]: { symbol: 'FUND', name: 'Funded', decimals: 18, image: '' },
+          [assetId]: {
+            symbol: 'FUND',
+            name: 'Funded',
+            decimals: 18,
+            image: '',
+          },
         },
       },
     });

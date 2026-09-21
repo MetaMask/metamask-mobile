@@ -78,9 +78,7 @@ const mockFormatFiat = jest.mocked(formatFiat);
 const mockUseTokensData = jest.mocked(useTokensData);
 const mockBuildEvmCaip19AssetId = jest.mocked(buildEvmCaip19AssetId);
 const mockUseTransactionPayCurrency = jest.mocked(useTransactionPayCurrency);
-const mockUseAccountOverrideGroupId = jest.mocked(
-  useAccountOverrideGroupId,
-);
+const mockUseAccountOverrideGroupId = jest.mocked(useAccountOverrideGroupId);
 const mockGetSelectedCurrency = jest.mocked(getSelectedCurrency);
 const mockSelectConfirmationAssetsByAccountGroup = jest.mocked(
   selectConfirmationAssetsByAccountGroupId,

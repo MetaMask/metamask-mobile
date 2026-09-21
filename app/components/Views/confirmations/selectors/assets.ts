@@ -409,15 +409,21 @@ function isExcludedAsset(
   assetId: CaipAssetType,
   { address, caipChainId, chainId, isNative }: ParsedCaipAsset,
 ): boolean {
-  if (
-    isTronSpecialAsset(assetId) ||
-    EXCLUDED_STAKED_ASSET_IDS.has(assetId.toLowerCase())
-  ) {
+  // Hoisted: `isTronSpecialAsset` is declared as a `assetId is string` type
+  // predicate, so calling it inline narrows `assetId` to `never` in the rest
+  // of the condition.
+  const isStakedAsset = EXCLUDED_STAKED_ASSET_IDS.has(assetId.toLowerCase());
+
+  if (isTronSpecialAsset(assetId) || isStakedAsset) {
     return true;
   }
 
   if (isNative) {
-    return CHAIN_IDS_WITH_NO_NATIVE_TOKEN.includes(caipChainId);
+    // The constant is a readonly tuple of two literals, so `includes` rejects
+    // any wider CAIP chain ID without this widening.
+    return (CHAIN_IDS_WITH_NO_NATIVE_TOKEN as readonly string[]).includes(
+      caipChainId,
+    );
   }
 
   return (
