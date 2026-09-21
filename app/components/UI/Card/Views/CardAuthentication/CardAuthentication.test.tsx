@@ -266,15 +266,18 @@ describe('CardAuthentication', () => {
       ).toBeOnTheScreen();
     });
 
-    it('disables the CTA and shows mismatch when verify returns not_found', async () => {
+    it('shows the no_card banner when a manual wallet verify returns not_found', async () => {
       mockVerifyAccount.mockResolvedValue('not_found');
       setResolution({
-        kind: 'wallet',
-        option: walletOption,
-        address: ADDR,
-        source: 'lookup',
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
       });
       render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.FORK_WALLET),
+      );
 
       await act(async () => {
         fireEvent.press(
@@ -283,8 +286,12 @@ describe('CardAuthentication', () => {
       });
 
       await waitFor(() => {
-        expect(mockSignInWithWallet).toHaveBeenCalled();
+        expect(
+          screen.getByTestId(CardAuthenticationSelectors.BANNER),
+        ).toBeOnTheScreen();
       });
+      expect(screen.getByText(/couldn.t find your card/i)).toBeOnTheScreen();
+      expect(mockSignInWithWallet).not.toHaveBeenCalled();
     });
   });
 
@@ -447,6 +454,29 @@ describe('CardAuthentication', () => {
       expect(
         screen.queryByTestId(CardAuthenticationSelectors.BANNER),
       ).toBeNull();
+    });
+
+    it('submits the verification code when the step is OTP', async () => {
+      mockUseCardAuth.mockReturnValue({
+        ...makeAuthReturn(),
+        currentStep: { type: 'otp' as const, destination: '+1555****90' },
+      } as unknown as ReturnType<typeof useCardAuth>);
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.OTP_CODE_FIELD),
+        '123456',
+      );
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'email_password',
+            otpCode: '123456',
+          }),
+        );
+      });
     });
   });
 

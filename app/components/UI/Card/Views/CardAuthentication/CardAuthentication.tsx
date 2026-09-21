@@ -204,24 +204,19 @@ const CardAuthentication = () => {
   }, [resolution]);
 
   const emailOption = useMemo((): CardSignInOption | undefined => {
-    if (view.mode === 'email') {
-      if (view.origin === 'resume') {
-        return Engine.context.CardController.getSignInOptions(
-          countryKey ?? 'GB',
-        ).find((o) => o.method === 'email_password');
-      }
-      if (resolution?.kind === 'email') {
-        return resolution.option;
-      }
-      if (resolution?.kind === 'unresolved') {
-        return resolution.options.find((o) => o.method === 'email_password');
-      }
+    if (resolution?.kind === 'email') {
+      return resolution.option;
     }
-    if (resolution && 'options' in resolution) {
+    if (resolution?.kind === 'unresolved') {
       return resolution.options.find((o) => o.method === 'email_password');
     }
+    if (resolution?.kind === 'resume') {
+      return Engine.context.CardController.getSignInOptions(
+        countryKey ?? 'GB',
+      ).find((o) => o.method === 'email_password');
+    }
     return undefined;
-  }, [view, resolution, countryKey]);
+  }, [resolution, countryKey]);
 
   const pinnedAddress =
     view.mode === 'wallet' || view.mode === 'account_missing'
