@@ -1,5 +1,6 @@
 import AppConstants from '../../core/AppConstants';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+import { CLEAR_ONBOARDING } from '../../actions/onboarding';
 
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
@@ -86,6 +87,20 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         basicFunctionalityMigrationNotification: null,
         basicFunctionalityMigrationNotificationDismissed: true,
+      };
+    // Cohort membership and its notice belong to the wallet that migrated, but
+    // this slice outlives it: deleting a wallet leaves them behind, so the next
+    // wallet restored on this install reads as already migrated and is never
+    // offered the notice. `CLEAR_ONBOARDING` is the wallet-delete signal.
+    case CLEAR_ONBOARDING:
+      return {
+        ...state,
+        isBasicFunctionalityConsolidatedEnabled:
+          initialState.isBasicFunctionalityConsolidatedEnabled,
+        basicFunctionalityMigrationNotification:
+          initialState.basicFunctionalityMigrationNotification,
+        basicFunctionalityMigrationNotificationDismissed:
+          initialState.basicFunctionalityMigrationNotificationDismissed,
       };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {
