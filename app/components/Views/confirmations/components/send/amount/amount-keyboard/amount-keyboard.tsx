@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -14,13 +14,12 @@ import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
-import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
 import { useSendContext } from '../../../../context/send-context';
 import { type PredefinedRecipient } from '../../../../utils/send';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
-import { useSendActions } from '../../../../hooks/send/useSendActions';
+import { useSendAmountActions } from '../../../../hooks/send/useSendActions';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
 import { AmountAlerts } from '../amount-alerts';
 import { styleSheet } from './amount-keyboard.styles';
@@ -47,10 +46,11 @@ export const AmountKeyboard = ({
 }) => {
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
-  const { asset, updateValue, updateTo } = useSendContext();
-  const { handleSubmitPress } = useSendActions();
+  const { asset, maxValueMode, updateValue, updateTo, value } =
+    useSendContext();
+  const { getPercentageAmount, handleSubmitPress, isMaxAmountSupported } =
+    useSendAmountActions();
   const { isNonEvmSendType } = useSendType();
   const { alert: unreliableNetworkAlert } = useUnreliableNetworkAlert();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
@@ -67,7 +67,10 @@ export const AmountKeyboard = ({
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
-      const percentageAmount = getPercentageAmount(percentage) ?? '0';
+      const percentageAmount = getPercentageAmount(percentage);
+      if (percentageAmount === undefined) {
+        return;
+      }
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
@@ -85,6 +88,26 @@ export const AmountKeyboard = ({
       updateValue,
     ],
   );
+
+  useEffect(() => {
+    if (!maxValueMode) {
+      return;
+    }
+    const maxAmount = getPercentageAmount(100);
+    if (maxAmount === undefined || maxAmount === value) {
+      return;
+    }
+    updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
+    updateValue(maxAmount, true);
+  }, [
+    fiatMode,
+    getFiatValue,
+    getPercentageAmount,
+    maxValueMode,
+    updateAmount,
+    updateValue,
+    value,
+  ]);
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
