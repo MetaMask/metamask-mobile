@@ -51,7 +51,7 @@ export function RecurringOrderCancelSheet({
             RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
         }}
       >
-        {strings('bridge.recurring.cancel_order')}
+        {strings('bridge.recurring.cancel_confirmation_title')}
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingBottom={4}>
         <Text

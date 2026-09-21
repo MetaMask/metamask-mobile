@@ -1,9 +1,19 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
+import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -61,9 +71,17 @@ function buildProps(
     triggerPrice: '$3,412.20',
     expiry: '7 days',
     costTolerance: '2%',
-    networkFee: '$1.69',
+    delegationFee: {
+      status: 'ready',
+      displayFee: '$1.69',
+      preciseNativeFeeInHex: '0x1',
+      retry: jest.fn(),
+    },
     feeToken: mockSourceToken,
-    onConfirm: jest.fn(),
+    primaryButton: {
+      onPress: jest.fn(),
+      label: 'Confirm order',
+    },
     onClose: jest.fn(),
     ...overrides,
   };
@@ -92,45 +110,144 @@ describe('LimitOrderConfirmationModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the market comparison label when triggerComparison is provided', () => {
+  it('displays the account upgrade fee as the estimated network fee', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal
         {...buildProps({
-          triggerComparison: {
-            label: '(-5% from market)',
-            isNegative: true,
+          delegationFee: {
+            status: 'ready',
+            displayFee: '$1.69',
+            preciseNativeFeeInHex: '0x1',
+            retry: jest.fn(),
           },
         })}
       />,
     );
 
-    expect(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
-    ).toHaveTextContent('(-5% from market)');
+    const networkFeeRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE,
+    );
+
+    expect(within(networkFeeRow).getByText('$1.69')).toBeOnTheScreen();
   });
 
-  it('omits the market comparison label when triggerComparison is undefined', () => {
+  it('omits the network fee row while the upgrade fee is being estimated', () => {
     const { queryByTestId } = render(
       <LimitOrderConfirmationModal
-        {...buildProps({ triggerComparison: undefined })}
+        {...buildProps({
+          delegationFee: { status: 'loading', retry: jest.fn() },
+        })}
       />,
     );
 
     expect(
-      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE),
     ).toBeNull();
   });
 
-  it('calls onConfirm when the confirm button is pressed', () => {
-    const onConfirm = jest.fn();
+  it('displays a placeholder when the upgrade fee cannot be estimated', () => {
     const { getByTestId } = render(
-      <LimitOrderConfirmationModal {...buildProps({ onConfirm })} />,
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          delegationFee: { status: 'error', retry: jest.fn() },
+        })}
+      />,
+    );
+
+    const networkFeeRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE,
+    );
+
+    expect(within(networkFeeRow).getByText('--')).toBeOnTheScreen();
+  });
+
+  // An already delegated account pays nothing to place the order, so there is
+  // no fee to show at all.
+  it('omits the network fee row when the account is already delegated', () => {
+    const { queryByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          delegationFee: { status: 'not-required', retry: jest.fn() },
+        })}
+      />,
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE),
+    ).toBeNull();
+  });
+
+  it('does not display an error banner by default', () => {
+    const { queryByText } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    expect(queryByText('Something went wrong')).toBeNull();
+  });
+
+  it('displays an error banner when an error message is provided', () => {
+    const { getByText } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({ error: 'Something went wrong' })}
+      />,
+    );
+
+    expect(getByText('Something went wrong')).toBeOnTheScreen();
+  });
+
+  it('fires the primary button onPress handler when pressed', () => {
+    const onPress = jest.fn();
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({ primaryButton: { onPress, label: 'Confirm order' } })}
+      />,
     );
 
     fireEvent.press(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.CONFIRM_BUTTON),
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
     );
 
-    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays the primary button label from props', () => {
+    const { getByText } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          primaryButton: { onPress: jest.fn(), label: 'Try again' },
+        })}
+      />,
+    );
+
+    expect(getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('opens the cost tolerance tooltip when the info button is pressed', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps({ costTolerance: '2%' })} />,
+    );
+
+    fireEvent.press(
+      getByTestId(
+        LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL,
+    });
+  });
+
+  it('displays the fee disclaimer with the default MetaMask fee percentage', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER),
+    ).toHaveTextContent(
+      new RegExp(`${LIMIT_ORDER_DEFAULT_METAMASK_FEE}% MetaMask fee`),
+    );
   });
 });

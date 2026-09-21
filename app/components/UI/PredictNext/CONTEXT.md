@@ -114,6 +114,14 @@ _Avoid_: Active Order; the latter describes the app workflow, not Venue order-bo
 A short-lived, venue-bound price quote showing estimated cost, fees, and potential return before an Order is placed. It has an expiry and cannot be trusted after it expires.
 _Avoid_: Unbound estimate, mutable order payload
 
+**Total Debit**:
+The total settlement-currency amount expected to be charged to a Venue Account for an Order: the Order amount plus the estimated Fee. The entered USD amount caps the Order amount; the Fee is added on top.
+_Avoid_: Order total, total cost, spend
+
+**Fee**:
+The estimated charge for executing an Order, added on top of the Order amount to produce the Total Debit. A Fee is composed of backend-owned components (today venue and MetaMask components) and is reported by the backend; the client never calculates it.
+_Avoid_: Kalshi fee as the total Fee, gas
+
 **Order Receipt**:
 The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable.
 _Avoid_: Order Result, raw venue response
@@ -169,11 +177,11 @@ The highest currently available per-share price to sell an Outcome, expressed in
 _Avoid_: Price, sell price, Yes bid
 
 **Volume**:
-Total settlement currency traded on a Market or Event across all users.
-_Avoid_: Liquidity
+Total number of contracts (shares) traded on a Market or Event across all users. This is the backend's share volume, sourced from Kalshi `volume_fp`; REST and streamed quotes report the same unit. Settlement-currency value traded is Dollar Volume, a separate backend field not yet served to mobile.
+_Avoid_: Liquidity, Dollar Volume
 
 **24-Hour Volume**:
-Settlement currency traded on a Market or Event during the trailing 24-hour window at the backend observation time.
+Number of contracts traded on a Market or Event during the trailing 24-hour window at the backend observation time.
 _Avoid_: Daily Volume, total Volume
 
 **Liquidity**:

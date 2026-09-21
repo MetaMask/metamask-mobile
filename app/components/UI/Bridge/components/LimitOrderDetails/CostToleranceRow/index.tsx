@@ -16,6 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { LimitOrderCostToleranceTooltip } from '../../LimitOrderCostToleranceTooltip';
 import { CostToleranceRowSelectorsIDs } from './testIds';
 import type { CostToleranceRowProps } from './types';
 
@@ -32,6 +33,11 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
       color: TextColor.TextAlternative,
       fontWeight: FontWeight.Regular,
     }}
+    keyEndAccessory={
+      <LimitOrderCostToleranceTooltip
+        testID={CostToleranceRowSelectorsIDs.TOOLTIP}
+      />
+    }
     value={
       <TouchableOpacity
         accessibilityRole="button"
