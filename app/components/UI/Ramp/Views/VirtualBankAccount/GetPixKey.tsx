@@ -26,7 +26,7 @@ import { TagShape } from '../../../../../component-library/base-components/TagBa
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
+import { PIX_BRAND_COLOR } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import LegalLink from './components/LegalLink';
@@ -60,18 +60,26 @@ const BenefitRow = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } =
-    useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const {
+    disclaimers,
+    isLoading,
+    isAccepting,
+    error,
+    acceptDisclaimers,
+    retry,
+  } = useKycDisclaimers();
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading && !error && Boolean(disclaimers?.length);
+    !isLoading && !isAccepting && !error && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleAgreeAndContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
-  }, [navigation]);
+  const handleAgreeAndContinue = useCallback(async () => {
+    if (await acceptDisclaimers()) {
+      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+    }
+  }, [acceptDisclaimers, navigation]);
 
   return (
     <SafeAreaView
@@ -207,6 +215,7 @@ const GetPixKey = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isLoading={isAccepting}
           isDisabled={!canAgreeAndContinue}
           onPress={handleAgreeAndContinue}
           testID={GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON}
