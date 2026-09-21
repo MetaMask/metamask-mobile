@@ -532,11 +532,12 @@ describe('MainNavigator', () => {
       expect(onSubPage.tabBarStyle).toEqual({ display: 'none' });
     });
 
-    it('reports no floating inset so scroll views do not double-pad', () => {
+    it('reports the native bar height so scroll views clear it', () => {
       const { getByTestId } = renderHomeTabs();
 
+      // Mocked safe-area bottom is 0, so the padding floor (16) plus the bar (62).
       expect(getByTestId(NATIVE_TAB_INSET_PROBE_TEST_ID)).toHaveTextContent(
-        '0',
+        '78',
       );
     });
   });

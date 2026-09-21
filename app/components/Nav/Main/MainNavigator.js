@@ -92,9 +92,12 @@ import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDe
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabBarFloating, {
   FloatingTabBarInsetContext,
 } from '../../../component-library/components/Navigation/TabBarFloating';
+import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import {
   HEADER_NAV_BAR_AB_KEY,
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
@@ -606,6 +609,10 @@ const HomeTabs = () => {
   );
   const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
   const isNativeTabBar = useIsNativeTabBar();
+  const safeAreaInsets = useSafeAreaInsets();
+  const nativeTabBarInset =
+    getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
+    TAB_BAR_FLOATING_HEIGHT;
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
@@ -733,14 +740,13 @@ const HomeTabs = () => {
    * Retry toasts so we don't double-fire when both are mounted.
    */
   if (isNativeTabBar) {
-    // The navigator insets scroll views itself, so the floating inset is 0.
     return (
       <PredictPreviewSheetProvider>
         <TrendingQuickBuySheetProvider>
           {isMoneyAccountEnabled ? (
             <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
           ) : null}
-          <FloatingTabBarInsetContext.Provider value={0}>
+          <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
             <NativeTab.Navigator
               initialRouteName={Routes.WALLET.HOME}
               screenOptions={{
@@ -752,6 +758,7 @@ const HomeTabs = () => {
                 tabBarActiveTintColor: colors.icon.default,
                 tabBarMinimizeBehavior: 'onScrollDown',
                 tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
               }}
             >
               {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
