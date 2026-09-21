@@ -1,5 +1,7 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -16,10 +18,12 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
+import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
 
 export const LimitOrderConfirmationModal = ({
   sourceToken,
@@ -30,10 +34,10 @@ export const LimitOrderConfirmationModal = ({
   triggerToken,
   expiry,
   costTolerance,
-  networkFee,
+  delegationFee,
   feeToken,
-  feeDisclaimer,
-  onConfirm,
+  primaryButton,
+  error,
   onClose,
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
@@ -76,6 +80,18 @@ export const LimitOrderConfirmationModal = ({
           dest: destToken?.symbol ?? '',
         })}
       </BottomSheetHeader>
+      {error && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Danger}
+            description={error}
+          />
+        </Box>
+      )}
       <Box paddingBottom={2}>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
@@ -121,38 +137,62 @@ export const LimitOrderConfirmationModal = ({
             </Text>
           </Box>
         </DetailRow>
-        <DetailRow label={strings('bridge.limit.est_network_fee')}>
-          <TokenAmountValue
-            amount={networkFee}
-            token={feeToken}
-            withNetworkBadge
-          />
+        {delegationFee.status !== 'not-required' && (
+          <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        )}
+        <DetailRow
+          label={strings('bridge.limit.est_network_fee')}
+          testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
+          error={delegationFee.status === 'error'}
+          hidden={delegationFee.status === 'not-required'}
+        >
+          {delegationFee.status === 'loading' ? (
+            <Skeleton
+              width={64}
+              height={20}
+              testID={
+                LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE_SKELETON
+              }
+            />
+          ) : (
+            <TokenAmountValue
+              amount={
+                delegationFee.status === 'ready'
+                  ? delegationFee.displayFee
+                  : '--'
+              }
+              token={feeToken}
+              error={delegationFee.status === 'error'}
+              withNetworkBadge
+            />
+          )}
         </DetailRow>
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
-          children: strings('bridge.limit.confirm_order'),
-          onPress: onConfirm,
-          testID: LimitOrderConfirmationModalSelectorsIDs.CONFIRM_BUTTON,
+          children: primaryButton.label,
+          onPress: primaryButton.onPress,
+          testID: LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
+          isLoading: primaryButton.isLoading,
         }}
       />
-      {feeDisclaimer ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          paddingHorizontal={4}
-          paddingBottom={4}
-          twClassName="pt-1"
+      <Box
+        alignItems={BoxAlignItems.Center}
+        paddingHorizontal={4}
+        paddingBottom={4}
+        twClassName="pt-1"
+      >
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
         >
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
-          >
-            {feeDisclaimer}
-          </Text>
-        </Box>
-      ) : null}
+          {strings('bridge.fee_disclaimer', {
+            feePercentage: LIMIT_ORDER_DEFAULT_METAMASK_FEE,
+          })}
+        </Text>
+      </Box>
     </BottomSheet>
   );
 };

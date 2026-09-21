@@ -30,8 +30,8 @@ on:
       build_attribution:
         description: >-
           Optional analytics build attribution, exported as METAMASK_BUILD_ATTRIBUTION and inlined
-          into the rebuilt JS bundle. Set to 'nightly' for OTA pushes to nightly builds so the
-          update keeps reporting `-rc-nightly` / `-exp-nightly` instead of the Runway suffixes.
+          into the rebuilt JS bundle. Nightly OTA passes 'nightly'. Official RC OTA passes
+          'official'. Other rc values report `-rc-unofficial`.
         type: string
         required: false
         default: ''
