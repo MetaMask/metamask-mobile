@@ -123,9 +123,13 @@ describe('BridgeSessionProvider', () => {
   });
 
   it('calls useLatestBalance with source token fields and the Market feature id', () => {
-    renderSession();
+    const { result } = renderSession();
 
-    expect(mockUseLatestBalance).toHaveBeenCalledWith(
+    act(() => {
+      result.current.session.setQuoteParams({ srcToken: sourceToken });
+    });
+
+    expect(mockUseLatestBalance).toHaveBeenLastCalledWith(
       {
         address: sourceToken.address,
         decimals: sourceToken.decimals,
@@ -141,6 +145,7 @@ describe('BridgeSessionProvider', () => {
     const { result } = renderSession();
 
     act(() => {
+      result.current.session.setQuoteParams({ srcToken: sourceToken });
       result.current.session.setRenderedTab(BridgeTabKey.Limit);
     });
 
@@ -184,38 +189,28 @@ describe('BridgeSessionProvider', () => {
     expect(result.current.session.latestSourceBalance).toBe(mockLatestBalance);
   });
 
-  it('builds quoteParams from the bridge session selectors', () => {
+  it('stores quoteParams passed to setQuoteParams', () => {
     const { result } = renderSession();
-
-    expect(result.current.session.quoteParams).toEqual({
+    const quoteParams = {
       srcToken: sourceToken,
       destToken,
       srcAmount: '1.25',
       slippage: '0.5',
       walletAddress: evmAccountAddress,
       destWalletAddress: '0xdest',
+    };
+
+    act(() => {
+      result.current.session.setQuoteParams(quoteParams);
     });
+
+    expect(result.current.session.quoteParams).toEqual(quoteParams);
   });
 
-  it('builds quoteParams with undefined fields when the session is empty', () => {
-    const { result } = renderSession(
-      createState({
-        sourceToken: undefined,
-        destToken: undefined,
-        sourceAmount: undefined,
-        slippage: undefined,
-        destAddress: undefined,
-      }),
-    );
+  it('starts with empty quoteParams', () => {
+    const { result } = renderSession();
 
-    expect(result.current.session.quoteParams).toEqual({
-      srcToken: undefined,
-      destToken: undefined,
-      srcAmount: undefined,
-      slippage: undefined,
-      walletAddress: undefined,
-      destWalletAddress: undefined,
-    });
+    expect(result.current.session.quoteParams).toEqual({});
   });
 
   it('renders children', () => {

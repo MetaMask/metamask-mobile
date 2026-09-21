@@ -17,6 +17,7 @@ export interface UseDebouncedUpdateParams {
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
   genericQuoteRequest?: GenericQuoteRequest;
+  isActive: boolean;
   /**
    * The raw source input amount before normalization into {@link GenericQuoteRequest.srcTokenAmount}
    */
@@ -41,8 +42,6 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     }
   }, []);
 
-  useEffect(() => cancelOwnedTrace, [cancelOwnedTrace]);
-
   const {
     genericQuoteRequest,
     featureId,
@@ -50,7 +49,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     quoteRequestCount = 1,
     debounceWait,
     rawSrcAmount: srcAmount,
+    isActive,
   } = params;
+
+  useEffect(
+    () => (isActive ? cancelOwnedTrace : undefined),
+    [cancelOwnedTrace, isActive],
+  );
 
   const metricsContext = useUnifiedSwapBridgeContext(featureId);
 
@@ -83,7 +88,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         throw error;
       }
     },
-    [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
+    [
+      metricsContext,
+      quoteRequestIndex,
+      quoteRequestCount,
+      genericQuoteRequest,
+      featureId,
+    ],
   );
 
   const {
@@ -143,8 +154,6 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         return;
       }
 
-      cancelOwnedTrace();
-
       debounced(requestOptions);
     };
 
@@ -164,14 +173,19 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     updateQuoteParams,
     walletAddress,
     debounceWait,
+    genericQuoteRequest,
   ]);
 
-  useEffect(
-    () => () => {
+  // Pass quoteParams to the bridge-controller
+  useEffect(() => {
+    if (!isActive) return;
+
+    debouncedUpdateQuoteParams();
+
+    return () => {
       debouncedUpdateQuoteParams.cancel();
-    },
-    [debouncedUpdateQuoteParams],
-  );
+    };
+  }, [debouncedUpdateQuoteParams, isActive]);
 
   return useMemo(
     () => debouncedUpdateQuoteParams,
