@@ -802,13 +802,28 @@ describe('feedConfig home category feeds (PRED-1226)', () => {
     ).toBeGreaterThan(1);
   });
 
-  it('keeps live and trending on their registry configs', () => {
-    expect(resolvePredictFeedConfig('live', undefined, remoteCategories)).toBe(
+  it('keeps live and trending on their registry configs even when LD adds those ids', () => {
+    const colliding = {
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'live', tagSlug: 'live', label: 'Live' },
+        { id: 'trending', tagSlug: 'trending', label: 'Trending' },
+      ],
+    };
+
+    expect(resolvePredictFeedConfig('live', undefined, colliding)).toBe(
       PREDICT_FEED_REGISTRY.live,
     );
+    expect(resolvePredictFeedConfig('trending', undefined, colliding)).toBe(
+      PREDICT_FEED_REGISTRY.trending,
+    );
+    expect(resolvePredictFeedConfig('live', undefined, colliding)?.label).toBe(
+      undefined,
+    );
     expect(
-      resolvePredictFeedConfig('trending', undefined, remoteCategories),
-    ).toBe(PREDICT_FEED_REGISTRY.trending);
+      resolvePredictFeedConfig('trending', undefined, colliding)?.titleKey,
+    ).toBe('predict.category.trending');
   });
 
   it('exposes every bundled category as a resolvable feed', () => {

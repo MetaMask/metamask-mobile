@@ -81,7 +81,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
-  const title = label ?? (titleKey ? strings(titleKey) : feedId);
+  const title =
+    label ?? (titleKey ? strings(titleKey, { defaultValue: feedId }) : feedId);
   const showSportsLiveFirst =
     feedId === 'sports' && activeFilter?.showLiveFirst === true;
 

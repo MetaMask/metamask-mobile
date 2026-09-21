@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../../../../locales/i18n';
+import I18n, {
+  I18nEvents,
+  strings,
+} from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { IconName as LocalIconName } from '../../../../../../../component-library/components/Icons/Icon';
 import { PredictEventValues } from '../../../../constants/eventNames';
@@ -15,6 +18,7 @@ import { PREDICT_CATEGORIES_SECTION_TEST_IDS } from './PredictCategoriesSection.
 import {
   PREDICT_HOME_CATEGORIES,
   resolvePredictHomeCategories,
+  resolvePredictHomeCategoryDisplayTitle,
   resolvePredictHomeCategoryIcon,
 } from './categories';
 
@@ -279,6 +283,7 @@ describe('resolvePredictHomeCategories', () => {
     });
 
     expect(category.title).toBe('Elections');
+    expect(category.titleKey).toBeUndefined();
   });
 
   it('falls back to the titleKey, then to the id, when no label is set', () => {
@@ -296,7 +301,33 @@ describe('resolvePredictHomeCategories', () => {
     });
 
     expect(politics.title).toBe(strings('predict.category.politics'));
+    expect(politics.titleKey).toBe('predict.category.politics');
     expect(mystery.title).toBe('mystery');
+    expect(mystery.titleKey).toBeUndefined();
+  });
+
+  it('translates titleKey at display time and falls back to the raw id', () => {
+    const [politics, mystery] = resolvePredictHomeCategories({
+      enabled: true,
+      minimumVersion: '',
+      categories: [
+        { id: 'politics', tagSlug: 'politics' },
+        { id: 'mystery', tagSlug: 'mystery' },
+      ],
+    });
+
+    expect(resolvePredictHomeCategoryDisplayTitle(politics)).toBe(
+      strings('predict.category.politics'),
+    );
+    expect(resolvePredictHomeCategoryDisplayTitle(mystery)).toBe('mystery');
+    expect(
+      resolvePredictHomeCategoryDisplayTitle({
+        id: 'weather',
+        titleKey: 'predict.category.not-a-real-key',
+        title: 'Weather',
+        iconName: LocalIconName.Explore,
+      }),
+    ).toBe('weather');
   });
 
   it('localizes shipped category ids from predict.category.* when LD omits copy', () => {

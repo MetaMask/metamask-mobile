@@ -502,7 +502,9 @@ const createFeedFromHomeCategory = (
  * Resolves a feed id into a render-ready config.
  *
  * `sports` always uses the dedicated sports feed (remote `sportsFeedConfig`
- * when supplied, bundled otherwise). When a remote `homeCategoriesConfig` is
+ * when supplied, bundled otherwise). `live` and `trending` always use their
+ * registry configs so an LD tile with those ids cannot replace Live Now /
+ * Trending / Popular Today. When a remote `homeCategoriesConfig` is
  * supplied, any other id matching one of its categories resolves to a generic
  * tag-filtered category feed, so tiles added or re-slugged in LaunchDarkly open
  * a working feed. Otherwise built-in ids come from the registry, and bundled
@@ -521,6 +523,10 @@ export const resolvePredictFeedConfig = (
     return sportsFeedConfig
       ? createPredictSportsFeedConfig(sportsFeedConfig)
       : PREDICT_FEED_REGISTRY.sports;
+  }
+
+  if (feedId === 'live' || feedId === 'trending') {
+    return PREDICT_FEED_REGISTRY[feedId];
   }
 
   if (homeCategoriesConfig) {

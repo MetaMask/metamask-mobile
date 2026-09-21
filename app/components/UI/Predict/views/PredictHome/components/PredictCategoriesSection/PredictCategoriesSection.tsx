@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useSyncExternalStore } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -21,13 +21,17 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
-import { strings } from '../../../../../../../../locales/i18n';
+import I18n, {
+  I18nEvents,
+  strings,
+} from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import { selectPredictHomeCategoriesConfig } from '../../../../selectors/featureFlags';
 import {
   resolvePredictHomeCategories,
+  resolvePredictHomeCategoryDisplayTitle,
   type PredictHomeCategory,
 } from './categories';
 import { PREDICT_CATEGORIES_SECTION_TEST_IDS } from './PredictCategoriesSection.testIds';
@@ -77,6 +81,13 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { width: windowWidth } = useWindowDimensions();
   const categoriesConfig = useSelector(selectPredictHomeCategoriesConfig);
+  const locale = useSyncExternalStore(
+    (onStoreChange) => {
+      I18nEvents.addListener('localeChanged', onStoreChange);
+      return () => I18nEvents.removeListener('localeChanged', onStoreChange);
+    },
+    () => I18n.locale,
+  );
 
   const categories = useMemo(
     () => resolvePredictHomeCategories(categoriesConfig),
@@ -127,11 +138,13 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
       >
         {categories.map((category) => (
           <TouchableOpacity
-            key={category.id}
+            key={`${category.id}-${locale}`}
             testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
             onPress={() => handlePress(category)}
             accessibilityRole="button"
-            accessibilityLabel={category.title}
+            accessibilityLabel={resolvePredictHomeCategoryDisplayTitle(
+              category,
+            )}
             style={{ width: tileWidth }}
           >
             <Box twClassName="aspect-square items-center justify-center gap-2 rounded-xl bg-muted p-2">
@@ -146,7 +159,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
               >
-                {category.title}
+                {resolvePredictHomeCategoryDisplayTitle(category)}
               </Text>
             </Box>
           </TouchableOpacity>

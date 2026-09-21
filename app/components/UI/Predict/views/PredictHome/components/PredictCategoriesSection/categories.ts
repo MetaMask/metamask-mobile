@@ -21,6 +21,9 @@ import type {
  */
 export interface PredictHomeCategory {
   id: PredictFeedId;
+  /** Present when the tile should translate on each render (locale changes). */
+  titleKey?: string;
+  /** Remote `label`, or the last-resolved / raw-id fallback. */
   title: string;
   iconName: LocalIconName;
 }
@@ -60,6 +63,17 @@ export const resolvePredictHomeCategoryTitle = (
 };
 
 /**
+ * Live tile / a11y label. `titleKey` is translated here so a locale change
+ * updates the rail without remounting; `title` is the label or raw-id fallback.
+ */
+export const resolvePredictHomeCategoryDisplayTitle = (
+  category: PredictHomeCategory,
+): string =>
+  category.titleKey
+    ? strings(category.titleKey, { defaultValue: category.id })
+    : category.title;
+
+/**
  * Resolves the LaunchDarkly-driven rail into ordered, render-ready tiles:
  * array order is display order, disabled entries are dropped, and duplicate
  * ids keep their first occurrence. The bundled default is used when no config
@@ -76,8 +90,10 @@ export const resolvePredictHomeCategories = (
       continue;
     }
     seen.add(category.id);
+    const { titleKey } = resolvePredictHomeCategoryCopy(category);
     categories.push({
       id: category.id,
+      titleKey,
       title: resolvePredictHomeCategoryTitle(category),
       iconName: resolvePredictHomeCategoryIcon(category.iconName),
     });
