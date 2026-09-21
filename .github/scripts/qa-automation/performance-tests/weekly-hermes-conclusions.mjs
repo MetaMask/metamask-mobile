@@ -372,10 +372,17 @@ export function buildWeeklyParentSlack(report) {
       'No Hermes JS regressions were detected versus the previous week.',
     );
   } else {
-    lines.push(
-      '',
-      `_Regressions:_ ${counts.worse} worse than last week · ${counts.spike} isolated spike · ${counts.newFrame} new hot frame · ${counts.insufficient} insufficient data`,
-    );
+    lines.push('');
+    // An all-zero count line above real findings reads as "nothing found".
+    if (report.cards.length > 0) {
+      lines.push(
+        `_Scenario findings:_ ${counts.worse} worse than last week · ${counts.spike} isolated spike · ${counts.newFrame} new hot frame · ${counts.insufficient} insufficient data`,
+      );
+    } else {
+      lines.push(
+        '_No scenario regressed on its own this week; every flagged spike traces back to a single run._',
+      );
+    }
     for (const sharedSpike of sharedSpikes) {
       lines.push(
         `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their medians), reported once instead of per scenario.`,

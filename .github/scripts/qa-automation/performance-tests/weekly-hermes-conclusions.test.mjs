@@ -183,7 +183,7 @@ test('weekly Slack parent is an exception report', () => {
     }),
   );
 
-  assert.match(withCards, /1 worse than last week/);
+  assert.match(withCards, /_Scenario findings:_ 1 worse than last week/);
   assert.match(withCards, /Stable scenarios omitted/);
 });
 
@@ -243,7 +243,9 @@ test('one slow run is reported once, not as a regression per scenario', () => {
 
   const parent = buildWeeklyParentSlack(report);
   assert.match(parent, /was the peak of 4 scenarios/);
-  assert.match(parent, /0 isolated spike/);
+  // Counting zero of everything above real findings read as "nothing found".
+  assert.doesNotMatch(parent, /0 isolated spike/);
+  assert.match(parent, /No scenario regressed on its own this week/);
   // With nothing analyzable from the previous week, no card may claim a trend.
   assert.match(parent, /nothing here is a week-over-week comparison yet/);
 
