@@ -143,7 +143,7 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
       mockPosition,
       'add',
-      { enableHaptics: false },
+      { enableHaptics: false, useBottomSheet: false },
     );
     expect(playImpact).not.toHaveBeenCalled();
   });
@@ -169,7 +169,7 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
       mockPosition,
       'remove',
-      { enableHaptics: true },
+      { enableHaptics: true, useBottomSheet: false },
     );
     expect(playImpact).toHaveBeenCalledTimes(1);
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
@@ -242,7 +242,24 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
       mockPosition,
       'add',
-      { enableHaptics: false },
+      { enableHaptics: false, useBottomSheet: false },
+    );
+  });
+
+  it('forwards the treatment presentation to adjust margin navigation', () => {
+    render(
+      <PerpsSelectAdjustMarginActionView
+        position={mockPosition}
+        useBottomSheet
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-margin'));
+
+    expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
+      mockPosition,
+      'add',
+      { enableHaptics: false, useBottomSheet: true },
     );
   });
 });
