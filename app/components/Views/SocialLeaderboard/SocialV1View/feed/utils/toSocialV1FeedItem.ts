@@ -158,7 +158,14 @@ export function toSocialV1FeedItem(
     id: item.id,
     author,
     timestamp: item.timestamp,
-    asset: { symbol: item.tokenAvatar.tokenSymbol, avatar: item.tokenAvatar },
+    // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
+    // already strips the HIP-3 dex prefix into `marketSymbol` (`xyz:NVDA` ->
+    // `NVDA`), while icon resolution needs the prefixed form -- the MetaMask
+    // icon CDN publishes equities only under `hip3:xyz_NVDA`.
+    asset: {
+      symbol: item.type === 'perps' ? item.marketSymbol : item.tokenSymbol,
+      avatar: item.tokenAvatar,
+    },
     comment: comment ? markMocked(comment) : undefined,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,

@@ -112,6 +112,38 @@ describe('useSocialV1Feed', () => {
       expect(mockUseTraderFeed).toHaveBeenCalledWith({ audience: 'following' });
     });
 
+    // Without these forwarded, the feed stops after page one and a failed
+    // fetch has no recovery path.
+    it('forwards the pagination controls', () => {
+      const loadMore = jest.fn();
+      const refresh = jest.fn();
+      arrangeFeed([buildRow('pos-1')], {
+        hasNextPage: true,
+        isFetchingNextPage: true,
+        loadMore,
+        refresh,
+      });
+
+      const { result } = renderHook(() => useSocialV1Feed('trending'));
+
+      expect(result.current.hasNextPage).toBe(true);
+      expect(result.current.isFetchingNextPage).toBe(true);
+      result.current.loadMore();
+      expect(loadMore).toHaveBeenCalled();
+      result.current.refresh();
+      expect(refresh).toHaveBeenCalled();
+    });
+
+    it('forwards the pagination controls on Following too', () => {
+      const loadMore = jest.fn();
+      arrangeFeed([buildRow('pos-1')], { hasNextPage: true, loadMore });
+
+      const { result } = renderHook(() => useSocialV1Feed('following'));
+
+      result.current.loadMore();
+      expect(loadMore).toHaveBeenCalled();
+    });
+
     it('surfaces the feed loading and error state', () => {
       arrangeFeed([], { isLoading: true, error: 'Network request failed' });
 

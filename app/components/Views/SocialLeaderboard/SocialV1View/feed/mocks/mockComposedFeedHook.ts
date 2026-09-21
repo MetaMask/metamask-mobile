@@ -27,14 +27,22 @@ export const mockUseSocialV1Feed = (
   );
 
   const mockPosts = wrapMockFeedPosts();
+  // The fixtures are a single page, so the pagination surface is inert here.
+  const pagination = {
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: () => undefined,
+    error: null,
+    refresh: () => Promise.resolve(),
+  };
 
   if (tab === 'following') {
     return {
       posts: mockPosts,
       pendingPost: null,
       pendingStartedAtMs: null,
-      isLoading: false,
-      error: null,
+      ...pagination,
     };
   }
 
@@ -42,7 +50,6 @@ export const mockUseSocialV1Feed = (
     posts: [...snapshot.composedPosts, ...mockPosts],
     pendingPost: snapshot.pendingPost,
     pendingStartedAtMs: snapshot.pendingStartedAtMs,
-    isLoading: false,
-    error: null,
+    ...pagination,
   };
 };

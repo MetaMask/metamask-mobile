@@ -35,19 +35,33 @@ export const useSocialV1Feed = (
     getSocialV1ComposedFeedSnapshot,
   );
 
-  const { rows, isLoading, error } = useTraderFeed({
-    audience: TAB_AUDIENCE[tab],
-  });
+  const {
+    rows,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh,
+  } = useTraderFeed({ audience: TAB_AUDIENCE[tab] });
 
   const livePosts = useMemo(() => wrapLiveFeedPosts(rows), [rows]);
+
+  const pagination = {
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh,
+  };
 
   if (tab === 'following') {
     return {
       posts: livePosts,
       pendingPost: null,
       pendingStartedAtMs: null,
-      isLoading,
-      error,
+      ...pagination,
     };
   }
 
@@ -55,7 +69,6 @@ export const useSocialV1Feed = (
     posts: [...snapshot.composedPosts, ...livePosts],
     pendingPost: snapshot.pendingPost,
     pendingStartedAtMs: snapshot.pendingStartedAtMs,
-    isLoading,
-    error,
+    ...pagination,
   };
 };

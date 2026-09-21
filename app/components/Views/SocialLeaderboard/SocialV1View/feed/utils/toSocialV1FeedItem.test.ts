@@ -322,6 +322,36 @@ describe('toSocialV1FeedItem', () => {
     });
   });
 
+  describe('symbol', () => {
+    // `mapFeedItem` strips the HIP-3 dex prefix; the card title must use that
+    // display symbol, not the raw market id.
+    it('titles a HIP-3 perp with its stripped display symbol', () => {
+      const row = buildRow(mockPerpFeedItem({ tokenSymbol: 'xyz:NVDA' }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('NVDA');
+    });
+
+    // Icon resolution is the opposite: the MetaMask CDN publishes equities only
+    // under the prefixed `hip3:xyz_NVDA` form, so the avatar keeps the raw id.
+    it('keeps the raw market id on the avatar for icon resolution', () => {
+      const row = buildRow(mockPerpFeedItem({ tokenSymbol: 'xyz:NVDA' }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.avatar.tokenSymbol).toBe('xyz:NVDA');
+    });
+
+    it('titles a spot row with its token symbol', () => {
+      const row = buildRow(mockSpotFeedItem());
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('PEPE');
+    });
+  });
+
   describe('mocked fields', () => {
     it('marks the invented win rate', () => {
       const row = buildRow(mockPerpFeedItem());

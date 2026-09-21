@@ -1,8 +1,30 @@
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import type { ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ActivityIndicator,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ScrollView,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
+import { strings } from '../../../../../locales/i18n';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
@@ -10,6 +32,17 @@ import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedP
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import type { SocialV1FeedTab } from '../SocialV1View/feed/types';
+
+export const SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID =
+  'social-v1-feed-footer-loading';
+export const SOCIAL_V1_FEED_ERROR_TEST_ID = 'social-v1-feed-error';
+export const SOCIAL_V1_FEED_RETRY_TEST_ID = 'social-v1-feed-retry';
+
+/**
+ * How close to the bottom a settled scroll must land to pull the next page.
+ * Generous because this fires on scroll end rather than continuously.
+ */
+const END_REACHED_THRESHOLD_PX = 600;
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -44,7 +77,39 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
-  const { posts, pendingPost, pendingStartedAtMs } = useSocialV1Feed(tab);
+  const {
+    posts,
+    pendingPost,
+    pendingStartedAtMs,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh,
+  } = useSocialV1Feed(tab);
+
+  /**
+   * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
+   * `onScroll`, which `SocialV1View` owns for the collapsing header -- layering
+   * a JS callback onto that reanimated handler would mean composing a worklet
+   * with a non-worklet. The trade-off is that a page is requested when the
+   * scroll settles rather than continuously, so the threshold is generous.
+   */
+  const handleScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!hasNextPage) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMore();
+      }
+    },
+    [hasNextPage, loadMore],
+  );
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
   useEffect(() => {
@@ -92,6 +157,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         contentContainerStyle={tw.style('flex-grow')}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
+        onMomentumScrollEnd={handleScrollSettled}
+        onScrollEndDrag={handleScrollSettled}
         scrollEventThrottle={16}
         testID={scrollTestID}
       >
@@ -119,6 +186,37 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   <SocialFeedPostShell post={post} />
                 </SocialFeedPostEntrance>
               ))}
+              {isFetchingNextPage ? (
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  testID={SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID}
+                >
+                  <ActivityIndicator size="small" />
+                </Box>
+              ) : null}
+              {error && posts.length === 0 ? (
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="py-16 gap-3"
+                  testID={SOCIAL_V1_FEED_ERROR_TEST_ID}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {strings('social_leaderboard.feed.error.title')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Sm}
+                    onPress={refresh}
+                    testID={SOCIAL_V1_FEED_RETRY_TEST_ID}
+                  >
+                    {strings('social_leaderboard.feed.error.retry')}
+                  </Button>
+                </Box>
+              ) : null}
             </Box>
           </Box>
         ) : null}
