@@ -18,6 +18,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useVbaOnboardingRouting } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -30,6 +31,16 @@ const mockTrackSurfaceClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
+
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    useVbaOnboardingRouting: jest.fn(),
+  }),
+);
+
+const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
+const mockHydrateAndNavigate = jest.fn();
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -152,6 +163,8 @@ describe('MoneyAddMoneySheet', () => {
     (
       selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
     ).mockReturnValue(true);
+    mockHydrateAndNavigate.mockResolvedValue(undefined);
+    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
   });
 
   it('renders all options', () => {
@@ -202,9 +215,14 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
+    // Routing is delegated to useVbaOnboardingRouting, which re-hydrates and
+    // resolves the stage; the sheet only kicks it off with its source.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
+    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith(
+      'money-add-money-sheet',
+    );
+    expect(mockHydrateAndNavigate).toHaveBeenCalled();
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {

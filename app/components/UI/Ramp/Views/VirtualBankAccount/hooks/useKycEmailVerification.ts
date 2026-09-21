@@ -6,7 +6,7 @@ import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../constants';
-import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
+import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -21,6 +21,7 @@ interface UseKycEmailVerificationResult {
 /** Starts or resumes the KYC session, then continues to Get Pix Key. */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
+  const hydrateAndNavigate = useVbaOnboardingRouting('email-continue');
   const [email, setEmail] = useState(
     () => Engine.context.KycController?.state.email?.trim() ?? '',
   );
@@ -45,7 +46,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
 
       // Let the backend stage decide the next screen (rather than hardcoding
       // Get Pix Key) so a returning user resumes at the right step.
-      await hydrateAndNavigateVbaOnboarding(navigation, 'email-continue');
+      await hydrateAndNavigate();
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -60,7 +61,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, navigation, trimmedEmail]);
+  }, [isVerifying, hydrateAndNavigate, trimmedEmail]);
 
   const resetKyc = useCallback(async () => {
     try {

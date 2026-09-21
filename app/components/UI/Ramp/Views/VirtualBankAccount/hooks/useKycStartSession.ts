@@ -1,16 +1,14 @@
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
   KycConsentRecord,
 } from '@metamask/kyc-controller';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
-import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
+import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
 
 interface UseKycStartSessionResult {
   isStarting: boolean;
@@ -31,7 +29,9 @@ const toAcceptedDisclaimerKeys = (
  * valid.
  */
 export const useKycStartSession = (): UseKycStartSessionResult => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const hydrateAndNavigate = useVbaOnboardingRouting(
+    'verify-identity-continue',
+  );
   const [isStarting, setIsStarting] = useState(false);
 
   const startSession = useCallback(async () => {
@@ -67,10 +67,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
         credentialReusabilityConsentGiven: false,
       });
 
-      await hydrateAndNavigateVbaOnboarding(
-        navigation,
-        'verify-identity-continue',
-      );
+      await hydrateAndNavigate();
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -84,7 +81,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
     } finally {
       setIsStarting(false);
     }
-  }, [isStarting, navigation]);
+  }, [isStarting, hydrateAndNavigate]);
 
   return { isStarting, startSession };
 };

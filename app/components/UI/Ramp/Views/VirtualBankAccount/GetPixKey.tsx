@@ -28,7 +28,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
+import { useVbaOnboardingRouting } from './hooks/useVbaOnboardingRouting';
 import LegalLink from './components/LegalLink';
 
 // Pix's badge is bold italic white on brand teal regardless of app theme.
@@ -59,6 +59,7 @@ const BenefitRow = ({
 
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const hydrateAndNavigate = useVbaOnboardingRouting('get-pix-key-continue');
   const tw = useTailwind();
   const {
     disclaimers,
@@ -79,9 +80,9 @@ const GetPixKey = () => {
     // Record vendor-terms acceptance, then let the backend stage decide the
     // next screen (rather than hardcoding Verify Identity) so resume works.
     if (await acceptDisclaimers()) {
-      await hydrateAndNavigateVbaOnboarding(navigation, 'get-pix-key-continue');
+      await hydrateAndNavigate();
     }
-  }, [acceptDisclaimers, navigation]);
+  }, [acceptDisclaimers, hydrateAndNavigate]);
 
   return (
     <SafeAreaView

@@ -1,21 +1,15 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
-import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
+import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
 import { useKycStartSession } from './useKycStartSession';
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-  }),
+jest.mock('./useVbaOnboardingRouting', () => ({
+  useVbaOnboardingRouting: jest.fn(),
 }));
 
-jest.mock('../hydrateAndNavigateVbaOnboarding', () => ({
-  hydrateAndNavigateVbaOnboarding: jest.fn(),
-}));
-
-const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
+const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
+const mockHydrateAndNavigate = jest.fn();
 
 const mockKycControllerState = {
   email: 'user@example.com' as string | null,
@@ -82,6 +76,7 @@ describe('useKycStartSession', () => {
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockHydrateAndNavigate.mockResolvedValue(undefined);
+    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
   });
 
   afterEach(() => {
@@ -102,10 +97,10 @@ describe('useKycStartSession', () => {
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
       credentialReusabilityConsentGiven: false,
     });
-    expect(mockHydrateAndNavigate).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith(
       'verify-identity-continue',
     );
+    expect(mockHydrateAndNavigate).toHaveBeenCalled();
     expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
   });
 

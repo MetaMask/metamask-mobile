@@ -2,7 +2,7 @@ import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
-import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
+import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
@@ -15,11 +15,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../hydrateAndNavigateVbaOnboarding', () => ({
-  hydrateAndNavigateVbaOnboarding: jest.fn(),
+jest.mock('./useVbaOnboardingRouting', () => ({
+  useVbaOnboardingRouting: jest.fn(),
 }));
 
-const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
+const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
+const mockHydrateAndNavigate = jest.fn();
 
 const mockKycControllerState = {
   email: null as string | null,
@@ -68,6 +69,7 @@ describe('useKycEmailVerification', () => {
     });
     mockKycController.reset.mockResolvedValue(undefined);
     mockHydrateAndNavigate.mockResolvedValue(undefined);
+    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
   });
 
   afterEach(() => {
@@ -104,10 +106,8 @@ describe('useKycEmailVerification', () => {
       vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockHydrateAndNavigate).toHaveBeenCalledWith(
-      expect.anything(),
-      'email-continue',
-    );
+    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith('email-continue');
+    expect(mockHydrateAndNavigate).toHaveBeenCalled();
   });
 
   it('alerts without hydrating when customer creation rejects', async () => {

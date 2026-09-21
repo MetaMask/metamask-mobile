@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
+import { useVbaOnboardingRouting } from './hooks/useVbaOnboardingRouting';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -18,10 +18,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('./hydrateAndNavigateVbaOnboarding', () => ({
-  hydrateAndNavigateVbaOnboarding: jest.fn(),
+jest.mock('./hooks/useVbaOnboardingRouting', () => ({
+  useVbaOnboardingRouting: jest.fn(),
 }));
-const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
+const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
+const mockHydrateAndNavigate = jest.fn();
 
 jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
@@ -48,6 +49,7 @@ describe('GetPixKey', () => {
     });
     mockAcceptDisclaimers.mockResolvedValue(true);
     mockHydrateAndNavigate.mockResolvedValue(undefined);
+    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -81,12 +83,12 @@ describe('GetPixKey', () => {
 
     fireEvent.press(button);
 
+    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith(
+      'get-pix-key-continue',
+    );
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockHydrateAndNavigate).toHaveBeenCalledWith(
-        expect.anything(),
-        'get-pix-key-continue',
-      );
+      expect(mockHydrateAndNavigate).toHaveBeenCalled();
     });
   });
 
