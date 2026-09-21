@@ -421,15 +421,14 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
             </Box>
           )}
           {isSheetMode && (
-            // Asymmetric padding: below the block the fee summary adds its own
-            // pt-4 on top of the container gap, so equal padding here would sit
-            // the value block optically high.
-            <Box twClassName="items-center gap-2 pt-[22px] pb-[10px]">
+            // Fee summary below adds pt-4, so keep more space above than below
+            // using spacing-scale tokens.
+            <Box twClassName="items-center gap-2 pt-6 pb-2">
               {isPreviewLoading ? (
                 <>
                   <Skeleton
                     width={160}
-                    height={58}
+                    height={50}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -447,7 +446,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Text
                     fontWeight={FontWeight.Medium}
-                    twClassName="text-[48px] leading-[58px] tracking-tight"
+                    variant={TextVariant.AmountDisplayLg}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
