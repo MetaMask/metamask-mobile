@@ -4,9 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import { MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN } from '../constants';
-import { launchSumSubSdk } from '../launchSumSubSdk';
+import { VBA_KYC_VENDOR } from '../constants';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -15,12 +15,15 @@ interface UseKycEmailVerificationResult {
   isContinueDisabled: boolean;
   goBack: () => void;
   startVerification: () => Promise<void>;
+  resetKyc: () => Promise<void>;
 }
 
-/** Creates the KYC customer and starts identity verification. */
+/** Starts or resumes the KYC session, then continues to Get Pix Key. */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(
+    () => Engine.context.KycController?.state.email?.trim() ?? '',
+  );
   const [isVerifying, setIsVerifying] = useState(false);
 
   const trimmedEmail = email.trim();
@@ -35,22 +38,12 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
 
     setIsVerifying(true);
     try {
-      await Engine.context.KycController.createVendorCustomer({
-        vendor: 'iron',
+      await Engine.context.KycController.startSession({
+        vendor: VBA_KYC_VENDOR,
         email: trimmedEmail,
       });
 
-      // Controller failures may only be reflected in state.
-      const { error } = Engine.context.KycController.state;
-      if (error) {
-        throw new Error(error);
-      }
-
-      const result = await launchSumSubSdk({
-        accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-        onTokenExpired: async () => MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-      });
-      Logger.log('[VBA KYC] Sumsub SDK closed', result);
+      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -65,7 +58,24 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, trimmedEmail]);
+  }, [isVerifying, navigation, trimmedEmail]);
+
+  const resetKyc = useCallback(async () => {
+    try {
+      await Engine.context.KycController.reset();
+      setEmail('');
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-kyc', provider: 'sumsub' },
+      });
+      Alert.alert(
+        strings('virtual_bank_account.kyc_email.error_title'),
+        error instanceof Error
+          ? error.message
+          : strings('virtual_bank_account.kyc_email.error_description'),
+      );
+    }
+  }, []);
 
   return {
     email,
@@ -74,5 +84,6 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     isContinueDisabled,
     goBack,
     startVerification,
+    resetKyc,
   };
 };

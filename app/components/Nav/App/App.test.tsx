@@ -237,6 +237,16 @@ jest.mock('../../UI/SelectOptionSheet/OptionsSheet', () => () => (
 jest.mock('../../Views/NetworksManagement/NetworkDetailsView', () => () => (
   <MockView testID="mock-network-details" />
 ));
+jest.mock('../../Views/ProHub', () => () => <MockView testID="mock-pro-hub" />);
+jest.mock('../../Views/ProHub/screens/Membership', () => () => (
+  <MockView testID="mock-pro-hub-membership" />
+));
+jest.mock('../../Views/ProHub/screens/Earned', () => () => (
+  <MockView testID="mock-pro-hub-earned" />
+));
+jest.mock('../../Views/ProHub/screens/CancelMembership', () => () => (
+  <MockView testID="mock-pro-hub-cancel-membership" />
+));
 jest.mock('../../Views/LockScreen', () => () => (
   <MockView testID="mock-lock-screen" />
 ));
@@ -416,8 +426,6 @@ jest.mock('../../../core/Multichain/networks', () => ({
 }));
 
 describe('App', () => {
-  jest.useFakeTimers();
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
@@ -425,12 +433,7 @@ describe('App', () => {
 
   afterEach(() => {
     cleanup();
-    jest.runOnlyPendingTimers();
     jest.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
   });
 
   describe('Renders multichain account details', () => {
@@ -548,7 +551,7 @@ describe('App', () => {
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
         ).toBeOnTheScreen();
       });
-    }, 30000);
+    });
 
     it('renders the multichain account edit name screen when navigated to', async () => {
       const routeState = {
@@ -572,11 +575,9 @@ describe('App', () => {
         expect(getByText('Account Group')).toBeOnTheScreen();
         expect(getByText('Account name')).toBeOnTheScreen();
       });
-    }, 30000);
+    });
 
     it('renders the multichain account share address screen when navigated to', async () => {
-      jest.useRealTimers();
-
       const routeState = {
         index: 0,
         routes: [
@@ -597,9 +598,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(getByText('Share address')).toBeOnTheScreen();
       });
-
-      jest.useFakeTimers();
-    }, 30000);
+    });
   });
 
   describe('route registration', () => {
@@ -1745,27 +1744,21 @@ describe('App', () => {
       return render(<App />, { wrapper: Providers });
     };
 
-    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', () => {
+    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', async () => {
       renderAppWithSeedlessState(true);
 
-      act(() => {
-        jest.advanceTimersByTime(0);
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+          expect.objectContaining({
+            skipCache: true,
+            captureSentryError: false,
+          }),
+        );
       });
-
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skipCache: true,
-          captureSentryError: false,
-        }),
-      );
     });
 
     it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', () => {
       renderAppWithSeedlessState(false);
-
-      act(() => {
-        jest.advanceTimersByTime(0);
-      });
 
       expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
     });
@@ -1776,14 +1769,12 @@ describe('App', () => {
 
       renderAppWithSeedlessState(true);
 
-      await act(async () => {
-        jest.advanceTimersByTime(0);
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          testError,
+          'App: Error in checkIsSeedlessPasswordOutdated',
+        );
       });
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        testError,
-        'App: Error in checkIsSeedlessPasswordOutdated',
-      );
     });
   });
 
@@ -2127,6 +2118,58 @@ describe('App', () => {
       });
     });
 
+    it('renders the ProHub screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.ROOT }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-membership')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubEarned screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.EARNED }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-earned')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubCancelMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.CANCEL_MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-cancel-membership')).toBeTruthy();
+      });
+    });
+
     it('renders the OptionsSheet screen', async () => {
       const routeState = {
         index: 0,
@@ -2206,11 +2249,6 @@ describe('App', () => {
     });
 
     it('renders the MultichainAddressList screen', async () => {
-      // Nested navigator shares the ADDRESS_LIST route name; seed child state so
-      // the mocked screen mounts without waiting on navigation effects.
-      // Avoid waitFor: App suite uses fake timers and testSetup mocks Date.now,
-      // so waitFor's timeout never elapses and a slow mount hangs until Jest's
-      // 5s test timeout (flaky CI failures).
       const routeState = {
         index: 0,
         routes: [
@@ -2226,11 +2264,9 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await act(async () => {
-        jest.advanceTimersByTime(0);
+      await waitFor(() => {
+        expect(getByTestId('mock-address-list')).toBeOnTheScreen();
       });
-
-      expect(getByTestId('mock-address-list')).toBeOnTheScreen();
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
@@ -2249,11 +2285,9 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await act(async () => {
-        jest.advanceTimersByTime(0);
+      await waitFor(() => {
+        expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
       });
-
-      expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
     });
 
     it('renders the LockScreen route', async () => {
@@ -2264,13 +2298,10 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(
-        () => {
-          expect(getByTestId('mock-lock-screen')).toBeTruthy();
-        },
-        { timeout: 15000 },
-      );
-    }, 20000);
+      await waitFor(() => {
+        expect(getByTestId('mock-lock-screen')).toBeTruthy();
+      });
+    });
   });
 
   describe('isNetworkUiRedesignEnabled conditional rendering', () => {
@@ -2303,10 +2334,10 @@ describe('App', () => {
         ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-network-details')).toBeTruthy();
       });
     });
 

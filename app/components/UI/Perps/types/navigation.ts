@@ -27,6 +27,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsModeSelection: undefined;
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
   PerpsSelectAdjustMarginAction: {
     position: Position;
@@ -75,6 +76,8 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  useBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -152,6 +155,11 @@ export type PerpsStackParamList = {
          * Defaults off so Lite entry points stay silent.
          */
         enableHaptics?: boolean;
+        /**
+         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * Extra params otherwise compile, which is how earlier resets dropped it.
+         */
+        homeDroppedFromHistory?: true;
       }
     | undefined;
 
@@ -173,6 +181,11 @@ export type PerpsStackParamList = {
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    /**
+     * Stamped when Perps Home was removed from this stack (TAT-3786).
+     * Extra params otherwise compile, which is how earlier resets dropped it.
+     */
+    homeDroppedFromHistory?: true;
   };
 
   PerpsPositions: undefined;
@@ -194,11 +207,14 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
 
   PerpsSelectAdjustMarginAction: {
@@ -339,6 +355,11 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        /**
+         * Stamped when Perps Home was removed from this stack (TAT-3786).
+         * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
+         */
+        homeDroppedFromHistory?: true;
       }
     | undefined;
   PerpsOrderDetailsView: {
