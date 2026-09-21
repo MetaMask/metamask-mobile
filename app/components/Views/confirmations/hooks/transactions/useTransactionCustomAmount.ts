@@ -7,7 +7,10 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import {
+  isSolanaPayAsset,
+  useTransactionPaySource,
+} from '../pay/useTransactionPaySource';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
@@ -125,10 +128,13 @@ export function useTransactionCustomAmount({
   const skipFiatRateConversion =
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
-  const { payToken } = useTransactionPayToken();
-  const payTokenKey = `${payToken?.chainId ?? ''}:${
-    payToken?.address.toLowerCase() ?? ''
-  }`;
+  const { paySource } = useTransactionPaySource();
+  const payTokenAddress = paySource
+    ? isSolanaPayAsset(paySource)
+      ? paySource.address
+      : paySource.address.toLowerCase()
+    : '';
+  const payTokenKey = `${paySource?.chainId ?? ''}:${payTokenAddress}`;
 
   useEffect(() => {
     userHasEditedRef.current = false;
@@ -137,7 +143,7 @@ export function useTransactionCustomAmount({
     prefetchedQuotePayTokenKeyRef.current = undefined;
     setPrefetchedQuoteAmountHuman(undefined);
     setPrefetchedQuotePayTokenKey(undefined);
-  }, [payToken?.address, payToken?.chainId]);
+  }, [paySource?.address, paySource?.chainId]);
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();

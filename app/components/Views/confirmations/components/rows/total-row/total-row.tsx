@@ -23,6 +23,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useSolanaPayPresentation } from '../../../hooks/pay/useSolanaPayPresentation';
 
 /**
  * Row component that owns the bottom line of the totals section.
@@ -38,6 +39,11 @@ export function TotalRow() {
   const totals = useTransactionPayTotals();
   const transactionMetadata = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
+  const solanaPay = useSolanaPayPresentation();
+
+  if (solanaPay) {
+    return <SolanaTotalRow totalUsd={solanaPay.totalUsd} />;
+  }
 
   const showReceiveRow =
     canSelectWithdrawToken ||
@@ -54,6 +60,27 @@ export function TotalRow() {
 /**
  * Displays the total cost for deposit/payment transactions.
  */
+function SolanaTotalRow({ totalUsd }: { totalUsd: BigNumber }) {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+
+  return (
+    <View testID="total-row">
+      <InfoRow
+        label={strings('confirm.label.total')}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={ConfirmationRowComponentIDs.TOTAL}
+        >
+          {formatFiat(totalUsd)}
+        </Text>
+      </InfoRow>
+    </View>
+  );
+}
+
 function TotalFeesRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();

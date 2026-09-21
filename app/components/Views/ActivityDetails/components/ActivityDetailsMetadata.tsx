@@ -16,6 +16,12 @@ import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
+import { useActivityPayMetadata } from '../hooks/useActivityPayMetadata';
+import { getSolanaPayStatusLabel } from '../solana-pay-status';
+import {
+  getSolanaPaySourceAccountAddress,
+  isSolanaPaySource,
+} from '../../../../util/transactions/solana-pay';
 
 /**
  * The type-agnostic metadata block: status, date, account, network, and a
@@ -36,6 +42,12 @@ export function ActivityDetailsMetadata({
 }) {
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
+  const payMetadata = useActivityPayMetadata(item);
+  const solanaSource = isSolanaPaySource(payMetadata?.source)
+    ? payMetadata.source
+    : undefined;
+  const solanaExecution = payMetadata?.solanaExecution;
+  const payStatusLabel = getSolanaPayStatusLabel(solanaExecution);
   const showAddressOnly = item.type === 'smartAccountUpgrade';
   const showFromTo =
     !showAddressOnly && Boolean(addressRows?.from && addressRows?.to);
@@ -47,9 +59,27 @@ export function ActivityDetailsMetadata({
     <ActivityDetailSection>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={item.status} />}
+        value={
+          <ActivityDetailsStatus status={item.status} label={payStatusLabel} />
+        }
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
+
+      {solanaSource ? (
+        <ActivityDetailRow
+          label={strings('confirm.solana_pay.source_account')}
+          value={renderShortAddress(
+            getSolanaPaySourceAccountAddress(solanaSource),
+          )}
+        />
+      ) : null}
+
+      {solanaExecution?.phase === 'submitted' ? (
+        <ActivityDetailRow
+          label={strings('confirm.solana_pay.source_transaction')}
+          value={solanaExecution.sourceTransactionId}
+        />
+      ) : null}
 
       <ActivityDetailRow
         label={strings('activity_details.date')}

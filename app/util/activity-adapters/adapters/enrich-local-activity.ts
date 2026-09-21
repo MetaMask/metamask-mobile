@@ -28,6 +28,7 @@ import {
   type ActivityAdapterEnvironment,
 } from './environment';
 import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
+import { getSolanaPayOutcome } from '../../transactions/solana-pay';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -674,6 +675,17 @@ function enrichPreparedFees(
   } as ActivityListItem;
 }
 
+function enrichPayOutcome(
+  activity: ActivityListItem,
+  transactionGroup: TransactionGroup,
+): ActivityListItem {
+  const execution =
+    transactionGroup.initialTransaction.metamaskPay?.solanaExecution;
+  const payOutcome = execution ? getSolanaPayOutcome(execution) : undefined;
+
+  return payOutcome ? { ...activity, payOutcome } : activity;
+}
+
 function enrichCancelledStatus(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
@@ -702,6 +714,7 @@ export function enrichLocalActivity(
   next = enrichStakingDeposit(next, transactionGroup, environment);
   next = enrichMusdClaim(next, transactionGroup, environment);
   next = enrichCancelledStatus(next, transactionGroup, environment);
+  next = enrichPayOutcome(next, transactionGroup);
   next = enrichPreparedFees(next, transactionGroup);
   return next;
 }

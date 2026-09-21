@@ -203,6 +203,22 @@ describe('getTransactionControllerHooks', () => {
     expect(submitSmartTransactionHook).not.toHaveBeenCalled();
   });
 
+  it('propagates externally handled Solana publication without EVM fallback', async () => {
+    payHookMock.mockResolvedValue({
+      externallyHandled: true,
+      outcome: 'ambiguous',
+    });
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+
+    expect(result).toStrictEqual({
+      externallyHandled: true,
+      outcome: 'ambiguous',
+    });
+    expect(submitSmartTransactionHook).not.toHaveBeenCalled();
+  });
+
   it('records sentinel_stx metrics when smart transaction hook publishes', async () => {
     jest.mocked(submitSmartTransactionHook).mockResolvedValue({
       transactionHash: '0xstx',

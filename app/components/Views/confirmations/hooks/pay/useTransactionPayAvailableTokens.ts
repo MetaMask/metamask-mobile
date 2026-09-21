@@ -11,14 +11,18 @@ export function useTransactionPayAvailableTokens() {
   const transactionMeta = useTransactionMetadataRequest();
   const isPostQuote = isTransactionPayWithdraw(transactionMeta);
   const blockedTokens = useTransactionPayBlockedTokens();
+  const paySource = transactionMeta?.metamaskPay?.source;
 
   const availableTokens = useMemo(
     () =>
       getAvailableTokens({
         tokens,
         blockedTokens,
+        selectedAssetId: paySource?.sourceAccountId.startsWith('solana:')
+          ? paySource.sourceAssetId
+          : undefined,
       }),
-    [tokens, blockedTokens],
+    [tokens, blockedTokens, paySource],
   );
 
   // For post-quote transactions, tokens are always available

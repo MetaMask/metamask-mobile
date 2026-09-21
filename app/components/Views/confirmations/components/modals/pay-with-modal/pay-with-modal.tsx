@@ -10,6 +10,10 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import {
+  isSolanaPayAsset,
+  useTransactionPaySource,
+} from '../../../hooks/pay/useTransactionPaySource';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
@@ -62,7 +66,8 @@ export function PayWithModal() {
     transactionMeta,
     HIDE_NETWORK_FILTER_TYPES,
   );
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
+  const { paySource, setPaySource } = useTransactionPaySource();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -134,9 +139,9 @@ export function PayWithModal() {
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
       if (
-        payToken &&
-        payToken.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
+        paySource &&
+        paySource.address === token.address &&
+        paySource.chainId === token.chainId
       ) {
         close(() => {
           if (dismissOnSelectCount > 1) {
@@ -172,7 +177,12 @@ export function PayWithModal() {
         // Ensure the token is tracked by TokensController so the pay
         // controller can resolve its metadata (symbol, decimals, balance).
         // Must complete before setPayToken so the controller can find the token.
-        if (isWithdraw && token.balance === '0' && !token.isNative) {
+        if (
+          !isSolanaPayAsset(token) &&
+          isWithdraw &&
+          token.balance === '0' &&
+          !token.isNative
+        ) {
           const { TokensController, NetworkController } = Engine.context;
           try {
             const networkClientId =
@@ -207,10 +217,7 @@ export function PayWithModal() {
           });
         }
 
-        setPayToken({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        });
+        setPaySource(token);
       };
 
       close(onClosed);
@@ -224,8 +231,8 @@ export function PayWithModal() {
       navigation,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
-      payToken,
-      setPayToken,
+      paySource,
+      setPaySource,
       transactionMeta,
     ],
   );
@@ -239,6 +246,11 @@ export function PayWithModal() {
       // Standard deposit/payment token filtering
       const availableTokens = getAvailableTokens({
         payToken,
+        selectedAssetId:
+          paySource && isSolanaPayAsset(paySource)
+            ? (('assetId' in paySource ? paySource.assetId : undefined) ??
+              paySource.address)
+            : undefined,
         requiredTokens,
         tokens,
         blockedTokens,
@@ -263,6 +275,7 @@ export function PayWithModal() {
       blockedTokens,
       fiatPayment,
       withdrawTokenFilter,
+      paySource,
       payToken,
       requiredTokens,
       transactionMeta,

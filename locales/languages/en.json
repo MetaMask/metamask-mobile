@@ -8881,6 +8881,15 @@
       "other_assets_receive_description": "Select the token you want to receive",
       "money_account": "Money account"
     },
+    "solana_pay": {
+      "insufficient_sol": "Not enough SOL for transaction fees and the required reserve",
+      "insufficient_source": "Not enough {{symbol}} in this Solana account",
+      "refunded": "Refunded",
+      "reserve": "Includes fees and a required reserve of {{amount}} SOL",
+      "source_account": "Source account",
+      "source_transaction": "Source transaction",
+      "status_unavailable": "Transaction status unavailable"
+    },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",

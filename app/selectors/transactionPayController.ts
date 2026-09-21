@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
+import { selectTransactionMetadataById } from './transactionController';
 
 /**
  * Check whether a quote is a no-op quote. The controller stores one when a
@@ -85,6 +86,10 @@ function isValidatedFiatDeposit(data: TransactionData | undefined): boolean {
 export function isPayTokenSubmitReady(
   data: TransactionData | undefined,
 ): boolean {
+  if (data?.solanaPayQuote) {
+    return data.solanaPayQuote.preflight.affordability.isAffordable;
+  }
+
   const executableQuotes = (data?.quotes ?? []).filter(
     (quote) => !isNoOpQuote(quote),
   );
@@ -147,6 +152,21 @@ export const selectTransactionPaymentTokenByTransactionId = createSelector(
   (transactionData) => transactionData?.paymentToken,
 );
 
+export const selectTransactionPaySourceByTransactionId = createSelector(
+  selectTransactionMetadataById,
+  (transaction) => transaction?.metamaskPay?.source,
+);
+
+export const selectSolanaPayExecutionByTransactionId = createSelector(
+  selectTransactionMetadataById,
+  (transaction) => transaction?.metamaskPay?.solanaExecution,
+);
+
+export const selectSolanaPayQuoteByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.solanaPayQuote,
+);
+
 export const selectTransactionPaySourceAmountsByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.sourceAmounts,
@@ -191,5 +211,13 @@ export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
 
 export const selectIsTransactionPaySubmitReadyByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) => isPayTokenSubmitReady(transactionData),
+  selectTransactionPaySourceByTransactionId,
+  selectSolanaPayExecutionByTransactionId,
+  (transactionData, source, execution) =>
+    source?.sourceAccountId.startsWith('solana:')
+      ? transactionData?.solanaPayQuote?.preflight.affordability
+          .isAffordable === true &&
+        (execution?.atomicProductActionRequired !== true ||
+          transactionData.solanaPayQuote.route.atomicProductActionIncluded)
+      : isPayTokenSubmitReady(transactionData),
 );

@@ -73,6 +73,65 @@ describe('local activity call-site mapping', () => {
     });
   });
 
+  it('projects a refunded Solana Pay outcome onto activity', () => {
+    const item = mapLocalActivity(
+      buildGroup({
+        metamaskPay: {
+          source: {
+            sourceAccountId: 'solana:mainnet:account',
+            sourceAssetId: 'solana:mainnet/slip44:501',
+          },
+          solanaExecution: {
+            atomicProductActionIncluded: true,
+            atomicProductActionRequired: true,
+            followUpStatus: 'not-required',
+            notificationStatus: 'success',
+            phase: 'submitted',
+            relayStatus: 'refund',
+            requestId: 'relay-request-id',
+            requiresNonAtomicFollowUp: false,
+            sourceAmountRaw: '1',
+            sourceChainId: 'solana:mainnet',
+            sourceStatus: 'confirmed',
+            sourceTransactionId: 'solana-signature',
+            sourceWalletAccountId: 'wallet-account-id',
+          },
+        },
+      } as never),
+    );
+
+    expect(item.payOutcome).toBe('refunded');
+  });
+
+  it('projects an unknown Solana Pay outcome onto activity', () => {
+    const item = mapLocalActivity(
+      buildGroup({
+        metamaskPay: {
+          source: {
+            sourceAccountId: 'solana:mainnet:account',
+            sourceAssetId: 'solana:mainnet/slip44:501',
+          },
+          solanaExecution: {
+            atomicProductActionIncluded: true,
+            atomicProductActionRequired: true,
+            followUpStatus: 'not-required',
+            notificationStatus: 'not-ready',
+            phase: 'unknown',
+            relayStatus: 'unknown',
+            requestId: 'relay-request-id',
+            requiresNonAtomicFollowUp: false,
+            sourceAmountRaw: '1',
+            sourceChainId: 'solana:mainnet',
+            sourceStatus: 'unknown',
+            sourceWalletAccountId: 'wallet-account-id',
+          },
+        },
+      } as never),
+    );
+
+    expect(item.payOutcome).toBe('unknown');
+  });
+
   it('keeps incomplete swaps as swap when the destination token is missing', () => {
     const item = mapLocalActivity(
       buildGroup(

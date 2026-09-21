@@ -18,9 +18,11 @@ import { Hex, Json } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { type PaymentMethod } from '@metamask/ramps-controller';
+import { useTransactionPaySource } from '../../../hooks/pay/useTransactionPaySource';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
+jest.mock('../../../hooks/pay/useTransactionPaySource');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 
 function render(options: { type?: TransactionType } = {}) {
@@ -63,10 +65,23 @@ describe('BridgeTimeRow', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
+    jest.mocked(useTransactionPaySource).mockReturnValue({
+      isSolana: false,
+    } as ReturnType<typeof useTransactionPaySource>);
 
     jest
       .mocked(useTransactionPaySelectedFiatPaymentMethod)
       .mockReturnValue(undefined);
+  });
+
+  it('hides estimated time for Solana Pay', () => {
+    jest.mocked(useTransactionPaySource).mockReturnValue({
+      isSolana: true,
+    } as ReturnType<typeof useTransactionPaySource>);
+
+    const { queryByTestId } = render();
+
+    expect(queryByTestId('bridge-time')).not.toBeOnTheScreen();
   });
 
   it.each([

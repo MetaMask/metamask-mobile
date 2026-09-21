@@ -22,7 +22,11 @@ import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  SolAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
 import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
@@ -279,6 +283,50 @@ describe('Transaction Pay Utils', () => {
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
+    });
+
+    it('returns Solana native and SPL balances from the selected account', () => {
+      const native = {
+        ...TOKEN_MOCK,
+        accountId: 'solana-account-id',
+        accountType: SolAccountType.DataAccount,
+        address: `${SolScope.Mainnet}/slip44:501`,
+        assetId: `${SolScope.Mainnet}/slip44:501`,
+        chainId: SolScope.Mainnet,
+        symbol: 'SOL',
+      } as AssetType;
+      const spl = {
+        ...native,
+        address: `${SolScope.Mainnet}/token:USDCMint`,
+        assetId: `${SolScope.Mainnet}/token:USDCMint`,
+        isNative: false,
+        symbol: 'USDC',
+      } as AssetType;
+
+      const result = getAvailableTokens({ tokens: [native, spl] });
+
+      expect(result).toHaveLength(2);
+      expect(result.map((token) => token.symbol)).toEqual(['SOL', 'USDC']);
+    });
+
+    it('marks the canonical Solana asset as selected', () => {
+      const assetId = `${SolScope.Mainnet}/token:USDCMint`;
+      const spl = {
+        ...TOKEN_MOCK,
+        accountId: 'solana-account-id',
+        accountType: SolAccountType.DataAccount,
+        address: assetId,
+        assetId,
+        chainId: SolScope.Mainnet,
+        symbol: 'USDC',
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        selectedAssetId: assetId,
+        tokens: [spl],
+      });
+
+      expect(result[0].isSelected).toBe(true);
     });
 
     it('does not return token if no balance', async () => {

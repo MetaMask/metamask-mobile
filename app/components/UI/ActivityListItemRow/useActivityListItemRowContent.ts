@@ -1183,6 +1183,12 @@ export function useActivityListItemRowContent(
     isMoneyAccountCounterparty,
     cachedEvmTransaction?.transactionProtocol,
   );
+  const payOutcomeSubtitle =
+    item.payOutcome === 'refunded'
+      ? strings('confirm.solana_pay.refunded')
+      : item.payOutcome === 'unknown'
+        ? strings('confirm.solana_pay.status_unavailable')
+        : undefined;
 
   let basePrimaryToken: TokenAmount | undefined;
   if (isSpendingCap) {
@@ -1319,6 +1325,7 @@ export function useActivityListItemRowContent(
 
   return {
     ...content,
+    ...(payOutcomeSubtitle ? { subtitle: payOutcomeSubtitle } : {}),
     avatarTokens,
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
