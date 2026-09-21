@@ -154,11 +154,6 @@ export async function mockOccurrenceApis(
   mockServer: Mockttp,
   { failOccurrenceFloors = false }: { failOccurrenceFloors?: boolean } = {},
 ): Promise<void> {
-  // setupMockRequest defaults to priority 999, which beats the MockServerE2E
-  // big-proxy interceptor (priority 0) that would otherwise serve the
-  // DEFAULT_MOCKS suggestedOccurrenceFloors 200 response regardless of
-  // failOccurrenceFloors. This is the standard pattern for test-specific proxy
-  // overrides — see mockHelpers.ts setupMockRequest for the canonical usage.
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: 'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
@@ -168,9 +163,7 @@ export async function mockOccurrenceApis(
       : SUGGESTED_OCCURRENCE_FLOORS,
   });
 
-  // thenCallback is required here to inspect the request URL and filter
-  // TRACKED_ASSETS by the requested assetIds — use raw priority to match the
-  // level setupMockRequest applies (999 > big-proxy interceptor priority 0).
+  // thenCallback needed to filter TRACKED_ASSETS by the assetIds query param.
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
