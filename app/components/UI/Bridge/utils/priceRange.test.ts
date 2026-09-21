@@ -3,6 +3,7 @@ import {
   formatExchangeRate,
   formatPriceRangeLabel,
   formatTokenPrice,
+  isInvertedPriceRange,
   isValidPriceRange,
   matchingPricePercent,
   parsePriceInput,
@@ -133,6 +134,29 @@ describe('isValidPriceRange', () => {
 
   it('returns false when the populated bound is invalid', () => {
     const result = isValidPriceRange('.', '');
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('isInvertedPriceRange', () => {
+  it.each([
+    ['2000', '1000'],
+    ['2000', '2000'],
+  ])('returns true when min %s is not less than max %s', (min, max) => {
+    const result = isInvertedPriceRange(min, max);
+
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['1800', '2200'],
+    ['1800', ''],
+    ['', '2200'],
+    ['', ''],
+    ['.', '1000'],
+  ])('returns false for min %s and max %s', (min, max) => {
+    const result = isInvertedPriceRange(min, max);
 
     expect(result).toBe(false);
   });
