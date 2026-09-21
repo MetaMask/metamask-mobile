@@ -261,10 +261,18 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     selectReferralMeEntry(state, profileId),
   );
   const referralMe = referralMeEntry?.data;
+  // Once this sheet has shown an eligible invite, accept's own refresh to
+  // REFEREE/REFERRER is not a reason to pop. Only a first settled variant
+  // that was already not NONE (stale deeplink, already referred) is.
+  const hasSeenEligibleInviteRef = useRef(false);
+  if (referralMe?.variant === 'NONE') {
+    hasSeenEligibleInviteRef.current = true;
+  }
   const shouldDismissForReferralVariant =
     referralMe !== null &&
     referralMe !== undefined &&
-    referralMe.variant !== 'NONE';
+    referralMe.variant !== 'NONE' &&
+    !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
 
   // The copy is read under a profile id that resolves asynchronously, so an
@@ -350,6 +358,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     if (!canAccept) {
       return;
     }
+    // Accept is about to refresh me to a non-NONE variant. Record that this
+    // sheet was the invite, so that write cannot be read as a stale deeplink.
+    hasSeenEligibleInviteRef.current = true;
     // The hook owns the outcome: it reports a refusal and dismisses the sheet
     // only once the registration has landed.
     acceptReferralCode(referralCode).catch(() => undefined);
