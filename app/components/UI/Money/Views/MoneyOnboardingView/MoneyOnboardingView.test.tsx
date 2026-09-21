@@ -2,7 +2,6 @@ import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import {
   Dimensions,
-  Modal,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
@@ -38,6 +37,8 @@ let mockTimingCompletion: (() => void) | undefined;
 let mockIsUsUnauthenticatedNonCardholder = false;
 let mockIsE2EOrPerformanceTest = false;
 let mockRiveViewReady = true;
+const mockRiveViewRef = {};
+const mockSetHybridRef = { f: jest.fn() };
 let mockRouteParams:
   | {
       analyticsContext?: NavigationAnalyticsContext;
@@ -176,22 +177,21 @@ interface MockRiveViewProps {
 const mockRiveViewProps: { current?: MockRiveViewProps } = {};
 
 jest.mock('@rive-app/react-native', () => {
-  const actual = jest.requireActual('@rive-app/react-native');
+  const rive = jest.requireActual(
+    '../../../../../__mocks__/rive-app-react-native',
+  );
   const ReactActual = jest.requireActual('react');
-  const mockUseRive = () => {
-    const rive = actual.useRive();
-    return {
-      ...rive,
-      riveViewRef: mockRiveViewReady ? rive.riveViewRef : undefined,
-    };
-  };
+  const mockUseRive = () => ({
+    riveViewRef: mockRiveViewReady ? mockRiveViewRef : undefined,
+    setHybridRef: mockSetHybridRef,
+  });
   const MockRiveView = (props: MockRiveViewProps) => {
     mockRiveViewProps.current = props;
-    return ReactActual.createElement(actual.RiveView, props);
+    return ReactActual.createElement(rive.RiveView, props);
   };
   return {
     __esModule: true,
-    ...actual,
+    ...rive,
     RiveView: MockRiveView,
     useRive: mockUseRive,
   };
@@ -294,9 +294,8 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('renders onboarding in a transparent fade modal', () => {
-      const { UNSAFE_getByType } = renderMoneyOnboardingView();
-
-      const modal = UNSAFE_getByType(Modal);
+      const { getByTestId } = renderMoneyOnboardingView();
+      const modal = getByTestId(MoneyOnboardingViewTestIds.MODAL);
 
       expect(modal.props).toEqual(
         expect.objectContaining({
@@ -799,6 +798,30 @@ describe('MoneyOnboardingView', () => {
 
       fireTrigger('close');
 
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
+    it('closes onboarding when the modal requests close', async () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      jest.clearAllMocks();
+
+      await act(async () => {
+        getByTestId(MoneyOnboardingViewTestIds.MODAL).props.onRequestClose();
+      });
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 1,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+        }),
+      );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.HOME_TABS,
         {

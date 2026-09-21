@@ -66,7 +66,6 @@ import { scheduleOnRN } from 'react-native-worklets';
 import Logger from '../../../../../util/Logger';
 import moneyOnboardingRoundedButtons from '../../../../../animations/money_onboarding_rounded_buttons.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
-import { useTheme } from '../../../../../util/theme';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
@@ -287,7 +286,6 @@ const MoneyOnboardingView = () => {
     async: true,
   });
 
-  const { colors: themeColors } = useTheme();
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
@@ -385,11 +383,11 @@ const MoneyOnboardingView = () => {
   // Fallback for when the Rive file is not loaded in time.
   useEffect(() => {
     if (!riveFile) return;
-    const t = setTimeout(
+    const timeoutId = setTimeout(
       () => setIsRiveReady(true),
       TEXT_OVERLAY_DISPLAY_FALLBACK_DELAY_MS,
     );
-    return () => clearTimeout(t);
+    return () => clearTimeout(timeoutId);
   }, [riveFile]);
 
   const navigateToMoneyHome = useCallback(() => {
@@ -464,6 +462,10 @@ const MoneyOnboardingView = () => {
       trackOnboardingEvent,
     ],
   );
+
+  const handleModalRequestClose = useCallback(() => {
+    handleClose(currentStepRef.current);
+  }, [handleClose]);
 
   const handleStepViewed = useCallback(
     (stepIndex: number) => {
@@ -619,10 +621,12 @@ const MoneyOnboardingView = () => {
 
   return (
     <Modal
+      testID={MoneyOnboardingViewTestIds.MODAL}
       statusBarTranslucent
       navigationBarTranslucent
       hardwareAccelerated
       animationType="fade"
+      onRequestClose={handleModalRequestClose}
       transparent
     >
       <ModalSafeAreaProvider>
