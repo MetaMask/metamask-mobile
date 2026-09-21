@@ -65,6 +65,8 @@ export class Delegation7702PublishHook {
 
   #messenger: TransactionControllerInitMessenger;
 
+  #isSponsored: (transactionMeta: TransactionMeta) => boolean;
+
   #getNextNonce: (
     address: string,
     networkClientId: NetworkClientId,
@@ -72,12 +74,14 @@ export class Delegation7702PublishHook {
 
   constructor({
     isAtomicBatchSupported,
+    isSponsored,
     messenger,
     getNextNonce,
   }: {
     isAtomicBatchSupported: (
       request: IsAtomicBatchSupportedRequest,
     ) => Promise<IsAtomicBatchSupportedResult>;
+    isSponsored: (transactionMeta: TransactionMeta) => boolean;
     messenger: TransactionControllerInitMessenger;
     getNextNonce: (
       address: string,
@@ -85,6 +89,7 @@ export class Delegation7702PublishHook {
     ) => Promise<Hex>;
   }) {
     this.#isAtomicBatchSupported = isAtomicBatchSupported;
+    this.#isSponsored = isSponsored;
     this.#messenger = messenger;
     this.#getNextNonce = getNextNonce;
   }
@@ -119,7 +124,7 @@ export class Delegation7702PublishHook {
 
     const { from } = txParams;
     const isGaslessBridge = Boolean(transactionMeta.isGasFeeIncluded);
-    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
+    const isSponsored = this.#isSponsored(transactionMeta);
 
     const atomicBatchSupport = await this.#isAtomicBatchSupported({
       address: from as Hex,
