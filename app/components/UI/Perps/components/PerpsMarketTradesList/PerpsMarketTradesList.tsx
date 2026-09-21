@@ -97,9 +97,14 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
+      navigateToPerpsTransactionDetails(
+        navigation,
+        transaction,
+        isTestnet,
+        aggregateFills,
+      );
     },
-    [navigation, isTestnet, trackEvent, createEventBuilder],
+    [aggregateFills, navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades

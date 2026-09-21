@@ -34,6 +34,7 @@ function getPerpsTransaction(
 export function usePerpsDetailsItem(
   identifier: string | undefined,
   chainId: CaipChainId = arbitrumMainnetCaipChainId as CaipChainId,
+  aggregateFills = true,
 ) {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const shouldResolve =
@@ -50,6 +51,7 @@ export function usePerpsDetailsItem(
   const { isFetching, transactions } = usePerpsActivityQuery(
     shouldResolve ? accountId : undefined,
     false,
+    aggregateFills,
   );
   const transaction = useMemo(
     () =>

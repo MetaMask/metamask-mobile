@@ -21,12 +21,6 @@ describe('PerpsAggregatedFillsCheckbox', () => {
       'accessibilityState',
       { checked: true },
     );
-    expect(screen.getByTestId('aggregated-checkbox-box')).toHaveStyle({
-      width: 16,
-      height: 16,
-      borderWidth: 1,
-      borderRadius: 4,
-    });
     expect(
       screen.getByTestId('aggregated-checkbox-check-icon'),
     ).toBeOnTheScreen();

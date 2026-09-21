@@ -53,9 +53,16 @@ describe('usePerpsDetailsItem', () => {
   });
 
   it('returns the transaction matching the identifier', () => {
-    const { result } = renderHook(() => usePerpsDetailsItem('FILL-1'));
+    const { result } = renderHook(() =>
+      usePerpsDetailsItem('FILL-1', 'eip155:42161', false),
+    );
 
     expect(result.current.transaction).toBe(trade);
+    expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      false,
+    );
   });
 
   it('matches a deposit by transaction hash', () => {

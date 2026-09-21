@@ -800,12 +800,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        const detailsRoute = getActivityDetailsRoute(item);
+        const detailsRoute = getActivityDetailsRoute(item, { aggregateFills });
         if (detailsRoute) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         }
       },
-      [goToBuy, navigation],
+      [aggregateFills, goToBuy, navigation],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.

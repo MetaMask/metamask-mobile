@@ -102,10 +102,15 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             .build(),
         );
 
-        navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
+        navigateToPerpsTransactionDetails(
+          navigation,
+          transaction,
+          isTestnet,
+          aggregateFills,
+        );
       }
     },
-    [navigation, isTestnet, trackEvent, createEventBuilder],
+    [aggregateFills, navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   const renderItem = useCallback(

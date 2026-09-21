@@ -19,6 +19,7 @@ export function navigateToPerpsTransactionDetails(
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
   transaction: PerpsTransaction,
   isTestnet: boolean,
+  aggregateFills = true,
 ): void {
   const { chainId, collateralAssetId } = getPerpsActivityMappingIds(isTestnet);
   const item = mapPerpsTransaction({
@@ -26,7 +27,9 @@ export function navigateToPerpsTransactionDetails(
     chainId,
     collateralAssetId,
   });
-  const detailsRoute = item ? getActivityDetailsRoute(item) : null;
+  const detailsRoute = item
+    ? getActivityDetailsRoute(item, { aggregateFills })
+    : null;
   if (detailsRoute) {
     navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
     return;

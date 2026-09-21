@@ -4012,7 +4012,6 @@
     "title": "Activity",
     "search_placeholder": "Search tokens, transaction types...",
     "filter_all_networks": "All networks",
-    "aggregated": "Aggregated",
     "type_filter": {
       "title": "Types",
       "all": "All types",

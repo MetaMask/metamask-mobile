@@ -150,20 +150,10 @@ function flattenFills(data?: InfiniteData<PerpsActivityPage>) {
     return [];
   }
 
-  const seen = new Set<string>();
-  const fills: OrderFill[] = [];
-  for (const page of data.pages) {
-    for (const fill of page.fills ?? []) {
-      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      if (seen.has(key)) {
-        continue;
-      }
-      seen.add(key);
-      fills.push(fill);
-    }
-  }
-
-  return fills;
+  // Fills are fetched only on the initial page; cursor pages contain funding.
+  // Preserve every entry because OrderFill has no unique identifier and two
+  // genuinely distinct executions may have identical order/time/size/price.
+  return data.pages.flatMap((page) => page.fills ?? []);
 }
 
 export function usePerpsActivityQuery(

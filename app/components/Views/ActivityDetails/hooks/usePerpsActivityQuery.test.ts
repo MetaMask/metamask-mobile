@@ -124,4 +124,35 @@ describe('usePerpsActivityQuery', () => {
     );
     expect(detailedTrades).toHaveLength(2);
   });
+
+  it('preserves indistinguishable fills in the unaggregated view', async () => {
+    const fill = {
+      orderId: 'order-1',
+      symbol: 'BTC',
+      side: 'sell',
+      size: '0.1',
+      price: '90000',
+      pnl: '50',
+      direction: 'Close Long',
+      fee: '5',
+      feeToken: 'USDC',
+      timestamp: 1700000000000,
+    };
+    controller.getOrderFills.mockResolvedValue([{ ...fill }, { ...fill }]);
+
+    const { result } = renderHook(
+      () => usePerpsActivityQuery('eip155:42161:0xabc', true, false),
+      { wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(
+      result.current.transactions.filter(
+        (transaction) => transaction.type === 'trade',
+      ),
+    ).toHaveLength(2);
+  });
 });

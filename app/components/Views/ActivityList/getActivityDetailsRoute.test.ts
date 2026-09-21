@@ -74,9 +74,15 @@ describe('getActivityDetailsRoute', () => {
       raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
     } as unknown as Partial<ActivityListItem>);
 
-    const route = getActivityDetailsRoute(perpsItem);
+    const route = getActivityDetailsRoute(perpsItem, {
+      aggregateFills: false,
+    });
 
-    expect(route?.txIdentifier).toBe('0xabc');
+    expect(route).toEqual({
+      aggregateFills: false,
+      chainId: 'eip155:1',
+      txIdentifier: '0xabc',
+    });
   });
 
   it('routes predict rows by hash', () => {

@@ -20,6 +20,10 @@ export interface PerpsAggregatedFillsCheckboxProps {
  * Pill control that toggles same-block fill aggregation on Perps activity
  * lists. Its 16px checkbox matches the compact control specified in Figma,
  * while ButtonBase provides the same pill and typography as adjacent filters.
+ *
+ * This composes design-system primitives instead of using MMDS Checkbox
+ * because that component applies its fixed 22px box and 2px border after
+ * `checkboxContainerProps`, so those props cannot produce this 16px/1px spec.
  */
 const PerpsAggregatedFillsCheckbox: React.FC<
   PerpsAggregatedFillsCheckboxProps
@@ -28,7 +32,6 @@ const PerpsAggregatedFillsCheckbox: React.FC<
     size={ButtonBaseSize.Md}
     startAccessory={
       <Box
-        testID={testID ? `${testID}-box` : undefined}
         twClassName={`size-4 shrink-0 items-center justify-center rounded border ${
           isSelected ? 'border-icon-default bg-icon-default' : 'border-default'
         }`}
