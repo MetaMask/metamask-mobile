@@ -455,6 +455,7 @@
     "@types/he": "^1.2.3",
     "@types/react-test-renderer": "^19.0.0",
     "@types/readable-stream": "^2.3.9",
+    "@typesafe-ai/sdk": "^0.5.7",
     "@veriff/react-native-sdk": "^11.2.0",
     "@viem/anvil": "^0.0.10",
     "@walletconnect/core": "^2.23.0",

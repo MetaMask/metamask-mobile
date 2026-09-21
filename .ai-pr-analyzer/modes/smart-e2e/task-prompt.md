@@ -12,6 +12,8 @@ AVAILABLE PERFORMANCE TEST TAGS (derived from tests/tags.performance.js; these a
 CHANGED FILES ({{file_count}} total):
 {{changed_files}}
 
+{{jev_tag_hints}}
+
 PERFORMANCE ANALYSIS SCOPE:
 For performance_tests only, base your decision on the complete PR file set above, not only the most recent commit or synchronize event. This matters after rebases: if an older commit in the PR changes a performance-sensitive flow, select the relevant performance tags even when the latest commit only changes unrelated files.
 Use get_git_diff when a file's actual PR diff is needed, but do not narrow performance_tests to the last commit.

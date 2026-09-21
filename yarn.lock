@@ -22382,6 +22382,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typesafe-ai/sdk@npm:^0.5.7":
+  version: 0.5.7
+  resolution: "@typesafe-ai/sdk@npm:0.5.7"
+  checksum: 10/512cdcbda0caf321ee2a2ac2265d59ca175a8aa5aa89c5b56b2c9f7d3692ae61673f796dc93e3efebc79fec418f96513ff4ec50b2b7c2c8708319be152d4a3d6
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/eslint-plugin@npm:^8.1.0, @typescript-eslint/eslint-plugin@npm:^8.36.0":
   version: 8.55.0
   resolution: "@typescript-eslint/eslint-plugin@npm:8.55.0"
@@ -39497,6 +39504,7 @@ __metadata:
     "@types/url-parse": "npm:^1.4.8"
     "@types/valid-url": "npm:^1.0.4"
     "@types/ws": "npm:^8.18.1"
+    "@typesafe-ai/sdk": "npm:^0.5.7"
     "@typescript-eslint/eslint-plugin": "npm:^8.1.0"
     "@typescript-eslint/parser": "npm:^8.1.0"
     "@veriff/react-native-sdk": "npm:^11.2.0"
