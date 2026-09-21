@@ -775,7 +775,9 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
-    "redeemWithdrawal": null
+    "redeemWithdrawal": null,
+    "signInLink": null,
+    "accountLookupCache": {}
   },
   "UiSlotsController": {
     "enabled": false,

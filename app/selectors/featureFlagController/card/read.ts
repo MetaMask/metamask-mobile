@@ -363,8 +363,12 @@ export function isCardUkMigrationEligible(
     providerId: CardProviderId | null | undefined;
     /** ISO country/region (Baanx `countryOfResidence` or Immersve `regionCode`). */
     regionCode: string | null | undefined;
+    hasCompletedMigration?: boolean;
   },
 ): boolean {
+  if (params.hasCompletedMigration) {
+    return false;
+  }
   if (!state.isActive) {
     return false;
   }
@@ -372,6 +376,18 @@ export function isCardUkMigrationEligible(
     return false;
   }
   return params.regionCode?.toUpperCase() === CARD_UK_MIGRATION_COUNTRY_CODE;
+}
+
+export function readCardUkMigrationSignInRoutingEnabled(
+  flags: CardRemoteFeatureFlags,
+): boolean {
+  const gated = validatedVersionGatedFeatureFlag(
+    flags?.cardUkMigrationSignInRouting,
+  );
+  if (gated !== undefined) {
+    return gated;
+  }
+  return process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED === 'true';
 }
 
 /** Soft-period window that elevates the Accounts menu badge to warning. */
