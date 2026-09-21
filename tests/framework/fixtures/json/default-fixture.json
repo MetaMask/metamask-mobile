@@ -161,8 +161,10 @@
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
+          "accountLookupCache": {},
           "redeemWithdrawal": null,
-          "selectedCountry": null
+          "selectedCountry": null,
+          "signInLink": null
         },
         "ClaimsController": {
           "claims": [],
