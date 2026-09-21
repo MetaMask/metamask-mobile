@@ -8,7 +8,7 @@ import type {
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -83,19 +83,15 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
           credentialReusabilityConsentGiven: false,
         });
 
-        const statusBefore = KycController.state.sessionStatus?.finalStatus;
         await KycController.launchProviderFlow({});
-        const statusAfter = KycController.state.sessionStatus?.finalStatus;
-
-        if (statusAfter !== statusBefore && statusAfter !== 'new') {
-          // Verification completed (status advanced off `new`) → route onward.
-          await hydrateAndNavigateVbaOnboarding(navigation, 'sumsub-continue');
-          return;
-        }
-
-        Logger.log('[VBA KYC] Sumsub launch did not complete');
-        setHasError(true);
-        setIsLaunching(false);
+        // The applicant has finished the SumSub SDK. `launchProviderFlow` only
+        // marks the session finalStatus 'pending' and starts polling — the
+        // applicant lifecycle (kycStatus) still reads 'new' for a moment while
+        // the backend processes the submission. So route straight to the
+        // pending screen (which polls for the final decision) rather than
+        // re-hydrating on a not-yet-updated status, which would resolve back to
+        // this launch screen and leave the user on an endless spinner.
+        navigation.navigate(Routes.RAMP.VBA_KYC_PENDING);
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-kyc', provider: 'sumsub' },
