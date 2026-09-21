@@ -152,7 +152,6 @@ export const useRiveFile = (_input?: unknown, _options?: unknown) => ({
 
 export const useRive = () => {
   const methods = useMemo(() => createRiveViewMethods(), []);
-
   // Stable ref object across renders, mirroring the real useRive's useRef —
   // call sites listing riveRef in deps must not tear down effects each render.
   const riveRef = useRef(methods);
