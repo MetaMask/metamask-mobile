@@ -352,6 +352,23 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
+  it('attaches the Perps screen-vs-bottom-sheet assignment to margin-adjustment conversions', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+        'treatment',
+      ),
+    ]);
+  });
+
   it.each([
     MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     MetaMetricsEvents.PERPS_UI_INTERACTION,
