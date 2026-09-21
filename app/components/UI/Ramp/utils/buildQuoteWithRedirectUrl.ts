@@ -2,6 +2,18 @@ import { isExternalBrowserQuote, type Quote } from '@metamask/ramps-controller';
 import { getRampCallbackBaseUrl } from './getRampCallbackBaseUrl';
 
 /**
+ * Rewrites a URL's `redirectUrl` query parameter in place. Shared by
+ * `buildQuoteWithRedirectUrl` (a Quote's `buyURL`) and
+ * `buildFallbackWidgetQuote` (a bare buy-widget URL) so both go through the
+ * same rewrite.
+ */
+function withRedirectUrl(url: string, redirectUrl: string): string {
+  const parsed = new URL(url);
+  parsed.searchParams.set('redirectUrl', redirectUrl);
+  return parsed.toString();
+}
+
+/**
  * Returns a quote with buyURL rewritten to use the given redirect URL.
  * Ideally this logic would live in the API or controller — the client
  * shouldn't need to rewrite URLs before fetching. Kept here until then.
@@ -13,19 +25,43 @@ export function buildQuoteWithRedirectUrl(
   const buyURL = quote.quote?.buyURL;
   if (!buyURL) return quote;
 
-  const buyUrl = new URL(buyURL);
-  buyUrl.searchParams.set('redirectUrl', redirectUrl);
   return {
     ...quote,
     quote: {
       ...quote.quote,
-      buyURL: buyUrl.toString(),
+      buyURL: withRedirectUrl(buyURL, redirectUrl),
     },
   };
 }
 
-function getProviderDeeplinkRedirectUrl(providerCode: string): string {
+export function getProviderDeeplinkRedirectUrl(providerCode: string): string {
   return `metamask://on-ramp/providers/${providerCode}`;
+}
+
+/**
+ * Builds the minimal Quote-shaped object `getBuyWidgetData` needs (it reads
+ * only `quote.quote.buyURL`) from a bare buy-widget URL and a provider code,
+ * rewriting the URL's `redirectUrl` the same way `buildQuoteWithRedirectUrl`
+ * does for an IN_APP_OS_BROWSER quote. Used by the Coinbase embedded
+ * checkout's guest-limit fallback, which starts from a fallback buy-widget
+ * URL rather than a full Quote.
+ */
+export function buildFallbackWidgetQuote(
+  url: string,
+  providerCode: string,
+): Quote {
+  return {
+    provider: providerCode,
+    quote: {
+      amountIn: 0,
+      amountOut: 0,
+      paymentMethod: '',
+      buyURL: withRedirectUrl(
+        url,
+        getProviderDeeplinkRedirectUrl(providerCode),
+      ),
+    },
+  };
 }
 
 /**

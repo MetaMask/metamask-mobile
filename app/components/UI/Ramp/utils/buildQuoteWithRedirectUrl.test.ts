@@ -3,6 +3,8 @@ import {
   getCheckoutContext,
   getAggregatorRedirectConfig,
   getWidgetRedirectConfig,
+  getProviderDeeplinkRedirectUrl,
+  buildFallbackWidgetQuote,
 } from './buildQuoteWithRedirectUrl';
 
 jest.mock('./getRampCallbackBaseUrl', () => ({
@@ -88,5 +90,32 @@ describe('getWidgetRedirectConfig', () => {
 
     expect(result.useExternalBrowser).toBe(false);
     expect(result.redirectUrl).toBe('https://callback.example/base');
+  });
+});
+
+describe('buildFallbackWidgetQuote', () => {
+  it('rewrites redirectUrl on a bare buy-widget URL to the provider deeplink', () => {
+    const result = buildFallbackWidgetQuote(
+      'https://pay.coinbase.com/buy?sessionToken=abc',
+      'coinbase-m',
+    );
+
+    expect(result.provider).toBe('coinbase-m');
+    expect(result.quote.buyURL).toBe(
+      'https://pay.coinbase.com/buy?sessionToken=abc&redirectUrl=' +
+        encodeURIComponent(getProviderDeeplinkRedirectUrl('coinbase-m')),
+    );
+  });
+
+  it('overwrites an existing redirectUrl query parameter rather than duplicating it', () => {
+    const result = buildFallbackWidgetQuote(
+      'https://pay.coinbase.com/buy?redirectUrl=https%3A%2F%2Fold.example',
+      'coinbase-m',
+    );
+
+    const url = new URL(result.quote.buyURL as string);
+    expect(url.searchParams.getAll('redirectUrl')).toEqual([
+      getProviderDeeplinkRedirectUrl('coinbase-m'),
+    ]);
   });
 });

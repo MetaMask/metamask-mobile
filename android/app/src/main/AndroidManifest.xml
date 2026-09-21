@@ -46,6 +46,20 @@
 			<action android:name="android.intent.action.VIEW" />
 			<data android:scheme="gpay" />
 		</intent>
+		<!-- Google Pay through the WebView Payment Request API (Coinbase embedded
+		     checkout, TRAM-3984). On Android 11+ the WebView cannot discover the
+		     Google Wallet payment handler without these package-visibility
+		     queries, and isReadyToPay answers false. -->
+		<intent>
+			<action android:name="org.chromium.intent.action.PAY" />
+		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
+		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.UPDATE_PAYMENT_DETAILS" />
+		</intent>
+		<package android:name="com.google.android.apps.walletnfcrel" />
 	</queries>
 
 	<application
