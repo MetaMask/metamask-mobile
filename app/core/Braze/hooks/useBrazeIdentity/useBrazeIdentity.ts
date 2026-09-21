@@ -9,7 +9,7 @@ import {
   selectIsMetaMaskPushNotificationsEnabled,
   selectMetaMaskPushNotificationToken,
 } from '../../../../selectors/notifications';
-import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
+import { setBrazeUser, clearBrazeUser } from '../..';
 import { registerBrazePush } from '../../registerPush';
 import { retryPendingBrazePushUnregistration } from '../../unregisterPush';
 import { hasPendingBrazePushUnregistrationSync } from '../../pushRegistrationState';
@@ -20,9 +20,9 @@ import Logger from '../../../../util/Logger';
  * Syncs the Braze identity with the MetaMask profile sign-in state.
  *
  * On sign-in (and whenever the cached canonical profile ID changes),
- * `setBrazeUser(canonicalProfileId)` identifies Braze, then
- * `refreshBrazeBanners()` runs so placement-targeted banners use the
- * current identity.
+ * `setBrazeUser(canonicalProfileId)` identifies Braze. A new identity
+ * refreshes banners; the same identity only registers placement IDs once
+ * per process.
  *
  * While signed in, registers Braze push only after the NaaP push controller
  * has enabled push and persisted its current FCM token.
@@ -66,15 +66,14 @@ export function useBrazeIdentity(): void {
       if (isSignedIn && canonicalProfileId) {
         // A wallet reset signs in its throwaway vault, which is discarded
         // immediately. Skip re-identifying Braze for it so the reset does not
-        // fire a session-start/identify/banner-refresh burst. Sign-out (below)
-        // stays ungated so the previous user's session-end is preserved.
+        // fire a session-start/identify burst. Sign-out (below) stays ungated
+        // so the previous user's session-end is preserved.
         if (isBrazeResetInProgress()) {
           return;
         }
         hasBeenSignedInRef.current = true;
         if (identifiedProfileId !== canonicalProfileId) {
           setBrazeUser(canonicalProfileId);
-          refreshBrazeBanners();
           setIdentifiedProfileId(canonicalProfileId);
         }
       } else if (

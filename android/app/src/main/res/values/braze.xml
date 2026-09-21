@@ -20,6 +20,9 @@
   <!-- Let Braze open the app and route deep links when a push notification is tapped -->
   <bool name="com_braze_handle_push_deep_links_automatically">true</bool>
 
+  <!-- Explicit: native default is 10s. Backgrounding longer than this starts a new session. -->
+  <integer name="com_braze_session_timeout">60</integer>
+
   <!-- Push notification icons -->
   <drawable name="com_braze_push_small_notification_icon">@mipmap/ic_notification_small</drawable>
 </resources>

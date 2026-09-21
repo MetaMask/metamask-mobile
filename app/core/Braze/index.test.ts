@@ -3,9 +3,12 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   resetBrazePluginForTesting,
+  resetBrazeBannerRefreshForTesting,
   logBrazeBannerImpression,
   logBrazeBannerClick,
   dismissBrazeBanner,
+  refreshBrazeBanners,
+  ensureBrazeBannersRequested,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
@@ -49,6 +52,7 @@ describe('Braze service', () => {
     );
     mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     resetBrazePluginForTesting();
+    resetBrazeBannerRefreshForTesting();
   });
 
   describe('getBrazePlugin', () => {
@@ -63,11 +67,30 @@ describe('Braze service', () => {
 
   describe('setBrazeUser', () => {
     it('forwards the provided canonicalProfileId to the Braze Segment plugin', () => {
+      mockSetBrazeProfileId.mockReturnValue(false);
+
       setBrazeUser('canonical-profile-id-123');
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(
         'canonical-profile-id-123',
       );
+    });
+
+    it('refreshes banners when identifying a new Braze user', () => {
+      mockSetBrazeProfileId.mockReturnValue(true);
+
+      setBrazeUser('canonical-profile-id-123');
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('registers placement IDs once when the Braze user is unchanged', () => {
+      mockSetBrazeProfileId.mockReturnValue(false);
+
+      setBrazeUser('canonical-profile-id-123');
+      setBrazeUser('canonical-profile-id-123');
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -88,6 +111,16 @@ describe('Braze service', () => {
       ).toBeLessThan(
         (Braze.enableSDK as jest.Mock).mock.invocationCallOrder[0],
       );
+    });
+
+    it('clears the once-per-process banner registry so the next user can refresh', async () => {
+      ensureBrazeBannersRequested(['placement-1']);
+      (Braze.requestBannersRefresh as jest.Mock).mockClear();
+
+      await clearBrazeUser();
+      ensureBrazeBannersRequested(['placement-1']);
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledWith(['placement-1']);
     });
 
     it('defers wiping local data while push unregistration is pending', async () => {
@@ -127,6 +160,44 @@ describe('Braze service', () => {
       logBrazeBannerClick('placement-1');
 
       expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+  });
+
+  describe('refreshBrazeBanners', () => {
+    it('requests a banner refresh for the supplied placements', () => {
+      refreshBrazeBanners(['placement-1']);
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledWith(['placement-1']);
+    });
+  });
+
+  describe('ensureBrazeBannersRequested', () => {
+    it('requests a refresh the first time a placement is registered', () => {
+      ensureBrazeBannersRequested(['placement-1']);
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledTimes(1);
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledWith(['placement-1']);
+    });
+
+    it('does not request another refresh for a placement already registered this process', () => {
+      ensureBrazeBannersRequested(['placement-1']);
+      (Braze.requestBannersRefresh as jest.Mock).mockClear();
+
+      ensureBrazeBannersRequested(['placement-1']);
+
+      expect(Braze.requestBannersRefresh).not.toHaveBeenCalled();
+    });
+
+    it('requests a refresh when a new placement ID is introduced', () => {
+      ensureBrazeBannersRequested(['placement-1']);
+      (Braze.requestBannersRefresh as jest.Mock).mockClear();
+
+      ensureBrazeBannersRequested(['placement-1', 'placement-2']);
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledWith([
+        'placement-1',
+        'placement-2',
+      ]);
     });
   });
 

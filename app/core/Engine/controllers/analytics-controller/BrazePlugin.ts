@@ -21,18 +21,37 @@ export class BrazePlugin extends EventPlugin {
   private brazeProfileId: string | undefined;
   private pendingIdentifyTraits: Record<string, unknown> | undefined;
   private currentLanguage: string | undefined;
+  private lastSentLanguage: string | undefined;
+  private readonly sentTraitFingerprints = new Map<string, string>();
 
   /**
    * Set the Braze profile ID used for `Braze.changeUser()`.
    *
-   * When provided, calls `Braze.changeUser()` immediately so subsequent
-   * track calls are attributed to the correct user.
+   * When provided and different from the in-memory profile, calls
+   * `Braze.changeUser()` so subsequent track calls are attributed to the
+   * correct user. Repeating the same ID on this plugin instance is a no-op
+   * for `changeUser`. Native Braze already ignores a same-ID `changeUser`
+   * after a cold start, so we do not persist the ID ourselves.
    *
    * When `undefined`, the plugin stops forwarding to Braze.
+   *
+   * @returns Whether `Braze.changeUser()` ran for a new profile ID.
    */
-  setBrazeProfileId(canonicalProfileId: string | undefined): void {
+  setBrazeProfileId(canonicalProfileId: string | undefined): boolean {
+    if (canonicalProfileId === undefined) {
+      this.brazeProfileId = undefined;
+      this.pendingIdentifyTraits = undefined;
+      this.lastSentLanguage = undefined;
+      this.sentTraitFingerprints.clear();
+      return false;
+    }
+
+    const isSameUser = canonicalProfileId === this.brazeProfileId;
     this.brazeProfileId = canonicalProfileId;
-    if (canonicalProfileId !== undefined) {
+
+    if (!isSameUser) {
+      this.sentTraitFingerprints.clear();
+      this.lastSentLanguage = undefined;
       try {
         Braze.changeUser(canonicalProfileId);
         Logger.log(
@@ -46,27 +65,27 @@ export class BrazePlugin extends EventPlugin {
           },
         });
       }
+    }
 
-      if (this.pendingIdentifyTraits) {
-        try {
-          this.setUserTraits(this.pendingIdentifyTraits);
-        } catch (error) {
-          captureException(error as Error, {
-            tags: {
-              plugin: 'BrazePlugin',
-              context: 'Failed to set pending user traits on Braze',
-            },
-          });
-        }
-        this.pendingIdentifyTraits = undefined;
+    if (this.pendingIdentifyTraits) {
+      try {
+        this.setUserTraits(this.pendingIdentifyTraits);
+      } catch (error) {
+        captureException(error as Error, {
+          tags: {
+            plugin: 'BrazePlugin',
+            context: 'Failed to set pending user traits on Braze',
+          },
+        });
       }
-
-      if (this.currentLanguage) {
-        this.sendLanguageToBraze(this.currentLanguage);
-      }
-    } else {
       this.pendingIdentifyTraits = undefined;
     }
+
+    if (this.currentLanguage) {
+      this.sendLanguageToBraze(this.currentLanguage);
+    }
+
+    return !isSameUser;
   }
 
   /**
@@ -131,24 +150,25 @@ export class BrazePlugin extends EventPlugin {
     return event;
   }
 
+  /**
+   * Segment calls this on its flush policies (event count / timer). Braze
+   * already batches `/data` uploads on its own interval; forcing
+   * `requestImmediateDataFlush()` here split the same payload across extra
+   * SDK requests and burned rate-limit tokens. Banner dismiss still flushes
+   * explicitly.
+   */
   flush(): void {
-    if (this.brazeProfileId !== undefined) {
-      try {
-        Braze.requestImmediateDataFlush();
-      } catch (error) {
-        captureException(error as Error, {
-          tags: {
-            plugin: 'BrazePlugin',
-            context: 'Failed to flush Braze data',
-          },
-        });
-      }
-    }
+    // Intentionally empty — see method JSDoc.
   }
 
   private sendLanguageToBraze(locale: string): void {
+    if (this.lastSentLanguage === locale) {
+      return;
+    }
+
     try {
       Braze.setLanguage(locale);
+      this.lastSentLanguage = locale;
       Logger.log(`[BrazePlugin] Sent language to Braze: ${locale}`);
     } catch (error) {
       captureException(error as Error, {
@@ -168,9 +188,17 @@ export class BrazePlugin extends EventPlugin {
       if (value === undefined) continue;
 
       const sanitized = this.sanitizeAttribute(value);
-      if (sanitized !== undefined) {
-        Braze.setCustomUserAttribute(key, sanitized);
+      if (sanitized === undefined) {
+        continue;
       }
+
+      const fingerprint = JSON.stringify(sanitized);
+      if (this.sentTraitFingerprints.get(key) === fingerprint) {
+        continue;
+      }
+
+      this.sentTraitFingerprints.set(key, fingerprint);
+      Braze.setCustomUserAttribute(key, sanitized);
     }
   }
 

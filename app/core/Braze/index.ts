@@ -11,6 +11,7 @@ import {
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
 
 let brazePlugin: BrazePlugin | undefined;
+const requestedBannerPlacementIds = new Set<string>();
 
 /**
  * Get or create the singleton BrazePlugin instance.
@@ -35,6 +36,11 @@ export function getBrazePlugin(): BrazePlugin {
  * Forward a canonical profile ID to the Braze Segment plugin so all subsequent
  * identify / track / flush calls are attributed to this identity.
  *
+ * A new profile (first sign-in, account switch, or wallet reset) calls
+ * `changeUser` and refreshes banners so campaigns match that identity.
+ * Repeating the same profile on this process skips `changeUser` and only
+ * registers placement IDs once.
+ *
  * Skipped during E2E so CI does not create Braze profiles from mocked
  * identity sessions.
  */
@@ -44,7 +50,13 @@ export function setBrazeUser(canonicalProfileId: string): void {
   }
 
   try {
-    getBrazePlugin().setBrazeProfileId(canonicalProfileId);
+    const didChangeUser =
+      getBrazePlugin().setBrazeProfileId(canonicalProfileId);
+    if (didChangeUser) {
+      refreshBrazeBanners();
+    } else {
+      ensureBrazeBannersRequested();
+    }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to set Braze user');
   }
@@ -63,6 +75,7 @@ export async function clearBrazeUser(): Promise<boolean> {
   }
 
   getBrazePlugin().setBrazeProfileId(undefined);
+  requestedBannerPlacementIds.clear();
   if (hasPendingBrazePushUnregistrationSync()) {
     return false;
   }
@@ -96,18 +109,39 @@ export async function getBannerForPlacement(
 /**
  * Request a fresh banner from the SDK for the given placements.
  * Defaults to the standard banner placement when no IDs are supplied.
- * Call this after dismissal or on app foreground to ensure the next
- * campaign is fetched and cached.
+ * Call this after identifying a new Braze user so placement-targeted
+ * campaigns match the current identity. Each call spends a Braze banner
+ * refresh token.
  */
 export function refreshBrazeBanners(
   placementIds: string[] = ALL_BRAZE_BANNER_PLACEMENT_IDS,
 ): void {
   try {
     Braze.requestBannersRefresh(placementIds);
+    for (const placementId of placementIds) {
+      requestedBannerPlacementIds.add(placementId);
+    }
     Logger.log('[Braze] Requested banner refresh');
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to refresh banners');
   }
+}
+
+/**
+ * Register placement IDs with the SDK once per process.
+ *
+ * Braze does not fetch banners until at least one explicit refresh tells it
+ * which placements to keep updated. After that, `changeUser` and session
+ * start reuse those IDs without spending another refresh token. Skip if every
+ * requested ID has already been registered this process.
+ */
+export function ensureBrazeBannersRequested(
+  placementIds: string[] = ALL_BRAZE_BANNER_PLACEMENT_IDS,
+): void {
+  if (placementIds.every((id) => requestedBannerPlacementIds.has(id))) {
+    return;
+  }
+  refreshBrazeBanners(placementIds);
 }
 
 /**
@@ -167,4 +201,13 @@ export function logBrazeBannerClick(placementId: string): void {
  */
 export function resetBrazePluginForTesting(): void {
   brazePlugin = undefined;
+}
+
+/**
+ * Reset the once-per-process banner placement registry.
+ *
+ * @internal Test helper only — do not use in production code.
+ */
+export function resetBrazeBannerRefreshForTesting(): void {
+  requestedBannerPlacementIds.clear();
 }
