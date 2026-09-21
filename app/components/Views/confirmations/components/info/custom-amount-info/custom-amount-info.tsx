@@ -244,6 +244,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // keypad closed, which left the amount unresponsive until quotes settled.
     const hasUserOpenedKeypadRef = useRef(false);
 
+    // Only a commit the user made freezes the amount while the request
+    // prepares. An amount committed on their behalf by a prefill stays
+    // tappable, so editing it never waits on quotes.
+    const hasUserCommittedAmountRef = useRef(false);
+
     useEffect(() => {
       if (wasPrefillSkippedRef.current && !skipDepositPrefill) {
         isPrefillSkipReleasedRef.current = true;
@@ -363,6 +368,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       stage,
     ]);
 
+    const handleDonePress = useCallback(() => {
+      hasUserCommittedAmountRef.current = true;
+      handleDone();
+    }, [handleDone]);
+
     const isMaxAutoSubmitPending = useRef(false);
 
     const handlePercentagePress = useCallback(
@@ -372,6 +382,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // withdraw — the amount stays $0, so leave the keyboard open instead of
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
+          hasUserCommittedAmountRef.current = true;
           isMaxAutoSubmitPending.current = true;
           // Max defers the commit to the effect below once the amount lands;
           // show the loading skeleton through that gap rather than the derived
@@ -445,7 +456,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={
-              stage === CustomAmountStage.Loading && !canEditZeroAmount
+              stage === CustomAmountStage.Loading &&
+              !canEditZeroAmount &&
+              hasUserCommittedAmountRef.current
                 ? undefined
                 : handleAmountPress
             }
@@ -521,7 +534,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
-                onDonePress={handleDone}
+                onDonePress={handleDonePress}
                 onPercentagePress={handlePercentagePress}
                 hasInput={hasInput}
                 hasMax={
