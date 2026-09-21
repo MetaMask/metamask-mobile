@@ -35,10 +35,6 @@ const isHoodiChainId = (chainId?: string) => {
  * Returns true if the given asset should surface staking UI.
  * ETH native is always considered stakeable.
  * TRX native is considered stakeable only when the TRX staking flag is enabled.
- *
- * Keyed on the three primitives the result depends on rather than on the asset
- * object, so the memoized result survives an asset reference changing for
- * unrelated reasons (a new balance, a re-created list row, ...).
  */
 export const selectIsStakeableToken = createSelector(
   [

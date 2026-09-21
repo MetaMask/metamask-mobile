@@ -248,12 +248,11 @@ describe('networkSelectors', () => {
     expect(selectNativeCurrencyByChainId(mockState, '0x1')).toBe('ETH');
   });
 
-  it('selectNativeCurrencyByChainId should keep a cache entry per chainId when chainIds are interleaved', () => {
+  it('keeps a cache entry per chainId when chainIds are interleaved', () => {
     selectNativeCurrencyByChainId.clearCache();
     selectNativeCurrencyByChainId.memoizedResultFunc.clearCache();
     selectNativeCurrencyByChainId.resetRecomputations();
 
-    // Mimics a token list where consecutive rows read different chains.
     selectNativeCurrencyByChainId(mockState, '0x1');
     selectNativeCurrencyByChainId(mockState, '0x89');
     const recomputationsAfterFirstPass =

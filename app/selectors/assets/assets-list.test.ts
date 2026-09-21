@@ -1856,10 +1856,6 @@ describe('makeSelectAsset', () => {
     isStaked: false,
   };
 
-  /**
-   * Builds a state where only DAI's balance differs, mimicking a balance poll
-   * that touches a single token while leaving the rest of the list alone.
-   */
   const stateWithDaiBalance = (hexBalance: Hex, amount: string) => {
     const state = mockState();
     const { TokenBalancesController, AssetsController } =
@@ -1883,8 +1879,6 @@ describe('makeSelectAsset', () => {
     const before = stateWithDaiBalance('0xad78ebc5ac6200000', '200');
     const after = stateWithDaiBalance('0x1bc16d674ec80000', '2');
 
-    // Guards the premise of this test: the asset map itself must churn,
-    // otherwise reference stability would be trivially satisfied upstream.
     expect(selectAssetsBySelectedAccountGroup(after)).not.toBe(
       selectAssetsBySelectedAccountGroup(before),
     );

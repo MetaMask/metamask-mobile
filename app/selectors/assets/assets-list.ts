@@ -19,7 +19,12 @@ import {
   isCaipChainId,
   parseCaipAssetType,
 } from '@metamask/utils';
-import { createSelector } from 'reselect';
+import { deepEqual } from 'fast-equals';
+import {
+  createSelector,
+  createSelectorCreator,
+  lruMemoize,
+} from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
@@ -53,10 +58,7 @@ import { selectEnabledNetworksByNamespace } from '../networkEnablementController
 import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
-import {
-  createDeepEqualResultSelector,
-  createDeepEqualSelector,
-} from '../util';
+import { createDeepEqualSelector } from '../util';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
@@ -594,8 +596,12 @@ export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
     );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
+const createStableListSelector = createSelectorCreator(lruMemoize, {
+  resultEqualityCheck: deepEqual,
+});
+
 export const makeSelectAsset = () =>
-  createDeepEqualResultSelector(
+  createStableListSelector(
     [
       selectAssetsBySelectedAccountGroup,
       selectStakedAssets,

@@ -186,10 +186,6 @@ export const TokenListItem = React.memo(
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF
 
-    // One selector instance per row, fed a stable params object: both are
-    // required for the row's asset to keep its reference across store updates
-    // that leave this asset untouched, which in turn keeps the row from
-    // re-rendering on every balance poll.
     const selectAssetForRow = useMemo(() => makeSelectAsset(), []);
     const assetParams = useMemo(
       () => ({
