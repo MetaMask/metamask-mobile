@@ -92,14 +92,44 @@ jobs:
           command: cd .github/scripts && yarn --immutable
 
       # Stage 1: ID-first funnel — list ci.yml runs, keep retry candidate SHAs,
-      # GraphQL-batch failed Unit tests check runs, confirm a later pass of
-      # the same job name, download logs only for those jobs, stop when every
-      # modified file has a hit. historyComplete is false when a cap ends the
-      # walk. When no modified test file changed since last analysis and the
-      # set of modified files still matches the sticky comment, the step emits
+      # The history itself is built nightly on main by
+      # flaky-unit-test-index.yml; this job only reads it. Walking it here
+      # instead cost minutes per push and a GraphQL budget shared with every
+      # other workflow, to answer a question about a handful of files.
+      - name: Resolve the nightly history index
+        id: history-index
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          run_id=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/flaky-unit-test-index.yml/runs?status=success&per_page=1" \
+            --jq '.workflow_runs[0].id // empty')
+          if [ -z "$run_id" ]; then
+            echo "No history index build found; past flakiness will read as unknown."
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      # A missing index is a degraded run, not a failed one: the AI pattern
+      # signal still stands and the comment says history is unknown.
+      - name: Download the nightly history index
+        if: steps.history-index.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: flaky-history-index
+          path: .flaky-history-index
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.history-index.outputs.run_id }}
+
+      # Looks each modified unit test up in the index, following renames so a
+      # moved test keeps the history recorded under its old path. When no
+      # modified test file changed since last analysis and the set of modified
+      # files still matches the sticky comment, the step emits
       # should_analyze=false. Expected no-ops write an empty-but-valid JSON
-      # artifact; wiring/API failures call setFailed.
-      - name: Detect modified unit test files and same-SHA fail-then-pass
+      # artifact; wiring failures call setFailed.
+      - name: Look up modified unit test files in the history index
         id: detect-history
         working-directory: .github/scripts
         continue-on-error: true
@@ -109,6 +139,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FLAKY_INDEX_PATH: ${{ github.workspace }}/.flaky-history-index/flaky-history-index.json
         run: yarn flaky-history-analysis
 
       # Stage 2 preflight: sync the flaky-test-detection skill from
@@ -289,14 +320,12 @@ jobs:
           FLAKY_MODIFIED_FILE_COUNT: ${{ steps.detect-history.outputs.modified_file_count }}
           FLAKY_FILES_TO_ANALYZE_COUNT: ${{ steps.detect-history.outputs.files_to_analyze_count }}
           FLAKY_HISTORICALLY_FLAKY_COUNT: ${{ steps.detect-history.outputs.historically_flaky_count }}
-          FLAKY_UNREAD_FAILED_RUNS: ${{ steps.detect-history.outputs.unread_failed_runs }}
+          FLAKY_CARRIED_ACROSS_MOVE: ${{ steps.detect-history.outputs.carried_across_move }}
           FLAKY_MISSING_LOG_BLOBS: ${{ steps.detect-history.outputs.missing_log_blobs }}
           FLAKY_INFRASTRUCTURE_FAILURES: ${{ steps.detect-history.outputs.infrastructure_failures }}
           FLAKY_UNATTRIBUTED_RERUNS: ${{ steps.detect-history.outputs.unattributed_reruns }}
           FLAKY_HISTORY_WINDOW: ${{ steps.detect-history.outputs.history_window }}
           FLAKY_MISSING_PRIOR_SHA_COUNT: ${{ steps.detect-history.outputs.missing_prior_sha_count }}
-          FLAKY_CANDIDATES_INSPECTED: ${{ steps.detect-history.outputs.candidates_inspected }}
-          FLAKY_CANDIDATE_SHA_COUNT: ${{ steps.detect-history.outputs.candidate_sha_count }}
           FLAKY_HISTORY_COMPLETE: ${{ steps.detect-history.outputs.history_complete }}
           FLAKY_COMMENT_POSTED: ${{ steps.sticky.outputs.comment_posted }}
           FLAKY_COMMENT_ACTION: ${{ steps.sticky.outputs.comment_action }}

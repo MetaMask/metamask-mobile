@@ -11,6 +11,8 @@
  * name later succeeded, then download logs only for those jobs.
  */
 import type { CoverageWindow, UnattributedRerun } from './flaky-types';
+import type { IndexCoverage } from './flaky-history-index';
+import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
 
 export type { CoverageWindow, UnattributedRerun };
 
@@ -49,43 +51,6 @@ export function listedWorkflowRunFromApi(
 export type ListedRunsPage = {
   data: WorkflowRunListItem[];
 };
-
-/**
- * `listWorkflowRuns` stops returning results past 1000 per query whatever
- * `per_page` and `page` say, so a single 14-day query silently collapses to
- * the newest ~3 days on a repo at this run volume. One query per day keeps
- * each bucket under that ceiling.
- */
-export function lookbackDayBuckets(now: Date, lookbackDays: number): string[] {
-  const days: string[] = [];
-  for (let offset = 0; offset < Math.max(0, lookbackDays); offset += 1) {
-    const day = new Date(now.getTime() - offset * 24 * 60 * 60 * 1000);
-    days.push(day.toISOString().slice(0, 10));
-  }
-  return days;
-}
-
-export function summarizeCoverageWindow({
-  runs,
-  lookbackDays,
-  cappedDays,
-}: {
-  runs: ListedWorkflowRun[];
-  lookbackDays: number;
-  cappedDays: string[];
-}): CoverageWindow {
-  const timestamps = runs
-    .map((run) => run.createdAt)
-    .filter((createdAt) => createdAt.length > 0)
-    .sort();
-  return {
-    lookbackDays,
-    runsListed: runs.length,
-    oldestRunSampled: timestamps[0]?.slice(0, 10) ?? '',
-    newestRunSampled: timestamps[timestamps.length - 1]?.slice(0, 10) ?? '',
-    cappedDays,
-  };
-}
 
 export type CollectListedRunsFromPagesResult = {
   runs: ListedWorkflowRun[];
@@ -548,58 +513,28 @@ export function parseJestFailPaths(logText: string): string[] {
   return [...matches].map((match) => match[1]);
 }
 
-export function intersectWithModifiedFiles(
-  failPaths: string[],
-  modifiedFiles: string[],
-): string[] {
-  const modified = new Set(modifiedFiles);
-  return [...new Set(failPaths.filter((path) => modified.has(path)))];
-}
-
-export function hitsFromConfirmedLogs(
+/**
+ * Every unit test the confirmed jobs reported failing, for the nightly index.
+ *
+ * The per-PR walk narrows to the files one PR touched. The index has no PR to
+ * narrow to, so it keeps whatever the shards actually failed on, filtered only
+ * to paths the detector would ever look up again.
+ */
+export function allHitsFromConfirmedLogs(
   jobs: ConfirmedFailThenPassJob[],
   failPathsByJobId: Map<number, string[]>,
-  modifiedFiles: string[],
 ): SameShaLogHit[] {
   const hits: SameShaLogHit[] = [];
   for (const job of jobs) {
     const failPaths = failPathsByJobId.get(job.jobId) ?? [];
-    for (const path of intersectWithModifiedFiles(failPaths, modifiedFiles)) {
+    for (const path of new Set(failPaths)) {
+      if (!isFlakyWorkflowUnitTestPath(path)) {
+        continue;
+      }
       hits.push({ path, failRunId: job.runId, jobId: job.jobId });
     }
   }
   return hits;
-}
-
-export function unansweredModifiedFiles(
-  modifiedFiles: string[],
-  hits: { path: string }[],
-): string[] {
-  const answered = new Set(hits.map((hit) => hit.path));
-  return modifiedFiles.filter((path) => !answered.has(path));
-}
-
-/**
- * `unreadFailedRuns` counts fail-then-pass logs a re-run could still read
- * (fetch budget cap, GitHub API error after retry). Two other gaps are
- * deliberately excluded because no re-run brings them back: logs GitHub
- * reports as missing, and jobs whose runner died before uploading anything.
- * Counting either would block all-clear on every PR until the run ages out of
- * the window; both are disclosed in the comment instead.
- */
-export function historyCoverageComplete({
-  everyFileHasHit,
-  walkedAllCandidates,
-  unreadFailedRuns,
-}: {
-  everyFileHasHit: boolean;
-  walkedAllCandidates: boolean;
-  unreadFailedRuns: number;
-}): boolean {
-  if (unreadFailedRuns > 0) {
-    return false;
-  }
-  return everyFileHasHit || walkedAllCandidates;
 }
 
 export function shouldPostAllClear(
@@ -609,92 +544,46 @@ export function shouldPostAllClear(
   return !hasFindings && historyComplete;
 }
 
-export function aggregateHitsByFile(
-  hits: SameShaLogHit[],
-  toJobLogUrl: (runId: number, jobId: number) => string,
-): Map<string, SameShaFileHit> {
-  const byFile = new Map<string, SameShaFileHit>();
-  for (const hit of hits) {
-    const existing = byFile.get(hit.path);
-    if (!existing) {
-      byFile.set(hit.path, {
-        count: 1,
-        exampleRunUrl: toJobLogUrl(hit.failRunId, hit.jobId),
-      });
-      continue;
-    }
-    existing.count += 1;
-  }
-  return byFile;
-}
-
-export function renderSameShaHistoryTable(
-  files: {
-    path: string;
-    flaky: boolean;
-    sameShaFailThenPass: number;
-    exampleRunUrl: string;
-  }[],
-): string {
-  if (files.length === 0) {
-    return 'No same-SHA unit-test fail-then-pass found for the changed tests in the sampled window.';
-  }
-
-  const header = '| File | Same-SHA fail→pass (seen) | Example |';
-  const divider = '|---|---|---|';
-  const rows = files
-    .map((file) => {
-      const example =
-        file.exampleRunUrl.length > 0 ? `[run](${file.exampleRunUrl})` : '—';
-      return `| \`${file.path}\` | ${file.sameShaFailThenPass} | ${example} |`;
-    })
-    .join('\n');
-  return `Same-SHA unit-test fail then pass (identical commit; Re-run jobs or a second ci.yml run):\n\n${header}\n${divider}\n${rows}\n`;
-}
-
 /**
- * States the range actually walked, so "nothing found" can be read against
- * the dates and commit count it is true of. The old wording quoted candidates
- * inspected out of candidates found, which read as full coverage even when a
- * one-query listing had already clipped the window to its newest days.
+ * States what the history index actually covers, so "nothing found" can be
+ * read against the range it is true of.
+ *
+ * The index is built nightly on main, so its two failure modes are staleness
+ * (a night did not run) and gaps (a day was walked but could not be finished).
+ * Both are stated rather than hidden, because a reader who sees no findings
+ * has no other way to tell a clean history from an unbuilt one.
  */
 export function renderCoverageWindowLine({
-  window,
-  candidatesInspected,
-  candidateShaCount,
-  unreadFailedRuns = 0,
-  complete,
+  coverage,
+  runsScanned,
   hasFindings = true,
 }: {
-  window: CoverageWindow;
-  candidatesInspected: number;
-  candidateShaCount: number;
-  unreadFailedRuns?: number;
-  complete: boolean;
+  coverage: IndexCoverage;
+  runsScanned: number;
   hasFindings?: boolean;
 }): string {
-  const dates =
-    window.oldestRunSampled && window.newestRunSampled
-      ? `${window.oldestRunSampled} to ${window.newestRunSampled}`
-      : `last ${window.lookbackDays} day(s)`;
-  const commits = complete
-    ? `${candidateShaCount} candidate commit(s)`
-    : `${candidatesInspected} of ${candidateShaCount} candidate commit(s)`;
-  const scope = `${dates}, ${window.runsListed} ci run(s), ${commits} inspected`;
+  if (coverage.daysCovered === 0) {
+    return '_History coverage: the flaky history index is unavailable, so past flakiness is unknown for these files._';
+  }
 
-  if (complete) {
+  const scope = `${coverage.oldestDay} to ${coverage.newestDay}, ${coverage.daysCovered} day(s), ${runsScanned} ci run(s)`;
+  if (coverage.complete) {
     return `_History coverage: ${scope}._`;
   }
 
-  const unread =
-    unreadFailedRuns > 0
-      ? ` ${unreadFailedRuns} confirmed fail-then-pass log(s) could not be read.`
+  const stale =
+    coverage.staleDays > 2
+      ? ` The index was last built ${coverage.staleDays} day(s) ago.`
+      : '';
+  const gaps =
+    coverage.gapDays.length > 0
+      ? ` ${coverage.gapDays.length} day(s) inside the window were never fully walked.`
       : '';
   // "Findings above" only makes sense when the table rendered rows.
   const verdict = hasFindings
     ? 'Findings above are a lower bound; this is not an all-clear.'
-    : 'Nothing was found in the inspected range, but this is not an all-clear.';
-  return `_History coverage incomplete: ${scope}.${unread} ${verdict}_`;
+    : 'Nothing was found in the covered range, but this is not an all-clear.';
+  return `_History coverage incomplete: ${scope}.${stale}${gaps} ${verdict}_`;
 }
 
 /**

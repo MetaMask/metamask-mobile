@@ -39,6 +39,8 @@ export type PastFlakynessCellInput = {
   hasPatternFinding: boolean;
   count: number;
   exampleRunUrl: string;
+  /** The path that supplied the count, when the file has since been moved. */
+  historyPath?: string;
 };
 
 export type FlakyTableFinding = {
@@ -77,6 +79,8 @@ export type FlakyTableFile = {
   patternsReviewed: boolean;
   sameShaFailThenPass: number;
   exampleRunUrl: string;
+  /** The path that supplied the count, when the file has since been moved. */
+  historyPath?: string;
   findings: FlakyTableFinding[];
   unreviewed?: UnreviewedDetails;
   /**
@@ -121,7 +125,10 @@ export function renderPastFlakynessCell(input: PastFlakynessCellInput): string {
     : TRAFFIC_LIGHT.yellow;
   const runLink =
     input.exampleRunUrl.length > 0 ? ` ([run](${input.exampleRunUrl}))` : '';
-  return `${light} ${input.count}${runLink}`;
+  // Without this the count reads as belonging to a path that has no runs
+  // behind it, which looks like a bug rather than a move.
+  const movedFrom = input.historyPath ? ` (as \`${input.historyPath}\`)` : '';
+  return `${light} ${input.count}${movedFrom}${runLink}`;
 }
 
 export function patternSeverityLight(severity: string): string {
@@ -239,6 +246,7 @@ function rowsForFile(file: FlakyTableFile): string[] {
     hasPatternFinding: file.findings.length > 0,
     count: file.sameShaFailThenPass,
     exampleRunUrl: file.exampleRunUrl,
+    historyPath: file.historyPath,
   });
   if (file.findings.length === 0) {
     const pattern = file.patternsReviewed

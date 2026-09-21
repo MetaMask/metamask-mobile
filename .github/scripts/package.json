@@ -10,6 +10,7 @@
     "create-bug-report-issue": "ts-node ./create-bug-report-issue.ts",
     "gen:commits": "node generate-rc-commits.mjs",
     "check-feature-flag-registry": "ts-node ./qa-automation/feature-flags-registry/check-feature-flag-registry.ts",
+    "flaky-build-history-index": "ts-node ./flaky-unit-test-detection/flaky-build-history-index.ts",
     "flaky-history-analysis": "ts-node ./flaky-unit-test-detection/flaky-history-analysis.ts",
     "flaky-ai-analysis": "ts-node ./flaky-unit-test-detection/flaky-ai-analysis.ts",
     "flaky-sticky-comment": "ts-node ./flaky-unit-test-detection/flaky-sticky-comment.ts",

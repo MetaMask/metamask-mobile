@@ -56,6 +56,11 @@ export type HistoryFile = {
   sameShaFailThenPass: number;
   exampleRunUrl: string;
   runHistoryUrl: string;
+  /**
+   * The path that supplied the count, when the file has since been moved.
+   * Absent while the file still sits where its history was recorded.
+   */
+  historyPath?: string;
 };
 
 /** A confirmed fail-then-pass whose failing test file could not be identified. */
@@ -66,13 +71,17 @@ export type UnattributedRerun = {
   reason: 'missing_log' | 'unread';
 };
 
-/** The range Stage 1 actually covered, as opposed to the one it asked for. */
+/** What the nightly index covers, and how much to trust it. */
 export type CoverageWindow = {
-  lookbackDays: number;
-  runsListed: number;
-  oldestRunSampled: string;
-  newestRunSampled: string;
-  cappedDays: string[];
+  /** Whole days between the newest day walked and now. */
+  staleDays: number;
+  daysCovered: number;
+  /** Days inside the window that were never fully walked. */
+  gapDays: string[];
+  oldestDay: string;
+  newestDay: string;
+  /** Fresh enough, and with no holes, to support an all-clear. */
+  complete: boolean;
 };
 
 /**
@@ -83,23 +92,86 @@ export type HistoryArtifact = {
   generatedAt: string;
   workflow: string;
   job: string;
-  lookbackDays: number;
-  coverageWindow: CoverageWindow;
-  sampledRunCount: number;
-  candidateShaCount: number;
-  candidatesInspected: number;
+  coverage: CoverageWindow;
+  /** ci.yml runs the index was built from, across its whole window. */
+  indexRunsScanned: number;
   historyComplete: boolean;
-  graphqlQueries: number;
-  unreadFailedRuns: number;
   missingLogBlobs: number;
   /** Jobs whose runner died before finishing; no test signal either way. */
   infrastructureFailures: number;
   /** A sample of unattributable re-runs, for the comment's disclosure line. */
   unattributedReruns: UnattributedRerun[];
   unattributedRerunCount: number;
+  /** Files whose history was found only under a path they no longer have. */
+  carriedAcrossMove: number;
   analyzedFiles: string[];
   headSha: string;
   files: HistoryFile[];
+};
+
+/** One day's confirmed fail-then-pass count for a single test path. */
+export type IndexDayCount = {
+  /** YYYY-MM-DD, the day the failing run started. */
+  date: string;
+  count: number;
+};
+
+/**
+ * Per-day counts rather than a running total: pruning the window then becomes
+ * dropping the days that fell out and re-summing, instead of decaying a number
+ * nobody can reconstruct.
+ */
+export type HistoryIndexEntry = {
+  path: string;
+  /** Always the sum of `days`; recomputed on every merge and prune. */
+  sameShaFailThenPass: number;
+  days: IndexDayCount[];
+  /** Newest hit, so the comment can link one concrete job log. */
+  exampleRunId: number;
+  exampleJobId: number;
+  lastSeen: string;
+};
+
+/**
+ * What one walked day cost and could not see.
+ *
+ * Bucketed per day for the same reason the hit counts are: these are quoted in
+ * the comment as totals "in this window", so they have to shrink when a day
+ * leaves the window and must not double when a day is re-walked.
+ */
+export type IndexDayStats = {
+  date: string;
+  runsScanned: number;
+  missingLogBlobs: number;
+  infrastructureFailures: number;
+  unattributedReruns: number;
+};
+
+/**
+ * Built nightly on main and published as an artifact, then read by Stage 1 on
+ * every PR. Each build merges into the one before it, so `version` exists to
+ * reject a shape this code cannot safely extend rather than chain from it.
+ */
+export type HistoryIndex = {
+  version: number;
+  builtAt: string;
+  /** Inclusive bounds of the window the index claims to cover. */
+  oldestDay: string;
+  newestDay: string;
+  /** Days inside the window no build ever completed. */
+  gapDays: string[];
+  days: IndexDayStats[];
+  entries: Record<string, HistoryIndexEntry>;
+  /** A capped sample for the comment's disclosure line, newest first. */
+  unattributedReruns: UnattributedRerun[];
+};
+
+/** Window-wide sums over `HistoryIndex.days`. */
+export type IndexTotals = {
+  runsScanned: number;
+  missingLogBlobs: number;
+  infrastructureFailures: number;
+  unattributedReruns: number;
 };
 
 export type AnalyzerRunStatus = 'reviewed' | 'did_not_complete' | 'skipped_cap';

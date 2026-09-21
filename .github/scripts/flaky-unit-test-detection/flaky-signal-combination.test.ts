@@ -153,6 +153,33 @@ describe('renderPastFlakynessCell', () => {
     ).toBe(`${TRAFFIC_LIGHT.red} 2 ([run](${jobLogUrl}))`);
   });
 
+  // Moving test files is routine here, and a count against a path with no
+  // runs behind it reads as a bug rather than as a move.
+  it('names the path that supplied the count when the file has moved', () => {
+    expect(
+      renderPastFlakynessCell({
+        hasHistoryHit: true,
+        hasPatternFinding: false,
+        count: 3,
+        exampleRunUrl: jobLogUrl,
+        historyPath: 'app/util/old.test.ts',
+      }),
+    ).toBe(
+      `${TRAFFIC_LIGHT.yellow} 3 (as \`app/util/old.test.ts\`) ([run](${jobLogUrl}))`,
+    );
+  });
+
+  it('says nothing about a move for a file that stayed put', () => {
+    expect(
+      renderPastFlakynessCell({
+        hasHistoryHit: true,
+        hasPatternFinding: false,
+        count: 3,
+        exampleRunUrl: jobLogUrl,
+      }),
+    ).not.toContain('as `');
+  });
+
   it('uses a yellow light when only history fired', () => {
     expect(
       renderPastFlakynessCell({

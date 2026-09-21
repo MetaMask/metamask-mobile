@@ -11,14 +11,12 @@ export type FlakyJobSummaryInput = {
   modifiedFileCount: string;
   filesToAnalyzeCount: string;
   historicallyFlakyCount: string;
-  unreadFailedRuns: string;
+  carriedAcrossMove: string;
   missingLogBlobs: string;
   infrastructureFailures: string;
   unattributedReruns: string;
   historyWindow: string;
   missingPriorShaCount: string;
-  candidatesInspected: string;
-  candidateShaCount: string;
   historyComplete: string;
   commentPosted: string;
   commentAction: string;
@@ -196,9 +194,8 @@ ${headline}
 | Modified unit test files | ${input.modifiedFileCount || '0'} |
 | Files re-analyzed | ${input.filesToAnalyzeCount || '0'} |
 | History hits | ${input.historicallyFlakyCount || '0'} of ${input.modifiedFileCount || '0'} modified file(s) |
-| History window | ${input.historyWindow || 'not walked'} |
-| History coverage | ${input.candidatesInspected || '0'} / ${input.candidateShaCount || '0'} candidate SHA(s)${input.historyComplete === 'true' ? ', complete' : input.historyComplete === 'false' ? ', capped' : ''} |
-| Unread failed CI runs | ${input.unreadFailedRuns || '0'} |
+| History index | ${input.historyWindow || 'not read'}${input.historyComplete === 'true' ? ', complete' : input.historyComplete === 'false' ? ', incomplete' : ''} |
+| History carried across a move | ${input.carriedAcrossMove || '0'} |
 | Missing log blobs | ${input.missingLogBlobs || '0'} |
 | Lost runners | ${input.infrastructureFailures || '0'} |
 | Unattributed re-runs | ${input.unattributedReruns || '0'} |
@@ -228,14 +225,12 @@ export const writeFlakyJobSummaryFromEnv = (): void => {
     modifiedFileCount: env('FLAKY_MODIFIED_FILE_COUNT'),
     filesToAnalyzeCount: env('FLAKY_FILES_TO_ANALYZE_COUNT'),
     historicallyFlakyCount: env('FLAKY_HISTORICALLY_FLAKY_COUNT'),
-    unreadFailedRuns: env('FLAKY_UNREAD_FAILED_RUNS'),
+    carriedAcrossMove: env('FLAKY_CARRIED_ACROSS_MOVE'),
     missingLogBlobs: env('FLAKY_MISSING_LOG_BLOBS'),
     infrastructureFailures: env('FLAKY_INFRASTRUCTURE_FAILURES'),
     unattributedReruns: env('FLAKY_UNATTRIBUTED_RERUNS'),
     historyWindow: env('FLAKY_HISTORY_WINDOW'),
     missingPriorShaCount: env('FLAKY_MISSING_PRIOR_SHA_COUNT'),
-    candidatesInspected: env('FLAKY_CANDIDATES_INSPECTED'),
-    candidateShaCount: env('FLAKY_CANDIDATE_SHA_COUNT'),
     historyComplete: env('FLAKY_HISTORY_COMPLETE'),
     commentPosted: env('FLAKY_COMMENT_POSTED'),
     commentAction: env('FLAKY_COMMENT_ACTION'),

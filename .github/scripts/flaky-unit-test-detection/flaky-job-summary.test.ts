@@ -8,14 +8,12 @@ const baseInput = {
   modifiedFileCount: '1',
   filesToAnalyzeCount: '1',
   historicallyFlakyCount: '0',
-  unreadFailedRuns: '0',
+  carriedAcrossMove: '0',
   missingLogBlobs: '0',
   infrastructureFailures: '0',
   unattributedReruns: '0',
-  historyWindow: '2026-09-08 → 2026-09-21, 1204 runs',
+  historyWindow: '2026-06-24 → 2026-09-20, 90d',
   missingPriorShaCount: '0',
-  candidatesInspected: '0',
-  candidateShaCount: '0',
   historyComplete: 'true',
   commentPosted: 'false',
   commentAction: 'none',
@@ -109,17 +107,15 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('**Analyzed; comment step cancelled.**');
   });
 
-  it('reports the gaps the walk disclosed in the table', () => {
+  it('reports the gaps the index disclosed in the table', () => {
     const markdown = renderFlakyJobSummary({
       ...baseInput,
-      unreadFailedRuns: '1',
       missingLogBlobs: '3',
       infrastructureFailures: '2',
       unattributedReruns: '4',
       missingPriorShaCount: '2',
     });
 
-    expect(markdown).toContain('| Unread failed CI runs | 1 |');
     expect(markdown).toContain('| Missing log blobs | 3 |');
     expect(markdown).toContain('| Lost runners | 2 |');
     expect(markdown).toContain('| Unattributed re-runs | 4 |');
@@ -127,25 +123,35 @@ describe('renderFlakyJobSummary', () => {
     expect(markdown).toContain('| SHA | `f758dbb` |');
   });
 
-  it('reports the window the history walk actually covered', () => {
+  it('reports the window the index covers', () => {
     const markdown = renderFlakyJobSummary(baseInput);
 
     expect(markdown).toContain(
-      '| History window | 2026-09-08 → 2026-09-21, 1204 runs |',
+      '| History index | 2026-06-24 → 2026-09-20, 90d, complete |',
     );
   });
 
-  it('reports capped history coverage', () => {
+  it('marks a stale or gappy index as incomplete', () => {
     const markdown = renderFlakyJobSummary({
       ...baseInput,
-      candidatesInspected: '200',
-      candidateShaCount: '230',
+      historyWindow: '2026-06-24 → 2026-09-15, 84d, 5d stale',
       historyComplete: 'false',
     });
 
     expect(markdown).toContain(
-      '| History coverage | 200 / 230 candidate SHA(s), capped |',
+      '| History index | 2026-06-24 → 2026-09-15, 84d, 5d stale, incomplete |',
     );
+  });
+
+  // Moved files are routine here, so a reader needs to know when a count came
+  // from a path the file no longer has.
+  it('counts files whose history was carried across a move', () => {
+    const markdown = renderFlakyJobSummary({
+      ...baseInput,
+      carriedAcrossMove: '3',
+    });
+
+    expect(markdown).toContain('| History carried across a move | 3 |');
   });
 
   it('reports posted all-clear when Stage 3 posted after no modified unit tests', () => {

@@ -305,6 +305,7 @@ function buildTableFiles({
         patternsReviewed,
         sameShaFailThenPass: file.sameShaFailThenPass,
         exampleRunUrl: file.exampleRunUrl,
+        historyPath: file.historyPath,
         findings: (byFile.get(file.path) ?? []).map((finding) => ({
           patternId: finding.patternId,
           patternName: finding.patternName,
@@ -370,16 +371,17 @@ function buildCommentBody({
   });
 }
 
-const EMPTY_COVERAGE_WINDOW: CoverageWindow = {
-  lookbackDays: 14,
-  runsListed: 0,
-  oldestRunSampled: '',
-  newestRunSampled: '',
-  cappedDays: [],
+const NO_COVERAGE: CoverageWindow = {
+  staleDays: Infinity,
+  daysCovered: 0,
+  gapDays: [],
+  oldestDay: '',
+  newestDay: '',
+  complete: false,
 };
 
 /**
- * What the walk could and could not see. Missing logs and lost runners are
+ * What the index could and could not see. Missing logs and lost runners are
  * stated here rather than withheld as a reason to refuse all-clear: neither
  * comes back on a re-run, so blocking on them would keep green out of reach.
  */
@@ -389,11 +391,8 @@ function buildCoverageDisclosure(
 ): string {
   return [
     renderCoverageWindowLine({
-      window: history.coverageWindow ?? EMPTY_COVERAGE_WINDOW,
-      candidatesInspected: history.candidatesInspected ?? 0,
-      candidateShaCount: history.candidateShaCount ?? 0,
-      unreadFailedRuns: history.unreadFailedRuns ?? 0,
-      complete: history.historyComplete === true,
+      coverage: history.coverage ?? NO_COVERAGE,
+      runsScanned: history.indexRunsScanned ?? 0,
       hasFindings,
     }),
     renderUnattributedRerunsLine(

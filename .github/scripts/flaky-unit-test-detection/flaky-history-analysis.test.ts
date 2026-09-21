@@ -2,10 +2,8 @@ import {
   collectListedRunsFromPages,
   type WorkflowRunListItem,
 } from './flaky-same-sha-history';
-import {
-  MAX_GRAPHQL_POINTS_PER_RUN,
-  describeCoverageWindow,
-} from './flaky-history-analysis';
+import { describeCoverageWindow } from './flaky-history-analysis';
+import type { CoverageWindow } from './flaky-types';
 
 const apiRun = (
   id: number,
@@ -66,50 +64,48 @@ describe('collectListedRunsFromPages', () => {
   });
 });
 
-describe('GraphQL budget', () => {
-  // Measured against the live API: one commit alias costs one point whatever
-  // the batch size, so the walk's worst case is batch x queries. GITHUB_TOKEN
-  // gets 1000 points per hour per repository and this workflow can run several
-  // times in an hour, so half the budget is the ceiling worth defending.
-  it('cannot spend more than half the hourly GITHUB_TOKEN point budget', () => {
-    expect(MAX_GRAPHQL_POINTS_PER_RUN).toBeLessThanOrEqual(500);
-  });
+const coverage = (overrides: Partial<CoverageWindow> = {}): CoverageWindow => ({
+  staleDays: 1,
+  daysCovered: 90,
+  gapDays: [],
+  oldestDay: '2026-06-24',
+  newestDay: '2026-09-20',
+  complete: true,
+  ...overrides,
 });
 
 describe('describeCoverageWindow', () => {
-  it('reports the dates walked and how many runs backed them', () => {
-    expect(
-      describeCoverageWindow({
-        lookbackDays: 14,
-        runsListed: 1204,
-        oldestRunSampled: '2026-09-08',
-        newestRunSampled: '2026-09-21',
-        cappedDays: [],
-      }),
-    ).toBe('2026-09-08 → 2026-09-21, 1204 runs');
+  it('reports the span the index covers', () => {
+    expect(describeCoverageWindow(coverage())).toBe(
+      '2026-06-24 \u2192 2026-09-20, 90d',
+    );
   });
 
-  it('says how many days were clipped by the listing ceiling', () => {
-    expect(
-      describeCoverageWindow({
-        lookbackDays: 14,
-        runsListed: 2000,
-        oldestRunSampled: '2026-09-19',
-        newestRunSampled: '2026-09-21',
-        cappedDays: ['2026-09-20', '2026-09-19'],
-      }),
-    ).toContain('2 day(s) clipped');
+  it('says how far behind a stale index is', () => {
+    expect(describeCoverageWindow(coverage({ staleDays: 5 }))).toContain(
+      '5d stale',
+    );
   });
 
-  it('falls back to the requested window when nothing was listed', () => {
+  // A nightly build covers up to yesterday, so one day behind is the steady
+  // state rather than something to flag.
+  it('stays quiet about the normal nightly lag', () => {
+    expect(describeCoverageWindow(coverage({ staleDays: 1 }))).not.toContain(
+      'stale',
+    );
+  });
+
+  it('counts days inside the window that were never walked', () => {
     expect(
-      describeCoverageWindow({
-        lookbackDays: 14,
-        runsListed: 0,
-        oldestRunSampled: '',
-        newestRunSampled: '',
-        cappedDays: [],
-      }),
-    ).toBe('last 14d, 0 runs');
+      describeCoverageWindow(
+        coverage({ gapDays: ['2026-09-01', '2026-09-02'] }),
+      ),
+    ).toContain('2 gap day(s)');
+  });
+
+  it('says so when there is no index to read', () => {
+    expect(describeCoverageWindow(coverage({ daysCovered: 0 }))).toBe(
+      'index unavailable',
+    );
   });
 });

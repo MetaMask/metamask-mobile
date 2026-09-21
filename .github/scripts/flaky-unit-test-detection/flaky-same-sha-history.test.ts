@@ -1,5 +1,4 @@
 import {
-  aggregateHitsByFile,
   buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
   chunkArray,
@@ -8,23 +7,17 @@ import {
   MAX_FAILED_GRAPHQL_BATCHES,
   confirmedFailThenPassJobs,
   groupRunsByHeadSha,
-  historyCoverageComplete,
-  hitsFromConfirmedLogs,
-  intersectWithModifiedFiles,
   isCandidateShaGroup,
   jobIdFromDetailsUrl,
   jobLogUrl,
   listedWorkflowRunFromApi,
-  lookbackDayBuckets,
+  allHitsFromConfirmedLogs,
   parseJestFailPaths,
   parseShaBatchResponse,
   renderCoverageWindowLine,
   renderInfrastructureFailuresLine,
-  renderSameShaHistoryTable,
   renderUnattributedRerunsLine,
   shouldPostAllClear,
-  summarizeCoverageWindow,
-  unansweredModifiedFiles,
   type CoverageWindow,
   type ListedWorkflowRun,
   type ShaCheckResult,
@@ -479,95 +472,6 @@ describe('parseJestFailPaths', () => {
   });
 });
 
-describe('hitsFromConfirmedLogs', () => {
-  it('attributes FAIL paths from a confirmed job to modified files', () => {
-    const failPaths = new Map<number, string[]>([
-      [111, [modifiedFile, otherFile]],
-    ]);
-
-    expect(
-      hitsFromConfirmedLogs(
-        [{ name: 'Unit tests (8)', jobId: 111, runId: 10 }],
-        failPaths,
-        [modifiedFile],
-      ),
-    ).toEqual([{ path: modifiedFile, failRunId: 10, jobId: 111 }]);
-  });
-
-  it('does not flag a FAIL path that is not in the modified file set', () => {
-    expect(intersectWithModifiedFiles([modifiedFile], [otherFile])).toEqual([]);
-  });
-});
-
-describe('unansweredModifiedFiles and early exit', () => {
-  it('drops files that already have a hit', () => {
-    expect(
-      unansweredModifiedFiles(
-        [modifiedFile, otherFile],
-        [{ path: modifiedFile }],
-      ),
-    ).toEqual([otherFile]);
-  });
-
-  it('is empty when every modified file has a hit', () => {
-    expect(
-      unansweredModifiedFiles(
-        [modifiedFile],
-        [{ path: modifiedFile }, { path: modifiedFile }],
-      ),
-    ).toEqual([]);
-  });
-});
-
-describe('historyCoverageComplete', () => {
-  it('is complete when every file has a hit even if candidates remain', () => {
-    expect(
-      historyCoverageComplete({
-        everyFileHasHit: true,
-        walkedAllCandidates: false,
-        unreadFailedRuns: 0,
-      }),
-    ).toBe(true);
-  });
-
-  it('is complete when the walk finished with some files unanswered', () => {
-    expect(
-      historyCoverageComplete({
-        everyFileHasHit: false,
-        walkedAllCandidates: true,
-        unreadFailedRuns: 0,
-      }),
-    ).toBe(true);
-  });
-
-  it('is incomplete when a cap ended the walk with files still unanswered', () => {
-    expect(
-      historyCoverageComplete({
-        everyFileHasHit: false,
-        walkedAllCandidates: false,
-        unreadFailedRuns: 0,
-      }),
-    ).toBe(false);
-  });
-
-  it('is incomplete when a re-run could still read a confirmed fail-then-pass log', () => {
-    expect(
-      historyCoverageComplete({
-        everyFileHasHit: false,
-        walkedAllCandidates: true,
-        unreadFailedRuns: 2,
-      }),
-    ).toBe(false);
-    expect(
-      historyCoverageComplete({
-        everyFileHasHit: true,
-        walkedAllCandidates: true,
-        unreadFailedRuns: 1,
-      }),
-    ).toBe(false);
-  });
-});
-
 describe('shouldPostAllClear', () => {
   it('posts all-clear only when there are no findings and history finished', () => {
     expect(shouldPostAllClear(false, true)).toBe(true);
@@ -584,10 +488,9 @@ describe('shouldPostAllClear', () => {
 
 describe('different SHA fail then pass', () => {
   it('does not pair a FAIL on SHA A with a pass on SHA B', () => {
-    const shaA = hitsFromConfirmedLogs(
+    const shaA = allHitsFromConfirmedLogs(
       [{ name: 'Unit tests (8)', jobId: 1, runId: 1 }],
       new Map([[1, [modifiedFile]]]),
-      [modifiedFile],
     );
     const shaBJobs = confirmedFailThenPassJobs(
       shaResult([
@@ -603,163 +506,6 @@ describe('different SHA fail then pass', () => {
 
     expect(shaA).toEqual([{ path: modifiedFile, failRunId: 1, jobId: 1 }]);
     expect(shaBJobs).toEqual([]);
-    expect(
-      aggregateHitsByFile(shaA, (runId, jobId) =>
-        jobLogUrl('https://github.com', 'org/repo', runId, jobId),
-      ).get(modifiedFile)?.exampleRunUrl,
-    ).toBe('https://github.com/org/repo/actions/runs/1/job/1');
-  });
-});
-
-describe('renderSameShaHistoryTable', () => {
-  it('renders count and example run link', () => {
-    expect(
-      renderSameShaHistoryTable([
-        {
-          path: modifiedFile,
-          flaky: true,
-          sameShaFailThenPass: 1,
-          exampleRunUrl: 'https://github.com/org/repo/actions/runs/10',
-        },
-      ]),
-    ).toContain(
-      '| `app/core/createAsyncBatcher.test.ts` | 1 | [run](https://github.com/org/repo/actions/runs/10) |',
-    );
-  });
-
-  it('renders the empty-window copy', () => {
-    expect(renderSameShaHistoryTable([])).toBe(
-      'No same-SHA unit-test fail-then-pass found for the changed tests in the sampled window.',
-    );
-  });
-});
-
-describe('lookbackDayBuckets', () => {
-  it('returns one day per lookback day, newest first', () => {
-    const days = lookbackDayBuckets(new Date('2026-09-21T10:00:00Z'), 3);
-
-    expect(days).toEqual(['2026-09-21', '2026-09-20', '2026-09-19']);
-  });
-
-  it('returns nothing for a zero-day window', () => {
-    expect(lookbackDayBuckets(new Date('2026-09-21T10:00:00Z'), 0)).toEqual([]);
-  });
-});
-
-describe('summarizeCoverageWindow', () => {
-  it('reports the dates actually sampled rather than the dates requested', () => {
-    const window = summarizeCoverageWindow({
-      runs: [
-        run({ id: 1, createdAt: '2026-09-19T08:00:00Z' }),
-        run({ id: 2, createdAt: '2026-09-21T08:00:00Z' }),
-        run({ id: 3, createdAt: '2026-09-20T08:00:00Z' }),
-      ],
-      lookbackDays: 14,
-      cappedDays: ['2026-09-20'],
-    });
-
-    expect(window).toEqual({
-      lookbackDays: 14,
-      runsListed: 3,
-      oldestRunSampled: '2026-09-19',
-      newestRunSampled: '2026-09-21',
-      cappedDays: ['2026-09-20'],
-    });
-  });
-
-  it('leaves the dates empty when nothing was listed', () => {
-    const window = summarizeCoverageWindow({
-      runs: [],
-      lookbackDays: 14,
-      cappedDays: [],
-    });
-
-    expect(window.oldestRunSampled).toBe('');
-    expect(window.newestRunSampled).toBe('');
-  });
-});
-
-const coverageWindow: CoverageWindow = {
-  lookbackDays: 14,
-  runsListed: 1204,
-  oldestRunSampled: '2026-09-08',
-  newestRunSampled: '2026-09-21',
-  cappedDays: [],
-};
-
-describe('renderCoverageWindowLine', () => {
-  it('states the dates and commits a complete walk covered', () => {
-    const line = renderCoverageWindowLine({
-      window: coverageWindow,
-      candidatesInspected: 489,
-      candidateShaCount: 489,
-      complete: true,
-    });
-
-    expect(line).toBe(
-      '_History coverage: 2026-09-08 to 2026-09-21, 1204 ci run(s), 489 candidate commit(s) inspected._',
-    );
-  });
-
-  it('quotes inspected out of found when the walk was cut short', () => {
-    const line = renderCoverageWindowLine({
-      window: coverageWindow,
-      candidatesInspected: 412,
-      candidateShaCount: 489,
-      complete: false,
-    });
-
-    expect(line).toContain('412 of 489 candidate commit(s) inspected');
-    expect(line).toContain('History coverage incomplete');
-  });
-
-  it('names unread fail-then-pass logs when they blocked coverage', () => {
-    expect(
-      renderCoverageWindowLine({
-        window: coverageWindow,
-        candidatesInspected: 5,
-        candidateShaCount: 5,
-        unreadFailedRuns: 2,
-        complete: false,
-      }),
-    ).toContain('2 confirmed fail-then-pass log(s) could not be read');
-  });
-
-  it('points at the findings table only when it rendered rows', () => {
-    expect(
-      renderCoverageWindowLine({
-        window: coverageWindow,
-        candidatesInspected: 1,
-        candidateShaCount: 2,
-        complete: false,
-        hasFindings: true,
-      }),
-    ).toContain('Findings above are a lower bound');
-
-    const empty = renderCoverageWindowLine({
-      window: coverageWindow,
-      candidatesInspected: 1,
-      candidateShaCount: 2,
-      complete: false,
-      hasFindings: false,
-    });
-    expect(empty).not.toContain('Findings above');
-    expect(empty).toContain('this is not an all-clear');
-  });
-
-  it('falls back to the requested window when nothing was sampled', () => {
-    expect(
-      renderCoverageWindowLine({
-        window: {
-          ...coverageWindow,
-          oldestRunSampled: '',
-          newestRunSampled: '',
-        },
-        candidatesInspected: 0,
-        candidateShaCount: 0,
-        complete: true,
-      }),
-    ).toContain('last 14 day(s)');
   });
 });
 
@@ -898,20 +644,169 @@ describe('jobLogUrl', () => {
   });
 });
 
-describe('aggregateHitsByFile', () => {
-  it('stores the first confirmed job log URL for a file', () => {
-    const byFile = aggregateHitsByFile(
-      [
-        { path: modifiedFile, failRunId: 10, jobId: 99 },
-        { path: modifiedFile, failRunId: 11, jobId: 88 },
-      ],
-      (runId, jobId) =>
-        jobLogUrl('https://github.com', 'org/repo', runId, jobId),
+describe('allHitsFromConfirmedLogs', () => {
+  const job = (jobId: number) => ({
+    name: 'Unit tests (3)',
+    runId: 100,
+    jobId,
+  });
+
+  it('keeps every unit test the job reported failing', () => {
+    const hits = allHitsFromConfirmedLogs(
+      [job(1)],
+      new Map([[1, ['app/a.test.ts', 'app/b.test.ts']]]),
     );
 
-    expect(byFile.get(modifiedFile)).toEqual({
-      count: 2,
-      exampleRunUrl: 'https://github.com/org/repo/actions/runs/10/job/99',
+    expect(hits.map((hit) => hit.path)).toStrictEqual([
+      'app/a.test.ts',
+      'app/b.test.ts',
+    ]);
+  });
+
+  // The index is not built for any one PR, so nothing narrows it to a file set.
+  it('does not narrow to a modified-file set', () => {
+    const hits = allHitsFromConfirmedLogs(
+      [job(1)],
+      new Map([[1, ['app/unrelated.test.ts']]]),
+    );
+
+    expect(hits).toHaveLength(1);
+  });
+
+  it('drops paths the detector would never look up', () => {
+    const hits = allHitsFromConfirmedLogs(
+      [job(1)],
+      new Map([
+        [
+          1,
+          [
+            'app/a.view.test.tsx',
+            'tests/smoke-appium/x.spec.ts',
+            'app/b.test.ts',
+          ],
+        ],
+      ]),
+    );
+
+    expect(hits.map((hit) => hit.path)).toStrictEqual(['app/b.test.ts']);
+  });
+
+  it('counts a path once per job even when the log repeats it', () => {
+    const hits = allHitsFromConfirmedLogs(
+      [job(1)],
+      new Map([[1, ['app/a.test.ts', 'app/a.test.ts']]]),
+    );
+
+    expect(hits).toHaveLength(1);
+  });
+
+  it('carries the run and job that produced each hit', () => {
+    const hits = allHitsFromConfirmedLogs(
+      [job(7)],
+      new Map([[7, ['app/a.test.ts']]]),
+    );
+
+    expect(hits[0]).toStrictEqual({
+      path: 'app/a.test.ts',
+      failRunId: 100,
+      jobId: 7,
     });
+  });
+
+  it('is empty when no log could be parsed', () => {
+    expect(allHitsFromConfirmedLogs([job(1)], new Map())).toStrictEqual([]);
+  });
+});
+
+describe('renderCoverageWindowLine', () => {
+  const coverage = (
+    overrides: Partial<CoverageWindow> = {},
+  ): CoverageWindow => ({
+    staleDays: 1,
+    daysCovered: 90,
+    gapDays: [],
+    oldestDay: '2026-06-24',
+    newestDay: '2026-09-20',
+    complete: true,
+    ...overrides,
+  });
+
+  it('states the window a clean result is true of', () => {
+    const line = renderCoverageWindowLine({
+      coverage: coverage(),
+      runsScanned: 28400,
+    });
+
+    expect(line).toBe(
+      '_History coverage: 2026-06-24 to 2026-09-20, 90 day(s), 28400 ci run(s)._',
+    );
+  });
+
+  // A reader who sees no findings has no other way to tell a clean history
+  // from an index that was never built.
+  it('says the history is unknown rather than clean when there is no index', () => {
+    const line = renderCoverageWindowLine({
+      coverage: coverage({ daysCovered: 0, complete: false }),
+      runsScanned: 0,
+    });
+
+    expect(line).toContain('the flaky history index is unavailable');
+    expect(line).not.toContain('coverage incomplete');
+  });
+
+  it('names how far behind a stale index is', () => {
+    const line = renderCoverageWindowLine({
+      coverage: coverage({ staleDays: 5, complete: false }),
+      runsScanned: 28400,
+    });
+
+    expect(line).toContain('last built 5 day(s) ago');
+    expect(line).toContain('not an all-clear');
+  });
+
+  it('counts the days inside the window that were never walked', () => {
+    const line = renderCoverageWindowLine({
+      coverage: coverage({
+        complete: false,
+        gapDays: ['2026-09-01', '2026-09-02'],
+      }),
+      runsScanned: 28400,
+    });
+
+    expect(line).toContain(
+      '2 day(s) inside the window were never fully walked',
+    );
+  });
+
+  it('does not mention staleness for a normal nightly lag', () => {
+    const line = renderCoverageWindowLine({
+      coverage: coverage({
+        staleDays: 1,
+        complete: false,
+        gapDays: ['2026-09-01'],
+      }),
+      runsScanned: 10,
+    });
+
+    expect(line).not.toContain('last built');
+  });
+
+  it('calls findings a lower bound only when the table has rows', () => {
+    const incomplete = coverage({ complete: false, gapDays: ['2026-09-01'] });
+
+    expect(
+      renderCoverageWindowLine({
+        coverage: incomplete,
+        runsScanned: 1,
+        hasFindings: true,
+      }),
+    ).toContain('lower bound');
+    expect(
+      renderCoverageWindowLine({
+        coverage: incomplete,
+        runsScanned: 1,
+        hasFindings: false,
+      }),
+    ).toContain('Nothing was found in the covered range');
   });
 });
