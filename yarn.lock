@@ -39262,7 +39262,7 @@ __metadata:
     "@metamask/core-backend": "npm:^11.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
-    "@metamask/design-system-react-native": "npm:^0.49.1"
+    "@metamask/design-system-react-native": "npm:^0.49.2"
     "@metamask/design-system-twrnc-preset": "npm:^0.12.0"
     "@metamask/design-tokens": "npm:^11.1.0"
     "@metamask/device-mcp": "npm:^0.4.2"
