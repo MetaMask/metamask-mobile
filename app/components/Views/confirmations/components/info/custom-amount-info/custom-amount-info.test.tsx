@@ -2361,6 +2361,112 @@ describe('CustomAmountInfo', () => {
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
     });
 
+    // Regression: a prefilled amount is shown long before its quote arrives.
+    // Tapping it opened the keypad, but a prefill that landed or re-ran a frame
+    // later auto-submitted it closed again, so the amount looked unresponsive
+    // until quotes settled.
+    it('keeps the keypad open when a prefill re-runs after the user taps the amount', async () => {
+      const updateTokenAmountMock = jest.fn();
+
+      const rerenderWithStatus = async (
+        view: ReturnType<typeof render>,
+        status: DepositPrefillStatus,
+      ) => {
+        useTransactionCustomAmountMock.mockReturnValue(
+          createCustomAmountMock({
+            amountFiat: '50',
+            depositPrefillStatus: status,
+            updateTokenAmount: updateTokenAmountMock,
+          }),
+        );
+
+        await act(async () => {
+          view.rerender(
+            createCustomAmountInfo({
+              transactionType: TransactionType.moneyAccountDeposit,
+            }),
+          );
+        });
+      };
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          hasInput: false,
+          depositPrefillStatus: DepositPrefillStatus.Skipped,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      // The prefill resolves and auto-submits the amount the user never touched.
+      await rerenderWithStatus(view, DepositPrefillStatus.Prefilled);
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+      expect(view.queryByTestId('deposit-keyboard')).toBeNull();
+
+      // User taps the amount to edit it while the quote is still loading.
+      await act(async () => {
+        fireEvent.press(view.getByTestId('custom-amount-input'));
+      });
+
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+
+      // Pay token churn re-runs the prefill underneath the open keypad.
+      await rerenderWithStatus(view, DepositPrefillStatus.Skipped);
+      await rerenderWithStatus(view, DepositPrefillStatus.Prefilled);
+
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-submit a pending prefill once the user has tapped the amount', async () => {
+      const updateTokenAmountMock = jest.fn();
+      (getMoneyAccountDepositIntent as jest.Mock).mockReturnValue('addMusd');
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        batchId: '0xbatch',
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          isPrefillPending: true,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(view.getByTestId('custom-amount-skeleton'));
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          isPrefillPending: false,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+
+      await act(async () => {
+        view.rerender(
+          createCustomAmountInfo({
+            transactionType: TransactionType.moneyAccountDeposit,
+          }),
+        );
+      });
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
     it('does not duplicate handleDone when user taps Done with a pending prefill', async () => {
       const updateTokenAmountMock = jest.fn();
       const onAmountSubmitMock = jest.fn();
