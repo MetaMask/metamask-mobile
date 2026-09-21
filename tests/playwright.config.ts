@@ -26,8 +26,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch:
-        'tests/performance/login/launch-times/warm-start-to-login.spec.ts',
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -38,7 +37,8 @@ export default defineConfig({
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file        },
+          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        },
       },
     },
     {
