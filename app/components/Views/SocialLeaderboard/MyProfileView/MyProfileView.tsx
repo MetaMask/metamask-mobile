@@ -17,8 +17,10 @@ import React, { useCallback } from 'react';
 import { ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
@@ -28,13 +30,28 @@ const MyProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile, isLoading, error, refresh } = useMyProfile();
+  const { traders: following } = useFollowedTraders();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleEditProfile = useCallback(() => undefined, []);
-  const handleShareFirstTrade = useCallback(() => undefined, []);
+  const handleEditProfile = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
+  }, [navigation]);
+  const handleFollowersPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'followers',
+    });
+  }, [navigation]);
+  const handleFollowingPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'following',
+    });
+  }, [navigation]);
+  const handleShareFirstTrade = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
+  }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
     if (!profile) {
@@ -99,7 +116,12 @@ const MyProfileView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('flex-grow pb-6')}
         >
-          <MyProfileHeader profile={profile} />
+          <MyProfileHeader
+            profile={profile}
+            followingCount={following.length}
+            onFollowersPress={handleFollowersPress}
+            onFollowingPress={handleFollowingPress}
+          />
 
           <Box
             flexDirection={BoxFlexDirection.Row}

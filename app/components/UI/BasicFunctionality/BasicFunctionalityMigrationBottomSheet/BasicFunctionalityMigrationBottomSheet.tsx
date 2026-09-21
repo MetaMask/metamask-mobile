@@ -3,6 +3,8 @@ import { Linking, ScrollView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import {
   Box,
+  BottomSheetFooter,
+  ButtonSize,
   Icon,
   IconName,
   IconSize,
@@ -15,8 +17,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { dismissBasicFunctionalityMigrationNotification } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -76,7 +76,7 @@ const BasicFunctionalityMigrationBottomSheet = () => {
       testID="basic-functionality-migration-bottom-sheet"
     >
       <ScrollView>
-        <Box twClassName="items-center gap-4 px-6 pb-6">
+        <Box twClassName="items-center gap-4 px-6 pt-11 pb-6">
           <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
           <Text variant={TextVariant.HeadingSm}>
             {strings('basic_functionality_migration.social_title')}
@@ -116,15 +116,13 @@ const BasicFunctionalityMigrationBottomSheet = () => {
         </Box>
       </ScrollView>
       <BottomSheetFooter
-        buttonPropsArray={[
-          {
-            variant: ButtonVariants.Primary,
-            label: strings('basic_functionality_migration.accept_and_close'),
-            onPress: handleAccept,
-            testID: 'basic-functionality-migration-accept',
-          },
-        ]}
-        style={tw.style('px-6')}
+        primaryButtonProps={{
+          size: ButtonSize.Lg,
+          children: strings('basic_functionality_migration.accept_and_close'),
+          onPress: handleAccept,
+          testID: 'basic-functionality-migration-accept',
+        }}
+        twClassName="px-6"
       />
     </BottomSheet>
   );

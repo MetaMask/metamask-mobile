@@ -39,6 +39,9 @@ export type BridgeScreensStackParamList = {
   RecurringOrderDetails: RecurringOrderDetailsRouteParams;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
+  BridgeModals:
+    | NavigatorScreenParams<BridgeModalsNavigationParamList>
+    | undefined;
 };
 
 /**
@@ -72,7 +75,10 @@ export type BridgeModalsNavigationParamList = {
     | undefined;
   BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
+  SwapsLimitOrderDefaultCostToleranceModal: undefined;
+  SwapsLimitOrderCustomCostToleranceModal: undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
+  LimitOrderCostToleranceInfoModal: undefined;
   RecurringIntervalModal: undefined;
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;

@@ -29,7 +29,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -101,7 +101,7 @@ jobs:
     environment: default-branch
     steps:
       - name: Send Slack notification
-        uses: MetaMask/github-tools/.github/actions/feature-flag-drift-slack-noti@e37c7027dd6f73d20f36b1d9dbeab3b084874eb6
+        uses: MetaMask/github-tools/.github/actions/feature-flag-drift-slack-noti@v1
         with:
           title: MetaMask Mobile
           slack-webhook: ${{ secrets.SLACK_WEBHOOK_FEATURE_FLAG_DRIFT }}

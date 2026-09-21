@@ -54,6 +54,13 @@ on:
         required: false
         type: boolean
         default: true
+      build_attribution:
+        description: >-
+          Analytics build attribution exported as METAMASK_BUILD_ATTRIBUTION for the
+          rebuilt JS bundle. Official Auto RC callers pass 'official'.
+        required: false
+        type: string
+        default: ''
     outputs:
       semantic_version:
         description: 'package.json version at the repacked commit'
@@ -92,6 +99,8 @@ jobs:
           vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
       ARTIFACT_NAME: ${{ inputs.platform == 'ios' && format('ios-ipa-{0}', inputs.build_name) || format('android-apk-{0}', inputs.build_name) }}
+      # Deliberately absent from builds.yml so apply-build-config cannot overwrite it.
+      METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
     outputs:
       semantic_version: ${{ steps.meta.outputs.semantic_version }}
       ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
@@ -120,7 +129,7 @@ jobs:
       # ("Couldn't find the node_modules state file"). build.yml gets this from its
       # setup-dependencies job; this workflow has no such job, so it installs inline.
       - name: Install dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -129,7 +138,7 @@ jobs:
 
       # JS-only setup: no pods, no Gradle. Same flags the BrowserStack repack path uses.
       - name: Setup project with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 20
           max_attempts: 3

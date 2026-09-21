@@ -34,7 +34,10 @@ import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeIn
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
 import { SwapsLimitOrderExpirationModalScreen } from './components/SwapsLimitOrderExpirationModal/SwapsLimitOrderExpirationModalScreen';
+import { SwapsLimitOrderDefaultCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderDefaultCostToleranceModal';
+import { SwapsLimitOrderCustomCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderCustomCostToleranceModal';
 import { LimitOrderConfirmationModalScreen } from './components/LimitOrderConfirmationModal/LimitOrderConfirmationModalScreen';
+import { LimitOrderCostToleranceInfoSheetScreen } from './components/LimitOrderCostToleranceInfoSheet/LimitOrderCostToleranceInfoSheetScreen';
 import { RecurringIntervalSheetScreen } from './components/RecurringIntervalSheet/RecurringIntervalSheetScreen';
 import { RecurringRepeatInfoSheetScreen } from './components/RecurringRepeatInfoSheet/RecurringRepeatInfoSheetScreen';
 import { PriceRangeSheetScreen } from './components/PriceRangeSheet/PriceRangeSheetScreen';
@@ -44,49 +47,8 @@ import type {
   BridgeModalsNavigationParamList,
   BridgeScreensStackParamList,
 } from './types/navigation';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
-
-const Stack = createNativeStackNavigator<BridgeScreensStackParamList>();
-export const BridgeScreenStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
-    <Stack.Screen
-      name={Routes.BRIDGE.TOKEN_SELECTOR}
-      component={BridgeTokenSelector}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
-      component={BatchSellTokenSelect}
-      options={{ title: '' }}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.BATCH_SELL_REVIEW}
-      component={BatchSellReview}
-      options={{ title: '' }}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
-      component={QuoteSelectorView}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.RECURRING_ORDER_DETAILS}
-      component={RecurringOrderDetailsView}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
-      component={HardwareWalletsSwaps}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.HW_QR_SCANNER}
-      component={HwQrScanner}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
+import { BridgeSessionProvider } from './providers/BridgeSessionProvider';
+import { BridgeQuoteDataProvider } from './hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 
 const ModalStack =
   createNativeStackNavigator<BridgeModalsNavigationParamList>();
@@ -182,8 +144,20 @@ export const BridgeModalStack = () => (
       component={SwapsLimitOrderExpirationModalScreen}
     />
     <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL}
+      component={SwapsLimitOrderDefaultCostToleranceModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL}
+      component={SwapsLimitOrderCustomCostToleranceModal}
+    />
+    <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL}
       component={LimitOrderConfirmationModalScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL}
+      component={LimitOrderCostToleranceInfoSheetScreen}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECURRING_INTERVAL_MODAL}
@@ -206,4 +180,59 @@ export const BridgeModalStack = () => (
       component={RecurringDelegationFeeInfoSheetScreen}
     />
   </ModalStack.Navigator>
+);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
+
+const Stack = createNativeStackNavigator<BridgeScreensStackParamList>();
+export const BridgeScreenStack = () => (
+  <BridgeSessionProvider>
+    <BridgeQuoteDataProvider>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
+        <Stack.Screen
+          name={Routes.BRIDGE.TOKEN_SELECTOR}
+          component={BridgeTokenSelector}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
+          component={BatchSellTokenSelect}
+          options={{ title: '' }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.BATCH_SELL_REVIEW}
+          component={BatchSellReview}
+          options={{ title: '' }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
+          component={QuoteSelectorView}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.RECURRING_ORDER_DETAILS}
+          component={RecurringOrderDetailsView}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+          component={HardwareWalletsSwaps}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.HW_QR_SCANNER}
+          component={HwQrScanner}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.MODALS.ROOT}
+          component={BridgeModalStack}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
+        />
+      </Stack.Navigator>
+    </BridgeQuoteDataProvider>
+  </BridgeSessionProvider>
 );

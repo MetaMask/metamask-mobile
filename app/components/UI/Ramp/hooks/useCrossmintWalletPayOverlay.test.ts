@@ -91,7 +91,6 @@ function setPlatform(platform: 'ios' | 'android') {
 describe('useCrossmintWalletPayOverlay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     jest.mocked(useSelector).mockReturnValue(true);
     setPlatform('ios');
     setupController();
@@ -102,13 +101,9 @@ describe('useCrossmintWalletPayOverlay', () => {
     });
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
+  /** Flushes the preparation request so its result reaches state. */
   async function settle() {
     await act(async () => {
-      jest.advanceTimersByTime(500);
       await Promise.resolve();
     });
   }
@@ -446,7 +441,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     );
   });
 
-  it('logs Crossmint failure events from WebView messages', () => {
+  it('logs Crossmint failure events from WebView messages', async () => {
     const loggerSpy = jest
       .spyOn(Logger, 'error')
       .mockImplementation(() => undefined);
@@ -454,6 +449,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     const { result } = renderHook(() =>
       useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
+    await settle();
 
     act(() => {
       result.current.onMessage({
@@ -469,9 +465,156 @@ describe('useCrossmintWalletPayOverlay', () => {
     expect(loggerSpy).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'Daily limit exceeded' }),
       expect.objectContaining({
-        message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
+        message:
+          'useCrossmintWalletPayOverlay Crossmint order is not purchasable',
       }),
     );
+  });
+
+  describe('unpurchasable order', () => {
+    const UNAVAILABLE =
+      'This item is not available for purchase with Crossmint at this moment';
+
+    function reportUnavailable(result: {
+      current: { onMessage: (event: never) => void };
+    }) {
+      act(() => {
+        result.current.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              event: 'order:updated',
+              data: {
+                order: {
+                  phase: 'quote',
+                  payment: { status: 'requires-quote' },
+                  lineItems: [
+                    {
+                      quote: { unavailabilityReason: { message: UNAVAILABLE } },
+                    },
+                  ],
+                },
+              },
+            }),
+          },
+        } as never);
+      });
+    }
+
+    it('tears down the checkout and exposes the reason', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+      expect(result.current.checkoutUrl).not.toBeNull();
+
+      reportUnavailable(result);
+
+      expect(result.current.checkoutUrl).toBeNull();
+      expect(result.current.isPreparing).toBe(false);
+      expect(result.current.isCheckoutReady).toBe(false);
+      expect(result.current.checkoutError).toBe(UNAVAILABLE);
+    });
+
+    it('ignores a late ready report for the torn-down checkout', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      reportUnavailable(result);
+      act(() => {
+        result.current.onCheckoutReady();
+      });
+
+      expect(result.current.isCheckoutReady).toBe(false);
+      expect(result.current.checkoutUrl).toBeNull();
+    });
+
+    it('does not create a replacement order for the same quote parameters', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result, rerender } = renderHook(
+        ({ amount }: { amount: number }) =>
+          useCrossmintWalletPayOverlay(crossmintQuote, amount),
+        { initialProps: { amount: 25 } },
+      );
+      await settle();
+
+      reportUnavailable(result);
+      rerender({ amount: 25 });
+      await settle();
+
+      expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears the reason and re-prepares when the amount changes', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result, rerender } = renderHook(
+        ({ amount }: { amount: number }) =>
+          useCrossmintWalletPayOverlay(crossmintQuote, amount),
+        { initialProps: { amount: 25 } },
+      );
+      await settle();
+      reportUnavailable(result);
+      expect(result.current.checkoutError).toBe(UNAVAILABLE);
+
+      rerender({ amount: 50 });
+      await settle();
+
+      expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(2);
+      expect(result.current.checkoutError).toBeNull();
+      expect(result.current.checkoutUrl).not.toBeNull();
+    });
+
+    it('ignores an unpurchasable report from a checkout superseded by a new amount', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result, rerender } = renderHook(
+        ({ amount }: { amount: number }) =>
+          useCrossmintWalletPayOverlay(crossmintQuote, amount),
+        { initialProps: { amount: 25 } },
+      );
+      await settle();
+
+      const stale = { current: { onMessage: result.current.onMessage } };
+      rerender({ amount: 50 });
+      reportUnavailable(stale);
+      await settle();
+
+      expect(result.current.checkoutError).toBeNull();
+      expect(result.current.checkoutUrl).not.toBeNull();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('keeps a payment decline as a retry inside the checkout', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      act(() => {
+        result.current.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              event: 'order:updated',
+              data: {
+                order: {
+                  phase: 'payment',
+                  payment: {
+                    status: 'awaiting-payment',
+                    failureReason: { message: 'Card declined' },
+                  },
+                },
+              },
+            }),
+          },
+        } as never);
+      });
+
+      expect(result.current.checkoutUrl).not.toBeNull();
+      expect(result.current.checkoutError).toBeNull();
+    });
   });
 
   it('hands off to OrderDetails when the WebView reports payment in progress', async () => {
@@ -569,6 +712,83 @@ describe('useCrossmintWalletPayOverlay', () => {
     });
 
     expect(mockNavigationReset).not.toHaveBeenCalled();
+  });
+
+  describe('payment settling', () => {
+    function report(
+      result: { current: { onMessage: (event: never) => void } },
+      payment: Record<string, unknown>,
+    ) {
+      act(() => {
+        result.current.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              event: 'order:updated',
+              data: { order: { payment } },
+            }),
+          },
+        } as never);
+      });
+    }
+
+    it('settles once the status moves into awaiting-payment', async () => {
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      // The idle checkout reports requires-email; the wallet sheet resolves
+      // it and the order becomes payable in the same moment.
+      report(result, { status: 'requires-email' });
+      expect(result.current.isPaymentSettling).toBe(false);
+
+      report(result, { status: 'awaiting-payment' });
+      expect(result.current.isPaymentSettling).toBe(true);
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
+    it('does not settle for a checkout that is already awaiting payment', async () => {
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      report(result, { status: 'awaiting-payment' });
+      report(result, { status: 'awaiting-payment' });
+
+      expect(result.current.isPaymentSettling).toBe(false);
+    });
+
+    it('settles on in-progress alongside the hand-off', async () => {
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      report(result, { status: 'in-progress' });
+
+      expect(result.current.isPaymentSettling).toBe(true);
+      expect(mockNavigationReset).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives the slot back on a decline', async () => {
+      jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+      const { result } = renderHook(() =>
+        useCrossmintWalletPayOverlay(crossmintQuote, 25),
+      );
+      await settle();
+
+      report(result, { status: 'requires-email' });
+      report(result, { status: 'awaiting-payment' });
+      expect(result.current.isPaymentSettling).toBe(true);
+
+      report(result, {
+        status: 'awaiting-payment',
+        failureReason: { message: 'Card declined' },
+      });
+
+      expect(result.current.isPaymentSettling).toBe(false);
+    });
   });
 
   it('hands off when the polled order reaches PENDING', async () => {
