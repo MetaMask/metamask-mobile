@@ -15,11 +15,9 @@ import {
   getDefaultAssetsControllerState,
   isAccountGroupLoading,
   isAccountLoading,
-} from '@metamask/assets-controller';
-import type {
-  AccountId,
-  AssetsControllerState,
-  AssetsLoadingStatus,
+  type AccountId,
+  type AssetsControllerState,
+  type AssetsLoadingStatus,
 } from '@metamask/assets-controller';
 
 type AccountTreeStateParam = Parameters<
