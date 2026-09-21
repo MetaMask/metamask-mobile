@@ -217,6 +217,19 @@ export const tapTestDappButtonAndWaitForConfirm = async (
     return;
   }
 
+  // Apply the same contract-bound readiness gate as Android — without it,
+  // a tap issued before the dapp binds the contract succeeds silently and
+  // no confirmation sheet opens, causing waitForConfirmButton to time out.
+  const iosState = await waitForTestDappButtonReady(
+    pageUrl,
+    buttonId,
+    expectedUrl,
+  );
+  if (!isTestDappButtonReady(iosState)) {
+    throw new Error(
+      `Test dapp #${buttonId} not ready before tap; state=${JSON.stringify(iosState)}`,
+    );
+  }
   await WebView.tapById(buttonId, {
     pageUrl,
     description,
