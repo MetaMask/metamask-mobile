@@ -90,6 +90,9 @@ const buildResult = (
   return {
     items,
     sections,
+    // V0 reads `items`; the paired raw rows only matter to the V1 mapper, so a
+    // fixture without real API rows can leave them empty.
+    rows: overrides.rows ?? [],
     hasLoadedItems:
       overrides.hasLoadedItems ??
       (overrides.items ?? [spotItem, perpItem]).length > 0,
