@@ -188,6 +188,12 @@ describe('PerpsClosePositionBottomSheet', () => {
     jest.clearAllMocks();
     resetLastCloseOrderType();
 
+    // clearAllMocks leaves implementations in place, so a test that turns the
+    // limit-order flag off would otherwise disable it for every test after it.
+    jest
+      .requireMock('../../selectors/featureFlags')
+      .selectPerpsClosePositionLimitOrderEnabledFlag.mockReturnValue(true);
+
     mockKeypadValue = MOCK_KEYPAD_VALUE;
 
     useNavigationMock.mockReturnValue({
@@ -263,8 +269,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
       ).toHaveTextContent(
-        strings('perps.close_position.sheet_title', {
-          direction: strings('perps.market.long'),
+        strings('perps.close_position.sheet_title_long', {
           asset: 'ETH',
         }),
       );
@@ -289,8 +294,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
       ).toHaveTextContent(
-        strings('perps.close_position.sheet_title', {
-          direction: strings('perps.market.short'),
+        strings('perps.close_position.sheet_title_short', {
           asset: 'ETH',
         }),
       );
@@ -531,6 +535,58 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
       ).toHaveTextContent('0.00');
+    });
+
+    it('prompts to set a price instead of showing a zero limit after Done', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+        ),
+      ).toHaveTextContent(strings('perps.order.set_price'));
+    });
+
+    it('explains the disabled Close button while the limit price is unset', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByText(
+          strings('perps.order.validation.please_set_a_limit_price'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the review state when the limit order flag is off despite a remembered limit type', () => {
+      // Session memory says limit, but the flag forces effectiveOrderType to
+      // market. Nothing may keep the keypad up over the slider and CTA.
+      const firstOpen = renderSheet();
+      toggleOrderType(firstOpen);
+      firstOpen.unmount();
+
+      jest
+        .requireMock('../../selectors/featureFlags')
+        .selectPerpsClosePositionLimitOrderEnabledFlag.mockReturnValue(false);
+
+      const utils = renderSheet();
+
+      expect(utils.queryByTestId('mock-keypad')).toBeNull();
+      expect(
+        utils.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+        ),
+      ).toBeNull();
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('reopens the limit price keypad when the limit price row is pressed after Done', () => {

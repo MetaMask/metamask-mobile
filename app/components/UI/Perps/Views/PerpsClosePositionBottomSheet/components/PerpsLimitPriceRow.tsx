@@ -50,6 +50,8 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
     priceColor = TextColor.TextDefault;
   }
 
+  const isEmptyInReview = !hasValue && !isEditing;
+
   const cursor = isEditing ? (
     <Animated.View
       testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR}
@@ -78,23 +80,37 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             alignItems={BoxAlignItems.Center}
             gap={1}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              $
-            </Text>
-            {!hasValue ? cursor : null}
-            <Text
-              variant={TextVariant.BodyMd}
-              color={priceColor}
-              testID={
-                PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
-              }
-            >
-              {hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}
-            </Text>
-            {hasValue ? cursor : null}
+            {isEmptyInReview ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID={
+                  PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                }
+              >
+                {strings('perps.order.set_price')}
+              </Text>
+            ) : (
+              <>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  $
+                </Text>
+                {!hasValue ? cursor : null}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={priceColor}
+                  testID={
+                    PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                  }
+                >
+                  {hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}
+                </Text>
+                {hasValue ? cursor : null}
+              </>
+            )}
           </Box>
         </Box>
       </TouchableOpacity>

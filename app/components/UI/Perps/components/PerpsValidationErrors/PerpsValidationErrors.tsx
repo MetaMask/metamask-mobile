@@ -17,6 +17,11 @@ export interface PerpsValidationErrorsProps {
   errors: readonly string[];
   /** Overrides the reserved-space container, e.g. the tighter bottom sheet row. */
   twClassName?: string;
+  /**
+   * `start` matches the trade sheet, which left-aligns its errors directly
+   * above the CTA. The full-screen close and adjust-margin flows center theirs.
+   */
+  alignment?: 'center' | 'start';
   testID?: string;
 }
 
@@ -27,14 +32,24 @@ export interface PerpsValidationErrorsProps {
 const PerpsValidationErrors: React.FC<PerpsValidationErrorsProps> = ({
   errors,
   twClassName = DEFAULT_CONTAINER_CLASSNAME,
+  alignment = 'center',
   testID,
 }) => (
-  <Box twClassName={twClassName} testID={testID}>
+  <Box
+    twClassName={twClassName}
+    testID={testID}
+    accessibilityLiveRegion="polite"
+  >
     {errors.map((error) => (
       <HelpText
         key={error}
         severity={HelpTextSeverity.Danger}
-        twClassName="w-full justify-center text-center"
+        accessibilityRole="alert"
+        twClassName={
+          alignment === 'center'
+            ? 'w-full justify-center text-center'
+            : 'w-full'
+        }
       >
         {error}
       </HelpText>

@@ -79,9 +79,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // The sheet has two modes: reviewing the close (slider, totals, CTA) and
   // editing the limit price (limit row, presets, keypad). The keypad covers
   // the CTA in Figma, so everything below the amount swaps on this one flag.
-  const [isEditingLimitPrice, setIsEditingLimitPrice] = useState(
+  const [isLimitPriceKeypadOpen, setIsLimitPriceKeypadOpen] = useState(
     effectiveOrderType === 'limit',
   );
+  const isEditingLimitPrice =
+    isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
   const [showTokenAmount, setShowTokenAmount] = useState(false);
 
   const handleDisplayToggle = useCallback(
@@ -102,7 +104,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
   const handleLimitPriceDone = useCallback(() => {
     limitPriceInput.trackInputMethod();
-    setIsEditingLimitPrice(false);
+    setIsLimitPriceKeypadOpen(false);
   }, [limitPriceInput]);
 
   const handleOrderTypeChange = useCallback(
@@ -115,18 +117,18 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       handleDonePress();
       // Each toggle returns that variant's default: market is idle with
       // the slider, limit is the limit-price keypad.
-      setIsEditingLimitPrice(nextOrderType === 'limit');
+      setIsLimitPriceKeypadOpen(nextOrderType === 'limit');
     },
     [handleDonePress, limitPriceInput, selectOrderType],
   );
 
   const handleCloseSizePress = useCallback(() => {
-    setIsEditingLimitPrice(false);
+    setIsLimitPriceKeypadOpen(false);
   }, []);
 
   const handleLimitPriceRowPress = useCallback(() => {
     handleDonePress();
-    setIsEditingLimitPrice(true);
+    setIsLimitPriceKeypadOpen(true);
   }, [handleDonePress]);
 
   // Two order types, so the header control swaps between them on tap rather
@@ -158,6 +160,25 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
+
+  const footerMessages = useMemo(() => {
+    const needsLimitPrice =
+      effectiveOrderType === 'limit' &&
+      !hasLimitPriceValue &&
+      !isEditingLimitPrice;
+
+    return needsLimitPrice
+      ? [
+          ...displayedErrors,
+          strings('perps.order.validation.please_set_a_limit_price'),
+        ]
+      : displayedErrors;
+  }, [
+    displayedErrors,
+    effectiveOrderType,
+    hasLimitPriceValue,
+    isEditingLimitPrice,
+  ]);
 
   return (
     <BottomSheet
@@ -230,17 +251,22 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         />
       )}
 
-      {/* One BodySm line (22px) is reserved so a validation error appearing
-          mid-keypad-entry does not resize the sheet under the user's finger. */}
-      <PerpsValidationErrors
-        errors={displayedErrors}
-        twClassName="min-h-[22px] justify-center px-4"
-      />
-
-      {/* Figma puts the keypad over the CTA, so the whole footer hides with it. */}
+      {/* Figma puts the keypad over the CTA, so the whole footer hides with it.
+          Blocking errors sit with the CTA they are blocking, left aligned
+          directly above it, matching the trade sheet. Errors about the limit
+          price itself stay on that row, where they are still visible while the
+          keypad is open. */}
       {!isEditingLimitPrice && (
         <>
           <SectionDivider marginVertical={1} twClassName="mx-4" />
+
+          {/* One BodySm line stays reserved so an error appearing while the
+              user drags the slider does not resize the sheet under them. */}
+          <PerpsValidationErrors
+            errors={footerMessages}
+            alignment="start"
+            twClassName="min-h-[22px] justify-center px-4"
+          />
 
           <BottomSheetFooter
             primaryButtonProps={confirmButtonProps}

@@ -66,12 +66,13 @@ const PerpsClosePositionSheetHeader: React.FC<
           numberOfLines={1}
           testID={PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE}
         >
-          {strings('perps.close_position.sheet_title', {
-            direction: isLong
-              ? strings('perps.market.long')
-              : strings('perps.market.short'),
-            asset: getPerpsDisplaySymbol(symbol),
-          })}
+          {isLong
+            ? strings('perps.close_position.sheet_title_long', {
+                asset: getPerpsDisplaySymbol(symbol),
+              })
+            : strings('perps.close_position.sheet_title_short', {
+                asset: getPerpsDisplaySymbol(symbol),
+              })}
         </Text>
         {leverage ? (
           <Tag
