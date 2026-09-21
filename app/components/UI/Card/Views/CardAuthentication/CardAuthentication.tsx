@@ -102,6 +102,7 @@ const CardAuthentication = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
+  const walletSignInLock = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
   const isForgotPasswordEnabled = useSelector(
     selectCardForgotPasswordFeatureEnabled,
@@ -449,8 +450,7 @@ const CardAuthentication = () => {
         Logger.log('CardAuthentication::Login failed', err);
         if (
           err instanceof CardProviderError &&
-          (err.code === CardProviderErrorCode.InvalidCredentials ||
-            err.code === CardProviderErrorCode.InvalidOtp)
+          err.code === CardProviderErrorCode.InvalidCredentials
         ) {
           setBanner('bad_creds');
         }
@@ -486,6 +486,7 @@ const CardAuthentication = () => {
   }, [confirmCode, performEmailLogin, latestValueSubmitted, isOtpStep]);
 
   const handleWalletSignIn = useCallback(async () => {
+    if (walletSignInLock.current) return;
     if (!walletOption || !countryKey) return;
     const address =
       view.mode === 'wallet' && view.address ? view.address : selectedAddress;
@@ -495,23 +496,24 @@ const CardAuthentication = () => {
       return;
     }
 
-    if (view.mode === 'wallet' && view.origin === 'manual') {
-      const verify = await verifyAccount(address, walletOption);
-      if (verify === 'not_found') {
-        setBanner('no_card');
-        return;
-      }
-      if (verify === 'unknown') {
-        setWalletError(
-          strings('card.card_authentication.errors.account_check_failed'),
-        );
-        return;
-      }
-    }
-
-    setWalletError(null);
+    walletSignInLock.current = true;
     setWalletSubmitting(true);
     try {
+      if (view.mode === 'wallet' && view.origin === 'manual') {
+        const verify = await verifyAccount(address, walletOption);
+        if (verify === 'not_found') {
+          setBanner('no_card');
+          return;
+        }
+        if (verify === 'unknown') {
+          setWalletError(
+            strings('card.card_authentication.errors.account_check_failed'),
+          );
+          return;
+        }
+      }
+
+      setWalletError(null);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
@@ -536,6 +538,7 @@ const CardAuthentication = () => {
         setWalletError(getCardProviderErrorMessage(err));
       }
     } finally {
+      walletSignInLock.current = false;
       setWalletSubmitting(false);
     }
   }, [
@@ -581,6 +584,7 @@ const CardAuthentication = () => {
   const handleCountrySelect = useCallback(() => {
     if (countryLocked || isLoadingRegions) return;
     setOnValueChange((region) => {
+      hasAutoSelectedCountry.current = true;
       setSelectedCountry(region);
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(region.key),
@@ -614,6 +618,7 @@ const CardAuthentication = () => {
     setConfirmCode('');
     setLatestValueSubmitted(null);
     setResendCooldown(60);
+    setBanner(null);
     resetToLogin();
   }, [resetToLogin]);
 

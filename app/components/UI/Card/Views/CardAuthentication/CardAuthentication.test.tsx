@@ -105,9 +105,29 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => ({
   selectCardForgotPasswordFeatureEnabled: () => true,
 }));
 
+let mockGeoLocation = 'GB';
+let mockOnRegionChange:
+  | ((region: { key: string; name: string; code: string }) => void)
+  | null = null;
+
 jest.mock('../../../../../selectors/geolocationController', () => ({
-  selectGeolocationLocation: () => 'GB',
+  selectGeolocationLocation: () => mockGeoLocation,
 }));
+
+jest.mock('../../components/Onboarding/RegionSelectorModal', () => {
+  const actual = jest.requireActual(
+    '../../components/Onboarding/RegionSelectorModal',
+  );
+  return {
+    ...actual,
+    setOnValueChange: (
+      callback: (region: { key: string; name: string; code: string }) => void,
+    ) => {
+      mockOnRegionChange = callback;
+      actual.setOnValueChange(callback);
+    },
+  };
+});
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: () => () => ({
@@ -224,6 +244,8 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGeoLocation = 'GB';
+    mockOnRegionChange = null;
     mockUseCardAuth.mockReturnValue(makeAuthReturn());
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -264,6 +286,31 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('verifies the wallet account once when Sign in is pressed twice', async () => {
+      mockVerifyAccount.mockImplementation(() => new Promise(() => undefined));
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.FORK_WALLET),
+      );
+
+      const signInButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(signInButton);
+        fireEvent.press(signInButton);
+      });
+
+      expect(mockVerifyAccount).toHaveBeenCalledTimes(1);
     });
 
     it('shows the no_card banner when a manual wallet verify returns not_found', async () => {
@@ -477,6 +524,52 @@ describe('CardAuthentication', () => {
           }),
         );
       });
+    });
+
+    it('does not show the password banner after an invalid code', async () => {
+      const auth = makeAuthReturn();
+      let step: { type: 'otp' | 'email_password'; destination?: string } = {
+        type: 'otp',
+        destination: '+1555****90',
+      };
+      mockUseCardAuth.mockImplementation(
+        () =>
+          ({
+            ...auth,
+            currentStep: step,
+          }) as ReturnType<typeof useCardAuth>,
+      );
+      mockSubmitMutateAsync.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidOtp,
+          'Incorrect code',
+        ),
+      );
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.OTP_CODE_FIELD),
+        '123456',
+      );
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalled();
+      });
+
+      step = { type: 'email_password' };
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON,
+        ),
+      );
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.BANNER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -734,6 +827,29 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
       ).toBeOnTheScreen();
+    });
+
+    it('keeps a manually chosen country when geolocation arrives later', () => {
+      mockGeoLocation = 'UNKNOWN';
+      setResolution({ kind: 'email', option: emailOption });
+      const { store } = render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({ key: 'US', name: 'United States', code: 'US' });
+      });
+
+      expect(screen.getByText(/United States/)).toBeOnTheScreen();
+
+      mockGeoLocation = 'GB';
+      act(() => {
+        store.dispatch({ type: 'test/geolocation-updated' });
+      });
+
+      expect(screen.getByText(/United States/)).toBeOnTheScreen();
+      expect(screen.queryByText(/United Kingdom/)).toBeNull();
     });
   });
 });
