@@ -170,6 +170,16 @@ describe('ImmersveKYCModal', () => {
     expect(capturedProps.injectedJavaScript).toContain('getUserMedia');
   });
 
+  it('renders the WebView on iOS without requesting permissions or injecting script', () => {
+    Platform.OS = 'ios';
+
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    expect(mockRequestMultiple).not.toHaveBeenCalled();
+    expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
+    expect(capturedProps.injectedJavaScript).toBeUndefined();
+  });
+
   it('shows a permission error and does not mount the WebView when denied', async () => {
     mockRequestMultiple.mockResolvedValue(deniedStatuses);
 
