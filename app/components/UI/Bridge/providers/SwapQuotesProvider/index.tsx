@@ -39,7 +39,7 @@ interface UseSwapQuotesParams {
    * provider stays mounted to keep the tree stable, this flag skips
    * expensive computations.
    */
-  isActive?: boolean;
+  isActive: boolean;
 }
 
 interface UseQuoteRequestParams
@@ -51,7 +51,7 @@ interface UseQuoteRequestParams
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
  */
 const useQuoteRequest = (params: UseQuoteRequestParams) => {
-  const { quoteParams, latestSourceAtomicBalance } = params;
+  const { quoteParams, latestSourceAtomicBalance, isActive } = params;
   const {
     srcAmount,
     srcToken,
@@ -114,6 +114,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     quoteRequestCount: params.quoteRequestCount,
     genericQuoteRequest,
     rawSrcAmount: srcAmount,
+    isActive,
   });
 
   const refreshQuotes = useCallback(() => {
@@ -234,7 +235,7 @@ export const SwapQuotesProvider = ({
     debounceWait: DEBOUNCE_WAIT,
   };
 
-  const requestData = useQuoteRequest(resolvedParams);
+  const requestData = useQuoteRequest({ ...resolvedParams, isActive });
   const quoteData = useQuoteData({
     ...resolvedParams,
     isActive,

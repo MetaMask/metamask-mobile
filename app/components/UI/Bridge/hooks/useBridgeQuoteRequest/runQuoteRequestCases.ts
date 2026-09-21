@@ -27,6 +27,7 @@ import {
 } from '../../../../../util/trace';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { useSwapQuotes } from '../useSwapQuotes';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -351,6 +352,46 @@ export const runQuoteRequestCases = ({
         }),
       );
     });
+
+    it('does not end a quote trace on unmount when the quote source is inactive', async () => {
+      if (isCombinedQuoteHook) {
+        const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+        mockUseSwapsFeatureId
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE)
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+
+        expect(result.current).toBeUndefined();
+        expect(mockTrace).not.toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapsFeatureId).toHaveBeenCalledTimes(2);
+      } else {
+        const mockUseSwapQuotes = jest.mocked(useSwapQuotes);
+        mockUseSwapQuotes.mockReturnValueOnce(
+          {} as NonNullable<ReturnType<typeof useSwapQuotes>>,
+        );
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        expect(mockTrace).toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapQuotes).toHaveBeenCalledTimes(1);
+      }
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
     it('marks manually requested quote refreshes in the quote trace', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
