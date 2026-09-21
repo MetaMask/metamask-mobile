@@ -9,7 +9,11 @@ import type {
 import type { BridgeToken } from '../types';
 import { formatTokenBalance } from '.';
 import { formatCurrency } from './currencyUtils';
-import { formatPriceRangeLabel, PRICE_RANGE_MISSING_VALUE } from './priceRange';
+import {
+  formatPriceRangeLabel,
+  PRICE_RANGE_CURRENCY,
+  PRICE_RANGE_MISSING_VALUE,
+} from './priceRange';
 import { convertApiTokenToBridgeToken } from './tokenUtils';
 
 export function getRecurringOrderTokens(order: RecurringOrder): {
@@ -93,39 +97,19 @@ export function getUsdToCurrentCurrencyRate({
   return conversionRate / usdConversionRate;
 }
 
-function convertUsdBound(
-  value: string | undefined,
-  usdToCurrentCurrencyRate: number | undefined,
-): string {
-  if (!value || usdToCurrentCurrencyRate === undefined) {
-    return '';
-  }
-
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) {
-    return '';
-  }
-
-  return String(numericValue * usdToCurrentCurrencyRate);
-}
-
 export function formatRecurringPriceRange({
   priceRange,
-  currentCurrency,
-  usdToCurrentCurrencyRate,
 }: {
   priceRange?: RecurringPriceRange;
-  currentCurrency: string;
-  usdToCurrentCurrencyRate?: number;
 }): string {
-  if (!priceRange || usdToCurrentCurrencyRate === undefined) {
+  if (!priceRange) {
     return PRICE_RANGE_MISSING_VALUE;
   }
 
   return formatPriceRangeLabel(
-    convertUsdBound(priceRange.min, usdToCurrentCurrencyRate),
-    convertUsdBound(priceRange.max, usdToCurrentCurrencyRate),
-    currentCurrency,
+    priceRange.min ?? '',
+    priceRange.max ?? '',
+    PRICE_RANGE_CURRENCY,
   );
 }
 

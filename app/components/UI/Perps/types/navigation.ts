@@ -207,6 +207,8 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes

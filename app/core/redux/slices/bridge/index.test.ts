@@ -1850,7 +1850,7 @@ describe('bridge slice', () => {
     it('sets the price range', () => {
       const priceRange = {
         tokenSide: 'dest' as const,
-        currency: 'usd',
+        currency: 'USD' as const,
         min: '1800',
         max: '2200',
       };
@@ -1866,7 +1866,7 @@ describe('bridge slice', () => {
     it('selects the price range from state', () => {
       const priceRange = {
         tokenSide: 'source' as const,
-        currency: 'usd',
+        currency: 'USD' as const,
         min: '0.9',
         max: '1.1',
       };
@@ -1895,7 +1895,7 @@ describe('bridge slice', () => {
             ...initialState.recurring,
             priceRange: {
               tokenSide: 'dest',
-              currency: 'usd',
+              currency: 'USD',
               min: '1800',
               max: '2200',
             },
@@ -1910,7 +1910,7 @@ describe('bridge slice', () => {
     it('keeps the price range when the source token identity is unchanged', () => {
       const priceRange = {
         tokenSide: 'dest' as const,
-        currency: 'usd',
+        currency: 'USD' as const,
         min: '1800',
         max: '2200',
       };
@@ -1938,7 +1938,7 @@ describe('bridge slice', () => {
             ...initialState.recurring,
             priceRange: {
               tokenSide: 'dest',
-              currency: 'usd',
+              currency: 'USD',
               min: '1800',
               max: '2200',
             },

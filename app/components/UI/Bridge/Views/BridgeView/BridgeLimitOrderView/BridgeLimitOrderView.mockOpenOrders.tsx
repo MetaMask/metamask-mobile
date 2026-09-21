@@ -27,6 +27,8 @@ const MOCK_LIMIT_VARIANTS = [
   'insufficient-gas',
   'filled',
   'expired',
+  'canceled',
+  'failed',
 ] as const;
 
 export const MOCK_LIMIT_OPEN_ORDERS = MOCK_LIMIT_VARIANTS.map((variant) => ({
@@ -89,6 +91,28 @@ function getLimitOpenOrderSlots(
         titleEndAccessory: (
           <Tag severity={TagSeverity.Neutral}>
             {strings('bridge.limit.expired')}
+          </Tag>
+        ),
+      };
+    case 'canceled':
+      return {
+        subtitle: strings('bridge.limit.canceled_at', { date: 'Mar 12' }),
+        primaryValue: '$208.99',
+        secondaryValue: limitPrice,
+        titleEndAccessory: (
+          <Tag severity={TagSeverity.Neutral}>
+            {strings('bridge.limit.canceled')}
+          </Tag>
+        ),
+      };
+    case 'failed':
+      return {
+        subtitle: strings('bridge.limit.failed_at', { date: 'Mar 12' }),
+        primaryValue: '$208.99',
+        secondaryValue: limitPrice,
+        titleEndAccessory: (
+          <Tag severity={TagSeverity.Danger}>
+            {strings('bridge.limit.failed')}
           </Tag>
         ),
       };
