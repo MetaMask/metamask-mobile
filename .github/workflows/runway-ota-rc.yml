@@ -59,6 +59,7 @@ jobs:
       message: ${{ needs.resolve-context.outputs.ota_version }}
       channel: rc
       platform: all
+      build_attribution: official
     secrets: inherit
 
   derive-slack-semver:
