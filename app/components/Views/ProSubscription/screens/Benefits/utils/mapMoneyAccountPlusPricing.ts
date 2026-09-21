@@ -18,11 +18,20 @@ export interface PlanPricingView {
   minBillingCyclesForBalance?: number;
 }
 
+export const PLUS_PRICING_STATUS = {
+  ready: 'ready',
+  unavailable: 'unavailable',
+  malformed: 'malformed',
+} as const;
+
+export type PlusPricingStatus =
+  (typeof PLUS_PRICING_STATUS)[keyof typeof PLUS_PRICING_STATUS];
+
 export interface MoneyAccountPlusPricingView {
   monthly?: PlanPricingView;
   annual?: PlanPricingView;
   savings?: { amount: number; equivalentMonthly: number };
-  status: 'ready' | 'unavailable' | 'malformed';
+  status: PlusPricingStatus;
 }
 
 const KNOWN_INTERVALS = new Set<string>(Object.values(RECURRING_INTERVALS));
@@ -107,12 +116,12 @@ export const mapMoneyAccountPlusPricing = (
   );
 
   if (plusProduct === undefined) {
-    return { status: 'unavailable' };
+    return { status: PLUS_PRICING_STATUS.unavailable };
   }
 
   const prices = plusProduct.prices;
   if (!Array.isArray(prices) || prices.length === 0) {
-    return { status: 'unavailable' };
+    return { status: PLUS_PRICING_STATUS.unavailable };
   }
 
   let monthly: PlanPricingView | undefined;
@@ -133,13 +142,13 @@ export const mapMoneyAccountPlusPricing = (
   });
 
   if (monthly === undefined && annual === undefined) {
-    return { status: 'malformed' };
+    return { status: PLUS_PRICING_STATUS.malformed };
   }
 
   return {
     monthly,
     annual,
     savings: computeSavings(monthly, annual),
-    status: 'ready',
+    status: PLUS_PRICING_STATUS.ready,
   };
 };
