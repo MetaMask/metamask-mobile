@@ -50,6 +50,8 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
   const controller = new PredictLiveDataService({
     messenger: controllerMessenger,
     venueId: KALSHI_VENUE_ID,
+    resolveEvent: (venueId, eventId) =>
+      initMessenger.call('PredictMarketDataService:getEvent', venueId, eventId),
     createClient: ({ onGameUpdate, onQuoteUpdate }) =>
       new PredictLiveDataClient({
         baseUrl: process.env.MM_PREDICT_API_URL,

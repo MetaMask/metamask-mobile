@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, type LayoutChangeEvent } from 'react-native';
 import {
   Box,
   Button,
@@ -24,6 +24,8 @@ interface FeedPreviewSectionProps {
   onOpen: () => void;
   onOpenEvent: (event: PredictEvent) => void;
   onRetry: () => void;
+  /** Reports the section's frame within the scroll content. */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 export const FeedPreviewSection = ({
@@ -35,6 +37,7 @@ export const FeedPreviewSection = ({
   onOpen,
   onOpenEvent,
   onRetry,
+  onLayout,
 }: FeedPreviewSectionProps) => {
   const renderEvent = (event: PredictEvent) => {
     const handlePress = () => onOpenEvent(event);
@@ -49,7 +52,11 @@ export const FeedPreviewSection = ({
   };
 
   return (
-    <Box testID={PredictHomeTestIds.section(feedScreenId)} twClassName="gap-3">
+    <Box
+      testID={PredictHomeTestIds.section(feedScreenId)}
+      twClassName="gap-3"
+      onLayout={onLayout}
+    >
       <Pressable
         testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
         accessibilityRole="button"
