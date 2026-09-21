@@ -626,7 +626,7 @@ const MoneyOnboardingView = () => {
       transparent
     >
       <ModalSafeAreaProvider>
-        <View style={styles.root} testID={MoneyOnboardingViewTestIds.ROOT}>
+        <View style={styles.root}>
           {riveFile && instance && (
             <RiveView
               file={riveFile}

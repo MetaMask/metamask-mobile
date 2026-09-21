@@ -1,5 +1,4 @@
 export const MoneyOnboardingViewTestIds = {
-  ROOT: 'money-onboarding-root',
   RIVE_ANIMATION: 'money-onboarding-rive-animation',
   OVERLAY_CONTAINER: 'money-onboarding-overlay-container',
   OVERLAY_TITLE: 'money-onboarding-overlay-title',
