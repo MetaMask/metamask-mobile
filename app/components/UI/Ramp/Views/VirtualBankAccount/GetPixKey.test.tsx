@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { hydrateAndNavigateVbaOnboarding } from './hydrateAndNavigateVbaOnboarding';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -16,6 +17,11 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
 }));
+
+jest.mock('./hydrateAndNavigateVbaOnboarding', () => ({
+  hydrateAndNavigateVbaOnboarding: jest.fn(),
+}));
+const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
 
 jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
@@ -41,6 +47,7 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
     mockAcceptDisclaimers.mockResolvedValue(true);
+    mockHydrateAndNavigate.mockResolvedValue(undefined);
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -66,7 +73,7 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('records vendor disclaimers before navigating to verify identity', async () => {
+  it('records vendor disclaimers before hydrating and navigating onward', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
@@ -76,7 +83,10 @@ describe('GetPixKey', () => {
 
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+      expect(mockHydrateAndNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        'get-pix-key-continue',
+      );
     });
   });
 

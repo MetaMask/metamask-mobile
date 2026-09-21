@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
+import { hydrateAndNavigateVbaOnboarding } from '../hydrateAndNavigateVbaOnboarding';
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
@@ -13,6 +14,12 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
+
+jest.mock('../hydrateAndNavigateVbaOnboarding', () => ({
+  hydrateAndNavigateVbaOnboarding: jest.fn(),
+}));
+
+const mockHydrateAndNavigate = jest.mocked(hydrateAndNavigateVbaOnboarding);
 
 const mockKycControllerState = {
   email: null as string | null,
@@ -60,6 +67,7 @@ describe('useKycEmailVerification', () => {
       finalStatus: 'new',
     });
     mockKycController.reset.mockResolvedValue(undefined);
+    mockHydrateAndNavigate.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -87,7 +95,7 @@ describe('useKycEmailVerification', () => {
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
-  it('starts the session then navigates to Get Pix Key', async () => {
+  it('starts the session then hydrates and navigates onward', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result, '  user@example.com  ');
@@ -96,10 +104,13 @@ describe('useKycEmailVerification', () => {
       vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
+    expect(mockHydrateAndNavigate).toHaveBeenCalledWith(
+      expect.anything(),
+      'email-continue',
+    );
   });
 
-  it('alerts without navigating when customer creation rejects', async () => {
+  it('alerts without hydrating when customer creation rejects', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     mockKycController.startSession.mockRejectedValue(
       new Error('Session creation failed.'),
@@ -112,7 +123,7 @@ describe('useKycEmailVerification', () => {
       'Identity verification',
       'Session creation failed.',
     );
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
   });
 
   it('does not start verification when the email is blank', async () => {
