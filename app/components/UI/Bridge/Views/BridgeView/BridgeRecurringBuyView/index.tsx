@@ -15,7 +15,6 @@ import {
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
 } from '../../../../../../core/redux/slices/bridge';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
@@ -42,7 +41,7 @@ import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   formatPriceRangeBounds,
-  isPriceRangeInCurrentCurrency,
+  PRICE_RANGE_CURRENCY,
 } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -90,7 +89,6 @@ const BridgeRecurringBuyViewContent = () => {
   } = useRecurringBuySwapInputs();
 
   const priceRange = useSelector(selectRecurringPriceRange);
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -180,19 +178,13 @@ const BridgeRecurringBuyViewContent = () => {
     [activeOrdersTab, historyQuery, openOrdersQuery],
   );
 
-  const effectiveRange = isPriceRangeInCurrentCurrency(
-    priceRange,
-    currentCurrency,
-  )
-    ? priceRange
-    : undefined;
   const priceRangeToken =
-    effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
+    priceRange?.tokenSide === 'source' ? sourceToken : destToken;
   const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
     formatPriceRangeBounds(
-      effectiveRange?.min ?? '',
-      effectiveRange?.max ?? '',
-      effectiveRange?.currency ?? currentCurrency,
+      priceRange?.min ?? '',
+      priceRange?.max ?? '',
+      PRICE_RANGE_CURRENCY,
     );
 
   const handlePriceRangePress = useCallback(() => {
@@ -280,7 +272,7 @@ const BridgeRecurringBuyViewContent = () => {
           />
 
           <PriceRangeRow
-            token={effectiveRange ? priceRangeToken : undefined}
+            token={priceRange ? priceRangeToken : undefined}
             minLabel={priceRangeMinLabel}
             maxLabel={priceRangeMaxLabel}
             onPress={handlePriceRangePress}
