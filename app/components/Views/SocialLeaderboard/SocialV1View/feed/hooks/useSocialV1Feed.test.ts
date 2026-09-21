@@ -32,8 +32,9 @@ describe('useSocialV1Feed', () => {
     expect(result.current.posts).toHaveLength(MOCK_SOCIAL_V1_FEED_ITEMS.length);
     expect(result.current.posts.map((post) => post.item.variant)).toEqual([
       'perpsOpen',
+      'spotOpen',
       'perpsClosed',
-      'spotCompact',
+      'spotClosed',
     ]);
     expect(result.current.pendingPost).toBeNull();
     expect(result.current.pendingStartedAtMs).toBeNull();
