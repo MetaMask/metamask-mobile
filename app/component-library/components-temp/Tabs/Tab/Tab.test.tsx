@@ -29,6 +29,32 @@ describe('Tab', () => {
       expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
     });
 
+    it('renders an indicator dot when showsIndicatorDot is true', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} showsIndicatorDot testID="dot-tab" />,
+      );
+
+      expect(getByTestId('dot-tab-indicator-dot')).toBeOnTheScreen();
+    });
+
+    it('renders no indicator dot by default', () => {
+      const { queryByTestId } = render(
+        <Tab {...defaultProps} testID="plain-tab" />,
+      );
+
+      expect(queryByTestId('plain-tab-indicator-dot')).toBeNull();
+    });
+
+    it('stretches to share the row when isFullWidth is true', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} isFullWidth testID="full-width-tab" />,
+      );
+
+      expect(getByTestId('full-width-tab-container')).toHaveStyle({
+        flexGrow: 1,
+      });
+    });
+
     it('renders long labels without truncating the element', () => {
       const longLabel =
         'This is a very long tab label that should be truncated';
