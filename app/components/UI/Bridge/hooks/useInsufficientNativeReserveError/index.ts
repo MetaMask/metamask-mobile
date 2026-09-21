@@ -29,8 +29,9 @@ const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
   '0x8f': '10',
   // Arc: USDC is the native gas token. Reserve should cover a swap round trip
   // (return leg ~200-250k gas, paid before incoming USDC lands), not just a
-  // bare transfer (~0.00042 USDC). 0.05 gives ~10x headroom for fee spikes.
-  '0x13b2': '0.05',
+  // bare transfer (~0.00042 USDC). 0.2 gives enough headroom for the
+  // following swap, including approve, network fee, and swap provider fee.
+  '0x13b2': '0.2',
   [BTC_MAINNET_CHAIN_ID]: '0.00003',
 };
 
