@@ -621,6 +621,26 @@ jobs:
             --grep "${{ inputs.test_suite_tag }}" \
             --pass-with-no-tests
 
+      - name: Collect app runtime logs (iOS)
+        if: ${{ inputs.platform == 'ios' && always() && steps.run-tests-ios.outcome != 'skipped' }}
+        continue-on-error: true
+        env:
+          IOS_DEVICE_POOL: ${{ steps.prepare-ios-appium.outputs.ios-device-pool }}
+        run: |
+          set +e
+          out_dir=tests/test-reports/ios-startup-log
+          mkdir -p "$out_dir"
+          IFS=',' read -r -a devices <<< "$IOS_DEVICE_POOL"
+          for udid in "${devices[@]}"; do
+            out="$out_dir/runtime-$udid.log"
+            xcrun simctl spawn "$udid" log show \
+              --last 30m --info --debug --style syslog \
+              --predicate 'processImagePath CONTAINS "MetaMask" OR senderImagePath CONTAINS "MetaMask"' \
+              > "$out" 2>&1
+            echo "===== iOS runtime errors ($udid) ====="
+            grep -iE 'RCTFatal|ExceptionsManager|redbox|Unhandled|TypeError|ReferenceError|is not a function|undefined is not|Requiring module|Invariant|state.json' "$out" | tail -100
+          done
+
       - name: Record iOS device pool impact
         if: ${{ inputs.platform == 'ios' && always() && steps.run-tests-ios.outcome != 'skipped' }}
         run: |
