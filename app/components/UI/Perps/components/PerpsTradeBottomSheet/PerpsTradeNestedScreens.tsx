@@ -1,6 +1,7 @@
 import type { OrderType } from '@metamask/perps-controller';
 import React from 'react';
 import PerpsLeverageBottomSheet from '../PerpsLeverageBottomSheet';
+import PerpsSlippageBottomSheet from '../PerpsSlippageBottomSheet';
 import { usePerpsTradeSheet } from './PerpsTradeBottomSheet';
 export { default as PerpsTradeTPSLScreen } from './PerpsTradeTPSLScreen';
 
@@ -28,6 +29,29 @@ export const PerpsTradeLeverageScreen: React.FC<
       onBack={goBack}
       onClose={close}
       onConfirmComplete={goBack}
+    />
+  );
+};
+
+interface PerpsTradeSettingsScreenProps {
+  currentValueBps: number;
+  onSave: (valueBps: number) => void;
+}
+
+export const PerpsTradeSettingsScreen: React.FC<
+  PerpsTradeSettingsScreenProps
+> = ({ currentValueBps, onSave }) => {
+  const { close, goBack } = usePerpsTradeSheet();
+
+  return (
+    <PerpsSlippageBottomSheet
+      isVisible
+      currentValueBps={currentValueBps}
+      presentation="screen"
+      onBack={goBack}
+      onClose={close}
+      onSave={onSave}
+      onSaveComplete={goBack}
     />
   );
 };
