@@ -24,7 +24,6 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
-import { useABTest } from '../../../../hooks/useABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -32,10 +31,6 @@ import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
-import {
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-} from './abTestConfig';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -76,12 +71,11 @@ type StickyButtonLayout =
   | 'both'
   | 'buy'
   | 'swap'
-  | 'swap_earn'
-  | 'earn_buy'
-  | 'earn'
+  | 'money_swap'
+  | 'money'
   | null;
 
-export interface MoneyEarnCtaConfig {
+export interface MoneyDepositCtaConfig {
   isLoading: boolean;
   label?: string;
   onPress: () => void;
@@ -97,7 +91,7 @@ interface TokenStickyFooterProps {
   /** Up-to-date token balance for useTokenActions swap logic */
   currentTokenBalance?: string;
   hasTokenBalance?: boolean;
-  moneyEarnCta?: MoneyEarnCtaConfig;
+  moneyDepositCta?: MoneyDepositCtaConfig;
   onStickyButtonsResolved?: (shown: StickyButtonLayout) => void;
   /** When true the footer omits its built-in safe-area bottom inset so the parent can manage spacing. */
   skipBottomInset?: boolean;
@@ -125,8 +119,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   balanceFiatUsd,
   networkName,
   currentTokenBalance,
-  hasTokenBalance = false,
-  moneyEarnCta,
+  moneyDepositCta,
   onStickyButtonsResolved,
   skipBottomInset = false,
   swapTestID,
@@ -200,22 +193,13 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const trackStickyFooterTapped = useStickyFooterTracking();
 
-  const { variant: moneyEarnCtaVisibilityVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-  );
-  const isMoneyEarnCtaActive =
-    Boolean(moneyEarnCta) &&
-    moneyEarnCtaVisibilityVariant.showMoneyDepositFooterCta;
-  const showSwapButton = isMoneyEarnCtaActive
-    ? hasTokenBalance && hasEligibleSwapTokens
-    : hasEligibleSwapTokens;
-  const showBuyButton = isMoneyEarnCtaActive
-    ? !hasTokenBalance && (isBuyable || !hasEligibleSwapTokens)
-    : isBuyable || !hasEligibleSwapTokens;
-  const showMoneyEarnButton = isMoneyEarnCtaActive;
+  const isMoneyDepositCtaActive = Boolean(moneyDepositCta);
+  const showSwapButton = hasEligibleSwapTokens;
+  const showBuyButton =
+    !isMoneyDepositCtaActive && (isBuyable || !hasEligibleSwapTokens);
+  const showMoneyDepositButton = isMoneyDepositCtaActive;
   const showBothButtons = showSwapButton && showBuyButton;
-  const showQuickBuyButton = !isMoneyEarnCtaActive && Boolean(onQuickBuyPress);
+  const showQuickBuyButton = Boolean(onQuickBuyPress);
 
   const tradingOpen = isTokenTradable(token as BridgeToken);
   useEffect(() => {
@@ -224,12 +208,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         onStickyButtonsResolved(null);
         return;
       }
-      const shown: StickyButtonLayout = isMoneyEarnCtaActive
+      // Resolve visible CTA layout for TOKEN_DETAILS_OPENED analytics.
+      const shown: StickyButtonLayout = isMoneyDepositCtaActive
         ? showSwapButton
-          ? 'swap_earn'
-          : showBuyButton
-            ? 'earn_buy'
-            : 'earn'
+          ? 'money_swap'
+          : 'money'
         : showBothButtons
           ? 'both'
           : showSwapButton
@@ -238,7 +221,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       onStickyButtonsResolved(shown);
     }
   }, [
-    isMoneyEarnCtaActive,
+    isMoneyDepositCtaActive,
     onStickyButtonsResolved,
     showBothButtons,
     showBuyButton,
@@ -252,12 +235,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
    * When only one button is shown it always gets the success style.
    * When both are shown, swap gets success if balance >= $100, buy gets success otherwise.
    */
-  const swapIsSuccess = isMoneyEarnCtaActive
+  const swapIsSuccess = isMoneyDepositCtaActive
     ? false
     : showBothButtons
       ? balanceUsd >= BALANCE_THRESHOLD_USD
       : showSwapButton;
-  const buyIsSuccess = isMoneyEarnCtaActive
+  const buyIsSuccess = isMoneyDepositCtaActive
     ? showBuyButton
     : showBothButtons
       ? !swapIsSuccess
@@ -335,20 +318,16 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   if (!tradingOpen) return null;
 
-  const moneyEarnButton = showMoneyEarnButton ? (
+  const moneyDepositButton = showMoneyDepositButton ? (
     <Button
       testID="money-asset-overview-footer-cta"
-      variant={
-        hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
-      }
+      variant={ButtonVariant.Primary}
       style={styles.earnButton}
-      twClassName={
-        hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
-      }
-      textProps={hasTokenBalance ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-      isLoading={moneyEarnCta?.isLoading}
+      twClassName={successBg}
+      textProps={SUCCESS_TEXT_PROPS}
+      isLoading={moneyDepositCta?.isLoading}
       onPress={() => {
-        if (!moneyEarnCta?.label) return;
+        if (!moneyDepositCta?.label) return;
 
         trackStickyFooterTapped({
           ctaType: 'money_deposit',
@@ -357,10 +336,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           chainId: token.chainId ?? '',
           indicatorsActive,
         });
-        handleFooterAction(moneyEarnCta.onPress, moneyEarnCta.label);
+        handleFooterAction(moneyDepositCta.onPress, moneyDepositCta.label);
       }}
     >
-      {moneyEarnCta?.label}
+      {moneyDepositCta?.label}
     </Button>
   ) : null;
 
@@ -403,7 +382,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               {strings('asset_overview.swap')}
             </Button>
           )}
-          {!hasTokenBalance && moneyEarnButton}
+          {moneyDepositButton}
           {showBuyButton && (
             <Button
               testID={buyTestID}
@@ -437,7 +416,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               {strings('asset_overview.buy_button')}
             </Button>
           )}
-          {hasTokenBalance && moneyEarnButton}
           {showQuickBuyButton && (
             <ButtonAnimated
               testID={quickBuyTestID}
@@ -467,7 +445,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             </ButtonAnimated>
           )}
         </View>
-        {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
+        {isMoneyDepositCtaActive && !moneyDepositCta?.isLoading && (
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
