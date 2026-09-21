@@ -6,6 +6,10 @@ import type {
 } from '@metamask/perps-controller';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
+import {
+  assertLighterClientParameters,
+  assertLighterRegistrationMessage,
+} from './lighterRegistration';
 
 export interface LighterExecutorCall {
   function: LighterWasmCall['function'];
@@ -25,6 +29,7 @@ const PRIVATE_KEY_PATTERN = /^[0-9a-f]{64}$/u;
 const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
 
 const resetListeners = new Set<() => void>();
+let generation = 0;
 let executor: LighterExecutor | null = null;
 let unavailableError: Error | null = null;
 // Terminal unavailability outlives a reset: once the WebView exhausts its
@@ -82,11 +87,41 @@ function signerKeyScope(params: LighterCreateClientParams) {
   };
 }
 
+function assertGeneration(owner: number): void {
+  if (unavailableError) throw unavailableError;
+  if (owner !== generation) throw new Error(RELOAD_ERROR);
+}
+
+async function withOwnership<T>(
+  operation: (owner: number, retired: Promise<never>) => Promise<T>,
+): Promise<T> {
+  const owner = generation;
+  assertGeneration(owner);
+  let rejectRetired!: (error: Error) => void;
+  const retired = new Promise<never>((_resolve, reject) => {
+    rejectRetired = reject;
+  });
+  retired.catch(() => undefined);
+  const onReset = () => {
+    if (owner !== generation) {
+      rejectRetired(unavailableError ?? new Error(RELOAD_ERROR));
+    }
+  };
+  resetListeners.add(onReset);
+  try {
+    return await operation(owner, retired);
+  } finally {
+    resetListeners.delete(onReset);
+  }
+}
+
 async function getOrCreatePrivateKey(
   params: LighterCreateClientParams,
+  owner: number,
 ): Promise<string> {
   const scope = signerKeyScope(params);
   const stored = await SecureKeychain.getSecureItem(scope);
+  assertGeneration(owner);
   if (stored) {
     if (!PRIVATE_KEY_PATTERN.test(stored.value)) {
       throw new Error('Stored Lighter signer key is invalid');
@@ -100,6 +135,7 @@ async function getOrCreatePrivateKey(
     privateKey,
     scope,
   );
+  assertGeneration(owner);
   if (storedKey === false) {
     throw new Error('Unable to persist Lighter signer key');
   }
@@ -108,21 +144,19 @@ async function getOrCreatePrivateKey(
 
 async function executeWithDeadline(
   call: LighterExecutorCall,
-  deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS,
+  deadline: number,
+  owner: number,
+  retired: Promise<never>,
 ): Promise<unknown> {
-  if (unavailableError) {
-    throw unavailableError;
-  }
+  assertGeneration(owner);
 
   await timeoutAfter(
-    ready,
+    Promise.race([ready, retired]),
     deadline - Date.now(),
     `Lighter signer not ready within ${LIGHTER_SIGNER_TIMEOUT_MS}ms for ${call.function}`,
   );
 
-  if (unavailableError) {
-    throw unavailableError;
-  }
+  assertGeneration(owner);
   const connectedExecutor = executor;
   if (!connectedExecutor) {
     throw new Error('Lighter signer bridge executor not connected');
@@ -135,7 +169,7 @@ async function executeWithDeadline(
     );
   }
   return timeoutAfter(
-    connectedExecutor(call, remainingMs),
+    Promise.race([connectedExecutor(call, remainingMs), retired]),
     remainingMs,
     `Lighter signer call ${call.function} exceeded the ${LIGHTER_SIGNER_TIMEOUT_MS}ms deadline`,
   );
@@ -167,6 +201,7 @@ export function reviveLighterBridge(): void {
 
 /** Re-arm the bridge while the WebView reloads. */
 export function resetLighterBridge(): void {
+  generation += 1;
   executor = null;
   if (isTerminallyUnavailable) {
     // Keep failing fast rather than re-arming readiness for a dead page.
@@ -185,6 +220,7 @@ export function setLighterBridgeUnavailable(reason: string): void {
   executor = null;
   isTerminallyUnavailable = true;
   unavailableError = error;
+  generation += 1;
   readyReject(error);
   notifyResetListeners();
 }
@@ -193,27 +229,33 @@ type LighterCreateClientResult = Awaited<
   ReturnType<LighterSignerBridge['createClient']>
 >;
 
-const createClient: LighterSignerBridge['createClient'] = async (params) => {
-  const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
-  const privateKey = await timeoutAfter(
-    getOrCreatePrivateKey(params),
-    deadline - Date.now(),
-    `Lighter signer client setup exceeded the ${LIGHTER_SIGNER_TIMEOUT_MS}ms deadline`,
-  );
-  return (await executeWithDeadline(
-    {
-      function: '_createClient',
-      params: [
-        privateKey,
-        params.chainId,
-        params.accountIndex,
-        params.nonce,
-        params.apiKeyIndex,
-      ],
-    },
-    deadline,
-  )) as LighterCreateClientResult;
-};
+const createClient: LighterSignerBridge['createClient'] = (params) =>
+  withOwnership(async (owner, retired) => {
+    assertLighterClientParameters(params);
+    const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
+    const privateKey = await timeoutAfter(
+      Promise.race([getOrCreatePrivateKey(params, owner), retired]),
+      deadline - Date.now(),
+      `Lighter signer client setup exceeded the ${LIGHTER_SIGNER_TIMEOUT_MS}ms deadline`,
+    );
+    const result = (await executeWithDeadline(
+      {
+        function: '_createClient',
+        params: [
+          privateKey,
+          params.chainId,
+          params.accountIndex,
+          params.nonce,
+          params.apiKeyIndex,
+        ],
+      },
+      deadline,
+      owner,
+      retired,
+    )) as LighterCreateClientResult;
+    assertLighterRegistrationMessage(params, result);
+    return result;
+  });
 
 // Results are validated against the pending call's operation before the
 // WebView executor resolves; this assertion restores the package's generic
@@ -223,7 +265,14 @@ const execute = (async (call: LighterWasmCall) => {
     const [chainId, accountIndex, nonce, apiKeyIndex] = call.params;
     return createClient({ chainId, accountIndex, nonce, apiKeyIndex });
   }
-  return executeWithDeadline(call);
+  return withOwnership((owner, retired) =>
+    executeWithDeadline(
+      call,
+      Date.now() + LIGHTER_SIGNER_TIMEOUT_MS,
+      owner,
+      retired,
+    ),
+  );
 }) as LighterSignerBridge['execute'];
 
 /** Singleton bridge handed to PerpsController in the Lighter credentials. */

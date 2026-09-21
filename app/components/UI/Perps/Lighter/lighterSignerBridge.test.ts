@@ -27,6 +27,12 @@ jest.mock('../../../../core/SecureKeychain', () => ({
 }));
 
 const mockSecureKeychain = jest.mocked(SecureKeychain);
+const clientResult = {
+  success: true,
+  pubKeySuccess: true,
+  pk: 'a'.repeat(80),
+  body: `Register Lighter Account\n\npubkey: 0x${'a'.repeat(80)}\nnonce: 0x0000000000000009\naccount index: 0x000000000000001c\napi key index: 0x0000000000000007\nOnly sign this message for a trusted client!`,
+};
 
 describe('lighterSignerBridge', () => {
   beforeEach(() => {
@@ -78,6 +84,62 @@ describe('lighterSignerBridge', () => {
     await expect(pending).rejects.toThrow(
       'Lighter signer WebView reloaded; retry the operation',
     );
+  });
+
+  it('retires setup immediately when reset interrupts key retrieval', async () => {
+    jest.useFakeTimers();
+    let finishRead!: (
+      value: Awaited<ReturnType<typeof SecureKeychain.getSecureItem>>,
+    ) => void;
+    mockSecureKeychain.getSecureItem.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishRead = resolve;
+        }),
+    );
+    const rejected = jest.fn();
+    const executor = jest.fn();
+    const pending = lighterSignerBridge
+      .createClient({
+        chainId: 300,
+        accountIndex: 28,
+        nonce: 9,
+        apiKeyIndex: 7,
+      })
+      .catch(rejected);
+
+    resetLighterBridge();
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(rejected).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('reloaded') }),
+    );
+    connectLighterExecutor(executor);
+    finishRead(null);
+    await pending;
+    await Promise.resolve();
+    expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    expect(executor).not.toHaveBeenCalled();
+  });
+
+  it('retires connected execution when the bridge resets', async () => {
+    jest.useFakeTimers();
+    const executor = jest.fn(() => new Promise(() => undefined));
+    connectLighterExecutor(executor);
+    const rejected = jest.fn();
+    const pending = lighterSignerBridge
+      .execute({ function: '_createAuthToken', params: [28, 7] })
+      .catch(rejected);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(1);
+
+    resetLighterBridge();
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(rejected).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('reloaded') }),
+    );
+    await pending;
   });
 
   it('times out instead of queueing forever when the signer never mounts', async () => {
@@ -178,12 +240,7 @@ describe('lighterSignerBridge', () => {
   });
 
   it('persists a generated key and keeps it inside createClient transport params', async () => {
-    const executor = jest.fn().mockResolvedValue({
-      success: true,
-      pk: 'public-key',
-      pubKeySuccess: true,
-      body: 'change-key-body',
-    });
+    const executor = jest.fn().mockResolvedValue(clientResult);
     connectLighterExecutor(executor);
 
     await lighterSignerBridge.createClient({
@@ -215,10 +272,7 @@ describe('lighterSignerBridge', () => {
     mockSecureKeychain.getSecureItem.mockResolvedValue({
       value: storedKey,
     } as Awaited<ReturnType<typeof SecureKeychain.getSecureItem>>);
-    const executor = jest.fn().mockResolvedValue({
-      pubKeySuccess: true,
-      body: 'change-key-body',
-    });
+    const executor = jest.fn().mockResolvedValue(clientResult);
     connectLighterExecutor(executor);
 
     await lighterSignerBridge.createClient({
@@ -237,6 +291,24 @@ describe('lighterSignerBridge', () => {
       },
       expect.any(Number),
     );
+  });
+
+  it('rejects an unrelated registration body before returning it to the controller', async () => {
+    connectLighterExecutor(
+      jest.fn().mockResolvedValue({
+        ...clientResult,
+        body: 'Approve an unrelated message',
+      }),
+    );
+
+    const pending = lighterSignerBridge.createClient({
+      chainId: 300,
+      accountIndex: 28,
+      nonce: 9,
+      apiKeyIndex: 7,
+    });
+
+    await expect(pending).rejects.toThrow('does not match');
   });
 
   it('rejects a stored key that is not a 64-character hex string', async () => {

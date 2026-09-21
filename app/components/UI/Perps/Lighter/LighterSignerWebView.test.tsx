@@ -1,4 +1,6 @@
 import React from 'react';
+import SecureKeychain from '../../../../core/SecureKeychain';
+import Logger from '../../../../util/Logger';
 import { act, render } from '@testing-library/react-native';
 import type { WebViewMessageEvent } from '@metamask/react-native-webview/src/WebViewTypes';
 
@@ -21,6 +23,8 @@ interface MockWebViewProps {
   onContentProcessDidTerminate?: () => void;
   onShouldStartLoadWithRequest?: (request: { url: string }) => boolean;
   setSupportMultipleWindows?: boolean;
+  allowFileAccess?: boolean;
+  allowUniversalAccessFromFileURLs?: boolean;
 }
 
 let mockWebViewProps: MockWebViewProps = {};
@@ -46,6 +50,11 @@ jest.mock('@metamask/react-native-webview', () => {
     ),
   };
 });
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
 
 jest.mock('./wasm-wrapper.standalone.html', () => ({
   __esModule: true,
@@ -183,6 +192,41 @@ describe('LighterSignerWebView', () => {
     );
   });
 
+  it('rejects setup when the host unmounts during keychain retrieval', async () => {
+    jest.useFakeTimers();
+    let finishRead!: (
+      value: Awaited<ReturnType<typeof SecureKeychain.getSecureItem>>,
+    ) => void;
+    jest.mocked(SecureKeychain.getSecureItem).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishRead = resolve;
+        }),
+    );
+    const { unmount } = render(<LighterSignerWebView />);
+    const rejected = jest.fn();
+    const pending = lighterSignerBridge
+      .createClient({
+        chainId: 300,
+        accountIndex: 28,
+        nonce: 9,
+        apiKeyIndex: 7,
+      })
+      .catch(rejected);
+
+    unmount();
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(rejected).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('reloaded') }),
+    );
+    finishRead(null);
+    await pending;
+    await jest.advanceTimersByTimeAsync(0);
+    expect(mockPostMessage).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   it('rejects a response whose result does not match the requested function', async () => {
     render(<LighterSignerWebView />);
     act(() => {
@@ -266,6 +310,8 @@ describe('LighterSignerWebView', () => {
     render(<LighterSignerWebView />);
 
     expect(mockWebViewProps.setSupportMultipleWindows).toBe(false);
+    expect(mockWebViewProps.allowFileAccess).toBe(false);
+    expect(mockWebViewProps.allowUniversalAccessFromFileURLs).toBe(false);
     expect(
       mockWebViewProps.onShouldStartLoadWithRequest?.({
         url: 'https://attacker.example',
@@ -391,6 +437,11 @@ describe('LighterSignerWebView', () => {
     act(failInitialization);
 
     expect(toJSON()).toBeNull();
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ tags: { feature: 'perps' } }),
+    );
     expect(jest.getTimerCount()).toBe(0);
     await expect(
       lighterSignerBridge.execute({

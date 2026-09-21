@@ -566,6 +566,42 @@ describe('createMobileClientConfig', () => {
     );
   });
 
+  it.each(['abc', 'NaN', 'Infinity', '-1', '1.5', '0x08', ' ', '255'])(
+    'rejects malformed signer key slot %s instead of selecting another slot',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_API_KEY_INDEX',
+      );
+    },
+  );
+
+  it.each(['invalid', '-1', '1.5', '9007199254740992'])(
+    'rejects malformed Lighter account index %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+      );
+    },
+  );
+
+  it('supplies validated explicit signer indices', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+    process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = '59';
+    process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = '254';
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({ accountIndexTestnet: 59, apiKeyIndex: 254 }),
+    );
+  });
+
   it('keeps Lighter disabled in production without an override', () => {
     mockIsLighterProviderEnabled.mockReturnValue(false);
 

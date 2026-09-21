@@ -207,6 +207,23 @@ function createCacheInvalidatorAdapter() {
   };
 }
 
+/** Parse optional decimal signer indices without selecting a fallback on malformed input. */
+function parseLighterIndex(
+  value: string | undefined,
+  name: string,
+  maximum: number,
+): number | undefined {
+  if (value === undefined || value === '') return undefined;
+  if (
+    !/^\d+$/u.test(value) ||
+    !Number.isSafeInteger(Number(value)) ||
+    Number(value) > maximum
+  ) {
+    throw new Error(`${name} must be an integer between 0 and ${maximum}`);
+  }
+  return Number(value);
+}
+
 /**
  * Creates mobile-specific client config from environment variables.
  * Centralizes all process.env reads so the Engine init file stays pure wiring.
@@ -244,11 +261,19 @@ export function createMobileClientConfig(): PerpsControllerConfig {
         ...(lighterProviderEnabled
           ? { signerBridge: lighterSignerBridge }
           : {}),
-        accountIndexTestnet: process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET
-          ? Number(process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET)
+        accountIndexTestnet: lighterProviderEnabled
+          ? parseLighterIndex(
+              process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET,
+              'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+              Number.MAX_SAFE_INTEGER,
+            )
           : undefined,
-        apiKeyIndex: process.env.MM_PERPS_LIGHTER_API_KEY_INDEX
-          ? Number(process.env.MM_PERPS_LIGHTER_API_KEY_INDEX)
+        apiKeyIndex: lighterProviderEnabled
+          ? parseLighterIndex(
+              process.env.MM_PERPS_LIGHTER_API_KEY_INDEX,
+              'MM_PERPS_LIGHTER_API_KEY_INDEX',
+              254,
+            )
           : undefined,
       },
     },

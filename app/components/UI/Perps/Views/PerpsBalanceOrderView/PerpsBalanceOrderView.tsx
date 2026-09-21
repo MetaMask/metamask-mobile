@@ -27,6 +27,15 @@ import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import PerpsLoader from '../../components/PerpsLoader';
 import PerpsProOrderFormPanel from '../PerpsProMarketView/components/PerpsProOrderFormPanel';
 import { PerpsBalanceOrderViewSelectorsIDs } from './PerpsBalanceOrderView.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
+import { TraceName } from '../../../../../util/trace';
 
 /** Applies an order-book limit selection once, without overwriting later edits. */
 const InitialLimitPrice = ({ price }: { price?: string }) => {
@@ -66,6 +75,41 @@ const PerpsBalanceOrderView = () => {
           (providerId ?? defaultMarketProvider) === orderProvider,
       )
     : undefined;
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const prices = usePerpsLivePrices({
+    symbols: market ? [market.symbol] : [],
+    throttleMs: 1000,
+  });
+  const isReady =
+    Boolean(market) &&
+    !isLoading &&
+    !isLoadingAccount &&
+    Boolean(account) &&
+    Number(prices[params.asset]?.price) > 0;
+  const screenKey = `${orderProvider}:${params.asset}`;
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsOrderView,
+    resetKey: screenKey,
+    ownerActive: isFocused,
+    startConditions: [isFocused, isLighterOrder],
+    endConditions: [isReady],
+    debugContext: { asset: params.asset, provider: orderProvider },
+  });
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    resetKey: screenKey,
+    conditions: [isFocused, isReady],
+    properties: {
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+      [PERPS_EVENT_PROPERTY.ASSET]: params.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]: params.direction,
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+      [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]:
+        Number(account?.totalBalance) > 0,
+    },
+  });
 
   return (
     <Box

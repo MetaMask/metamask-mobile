@@ -20,6 +20,8 @@ import {
 } from './lighterSignerBridge';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isTestEnvironment } from '../../../../util/test/utils';
+import Logger from '../../../../util/Logger';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 /**
  * Log dev-only signer readiness without mutating the page's live WASM client.
@@ -47,6 +49,7 @@ const styles = StyleSheet.create({
 
 export const MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS = 3;
 export const LIGHTER_SIGNER_RELOAD_BASE_DELAY_MS = 1_000;
+export const LIGHTER_SIGNER_WEBVIEW_TEST_ID = 'lighter-signer-webview';
 const UNAVAILABLE_ERROR =
   'Lighter signer is unavailable after repeated WebView load failures';
 const LIGHTER_SIGNER_DOCUMENT_URL = 'https://localhost/';
@@ -221,6 +224,13 @@ export const LighterSignerWebView = () => {
       isUnavailableRef.current = true;
       setIsUnavailable(true);
       setLighterBridgeUnavailable(UNAVAILABLE_ERROR);
+      Logger.error(new Error(UNAVAILABLE_ERROR), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: {
+          name: 'LighterSignerWebView',
+          data: { reloadAttempts: reloadAttemptsRef.current },
+        },
+      });
       return;
     }
     resetLighterBridge();
@@ -379,6 +389,7 @@ export const LighterSignerWebView = () => {
     <View style={styles.hidden}>
       <WebView
         key={`lighter-signer-${reloadKey}`}
+        testID={LIGHTER_SIGNER_WEBVIEW_TEST_ID}
         ref={webviewRef}
         style={styles.hidden}
         source={{ html: lighterSdkHtml, baseUrl: 'https://localhost' }}
@@ -391,6 +402,10 @@ export const LighterSignerWebView = () => {
         // Android otherwise lets target=_blank and window.open bypass the
         // navigation callback through a separate WebView.
         setSupportMultipleWindows={false}
+        javaScriptCanOpenWindowsAutomatically={false}
+        allowFileAccess={false}
+        allowFileAccessFromFileURLs={false}
+        allowUniversalAccessFromFileURLs={false}
         javaScriptEnabled
         webviewDebuggingEnabled={__DEV__}
         onMessage={onMessage}

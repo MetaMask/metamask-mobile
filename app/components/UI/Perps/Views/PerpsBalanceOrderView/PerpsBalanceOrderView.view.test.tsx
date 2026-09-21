@@ -5,6 +5,9 @@ import { renderPerpsView } from '../../../../../../tests/component-view/renderer
 import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -130,6 +133,51 @@ describe('PerpsBalanceOrderView', () => {
       ).not.toBeOnTheScreen();
     },
   );
+
+  it('tracks one ready trading-screen entry with the incoming source', async () => {
+    const tracked = jest.spyOn(analytics, 'trackEvent');
+    try {
+      renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+        ...options,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        },
+      });
+      await waitFor(() =>
+        expect(tracked).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_SCREEN_VIEWED.category,
+            properties: expect.objectContaining({
+              screen_type: 'trading',
+              asset: 'ETH',
+              source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+            }),
+          }),
+        ),
+      );
+
+      fireEvent.changeText(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+        '10',
+      );
+      fireEvent.changeText(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+        '20',
+      );
+
+      expect(
+        tracked.mock.calls.filter(
+          ([event]) =>
+            event.name === MetaMetricsEvents.PERPS_SCREEN_VIEWED.category &&
+            event.properties?.screen_type === 'trading',
+        ),
+      ).toHaveLength(1);
+    } finally {
+      tracked.mockRestore();
+    }
+  });
 
   it('accepts a providerless market while Lighter is the active provider', async () => {
     renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
