@@ -3,9 +3,7 @@ import type { Result } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
-import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 import { awaitTransactionConfirmed } from '../../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { accountSupports7702 } from '../../../../../util/transactions/account-supports-7702';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -33,16 +31,6 @@ jest.mock('../../../../../util/transactions/account-supports-7702', () => ({
   accountSupports7702: jest.fn(),
 }));
 
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectSourceToken: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/bridge', () => ({
-  ...jest.requireActual('../../../../../selectors/bridge'),
-  selectSourceWalletAddress: jest.fn(),
-}));
-
 jest.mock('../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../selectors/networkController'),
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
@@ -58,6 +46,7 @@ jest.mock(
 const ADDRESS = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477' as Hex;
 const UPGRADE_ADDRESS = '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b' as Hex;
 const OTHER_DELEGATION = '0x1234567890abcdef1234567890abcdef12345678' as Hex;
+const CAIP_CHAIN_ID = 'eip155:11155111';
 const NETWORK = {
   blockExplorerUrls: [],
   chainId: '0xaa36a7',
@@ -78,15 +67,19 @@ const mockIsAtomicBatchSupported = jest.mocked(
 const mockAccountSupports7702 = jest.mocked(accountSupports7702);
 const mockAwaitTransactionConfirmed = jest.mocked(awaitTransactionConfirmed);
 const mockUseEIP7702Accounts = jest.mocked(useEIP7702Accounts);
-const mockSelectSourceToken = jest.mocked(selectSourceToken);
-const mockSelectSourceWalletAddress = jest.mocked(selectSourceWalletAddress);
 const mockSelectNetworkConfigurations = jest.mocked(
   selectEvmNetworkConfigurationsByChainId,
 );
 
 function runHook() {
-  return renderHookWithProvider(() => useAutoUpgradeEIP7702Account(), {}).result
-    .current;
+  return renderHookWithProvider(
+    () =>
+      useAutoUpgradeEIP7702Account({
+        address: ADDRESS,
+        chainId: CAIP_CHAIN_ID,
+      }),
+    {},
+  ).result.current;
 }
 
 describe('useAutoUpgradeEIP7702Account', () => {
@@ -95,14 +88,6 @@ describe('useAutoUpgradeEIP7702Account', () => {
     mockUseEIP7702Accounts.mockReturnValue({
       downgradeAccount: jest.fn(),
       upgradeAccount: mockUpgradeAccount,
-    });
-    mockSelectSourceWalletAddress.mockReturnValue(ADDRESS);
-    mockSelectSourceToken.mockReturnValue({
-      address: '0x0000000000000000000000000000000000000000',
-      chainId: NETWORK.chainId,
-      decimals: 18,
-      name: 'Sepolia Ether',
-      symbol: 'ETH',
     });
     mockSelectNetworkConfigurations.mockReturnValue({
       [NETWORK.chainId]: NETWORK,
@@ -141,14 +126,14 @@ describe('useAutoUpgradeEIP7702Account', () => {
       },
     ]);
 
-    await runHook()();
+    await runHook().autoUpgradeEIP7702Account();
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
     expect(mockAwaitTransactionConfirmed).not.toHaveBeenCalled();
   });
 
   it('submits an upgrade and waits for it to be mined', async () => {
-    await runHook()();
+    await runHook().autoUpgradeEIP7702Account();
 
     expect(mockIsAtomicBatchSupported).toHaveBeenCalledWith({
       address: ADDRESS,
@@ -159,9 +144,9 @@ describe('useAutoUpgradeEIP7702Account', () => {
   });
 
   it('re-checks upgrade eligibility before each submission', async () => {
-    const autoUpgradeAccount = runHook();
+    const { autoUpgradeEIP7702Account } = runHook();
 
-    await autoUpgradeAccount();
+    await autoUpgradeEIP7702Account();
     mockIsAtomicBatchSupported.mockResolvedValue([
       {
         chainId: NETWORK.chainId,
@@ -169,7 +154,7 @@ describe('useAutoUpgradeEIP7702Account', () => {
         isSupported: true,
       },
     ]);
-    await autoUpgradeAccount();
+    await autoUpgradeEIP7702Account();
 
     expect(mockIsAtomicBatchSupported).toHaveBeenCalledTimes(2);
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
@@ -178,7 +163,7 @@ describe('useAutoUpgradeEIP7702Account', () => {
   it('rejects accounts that do not support EIP-7702', async () => {
     mockAccountSupports7702.mockResolvedValue(false);
 
-    await expect(runHook()()).rejects.toThrow(
+    await expect(runHook().autoUpgradeEIP7702Account()).rejects.toThrow(
       'Account does not support EIP-7702',
     );
 
@@ -188,7 +173,7 @@ describe('useAutoUpgradeEIP7702Account', () => {
   it('rejects a missing network configuration', async () => {
     mockSelectNetworkConfigurations.mockReturnValue({});
 
-    await expect(runHook()()).rejects.toThrow(
+    await expect(runHook().autoUpgradeEIP7702Account()).rejects.toThrow(
       'Network configuration is required for account upgrade',
     );
   });
@@ -196,7 +181,7 @@ describe('useAutoUpgradeEIP7702Account', () => {
   it('rejects a network without EIP-7702 support', async () => {
     mockIsAtomicBatchSupported.mockResolvedValue([]);
 
-    await expect(runHook()()).rejects.toThrow(
+    await expect(runHook().autoUpgradeEIP7702Account()).rejects.toThrow(
       'Network does not support EIP-7702',
     );
   });
@@ -211,7 +196,7 @@ describe('useAutoUpgradeEIP7702Account', () => {
       },
     ]);
 
-    await expect(runHook()()).rejects.toThrow(
+    await expect(runHook().autoUpgradeEIP7702Account()).rejects.toThrow(
       'Account is delegated to an unsupported smart account implementation',
     );
 
@@ -226,7 +211,7 @@ describe('useAutoUpgradeEIP7702Account', () => {
       },
     ]);
 
-    await expect(runHook()()).rejects.toThrow(
+    await expect(runHook().autoUpgradeEIP7702Account()).rejects.toThrow(
       'EIP-7702 upgrade contract address is unavailable',
     );
   });
@@ -236,6 +221,8 @@ describe('useAutoUpgradeEIP7702Account', () => {
       new Error('Transaction failed'),
     );
 
-    await expect(runHook()()).rejects.toThrow('Transaction failed');
+    await expect(runHook().autoUpgradeEIP7702Account()).rejects.toThrow(
+      'Transaction failed',
+    );
   });
 });
