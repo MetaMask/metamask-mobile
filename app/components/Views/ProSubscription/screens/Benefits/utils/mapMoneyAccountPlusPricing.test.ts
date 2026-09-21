@@ -307,9 +307,31 @@ describe('mapMoneyAccountPlusPricing', () => {
       const result = mapMoneyAccountPlusPricing(pricing);
 
       expect(result.savings).toEqual({
-        amount: 4.99 * 12 - 49.99,
+        amount: (499 * 12 - 4999) / 100,
         equivalentMonthly: 49.99 / 12,
       });
+    });
+
+    it('omits savings when annual equals twelve monthly payments in minor units', () => {
+      const pricing = createPricing([
+        {
+          name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+          prices: [
+            createPrice({
+              interval: RECURRING_INTERVALS.month,
+              unitAmount: 110,
+            }),
+            createPrice({
+              interval: RECURRING_INTERVALS.year,
+              unitAmount: 1320,
+            }),
+          ],
+        },
+      ]);
+
+      const result = mapMoneyAccountPlusPricing(pricing);
+
+      expect(result.savings).toBeUndefined();
     });
 
     it('omits savings when only one interval is present', () => {

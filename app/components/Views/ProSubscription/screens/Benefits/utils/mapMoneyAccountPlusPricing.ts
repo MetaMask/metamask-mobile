@@ -39,6 +39,12 @@ const KNOWN_INTERVALS = new Set<string>(Object.values(RECURRING_INTERVALS));
 const toMajorUnits = (unitAmount: number, unitDecimals: number): number =>
   unitAmount / 10 ** unitDecimals;
 
+const scaleUnitAmount = (
+  unitAmount: number,
+  fromDecimals: number,
+  toDecimals: number,
+): number => unitAmount * 10 ** (toDecimals - fromDecimals);
+
 const isUsablePriceRow = (price: ProductPrice): boolean => {
   if (!KNOWN_INTERVALS.has(price.interval)) {
     return false;
@@ -90,13 +96,24 @@ const computeSavings = (
     return undefined;
   }
 
-  const savingsAmount = monthly.amount * 12 - annual.amount;
-  if (savingsAmount <= 0) {
+  const scaleDecimals = Math.max(monthly.unitDecimals, annual.unitDecimals);
+  const monthlyMinor = scaleUnitAmount(
+    monthly.unitAmount,
+    monthly.unitDecimals,
+    scaleDecimals,
+  );
+  const annualMinor = scaleUnitAmount(
+    annual.unitAmount,
+    annual.unitDecimals,
+    scaleDecimals,
+  );
+  const savingsMinor = monthlyMinor * 12 - annualMinor;
+  if (savingsMinor <= 0) {
     return undefined;
   }
 
   return {
-    amount: savingsAmount,
+    amount: toMajorUnits(savingsMinor, scaleDecimals),
     equivalentMonthly: annual.amount / 12,
   };
 };
