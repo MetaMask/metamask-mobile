@@ -30,6 +30,7 @@ import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from '../components/KolDashboard/PerformanceActivityRows';
+import ReferralFunnelBar from '../components/KolDashboard/ReferralFunnelBar';
 import { KOL_DASHBOARD_SELECTORS } from '../components/KolDashboard/KolDashboard.testIds';
 import type { RewardsStackParamList } from '../types/navigation';
 
@@ -108,7 +109,7 @@ const RewardsPerformanceView: React.FC = () => {
                   twClassName="mt-6 gap-5"
                   testID={KOL_DASHBOARD_SELECTORS.PERFORMANCE_FUNNEL}
                 >
-                  {KOL_PERFORMANCE_FIXTURE.funnel.map((row) => (
+                  {KOL_PERFORMANCE_FIXTURE.funnel.map((row, index) => (
                     <Box key={row.key}>
                       <Box
                         flexDirection={BoxFlexDirection.Row}
@@ -119,17 +120,11 @@ const RewardsPerformanceView: React.FC = () => {
                         </Text>
                         <Text variant={TextVariant.BodyMd}>{row.value}</Text>
                       </Box>
-                      <Box twClassName="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                        <Box
-                          twClassName="h-2 rounded-full bg-icon-default"
-                          style={tw.style(
-                            `w-[${Math.round(
-                              (row.value / KOL_PERFORMANCE_FIXTURE.funnelMax) *
-                                100,
-                            )}%]`,
-                          )}
-                        />
-                      </Box>
+                      <ReferralFunnelBar
+                        ratio={row.value / KOL_PERFORMANCE_FIXTURE.funnelMax}
+                        index={index}
+                        testID={`${KOL_DASHBOARD_SELECTORS.PERFORMANCE_FUNNEL_BAR}-${row.key}`}
+                      />
                       <Text
                         variant={TextVariant.BodyXs}
                         color={TextColor.TextMuted}
