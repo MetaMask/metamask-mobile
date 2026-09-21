@@ -55,6 +55,7 @@ jobs:
       source_branch: ${{ inputs.source_branch || github.sha }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
+      build_attribution: official
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

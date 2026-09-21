@@ -33,10 +33,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(() => undefined),
-}));
-
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   BridgeQuoteDataProvider: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -167,6 +163,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     jest.clearAllMocks();
     jest.mocked(useEIP7702UpgradeFee).mockReturnValue({
       status: 'not-required',
+      retry: jest.fn(),
     });
     jest
       .mocked(useAutoUpgradeEIP7702Account)
@@ -204,6 +201,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       status: 'ready',
       displayFee: '$1.23',
       preciseNativeFeeInHex: '0x1',
+      retry: jest.fn(),
     });
 
     const { getByTestId } = renderScreen();
