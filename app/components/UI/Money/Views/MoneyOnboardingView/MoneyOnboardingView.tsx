@@ -100,6 +100,8 @@ const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
 /** Transition speed passed to the Rive artboard. */
 const RIVE_TRANSITION_SPEED = 300;
 
+const TEXT_OVERLAY_DISPLAY_FALLBACK_DELAY_MS = 1500;
+
 const OVERLAY_FADE_DURATION_MS = 600;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
@@ -383,7 +385,10 @@ const MoneyOnboardingView = () => {
   // Fallback for when the Rive file is not loaded in time.
   useEffect(() => {
     if (!riveFile) return;
-    const t = setTimeout(() => setIsRiveReady(true), 1500);
+    const t = setTimeout(
+      () => setIsRiveReady(true),
+      TEXT_OVERLAY_DISPLAY_FALLBACK_DELAY_MS,
+    );
     return () => clearTimeout(t);
   }, [riveFile]);
 
