@@ -561,11 +561,10 @@
                 #10187.
               </td>
               <td>
-                Earlier trade rows and canceled-order dates were validated with
-                a compatible local build. The Mobile PR now uses published
-                17.2.0 with no <code>.yalc</code> dependency; focused controller
-                integration tests pass, but the original device history proof
-                was not replayed solely for the package migration.
+                Revalidated on September 21 with published 17.2.0: exact new
+                opening, closing and canceled-order records appear under Today.
+                A dependency patch uses Lighter's explicit filled amount so an
+                unfilled cancellation is not reported as fully filled.
               </td>
             </tr>
             <tr>
@@ -619,9 +618,10 @@
         </li>
         <li>
           The dependency migration is complete: <code>package.json</code> and
-          <code>yarn.lock</code> resolve the published 17.2.0 package. No
-          <code>.yalc</code> package or <code>yalc.lock</code> is part of the
-          PR.
+          <code>yarn.lock</code> resolve published 17.2.0 with a narrow Yarn
+          patch for Lighter filled-size normalization. Remove that patch when
+          the correction is available upstream. No <code>.yalc</code> package or
+          <code>yalc.lock</code> is part of the PR.
         </li>
         <li>
           The September 19 CI snapshot is not green. TypeScript, lint, format,
@@ -648,6 +648,19 @@
 
     <section id="evidence">
       <h2>Retained validation evidence</h2>
+      <p>
+        September 21 revalidation on commit <code>9f31932280</code>, iOS
+        <code>mm-1</code>, Runway <code>35154767219</code>, and published
+        controller 17.2.0 passed 32 Lite market/open/close steps, 28 Pro
+        limit/cancel steps, and 19 history steps. Every operation used Lighter
+        testnet account 59. Raw Lighter API records independently matched the
+        client receipts to filled or canceled venue order IDs; final assertions
+        found no BTC position or open order. These financial runs preceded the
+        filled-size dependency patch. Current screenshots and full run packages
+        are retained under
+        <code>artifacts/trading-revalidation-9f31932280/</code> in the original
+        recipe task.
+      </p>
       <p>
         These are September 11 iOS mm-1 development-build proofs, not September
         15 replays. They used the existing authorized funded testnet fixture. No

@@ -219,6 +219,13 @@ describe('PerpsBalanceOrderView', () => {
         }),
       ),
     );
+    await waitFor(
+      () =>
+        expect(
+          screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+        ).toHaveProp('value', ''),
+      { timeout: 5000 },
+    );
     expect(
       Engine.context.PerpsController.depositWithOrder,
     ).not.toHaveBeenCalled();
