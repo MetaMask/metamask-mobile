@@ -226,6 +226,7 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
@@ -273,6 +274,17 @@ interface ForwardedParamsHostProps {
 interface CardRootRouteParams {
   animation?: NativeStackNavigationOptions['animation'];
 }
+
+/**
+ * Cast target for screens that declare their own `route.params` shape. The
+ * navigators here are untyped (`ParamListBase`), so `Screen` expects a
+ * component whose `route.params` is `object | undefined` — a component asking
+ * for concrete params is not assignable to that. Every screen cast this way
+ * takes only `route` and `navigation`, both of which React Navigation supplies,
+ * so the cast drops the params type and nothing else. Registering these against
+ * a typed param list would remove the need for it.
+ */
+type ScreenComponent = React.ComponentType;
 
 const AssetStackFlow = (props: ForwardedParamsHostProps) => (
   <NativeStack.Navigator
@@ -350,7 +362,7 @@ const TransactionsHome = () => {
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
-        component={BridgeTransactionDetails as React.ComponentType}
+        component={BridgeTransactionDetails as ScreenComponent}
       />
     </NativeStack.Navigator>
   );
@@ -417,7 +429,7 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
       />
       <NativeStack.Screen
         name={Routes.BROWSER.ASSET_LOADER}
-        component={AssetLoader as React.ComponentType}
+        component={AssetLoader as ScreenComponent}
         options={{
           headerShown: false,
           animation: 'none',
@@ -560,11 +572,11 @@ const SettingsFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
-        component={NotificationsSettings as React.ComponentType}
+        component={NotificationsSettings as ScreenComponent}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-        component={NotificationSettingsSection as React.ComponentType}
+        component={NotificationSettingsSection as ScreenComponent}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
@@ -793,15 +805,15 @@ const NotificationsModeView = () => (
     />
     <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings as React.ComponentType}
+      component={NotificationsSettings as ScreenComponent}
     />
     <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-      component={NotificationSettingsSection as React.ComponentType}
+      component={NotificationSettingsSection as ScreenComponent}
     />
     <NativeStack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
-      component={NotificationsDetails as React.ComponentType}
+      component={NotificationsDetails as ScreenComponent}
     />
     <NativeStack.Screen name="ContactForm" component={ContactForm} />
   </NativeStack.Navigator>
@@ -914,15 +926,15 @@ const MainNavigator = () => {
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as React.ComponentType}
+          component={RewardsBottomSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-          component={RewardsInfoSheetModal as React.ComponentType}
+          component={RewardsInfoSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-          component={RewardsClaimBottomSheetModal as React.ComponentType}
+          component={RewardsClaimBottomSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
@@ -930,11 +942,11 @@ const MainNavigator = () => {
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-          component={EndOfSeasonClaimBottomSheet as React.ComponentType}
+          component={EndOfSeasonClaimBottomSheet as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_SELECT_SHEET}
-          component={RewardsSelectSheet as React.ComponentType}
+          component={RewardsSelectSheet as ScreenComponent}
         />
       </NativeStack.Group>
       <NativeStack.Screen
