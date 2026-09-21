@@ -154,6 +154,9 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
           testID="qr-account-display-copy-button"
           onPress={handleCopyButton}
           endIconName={IconName.Copy}
+          // Buttons that are not full width carry `self-start`, which wins over
+          // this container's `items-center`.
+          twClassName="mt-2 self-center"
         >
           {strings('receive_request.copy_address')}
         </Button>

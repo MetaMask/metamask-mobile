@@ -1710,7 +1710,10 @@ describe('ActivityList', () => {
 
     render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
 
-    expect(usePerpsActivityItemsMock).toHaveBeenCalledWith({ enabled: false });
+    expect(usePerpsActivityItemsMock).toHaveBeenCalledWith({
+      enabled: false,
+      aggregateFills: true,
+    });
   });
 
   it('disables the perps query on the Transactions tab after leaving Perps', () => {
@@ -1719,11 +1722,15 @@ describe('ActivityList', () => {
     const { rerender } = render(
       <ActivityList typeFilter={ActivityTypeFilter.Perps} />,
     );
-    expect(usePerpsActivityItemsMock).toHaveBeenCalledWith({ enabled: true });
+    expect(usePerpsActivityItemsMock).toHaveBeenCalledWith({
+      enabled: true,
+      aggregateFills: true,
+    });
 
     rerender(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
     expect(usePerpsActivityItemsMock).toHaveBeenLastCalledWith({
       enabled: false,
+      aggregateFills: true,
     });
   });
 

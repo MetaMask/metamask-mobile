@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
   BoxAlignItems,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   Theme,
@@ -14,7 +14,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import WatchlistEmptyDarkIcon from '../../../../../../images/watchlist-empty-dark.svg';
 import WatchlistEmptyLightIcon from '../../../../../../images/watchlist-empty-light.svg';
 
-const WatchlistEmptyState: React.FC = () => {
+const WatchlistEmptyFallback: React.FC = () => {
   const designSystemTheme = useDesignSystemTheme();
   const EmptyIcon =
     designSystemTheme === Theme.Dark
@@ -22,7 +22,12 @@ const WatchlistEmptyState: React.FC = () => {
       : WatchlistEmptyLightIcon;
 
   return (
-    <Box alignItems={BoxAlignItems.Center} gap={2} padding={4}>
+    <Box
+      testID="watchlist-empty-fallback"
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+      padding={4}
+    >
       <EmptyIcon
         name="watchlist-empty"
         width={72}
@@ -47,4 +52,4 @@ const WatchlistEmptyState: React.FC = () => {
   );
 };
 
-export default WatchlistEmptyState;
+export default WatchlistEmptyFallback;
