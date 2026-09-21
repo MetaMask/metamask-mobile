@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Made Husky git hooks opt-in via `yarn git:hooks:install` instead of installing them during `yarn setup`
+
 ## [8.12.0]
 
 ### Added

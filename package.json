@@ -43,6 +43,8 @@
     "coverage:analyze": "node scripts/coverage-analysis.js",
     "coverage:files": "node scripts/coverage-analysis.js --files",
     "setup": "yarn clean && node scripts/setup.mjs",
+    "git:hooks:install": "husky",
+    "git:hooks:uninstall": "git config --unset core.hooksPath || true",
     "skills": "metamask-skills sync",
     "postinstall": "yarn skills:postinstall || true",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",

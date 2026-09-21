@@ -280,30 +280,18 @@ Regeneration is best-effort, and quieter than it sounds. Yarn runs `postinstall`
 
 ### Git Hooks (Husky)
 
-This project uses [Husky](https://typicode.github.io/husky/) to run pre-commit hooks that automatically format and lint your code before commits. The pre-commit hook runs `lint-staged` which executes:
+Git hooks are **optional**. `yarn setup` does not install them.
 
-- **Prettier** - Code formatting for `*.{js,jsx,ts,tsx,json,feature}` files
-- **ESLint** - Linting and auto-fixing for `*.{js,jsx,ts,tsx}` files
-
-#### Disabling Husky Locally
-
-If you need to disable Husky pre-commit hooks temporarily (e.g., for emergency commits or debugging), you have several options:
-
-##### Option 1: Skip hooks for a single commit
+You can enable a pre-commit hook that runs `lint-staged` (Prettier + `eslint --fix` on staged files):
 
 ```bash
-git commit --no-verify -m "your commit message"
+yarn git:hooks:install
 ```
 
-##### Option 2: Bypass hooks with environment variable
+To turn them off again:
 
 ```bash
-# Disable for current session
-export HUSKY=0
-git commit -m "your commit message"
-
-# Or disable for a single command
-HUSKY=0 git commit -m "your commit message"
+yarn git:hooks:uninstall
 ```
 
-**Note:** While these methods allow you to bypass the pre-commit hooks, remember that the CI/CD pipeline will still run linting checks. It's recommended to fix linting issues before pushing your changes to avoid build failures.
+For day-to-day formatting, prefer editor format-on-save (or `yarn lint:fix` / `yarn format`). CI still runs `yarn lint`, `yarn format:check`, and `yarn lint:tsc` on every PR.

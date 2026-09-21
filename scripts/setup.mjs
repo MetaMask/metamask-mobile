@@ -305,7 +305,7 @@ const reportAgentSkillsTask = {
       //
       // Reported, NOT thrown. This list runs with exitOnError, and `tasks.run()`
       // is unguarded, so throwing from a purely informational step would abort
-      // Husky, the Expo build links and the whole iOS / Terms-of-Use stage that
+      // the Expo build links and the whole iOS / Terms-of-Use stage that
       // follow it — over a skill count. That would also break the promise in
       // README: "Skipping `yarn skills` is fine — it only affects agent tooling,
       // not the app build."
@@ -438,13 +438,6 @@ const generateTermsOfUseTask = {
     ),
 };
 
-const installHuskyTask = {
-  title: 'Install Husky git hooks',
-  task: async () => {
-    await $`yarn husky install`;
-  },
-};
-
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -463,7 +456,6 @@ const prepareDependenciesTask = {
         installFoundryTask,
         reportAgentSkillsTask,
         expoBuildLinks,
-        installHuskyTask,
       ],
       {
         exitOnError: true,
@@ -494,3 +486,10 @@ const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
 });
 
 await tasks.run();
+
+// Git hooks are opt-in; point developers at the install command after a local setup.
+if (!IS_CI) {
+  console.log(
+    '\nGit hooks are optional. To enable pre-commit lint/format: yarn git:hooks:install\n',
+  );
+}
