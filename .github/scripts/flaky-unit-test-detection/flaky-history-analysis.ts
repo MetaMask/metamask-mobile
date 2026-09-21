@@ -49,6 +49,7 @@ import {
   buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
   chunkArray,
+  classifyBatchFailure,
   classifyLoglessJob,
   collectListedRunsFromPages,
   confirmedFailThenPassJobs,
@@ -636,7 +637,11 @@ async function buildHistory(
   let logFetches = 0;
   let graphqlQueries = 0;
   let candidatesInspected = 0;
+  let failedBatches = 0;
+  // `capped` means the history has a hole; `stopWalk` means there is no point
+  // asking for more. A skipped batch is the first without the second.
   let capped = false;
+  let stopWalk = false;
 
   for (const batch of batches) {
     if (graphqlQueries >= MAX_GRAPHQL_QUERIES) {
@@ -652,12 +657,18 @@ async function buildHistory(
     try {
       shaResults = await fetchShaBatch(octokit, owner, repo, batch);
     } catch (error) {
-      const rateLimited = githubErrorStatus(error) === 403;
+      failedBatches += 1;
+      const status = githubErrorStatus(error);
+      const action = classifyBatchFailure({ status, failedBatches });
       core.warning(
-        `GraphQL SHA batch ${rateLimited ? 'hit the API rate limit' : 'failed after retry'}: ${(error as Error).message}`,
+        `GraphQL SHA batch ${status === 403 || status === 429 ? 'hit the API rate limit' : 'failed after retry'}, ${action === 'stop' ? 'stopping the walk' : 'skipping these SHAs'}: ${(error as Error).message}`,
       );
       capped = true;
-      break;
+      if (action === 'stop') {
+        stopWalk = true;
+        break;
+      }
+      continue;
     }
     candidatesInspected += shaResults.length;
 
@@ -681,6 +692,7 @@ async function buildHistory(
       const remainingBudget = MAX_FAILED_LOG_FETCHES - logFetches;
       if (remainingBudget <= 0) {
         capped = true;
+        stopWalk = true;
         unreadFailedRuns += confirmed.length;
         break;
       }
@@ -688,6 +700,7 @@ async function buildHistory(
       const toFetch = confirmed.slice(0, remainingBudget);
       if (toFetch.length < confirmed.length) {
         capped = true;
+        stopWalk = true;
         unreadFailedRuns += confirmed.length - toFetch.length;
       }
       logFetches += toFetch.length;
@@ -702,7 +715,7 @@ async function buildHistory(
       );
     }
 
-    if (capped) {
+    if (stopWalk) {
       break;
     }
   }

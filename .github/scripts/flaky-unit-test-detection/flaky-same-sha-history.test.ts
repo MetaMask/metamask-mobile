@@ -3,7 +3,9 @@ import {
   buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
   chunkArray,
+  classifyBatchFailure,
   classifyLoglessJob,
+  MAX_FAILED_GRAPHQL_BATCHES,
   confirmedFailThenPassJobs,
   groupRunsByHeadSha,
   historyCoverageComplete,
@@ -795,6 +797,36 @@ describe('classifyLoglessJob', () => {
         ],
       }),
     ).toBe('missing_log');
+  });
+});
+
+describe('classifyBatchFailure', () => {
+  it('stops the walk on a rate limit', () => {
+    expect(classifyBatchFailure({ status: 403, failedBatches: 1 })).toBe(
+      'stop',
+    );
+    expect(classifyBatchFailure({ status: 429, failedBatches: 1 })).toBe(
+      'stop',
+    );
+  });
+
+  // A 502 cost 20 SHAs; the remaining candidates are still worth inspecting.
+  it('skips the batch on a transient server error', () => {
+    expect(classifyBatchFailure({ status: 502, failedBatches: 1 })).toBe(
+      'skip',
+    );
+    expect(classifyBatchFailure({ status: null, failedBatches: 1 })).toBe(
+      'skip',
+    );
+  });
+
+  it('stops once failures look like an outage rather than a blip', () => {
+    expect(
+      classifyBatchFailure({
+        status: 502,
+        failedBatches: MAX_FAILED_GRAPHQL_BATCHES,
+      }),
+    ).toBe('stop');
   });
 });
 

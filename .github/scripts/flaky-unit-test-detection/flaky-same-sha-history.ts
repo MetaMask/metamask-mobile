@@ -514,6 +514,33 @@ export function classifyLoglessJob(job: {
   return 'missing_log';
 }
 
+/** How many batches may fail before the walk gives up on the rest. */
+export const MAX_FAILED_GRAPHQL_BATCHES = 3;
+
+export type BatchFailureAction = 'stop' | 'skip';
+
+/**
+ * What a failed GraphQL batch means for the rest of the walk.
+ *
+ * A rate limit applies to every later query too, so the walk stops. A
+ * transient server error (GitHub returns plain 502s under load) only lost
+ * those 20 SHAs; continuing still inspects the remaining candidates, which is
+ * the difference between a partial history and none at all. A run that keeps
+ * failing is an outage rather than a blip, so it stops after a few.
+ */
+export function classifyBatchFailure({
+  status,
+  failedBatches,
+}: {
+  status: number | null | undefined;
+  failedBatches: number;
+}): BatchFailureAction {
+  if (status === 403 || status === 429) {
+    return 'stop';
+  }
+  return failedBatches >= MAX_FAILED_GRAPHQL_BATCHES ? 'stop' : 'skip';
+}
+
 export function parseJestFailPaths(logText: string): string[] {
   const matches = logText.matchAll(
     /FAIL\s+(\S+\.(?:test|spec)\.(?:tsx|ts|js))(?=\s|$)/gm,

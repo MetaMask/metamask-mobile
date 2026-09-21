@@ -179,7 +179,7 @@ jobs:
           steps.detect-history.outputs.should_analyze == 'true' &&
           steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .ai-analyzer-action/node_modules
           key: ai-analyzer-node-modules-${{ runner.os }}-${{ hashFiles('.ai-analyzer-action/package-lock.json') }}
@@ -270,7 +270,7 @@ jobs:
       # partial artifact it left behind is the only record of what it reviewed.
       - name: Upload flaky detection artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flaky-unit-test-detection-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
