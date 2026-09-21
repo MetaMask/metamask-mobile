@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
@@ -46,6 +46,21 @@ const arrangeFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) => {
   });
 };
 
+const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
+  arrangeFeed({
+    posts: [
+      {
+        id: 'post-1',
+        authorHandle: 'aparjey',
+        timestampMs: Date.now(),
+        likeCount: 0,
+        commentCount: 0,
+        item: {} as UseSocialV1FeedResult['posts'][number]['item'],
+      },
+    ],
+    ...overrides,
+  });
+
 const renderPage = () =>
   renderWithProvider(
     <EmptyShellTabPage
@@ -55,6 +70,13 @@ const renderPage = () =>
       scrollTestID="trending-page-scroll"
     />,
   );
+
+/**
+ * `RefreshControl` is a prop on the scroll view rather than a queryable node,
+ * so the pull gesture is driven through its props.
+ */
+const refreshControl = () =>
+  screen.getByTestId('trending-page-scroll').props.refreshControl;
 
 /** A scroll event that settles `distanceFromEnd` pixels from the bottom. */
 const scrollEvent = (distanceFromEnd: number) => ({
@@ -144,25 +166,51 @@ describe('EmptyShellTabPage pagination', () => {
     expect(mockRefresh).toHaveBeenCalled();
   });
 
-  // A failed refetch behind a populated list must not replace the posts the
-  // user is already reading.
-  it('keeps the list when a later fetch fails', () => {
-    arrangeFeed({
-      error: 'Network request failed',
-      posts: [
-        {
-          id: 'post-1',
-          authorHandle: 'aparjey',
-          timestampMs: Date.now(),
-          likeCount: 0,
-          commentCount: 0,
-          item: {} as UseSocialV1FeedResult['posts'][number]['item'],
-        },
-      ],
+  describe('recovery after a failed fetch behind a populated list', () => {
+    // `useTraderFeed` clears `hasNextPage` on error, so paging cannot rescue
+    // this state and the inline retry only renders on an empty feed. Without
+    // pull-to-refresh the user is stuck on a partial feed.
+    it('keeps the posts rather than replacing them with the error state', () => {
+      populatedFeed({ error: 'Network request failed' });
+
+      renderPage();
+
+      expect(screen.queryByTestId(SOCIAL_V1_FEED_ERROR_TEST_ID)).toBeNull();
     });
 
-    renderPage();
+    it('refetches from pull-to-refresh', async () => {
+      mockRefresh.mockResolvedValue(undefined);
+      populatedFeed({ error: 'Network request failed', hasNextPage: false });
 
-    expect(screen.queryByTestId(SOCIAL_V1_FEED_ERROR_TEST_ID)).toBeNull();
+      renderPage();
+      await act(async () => {
+        await refreshControl().props.onRefresh();
+      });
+
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+
+    it('offers pull-to-refresh on a healthy feed too', () => {
+      populatedFeed();
+
+      renderPage();
+
+      expect(refreshControl().props.onRefresh).toBeDefined();
+    });
+
+    // A rejected refresh must not strand the spinner on screen.
+    it('clears the spinner when the refetch rejects', async () => {
+      mockRefresh.mockRejectedValue(new Error('offline'));
+      populatedFeed({ error: 'Network request failed' });
+
+      renderPage();
+      await act(async () => {
+        await refreshControl().props.onRefresh();
+      });
+
+      await waitFor(() => {
+        expect(refreshControl().props.refreshing).toBe(false);
+      });
+    });
   });
 });

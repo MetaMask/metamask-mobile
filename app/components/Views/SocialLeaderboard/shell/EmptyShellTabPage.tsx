@@ -19,12 +19,16 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import { useTheme } from '../../../../util/theme';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
@@ -37,6 +41,12 @@ export const SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID =
   'social-v1-feed-footer-loading';
 export const SOCIAL_V1_FEED_ERROR_TEST_ID = 'social-v1-feed-error';
 export const SOCIAL_V1_FEED_RETRY_TEST_ID = 'social-v1-feed-retry';
+
+/**
+ * Hold the refresh spinner for a beat so a fast refetch does not flicker.
+ * Matches V0's feed.
+ */
+const REFRESH_MIN_DURATION_MS = 1000;
 
 /**
  * How close to the bottom a settled scroll must land to pull the next page.
@@ -87,6 +97,37 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     error,
     refresh,
   } = useSocialV1Feed(tab);
+
+  const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+
+  /**
+   * Pull-to-refresh, and the only recovery path once a later fetch fails:
+   * `useTraderFeed` clears `hasNextPage` on error, so paging cannot get the
+   * user unstuck and the inline retry only renders on an empty feed.
+   */
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const minDuration = new Promise<void>((resolve) =>
+        setTimeout(resolve, REFRESH_MIN_DURATION_MS),
+      );
+      await Promise.all([refresh(), minDuration]);
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_feed',
+          operation: 'pull_to_refresh',
+          extraMessage: 'Social V1 feed pull-to-refresh failed',
+          source: 'EmptyShellTabPage',
+          error: err,
+        }),
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
 
   /**
    * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
@@ -160,6 +201,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         onMomentumScrollEnd={handleScrollSettled}
         onScrollEndDrag={handleScrollSettled}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
         testID={scrollTestID}
       >
         {hasBeenActive ? (
