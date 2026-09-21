@@ -138,9 +138,12 @@ class PerformanceReporter {
     }
 
     // Clean up leftover environment variables
-    delete process.env.TEMP_SESSION_ID;
-    delete process.env.TEMP_TEST_TITLE;
-    delete process.env.TEMP_PROJECT_NAME;
+    // Avoid direct process.env property access here: Babel's environment
+    // inlining plugin rewrites unset variables to `undefined`, which would
+    // produce the invalid syntax `delete undefined`.
+    Reflect.deleteProperty(process.env, 'TEMP_SESSION_ID');
+    Reflect.deleteProperty(process.env, 'TEMP_TEST_TITLE');
+    Reflect.deleteProperty(process.env, 'TEMP_PROJECT_NAME');
 
     // If we have no metrics, nothing to report
     if (this.metrics.length === 0) {
