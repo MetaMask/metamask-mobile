@@ -4,14 +4,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  AvatarIcon,
-  AvatarIconSeverity,
-  AvatarIconSize,
   Button,
   ButtonSize,
   ButtonVariant,
-  IconColor,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -28,15 +23,6 @@ import { HistoryKindAvatar } from './EarningsHistoryRows';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import RewardsMetricCard from './RewardsMetricCard';
 import ShareCodeSheet from './ShareCodeSheet';
-
-const MetricAvatar: React.FC<{ iconName: IconName }> = ({ iconName }) => (
-  <AvatarIcon
-    iconName={iconName}
-    size={AvatarIconSize.Md}
-    severity={AvatarIconSeverity.Neutral}
-    iconProps={{ color: IconColor.IconDefault }}
-  />
-);
 
 interface ReferralHeroCardProps {
   /** Opens the Earnings tab, where these two totals are broken down. */
@@ -106,7 +92,7 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
           testID={KOL_DASHBOARD_SELECTORS.REFERRALS_METRIC}
         />
         <RewardsMetricCard
-          avatar={<MetricAvatar iconName={IconName.SwapVertical} />}
+          avatar={<HistoryKindAvatar kind="commission" />}
           label={strings('rewards.kol.trade_commissions')}
           amount={formatUsd(KOL_EARNINGS_FIXTURE.tradeCommissionsRecorded)}
           onPress={onViewEarnings}
