@@ -153,6 +153,10 @@ export async function mockOccurrenceApis(
   mockServer: Mockttp,
   { failOccurrenceFloors = false }: { failOccurrenceFloors?: boolean } = {},
 ): Promise<void> {
+  // Priority 1005 ensures these rules beat the MockServerE2E big-proxy
+  // interceptor (priority 0, LIFO) which would otherwise serve the
+  // DEFAULT_MOCKS suggestedOccurrenceFloors response (always 200) even when
+  // failOccurrenceFloors is true. Same priority level as applyTokenHoldingsMocks.
   await mockServer
     .forGet('/proxy')
     .matching((request) =>
@@ -160,6 +164,7 @@ export async function mockOccurrenceApis(
         'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
       ),
     )
+    .asPriority(1005)
     .always()
     .thenCallback(() =>
       failOccurrenceFloors
@@ -176,6 +181,7 @@ export async function mockOccurrenceApis(
         url.searchParams.get('includeOccurrences') === 'true'
       );
     })
+    .asPriority(1005)
     .always()
     .thenCallback((request) => {
       const url = new URL(getDecodedProxiedURL(request.url));
