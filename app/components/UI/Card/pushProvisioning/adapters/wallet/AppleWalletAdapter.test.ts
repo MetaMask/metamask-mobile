@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import { AppleWalletAdapter } from './AppleWalletAdapter';
 import {
   ProvisionCardParams,
@@ -497,7 +498,8 @@ describe('AppleWalletAdapter', () => {
     });
 
     it('notifies listeners on activated status', async () => {
-      let nativeCallback: (data: unknown) => void = () => undefined;
+      let nativeCallback: (data: onCardActivatedPayload) => void = () =>
+        undefined;
       mockAddListener.mockImplementation((_event, callback) => {
         nativeCallback = callback;
         return { remove: jest.fn() };
@@ -507,17 +509,17 @@ describe('AppleWalletAdapter', () => {
       adapter.addActivationListener(listener);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // iOS SDK sends 'state' property with 'activated' value
-      nativeCallback({ serialNumber: 'pass-123', state: 'activated' });
+      nativeCallback({ tokenId: 'pass-123', status: 'activated' });
 
       expect(listener).toHaveBeenCalledWith({
-        serialNumber: 'pass-123',
+        tokenId: 'pass-123',
         status: 'activated',
       });
     });
 
     it('notifies listeners on canceled status', async () => {
-      let nativeCallback: (data: unknown) => void = () => undefined;
+      let nativeCallback: (data: onCardActivatedPayload) => void = () =>
+        undefined;
       mockAddListener.mockImplementation((_event, callback) => {
         nativeCallback = callback;
         return { remove: jest.fn() };
@@ -527,32 +529,11 @@ describe('AppleWalletAdapter', () => {
       adapter.addActivationListener(listener);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // iOS SDK sends 'state' property with 'canceled' value
-      nativeCallback({ serialNumber: 'pass-123', state: 'canceled' });
+      nativeCallback({ tokenId: 'pass-123', status: 'canceled' });
 
       expect(listener).toHaveBeenCalledWith({
-        serialNumber: 'pass-123',
+        tokenId: 'pass-123',
         status: 'canceled',
-      });
-    });
-
-    it('notifies listeners on failed status (unknown state)', async () => {
-      let nativeCallback: (data: unknown) => void = () => undefined;
-      mockAddListener.mockImplementation((_event, callback) => {
-        nativeCallback = callback;
-        return { remove: jest.fn() };
-      });
-
-      const listener = jest.fn();
-      adapter.addActivationListener(listener);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Unknown state falls through to 'failed'
-      nativeCallback({ serialNumber: 'pass-123', state: 'unknown' });
-
-      expect(listener).toHaveBeenCalledWith({
-        serialNumber: 'pass-123',
-        status: 'failed',
       });
     });
   });
