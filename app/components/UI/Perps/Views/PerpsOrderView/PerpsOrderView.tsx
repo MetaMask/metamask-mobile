@@ -1436,25 +1436,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setIsLimitPriceFocused(false);
   }, [orderForm.asset, orderForm.direction, track]);
 
-  const handleTradeSheetOrderTypeSelect = useCallback(
-    (type: OrderType) => {
-      if (type !== 'market' && type !== 'limit') {
-        return;
-      }
+  const handleTradeSheetOrderTypeToggle = useCallback(() => {
+    const nextOrderType = orderForm.type === 'limit' ? 'market' : 'limit';
 
-      setOrderType(type);
-      setIsOrderTypeVisible(false);
-      if (type === 'market') {
-        setLimitPrice(undefined);
-        setIsLimitPriceFocused(false);
-      } else if (!orderForm.limitPrice) {
-        tradeSheetLimitPriceInputMethodRef.current = null;
-        setIsInputFocused(false);
-        setIsLimitPriceFocused(true);
-      }
-    },
-    [orderForm.limitPrice, setLimitPrice, setOrderType],
-  );
+    setOrderType(nextOrderType);
+    if (nextOrderType === 'market') {
+      setLimitPrice(undefined);
+      setIsLimitPriceFocused(false);
+    } else if (!orderForm.limitPrice) {
+      tradeSheetLimitPriceInputMethodRef.current = null;
+      setIsInputFocused(false);
+      setIsLimitPriceFocused(true);
+    }
+  }, [orderForm.limitPrice, orderForm.type, setLimitPrice, setOrderType]);
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
@@ -2296,7 +2290,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onPercentagePress={handlePercentagePress}
                 onMaxPress={handleMaxPress}
                 onDonePress={handleDonePress}
-                onOrderTypePress={() => setIsOrderTypeVisible(true)}
+                onOrderTypePress={handleTradeSheetOrderTypeToggle}
                 onLimitPricePress={handleTradeSheetLimitPricePress}
                 onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
@@ -2327,15 +2321,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               />
             ),
           }}
-        />
-        <PerpsOrderTypeBottomSheet
-          isVisible={isOrderTypeVisible}
-          onClose={() => setIsOrderTypeVisible(false)}
-          onSelect={handleTradeSheetOrderTypeSelect}
-          currentOrderType={tradeSheetOrderType}
-          availableOrderTypes={['market', 'limit']}
-          asset={orderForm.asset}
-          direction={orderForm.direction}
         />
         {selectedTooltip === 'margin' && (
           <PerpsBottomSheetTooltip

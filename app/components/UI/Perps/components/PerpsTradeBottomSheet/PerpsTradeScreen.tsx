@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonBase,
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
@@ -16,9 +17,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  SelectButton,
-  SelectButtonSize,
-  SelectButtonVariant,
   Skeleton,
   Tag,
   TagSeverity,
@@ -339,20 +337,21 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <SelectButton
+          <ButtonBase
             testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-            variant={SelectButtonVariant.Primary}
-            size={SelectButtonSize.Md}
-            placeholder={orderTypeLabel}
-            value={orderTypeLabel}
+            size={ButtonBaseSize.Md}
             accessibilityLabel={strings(
               'perps.trade_sheet.order_type_accessibility_label',
               { orderType: orderTypeLabel },
             )}
             isDisabled={isOrderTypeDisabled}
             onPress={onOrderTypePress}
-            endArrowDirection="down"
-          />
+            endIconName={IconName.SwapHorizontal}
+            endIconProps={{ size: IconSize.Sm }}
+            twClassName="h-10 rounded-xl bg-muted px-3"
+          >
+            {orderTypeLabel}
+          </ButtonBase>
           <ButtonIcon
             testID={PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON}
             size={ButtonIconSize.Md}
