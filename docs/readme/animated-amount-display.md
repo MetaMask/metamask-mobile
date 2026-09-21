@@ -32,6 +32,10 @@ Migrated displays:
 Bridge and Swaps remain on their existing native `TextInput` implementation
 because selection, focus, and native caret behavior must be preserved.
 
+Price Alerts use the shared cursor/layout shell with `fitToWidth`; their amount
+body intentionally remains static so native font fitting continues to support
+very long, high-precision values.
+
 The shared blinking cursor is re-exported from the existing Ramp hook path so
 current consumers retain their imports while using the common implementation.
 
