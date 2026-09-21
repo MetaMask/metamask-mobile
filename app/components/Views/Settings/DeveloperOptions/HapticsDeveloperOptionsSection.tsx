@@ -38,6 +38,7 @@ async function runUngated(play: () => Promise<void>): Promise<void> {
  */
 const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
   ImpactMoment.QuickAmountSelection,
+  ImpactMoment.KeypadKey,
   ImpactMoment.SliderTick,
   ImpactMoment.EdgeGestureEngage,
   ImpactMoment.PageNavigation,
@@ -53,6 +54,8 @@ const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
 const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
   [ImpactMoment.QuickAmountSelection]:
     'app_settings.developer_options.haptics.impacts.quick_amount_selection',
+  [ImpactMoment.KeypadKey]:
+    'app_settings.developer_options.haptics.impacts.keypad_key',
   [ImpactMoment.SliderTick]:
     'app_settings.developer_options.haptics.impacts.slider_tick',
   [ImpactMoment.EdgeGestureEngage]:
