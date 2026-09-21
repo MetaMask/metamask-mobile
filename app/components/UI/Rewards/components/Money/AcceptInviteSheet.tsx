@@ -165,8 +165,11 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     );
   }, [createEventBuilder, initialReferralCode, trackEvent]);
 
+  // One answer per sheet, and the first one recorded is the answer: a close
+  // that follows Accept or Decline is the sheet acting on that press, not a
+  // second response to the invite.
   const trackResponded = useCallback(
-    (action: 'accepted' | 'declined') => {
+    (action: 'accepted' | 'declined' | 'dismissed') => {
       if (hasRespondedRef.current) {
         return;
       }
@@ -201,11 +204,21 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     sheetRef.current?.onCloseBottomSheet();
   }, [isAccepting, trackResponded]);
 
+  // Only this button refuses the invite. Every other way out of the sheet
+  // leaves the offer standing, so it reports `dismissed` instead.
   const handleDecline = useCallback(() => {
     if (isAccepting) {
       return;
     }
     trackResponded('declined');
+    sheetRef.current?.onCloseBottomSheet();
+  }, [isAccepting, trackResponded]);
+
+  const handleClose = useCallback(() => {
+    if (isAccepting) {
+      return;
+    }
+    trackResponded('dismissed');
     sheetRef.current?.onCloseBottomSheet();
   }, [isAccepting, trackResponded]);
 
@@ -223,8 +236,10 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   }, [acceptReferralCode, canAccept, referralCode, trackResponded]);
 
   const handleGoBack = useCallback(() => {
-    // Swipe / overlay dismiss is also a decline unless Accept already counted.
-    trackResponded('declined');
+    // Reached by a swipe, the overlay and hardware back, and also by the sheet
+    // finishing a close this screen asked for — which the one-answer guard
+    // above is what keeps from overwriting that answer.
+    trackResponded('dismissed');
     navigation.goBack();
   }, [navigation, trackResponded]);
 
