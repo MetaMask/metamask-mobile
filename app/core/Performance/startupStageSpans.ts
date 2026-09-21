@@ -100,6 +100,14 @@ export function startPostInitGap(): void {
     trace({
       name: TraceName.PostInitGap,
       op: TraceOperation.UIStartup,
+      // Parented like its siblings, and it is safe to do so: `App` renders only
+      // once `appServicesReady` flips, and `AppFlow` is its child, so
+      // `endPostInitGap` (AppFlow's mount effect) runs before `UIStartup` ends
+      // (App's mount effect). Without a parent this would be a root
+      // transaction — sampled independently, missing from the `UIStartup` tree,
+      // and dropped by `excludeEvents` if it ever timed out instead of being
+      // kept as a child carrying `trace.timed_out`.
+      parentContext: getUIStartupSpan(),
     }),
   );
 }

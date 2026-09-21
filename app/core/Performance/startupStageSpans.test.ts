@@ -22,9 +22,10 @@ jest.mock('.', () => ({
   Performance: { appLaunchTime: 1_700_000_000_000 },
 }));
 
+const MOCK_UI_STARTUP_SPAN = { name: 'mock-ui-startup-span' };
 jest.mock('./UIStartup', () => ({
   __esModule: true,
-  default: jest.fn(() => undefined),
+  default: jest.fn(() => MOCK_UI_STARTUP_SPAN),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -74,6 +75,20 @@ describe('startupStageSpans', () => {
       endPostInitGap();
 
       expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('nests under UIStartup rather than becoming a root transaction', () => {
+      // A root span is sampled independently, never appears in the UIStartup
+      // tree, and is dropped by `excludeEvents` if it times out instead of
+      // being kept as a child carrying `trace.timed_out`.
+      startPostInitGap();
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PostInitGap,
+          parentContext: MOCK_UI_STARTUP_SPAN,
+        }),
+      );
     });
   });
 
