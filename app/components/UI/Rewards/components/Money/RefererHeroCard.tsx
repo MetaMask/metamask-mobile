@@ -182,7 +182,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           testID={REFERER_HERO_CARD_TEST_IDS.REFERRALS_TOTAL}
         />
         <MoneyMetricCard
-          iconName={IconName.SwapVertical}
+          iconName={IconName.Copy}
           label={localizedText.tradeCommissions}
           amount={
             unavailableAmount ??
