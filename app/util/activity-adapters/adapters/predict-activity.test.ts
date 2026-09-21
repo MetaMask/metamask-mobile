@@ -62,8 +62,8 @@ describe('mapPredictActivity', () => {
       status: 'success',
       timestamp: 1_700_000_000_000,
       hash: 'activity-1',
-      raw: { type: 'predictActivity', data: baseBuy },
       data: {
+        eventTitle: 'Will it rain tomorrow?',
         token: {
           amount: '100',
           symbol: 'USDC',
@@ -87,8 +87,8 @@ describe('mapPredictActivity', () => {
       status: 'success',
       timestamp: 1_700_000_100_000,
       hash: 'activity-2',
-      raw: { type: 'predictActivity', data: baseSell },
       data: {
+        eventTitle: 'Will it rain tomorrow?',
         token: {
           amount: '75',
           symbol: 'USDC',
@@ -112,8 +112,8 @@ describe('mapPredictActivity', () => {
       status: 'success',
       timestamp: 1_700_000_200_000,
       hash: 'activity-3',
-      raw: { type: 'predictActivity', data: baseClaim },
       data: {
+        eventTitle: 'Will it rain tomorrow?',
         token: {
           amount: '250',
           symbol: 'USDC',

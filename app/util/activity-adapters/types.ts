@@ -1,6 +1,7 @@
 /**
  * `@metamask/client-utils` is the source of truth for activity types (same as
- * extension). Remaining mobile-only fields are leftovers to delete as call sites move over.
+ * extension). `raw` remains only for Perps, Predict, and Ramps until those
+ * sources are replaced with direct lookups.
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
@@ -9,17 +10,7 @@ import type {
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
-import type { Transaction } from '@metamask/keyring-api';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { TriggerOrderType } from '@metamask/perps-controller';
-import type { TransactionGroup } from './adapters/transaction-group';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../components/UI/Predict/types';
-import type { RampsOrder } from '@metamask/ramps-controller';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
 export type {
   ActivityKind,
@@ -29,10 +20,10 @@ export type {
 } from '@metamask/client-utils';
 
 export type TokenAmount = ClientUtilsTokenAmount & {
-  isUnlimitedApproval?: boolean;
   /**
    * Keyring (non-EVM) amounts are already human-readable. Display/fiat must
    * not run `formatUnits` on them even when token metadata supplies decimals.
+   * Set at display time only (not by any adapter).
    */
   amountIsHumanReadable?: boolean;
 };
@@ -66,18 +57,8 @@ export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
   return PERPS_ORDER_KIND_SET.has(kind);
 }
 
-type ActivityRaw =
-  | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
-  | { type: 'keyringTransaction'; data: Transaction }
-  | { type: 'localTransaction'; data: TransactionGroup }
-  | { type: 'perpsTransaction'; data: PerpsTransaction }
-  | { type: 'predictActivity'; data: PredictActivity }
-  | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
-
 interface MobileFields {
   isEarliestNonce?: boolean;
-  /** @deprecated Get raw transaction data directly as needed */
-  raw?: ActivityRaw;
 }
 
 type SplitByKind<T> = T extends { type: infer K }
@@ -96,6 +77,8 @@ interface MobileDataExtras {
   /** Semantic trigger type localized by the Activity presentation layer. */
   perpsTriggerOrderType?: TriggerOrderType;
   fees?: ActivityFee[];
+  /** Predict market title (e.g. "Will ETH reach $10k?") — predict-only. */
+  eventTitle?: string;
 }
 
 type WithMobileDataTokens<T> = T extends { data: infer D }

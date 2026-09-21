@@ -106,7 +106,6 @@ const rampItem = (type: 'buy' | 'sell'): ActivityListItem =>
     status: 'success',
     timestamp: 1,
     hash: '0xramp',
-    raw: { type: 'rampOrder', data: {} },
     data: {
       token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
     },

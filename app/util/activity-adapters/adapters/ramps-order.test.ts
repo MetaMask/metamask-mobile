@@ -39,7 +39,6 @@ describe('mapRampsOrder', () => {
       status: 'success',
       timestamp: 1_700_000_000_000,
       hash: '0xbuyhash',
-      raw: { type: 'rampOrder', data: baseOrder },
       data: {
         from: baseOrder.walletAddress,
         token: {
@@ -316,7 +315,5 @@ describe('mapRampsOrder', () => {
         },
       },
     });
-    expect(native?.raw?.type).toBe('rampOrder');
-    expect(native?.raw?.data).toBe(baseOrder);
   });
 });

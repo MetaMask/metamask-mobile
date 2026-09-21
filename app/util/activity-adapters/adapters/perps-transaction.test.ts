@@ -155,7 +155,6 @@ describe('mapPerpsTransaction', () => {
         status: 'success',
         timestamp: base.timestamp,
         hash: 'tx-1',
-        raw: { type: 'perpsTransaction', data: transaction },
         data: {
           token: {
             amount: '43.99',
@@ -306,7 +305,6 @@ describe('mapPerpsTransaction', () => {
         status: 'success',
         timestamp: base.timestamp,
         hash: '0xfeedface',
-        raw: { type: 'perpsTransaction', data: withdrawalTx },
         data: {
           token: {
             amount: '250',

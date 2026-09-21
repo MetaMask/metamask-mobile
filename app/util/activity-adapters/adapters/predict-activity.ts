@@ -62,13 +62,13 @@ export function mapPredictActivity({
   // Provider timestamps are Unix seconds; ActivityListItem.timestamp is in
   // milliseconds (used by date grouping and the row date headers).
   const timestamp = entry.timestamp * 1000;
-  const raw = { type: 'predictActivity', data: activity } as const;
   // `id` is a synthetic composite (getPolymarketActivityId), NOT the bare tx
   // hash — one on-chain tx can yield several activities, so the tx hash isn't
   // unique per row. We use it as `hash` for stable identity / React keys, but
   // it means a claim (a real redeemPositions tx) won't dedup against its EVM
   // copy. Safe today only because `ActivityTypeFilter.All` is disabled. See the
   // cross-source dedup note in `adapters/dedup.ts` before re-enabling "All".
+  const eventTitle = activity.title;
 
   switch (entry.type) {
     case 'buy':
@@ -78,9 +78,9 @@ export function mapPredictActivity({
         status: 'success',
         timestamp,
         hash: id,
-        raw,
         data: {
           token: toFiatToken(entry.amount, 'out', quoteAsset),
+          eventTitle,
         },
       };
 
@@ -91,9 +91,9 @@ export function mapPredictActivity({
         status: 'success',
         timestamp,
         hash: id,
-        raw,
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
+          eventTitle,
         },
       };
 
@@ -104,9 +104,9 @@ export function mapPredictActivity({
         status: 'success',
         timestamp,
         hash: id,
-        raw,
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
+          eventTitle,
         },
       };
 

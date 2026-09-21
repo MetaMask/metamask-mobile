@@ -237,7 +237,14 @@ describe('activity list helpers', () => {
     it('prefers a local unlimited approval over an API copy with no cap amount', () => {
       const local = makeItem({
         type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+        // uint256 max — isUnlimitedApprovalAmount threshold (>= 1e15)
+        data: {
+          token: {
+            amount:
+              '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+            direction: 'out',
+          },
+        },
       });
       const api = makeItem({
         type: 'increaseSpendingCap',
@@ -381,9 +388,9 @@ describe('activity list helpers', () => {
     const item = makeItem({
       data: {
         token: {
-          amount: '115792089237316195423570985.639935',
+          amount:
+            '115792089237316195423570985008687907853269984665640564039457584007913129639935',
           direction: 'out',
-          isUnlimitedApproval: true,
           symbol: 'USDT',
         },
       },

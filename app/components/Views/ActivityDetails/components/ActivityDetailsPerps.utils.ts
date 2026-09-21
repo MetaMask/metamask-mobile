@@ -1,9 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
-import type {
-  ActivityListItem,
-  PerpsOrderKind,
-} from '../../../../util/activity-adapters';
+import type { PerpsOrderKind } from '../../../../util/activity-adapters';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted. */
 import {
   formatTransactionDate as formatPerpsTransactionDate,
@@ -13,11 +10,10 @@ import {
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
 /* eslint-enable import-x/no-restricted-paths */
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PerpsTransaction as PerpsTransactionSource } from '../../../UI/Perps/types/transactionHistory';
 
-export type PerpsTransaction = Extract<
-  NonNullable<ActivityListItem['raw']>,
-  { type: 'perpsTransaction' }
->['data'];
+export type PerpsTransaction = PerpsTransactionSource;
 
 export type PerpsDepositWithdrawalStatus = NonNullable<
   PerpsTransaction['depositWithdrawal']

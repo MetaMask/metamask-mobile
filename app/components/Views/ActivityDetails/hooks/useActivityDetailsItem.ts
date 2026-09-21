@@ -64,16 +64,7 @@ function buildItemsByHash(
 }
 
 function buildItemsByIdentifier(items: ActivityListItem[]) {
-  const byIdentifier = buildItemsByHash(items);
-  for (const item of items) {
-    const domainId =
-      item.raw?.type === 'rampOrder' ? item.raw.data.id : undefined;
-    const normalizedDomainId = domainId?.toLowerCase();
-    if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
-      byIdentifier.set(normalizedDomainId, item);
-    }
-  }
-  return byIdentifier;
+  return buildItemsByHash(items);
 }
 
 function filterByChain(
@@ -212,13 +203,10 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const activity = {
-      ...mapApiTransaction({
-        subjectAddress,
-        transaction: apiTransaction,
-      }),
-      raw: { type: 'apiEvmTransaction' as const, data: apiTransaction },
-    } as ActivityListItem;
+    const activity = mapApiTransaction({
+      subjectAddress,
+      transaction: apiTransaction,
+    }) as ActivityListItem;
     const classified = classifyPooledStakingActivity(apiTransaction, activity);
 
     if (chainId && classified.chainId !== chainId) {

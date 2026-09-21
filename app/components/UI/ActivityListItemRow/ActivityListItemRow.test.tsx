@@ -1416,8 +1416,8 @@ describe('ActivityListItemRow — row content', () => {
       type: 'approveSpendingCap',
       status: 'success',
       token: {
-        amount: '115792089237316195423570985.639935',
-        isUnlimitedApproval: true,
+        amount:
+          '115792089237316195423570985008687907853269984665640564039457584007913129639935',
         symbol: 'USDT',
         direction: 'out',
       },

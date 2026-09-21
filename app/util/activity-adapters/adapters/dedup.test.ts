@@ -2,7 +2,7 @@ import type { ActivityListItem } from '../types';
 import { mergeActivityItems } from './dedup';
 
 const makeItem = (
-  source: string,
+  _source: string,
   timestamp: number,
   hash?: string,
 ): ActivityListItem =>
@@ -13,7 +13,6 @@ const makeItem = (
     timestamp,
     hash,
     data: {},
-    raw: { type: source, data: {} },
   }) as unknown as ActivityListItem;
 
 describe('mergeActivityItems', () => {

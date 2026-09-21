@@ -637,19 +637,11 @@ function enrichApprovalActivity(
     }
   }
 
-  if (!isUnlimited || next.data.token?.isUnlimitedApproval) {
+  if (!isUnlimited) {
     return next;
   }
 
-  return {
-    ...next,
-    data: {
-      ...next.data,
-      token: next.data.token
-        ? { ...next.data.token, isUnlimitedApproval: true }
-        : next.data.token,
-    },
-  };
+  return next;
 }
 
 function enrichPreparedFees(

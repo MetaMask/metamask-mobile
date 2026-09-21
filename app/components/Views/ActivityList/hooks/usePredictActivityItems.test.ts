@@ -70,7 +70,6 @@ describe('usePredictActivityItems', () => {
       chainId: 'eip155:137',
       status: 'success',
       timestamp: 200_000, // entry.timestamp (200s) → ms
-      raw: { type: 'predictActivity', data: buyActivity },
       hash: 'predict-buy',
       data: {
         token: {

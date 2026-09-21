@@ -416,7 +416,7 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetched');
-    expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
+    expect(result.current.item?.raw).toBeUndefined();
   });
 
   it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
