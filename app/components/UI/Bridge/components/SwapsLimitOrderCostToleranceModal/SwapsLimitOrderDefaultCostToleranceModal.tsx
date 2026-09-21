@@ -88,7 +88,9 @@ export const SwapsLimitOrderDefaultCostToleranceModal = () => {
       />
       <Box paddingHorizontal={4} paddingVertical={2}>
         <Text twClassName="text-center">
-          {strings('bridge.default_cost_tolerance_description')}
+          {strings('bridge.default_cost_tolerance_description', {
+            costTolerance: selectedCostTolerance,
+          })}
         </Text>
       </Box>
       <CostToleranceButtonGroup options={costToleranceOptions} />

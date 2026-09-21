@@ -136,7 +136,7 @@ const configuredRecurringState = {
   repeatCount: '4',
   priceRange: {
     tokenSide: 'source' as const,
-    currency: 'usd',
+    currency: 'USD' as const,
     min: '1000',
     max: '2000',
   },

@@ -224,6 +224,16 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('opens the post composer from the empty Posts CTA', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
   it('omits the Insights header action', () => {
     renderWithProvider(<MyProfileView />);
 
