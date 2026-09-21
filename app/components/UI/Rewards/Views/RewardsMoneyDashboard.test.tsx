@@ -5,11 +5,12 @@ import type {
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
-import { useSessionProfileId } from '../hooks/useReferralMe';
+import { useReferralMe, useSessionProfileId } from '../hooks/useReferralMe';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import RewardsMoneyDashboard, {
   REWARDS_MONEY_DASHBOARD_TEST_IDS,
@@ -37,6 +38,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../hooks/useReferralMe', () => ({
   useSessionProfileId: jest.fn(),
+  useReferralMe: jest.fn(),
 }));
 
 jest.mock('../hooks/useEarningsSummary', () => ({
@@ -90,9 +92,13 @@ jest.mock('../components/Benefits/BenefitsPreview', () => {
 const mockUseSessionProfileId = useSessionProfileId as jest.MockedFunction<
   typeof useSessionProfileId
 >;
+const mockUseReferralMe = useReferralMe as jest.MockedFunction<
+  typeof useReferralMe
+>;
 const mockUseEarningsSummary = useEarningsSummary as jest.MockedFunction<
   typeof useEarningsSummary
 >;
+const mockFetchReferralMe = jest.fn();
 
 const LOCALIZED_TEXT = {
   waysToEarn: 'Ways to earn',
@@ -245,6 +251,10 @@ describe('RewardsMoneyDashboard', () => {
     mockUseEarningsSummary.mockReturnValue({
       fetchEarningsSummary: jest.fn(),
     });
+    mockUseReferralMe.mockReturnValue({
+      profileId: PROFILE_ID,
+      fetchReferralMe: mockFetchReferralMe,
+    });
   });
 
   it('renders the layout skeleton while the session profile is unresolved', () => {
@@ -279,7 +289,7 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the fetch error banner when referral me has no data after loading', () => {
+  it('renders the transient skeleton when mounted without a referral persona', () => {
     const { getByTestId, queryByTestId } = renderDashboard({
       referralMeEntry: {
         loading: false,
@@ -289,23 +299,20 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR_BANNER),
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING),
     ).toBeOnTheScreen();
-    expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING),
-    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the fetch error banner when the session has no profile id', () => {
+  it('renders the transient skeleton when the session has no profile id', () => {
     const { getByTestId } = renderDashboard({
       hasProfileId: false,
     });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR_BANNER),
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING),
     ).toBeOnTheScreen();
   });
 
@@ -394,16 +401,18 @@ describe('RewardsMoneyDashboard', () => {
     expect(getByText('$7.65')).toBeOnTheScreen();
   });
 
-  it('keeps the hero readable when the summary failed, without a banner about it', () => {
-    const { getByTestId, queryByText, queryByTestId } = renderDashboard({
+  it('keeps the hero readable and shows retry when the summary failed', () => {
+    const { getAllByText, getByTestId, queryByText } = renderDashboard({
       earningsSummaryEntry: { loading: false, error: true, data: null },
     });
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(getAllByText('-')).toHaveLength(2);
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
+    expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR_BANNER),
-    ).not.toBeOnTheScreen();
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
+    ).toBeOnTheScreen();
   });
 
   it('renders the Rewards opt-in section when there is no subscription', () => {
@@ -447,7 +456,7 @@ describe('RewardsMoneyDashboard', () => {
   });
 
   it('shows an inline error banner on Ways to earn when referral me is stale with an error', () => {
-    const { getByTestId } = renderDashboard({
+    const { getByTestId, getByText } = renderDashboard({
       referralMeEntry: {
         loading: false,
         error: true,
@@ -459,9 +468,28 @@ describe('RewardsMoneyDashboard', () => {
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR_BANNER),
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('rewards.referral_details_error.retry_button')),
     ).toBeOnTheScreen();
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('retries referral me with a fresh fetch from the stale-data error banner', () => {
+    const { getByText } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: true,
+        data: createReferralMe(),
+      },
+    });
+
+    fireEvent.press(
+      getByText(strings('rewards.referral_details_error.retry_button')),
+    );
+
+    expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
   });
 
   it('switches to an empty Earnings tab body', () => {
