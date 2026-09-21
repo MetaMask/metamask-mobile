@@ -145,10 +145,9 @@ describe('useAddressBalance', () => {
     mockGetERC20BalanceOf = jest
       .fn()
       .mockReturnValue(Promise.resolve(0x0186a0));
-    //@ts-expect-error - for test purposes is not needed to add the other properties of AssetsContractController
-    mockedEngine.context.AssetsContractController = {
+    Object.assign(mockedEngine.context.AssetsContractController, {
       getERC20BalanceOf: mockGetERC20BalanceOf,
-    };
+    });
   });
 
   it('render balance from AccountTrackerController.accounts for ETH', () => {
