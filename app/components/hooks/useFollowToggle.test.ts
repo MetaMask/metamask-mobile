@@ -3,7 +3,11 @@ import { useSelector } from 'react-redux';
 import { playImpact, ImpactMoment } from '../../util/haptics';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import { useFollowToggle, useFollowToggleMany } from './useFollowToggle';
+import {
+  resetFollowToggleSharedStateForTests,
+  useFollowToggle,
+  useFollowToggleMany,
+} from './useFollowToggle';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockReturnValue([]),
@@ -56,6 +60,7 @@ const mockPlayImpact = jest.mocked(playImpact);
 describe('useFollowToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseSelector.mockReturnValue([]);
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
@@ -328,6 +333,7 @@ describe('useFollowToggle', () => {
 describe('useFollowToggleMany', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseSelector.mockReturnValue([]);
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
@@ -450,5 +456,59 @@ describe('useFollowToggleMany', () => {
 
     // isFollowing should still be true (from redux now, not the optimistic map).
     expect(result.current.isFollowing('trader-1')).toBe(true);
+  });
+
+  it('shares optimistic follow state across hook instances', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+
+    const first = renderHook(() => useFollowToggleMany());
+    const second = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      first.result.current.toggleFollow('trader-1');
+    });
+
+    expect(first.result.current.isFollowing('trader-1')).toBe(true);
+    expect(second.result.current.isFollowing('trader-1')).toBe(true);
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+  });
+
+  it('ignores a second instance toggle for the same trader while in flight', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+
+    const first = renderHook(() => useFollowToggleMany());
+    const second = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      first.result.current.toggleFollow('trader-1');
+    });
+    await act(async () => {
+      second.result.current.toggleFollow('trader-1');
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      { targets: ['trader-1'] },
+    );
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
   });
 });

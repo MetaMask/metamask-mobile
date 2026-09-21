@@ -5,6 +5,7 @@ import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../../hooks/useFollowToggle';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('react-redux', () => ({
@@ -97,6 +98,7 @@ const makeQueryResult = (
 describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {

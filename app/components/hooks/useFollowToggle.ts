@@ -1,5 +1,5 @@
 import { playImpact, ImpactMoment } from '../../util/haptics';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
 import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
@@ -48,6 +48,52 @@ export interface UseFollowToggleManyResult {
 
 const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
 
+type OptimisticFollowListener = () => void;
+
+/**
+ * Optimistic follow overrides and in-flight ids live at module scope so every
+ * `useFollowToggleMany` instance (carousel + stacked Profiles to follow, etc.)
+ * shares one map. Per-hook `useState` would leave stacked screens out of sync
+ * until Redux catches up after the network write.
+ */
+let optimisticFollowState: Record<string, boolean> = {};
+const inflightIds = new Set<string>();
+const optimisticFollowListeners = new Set<OptimisticFollowListener>();
+
+const emitOptimisticFollowState = (): void => {
+  optimisticFollowListeners.forEach((listener) => listener());
+};
+
+const subscribeOptimisticFollowState = (
+  listener: OptimisticFollowListener,
+): (() => void) => {
+  optimisticFollowListeners.add(listener);
+  return () => {
+    optimisticFollowListeners.delete(listener);
+  };
+};
+
+const getOptimisticFollowState = (): Record<string, boolean> =>
+  optimisticFollowState;
+
+const updateOptimisticFollowState = (
+  updater: (prev: Record<string, boolean>) => Record<string, boolean>,
+): void => {
+  const next = updater(optimisticFollowState);
+  if (next === optimisticFollowState) {
+    return;
+  }
+  optimisticFollowState = next;
+  emitOptimisticFollowState();
+};
+
+/** Clears shared follow-toggle state between unit tests. */
+export const resetFollowToggleSharedStateForTests = (): void => {
+  optimisticFollowState = {};
+  inflightIds.clear();
+  emitOptimisticFollowState();
+};
+
 /**
  * Invalidates the followed-traders query without importing ReactQueryService at
  * module load (that import pulls in Engine and breaks tests that mock Engine).
@@ -67,24 +113,24 @@ const invalidateFollowingQuery = async (): Promise<void> => {
  * server-side from the JWT attached by `SocialService`, so no `profileId`
  * needs to be passed from the UI.
  *
- * Local optimistic overrides are kept per trader id and cleared automatically
- * once Redux catches up with the intended value, or when the underlying
- * messenger call fails.
+ * Optimistic overrides are shared across hook instances and cleared
+ * automatically once Redux catches up with the intended value, or when the
+ * underlying messenger call fails.
  */
 export const useFollowToggleMany = (): UseFollowToggleManyResult => {
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const { track } = useSocialLeaderboardAnalytics();
-
-  const [optimisticFollowState, setOptimisticFollowState] = useState<
-    Record<string, boolean>
-  >({});
-  const inflightIdsRef = useRef<Set<string>>(new Set());
+  const optimisticOverrides = useSyncExternalStore(
+    subscribeOptimisticFollowState,
+    getOptimisticFollowState,
+    getOptimisticFollowState,
+  );
 
   const isFollowing = useCallback(
     (addressOrId: string): boolean =>
-      optimisticFollowState[addressOrId] ??
+      optimisticOverrides[addressOrId] ??
       followingProfileIds.includes(addressOrId),
-    [optimisticFollowState, followingProfileIds],
+    [optimisticOverrides, followingProfileIds],
   );
 
   const toggleFollow = useCallback(
@@ -102,12 +148,12 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
       // even when the API call is debounced.
       playImpact(ImpactMoment.FollowToggle);
 
-      if (inflightIdsRef.current.has(addressOrId)) {
+      if (inflightIds.has(addressOrId)) {
         return;
       }
-      inflightIdsRef.current.add(addressOrId);
+      inflightIds.add(addressOrId);
 
-      setOptimisticFollowState((prev) => ({
+      updateOptimisticFollowState((prev) => ({
         ...prev,
         [addressOrId]: nextValue,
       }));
@@ -138,7 +184,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           });
         }
       } catch (err) {
-        setOptimisticFollowState((prev) => {
+        updateOptimisticFollowState((prev) => {
           const next = { ...prev };
           delete next[addressOrId];
           return next;
@@ -157,14 +203,14 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           { breadcrumb: false },
         );
       } finally {
-        inflightIdsRef.current.delete(addressOrId);
+        inflightIds.delete(addressOrId);
       }
     },
-    [optimisticFollowState, followingProfileIds, track],
+    [followingProfileIds, track],
   );
 
   useEffect(() => {
-    setOptimisticFollowState((prev) => {
+    updateOptimisticFollowState((prev) => {
       let changed = false;
       const next: Record<string, boolean> = {};
       for (const [id, value] of Object.entries(prev)) {

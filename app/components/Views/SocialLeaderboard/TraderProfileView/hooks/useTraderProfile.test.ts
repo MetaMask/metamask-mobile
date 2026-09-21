@@ -4,6 +4,7 @@ import { useQuery } from '@metamask/react-data-query';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../hooks/useFollowToggle';
 import { useTraderProfile } from './useTraderProfile';
 
 jest.mock('react-redux', () => ({
@@ -74,6 +75,7 @@ const fixtureProfile = {
 describe('useTraderProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
