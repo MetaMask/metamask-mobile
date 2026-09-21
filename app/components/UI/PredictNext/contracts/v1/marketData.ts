@@ -234,6 +234,8 @@ const venueStatusSchema = object({
   venueId,
   status: venueStatus,
   checkedAt: timestamp,
+  // Backend-owned venue metadata; absent when the venue has no agreement.
+  termsUrl: optional(httpsUrl),
 });
 
 const marketHistoryPointSchema = refine(

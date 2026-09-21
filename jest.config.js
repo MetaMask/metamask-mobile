@@ -104,6 +104,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
   '@metamask/smart-transactions-controller',
+  '@metamask/transaction-controller',
   '@metamask/transaction-pay-controller',
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.

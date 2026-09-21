@@ -28,7 +28,13 @@ import {
 } from '../../navigation/feedScreens';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
+import { usePredictOrderFlow } from '../PredictOrderFlow';
+import {
+  KALSHI_VENUE_ID,
+  type PredictEvent,
+  type PredictMarket,
+  type PredictOutcome,
+} from '../../types';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
@@ -132,6 +138,7 @@ export const PredictHome = () => {
       }),
     [navigation],
   );
+  const { openOrderFlow } = usePredictOrderFlow();
   const openEvent = useCallback(
     (event: PredictEvent) =>
       navigation.navigate(PredictNextRoutes.EVENT, {
@@ -140,6 +147,20 @@ export const PredictHome = () => {
         titleSnapshot: event.title,
       }),
     [navigation],
+  );
+  const openOrder = useCallback(
+    (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
+      openOrderFlow({
+        venueId: event.venueId,
+        marketId: market.id,
+        side: outcome.side,
+        outcomeLabel: outcome.label,
+        eventTitle: event.title,
+        eventImageUrl: event.imageUrl,
+        askPrice: outcome.askPrice,
+      });
+    },
+    [openOrderFlow],
   );
 
   return (
@@ -190,6 +211,7 @@ export const PredictHome = () => {
             isError={nflQuery.isError}
             onOpen={() => openFeedScreen(NFL_FEED_SCREEN_ID)}
             onOpenEvent={openEvent}
+            onOrder={openOrder}
             onRetry={() => nflQuery.refetch()}
           />
           <FeedPreviewSection
@@ -200,6 +222,7 @@ export const PredictHome = () => {
             isError={ncaaQuery.isError}
             onOpen={() => openFeedScreen(NCAA_FEED_SCREEN_ID)}
             onOpenEvent={openEvent}
+            onOrder={openOrder}
             onRetry={() => ncaaQuery.refetch()}
           />
         </Box>
