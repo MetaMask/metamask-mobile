@@ -10,7 +10,6 @@ import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import type { RootState } from '../../../../../reducers';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import {
   type ConfirmationAsset,
@@ -36,18 +35,12 @@ export function useAccountTokens({
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
-  const accountOverride = useTransactionAccountOverride();
-  const overrideGroupId = useAccountOverrideGroupId();
+  const accountGroupId = useAccountOverrideGroupId();
 
   // Assets are only fetched automatically for the selected account group, so an
   // override account the user has never activated has no entry in assets state.
   // Request it on demand, otherwise the token list stays permanently empty.
-  useEnsureAccountGroupAssets(overrideGroupId);
-
-  // When an account override is active, always use its assets (even if empty)
-  // to avoid showing stale tokens from the globally selected account.
-  const accountGroupId =
-    accountOverride === undefined ? undefined : overrideGroupId;
+  useEnsureAccountGroupAssets(accountGroupId);
 
   // Pay-flow confirmations price everything in USD. Resolved here and passed
   // down so the selector stays unaware of transaction types.

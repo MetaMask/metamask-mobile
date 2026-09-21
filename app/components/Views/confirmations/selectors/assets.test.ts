@@ -3,7 +3,13 @@ import type { RootState } from '../../../../reducers';
 import fixture from '../../../../selectors/assets/__fixtures__/assets-controller-state-log.json';
 import { ARC_USDC_ERC20_TOKEN_ADDRESS } from '../../../../enablement/assets/networks-customization';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import { selectConfirmationAssetsByAccountGroupId } from './assets';
+import { KnownCaip19Id } from '../../../../core/Multichain/constants';
+import { SolScope } from '@metamask/keyring-api';
+import {
+  selectConfirmationAssetsByAccountGroupId,
+  selectConfirmationAssetsWithBalanceByAccountGroupId,
+  type ConfirmationAsset,
+} from './assets';
 
 // Formatting is exercised by the util's own suite; stubbed here so assertions
 // can target the amount and currency that reach it rather than locale output.
@@ -31,7 +37,10 @@ interface Fixture {
   };
 }
 
-function buildState(overrides: Record<string, unknown> = {}): RootState {
+function buildState(
+  overrides: Record<string, unknown> = {},
+  settings: Record<string, unknown> = { showFiatOnTestnets: true },
+): RootState {
   const { accountTree } = (fixture as unknown as Fixture).AccountTreeController;
 
   const accountIds = Object.values(accountTree.wallets).flatMap((wallet) =>
@@ -68,8 +77,61 @@ function buildState(overrides: Record<string, unknown> = {}): RootState {
         ...overrides,
       },
     },
-    settings: { showFiatOnTestnets: true },
+    settings,
   } as unknown as RootState;
+}
+
+/** Seeds extra assets onto the first account that already holds balances. */
+function buildStateWithAssets(
+  seeds: {
+    amount: string;
+    assetId: string;
+    info: Record<string, unknown>;
+    price?: Record<string, unknown>;
+  }[],
+  settings?: Record<string, unknown>,
+): RootState {
+  const assetsController = (
+    fixture as unknown as {
+      AssetsController: {
+        assetsBalance: Record<string, Record<string, unknown>>;
+        assetsInfo: Record<string, unknown>;
+        assetsPrice: Record<string, unknown>;
+      };
+    }
+  ).AssetsController;
+
+  const accountId = Object.keys(assetsController.assetsBalance)[0];
+
+  return buildState(
+    {
+      AssetsController: {
+        ...assetsController,
+        assetsBalance: {
+          ...assetsController.assetsBalance,
+          [accountId]: {
+            ...assetsController.assetsBalance[accountId],
+            ...Object.fromEntries(
+              seeds.map((seed) => [seed.assetId, { amount: seed.amount }]),
+            ),
+          },
+        },
+        assetsInfo: {
+          ...assetsController.assetsInfo,
+          ...Object.fromEntries(seeds.map((seed) => [seed.assetId, seed.info])),
+        },
+        assetsPrice: {
+          ...assetsController.assetsPrice,
+          ...Object.fromEntries(
+            seeds
+              .filter((seed) => seed.price)
+              .map((seed) => [seed.assetId, seed.price]),
+          ),
+        },
+      },
+    },
+    settings,
+  );
 }
 
 /**
@@ -238,6 +300,148 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
     expect(arcAssets[0].isNative).toBe(true);
   });
 
+  // `assetId` on an emitted asset is the address for EVM chains and the
+  // CAIP-19 ID only for non-EVM, so each case matches on its own terms.
+  it.each([
+    {
+      assetId: KnownCaip19Id.TrxStakedForEnergyMainnet as string,
+      label: 'Tron network resources',
+      matches: (asset: ConfirmationAsset) =>
+        asset.assetId === KnownCaip19Id.TrxStakedForEnergyMainnet,
+      metadata: { symbol: 'TRX', name: 'Energy', decimals: 6, image: '' },
+    },
+    {
+      assetId: 'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+      label: 'the pooled-staking vault token',
+      matches: (asset: ConfirmationAsset) =>
+        asset.chainId === '0x1' &&
+        asset.address?.toLowerCase() ===
+          '0x4fef9d741011476750a243ac70b9789a63dd47df',
+      metadata: {
+        symbol: 'mETH',
+        name: 'Staked Ethereum',
+        decimals: 18,
+        image: '',
+      },
+    },
+    {
+      assetId: 'eip155:4217/slip44:60',
+      label: 'native tokens on chains that have none',
+      matches: (asset: ConfirmationAsset) => asset.chainId === '0x1079',
+      metadata: { symbol: 'TEMPO', name: 'Tempo', decimals: 18, image: '' },
+    },
+  ])('excludes $label', ({ assetId, matches, metadata }) => {
+    const assetsController = (
+      fixture as unknown as {
+        AssetsController: {
+          assetsBalance: Record<string, Record<string, unknown>>;
+          assetsInfo: Record<string, unknown>;
+        };
+      }
+    ).AssetsController;
+
+    const accountId = Object.keys(assetsController.assetsBalance)[0];
+
+    const state = buildState({
+      AssetsController: {
+        ...assetsController,
+        assetsBalance: {
+          ...assetsController.assetsBalance,
+          [accountId]: {
+            ...assetsController.assetsBalance[accountId],
+            [assetId]: { amount: '5' },
+          },
+        },
+        assetsInfo: {
+          ...assetsController.assetsInfo,
+          [assetId]: metadata,
+        },
+      },
+    });
+
+    const assets = selectConfirmationAssetsByAccountGroupId(state, undefined);
+
+    expect(assets.find(matches)).toBeUndefined();
+  });
+
+  describe('testnet fiat', () => {
+    // Solana Devnet is non-EVM, so its chain ID never reaches the selector in
+    // hex form. A hex-only testnet check silently treats it as mainnet.
+    const DEVNET_SOL = `${SolScope.Devnet}/slip44:501`;
+
+    const seeds = [
+      {
+        amount: '2',
+        assetId: DEVNET_SOL,
+        info: { symbol: 'SOL', name: 'Solana', decimals: 9, image: '' },
+        price: { id: DEVNET_SOL, price: 80, currency: 'chf' },
+      },
+    ];
+
+    function findDevnetSol(showFiatOnTestnets: boolean) {
+      const assets = selectConfirmationAssetsByAccountGroupId(
+        buildStateWithAssets(seeds, { showFiatOnTestnets }),
+        undefined,
+      );
+
+      return assets.find((asset) => asset.assetId === DEVNET_SOL);
+    }
+
+    it('hides fiat for non-EVM testnets when the setting is off', () => {
+      const asset = findDevnetSol(false);
+
+      expect(asset).toBeDefined();
+      expect(asset?.balanceInSelectedCurrency).toBeUndefined();
+      expect(asset?.fiat).toBeUndefined();
+      expect(asset?.sortKey).toBe(0);
+    });
+
+    it('shows fiat for non-EVM testnets when the setting is on', () => {
+      const asset = findDevnetSol(true);
+
+      expect(asset?.fiat?.balance).toBe(160);
+      expect(asset?.sortKey).toBe(160);
+    });
+  });
+
+  describe('zero balances', () => {
+    // A zero balance is worth zero in every currency, so it must still render
+    // a fiat value even when no price is available for the token.
+    const PRICELESS_TOKEN =
+      'eip155:1/erc20:0x1111111111111111111111111111111111111111';
+
+    const seed = (amount: string) => [
+      {
+        amount,
+        assetId: PRICELESS_TOKEN,
+        info: { symbol: 'ZERO', name: 'Zero', decimals: 18, image: '' },
+      },
+    ];
+
+    function findPricelessToken(amount: string) {
+      const assets = selectConfirmationAssetsByAccountGroupId(
+        buildStateWithAssets(seed(amount)),
+        undefined,
+      );
+
+      return assets.find(
+        (asset) =>
+          asset.address?.toLowerCase() ===
+          '0x1111111111111111111111111111111111111111',
+      );
+    }
+
+    it('displays zero fiat for a zero balance with no price', () => {
+      expect(findPricelessToken('0')?.balanceInSelectedCurrency).toBe('chf:0');
+    });
+
+    it('displays no fiat for a non-zero balance with no price', () => {
+      expect(
+        findPricelessToken('5')?.balanceInSelectedCurrency,
+      ).toBeUndefined();
+    });
+  });
+
   describe('currency override', () => {
     // Base USDC in the fixture: 49.933153 tokens, 0.8153… CHF, 1.0018… USD.
     const BALANCE = 49.933153;
@@ -324,6 +528,94 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
 
     expect(selectConfirmationAssetsByAccountGroupId(state, undefined)).toBe(
       selectConfirmationAssetsByAccountGroupId(state, undefined),
+    );
+  });
+});
+
+describe('selectConfirmationAssetsWithBalanceByAccountGroupId', () => {
+  const ZERO_TOKEN =
+    'eip155:1/erc20:0x2222222222222222222222222222222222222222';
+  const ZERO_ADDRESS = '0x2222222222222222222222222222222222222222';
+
+  it('excludes assets with no balance', () => {
+    const state = buildStateWithAssets([
+      {
+        amount: '0',
+        assetId: ZERO_TOKEN,
+        info: { symbol: 'ZERO', name: 'Zero', decimals: 18, image: '' },
+      },
+    ]);
+
+    const all = selectConfirmationAssetsByAccountGroupId(state, undefined);
+    const withBalance = selectConfirmationAssetsWithBalanceByAccountGroupId(
+      state,
+      undefined,
+    );
+
+    const matches = (asset: ConfirmationAsset) =>
+      asset.address?.toLowerCase() === ZERO_ADDRESS;
+
+    expect(all.find(matches)).toBeDefined();
+    expect(withBalance.find(matches)).toBeUndefined();
+  });
+
+  it('keeps assets holding a balance but carrying no fiat value', () => {
+    const state = buildStateWithAssets([
+      {
+        amount: '7',
+        assetId: ZERO_TOKEN,
+        info: { symbol: 'ZERO', name: 'Zero', decimals: 18, image: '' },
+      },
+    ]);
+
+    const asset = selectConfirmationAssetsWithBalanceByAccountGroupId(
+      state,
+      undefined,
+    ).find((entry) => entry.address?.toLowerCase() === ZERO_ADDRESS);
+
+    expect(asset).toBeDefined();
+    expect(asset?.fiat).toBeUndefined();
+  });
+
+  it('returns the base array untouched when nothing is filtered', () => {
+    const assetsController = (
+      fixture as unknown as {
+        AssetsController: { assetsBalance: Record<string, unknown> };
+      }
+    ).AssetsController;
+
+    const accountId = Object.keys(assetsController.assetsBalance)[0];
+    const assetId = 'eip155:1/erc20:0x3333333333333333333333333333333333333333';
+
+    // Only a single funded asset, so the filter removes nothing and the base
+    // array must be passed straight through rather than copied.
+    const state = buildState({
+      AssetsController: {
+        ...assetsController,
+        assetsBalance: { [accountId]: { [assetId]: { amount: '3' } } },
+        assetsInfo: {
+          [assetId]: { symbol: 'FUND', name: 'Funded', decimals: 18, image: '' },
+        },
+      },
+    });
+
+    const all = selectConfirmationAssetsByAccountGroupId(state, undefined);
+
+    expect(all).toHaveLength(1);
+    expect(
+      selectConfirmationAssetsWithBalanceByAccountGroupId(state, undefined),
+    ).toBe(all);
+  });
+
+  it('returns the same reference for repeated calls with equal state', () => {
+    // Downstream memos depend on this: a fresh array per call would
+    // invalidate them on every render.
+    const state = buildState();
+
+    expect(
+      selectConfirmationAssetsWithBalanceByAccountGroupId(state, undefined),
+    ).toBe(
+      selectConfirmationAssetsWithBalanceByAccountGroupId(state, undefined),
     );
   });
 });

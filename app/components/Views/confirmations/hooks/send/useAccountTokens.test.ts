@@ -1,13 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import type { AccountGroupId } from '@metamask/account-api';
 import { EthAccountType } from '@metamask/keyring-api';
 
 import { useAccountTokens } from './useAccountTokens';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { formatFiat } from '../../utils/fiat';
 import { TokenStandard } from '../../types/token';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
@@ -31,10 +31,6 @@ jest.mock('../../utils/network', () => ({
 
 jest.mock('../../utils/fiat', () => ({
   formatFiat: jest.fn(),
-}));
-
-jest.mock('../transactions/useTransactionAccountOverride', () => ({
-  useTransactionAccountOverride: jest.fn(),
 }));
 
 jest.mock('../pay/useTransactionPayCurrency', () => ({
@@ -81,11 +77,10 @@ const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
 const mockFormatFiat = jest.mocked(formatFiat);
 const mockUseTokensData = jest.mocked(useTokensData);
 const mockBuildEvmCaip19AssetId = jest.mocked(buildEvmCaip19AssetId);
-const mockUseTransactionAccountOverride = jest.mocked(
-  useTransactionAccountOverride,
-);
 const mockUseTransactionPayCurrency = jest.mocked(useTransactionPayCurrency);
-const mockUseAccountOverrideGroupId = jest.mocked(useAccountOverrideGroupId);
+const mockUseAccountOverrideGroupId = jest.mocked(
+  useAccountOverrideGroupId,
+);
 const mockGetSelectedCurrency = jest.mocked(getSelectedCurrency);
 const mockSelectConfirmationAssetsByAccountGroup = jest.mocked(
   selectConfirmationAssetsByAccountGroupId,
@@ -169,7 +164,6 @@ describe('useAccountTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseTransactionAccountOverride.mockReturnValue(undefined);
     mockUseTransactionPayCurrency.mockReturnValue(undefined);
     mockUseAccountOverrideGroupId.mockReturnValue(undefined);
     mockGetSelectedCurrency.mockReturnValue('chf');
@@ -477,9 +471,10 @@ describe('useAccountTokens', () => {
   });
 
   describe('account override wiring', () => {
+    const RESOLVED = 'entropy:group-1/0' as AccountGroupId;
+
     it('calls useEnsureAccountGroupAssets with the override group id', () => {
-      mockUseAccountOverrideGroupId.mockReturnValue('entropy:group-1/0');
-      mockUseTransactionAccountOverride.mockReturnValue('0xOverride' as never);
+      mockUseAccountOverrideGroupId.mockReturnValue(RESOLVED);
 
       renderHook(() => useAccountTokens());
 
@@ -490,7 +485,6 @@ describe('useAccountTokens', () => {
 
     it('passes undefined group id to useEnsureAccountGroupAssets when no override is active', () => {
       mockUseAccountOverrideGroupId.mockReturnValue(undefined);
-      mockUseTransactionAccountOverride.mockReturnValue(undefined);
 
       renderHook(() => useAccountTokens());
 
@@ -498,8 +492,7 @@ describe('useAccountTokens', () => {
     });
 
     it('queries the selector with the override group id when an override is active', () => {
-      mockUseTransactionAccountOverride.mockReturnValue('0xOverride' as never);
-      mockUseAccountOverrideGroupId.mockReturnValue('entropy:group-1/0');
+      mockUseAccountOverrideGroupId.mockReturnValue(RESOLVED);
 
       renderHook(() => useAccountTokens());
 
@@ -509,8 +502,7 @@ describe('useAccountTokens', () => {
     });
 
     it('queries the selector with an undefined group id when no override is active', () => {
-      mockUseTransactionAccountOverride.mockReturnValue(undefined);
-      mockUseAccountOverrideGroupId.mockReturnValue('entropy:group-1/0');
+      mockUseAccountOverrideGroupId.mockReturnValue(undefined);
 
       renderHook(() => useAccountTokens());
 
@@ -520,14 +512,23 @@ describe('useAccountTokens', () => {
     });
 
     it('returns the assets of the override group', () => {
-      mockUseTransactionAccountOverride.mockReturnValue('0xOverride' as never);
-      mockUseAccountOverrideGroupId.mockReturnValue('entropy:group-1/0');
+      mockUseAccountOverrideGroupId.mockReturnValue(RESOLVED);
       setAssets([buildAsset({ symbol: 'OVERRIDE' })]);
 
       const { result } = renderHook(() => useAccountTokens());
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('OVERRIDE');
+    });
+
+    it('keeps the assets of the selected group when no override is active', () => {
+      mockUseAccountOverrideGroupId.mockReturnValue(undefined);
+      setAssets([buildAsset({ symbol: 'GLOBAL' })]);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('GLOBAL');
     });
   });
 });

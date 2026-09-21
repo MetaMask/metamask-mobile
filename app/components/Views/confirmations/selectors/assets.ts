@@ -4,9 +4,13 @@ import type { AccountGroupId } from '@metamask/account-api';
 import {
   parseCaipAssetType,
   type CaipAssetType,
+  type CaipChainId,
   type Hex,
 } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
+import {
+  CHAIN_IDS_WITH_NO_NATIVE_TOKEN,
+  toHex,
+} from '@metamask/controller-utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   type AssetBalance,
@@ -28,12 +32,13 @@ import {
 import { selectShowFiatInTestnets } from '../../../../selectors/settings';
 import { selectStablecoins } from '../../../../selectors/featureFlagController/stableTokens';
 import type { RootState } from '../../../../reducers';
-import { isTestNet } from '../../../../util/networks';
+import { isNetworkTestnet } from '../hooks/send/useNetworkFilter';
 import {
   ARC_USDC_ERC20_TOKEN_ADDRESS,
   STABLE_USDT0_ERC20_ADDRESS,
 } from '../../../../enablement/assets/networks-customization';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { isTronSpecialAsset } from '../../../../core/Multichain/utils';
 import { getNetworkBadgeSource } from '../utils/network';
 import { formatFiat } from '../utils/fiat';
 import { type AssetType, TokenStandard } from '../types/token';
@@ -53,13 +58,20 @@ import { type AssetType, TokenStandard } from '../types/token';
 const EMPTY_ACCOUNTS: AccountRef[] = [];
 
 /**
+ * The pooled-staking vault token, surfaced as "Staked Ethereum" rather than a
+ * regular entry. Lowercased at module load so lookups are case-insensitive.
+ */
+const EXCLUDED_STAKED_ASSET_IDS: ReadonlySet<string> = new Set(
+  [
+    'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+    'eip155:560048/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+  ].map((assetId) => assetId.toLowerCase()),
+);
+
+/**
  * Chain-specific ERC-20s that duplicate the chain's native gas token (Arc
  * USDC, Stable USDT0). Keys and values are lowercased at module load so
  * lookups are case-insensitive.
- *
- * TODO: Duplicated from `app/enablement/assets/networks-customization.ts`,
- * where the equivalent `isExcludedAsset` is private. Replace with the central
- * helper once the assets team exports it.
  */
 const EXCLUDED_ASSET_ADDRESS_BY_CHAIN_ID: Record<string, string> =
   Object.fromEntries(
@@ -75,6 +87,14 @@ const EXCLUDED_ASSET_ADDRESS_BY_CHAIN_ID: Record<string, string> =
 interface AccountRef {
   id: string;
   type: string;
+}
+
+interface ParsedCaipAsset {
+  address: string | undefined;
+  caipChainId: CaipChainId;
+  chainId: string;
+  isEvm: boolean;
+  isNative: boolean;
 }
 
 export type ConfirmationAsset = AssetType & {
@@ -213,14 +233,7 @@ const selectAssetsByAccountGroupId = createSelector(
 
         const { address, chainId, isEvm, isNative } = parsed;
 
-        // Some chains expose an ERC-20 that duplicates the native gas token
-        // (Arc USDC, Stable USDT0). Including both double-counts the balance.
-        if (
-          !isNative &&
-          chainId &&
-          address &&
-          isExcludedAsset(chainId, address)
-        ) {
+        if (isExcludedAsset(typedAssetId, parsed)) {
           continue;
         }
 
@@ -359,11 +372,58 @@ function getDisplayRate({
   return price && 'usdPrice' in price ? price.usdPrice : undefined;
 }
 
-/** Whether the address is the excluded ERC-20 for the chain. */
-function isExcludedAsset(chainId: string, address: string): boolean {
+/**
+ * The fiat amount to display for a balance.
+ *
+ * A zero balance is worth zero in every currency, so it displays as `$0` even
+ * with no price available. Without that branch a priceless zero-balance token
+ * renders a blank cell instead.
+ */
+function deriveDisplayBalance(
+  humanBalance: number,
+  isBalanceUsable: boolean,
+  displayRate: number | undefined,
+): number | undefined {
+  if (!isBalanceUsable) {
+    return undefined;
+  }
+
+  if (displayRate !== undefined) {
+    return humanBalance * displayRate;
+  }
+
+  return humanBalance === 0 ? 0 : undefined;
+}
+
+/**
+ * Whether a held asset should never appear in the confirmation token list:
+ * Tron network resources, the pooled-staking vault token, native tokens on
+ * chains that have none, and ERC-20s duplicating the native gas token.
+ *
+ * TODO: Duplicates rules that are private to `app/core/Multichain`,
+ * `app/selectors/assets/assets-migration.ts` and
+ * `app/enablement/assets/networks-customization.ts`. The assets team should
+ * expose this as one universal util from the controller.
+ */
+function isExcludedAsset(
+  assetId: CaipAssetType,
+  { address, caipChainId, chainId, isNative }: ParsedCaipAsset,
+): boolean {
+  if (
+    isTronSpecialAsset(assetId) ||
+    EXCLUDED_STAKED_ASSET_IDS.has(assetId.toLowerCase())
+  ) {
+    return true;
+  }
+
+  if (isNative) {
+    return CHAIN_IDS_WITH_NO_NATIVE_TOKEN.includes(caipChainId);
+  }
+
   return (
+    Boolean(address) &&
     EXCLUDED_ASSET_ADDRESS_BY_CHAIN_ID[chainId.toLowerCase()] ===
-    address.toLowerCase()
+      (address as string).toLowerCase()
   );
 }
 
@@ -394,8 +454,10 @@ function decorateAsset({
   // `useSendActions` casts it to `CaipAssetType`.
   const publicAssetId = isEvm ? address : assetId;
 
+  // `isNetworkTestnet` handles both hex and CAIP chain IDs, so non-EVM
+  // testnets (Solana Devnet, Bitcoin testnets) are covered too.
   const isFiatHidden =
-    !showFiatOnTestnets && Boolean(chainId) && isTestNet(chainId as Hex);
+    !showFiatOnTestnets && Boolean(chainId) && isNetworkTestnet(chainId);
 
   const decimals = 'decimals' in metadata ? metadata.decimals : 0;
 
@@ -419,10 +481,11 @@ function decorateAsset({
     stablecoins,
   });
 
-  const displayBalance =
-    isBalanceUsable && displayRate !== undefined
-      ? humanBalance * displayRate
-      : undefined;
+  const displayBalance = deriveDisplayBalance(
+    humanBalance,
+    isBalanceUsable,
+    displayRate,
+  );
 
   return {
     accountId,
@@ -466,14 +529,7 @@ function decorateAsset({
  * needs. Returns `undefined` for IDs that cannot be parsed rather than
  * throwing, so one malformed entry cannot break the whole list.
  */
-function parseCaipAsset(assetId: CaipAssetType):
-  | {
-      address: string | undefined;
-      chainId: string;
-      isEvm: boolean;
-      isNative: boolean;
-    }
-  | undefined {
+function parseCaipAsset(assetId: CaipAssetType): ParsedCaipAsset | undefined {
   try {
     const {
       chainId: caipChainId,
@@ -502,6 +558,7 @@ function parseCaipAsset(assetId: CaipAssetType):
 
     return {
       address,
+      caipChainId,
       chainId,
       isEvm,
       isNative,
