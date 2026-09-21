@@ -47,6 +47,12 @@ jest.mock('../../hooks/useRewardsToast', () => ({
   }),
 }));
 
+const openPrototype = (
+  getByTestId: (id: string) => React.ReactTestInstance,
+) => {
+  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
+};
+
 describe('EarningsTab', () => {
   beforeEach(() => {
     mockShowToast.mockClear();
@@ -61,14 +67,62 @@ describe('EarningsTab', () => {
     jest.restoreAllMocks();
   });
 
-  it('animates available-to-claim to zero when Claim is pressed with reduce motion', async () => {
+  it('opens the prototype picker when Claim is pressed', () => {
+    const { getByTestId, queryByTestId } = render(<EarningsTab />);
+
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_SHEET),
+    ).toBeNull();
+
+    openPrototype(getByTestId);
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the tax form required sheet from US - first time', () => {
+    const { getByTestId, queryByTestId } = render(<EarningsTab />);
+
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_FIRST_TIME),
+    );
+
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_SHEET),
+    ).toBeNull();
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the pending-review sheet from US - pending', () => {
+    const { getByTestId } = render(<EarningsTab />);
+
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_PENDING),
+    );
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_PENDING_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('runs the claim animation from US - approved with reduce motion', async () => {
     const onClaimableChange = jest.fn();
-    const { getByTestId } = render(
+    const { getByTestId, getByText } = render(
       <EarningsTab onClaimableChange={onClaimableChange} />,
     );
 
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_APPROVED),
+    );
 
+    expect(getByText('rewards.kol.claimed')).toBeOnTheScreen();
+    expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toBeDisabled();
     await waitFor(() => {
       expect(
         getByTestId(KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM),
@@ -78,23 +132,50 @@ describe('EarningsTab', () => {
     expect(mockSuccessToast).toHaveBeenCalledWith(
       'rewards.kol.claim_success_toast',
     );
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
   });
 
-  it('marks the button claimed and disabled without waiting for the count-down', async () => {
+  it('opens the location sheet from Elsewhere', () => {
+    const { getByTestId } = render(<EarningsTab />);
+
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_ELSEWHERE),
+    );
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('claims when all activity is confirmed as outside the US', async () => {
     const { getByTestId, getByText } = render(<EarningsTab />);
 
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_ELSEWHERE),
+    );
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
 
     expect(getByText('rewards.kol.claimed')).toBeOnTheScreen();
-    expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toBeDisabled();
-
-    // Let the reduce-motion check settle so its state update stays inside act.
-    await waitFor(() =>
+    await waitFor(() => {
       expect(
         getByTestId(KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM),
-      ).toHaveTextContent(formatUsd(0)),
+      ).toHaveTextContent(formatUsd(0));
+    });
+  });
+
+  it('opens the claim-on-hold sheet when some activity was in the US', () => {
+    const { getByTestId } = render(<EarningsTab />);
+
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_ELSEWHERE),
     );
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
+    ).toBeOnTheScreen();
   });
 
   it('previews five history rows with two-decimal amounts', () => {

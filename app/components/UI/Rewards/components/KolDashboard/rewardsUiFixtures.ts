@@ -17,6 +17,12 @@ export const KOL_INVITE_FIXTURE = {
   codeLength: 6,
 };
 
+/**
+ * Partner tax-form URL opened from the claim gate. Engineers replace this
+ * with the live onboarding link once the tax vendor is wired.
+ */
+export const KOL_TAX_FORM_URL = 'https://link.metamask.io/rewards/tax-form';
+
 export type KolEarningsHistoryKind =
   | 'rebate'
   | 'referrals'

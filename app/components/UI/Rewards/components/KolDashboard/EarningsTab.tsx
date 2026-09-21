@@ -37,6 +37,13 @@ import {
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
+import ClaimPrototypeSheet, {
+  type ClaimPrototypeOption,
+} from './ClaimPrototypeSheet';
+import TaxFormRequiredSheet from './TaxFormRequiredSheet';
+import TaxFormPendingSheet from './TaxFormPendingSheet';
+import RewardsLocationSheet from './RewardsLocationSheet';
+import ClaimOnHoldSheet from './ClaimOnHoldSheet';
 
 const BREAKDOWN_ROWS: {
   kind: Extract<KolEarningsHistoryKind, 'referrals' | 'commission' | 'rebate'>;
@@ -66,6 +73,14 @@ interface EarningsTabProps {
   hideReferrals?: boolean;
 }
 
+type ClaimSheet =
+  | 'hidden'
+  | 'prototype'
+  | 'taxRequired'
+  | 'taxPending'
+  | 'location'
+  | 'claimOnHold';
+
 const COUNTDOWN_DURATION_MS = 700;
 const OPACITY_DURATION_MS = 350;
 // The bills keep falling after the amount settles: the last one starts at
@@ -83,6 +98,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   );
   const [isFalling, setIsFalling] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
+  const [claimSheet, setClaimSheet] = useState<ClaimSheet>('hidden');
   const amountOpacity = useRef(new Animated.Value(1)).current;
   const animationFrameRef = useRef<number | undefined>(undefined);
   const moneyFallTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -167,10 +183,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     [amountOpacity, animateAmountToZero],
   );
 
-  const handleClaim = useCallback(() => {
+  const completeClaim = useCallback(() => {
     if (available <= 0 || isClaimed) {
       return;
     }
+    setClaimSheet('hidden');
     // The button settles into its claimed state right away rather than waiting
     // for the count-down to finish.
     setIsClaimed(true);
@@ -199,12 +216,73 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     RewardsToastOptions,
   ]);
 
+  const handleClaim = useCallback(() => {
+    if (available <= 0 || isClaimed) {
+      return;
+    }
+    setClaimSheet('prototype');
+  }, [available, isClaimed]);
+
+  const handleCloseClaimSheet = useCallback(() => {
+    setClaimSheet('hidden');
+  }, []);
+
+  const handleSelectPrototypeOption = useCallback(
+    (option: ClaimPrototypeOption) => {
+      if (option === 'usFirstTime') {
+        setClaimSheet('taxRequired');
+        return;
+      }
+      if (option === 'usPending') {
+        setClaimSheet('taxPending');
+        return;
+      }
+      if (option === 'usApproved') {
+        completeClaim();
+        return;
+      }
+      setClaimSheet('location');
+    },
+    [completeClaim],
+  );
+
+  const handleConfirmAllOutsideUs = useCallback(() => {
+    completeClaim();
+  }, [completeClaim]);
+
+  const handleConfirmSomeUsActivity = useCallback(() => {
+    setClaimSheet('claimOnHold');
+  }, []);
+
   return (
     <Box
       twClassName="mt-3 pt-4 pb-6"
       testID={KOL_DASHBOARD_SELECTORS.EARNINGS_TAB}
     >
       <ClaimMoneyFallOverlay visible={isFalling} />
+      <ClaimPrototypeSheet
+        isVisible={claimSheet === 'prototype'}
+        onClose={handleCloseClaimSheet}
+        onSelect={handleSelectPrototypeOption}
+      />
+      <TaxFormRequiredSheet
+        isVisible={claimSheet === 'taxRequired'}
+        onClose={handleCloseClaimSheet}
+      />
+      <TaxFormPendingSheet
+        isVisible={claimSheet === 'taxPending'}
+        onClose={handleCloseClaimSheet}
+      />
+      <RewardsLocationSheet
+        isVisible={claimSheet === 'location'}
+        onClose={handleCloseClaimSheet}
+        onConfirmAllOutsideUs={handleConfirmAllOutsideUs}
+        onConfirmSomeUsActivity={handleConfirmSomeUsActivity}
+      />
+      <ClaimOnHoldSheet
+        isVisible={claimSheet === 'claimOnHold'}
+        onClose={handleCloseClaimSheet}
+      />
       <Box twClassName="px-4">
         <Box twClassName="overflow-hidden rounded-2xl bg-muted">
           <Box
