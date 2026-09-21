@@ -11778,8 +11778,10 @@
   "token_watchlist": {
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
+    "add_to_watchlist": "Add to watchlist",
     "home_empty_title": "Watchlist",
     "home_empty_subtitle": "You have no watchlist items yet",
+    "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
     "edit": "Edit",
