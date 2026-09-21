@@ -8,17 +8,13 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
   Text,
   TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
@@ -126,7 +122,17 @@ export const LimitOrderConfirmationModal = ({
           </Text>
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <DetailRow label={strings('bridge.cost_tolerance')}>
+        <DetailRow
+          label={strings('bridge.cost_tolerance')}
+          labelAccessory={
+            <LimitOrderCostToleranceTooltip
+              testID={
+                LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
+              }
+            />
+          }
+          testID={LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -137,36 +143,28 @@ export const LimitOrderConfirmationModal = ({
             </Text>
           </Box>
         </DetailRow>
-        {delegationFee.status !== 'not-required' && (
-          <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        )}
-        <DetailRow
-          label={strings('bridge.limit.est_network_fee')}
-          testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
-          error={delegationFee.status === 'error'}
-          hidden={delegationFee.status === 'not-required'}
-        >
-          {delegationFee.status === 'loading' ? (
-            <Skeleton
-              width={64}
-              height={20}
-              testID={
-                LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE_SKELETON
-              }
-            />
-          ) : (
-            <TokenAmountValue
-              amount={
-                delegationFee.status === 'ready'
-                  ? delegationFee.displayFee
-                  : '--'
-              }
-              token={feeToken}
+        {(delegationFee.status === 'ready' ||
+          delegationFee.status === 'error') && (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <DetailRow
+              label={strings('bridge.limit.est_network_fee')}
+              testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
               error={delegationFee.status === 'error'}
-              withNetworkBadge
-            />
-          )}
-        </DetailRow>
+            >
+              <TokenAmountValue
+                amount={
+                  delegationFee.status === 'ready'
+                    ? delegationFee.displayFee
+                    : '--'
+                }
+                token={feeToken}
+                error={delegationFee.status === 'error'}
+                withNetworkBadge
+              />
+            </DetailRow>
+          </>
+        )}
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
