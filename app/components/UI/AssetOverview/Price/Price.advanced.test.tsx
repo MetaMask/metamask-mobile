@@ -46,7 +46,7 @@ const {
   selectTokenOverviewChartInterval: selectTokenOverviewChartIntervalActual,
 } = jest.requireActual('../../../../reducers/user/selectors');
 
-const mockUseSelector = jest.fn((selector: unknown) => {
+const mockUseSelector = jest.fn((selector: unknown): unknown => {
   if (selector === selectTokenIndicatorsActual) return [];
   if (selector === selectTokenOverviewChartIntervalActual) return '15m';
   if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
