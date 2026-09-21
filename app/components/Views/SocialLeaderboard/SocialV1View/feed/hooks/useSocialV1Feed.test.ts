@@ -1,18 +1,106 @@
-import { renderHook } from '@testing-library/react-native';
-import { MOCK_SOCIAL_V1_FEED_ITEMS } from '../mocks/socialV1Feed.mock';
+import { renderHook, act } from '@testing-library/react-native';
+import {
+  MOCK_SOCIAL_V1_FEED_ITEMS,
+  mockOpenPerpsFeedItem,
+} from '../mocks/socialV1Feed.mock';
+import {
+  resetSocialV1ComposedFeedStore,
+  startSocialV1PendingPostCountdown,
+  submitSocialV1ComposedPost,
+  COMPOSER_POSTING_DELAY_MS,
+} from '../store/socialV1ComposedFeedStore';
 import { useSocialV1Feed } from './useSocialV1Feed';
 
 describe('useSocialV1Feed', () => {
-  it('returns the three mocked V1 feed variants', () => {
-    const { result } = renderHook(() => useSocialV1Feed());
+  beforeEach(() => {
+    jest.useFakeTimers();
+    act(() => {
+      resetSocialV1ComposedFeedStore();
+    });
+  });
 
-    expect(result.current.items.map((item) => item.variant)).toEqual([
+  afterEach(() => {
+    act(() => {
+      resetSocialV1ComposedFeedStore();
+    });
+    jest.useRealTimers();
+  });
+
+  it('returns wrapped mock posts on Trending', () => {
+    const { result } = renderHook(() => useSocialV1Feed('trending'));
+
+    expect(result.current.posts).toHaveLength(MOCK_SOCIAL_V1_FEED_ITEMS.length);
+    expect(result.current.posts.map((post) => post.item.variant)).toEqual([
       'perpsOpen',
+      'spotOpen',
       'perpsClosed',
-      'spotCompact',
+      'spotClosed',
     ]);
-    expect(result.current.items).toHaveLength(MOCK_SOCIAL_V1_FEED_ITEMS.length);
+    expect(result.current.pendingPost).toBeNull();
+    expect(result.current.pendingStartedAtMs).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it('keeps composed posts off the Following tab', () => {
+    const composed = {
+      id: 'composed-1',
+      authorHandle: 'giga-whale',
+      timestampMs: Date.now(),
+      likeCount: 0,
+      commentCount: 0,
+      item: mockOpenPerpsFeedItem({
+        id: 'composed-item',
+        comment: 'this is alpha',
+      }),
+    };
+
+    submitSocialV1ComposedPost(composed);
+
+    const { result } = renderHook(() => useSocialV1Feed('following'));
+
+    expect(result.current.posts.every((post) => post.id !== composed.id)).toBe(
+      true,
+    );
+    expect(result.current.pendingPost).toBeNull();
+  });
+
+  it('prepends a composed post on Trending after the posting delay', () => {
+    const composed = {
+      id: 'composed-1',
+      authorHandle: 'giga-whale',
+      timestampMs: Date.now(),
+      likeCount: 0,
+      commentCount: 0,
+      item: mockOpenPerpsFeedItem({
+        id: 'composed-item',
+        comment: 'this is alpha',
+      }),
+    };
+
+    const { result } = renderHook(() => useSocialV1Feed('trending'));
+
+    act(() => {
+      submitSocialV1ComposedPost(composed);
+    });
+
+    expect(result.current.pendingPost?.item.comment).toBe('this is alpha');
+    // The clock only starts once the banner is on screen, so the post is still
+    // pending here no matter how much time passes.
+    expect(result.current.pendingStartedAtMs).toBeNull();
+
+    act(() => {
+      startSocialV1PendingPostCountdown();
+    });
+
+    expect(result.current.pendingStartedAtMs).not.toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+    });
+
+    expect(result.current.pendingPost).toBeNull();
+    expect(result.current.pendingStartedAtMs).toBeNull();
+    expect(result.current.posts[0].id).toBe(composed.id);
   });
 });

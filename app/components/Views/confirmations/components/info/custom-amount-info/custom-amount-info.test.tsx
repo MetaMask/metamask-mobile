@@ -592,31 +592,21 @@ describe('CustomAmountInfo', () => {
       });
     });
 
-    it('applies 16dp paddingBottom to the bottom block on Android', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
+    it.each(['android', 'ios'])(
+      'applies 16dp paddingBottom to the bottom block on %s',
+      (platformOS) => {
+        Object.defineProperty(Platform, 'OS', {
+          value: platformOS,
+          writable: true,
+        });
 
-      const { getByTestId } = render();
+        const { getByTestId } = render();
 
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
-        paddingBottom: 16,
-      });
-    });
-
-    it('does not apply paddingBottom to the bottom block on iOS', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'ios',
-        writable: true,
-      });
-
-      const { getByTestId } = render();
-
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
-        paddingBottom: 0,
-      });
-    });
+        expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+          paddingBottom: 16,
+        });
+      },
+    );
   });
 
   it('renders footerText when passed in', () => {
