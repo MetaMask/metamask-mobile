@@ -1,6 +1,9 @@
 import React, { ReactNode } from 'react';
 import { ViewStyle } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+
+export const NAVBAR_SHEET_HANDLE_TEST_ID = 'navbar-sheet-handle';
 
 /**
  * Optional overrides for navbar customization.
@@ -24,6 +27,13 @@ export interface NavbarOptions {
   theme?: unknown;
   overrides?: NavbarOverrides;
   mmPayRequestInProgressNavHandler?: React.RefObject<(() => void) | false>;
+  /**
+   * Set when the confirmation is presented as a sheet instead of filling the
+   * window. The sheet already starts below the notch, so the header must not
+   * add the top inset on top of that, and it gets a drag handle like other
+   * sheets.
+   */
+  sheetPresentation?: boolean;
 }
 
 export function getNavbar({
@@ -32,6 +42,7 @@ export function getNavbar({
   addBackButton = true,
   overrides,
   mmPayRequestInProgressNavHandler,
+  sheetPresentation = false,
 }: NavbarOptions) {
   function handleBackPress() {
     if (mmPayRequestInProgressNavHandler?.current) {
@@ -52,22 +63,42 @@ export function getNavbar({
     : undefined;
 
   return {
-    header: () => (
-      <HeaderCompactStandard
-        title={title}
-        onBack={addBackButton ? handleBackPress : undefined}
-        backButtonProps={
-          addBackButton ? { testID: `${title}-navbar-back-button` } : undefined
-        }
-        startAccessory={customLeft}
-        endAccessory={customRight}
-        style={overrides?.headerStyle}
-        includesTopInset
-        twClassName="bg-default"
-      >
-        {customTitle}
-      </HeaderCompactStandard>
-    ),
+    header: () => {
+      const header = (
+        <HeaderCompactStandard
+          title={title}
+          onBack={addBackButton ? handleBackPress : undefined}
+          backButtonProps={
+            addBackButton
+              ? { testID: `${title}-navbar-back-button` }
+              : undefined
+          }
+          startAccessory={customLeft}
+          endAccessory={customRight}
+          style={overrides?.headerStyle}
+          includesTopInset={!sheetPresentation}
+          twClassName="bg-default"
+        >
+          {customTitle}
+        </HeaderCompactStandard>
+      );
+
+      if (!sheetPresentation) {
+        return header;
+      }
+
+      return (
+        <Box twClassName="bg-default">
+          <Box
+            twClassName="items-center p-1"
+            testID={NAVBAR_SHEET_HANDLE_TEST_ID}
+          >
+            <Box twClassName="w-10 h-1 rounded-full bg-border-muted" />
+          </Box>
+          {header}
+        </Box>
+      );
+    },
   };
 }
 

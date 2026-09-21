@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { getNavbar } from './navbar';
+import { getNavbar, NAVBAR_SHEET_HANDLE_TEST_ID } from './navbar';
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -82,6 +82,52 @@ describe('getNavbar', () => {
       expect(
         queryByTestId('Test Title-navbar-back-button'),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('sheetPresentation', () => {
+    it('omits the drag handle by default', () => {
+      const { queryByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+          }).header()}
+        </>,
+      );
+
+      expect(queryByTestId(NAVBAR_SHEET_HANDLE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('renders the drag handle and keeps the title when presented as a sheet', () => {
+      const { getByTestId, getByText } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      expect(getByTestId(NAVBAR_SHEET_HANDLE_TEST_ID)).toBeOnTheScreen();
+      expect(getByText('Test Title')).toBeOnTheScreen();
+    });
+
+    it('keeps the back button working when presented as a sheet', () => {
+      const { getByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
   });
 

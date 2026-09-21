@@ -20,9 +20,14 @@ import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAc
 import { PlaceOrderParams } from '../types';
 import { RootState } from '../../../../reducers';
 
-interface PredictDepositAnalyticsParams {
+interface PredictDepositParams {
   amountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  /**
+   * Set by callers that already sit inside the Predict modal stack, where the
+   * confirmation is presented as a sheet rather than filling the window.
+   */
+  sheetPresentation?: boolean;
 }
 
 export const usePredictDeposit = () => {
@@ -43,11 +48,12 @@ export const usePredictDeposit = () => {
   );
 
   const deposit = useCallback(
-    async (params?: PredictDepositAnalyticsParams) => {
+    async (params?: PredictDepositParams) => {
       try {
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
           stack: Routes.PREDICT.ROOT,
+          sheetPresentation: params?.sheetPresentation,
         });
 
         depositWithConfirmation({}).catch((err) => {
