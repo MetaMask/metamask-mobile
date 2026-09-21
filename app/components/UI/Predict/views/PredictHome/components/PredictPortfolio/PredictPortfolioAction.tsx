@@ -77,9 +77,11 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
             />
           )}
         </Box>
+        {/* Locales such as Greek wrap this label onto a second line, which
+            defaults to left alignment inside the centered column. */}
         <Text
           fontWeight={FontWeight.Medium}
-          twClassName={disabled ? 'text-muted' : 'text-default'}
+          twClassName={`text-center ${disabled ? 'text-muted' : 'text-default'}`}
           variant={TextVariant.BodySm}
         >
           {label}
