@@ -162,7 +162,7 @@ export {
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  */
-const tapTestDappButtonAndWaitForConfirm = async (
+export const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
   description: string,
   expectedUrl?: string,
