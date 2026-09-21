@@ -102,9 +102,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          # 404 until the builder workflow reaches the default branch, and an
+          # empty list until its first successful run. Neither is a reason to
+          # fail the detector: it degrades to "history unknown" on its own.
           run_id=$(gh api \
             "repos/${{ github.repository }}/actions/workflows/flaky-unit-test-index.yml/runs?status=success&per_page=1" \
-            --jq '.workflow_runs[0].id // empty')
+            --jq '.workflow_runs[0].id // empty' 2>/dev/null || true)
           if [ -z "$run_id" ]; then
             echo "No history index build found; past flakiness will read as unknown."
           fi
