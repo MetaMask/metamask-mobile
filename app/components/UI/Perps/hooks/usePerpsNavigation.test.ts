@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import {
   PerpsMode,
   type PerpsActiveProviderMode,
+  type Position,
 } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -697,6 +698,36 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToTutorial(params);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, params);
+    });
+
+    it('opens the adjust margin screen for control', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'add');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'add',
+        enableHaptics: undefined,
+      });
+    });
+
+    it('opens the adjust margin bottom sheet for treatment', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'remove', {
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'remove',
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
     });
   });
 

@@ -35,6 +35,7 @@ import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsAdjustMarginBottomSheet from '../components/PerpsAdjustMarginBottomSheet';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
@@ -126,6 +127,20 @@ export const shouldRenderPerpsConfirmationLoader = (
   approvalRequest: unknown,
 ) => Boolean(useBottomSheet && !approvalRequest);
 
+export const getAdjustMarginOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: '',
+      }
+    : {
+        title: strings('perps.adjust_margin.title'),
+        headerShown: false,
+      };
+
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
@@ -186,6 +201,23 @@ const PerpsConfirmScreen = () => {
       <Confirm disableSafeArea />
     </NavigationContext.Provider>
   );
+};
+
+export const PerpsAdjustMarginRouter = () => {
+  const { params } =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsAdjustMargin'>>();
+
+  if (params?.useBottomSheet && params.position && params.mode) {
+    return (
+      <PerpsAdjustMarginBottomSheet
+        position={params.position}
+        initialMode={params.mode}
+        enableHaptics={params.enableHaptics}
+      />
+    );
+  }
+
+  return <PerpsAdjustMarginView />;
 };
 
 const PerpsModalStack = () => {
@@ -449,11 +481,10 @@ const PerpsScreenStack = () => {
               {/* Adjust Margin View */}
               <Stack.Screen
                 name={Routes.PERPS.ADJUST_MARGIN}
-                component={PerpsAdjustMarginView}
-                options={{
-                  title: strings('perps.adjust_margin.title'),
-                  headerShown: false,
-                }}
+                component={PerpsAdjustMarginRouter}
+                options={({ route }) =>
+                  getAdjustMarginOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Order Details View */}

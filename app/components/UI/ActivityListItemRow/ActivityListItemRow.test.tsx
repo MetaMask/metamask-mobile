@@ -180,6 +180,20 @@ jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
 
+const mockCachedEvmTransactions = new Map<
+  string,
+  { transactionProtocol?: string }
+>();
+
+jest.mock(
+  '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
+  () => ({
+    useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
+      (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
+      undefined,
+  }),
+);
+
 jest.mock('../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
   MUSD_TOKEN: { symbol: 'mUSD' },
@@ -413,6 +427,12 @@ const makeItem = (
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
+  if (overrides.transactionProtocol) {
+    mockCachedEvmTransactions.set(base.hash.toLowerCase(), {
+      transactionProtocol: overrides.transactionProtocol,
+    });
+  }
+
   if (type === 'send' || type === 'receive') {
     return {
       ...base,
@@ -437,14 +457,6 @@ const makeItem = (
     return {
       ...base,
       type,
-      raw: overrides.transactionProtocol
-        ? {
-            type: 'apiEvmTransaction',
-            data: {
-              transactionProtocol: overrides.transactionProtocol,
-            },
-          }
-        : undefined,
       data: {
         sourceToken: overrides.sourceToken as never,
         destinationToken: overrides.destinationToken as never,
@@ -455,14 +467,6 @@ const makeItem = (
   return {
     ...base,
     type,
-    raw: overrides.transactionProtocol
-      ? {
-          type: 'apiEvmTransaction',
-          data: {
-            transactionProtocol: overrides.transactionProtocol,
-          },
-        }
-      : undefined,
     data: {
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
@@ -473,6 +477,7 @@ const makeItem = (
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockCachedEvmTransactions.clear();
   jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
   jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
   jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);

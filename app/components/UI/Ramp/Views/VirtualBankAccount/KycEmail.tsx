@@ -1,5 +1,6 @@
 import React from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -15,6 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
 import { useKycEmailVerification } from './hooks/useKycEmailVerification';
 
 export const KycEmailSelectorsIDs = {
@@ -22,7 +24,19 @@ export const KycEmailSelectorsIDs = {
   BACK_BUTTON: 'vba-kyc-email-back-button',
   EMAIL_INPUT: 'vba-kyc-email-input',
   CONTINUE_BUTTON: 'vba-kyc-email-continue-button',
+  RESET_BUTTON: 'vba-kyc-email-reset-button',
+  CONTROLLER_STATE: 'vba-kyc-email-controller-state',
 } as const;
+
+const formatKycStateValue = (value: unknown): string => {
+  if (value === null || value === undefined) {
+    return 'null';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value);
+};
 
 const KycEmail = () => {
   const tw = useTailwind();
@@ -33,7 +47,15 @@ const KycEmail = () => {
     isContinueDisabled,
     goBack,
     startVerification,
+    resetKyc,
   } = useKycEmailVerification();
+  const kycControllerState = useSelector(
+    (state: RootState) => state.engine.backgroundState.KycController,
+  );
+  const controllerEmail = kycControllerState?.email ?? null;
+  const vendor = kycControllerState?.vendor ?? null;
+  const geoCountry = kycControllerState?.geoCountry ?? null;
+  const sessionStatus = kycControllerState?.sessionStatus ?? null;
 
   return (
     <SafeAreaView
@@ -84,8 +106,38 @@ const KycEmail = () => {
               }}
             />
           </Box>
+          <Box
+            marginTop={6}
+            gap={1}
+            testID={KycEmailSelectorsIDs.CONTROLLER_STATE}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              email: {formatKycStateValue(controllerEmail)}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              vendor: {formatKycStateValue(vendor)}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              geoCountry: {formatKycStateValue(geoCountry)}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              sessionStatus: {formatKycStateValue(sessionStatus)}
+            </Text>
+          </Box>
         </Box>
-        <Box padding={4}>
+        <Box padding={4} gap={3}>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -96,6 +148,16 @@ const KycEmail = () => {
             testID={KycEmailSelectorsIDs.CONTINUE_BUTTON}
           >
             {strings('virtual_bank_account.kyc_email.button')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={isVerifying}
+            onPress={resetKyc}
+            testID={KycEmailSelectorsIDs.RESET_BUTTON}
+          >
+            {strings('virtual_bank_account.kyc_email.reset_button')}
           </Button>
         </Box>
       </KeyboardAvoidingView>

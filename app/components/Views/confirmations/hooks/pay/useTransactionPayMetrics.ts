@@ -34,6 +34,11 @@ import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedAct
 import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { OnboardingCompletedAccountType } from '../../../../../util/analytics/onboardingCompletedAnalytics';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 
 const CRYPTO_ACCOUNT_TYPES = new Set<string>(
   Object.values(OnboardingCompletedAccountType),
@@ -75,6 +80,7 @@ export function useTransactionPayMetrics() {
   );
 
   const accountOverride = useTransactionAccountOverride();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
   const hasPayToken = !!payToken;
   const source = usePaySectionSourceMetrics(hasPayToken);
@@ -269,7 +275,8 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_account_type_recipient_selected = recipient.selected;
     properties.mm_pay_recipient_mm_account_switch_count = recipient.switchCount;
 
-    properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
+    properties.mm_pay_entry_point =
+      getEntryPoint(transactionMeta, payWithOption) ?? null;
   }
 
   properties.mm_pay_payment_method_available = availablePaymentMethods;
@@ -382,7 +389,15 @@ const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
 
 function getEntryPoint(
   transactionMeta: Parameters<typeof hasTransactionType>[0],
+  payWithOption: PayWithOption | undefined,
 ): MmPayEntryPoint | undefined {
+  // The transaction type describes the destination, so a perps / predict
+  // deposit started from the Money account UI would otherwise report the
+  // destination as its entry point. Only the Money UI passes this nav param.
+  if (payWithOption === PayWithOption.MoneyAccount) {
+    return 'money_account';
+  }
+
   for (const [types, entryPoint] of ENTRY_POINT_MAP) {
     if (hasTransactionType(transactionMeta, types)) {
       return entryPoint;
